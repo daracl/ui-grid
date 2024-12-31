@@ -1,0 +1,41 @@
+import { EditRenderer } from "@t/EditRenderer";
+import Render from "src/renderer/edit/Render";
+import * as utils from "src/util/utils";
+
+export const inputEvent = (field: EditRenderer, element: Element, renderInfo: Render) => {
+  element.addEventListener("input", (e: Event) => {
+    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
+    renderInfo.valid();
+  });
+};
+
+export const numberInputEvent = (field: EditRenderer, element: HTMLInputElement, renderInfo: Render) => {
+  element.addEventListener("keyup", (e: any) => {
+    const val = e.target.value;
+
+    if (!utils.isNumber(val)) {
+      element.value = val.replace(/[^0-9\.\-\+]/g, "");
+      e.preventDefault();
+    }
+    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
+    renderInfo.valid();
+  });
+
+  /*
+    element.addEventListener('input', (e: any) => {
+        customChangeEventCall(field, e, renderInfo);
+        renderInfo.valid();
+    })
+    */
+};
+
+export const dropdownChangeEvent = (field: EditRenderer, element: Element, renderInfo: Render) => {
+  element.addEventListener("change", (e: any) => {
+    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
+    renderInfo.valid();
+  });
+};
+
+export const customChangeEventCall = (field: EditRenderer, e: Event, renderInfo: Render, value: any) => {
+  renderInfo.changeEventCall(field, e, renderInfo, value);
+};
