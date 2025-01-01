@@ -1,5 +1,5 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "src/renderer/edit/Render";
+import Render from "src/renderer/edit/Renderer";
 import * as utils from "src/util/utils";
 
 export const inputEvent = (field: EditRenderer, element: Element, renderInfo: Render) => {

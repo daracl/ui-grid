@@ -1,5 +1,5 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Render from "./Renderer";
 import { stringValidator } from "src/rule/stringValidator";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import DaraForm from "src/DaraGrid";

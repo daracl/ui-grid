@@ -1,4 +1,4 @@
-import { FormOptions } from "@t/GridOptions";
+import { GridOptions } from "@t/GridOptions";
 import { EditRenderer } from "@t/EditRenderer";
 import * as utils from "./util/utils";
 import { ValidResult } from "@t/ValidResult";
@@ -25,29 +25,29 @@ const defaultOptions = {
   autoCreate: true,
   notValidMessage: "This form is not valid.",
   fields: [],
-} as FormOptions;
+} as GridOptions;
 
 interface FieldMap {
   [key: string]: EditRenderer;
 }
 
-interface DaraFormMap {
-  [key: string]: DaraForm;
+interface DaraGridMap {
+  [key: string]: DaraGrid;
 }
 
 // all instance
-const allInstance: DaraFormMap = {};
+const allInstance: DaraGridMap = {};
 
-const SEQ_ATTR_KEY = "data-form-uid";
+const SEQ_ATTR_KEY = "data-grid-uid";
 
 let DARA_FORM_SEQ = 0;
 /**
- * DaraForm class
+ * DaraGrid class
  *
- * @class DaraForm
- * @typedef {DaraForm}
+ * @class DaraGrid
+ * @typedef {DaraGrid}
  */
-export default class DaraForm {
+export default class DaraGrid {
   public static VERSION = `${APP_VERSION}`;
 
   private readonly options;
@@ -92,8 +92,8 @@ export default class DaraForm {
     }
   }
 
-  public static create(formElement: Element, options: FormOptions, message?: Message): DaraForm {
-    return new DaraForm(formElement, options, message);
+  public static create(formElement: Element, options: FormOptions, message?: Message): DaraGrid {
+    return new DaraGrid(formElement, options, message);
   }
 
   public static setMessage(message: Message): void {

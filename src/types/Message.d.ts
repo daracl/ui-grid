@@ -37,4 +37,10 @@ export interface Message {
     "upper-char-special": string;
     "upper-char-special-number": string;
   };
+
+  "setting.label": string;
+  "search.button": string;
+  "setting.speed.label": string;
+  "setting.column.fixed.label": string;
+  "setting.column.fixed.notused": string;  
 }

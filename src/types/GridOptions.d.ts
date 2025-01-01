@@ -1,5 +1,7 @@
 import { FORM_MODE, POSITION_TYPE, RENDER_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
+import { ColumnItem } from "./GridField";
+
 
 /**
  * grid options
@@ -100,19 +102,8 @@ export interface GridOptions {
    */
   operators: any;
 
-  field:field
+  field:ColumnItem[];
 }
-
-
-i18n: {
-  "setting.label": "설정",
-  "search.button": "Search",
-  "setting.speed.label": "스크롤속도",
-  "setting.column.fixed.label": "고정컬럼",
-  "setting.column.fixed.notused": "사용안함",
-},
-
-
 
 /**
  * header options
@@ -370,12 +361,13 @@ export interface ToolbarItem {
    */
   renderItem?:{
     list: RenderItem[]
-  }
+  };
   /**
    * 값 변경시 callback
    */
   change?: OptionCallback;
 }
+
 
 /**
  * Render item
@@ -384,7 +376,7 @@ export interface ToolbarItem {
  * @interface RenderItem
  * @typedef {RenderItem}
  */
-export type RenderItem{
+export interface RenderItem {
   /**
    * label
    */
@@ -402,7 +394,7 @@ export type RenderItem{
  * @interface AsideOptions
  * @typedef {AsideOptions}
  */
-export type AsideOptions{
+export interface AsideOptions {
   /**
    * 번호 보일지 여부
    */
@@ -471,7 +463,7 @@ export type AsideOptions{
  * @interface BodyOptions
  * @typedef {BodyOptions}
  */
-export type BodyOptions{
+export interface BodyOptions{
   /**
    * body cell double click
    */
@@ -489,7 +481,7 @@ export type BodyOptions{
  * @interface ScrollOptions
  * @typedef {ScrollOptions}
  */
-export type ScrollOptions{
+export interface ScrollOptions {
   /**
    * 이벤트 전파 여부.
    */
@@ -546,7 +538,7 @@ export type ScrollOptions{
  * @interface NavigationOptions
  * @typedef {NavigationOptions}
  */
-export type NavigationOptions{
+export interface NavigationOptions{
   /**
    * navigation page 사용여부
    */
@@ -582,5 +574,5 @@ export type NavigationOptions{
 }
 
 
-export type PagingOptions{
+export interface PagingOptions{
 }

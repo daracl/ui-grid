@@ -1,11 +1,11 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { numberValidator } from "src/rule/numberValidator";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { customChangeEventCall, numberInputEvent } from "src/event/renderEvents";
 import DaraForm from "src/DaraGrid";
 
-export default class RangeRender extends Render {
+export default class RangeRender extends Renderer {
   private element: HTMLInputElement;
   private rangeNumElement: Element;
 

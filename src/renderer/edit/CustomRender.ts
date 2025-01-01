@@ -1,5 +1,5 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Render from "./Renderer";
 import { invalidMessage, resetRowElementStyleClass } from "src/util/validUtils";
 import DaraForm from "src/DaraGrid";
 import * as utils from "src/util/utils";

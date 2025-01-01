@@ -1,11 +1,11 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { stringValidator } from "src/rule/stringValidator";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { inputEvent } from "src/event/renderEvents";
 import DaraForm from "src/DaraGrid";
 
-export default class TextAreaRender extends Render {
+export default class TextAreaRender extends Renderer {
   private element: HTMLTextAreaElement;
 
   constructor(field: EditRenderer, rowElement: HTMLElement, daraForm: DaraForm) {

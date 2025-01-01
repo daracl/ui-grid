@@ -1,5 +1,5 @@
 import { FileInfo, EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { fileValidator } from "src/rule/fileValidator";
 import Lanauage from "src/util/Lanauage";
@@ -7,7 +7,7 @@ import { customChangeEventCall } from "src/event/renderEvents";
 import DaraForm from "src/DaraGrid";
 import * as utils from "src/util/utils";
 
-export default class FileRender extends Render {
+export default class FileRender extends Renderer {
   private element: HTMLInputElement;
   private removeIds: any[] = [];
   private uploadFiles: any = {};

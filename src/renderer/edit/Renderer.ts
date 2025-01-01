@@ -3,7 +3,7 @@ import { ValidResult } from "@t/ValidResult";
 import DaraForm from "src/DaraGrid";
 import * as utils from "src/util/utils";
 
-export default abstract class Render {
+export default abstract class Renderer {
   protected daraForm;
   protected rowElement;
   protected field;

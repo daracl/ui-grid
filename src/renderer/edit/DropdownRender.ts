@@ -1,5 +1,5 @@
 import { EditRenderer, ValuesInfo } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
@@ -8,7 +8,7 @@ import DaraForm from "src/DaraGrid";
 import * as utils from "src/util/utils";
 import Lanauage from "src/util/Lanauage";
 
-export default class DropdownRender extends Render {
+export default class DropdownRender extends Renderer {
   private element: HTMLSelectElement;
   private defaultSelected;
 

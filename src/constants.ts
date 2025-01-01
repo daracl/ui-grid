@@ -5,17 +5,27 @@ import TextRender from "src/renderer/edit/TextRender";
 import CheckboxRender from "src/renderer/edit/CheckboxRender";
 import RadioRender from "src/renderer/edit/RadioRender";
 import PasswordRender from "src/renderer/edit/PasswordRender";
-import FileRender from "src/renderer/edit/FileRender";
 import CustomRender from "./renderer/edit/CustomRender";
-import GroupRender from "./renderer/edit/GroupRender";
-import HiddenRender from "./renderer/edit/HiddenRender";
 import ButtonRender from "./renderer/view/ButtonRenderer";
 import RangeRender from "./renderer/edit/RangeRender";
 import DateRender from "./renderer/edit/DateRender";
-import TabRender from "./renderer/edit/TabRender";
-import GridRender from "./renderer/edit/GridRender";
+import {StringArrayMap} from "@t/DataMap";
 
-export type FORM_MODE = "new" | "modify" | "view";
+
+export type MODE = "edit" | "view";
+
+// copy type
+export type COPY_MODE = "single"|"multiple"| "none";
+
+// align type
+export type ALIGN_TYPE = "left"|"center"| "right";
+
+// 선택 타입 
+export type SELECTION_TYPE = "row"|"cell"|"multiple-row"|"multiple-cell";
+
+// theme type
+export type THEME_TYPE = "light"|"dark";
+
 
 export const RULES = {
   NAN: "nan",
@@ -44,18 +54,13 @@ export const RENDER_TEMPLATE: any = {
   radio: RadioRender,
   text: TextRender,
   password: PasswordRender,
-  file: FileRender,
   custom: CustomRender,
-  group: GroupRender,
-  hidden: HiddenRender,
   button: ButtonRender,
   range: RangeRender,
   datehour: DateRender,
   datemonth: DateRender,
   date: DateRender,
   datetime: DateRender,
-  tab: TabRender,
-  grid: GridRender,
 };
 
 export const ALIGN = {
@@ -76,29 +81,5 @@ export type REGEXP_TYPE = "email" | "url" | "alpha" | "alpha-num";
 
 export type PASSWORD_TYPE = "number" | "upper" | "upper-special" | "upper-special-number"; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
 
-export type FIELD_POSITION = "top" | "left" | "left-left" | "left-right" | "right" | "right-left" | "right-right" | "bottom";
-
 export type ORIENTATION_TYPE = "horizontal" | "vertical";
 
-interface StringArrayMap {
-  [key: string]: string[];
-}
-
-export const FIELD_POSITION_STYLE: StringArrayMap = {
-  "top-left": ["top", "txt-left"],
-  "top-center": ["top", "txt-center"],
-  "top-right": ["top", "txt-right"],
-  "left-left": ["", "txt-left"],
-  "left-center": ["", "txt-center"],
-  "left-right": ["", "txt-right"],
-  "right-right": ["right", "txt-right"],
-  "right-center": ["right", "txt-center"],
-  "right-left": ["right", "txt-left"],
-  "bottom-left": ["bottom", "txt-left"],
-  "bottom-center": ["bottom", "txt-center"],
-  "bottom-right": ["bottom", "txt-right"],
-};
-FIELD_POSITION_STYLE["top"] = FIELD_POSITION_STYLE["top-left"];
-FIELD_POSITION_STYLE["right"] = FIELD_POSITION_STYLE["right-right"];
-FIELD_POSITION_STYLE["left"] = FIELD_POSITION_STYLE["left-left"];
-FIELD_POSITION_STYLE["bottom"] = FIELD_POSITION_STYLE["bottom-left"];

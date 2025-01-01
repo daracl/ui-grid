@@ -1,11 +1,11 @@
 import { EditRenderer } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { stringValidator } from "src/rule/stringValidator";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { inputEvent } from "src/event/renderEvents";
 import DaraForm from "src/DaraGrid";
 
-export default class PasswordRender extends Render {
+export default class PasswordRender extends Renderer {
   private element: HTMLInputElement;
 
   constructor(field: EditRenderer, rowElement: HTMLElement, daraForm: DaraForm) {

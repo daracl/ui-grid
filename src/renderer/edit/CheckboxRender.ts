@@ -1,5 +1,5 @@
 import { EditRenderer, ValuesInfo } from "@t/EditRenderer";
-import Render from "./Render";
+import Render from "./Renderer";
 import * as utils from "src/util/utils";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";

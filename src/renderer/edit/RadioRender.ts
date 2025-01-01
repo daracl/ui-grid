@@ -1,5 +1,5 @@
 import { EditRenderer, ValuesInfo } from "@t/EditRenderer";
-import Render from "./Render";
+import Renderer from "./Renderer";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
@@ -7,7 +7,7 @@ import { customChangeEventCall } from "src/event/renderEvents";
 import DaraForm from "src/DaraGrid";
 import * as utils from "src/util/utils";
 
-export default class RadioRender extends Render {
+export default class RadioRender extends Renderer {
   private defaultCheckValue;
 
   constructor(field: EditRenderer, rowElement: HTMLElement, daraForm: DaraForm) {
