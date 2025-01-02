@@ -34,7 +34,7 @@ export interface ColumnItem {
   /**
    * value type
    */
-  type: string;
+  dataType: string;
   /**
    * VIEW_RENDER_TYPE
    */

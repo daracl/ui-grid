@@ -68,4 +68,25 @@ export interface GridConfig {
     filterCheckItem: boolean; // filter info {checkFn; check condition}
   };
   fixedHeaderIndex: number;
+  scroll: {
+    /**
+     * 스크롤 데이터 초기화
+     */
+    containerLeft: number;
+    before: any;
+    top: number;
+    left: number;
+    startCol: number;
+    endCol: number;
+    viewIdx: number;
+    vBarPosition: number;
+    hBarPosition: number;
+    maxViewCount: number;
+    viewCount: number;
+    vTrackHeight: number;
+    hTrackWidth: number;
+    verticalScrollTimer: number;
+    horizontalScrollTimer: number;
+    mouseDown: boolean;
+  };
 }

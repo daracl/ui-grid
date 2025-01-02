@@ -72,68 +72,90 @@ export const isArray = (value: any): value is Array<any> => {
 };
 
 /**
+ * event key code
+ * @param e Event
+ * @returns
+ */
+export const eventKeyCode = (e: any) => {
+  return window.event ? e.keyCode : e.which;
+};
+
+/**
+ * event position
+ *
+ * @param e event
+ * @returns
+ */
+export const evtPos = (e: any) => {
+  const oe = e.originalEvent;
+  let evt;
+  if (oe) {
+    if (oe.changedTouches) {
+      evt = oe.changedTouches[0];
+    } else if (oe.touches) {
+      evt = oe[0];
+    }
+  }
+
+  evt = evt || e;
+
+  return { x: evt.pageX, y: evt.pageY };
+};
+
+/**
+ * event stop
+ *
+ * @param e event
+ */
+export const stopPreventCancel = (e: Event) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
+
+export const copyStringToClipboard = (prefix: string, copyText: string) => {
+  if (navigator.clipboard) {
+    navigator.clipboard
+      .writeText(copyText)
+      .then(() => {})
+      .catch((err) => {
+        console.log(err);
+        fallbackCopyToClipboard(prefix, copyText);
+      });
+  } else {
+    fallbackCopyToClipboard(prefix, copyText);
+  }
+};
+
+function fallbackCopyToClipboard(prefix: string, copyText: string) {
+  try {
+    const _id = prefix + "_pubGridCopyArea";
+    let copyArea = document.getElementById(_id) as HTMLTextAreaElement;
+
+    if (copyArea != null) {
+      copyArea.value = copyText;
+      copyArea.select();
+
+      function handler(event: any) {
+        document.removeEventListener("copy", handler);
+      }
+      document.addEventListener("copy", handler);
+
+      document.execCommand("copy");
+
+      copyArea.value = "";
+    }
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+/**
  * 값있는지 여부 체크.
  *
  * @param {*} value
  * @returns {boolean}
  */
 export const isEmpty = (value: any): boolean => isUndefined(value) || value == null; //_isEmpty(value);
-
-/**
- * tab render type check
- *
- * @param {EditRenderer} field
- * @returns {boolean} tab type 인지 여부
- */
-export const isTabType = (field: EditRenderer): boolean => {
-  return field && field.renderType === "tab";
-};
-/**
- * grid render type check
- *
- * @param {EditRenderer} field
- * @returns {boolean} grid type 인지 여부
- */
-export const isGridType = (field: EditRenderer): boolean => {
-  return field && field.renderType === "grid";
-};
-export const replaceXssField = (field: EditRenderer): EditRenderer => {
-  field.$xssName = getXssFieldName(field);
-
-  field.label = replaceXss(field.label);
-  return field;
-};
-
-/**
- * 값을 무시하는 필드
- *
- * @param field EditRenderer
- * @returns
- */
-export const ignoreValueField = (field: EditRenderer): boolean => {
-  return isGridType(field.$parent) || isTabType(field.$parent);
-};
-
-/**
- * grid field name xss repalce
- *
- * @param {EditRenderer} field
- * @returns {string} replace 된 field name
- */
-export const getXssFieldName = (field: EditRenderer): string => {
-  if (isUndefined(field.$xssName)) {
-    let returnText = field.name;
-    if (returnText) {
-      Object.keys(xssFilter).forEach((key) => {
-        returnText = returnText.replaceAll(key, "_");
-      });
-    }
-
-    return "df_" + returnText;
-  }
-
-  return field.$xssName;
-};
 
 export const getHashCode = (str: string) => {
   let hash = 0;
@@ -144,13 +166,6 @@ export const getHashCode = (str: string) => {
     hash = hash & hash;
   }
   return String(hash).replaceAll(/-/g, "_");
-};
-
-export const isHiddenField = (field: EditRenderer): boolean => {
-  if (field.renderType === "hidden") {
-    return true;
-  }
-  return false;
 };
 
 export const templateToElement = (htmlTemplate: string): Element | null => {

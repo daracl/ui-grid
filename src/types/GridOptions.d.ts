@@ -11,42 +11,17 @@ import { ColumnItem } from "./GridField";
  */
 export interface GridOptions {
   /**
-   * style 옵션
-   *
-   * @example
-   * ```
-   * width: '600px',
-      position: 'left',
-      labelWidth: '3'
-      valueWidth: '9'
-   * ```
+   *  테마 값
    */
-  style: {
-    /**
-     * form width
-     * @example
-     * 600px, 100em
-     */
-    width: string;
-    /**
-     * field label width
-     * @example
-     * bootstrap width 참고 (1 ~ 12) 또는 '600px'
-     */
-    labelWidth: string | number;
-    /**
-     * field value width
-     * @example
-     * bootstrap width 참고 (1 ~ 12) 또는 '600px'
-     */
-    valueWidth: string | number;
-    /**
-     * field label position
-     * @example
-     * "top" | "left" | "left-left" | "left-right" | "right" | "right-left" | "right-right" | "bottom"
-     */
-    position: string;
-  };
+  theme: THEME_TYPE;
+  /**
+   * 높이
+   */
+  height: "auto" | number;
+  /**
+   *  넓이값
+   */
+  width: "auto" | number;
   /**
    * 넓이 고정 여부.
    */
@@ -64,18 +39,6 @@ export interface GridOptions {
    */
   enableTooltip: boolean;
   /**
-   *  테마 값
-   */
-  theme: THEME_TYPE;
-  /**
-   * 높이
-   */
-  height: "auto" | number;
-  /**
-   *  넓이값
-   */
-  width: "auto" | number;
-  /**
    * add시 item max로 유지할 카운트
    */
   addLimitRow: number;
@@ -83,7 +46,8 @@ export interface GridOptions {
    * value filter function (colItem, objectValue)
    */
   valueFilter: boolean | OptionCallback;
-  formatter: {
+
+  dataTypeFormatter: {
     money: ValueFormatter;
     number: ValueFormatter;
   };
@@ -130,7 +94,7 @@ export interface GridOptions {
   /**
    * paging option
    */
-  paging: PagingOptions;
+  paging: boolean | PagingOptions;
   /**
    * navigation option
    */
@@ -168,8 +132,14 @@ export interface GridOptions {
      */
     threshold: 150;
   };
-
-  field: ColumnItem[];
+  /**
+   * column info
+   */
+  fields: ColumnItem[];
+  /**
+   * row info
+   */
+  items: any[];
 }
 
 /**
@@ -679,7 +649,7 @@ export interface NavigationOptions {
   /**
    * page num callback
    */
-  callback: OptionCallback; // 페이지 콜백
+  callback: boolean | OptionCallback; // 페이지 콜백
   /**
    * cell 선택 정보 표시 여부
    */

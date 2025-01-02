@@ -1,4 +1,5 @@
 import { GridOptions } from "@t/GridOptions";
+import { defaultOptions } from "./defaultGridOption";
 import { EditRenderer } from "@t/EditRenderer";
 import * as utils from "./util/utils";
 import { ValidResult } from "@t/ValidResult";
@@ -13,20 +14,6 @@ import { FORM_MODE } from "./constants";
 
 declare const APP_VERSION: string;
 
-const defaultOptions = {
-  style: {
-    width: "100%",
-    labelWidth: 3,
-    valueWidth: 9,
-    position: "left-right",
-  },
-  mode: "new",
-  useTypeValue: true,
-  autoCreate: true,
-  notValidMessage: "This form is not valid.",
-  fields: [],
-} as GridOptions;
-
 interface FieldMap {
   [key: string]: EditRenderer;
 }
@@ -38,9 +25,9 @@ interface DaraGridMap {
 // all instance
 const allInstance: DaraGridMap = {};
 
-const SEQ_ATTR_KEY = "data-grid-uid";
+const SEQ_ATTR_KEY = "daracl-grid-uid";
 
-let DARA_FORM_SEQ = 0;
+let DARA_GRID_SEQ = 0;
 /**
  * DaraGrid class
  *
@@ -54,8 +41,12 @@ export default class DaraGrid {
 
   private orginFormStyleClass;
 
-  private selector: string;
-  private formElement: Element;
+  /**
+   * grid unique id
+   */
+  private $uid: string;
+
+  private gridElement: Element;
 
   private fieldInfoMap: FieldInfoMap;
 
@@ -63,37 +54,33 @@ export default class DaraGrid {
 
   public formTemplate: FormTemplate;
 
-  constructor(formElement: Element, options: FormOptions, message?: Message) {
-    this.options = utils.merge({}, defaultOptions, options) as FormOptions;
+  constructor(gridElement: Element, options: GridOptions, message?: Message) {
+    this.options = utils.merge({}, defaultOptions, options) as GridOptions;
 
     Lanauage.set(message);
 
-    if (formElement) {
-      this.orginFormStyleClass = formElement.className;
-      formElement.classList.add("daracl-form");
-
-      this.selector = `df_${++DARA_FORM_SEQ}`;
-      formElement.setAttribute("name", this.selector);
-      formElement.setAttribute(SEQ_ATTR_KEY, this.selector);
-
-      if (this.options.style.width) {
-        formElement.setAttribute("style", `width:${this.options.style.width};`);
-      }
-
-      this.formElement = formElement;
-      this.changeMode(this.options.mode ?? "new");
-      this.createForm(this.options.fields);
-
-      if (this.options.autoCreate !== false) {
-        allInstance[this.selector] = this;
-      }
-    } else {
-      throw new Error(`${formElement} form selector not found`);
+    if (gridElement == null || typeof gridElement === "undefined") {
+      throw new Error(`${gridElement} grid element not found`);
     }
+
+    this.orginFormStyleClass = gridElement.className;
+    gridElement.classList.add("daracl-grid");
+
+    this.$uid = `dg_${++DARA_GRID_SEQ}`;
+    gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
+
+    if (this.options.width) {
+      gridElement.setAttribute("style", `width:${this.options.width};`);
+    }
+
+    this.gridElement = gridElement;
+
+    allInstance[this.$uid] = this;
+    this.createGrid(this.options.fields);
   }
 
-  public static create(formElement: Element, options: FormOptions, message?: Message): DaraGrid {
-    return new DaraGrid(formElement, options, message);
+  public static create(gridElement: Element, options: GridOptions, message?: Message): DaraGrid {
+    return new DaraGrid(gridElement, options, message);
   }
 
   public static setMessage(message: Message): void {
@@ -101,9 +88,9 @@ export default class DaraGrid {
   }
 
   private createForm(fields: EditRenderer[]) {
-    this.fieldInfoMap = new FieldInfoMap(this.selector, this);
-    //this.formElement.innerHTML = "";
-    this.formTemplate = new FormTemplate(this, this.formElement, this.fieldInfoMap);
+    this.fieldInfoMap = new FieldInfoMap(this.$uid, this);
+    //this.gridElement.innerHTML = "";
+    this.formTemplate = new FormTemplate(this, this.gridElement, this.fieldInfoMap);
 
     if (this.options.autoCreate === false) {
       return;
@@ -126,7 +113,7 @@ export default class DaraGrid {
    */
   public changeMode = (mode: FORM_MODE): void => {
     this.options.mode = mode;
-    this.formElement.setAttribute("data-df-mode", mode);
+    this.gridElement.setAttribute("data-df-mode", mode);
   };
 
   /**
@@ -365,13 +352,13 @@ export default class DaraGrid {
   }
 
   public destroy = () => {
-    this.formElement.className = this.orginFormStyleClass;
-    this.formElement.replaceChildren();
+    this.gridElement.className = this.orginFormStyleClass;
+    this.gridElement.replaceChildren();
 
     for (const key in this) {
       if (utils.hasOwnProp(this, key)) {
         delete this[key];
-        delete allInstance[this.selector];
+        delete allInstance[this.$uid];
       }
     }
   };
@@ -397,16 +384,16 @@ export default class DaraGrid {
       element = ele;
     }
     element = element as Element;
-    let selector = element.getAttribute(SEQ_ATTR_KEY);
+    let uid = element.getAttribute(SEQ_ATTR_KEY);
 
-    if (utils.isUndefined(selector) || utils.isBlank(selector)) {
+    if (utils.isUndefined(uid) || utils.isBlank(uid)) {
       const keys = Object.keys(allInstance);
       if (keys.length > 1) {
-        throw new Error(`selector empty : [${selector}]`);
+        throw new Error(`uid empty : [${uid}]`);
       }
-      selector = keys[0];
+      uid = keys[0];
 
-      return allInstance[selector];
+      return allInstance[uid];
     }
   }
   /**

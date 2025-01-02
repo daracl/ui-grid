@@ -1,6 +1,12 @@
 import { GridOptions } from "@t/GridOptions";
 
-const defaultOptions: GridOptions = {
+/**
+ * grid default option
+ */
+export const defaultOptions: GridOptions = {
+  theme: "light", // 테마 값
+  height: "auto", // 높이 값
+  width: "auto", // 넓이값
   copyMode: "single", // copy mode	single, multiple, none
   fixedHeaderIndex: 0, // 고정 컬럼
   widthFixed: false, // 넓이 고정 여부.
@@ -8,12 +14,9 @@ const defaultOptions: GridOptions = {
   editable: false, // 편집 모드 활성화
   selectionMode: "multiple-cell", //cell 선택 모드 row, cell, multiple-row, multiple-cell
   enableTooltip: false, // tooltip flag
-  theme: "light", // 테마 값
-  height: "auto", // 높이 값
-  width: "auto", // 넓이값
   addLimitRow: -1, // add시 item max로 유지할 카운트
   valueFilter: false, // value filter function (colItem, objectValue)
-  formatter: {
+  dataTypeFormatter: {
     money: { prefix: "$", suffix: "원", fixed: 0 }, // money 설정 prefix : 앞에 붙일 문구 , suffix : 마지막에 붙일 문구 , fixed : 소수점
     number: { prefix: "", suffix: "", fixed: 0 }, // number 값 설정
   },
@@ -29,7 +32,7 @@ const defaultOptions: GridOptions = {
     sort: {
       enabled: true,
       nullsLast: false, // null value 를 항상 끝으로 유지 할지 여부
-      customSorting: function (a, b, key, sortType) {
+      customSorting: (a, b, key, sortType) => {
         // custom sorting function
       },
     }, // 초기에 정렬할 값
@@ -49,19 +52,19 @@ const defaultOptions: GridOptions = {
       //	header help btn 설정
       enabled: false, // header help btn 활성 여부.
       title: "", // tooltip
-      click: function (clickInfo: any) {}, // click event
-      dblclick: function (clickInfo: any) {}, // double click event
+      click: (clickInfo: any) => {}, // click event
+      dblclick: (clickInfo: any) => {}, // double click event
     },
     drag: {
       enabled: false, // 활성화여부
       dropSelector: "", // drop selector
-      dropCallback: function (colItem: any) {
+      dropCallback: (colItem: any) => {
         // drop 전에 이벤트
         return true;
       },
     },
   },
-  setting: {
+  finder: {
     // 그리드 설정
     mode: "simple", // simple (search , fixed) , full(column config , filter)
     enabled: false, // 활성여부
@@ -88,7 +91,7 @@ const defaultOptions: GridOptions = {
     height: 30,
     items: [],
   },
-  asideOptions: {
+  aside: {
     // aside 옵션
     lineNumber: {
       // 번호
@@ -97,12 +100,12 @@ const defaultOptions: GridOptions = {
       width: 40, // 넓이
       enableRowSelection: true, // 선택 여부
     },
-    rowSelector: {
+    rowCheckbox: {
       // 체크 박스
       enabled: false, // 활성화 여부
       name: "V", // name
       width: 25, // 넓이값
-      click: function (rowInfo: any) {
+      click: (rowInfo: any) => {
         // click event , return false 일경우 체크 안함.
       },
     },
@@ -136,7 +139,7 @@ const defaultOptions: GridOptions = {
     vertical: {
       width: 14, // 세로 스크롤
       speed: 2, // 스크롤 스피드 row 1
-      onUpdate: function (item) {
+      onUpdate: (item) => {
         // 스크롤 업데이트.
         return true;
       },
@@ -148,25 +151,21 @@ const defaultOptions: GridOptions = {
       enableWheel: true, //  wheel 로 스크롤 이동.
     },
   },
-  tColItem: [], //head item
-  tbodyItem: [], // body item
-  tbodyGroup: [], // body group
-  tfootItem: [], // foot item
+  fields: [], //head item
+  items: [], // body item
   navigation: {
     enablePaging: false, // 페이지 사용여부
     enableStatus: false,
     statusFormat: "{{currStart}} - {{currEnd}} of {{total}}",
     height: 32, // 높이 값
     position: "center", // 위치 값
-    callback: function (no) {}, // 페이지 콜백
+    callback: false, // 페이지 콜백
     enableSelectionInfo: false,
     selectionInfoFormat: "Count : {{count}} Avg : {{avg}} Sum : {{sum}}",
   },
-  page: false, // paging info
-  message: {
-    empty: "no data",
-  },
+  paging: false, // paging info
   i18n: {
+    empty: "no data",
     "setting.label": "설정",
     "search.button": "Search",
     "setting.speed.label": "스크롤속도",
