@@ -1,5 +1,5 @@
 import DaraForm from "src/DaraGrid";
-import { EDIT_RENDER_TYPE ,REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
+import { EDIT_RENDER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
 import Render from "src/renderer/edit/Renderer";
 
@@ -38,55 +38,52 @@ export interface ColumnItem {
   /**
    * VIEW_RENDER_TYPE
    */
-  renderer :VIEW_RENDER_TYPE;
+  renderer: VIEW_RENDER_TYPE;
   /**
    * 포멧터
    */
-  formatter : OptionCallback;
+  formatter: OptionCallback;
   /**
    * add item default value
    */
-  defaultValue : string;
+  defaultValue: string;
   /**
    * cell click event
-   */ 
-  click :OptionCallback;
+   */
+  click: OptionCallback;
   /**
    * cell add class
    */
-  styleClass :OptionCallback;
+  styleClass: OptionCallback;
   /**
    * tooltip 설정
    */
-  tooltip : {
+  tooltip: {
     /**
      * 툴팁 보일지 여부.
      */
-    show : boolean;
+    show: boolean;
     /**
      * 툴팁 내용
      */
-    formatter : OptionCallback;
+    formatter: OptionCallback;
   };
   /**
    * 수정 렌더러
    */
   editRenderer?: RENDER_TYPE | string;
-
-  
 }
 
-
-export interface ViewRender{
-    /**
-     * renderer type
-     * @example button image checkbox radio select link html 
-     */
-    type : text // 
-    item : {
-      key : string
-    }
-    click : function (){}
-    template : function (){}
-    validator : function (){}		
+export interface ViewRender {
+  /**
+   * renderer type
+   * @example button image checkbox radio select link html
+   */
+  type: text;
+  item: {
+    key: string;
+  };
+  click: OptionCallback;
+  template: OptionCallback;
+  validator: OptionCallback;
 }

@@ -1,9 +1,9 @@
-import { RULES } from '../constants';
+import { RULES } from "../constants";
 
 export interface ValidResult {
-    name: string
-    constraint: any[]
-    regexp?: string
-    validator?: any
-    message?: string
+  name: string;
+  constraint: any[];
+  regexp?: string;
+  validator?: any;
+  message?: string;
 }

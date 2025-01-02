@@ -9,23 +9,21 @@ import CustomRender from "./renderer/edit/CustomRender";
 import ButtonRender from "./renderer/view/ButtonRenderer";
 import RangeRender from "./renderer/edit/RangeRender";
 import DateRender from "./renderer/edit/DateRender";
-import {StringArrayMap} from "@t/DataMap";
-
+import { StringArrayMap } from "@t/DataMap";
 
 export type MODE = "edit" | "view";
 
 // copy type
-export type COPY_MODE = "single"|"multiple"| "none";
+export type COPY_MODE = "single" | "multiple" | "none";
 
 // align type
-export type ALIGN_TYPE = "left"|"center"| "right";
+export type ALIGN_TYPE = "left" | "center" | "right";
 
-// 선택 타입 
-export type SELECTION_TYPE = "row"|"cell"|"multiple-row"|"multiple-cell";
+// 선택 타입
+export type SELECTION_MODE = "row" | "cell" | "multiple-row" | "multiple-cell";
 
 // theme type
-export type THEME_TYPE = "light"|"dark";
-
+export type THEME_TYPE = "light" | "dark";
 
 export const RULES = {
   NAN: "nan",
@@ -82,4 +80,3 @@ export type REGEXP_TYPE = "email" | "url" | "alpha" | "alpha-num";
 export type PASSWORD_TYPE = "number" | "upper" | "upper-special" | "upper-special-number"; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
 
 export type ORIENTATION_TYPE = "horizontal" | "vertical";
-

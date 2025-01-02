@@ -1,7 +1,6 @@
-import { FORM_MODE, POSITION_TYPE, RENDER_TYPE } from "src/constants";
+import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
 import { ColumnItem } from "./GridField";
-
 
 /**
  * grid options
@@ -48,11 +47,60 @@ export interface GridOptions {
      */
     position: string;
   };
+  /**
+   * 넓이 고정 여부.
+   */
+  widthFixed: boolean;
+  /**
+   * 기본 포멧터 사용여부
+   */
+  useDefaultFormatter: boolean;
+  /**
+   * cell 선택 모드 row, cell, multiple-row, multiple-cell
+   */
+  selectionMode: SELECTION_MODE;
+  /**
+   * 툴팁 활성화 여부
+   */
+  enableTooltip: boolean;
+  /**
+   *  테마 값
+   */
+  theme: THEME_TYPE;
+  /**
+   * 높이
+   */
+  height: "auto" | number;
+  /**
+   *  넓이값
+   */
+  width: "auto" | number;
+  /**
+   * add시 item max로 유지할 카운트
+   */
+  addLimitRow: number;
+  /**
+   * value filter function (colItem, objectValue)
+   */
+  valueFilter: boolean | OptionCallback;
+  formatter: {
+    money: ValueFormatter;
+    number: ValueFormatter;
+  };
 
+  /**
+   * 복사 모드
+   */
+  copyMode: COPY_MODE;
+
+  /**
+   *  고정 컬럼
+   */
+  fixedHeaderIndex: number;
   /**
    * 수정 모드 활성화
    */
-  enableEdit :boolean;
+  editable: boolean;
   /**
    * header options
    */
@@ -64,30 +112,31 @@ export interface GridOptions {
   /**
    * toolbar option
    */
-  toolbar:ToolbarOptions;
+  toolbar: ToolbarOptions;
   /**
    * aside option
    */
-  aside :AsideOptions;
-  
+  aside: AsideOptions;
+
   /**
    * body option
    */
-  body:BodyOptions;
+  body: BodyOptions;
+
   /**
    * scroll option
    */
-  scroll:ScrollOptions;
+  scroll: ScrollOptions;
   /**
    * paging option
    */
-  paging : PagingOptions;
+  paging: PagingOptions;
   /**
    * navigation option
    */
-  navigation : NavigationOptions;
+  navigation: NavigationOptions;
   /**
-   * icon 
+   * icon
    */
   icon: {
     sortup: string;
@@ -96,13 +145,31 @@ export interface GridOptions {
   /**
    * i18n
    */
-  i18n:any;
+  i18n: any;
   /**
    * setting condition operator
    */
   operators: any;
 
-  field:ColumnItem[];
+  /**
+   *리사이즈 설정
+   */
+  autoResize: {
+    /**
+     * 리사이즈시 그리드 리사이즈 여부.
+     */
+    enabled: boolean;
+    /**
+     * 반응형 여부
+     */
+    responsive: true;
+    /**
+     * resize 반응 시간
+     */
+    threshold: 150;
+  };
+
+  field: ColumnItem[];
 }
 
 /**
@@ -130,7 +197,20 @@ export interface HeaderOptions {
    *
    * @default true
    */
-  sort?: boolean;
+  sort?: {
+    /**
+     * 정렬 활성화 여부
+     */
+    enabled?: boolean;
+    /**
+     * null value 를 항상 끝으로 유지 할지 여부
+     */
+    nullsLast?: boolean;
+    /**
+     * custom sorting function
+     */
+    customSorting: boolean | OptionCallback;
+  };
 
   /**
    * header resize option
@@ -144,7 +224,7 @@ export interface HeaderOptions {
     /**
      * 변경시 콜백 함수
      */
-    update?: OptionCallback;
+    update?: boolean | OptionCallback;
     /**
      * 컬럼 최소 넓이
      */
@@ -311,8 +391,10 @@ export interface ToolbarOptions {
   /**
    * 높이
    */
-  height: 넓이;
-
+  height: number;
+  /**
+   * toolbar items
+   */
   items: ToolbarItem[];
 }
 
@@ -359,15 +441,14 @@ export interface ToolbarItem {
   /**
    * render item
    */
-  renderItem?:{
-    list: RenderItem[]
+  renderItem?: {
+    list: RenderItem[];
   };
   /**
    * 값 변경시 callback
    */
   change?: OptionCallback;
 }
-
 
 /**
  * Render item
@@ -380,11 +461,11 @@ export interface RenderItem {
   /**
    * label
    */
-  label :string;
+  label: string;
   /**
    * value
    */
-  value : any;
+  value: any;
 }
 
 /**
@@ -429,8 +510,8 @@ export interface AsideOptions {
      */
     name?: string;
     /**
-    * 넓이
-    */
+     * 넓이
+     */
     width?: number;
     /**
      * click 콜백
@@ -445,14 +526,14 @@ export interface AsideOptions {
      * 활성화 여부
      */
     enabled: boolean;
-     /**
+    /**
      * 컬럼명
      */
-     name?: string;
-     /**
+    name?: string;
+    /**
      * 넓이
      */
-     width?: number;
+    width?: number;
   };
 }
 
@@ -463,7 +544,7 @@ export interface AsideOptions {
  * @interface BodyOptions
  * @typedef {BodyOptions}
  */
-export interface BodyOptions{
+export interface BodyOptions {
   /**
    * body cell double click
    */
@@ -472,6 +553,43 @@ export interface BodyOptions{
    * arrows key handler function
    */
   keyNavHandler: boolean | OptionCallback;
+  /**
+   * 로우 옵션.
+   */
+  row: {
+    /**
+     *  cell 높이
+     */
+    height: number;
+    /**
+     * row(tr) click event
+     */
+    click: boolean;
+    /**
+     * row(tr) contextmenu event
+     */
+    contextMenu: boolean | OptionCallback;
+    /**
+     * 추가할 style method
+     */
+    addStyle: boolean | OptionCallback;
+    /**
+     * row dblclick event
+     */
+    dblClick: boolean | OptionCallback;
+    /**
+     * double click row checkbox checked true 여부.
+     */
+    dblClickCheck: boolean;
+    /**
+     * 붙여 넣기 전 호출 메소드
+     */
+    pasteBefore: boolean | OptionCallback;
+    /**
+     * 붙여 넣기 후 호출 메소드
+     */
+    pasteAfter: boolean | OptionCallback;
+  };
 }
 
 /**
@@ -514,7 +632,7 @@ export interface ScrollOptions {
     /**
      * 가로 스크롤 높이
      */
-    height?: number; 
+    height?: number;
     /**
      * 스크롤 스피드
      */
@@ -527,9 +645,8 @@ export interface ScrollOptions {
      * 스크롤 이벤트 콜백
      */
     onUpdate?: OptionCallback;
-  }
+  };
 }
-
 
 /**
  * Navigation option
@@ -538,7 +655,7 @@ export interface ScrollOptions {
  * @interface NavigationOptions
  * @typedef {NavigationOptions}
  */
-export interface NavigationOptions{
+export interface NavigationOptions {
   /**
    * navigation page 사용여부
    */
@@ -550,7 +667,7 @@ export interface NavigationOptions{
   /**
    * 상태 메시지 포멧
    */
-  statusFormat?: string;
+  statusFormat?: string | OptionCallback;
   /**
    * 높이
    */
@@ -573,6 +690,47 @@ export interface NavigationOptions{
   selectionInfoFormat: string;
 }
 
+/**
+ * paging option
+ *
+ * @export
+ * @interface PagingOptions
+ * @typedef {PagingOptions}
+ */
+export interface PagingOptions {
+  /**
+   * 전체 카운트
+   */
+  totalCount: number;
+  /**
+   * 현재 페이지 정보
+   */
+  currPage: number;
+  /**
+   * 페이지 row 카운트
+   */
+  countPerPage: number;
+  /**
+   * 페이지 카운트
+   */
+  unitPage: number;
+}
 
-export interface PagingOptions{
+export interface ValueFormatter {
+  /**
+   * prefix
+   */
+  prefix: string;
+  /**
+   * suffix
+   */
+  suffix: string;
+  /**
+   * 소수점.
+   */
+  fixed: number;
+  /**
+   * custom formatter
+   */
+  formatter?: OptionCallback;
 }

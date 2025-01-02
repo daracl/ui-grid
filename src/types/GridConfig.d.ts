@@ -5,47 +5,47 @@ import { AnyKeyMap, StringKeyMap, Map } from "./DataMap";
  * grid config info
  */
 export interface GridConfig {
-  gridWidth: { 
+  gridWidth: {
     aside: number;
-    left: number; 
-    main: number; 
-    total: number; 
-    mainOverWidth: number; 
-    mainInsideWidth: number; 
+    left: number;
+    main: number;
+    total: number;
+    mainOverWidth: number;
+    mainInsideWidth: number;
   };
-  container: { 
-    height: number; 
-    width: number; 
-    bodyHeight: number; 
+  container: {
+    height: number;
+    width: number;
+    bodyHeight: number;
   };
   searchEnable: boolean;
-  header: { 
-    height: number; 
+  header: {
+    height: number;
     width: number;
   };
-  footer: { height: number; width: number; };
-  navi: { height: number; width: number; };
-  toolbar: { height: number; width: number; };
+  footer: { height: number; width: number };
+  navi: { height: number; width: number };
+  toolbar: { height: number; width: number };
   initSettingFlag: boolean;
-  aside: { 
+  aside: {
     items: Array;
     lineNumberCharLength: number;
-    initWidth: number; 
+    initWidth: number;
   };
   select: AnyKeyMap;
   template: AnyKeyMap;
   orginData: Array;
-  dataInfo: { 
-    colLen: number; 
-    rowLen: number; 
-    lastRowIdx: number; 
-    orginLeafHeaders: Array; 
-    orginLeafHeaderKeyMap: AnyKeyMap 
+  dataInfo: {
+    colLen: number;
+    rowLen: number;
+    lastRowIdx: number;
+    orginLeafHeaders: Array;
+    orginLeafHeaderKeyMap: AnyKeyMap;
   };
   rowOpt: AnyKeyMap;
-  sort: { 
-    orginData: Array; 
-    sortMap:  Map; 
+  sort: {
+    orginData: Array;
+    sortMap: Map;
   };
   pagingInfo: boolean;
   selection: {
