@@ -12,12 +12,7 @@ export default class BarRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
-  public getValue(value: any) {
-    return value[this.field.name];
-  }
-  public setValue(element: HTMLElement, value: any): void {
-    (element as HTMLInputElement).value = this.getValue(value);
-  }
+
   public render(element: HTMLElement, value: any): void {
     element.innerHTML = `<div>bar${this.getValue(value)}</div>`;
   }

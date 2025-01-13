@@ -5,6 +5,13 @@ import { RULES } from "src/constants";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import * as utils from "src/util/utils";
 
+/**
+ * radio renderer
+ *
+ *  @class RadioRenderer
+ * @typedef {RadioRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class RadioRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);

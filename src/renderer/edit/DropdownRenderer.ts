@@ -7,6 +7,13 @@ import { dropdownChangeEvent } from "src/event/renderEvents";
 import * as utils from "src/util/utils";
 import Lanauage from "src/util/Lanauage";
 
+/**
+ * dropdown renderer
+ *
+ * @class DropdownRenderer
+ * @typedef {DropdownRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class DropdownRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);

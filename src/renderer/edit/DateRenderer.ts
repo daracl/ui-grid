@@ -6,6 +6,13 @@ import DateTimePicker from "@daracl/datetimepicker";
 
 import * as utils from "src/util/utils";
 
+/**
+ * date renderer
+ *
+ * @class DateRenderer
+ * @typedef {DateRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class DateRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);

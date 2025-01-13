@@ -1,5 +1,11 @@
 import { OptionCallback } from "./Common";
 import { AnyKeyMap, StringKeyMap, Map } from "./DataMap";
+import FieldInfoMap from "../FieldInfoMap";
+import { FieldItem } from "./GridField";
+
+export interface AllColumnMap {
+  [key: string]: FieldItem;
+}
 
 /**
  * grid config info
@@ -13,6 +19,7 @@ export interface GridConfig {
     mainOverWidth: number;
     mainInsideWidth: number;
   };
+  allColumnMap: AllColumnMap;
   container: {
     height: number;
     width: number;

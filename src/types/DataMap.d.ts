@@ -29,7 +29,6 @@ interface StringArrayMap {
   [key: string]: string[];
 }
 
-
 export interface Map<K, V> {
   clear(): void;
   delete(key: K): boolean;

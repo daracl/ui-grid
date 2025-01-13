@@ -4,17 +4,18 @@ import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { numberInputEvent } from "src/event/renderEvents";
 import { FieldItem } from "@t/GridField";
 
+/**
+ * range renderer
+ *
+ * @class RangeRenderer
+ * @typedef {RangeRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class RangeRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public getValue(value: any) {
-    return value[this.field.name];
-  }
-  public setValue(element: HTMLElement, value: any): void {
-    (element as HTMLInputElement).value = this.getValue(value);
-  }
   public render(element: HTMLElement, value: any): void {
     element.innerText = `${this.getValue(value)}`;
   }

@@ -4,6 +4,13 @@ import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { stringValidator } from "src/rule/stringValidator";
 
+/**
+ * custom renderer
+ *
+ * @class CustomRenderer
+ * @typedef {CustomRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class CustomRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);

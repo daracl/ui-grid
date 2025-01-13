@@ -2,7 +2,8 @@ import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import * as utils from "src/util/utils";
 import { validator } from "./validator";
-
+import { FieldItem } from "@t/GridField";
+import { GridConfig } from "@t/GridConfig";
 /**
  * string validator
  *
@@ -10,23 +11,19 @@ import { validator } from "./validator";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const stringValidator = (value: string, field: FieldItem): ValidResult | boolean => {
-  if (!field.$instance.isEnableView()) {
-    return true;
-  }
-
+export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig): ValidResult | boolean => {
   let result: ValidResult = { name: field.name, constraint: [] };
 
-  if (field.required && utils.isBlank(value)) {
+  if (field.renderer.required && utils.isBlank(value)) {
     result.constraint.push(RULES.REQUIRED);
     return result;
   }
-  const validResult = validator(value, field, result);
+  const validResult = validator(value, field, rowItem, gridConfig, result);
   if (validResult !== true) {
     return validResult;
   }
 
-  const rule = field.rule;
+  const rule = field.renderer.rule;
 
   if (rule) {
     const valueLength = value.length;

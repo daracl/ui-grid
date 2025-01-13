@@ -4,22 +4,23 @@ import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { numberInputEvent } from "src/event/renderEvents";
 import { FieldItem } from "@t/GridField";
 
+/**
+ * number renderer
+ *
+ * @class NumberRenderer
+ * @typedef {NumberRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class NumberRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public getValue(value: any) {
-    return value[this.field.name];
-  }
-  public setValue(element: HTMLElement, value: any): void {
-    (element as HTMLInputElement).value = this.getValue(value);
-  }
   public render(element: HTMLElement, value: any): void {
     element.innerText = `${this.getValue(value)}`;
   }
   public editRender(element: HTMLElement, value: any): void {
-    element.innerText = `<input type="text">`;
+    element.innerText = `<input type="number">`;
 
     this.getValue(value);
   }

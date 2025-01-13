@@ -2,6 +2,8 @@ import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import { validator } from "./validator";
 import * as utils from "src/util/utils";
+import { FieldItem } from "@t/GridField";
+import { GridConfig } from "@t/GridConfig";
 
 /**
  * 숫자 유효성 체크
@@ -10,15 +12,11 @@ import * as utils from "src/util/utils";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const numberValidator = (value: string, field: FieldItem): ValidResult | boolean => {
-  if (!field.$instance.isEnableView()) {
-    return true;
-  }
-
+export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig): ValidResult | boolean => {
   const result: ValidResult = { name: field.name, constraint: [] };
   const numValue = Number(value);
 
-  if (field.required && utils.isBlank(value)) {
+  if (field.renderer.required && utils.isBlank(value)) {
     result.constraint.push(RULES.REQUIRED);
     return result;
   }
@@ -28,11 +26,11 @@ export const numberValidator = (value: string, field: FieldItem): ValidResult | 
     return result;
   }
 
-  if (validator(value, field, result) !== true) {
+  if (validator(value, field, rowItem, gridConfig, result) !== true) {
     return result;
   }
 
-  const rule = field.rule;
+  const rule = field.renderer.rule;
   if (rule) {
     const isMinimum = utils.isNumber(rule.minimum),
       isMaximum = utils.isNumber(rule.maximum);

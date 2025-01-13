@@ -5,6 +5,7 @@ import { GridConfig } from "./types/GridConfig";
  */
 export const defaultConfig: GridConfig = {
   gridWidth: { aside: 0, left: 0, main: 0, total: 0, mainOverWidth: 0, mainInsideWidth: 0 },
+  allColumnMap: {},
   container: { height: 0, width: 0, bodyHeight: 0 },
   searchEnable: false,
   header: { height: 0, width: 0 },

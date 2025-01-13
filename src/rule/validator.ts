@@ -1,45 +1,48 @@
 import { ValidResult } from "@t/ValidResult";
 import { regexpValidator } from "./regexpValidator";
 import * as utils from "src/util/utils";
+import { FieldItem } from "@t/GridField";
+import { GridConfig } from "@t/GridConfig";
 
 /**
  *  validator  ,  regexp 체크 .
- *
- * @param {string} value field value
- * @param {EditRenderer} field field 정보
+ 
+* @param {*} rowItem
+ * @param {FieldItem} field
  * @param {ValidResult} result
  * @returns {(ValidResult | boolean)}
  */
-export const validator = (value: string, field: FieldItem, result: ValidResult): ValidResult | boolean => {
-  if (field.validator) {
-    result.validator = field.validator(field, value);
+export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig, result: ValidResult): ValidResult | boolean => {
+  const fieldRender = field.renderer;
+  if (fieldRender.validator) {
+    result.validator = fieldRender.validator(field, rowItem);
     if (typeof result.validator === "object") {
       return result;
     }
   }
 
-  result = regexpValidator(value, field, result);
+  result = regexpValidator(rowItem, field, result);
 
   if (result.regexp) {
     return result;
   }
 
-  if (field.different) {
-    const diffFieldName = field.different.field;
-    const diffField = field.$instance.getForm().getField(diffFieldName);
+  if (fieldRender.different) {
+    const diffFieldName = fieldRender.different.field;
+    const diffField = gridConfig.allColumnMap[diffFieldName];
 
-    if (!utils.isEmpty(diffField) && field.$instance.getValue() == diffField.$instance.getValue()) {
-      result.message = field.different.message;
+    if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
+      result.message = fieldRender.different.message;
       return result;
     }
   }
 
-  if (field.identical) {
-    const diffFieldName = field.identical.field;
-    const diffField = field.$instance.getForm().getField(diffFieldName);
+  if (fieldRender.identical) {
+    const diffFieldName = fieldRender.identical.field;
+    const diffField = gridConfig.allColumnMap[diffFieldName];
 
-    if (!utils.isEmpty(diffField) && field.$instance.getValue() != diffField.$instance.getValue()) {
-      result.message = field.identical.message;
+    if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
+      result.message = fieldRender.identical.message;
       return result;
     }
   }

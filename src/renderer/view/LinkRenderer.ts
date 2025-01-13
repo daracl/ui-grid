@@ -14,12 +14,6 @@ export default class LinkRenderer extends AbstractRenderer {
     super(field);
   }
 
-  public getValue(value: any) {
-    return value[this.field.name];
-  }
-  public setValue(element: HTMLElement, value: any): void {
-    (element as HTMLInputElement).value = this.getValue(value);
-  }
   public render(element: HTMLElement, value: any): void {
     element.innerHTML = `<a href="${this.getValue(value)}">${this.getValue(value)}</a>`;
   }

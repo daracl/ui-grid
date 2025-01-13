@@ -24,24 +24,6 @@ export default abstract class AbstractRenderer {
   }
 
   /**
-   * 값 얻기
-   *
-   * @param {any} value row item
-   * @returns {any} field value
-   */
-  public abstract getValue(value: any): any;
-
-  /**
-   * 값 셋팅
-   *
-   * @public
-   * @abstract
-   * @param {HTMLElement} element
-   * @param {any} value
-   */
-  public abstract setValue(element: HTMLElement, value: any): void;
-
-  /**
    * view render
    *
    * @param {HTMLElement} element td element
@@ -60,13 +42,40 @@ export default abstract class AbstractRenderer {
   public abstract reset(element: HTMLElement): void;
   public abstract valid(element: HTMLElement): ValidResult | boolean;
 
-  public setValueItems(value: any): void {}
+  /**
+   * set value items
+   *
+   * @public
+   * @param {any[]} listItem list items dropdown,checkbox,radio value
+   */
+  public setValueItems(listItem: any[]): void {}
+
+  /**
+   * 값 얻기
+   *
+   * @param {any} value row item
+   * @returns {any} field value
+   */
+  public getValue(value: any) {
+    return value[this.field.name];
+  }
+
+  /**
+   * 값 셋팅
+   *
+   * @public
+   * @param {HTMLElement} element cell element
+   * @param {any} value row value
+   */
+  public setValue(element: HTMLElement, value: any): void {
+    (element as HTMLInputElement).value = this.getValue(value);
+  }
 
   public isEnableView() {
     return this.enableView;
   }
 
-  public static valuesLabelValue(label: string, val: any) {
+  public valuesLabelValue(label: string, val: any) {
     let replaceFlag = false;
     const resultValue = label.replace(/\{\{([A-Za-z0-9_.]*)\}\}/g, (match, key) => {
       replaceFlag = true;

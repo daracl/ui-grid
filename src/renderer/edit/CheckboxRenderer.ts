@@ -5,6 +5,13 @@ import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 
+/**
+ * checkbox renderer
+ *
+ * @class CheckboxRenderer
+ * @typedef {CheckboxRenderer}
+ * @extends {AbstractRenderer}
+ */
 export default class CheckboxRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);

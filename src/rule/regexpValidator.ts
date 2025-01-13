@@ -1,4 +1,5 @@
 import { ValidResult } from "@t/ValidResult";
+import { FieldItem } from "@t/GridField";
 
 const regexp = {
   mobile: /^\d{3}-\d{3,4}-\d{4}$/,
@@ -23,15 +24,11 @@ const regexp = {
  * @returns {ValidResult}
  */
 export const regexpValidator = (value: string, field: FieldItem, result: ValidResult): ValidResult => {
-  if (!field.$instance.isEnableView()) {
-    return { name: field.name, constraint: [] };
-  }
-
   if (typeof result === "undefined") {
     result = { name: field.name, constraint: [] };
   }
 
-  const regexpType = field.regexpType;
+  const regexpType = field.renderer.regexpType;
 
   if (regexpType) {
     if (!regexp[regexpType].test(value)) {
