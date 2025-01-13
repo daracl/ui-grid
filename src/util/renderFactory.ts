@@ -1,10 +1,8 @@
-import { EditRenderer } from "@t/EditRenderer";
-
-import Render from "../renderer/edit/Renderer";
+import Renderer from "../renderer/edit/Renderer";
 import { RENDER_TEMPLATE } from "../constants";
 import * as utils from "./utils";
 
-export const getRenderer = (field: EditRenderer): Render => {
+export const getRenderer = (field: FieldItem): Render => {
   let render;
   if (field.renderType) {
     render = RENDER_TEMPLATE[field.renderType];

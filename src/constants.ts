@@ -9,7 +9,6 @@ import CustomRender from "./renderer/edit/CustomRender";
 import ButtonRender from "./renderer/view/ButtonRenderer";
 import RangeRender from "./renderer/edit/RangeRender";
 import DateRender from "./renderer/edit/DateRender";
-import { StringArrayMap } from "@t/DataMap";
 
 export type MODE = "edit" | "view";
 
@@ -71,9 +70,7 @@ export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];
 
 export type POSITION_TYPE = "left" | "center" | "right";
 
-export type VIEW_RENDER_TYPE = "bar" | "button" | "html" | "image" | "link";
-
-export type EDIT_RENDER_TYPE = "number" | "text" | "file" | "textarea" | "dropdown" | "radio" | "checkbox" | "date" | "datetime" | "dateyear" | "datemonth" | "datehour" | "group" | "custom";
+export type RENDERER_TYPE = "bar" | "button" | "html" | "image" | "link" | "number" | "text" | "file" | "textarea" | "dropdown" | "radio" | "checkbox" | "date" | "datetime" | "dateyear" | "datemonth" | "datehour" | "group" | "custom";
 
 export type REGEXP_TYPE = "email" | "url" | "alpha" | "alpha-num";
 

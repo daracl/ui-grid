@@ -1,17 +1,16 @@
 import AbstractRenderer from "../AbstractRenderer";
+import { stringValidator } from "src/rule/stringValidator";
+import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 import { FieldItem } from "@t/GridField";
+import DateTimePicker from "@daracl/datetimepicker";
 
-/**
- * bar renderer
- *
- * @class BarRenderer
- * @typedef {BarRenderer}
- * @extends {AbstractRenderer}
- */
-export default class BarRenderer extends AbstractRenderer {
+import * as utils from "src/util/utils";
+
+export default class DateRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
+
   public getValue(value: any) {
     return value[this.field.name];
   }
@@ -19,10 +18,12 @@ export default class BarRenderer extends AbstractRenderer {
     (element as HTMLInputElement).value = this.getValue(value);
   }
   public render(element: HTMLElement, value: any): void {
-    element.innerHTML = `<div>bar${this.getValue(value)}</div>`;
+    element.innerText = `${this.getValue(value)}`;
   }
   public editRender(element: HTMLElement, value: any): void {
-    element.innerText = this.getValue(value);
+    element.innerText = `<input type="text">`;
+
+    this.getValue(value);
   }
   public reset(element: HTMLElement): void {
     this.setValue(element, this.field.renderer.defaultValue);

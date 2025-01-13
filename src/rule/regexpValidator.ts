@@ -1,4 +1,3 @@
-import { EditRenderer } from "@t/EditRenderer";
 import { ValidResult } from "@t/ValidResult";
 
 const regexp = {
@@ -23,7 +22,7 @@ const regexp = {
  * @param {(ValidResult | undefined)} result
  * @returns {ValidResult}
  */
-export const regexpValidator = (value: string, field: EditRenderer, result: ValidResult): ValidResult => {
+export const regexpValidator = (value: string, field: FieldItem, result: ValidResult): ValidResult => {
   if (!field.$instance.isEnableView()) {
     return { name: field.name, constraint: [] };
   }

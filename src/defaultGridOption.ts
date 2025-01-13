@@ -166,7 +166,7 @@ export const defaultOptions: GridOptions = {
   paging: false, // paging info
   i18n: {
     empty: "no data",
-    "setting.label": "설정",
+    "search.label": "설정",
     "search.button": "Search",
     "setting.speed.label": "스크롤속도",
     "setting.column.fixed.label": "고정컬럼",

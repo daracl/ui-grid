@@ -1,8 +1,7 @@
-import { EditRenderer } from "@t/EditRenderer";
 import { ValidResult } from "@t/ValidResult";
 import Lanauage from "./Lanauage";
 
-export const invalidMessage = (field: EditRenderer, rowElement: Element, validResult: ValidResult | boolean) => {
+export const invalidMessage = (field: FieldItem, rowElement: Element, validResult: ValidResult | boolean) => {
   if (validResult === true) {
     rowElement.classList.remove("invalid");
 

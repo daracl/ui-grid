@@ -1,51 +1,35 @@
-import { EditRenderer } from "@t/EditRenderer";
-import Renderer from "./Renderer";
-import DaraForm from "src/DaraGrid";
+import AbstractRenderer from "../AbstractRenderer";
+import { FieldItem } from "@t/GridField";
 
-export default class ButtonRender extends Renderer {
-  constructor(field: EditRenderer, rowElement: HTMLElement, daraForm: DaraForm) {
-    super(daraForm, field, rowElement);
-    this.mounted();
-    this.setDefaultOption();
+/**
+ * html renderer
+ *
+ * @export
+ * @class HtmlRenderer
+ * @typedef {HtmlRenderer}
+ * @extends {AbstractRenderer}
+ */
+export default class HtmlRenderer extends AbstractRenderer {
+  constructor(field: FieldItem) {
+    super(field);
+  }
+  public getValue(value: any) {
+    return value[this.field.name];
+  }
+  public setValue(element: HTMLElement, value: any): void {
+    (element as HTMLInputElement).value = this.getValue(value);
+  }
+  public render(element: HTMLElement, value: any): void {
+    element.innerHTML = `<div>${this.getValue(value)}</div>`;
+  }
+  public editRender(element: HTMLElement, value: any): void {
+    element.innerText = this.getValue(value);
+  }
+  public reset(element: HTMLElement): void {
+    this.setValue(element, this.field.renderer.defaultValue);
   }
 
-  mounted() {
-    this.rowElement.querySelector(`#${this.field.$key}`)?.addEventListener("click", (evt) => {
-      if (this.field.onClick) {
-        this.field.onClick.call(null, this.field);
-      }
-    });
-  }
-
-  static isDataRender(): boolean {
-    return false;
-  }
-
-  createField() {
-    const field = this.field;
-
-    const fieldContainerElement = this.rowElement.querySelector(".df-field-container") as HTMLElement;
-
-    fieldContainerElement.innerHTML = `
-      <button type="button" class="dg-btn">${field.label}</button>
-     `;
-  }
-
-  getValue() {
-    return "";
-  }
-
-  setValue(value: any): void {}
-
-  reset() {
-    this.setDisabled(false);
-  }
-
-  getElement() {
-    return null;
-  }
-
-  valid(): any {
+  valid(element: HTMLElement): any {
     return true;
   }
 }

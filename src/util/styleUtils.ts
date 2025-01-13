@@ -12,7 +12,7 @@ export default {
    * @param beforeField EditRenderer
    * @returns FieldStyle
    */
-  fieldStyle(formOptions: FormOptions, field: EditRenderer, beforeField?: EditRenderer | null, isLabelHide?: boolean): FieldStyle {
+  fieldStyle(formOptions: FormOptions, field: FieldItem, beforeField?: EditRenderer | null, isLabelHide?: boolean): FieldStyle {
     const fieldStyle = {
       rowStyleClass: field.orientation === "horizontal" ? "horizontal" : "vertical",
       fieldClass: "",

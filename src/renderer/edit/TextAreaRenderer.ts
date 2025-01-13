@@ -1,17 +1,14 @@
 import AbstractRenderer from "../AbstractRenderer";
+import { stringValidator } from "src/rule/stringValidator";
+import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
+import { inputEvent } from "src/event/renderEvents";
 import { FieldItem } from "@t/GridField";
 
-/**
- * bar renderer
- *
- * @class BarRenderer
- * @typedef {BarRenderer}
- * @extends {AbstractRenderer}
- */
-export default class BarRenderer extends AbstractRenderer {
+export default class TextAreaRenderer extends AbstractRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
+
   public getValue(value: any) {
     return value[this.field.name];
   }
@@ -19,10 +16,12 @@ export default class BarRenderer extends AbstractRenderer {
     (element as HTMLInputElement).value = this.getValue(value);
   }
   public render(element: HTMLElement, value: any): void {
-    element.innerHTML = `<div>bar${this.getValue(value)}</div>`;
+    element.innerText = `${this.getValue(value)}`;
   }
   public editRender(element: HTMLElement, value: any): void {
-    element.innerText = this.getValue(value);
+    element.innerText = `<input type="text">`;
+
+    this.getValue(value);
   }
   public reset(element: HTMLElement): void {
     this.setValue(element, this.field.renderer.defaultValue);

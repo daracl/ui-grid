@@ -10,7 +10,7 @@ import { RULES } from "src/constants";
  * @param {FileInfo[]} fileList
  * @returns {(ValidResult | boolean)}
  */
-export const fileValidator = (element: HTMLInputElement, field: EditRenderer, fileList: FileInfo[]): ValidResult | boolean => {
+export const fileValidator = (element: HTMLInputElement, field: FieldItem, fileList: FileInfo[]): ValidResult | boolean => {
   const result: ValidResult = { name: field.name, constraint: [] };
 
   if (field.required && fileList.length < 1) {

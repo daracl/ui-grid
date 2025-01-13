@@ -1,16 +1,17 @@
-import DaraForm from "src/DaraGrid";
-import { EDIT_RENDER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
+import { FieldItem } from "@t/GridField";
+import { RENDERER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
-import Render from "src/renderer/edit/Renderer";
+import { RendererInfo } from "./RendererInfo";
+import AbstractRenderer from "src/renderer/AbstractRenderer";
 
 /**
- * column info
+ * Field info
  *
  * @export
- * @interface ColumnItem
- * @typedef {ColumnItem}
+ * @interface FieldItem
+ * @typedef {FieldItem}
  */
-export interface ColumnItem {
+export interface FieldItem {
   /**
    * 컬럼명
    */
@@ -38,7 +39,7 @@ export interface ColumnItem {
   /**
    * VIEW_RENDER_TYPE
    */
-  renderer: VIEW_RENDER_TYPE;
+  renderer: RendererInfo;
   /**
    * 포멧터
    */
@@ -69,21 +70,12 @@ export interface ColumnItem {
     formatter: OptionCallback;
   };
   /**
-   * 수정 렌더러
+   * 자식 컬럼 정보
    */
-  editRenderer?: RENDER_TYPE | string;
-}
+  children?: FieldItem[];
 
-export interface ViewRender {
   /**
-   * renderer type
-   * @example button image checkbox radio select link html
+   * 실제 랜더러
    */
-  type: text;
-  item: {
-    key: string;
-  };
-  click: OptionCallback;
-  template: OptionCallback;
-  validator: OptionCallback;
+  $renderer: AbstractRenderer;
 }

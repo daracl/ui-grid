@@ -1,4 +1,3 @@
-import { EditRenderer } from "@t/EditRenderer";
 import { ValidResult } from "@t/ValidResult";
 import { regexpValidator } from "./regexpValidator";
 import * as utils from "src/util/utils";
@@ -11,7 +10,7 @@ import * as utils from "src/util/utils";
  * @param {ValidResult} result
  * @returns {(ValidResult | boolean)}
  */
-export const validator = (value: string, field: EditRenderer, result: ValidResult): ValidResult | boolean => {
+export const validator = (value: string, field: FieldItem, result: ValidResult): ValidResult | boolean => {
   if (field.validator) {
     result.validator = field.validator(field, value);
     if (typeof result.validator === "object") {

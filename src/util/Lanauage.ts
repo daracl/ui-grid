@@ -1,11 +1,10 @@
 import { Message } from "@t/Message";
-import { EditRenderer } from "../types/EditRenderer";
+import { FieldItem } from "../types/GridField";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 
 let localeMessage: Message = {
   required: "{label} 필수 입력사항입니다.",
-  fileButton: "파일찾기",
   selection: "선택",
   string: {
     minLength: "{minLength} 글자 이상으로 입력하세요.",
@@ -36,6 +35,8 @@ let localeMessage: Message = {
     "upper-char-special": "대문자,소문자,특수문자 각각 하나 이상 포함 되어야 합니다.",
     "upper-char-special-number": "대문자,소문자,특수문자,숫자 각각 하나 이상 포함 되어야합니다.",
   },
+  "search.label": "찾기",
+  "search.button": "검색",
 };
 
 /**
@@ -76,7 +77,7 @@ class Language {
    * @param {ValidResult} validResult
    * @returns {string[]}
    */
-  public validMessage(field: EditRenderer, validResult: ValidResult): string[] {
+  public validMessage(field: FieldItem, validResult: ValidResult): string[] {
     let messageFormat = "";
 
     let messageFormats: string[] = [];
@@ -92,7 +93,9 @@ class Language {
         messageFormats.push(messageFormat);
       }
 
-      if (field.renderType == "number" || field.renderType == "range") {
+      const renderType = field.renderer.type;
+
+      if (renderType == "number" || renderType == "range") {
         messageFormat = (this.lang.number as any)[constraint];
         messageFormats.push(messageFormat);
       } else {
@@ -103,7 +106,7 @@ class Language {
 
     const reMessage: string[] = [];
 
-    const msgParam = Object.assign({}, { name: field.name, label: field.label }, field.rule);
+    const msgParam = Object.assign({}, { name: field.name, label: field.label }, field.renderer.rule);
     messageFormats.forEach((msgFormat) => {
       if (msgFormat) {
         reMessage.push(message(msgFormat, msgParam));

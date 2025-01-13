@@ -1,5 +1,3 @@
-import { EditRenderer } from "@t/EditRenderer";
-
 const xssFilter = {
   "&": "&amp;",
   "<": "&lt;",

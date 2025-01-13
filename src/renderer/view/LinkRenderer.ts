@@ -1,51 +1,36 @@
-import { EditRenderer } from "@t/EditRenderer";
-import Renderer from "./Renderer";
-import DaraForm from "src/DaraGrid";
+import AbstractRenderer from "../AbstractRenderer";
+import { FieldItem } from "@t/GridField";
 
-export default class ButtonRender extends Renderer {
-  constructor(field: EditRenderer, rowElement: HTMLElement, daraForm: DaraForm) {
-    super(daraForm, field, rowElement);
-    this.mounted();
-    this.setDefaultOption();
+/**
+ * link renderer
+ *
+ * @export
+ * @class LinkRenderer
+ * @typedef {LinkRenderer}
+ * @extends {AbstractRenderer}
+ */
+export default class LinkRenderer extends AbstractRenderer {
+  constructor(field: FieldItem) {
+    super(field);
   }
 
-  mounted() {
-    this.rowElement.querySelector(`#${this.field.$key}`)?.addEventListener("click", (evt) => {
-      if (this.field.onClick) {
-        this.field.onClick.call(null, this.field);
-      }
-    });
+  public getValue(value: any) {
+    return value[this.field.name];
+  }
+  public setValue(element: HTMLElement, value: any): void {
+    (element as HTMLInputElement).value = this.getValue(value);
+  }
+  public render(element: HTMLElement, value: any): void {
+    element.innerHTML = `<a href="${this.getValue(value)}">${this.getValue(value)}</a>`;
+  }
+  public editRender(element: HTMLElement, value: any): void {
+    element.innerText = this.getValue(value);
+  }
+  public reset(element: HTMLElement): void {
+    this.setValue(element, this.field.renderer.defaultValue);
   }
 
-  static isDataRender(): boolean {
-    return false;
-  }
-
-  createField() {
-    const field = this.field;
-
-    const fieldContainerElement = this.rowElement.querySelector(".df-field-container") as HTMLElement;
-
-    fieldContainerElement.innerHTML = `
-      <button type="button" class="dg-btn">${field.label}</button>
-     `;
-  }
-
-  getValue() {
-    return "";
-  }
-
-  setValue(value: any): void {}
-
-  reset() {
-    this.setDisabled(false);
-  }
-
-  getElement() {
-    return null;
-  }
-
-  valid(): any {
+  valid(element: HTMLElement): any {
     return true;
   }
 }

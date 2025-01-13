@@ -38,7 +38,7 @@ export default class FieldInfoMap {
    * @public
    * @param {EditRenderer} field 폼필드 정보
    */
-  public addField(field: EditRenderer) {
+  public addField(field: FieldItem) {
     utils.replaceXssField(field);
     this.fieldIdx += 1;
     field.$key = `${this.fieldPrefix}_${this.fieldIdx}`;
@@ -193,7 +193,7 @@ export default class FieldInfoMap {
    * @param field
    * @returns
    */
-  public isConditionFieldCheck(field: EditRenderer) {
+  public isConditionFieldCheck(field: FieldItem) {
     let parent = field;
 
     while (typeof parent !== "undefined") {
@@ -213,7 +213,7 @@ export default class FieldInfoMap {
    * @param field form field
    * @returns
    */
-  public isConditionField(field: EditRenderer) {
+  public isConditionField(field: FieldItem) {
     if (!this.conditionFields.includes(field.$key)) {
       return true;
     }

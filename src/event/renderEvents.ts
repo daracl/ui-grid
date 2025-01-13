@@ -1,15 +1,14 @@
-import { EditRenderer } from "@t/EditRenderer";
-import Render from "src/renderer/edit/Renderer";
 import * as utils from "src/util/utils";
+import { FieldItem } from "@t/GridField";
 
-export const inputEvent = (field: EditRenderer, element: Element, renderInfo: Render) => {
+export const inputEvent = (field: FieldItem, element: HTMLElement) => {
   element.addEventListener("input", (e: Event) => {
-    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
-    renderInfo.valid();
+    field.$renderer.changeEventCall(e, element);
+    field.$renderer.valid(element);
   });
 };
 
-export const numberInputEvent = (field: EditRenderer, element: HTMLInputElement, renderInfo: Render) => {
+export const numberInputEvent = (field: FieldItem, element: HTMLInputElement) => {
   element.addEventListener("keyup", (e: any) => {
     const val = e.target.value;
 
@@ -17,8 +16,8 @@ export const numberInputEvent = (field: EditRenderer, element: HTMLInputElement,
       element.value = val.replace(/[^0-9\.\-\+]/g, "");
       e.preventDefault();
     }
-    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
-    renderInfo.valid();
+    field.$renderer.changeEventCall(e, element);
+    field.$renderer.valid(element);
   });
 
   /*
@@ -29,13 +28,9 @@ export const numberInputEvent = (field: EditRenderer, element: HTMLInputElement,
     */
 };
 
-export const dropdownChangeEvent = (field: EditRenderer, element: Element, renderInfo: Render) => {
+export const dropdownChangeEvent = (field: FieldItem, element: HTMLElement) => {
   element.addEventListener("change", (e: any) => {
-    customChangeEventCall(field, e, renderInfo, renderInfo.getValue());
-    renderInfo.valid();
+    field.$renderer.changeEventCall(e, element);
+    field.$renderer.valid(element);
   });
-};
-
-export const customChangeEventCall = (field: EditRenderer, e: Event, renderInfo: Render, value: any) => {
-  renderInfo.changeEventCall(field, e, renderInfo, value);
 };

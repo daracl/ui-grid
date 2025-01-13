@@ -1,4 +1,3 @@
-import { EditRenderer } from "@t/EditRenderer";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
 import * as utils from "src/util/utils";
@@ -11,7 +10,7 @@ import { validator } from "./validator";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const stringValidator = (value: string, field: EditRenderer): ValidResult | boolean => {
+export const stringValidator = (value: string, field: FieldItem): ValidResult | boolean => {
   if (!field.$instance.isEnableView()) {
     return true;
   }

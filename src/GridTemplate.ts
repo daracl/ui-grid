@@ -37,7 +37,7 @@ export default class FormTemplate {
    *
    * @param field
    */
-  public addRow(field: EditRenderer) {
+  public addRow(field: FieldItem) {
     if (this.checkHiddenField(field)) {
       return;
     }
@@ -53,7 +53,7 @@ export default class FormTemplate {
    * @param {EditRenderer} field
    * @returns {string} row template
    */
-  public addRowTemplate(field: EditRenderer): void {
+  public addRowTemplate(field: FieldItem): void {
     let labelHideFlag = this.isLabelHide(field);
 
     let fieldStyle: FieldStyle = styleUtils.fieldStyle(this.options, field, null, labelHideFlag);
@@ -78,7 +78,7 @@ export default class FormTemplate {
     }
   }
 
-  public createField(field: EditRenderer, element: Element): void {
+  public createField(field: FieldItem, element: Element): void {
     field.$instance = new (field.$renderType as any)(field, element, this.daraform);
   }
 
@@ -89,8 +89,8 @@ export default class FormTemplate {
    * @param {FieldStyle} parentFieldStyle
    * @returns {*}
    */
-  public childTemplate(field: EditRenderer, parentFieldStyle: FieldStyle): void {
-    let beforeField: EditRenderer = null as any;
+  public childTemplate(field: FieldItem, parentFieldStyle: FieldStyle): void {
+    let beforefield: FieldItem = null as any;
     let firstFlag = true;
     let isEmptyLabel = false;
 
@@ -163,7 +163,7 @@ export default class FormTemplate {
    * @param {EditRenderer} field form field
    * @returns {string} template string
    */
-  public getLabelTemplate(field: EditRenderer) {
+  public getLabelTemplate(field: FieldItem) {
     const requiredTemplate = field.required ? `<span class="required"></span>` : "";
     const tooltipTemplate = utils.isBlank(field.tooltip) ? "" : `<span class="df-tooltip">?<span class="tooltip">${field.tooltip}</span></span>`;
 
@@ -176,11 +176,11 @@ export default class FormTemplate {
    * @param field EditRenderer
    * @returns
    */
-  public isLabelHide(field: EditRenderer): boolean {
+  public isLabelHide(field: FieldItem): boolean {
     return field.style?.labelHide || utils.isUndefined(field.label);
   }
 
-  public checkHiddenField(field: EditRenderer) {
+  public checkHiddenField(field: FieldItem) {
     if (utils.isHiddenField(field)) {
       this.fieldInfoMap.addField(field);
       field.$instance = new (field.$renderType as any)(field, null, this.daraform);
@@ -196,7 +196,7 @@ export default class FormTemplate {
    *
    * @param {EditRenderer} field
    */
-  public addRowFieldInfo(field: EditRenderer) {
+  public addRowFieldInfo(field: FieldItem) {
     if (!utils.isBlank(field.name) && this.fieldInfoMap.hasFieldName(field.name)) {
       throw new Error(`Duplicate field name "${field.name}"`);
     }
