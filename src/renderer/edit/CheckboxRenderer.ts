@@ -1,9 +1,5 @@
 import { FieldItem } from "@t/GridField";
 import AbstractRenderer from "../AbstractRenderer";
-import * as utils from "src/util/utils";
-import { ValidResult } from "@t/ValidResult";
-import { RULES } from "src/constants";
-import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
 
 /**
  * checkbox renderer

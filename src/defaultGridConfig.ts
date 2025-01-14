@@ -18,6 +18,7 @@ export const initConfig = (): Config => {
     select: {},
     template: {},
     orginData: [],
+    currentHeaderItems: [],
     dataInfo: { colLen: 0, rowLen: 0, lastRowIdx: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     rowOpt: {},
     sort: { orginData: [], sortMap: new Map() },
@@ -71,7 +72,18 @@ export const initConfig = (): Config => {
 export const initSelectionInfo = (): Selection => {
   return {
     curr: "",
-    range: { _key: "", startIdx: -1, endIdx: -1, startCol: -1, endCol: -1 },
+    range: {
+      _key: "",
+      mode: "",
+      startIdx: -1,
+      endIdx: -1,
+      startCol: -1,
+      endCol: -1,
+      minIdx: -1,
+      maxIdx: -1,
+      minCol: -1,
+      maxCol: -1,
+    },
     allRange: {},
     isSelect: false,
     isMouseDown: false,

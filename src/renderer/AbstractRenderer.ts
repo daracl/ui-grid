@@ -1,15 +1,12 @@
-import { OptionCallback } from "@t/Common";
 import { FieldItem } from "@t/GridField";
 
 import { ValidResult } from "@t/ValidResult";
-import { REGEXP_TYPE } from "src/constants";
-import DaraGrid from "src/DaraGrid";
 import * as utils from "src/util/utils";
 
 export default abstract class AbstractRenderer {
   protected field;
 
-  private enableView: boolean = true;
+  private readonly enableView: boolean = true;
 
   protected listValueKey;
 

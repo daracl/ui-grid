@@ -13,7 +13,7 @@ export const numberInputEvent = (field: FieldItem, element: HTMLInputElement) =>
     const val = e.target.value;
 
     if (!utils.isNumber(val)) {
-      element.value = val.replace(/[^0-9\.\-\+]/g, "");
+      element.value = val.replace(/[^0-9.\-+]/g, "");
       e.preventDefault();
     }
     field.$renderer.changeEventCall(e, element);

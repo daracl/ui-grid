@@ -3,7 +3,7 @@ import { RULES } from "src/constants";
 import { validator } from "./validator";
 import * as utils from "src/util/utils";
 import { FieldItem } from "@t/GridField";
-import { GridConfig } from "@t/GridConfig";
+import { Config } from "@t/GridConfig";
 
 /**
  * 숫자 유효성 체크
@@ -12,7 +12,7 @@ import { GridConfig } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig): ValidResult | boolean => {
+export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | boolean => {
   const result: ValidResult = { name: field.name, constraint: [] };
   const numValue = Number(value);
 
