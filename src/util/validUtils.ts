@@ -1,5 +1,6 @@
 import { ValidResult } from "@t/ValidResult";
 import Lanauage from "./Lanauage";
+import { FieldItem } from "@t/GridField";
 
 export const invalidMessage = (field: FieldItem, rowElement: Element, validResult: ValidResult | boolean) => {
   if (validResult === true) {

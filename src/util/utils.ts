@@ -1,3 +1,5 @@
+import { FieldItem } from "@t/GridField";
+
 const xssFilter = {
   "&": "&amp;",
   "<": "&lt;",
@@ -148,6 +150,17 @@ function fallbackCopyToClipboard(prefix: string, copyText: string) {
 }
 
 /**
+ * hidden type check
+ *
+ * @export
+ * @param {FieldItem} field field item
+ * @returns {boolean} type hidden true , false
+ */
+export function isHiddenField(field: FieldItem): boolean {
+  return field.dataType == "hidden";
+}
+
+/**
  * 값있는지 여부 체크.
  *
  * @param {*} value
@@ -164,6 +177,20 @@ export const getHashCode = (str: string) => {
     hash = hash & hash;
   }
   return String(hash).replaceAll(/-/g, "_");
+};
+
+/**
+ * replace message format
+ *
+ * @param {string} logicCode logic code
+ * @param {*} param replace parameter
+ * @returns {*}
+ */
+export const replaceMesasgeFormat = (logicCode: string, param: any) => {
+  return logicCode.replace(/{{(.+?)}}/gi, function (word) {
+    const key = word.replace(/[\{\}]/g, "");
+    return param[key];
+  });
 };
 
 export const templateToElement = (htmlTemplate: string): Element | null => {

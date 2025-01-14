@@ -1,5 +1,9 @@
 import { GridOptions } from "@t/GridOptions";
+import { Config, Selection } from "@t/GridConfig";
+
 import { defaultOptions } from "./defaultGridOption";
+import { initConfig } from "./defaultGridConfig";
+import { FIELD_PREFIX } from "./constants";
 
 import * as utils from "./util/utils";
 import { ValidResult } from "@t/ValidResult";
@@ -8,14 +12,10 @@ import Lanauage from "./util/Lanauage";
 import { stringValidator } from "./rule/stringValidator";
 import { numberValidator } from "./rule/numberValidator";
 import { regexpValidator } from "./rule/regexpValidator";
-import FieldInfoMap from "src/FieldInfoMap";
 import FormTemplate from "./GridTemplate";
+import AbstractRenderer from "./renderer/AbstractRenderer";
 
 declare const APP_VERSION: string;
-
-interface FieldMap {
-  [key: string]: EditRenderer;
-}
 
 interface DaraGridMap {
   [key: string]: DaraGrid;
@@ -38,18 +38,18 @@ export default class DaraGrid {
 
   private readonly options;
 
-  private orginFormStyleClass;
+  private orginStyleClass;
 
   /**
-   * grid unique id
+   * unique id
    */
   private $uid: string;
 
+  // grid 설정
+  private config: Config;
+
+  // element
   private gridElement: Element;
-
-  private fieldInfoMap: FieldInfoMap;
-
-  private formValue: any = {};
 
   public formTemplate: FormTemplate;
 
@@ -62,10 +62,9 @@ export default class DaraGrid {
       throw new Error(`${gridElement} grid element not found`);
     }
 
-    this.orginFormStyleClass = gridElement.className;
     gridElement.classList.add("daracl-grid");
 
-    this.$uid = `dg_${++DARA_GRID_SEQ}`;
+    this.$uid = `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
     gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
 
     if (this.options.width) {
@@ -87,7 +86,8 @@ export default class DaraGrid {
   }
 
   private createGrid() {
-    this.fieldInfoMap = new FieldInfoMap(this.$uid, this);
+    this.config = initConfig();
+    this.selection = new 
   }
 
   public static instance(ele: Element | String) {

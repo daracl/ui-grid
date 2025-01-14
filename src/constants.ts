@@ -1,14 +1,20 @@
-import NumberRender from "src/renderer/edit/NumberRender";
-import TextAreaRender from "src/renderer/edit/TextAreaRender";
-import DropdownRender from "src/renderer/edit/DropdownRender";
-import TextRender from "src/renderer/edit/TextRender";
-import CheckboxRender from "src/renderer/edit/CheckboxRender";
-import RadioRender from "src/renderer/edit/RadioRender";
-import PasswordRender from "src/renderer/edit/PasswordRender";
-import CustomRender from "./renderer/edit/CustomRender";
-import ButtonRender from "./renderer/view/ButtonRenderer";
-import RangeRender from "./renderer/edit/RangeRender";
-import DateRender from "./renderer/edit/DateRender";
+import CheckboxRenderer from "./renderer/edit/CheckboxRenderer";
+import CustomRenderer from "./renderer/edit/CustomRenderer";
+import DateRenderer from "./renderer/edit/DateRenderer";
+import DropdownRenderer from "./renderer/edit/DropdownRenderer";
+import NumberRenderer from "./renderer/edit/NumberRenderer";
+import PasswordRenderer from "./renderer/edit/PasswordRenderer";
+import RadioRenderer from "./renderer/edit/RadioRenderer";
+import RangeRenderer from "./renderer/edit/RangeRenderer";
+import TextAreaRenderer from "./renderer/edit/TextAreaRenderer";
+import TextRenderer from "./renderer/edit/TextRenderer";
+
+import BarRenderer from "./renderer/view/BarRenderer";
+import ButtonRenderer from "./renderer/view/ButtonRenderer";
+import HiddenRenderer from "./renderer/view/HiddenRenderer";
+import HtmlRenderer from "./renderer/view/HtmlRenderer";
+import ImageRenderer from "./renderer/view/ImageRenderer";
+import LinkRenderer from "./renderer/view/LinkRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -41,23 +47,25 @@ export const RULES = {
   VALIDATOR: "validator",
 } as const;
 
-export const FIELD_PREFIX = "dgf"; // daracl form field
+export const FIELD_PREFIX = "dg"; // daracl grid field
 
 export const RENDER_TEMPLATE: any = {
-  number: NumberRender,
-  textarea: TextAreaRender,
-  dropdown: DropdownRender,
-  checkbox: CheckboxRender,
-  radio: RadioRender,
-  text: TextRender,
-  password: PasswordRender,
-  custom: CustomRender,
-  button: ButtonRender,
-  range: RangeRender,
-  datehour: DateRender,
-  datemonth: DateRender,
-  date: DateRender,
-  datetime: DateRender,
+  checkbox: CheckboxRenderer,
+  custom: CustomRenderer,
+  date: DateRenderer,
+  dropdown: DropdownRenderer,
+  number: NumberRenderer,
+  password: PasswordRenderer,
+  radio: RadioRenderer,
+  range: RangeRenderer,
+  textarea: TextAreaRenderer,
+  text: TextRenderer,
+  bar: BarRenderer,
+  button: ButtonRenderer,
+  hidden: HiddenRenderer,
+  html: HtmlRenderer,
+  image: ImageRenderer,
+  link: LinkRenderer,
 };
 
 export const ALIGN = {

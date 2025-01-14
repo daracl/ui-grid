@@ -1,23 +1,13 @@
-import Renderer from "../renderer/edit/Renderer";
 import { RENDER_TEMPLATE } from "../constants";
-import * as utils from "./utils";
+import { FieldItem } from "@t/GridField";
+import AbstractRenderer from "src/renderer/AbstractRenderer";
 
-export const getRenderer = (field: FieldItem): Render => {
+export const getRenderer = (field: FieldItem): AbstractRenderer => {
   let render;
-  if (field.renderType) {
-    render = RENDER_TEMPLATE[field.renderType];
-  }
+  if (field.renderer.type) {
+    render = RENDER_TEMPLATE[field.renderer.type];
 
-  if (render && (render.isDataRender() === false || !utils.isUndefined(field.name))) {
-    return render;
-  }
-
-  if (utils.isUndefined(field.name)) {
-    if (field.children) {
-      return RENDER_TEMPLATE["group"];
-    } else {
-      return RENDER_TEMPLATE["hidden"];
-    }
+    if (render) return render;
   }
 
   return RENDER_TEMPLATE["text"];
