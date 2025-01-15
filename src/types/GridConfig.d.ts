@@ -44,7 +44,7 @@ export interface Config {
   dataInfo: {
     colLen: number;
     rowLen: number;
-    lastRowIdx: number;
+    lastRow: number;
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;
   };
@@ -74,34 +74,14 @@ export interface Config {
     filterCheckItem: boolean; // filter info {checkFn; check condition}
   };
   fixedHeaderIndex: number;
-  scroll: {
-    /**
-     * 스크롤 데이터 초기화
-     */
-    containerLeft: number;
-    before: any;
-    top: number;
-    left: number;
-    startCol: number;
-    endCol: number;
-    viewIdx: number;
-    vBarPosition: number;
-    hBarPosition: number;
-    maxViewCount: number;
-    viewCount: number;
-    vTrackHeight: number;
-    hTrackWidth: number;
-    verticalScrollTimer: number;
-    horizontalScrollTimer: number;
-    mouseDown: boolean;
-  };
+  scroll: Scroll;
 }
 
 export interface Selection {
   /**
    * 현재 위치
    */
-  curr: string | number;
+  id: string;
 
   /**
    * 현재 설정 range
@@ -111,7 +91,7 @@ export interface Selection {
    * 모든 선택 영역 정보
    */
   allRange: {
-    [key: string | number]: SelectionRange;
+    [key: string]: SelectionRange;
   };
   /**
    * 선택여부
@@ -124,31 +104,58 @@ export interface Selection {
   /**
    * 취소 영역
    */
-  unSelectPosition: {};
+  unSelectPosition: {
+    [key: string]: string;
+  };
   /**
    * 전체 선택 여부
    */
   allSelect: boolean;
 
-  minIdx: number;
-  maxIdx: number;
+  minRow: number;
+  maxRow: number;
   minCol: number;
   maxCol: number;
   /**
    * 시작 위치 값
    */
-  startCell: { startIdx: number; startCol: number };
+  startCell: { startRow: number; startCol: number };
 }
 
 export interface SelectionRange {
   _key: string;
-  mode: string;
-  startIdx: number;
-  endIdx: number;
+  /**
+   *
+   */
+  mode?: "" | "add" | "remove";
+  startRow: number;
+  endRow: number;
   startCol: number;
   endCol: number;
-  minIdx: number;
-  maxIdx: number;
+  minRow: number;
+  maxRow: number;
   minCol: number;
   maxCol: number;
+}
+
+export interface Scroll {
+  /**
+   * 스크롤 데이터 초기화
+   */
+  containerLeft: number;
+  before: any;
+  top: number;
+  left: number;
+  startCol: number;
+  endCol: number;
+  viewRow: number;
+  vBarPosition: number;
+  hBarPosition: number;
+  maxViewCount: number;
+  viewCount: number;
+  vTrackHeight: number;
+  hTrackWidth: number;
+  verticalScrollTimer: number;
+  horizontalScrollTimer: number;
+  mouseDown: boolean;
 }

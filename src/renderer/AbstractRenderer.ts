@@ -53,7 +53,7 @@ export default abstract class AbstractRenderer {
    * @param {any} value row item
    * @returns {any} field value
    */
-  public getValue(value: any) {
+  public getValue(value: any, formatFlag?: boolean) {
     return value[this.field.name];
   }
 

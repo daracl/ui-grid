@@ -2,7 +2,7 @@ import { ValidResult } from "@t/ValidResult";
 import { regexpValidator } from "./regexpValidator";
 import * as utils from "src/util/utils";
 import { FieldItem } from "@t/GridField";
-import { GridConfig } from "@t/GridConfig";
+import { Config } from "@t/GridConfig";
 
 /**
  *  validator  ,  regexp 체크 .
@@ -12,7 +12,7 @@ import { GridConfig } from "@t/GridConfig";
  * @param {ValidResult} result
  * @returns {(ValidResult | boolean)}
  */
-export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig, result: ValidResult): ValidResult | boolean => {
+export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config, result: ValidResult): ValidResult | boolean => {
   const fieldRender = field.renderer;
   if (fieldRender.validator) {
     result.validator = fieldRender.validator(field, rowItem);

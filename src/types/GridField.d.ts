@@ -25,6 +25,10 @@ export interface FieldItem {
    */
   width?: number;
   /**
+   * 화면 표현여부
+   */
+  visible?: boolean;
+  /**
    * 정렬 여부
    */
   sort?: boolean;
@@ -37,7 +41,7 @@ export interface FieldItem {
    */
   dataType: string;
   /**
-   * VIEW_RENDER_TYPE
+   * RENDER_TYPE
    */
   renderer: RendererInfo;
   /**

@@ -3,11 +3,20 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
+import { isFixedPostion, removeActiveColumnStyle, isMultipleSelection } from "src/util/gridUtils";
 
 export default class SelectionInfo {
   private options: GridOptions;
   private config: Config;
   private selection: Selection;
+
+  /**
+   * select id number
+   *
+   * @private
+   * @type {number}
+   */
+  private serialNumber = 0;
 
   constructor(options: GridOptions, config: Config) {
     this.options = options;
@@ -28,11 +37,10 @@ export default class SelectionInfo {
     if (initFlag) {
       currSelectionInfo = initSelectionInfo();
 
-      this.setSelectionInfo(currSelectionInfo, changeRangeInfo);
-      currSelectionInfo = this.selection = currSelectionInfo;
-      currSelectionInfo.allRange[currSelectionInfo.curr] = currSelectionInfo.range;
+      this.selection = currSelectionInfo;
+      currSelectionInfo.allRange[currSelectionInfo.id] = currSelectionInfo.range;
     } else {
-      this.setSelectionInfo(currSelectionInfo, changeRangeInfo);
+      this.setSelectionInfo(changeInfo, changeRangeInfo);
     }
 
     let isRangeInfo = utils.isUndefined(changeRangeInfo);
@@ -41,10 +49,10 @@ export default class SelectionInfo {
 
     rangeInfo = utils.merge(rangeInfo, changeInfo);
 
-    currSelectionInfo.minIdx = currSelectionInfo.minIdx == -1 ? Math.min(rangeInfo.startIdx, rangeInfo.endIdx) : Math.min(currSelectionInfo.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
-    currSelectionInfo.maxIdx = Math.max(currSelectionInfo.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
-    currSelectionInfo.minIdx = currSelectionInfo.minIdx < -1 ? 0 : currSelectionInfo.minIdx;
-    currSelectionInfo.maxIdx = currSelectionInfo.maxIdx >= this.config.dataInfo.lastRowIdx ? this.config.dataInfo.lastRowIdx : currSelectionInfo.maxIdx;
+    currSelectionInfo.minRow = currSelectionInfo.minRow == -1 ? Math.min(rangeInfo.startRow, rangeInfo.endRow) : Math.min(currSelectionInfo.minRow, rangeInfo.startRow, rangeInfo.endRow);
+    currSelectionInfo.maxRow = Math.max(currSelectionInfo.maxRow, rangeInfo.endRow, rangeInfo.startRow);
+    currSelectionInfo.minRow = currSelectionInfo.minRow < -1 ? 0 : currSelectionInfo.minRow;
+    currSelectionInfo.maxRow = currSelectionInfo.maxRow >= this.config.dataInfo.lastRow ? this.config.dataInfo.lastRow : currSelectionInfo.maxRow;
 
     if (initFlag !== true || (isRangeInfo && currSelectionInfo.minCol == -1)) {
       currSelectionInfo.minCol = currSelectionInfo.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currSelectionInfo.minCol, rangeInfo.endCol, rangeInfo.startCol);
@@ -56,8 +64,8 @@ export default class SelectionInfo {
 
     if (isRangeInfo) return;
 
-    rangeInfo.minIdx = Math.min(rangeInfo.startIdx, rangeInfo.endIdx);
-    rangeInfo.maxIdx = Math.max(rangeInfo.endIdx, rangeInfo.startIdx);
+    rangeInfo.minRow = Math.min(rangeInfo.startRow, rangeInfo.endRow);
+    rangeInfo.maxRow = Math.max(rangeInfo.endRow, rangeInfo.startRow);
     rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
     rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
 
@@ -65,8 +73,8 @@ export default class SelectionInfo {
       rangeInfo.minCol = rangeInfo.minCol < -1 ? 0 : rangeInfo.minCol;
       rangeInfo.maxCol = rangeInfo.maxCol >= this.config.currentHeaderItems.length ? this.config.currentHeaderItems.length - 1 : rangeInfo.maxCol;
 
-      rangeInfo.minIdx = rangeInfo.minIdx < -1 ? 0 : rangeInfo.minIdx;
-      rangeInfo.maxIdx = rangeInfo.maxIdx >= this.config.dataInfo.lastRowIdx ? this.config.dataInfo.lastRowIdx : rangeInfo.maxIdx;
+      rangeInfo.minRow = rangeInfo.minRow < -1 ? 0 : rangeInfo.minRow;
+      rangeInfo.maxRow = rangeInfo.maxRow >= this.config.dataInfo.lastRow ? this.config.dataInfo.lastRow : rangeInfo.maxRow;
     }
 
     if (tdSelectFlag) {
@@ -92,32 +100,28 @@ export default class SelectionInfo {
    * @param {SelectionRange} rangeInfo changeRangeInfo
    * @returns {*}
    */
-  public setSelectionInfo(changeInfo: Selection, rangeInfo: SelectionRange) {
-    const cfgSelect = this.selection;
-    for (const key in changeInfo) {
-      if (key == "range") {
-      } else if (key == "curr") {
-        if (changeInfo[key] == "add") {
-          cfgSelect.curr += 1;
-          cfgSelect.range = rangeInfo;
-          const rangeKey = rangeInfo._key ? rangeInfo._key : cfgSelect.curr;
+  public setSelectionInfo(changeInfo: any, rangeInfo: SelectionRange) {
+    delete changeInfo.range;
+    this.selection = utils.merge(this.selection, changeInfo);
+    const selectionInfo = this.selection;
 
-          if (this.isRangeKey(rangeKey)) {
-            rangeInfo.mode = "remove";
-            delete cfgSelect.allRange[rangeKey];
-          } else {
-            cfgSelect.allRange[rangeKey] = rangeInfo;
-          }
-        } else if (attrInfo[key] == "remove") {
-          cfgSelect.curr += 1;
-          cfgSelect.range = rangeInfo;
-          const rangeKey = rangeInfo._key ? rangeInfo._key : cfgSelect.curr;
-          rangeInfo.mode = "remove";
-          delete cfgSelect.allRange[rangeKey];
-        }
+    const mode = rangeInfo.mode;
+    if (mode == "add") {
+      selectionInfo.id = this.getSelectionId();
+      selectionInfo.range = rangeInfo;
+      const rangeKey = rangeInfo._key ? rangeInfo._key : selectionInfo.id;
+
+      if (this.isRangeKey(rangeKey)) {
+        rangeInfo.mode = "remove";
+        delete selectionInfo.allRange[rangeKey];
       } else {
-        cfgSelect[key] = attrInfo[key];
+        selectionInfo.allRange[rangeKey] = rangeInfo;
       }
+    } else if (mode == "remove") {
+      selectionInfo.id = this.getSelectionId();
+      selectionInfo.range = rangeInfo;
+      const rangeKey = rangeInfo._key ? rangeInfo._key : selectionInfo.id;
+      delete selectionInfo.allRange[rangeKey];
     }
   }
 
@@ -125,8 +129,8 @@ export default class SelectionInfo {
    * @method isRangeKey
    * @description header , col 선택 여부 확인
    */
-  public isRangeKey(key: number): boolean {
-    return this.selection.allRange[key] ? true : false;
+  public isRangeKey(key: string): boolean {
+    return this.selection.allRange.hasOwnProperty(key);
   }
 
   /**
@@ -142,72 +146,72 @@ export default class SelectionInfo {
    * @description select data 구하기.
    */
   public selectionData(dataType: string): any {
-    var tbodyItem = this.options.tbodyItem;
+    const items = this.options.items;
 
-    if (tbodyItem.length < 1) return;
+    if (items.length < 1) return;
 
     dataType = dataType || "text";
 
-    var sCol, eCol, sIdx, eIdx;
+    let sCol, eCol, sRow, eRow;
 
-    var allSelectFlag = this.isAllSelect();
+    const allSelectFlag = this.isAllSelect();
 
     if (allSelectFlag) {
       sCol = 0;
       eCol = this.config.currentHeaderItems.length - 1;
-      sIdx = 0;
-      eIdx = this.config.dataInfo.lastRowIdx;
+      sRow = 0;
+      eRow = this.config.dataInfo.lastRow;
     } else {
-      const colInfo = this.config.selection;
+      const colInfo = this.selection;
       sCol = colInfo.minCol;
       eCol = colInfo.maxCol;
-      sIdx = colInfo.minIdx;
-      eIdx = colInfo.maxIdx;
+      sRow = colInfo.minRow;
+      eRow = colInfo.maxRow;
     }
 
-    if (sIdx < 0 || eIdx < 0) return dataType == "json" ? {} : "";
+    if (sRow < 0 || eRow < 0) return dataType == "json" ? {} : "";
 
     const returnVal = [];
     let addRowFlag;
 
     const headerItems = this.config.currentHeaderItems;
 
-    const keyInfo = {};
-    const tmpVal = "";
-    const summaryInfo = { count: 0, numbers: [] };
-    for (let i = sIdx; i <= eIdx; i++) {
-      let item = tbodyItem[i];
+    let keyInfo = {} as any;
+    let tmpVal: any;
+    const summaryInfo: { count: number; numbers: number[] } = { count: 0, numbers: [] };
+    for (let i = sRow; i <= eRow; i++) {
+      let item = items[i];
 
       let rowText = [],
-        rowItem = { _pubIdx: i };
+        rowItem = { _pubIdx: i } as any;
       addRowFlag = false;
 
-      for (const j = sCol; j <= eCol; j++) {
+      for (let j = sCol; j <= eCol; j++) {
         const colItem = headerItems[j];
 
         if (colItem.visible === false) continue;
 
-        const tmpKey = colItem.key;
+        const colName = colItem.name;
 
         if ((allSelectFlag && !this.isAllSelectUnSelectPosition(i, j)) || this.isSelectPosition(i, j)) {
           addRowFlag = true;
 
-          tmpVal = this.getRenderValue(colItem, item, "data");
+          tmpVal = colItem.$renderer.getValue(item);
 
           if (dataType == "json") {
             keyInfo[j] = colItem;
-            rowItem[tmpKey] = tmpVal;
-            summaryInfo.count += isBlank(tmpVal) ? 0 : 1;
-            if (isNumber(tmpVal)) {
-              tmpVal = Number(tmpVal);
-              summaryInfo.numbers.push(tmpVal);
+            rowItem[colName] = tmpVal;
+            summaryInfo.count += utils.isBlank(tmpVal) ? 0 : 1;
+            if (utils.isNumber(tmpVal)) {
+              const numval = Number(tmpVal);
+              summaryInfo.numbers.push(numval);
             }
           } else {
             rowText.push(tmpVal);
           }
         } else {
           rowText.push("");
-          rowItem[tmpKey] = "";
+          rowItem[colName] = "";
         }
       }
 
@@ -221,12 +225,12 @@ export default class SelectionInfo {
     }
 
     if (dataType == "json") {
-      var reKeyInfo = [];
+      const reKeyInfo = [];
 
-      for (var key in keyInfo) {
+      for (const key in keyInfo) {
         reKeyInfo.push(keyInfo[key]);
       }
-      sum = summaryInfo.numbers.reduce((a, b) => a + b, 0);
+      let sum = summaryInfo.numbers.reduce((a, b) => a + b, 0);
       return {
         header: reKeyInfo,
         data: returnVal,
@@ -241,6 +245,52 @@ export default class SelectionInfo {
     }
   }
 
+  public isSelectPosition(row: number, col: number, currFlag?: boolean): boolean {
+    if (this.selection.unSelectPosition.hasOwnProperty(row + "," + col)) {
+      return false;
+    }
+    if (currFlag) {
+      return this.isSelRange(this.selection.range, "", row, col);
+    } else {
+      const allRange = this.selection.allRange;
+
+      for (const key in allRange) {
+        if (this.isSelRange(allRange[key], "", row, col)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * cell all 선택시 선택 여부
+   *
+   * @param {number} row row number
+   * @param {number} col col number
+   * @returns {boolean} 여부
+   */
+  public isAllSelectUnSelectPosition(row: number, col: number): boolean {
+    return this.selection.unSelectPosition.hasOwnProperty(row + "," + col);
+  }
+
+  /**
+   * 선택된 cell 인지 확인
+   *
+   * @param {SelectionRange} range range info
+   * @param {number} row row number
+   * @param {number} col col number
+   * @returns {boolean} 여부
+   */
+  public isSelRange(range: SelectionRange, mode: string, row: number, col: number): boolean {
+    if (mode == "row") {
+      return range.minRow <= row && row <= range.maxRow;
+    } else {
+      return range.minRow <= row && row <= range.maxRow && range.minCol <= col && col <= range.maxCol;
+    }
+  }
+
   /**
    * cell select
    *
@@ -248,37 +298,37 @@ export default class SelectionInfo {
    * @param {boolean} initFlag
    */
   public setCellSelect(initFlag: boolean) {
-    const tmpCurr = this.config.selection.curr;
+    const currentId = this.selection.id;
     const colInfo = this.getSelectionRangeInfo();
-    const startCellInfo = this.config.selection.startCell; // start cell
+    const startCellInfo = this.selection.startCell; // start cell
 
-    const sIdx = colInfo.startIdx,
-      eIdx = colInfo.endIdx,
+    let sRow = colInfo.startRow,
+      eRow = colInfo.endRow,
       sCol = colInfo.startCol,
       eCol = colInfo.endCol,
-      currViewIdx = this.config.scroll.viewIdx;
+      currViewRow = this.config.scroll.viewRow;
 
-    const sRow = sIdx < currViewIdx ? 0 : sIdx - currViewIdx,
-      eRow = eIdx - currViewIdx;
+    sRow = sRow < currViewRow ? 0 : sRow - currViewRow;
+    eRow = eRow - currViewRow;
 
     eRow = eRow > this.config.scroll.viewCount ? this.config.scroll.viewCount : eRow;
 
-    if (this.config.selection.range.mode == "remove") {
+    if (this.selection.range.mode == "remove") {
       for (const i = sRow; i <= eRow; i++) {
         for (const j = sCol; j <= eCol; j++) {
           const cellPosition = i + "," + j;
-          const currIdx = currViewIdx + i;
+          const currRow = currViewRow + i;
 
           let addEle;
 
-          if (this._isFixedPostion(j)) {
+          if (isFixedPostion(this.config, j)) {
             addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
           } else {
             addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
           }
           if (addEle == null) continue;
 
-          this.config.selection.unSelectPosition[cellPosition] = "";
+          this.selection.unSelectPosition[cellPosition] = "";
 
           addEle.removeAttribute("data-select-idx");
           addEle.classList.remove("col-active");
@@ -292,51 +342,51 @@ export default class SelectionInfo {
     this.element.body.find(".pub-body-td.selection-start-col").removeClass("selection-start-col");
 
     if (initFlag) {
-      _$util.clearActiveColumn(this.element);
+      removeActiveColumnStyle(this.element);
     } else {
-      this.element.body.find('.pub-body-td[data-select-idx="' + tmpCurr + '"].col-active').each(function () {
+      this.element.body.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(function () {
         const sEle = $(this);
         const posInfo = _$util.getCellPosition(sEle);
-        if (this.isSelectPosition(currViewIdx + posInfo.r, posInfo.c)) {
+        if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {
         } else {
           sEle.removeClass("col-active");
         }
       });
     }
 
-    const rangeKey = this.config.selection.range._key;
-    const isRowSelect = false,
+    const rangeKey = this.selection.range._key;
+    let isRowSelect = false,
       isColSelect = false;
-    if (!isUndefined(rangeKey)) {
-      isRowSelect = this.config.selection.range._key.indexOf("row") == 0;
-      isColSelect = this.config.selection.range._key.indexOf("col") == 0;
+    if (!utils.isUndefined(rangeKey)) {
+      isRowSelect = this.selection.range._key.indexOf("row") == 0;
+      isColSelect = this.selection.range._key.indexOf("col") == 0;
     }
 
-    for (const i = sRow; i <= eRow; i++) {
-      for (const j = sCol; j <= eCol; j++) {
+    for (let i = sRow; i <= eRow; i++) {
+      for (let j = sCol; j <= eCol; j++) {
         const cellPosition = i + "," + j;
-        const currIdx = currViewIdx + i;
+        const currRow = currViewRow + i;
 
         if (isRowSelect || isColSelect) {
           delete this.selection.unSelectPosition[cellPosition];
         }
 
-        if (!this.isSelectPosition(currIdx, j, true)) {
+        if (!this.isSelectPosition(currRow, j, true)) {
           continue;
         }
 
         let addEle;
 
-        if (this._isFixedPostion(j)) {
+        if (isFixedPostion(this.config, j)) {
           addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
         } else {
           addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
         }
         if (addEle == null) continue;
 
-        addEle.setAttribute("data-select-idx", tmpCurr);
+        addEle.setAttribute("data-select-idx", currentId);
 
-        if (startCellInfo.startIdx == currIdx && startCellInfo.startCol == j) {
+        if (startCellInfo.startRow == currRow && startCellInfo.startCol == j) {
           addEle.classList.add("col-active");
           addEle.classList.add("selection-start-col");
         } else {
@@ -350,22 +400,23 @@ export default class SelectionInfo {
 
   /**
    * 선택된 cell 영역 구하기.
+   *
    * @returns 선택된 cell 영역 구하기.
    */
   public getSelectionRangeInfo() {
     const selectionInfo = this.selection.range;
 
-    const startIdx = selectionInfo.startIdx,
-      endIdx = selectionInfo.endIdx,
+    let selectionStartRow = selectionInfo.startRow,
+      selectionEndRow = selectionInfo.endRow,
       startCol = selectionInfo.startCol,
       endCol = selectionInfo.endCol,
       startRow = -1,
       endRow = -1;
 
-    if (startIdx > endIdx) {
-      const tmp = endIdx;
-      endIdx = startIdx;
-      startIdx = tmp;
+    if (selectionStartRow > selectionEndRow) {
+      const tmp = selectionEndRow;
+      selectionEndRow = selectionStartRow;
+      selectionStartRow = tmp;
     }
 
     if (startCol > endCol) {
@@ -374,25 +425,101 @@ export default class SelectionInfo {
       startCol = tmp;
     }
 
-    if (ctx.config.scroll.viewIdx >= startIdx) {
+    if (this.config.scroll.viewRow >= selectionStartRow) {
       startRow = 0;
     } else {
-      startRow = startIdx - ctx.config.scroll.viewIdx;
+      startRow = selectionStartRow - this.config.scroll.viewRow;
     }
 
-    if (ctx.config.scroll.viewIdx + ctx.config.scroll.maxViewCount <= endIdx) {
-      endRow = ctx.config.scroll.viewCount - 1;
+    if (this.config.scroll.viewRow + this.config.scroll.maxViewCount <= selectionEndRow) {
+      endRow = this.config.scroll.viewCount - 1;
     } else {
-      endRow = endIdx - ctx.config.scroll.viewIdx;
+      endRow = selectionEndRow - this.config.scroll.viewRow;
     }
 
     return {
-      startIdx: startIdx,
-      endIdx: endIdx,
+      startIdx: selectionStartRow,
+      endIdx: selectionEndRow,
       startRow: startRow,
       endRow: endRow,
       startCol: startCol,
       endCol: endCol,
     };
+  }
+
+  /**
+   * selection mode col info
+   *
+   * @public
+   * @param {string} selectionMode selection mode
+   * @param {number} col col
+   * @param {*} dataInfo
+   * @param {boolean} isMouseDown
+   * @returns {{ startCol: number; endCol: number; }}
+   */
+  public getSelectionModeColInfo(selectionMode: string, col: number, dataInfo: any, isMouseDown: boolean) {
+    let _startCol = 0,
+      _endCol = 0;
+
+    if (selectionMode == "multiple-row") {
+      _startCol = 0;
+      _endCol = dataInfo.colLen - 1;
+    } else if (selectionMode == "multiple-cell") {
+      if (isMouseDown) {
+        _startCol = -1;
+      } else {
+        _startCol = col;
+      }
+
+      _endCol = col;
+    } else if (selectionMode == "row") {
+      _startCol = 0;
+      _endCol = dataInfo.colLen - 1;
+    } else {
+      _startCol = col;
+      _endCol = col;
+    }
+
+    return { startCol: _startCol, endCol: _endCol };
+  }
+
+  public setRangeInfo(evtKey: number, evt: Event, endRow: number, moveCol: number) {
+    let startCol = moveCol,
+      endCol = moveCol;
+
+    if (this.options.selectionMode == "multiple-row" || this.options.selectionMode == "row") {
+      startCol = 0;
+      endCol = this.config.dataInfo.colLen - 1;
+    }
+
+    let multipleFlag = isMultipleSelection(this.options.selectionMode);
+
+    if (multipleFlag && evtKey != 9 && evt.shiftKey) {
+      this.setSelectionRangeInfo(
+        {
+          rangeInfo: { endRow: endRow, endCol: endCol },
+          startCell: { startRow: endRow, startCol: moveCol },
+        },
+        false,
+        true
+      );
+    } else {
+      this.setSelectionRangeInfo(
+        {
+          rangeInfo: { startRow: endRow, endRow: endRow, startCol: startCol, endCol: endCol },
+          startCell: { startRow: endRow, startCol: moveCol },
+        },
+        true,
+        true
+      );
+    }
+  }
+
+  public getSelectionId(type?: string): string {
+    if (type) {
+      return type + ++this.serialNumber;
+    }
+
+    return "auto" + ++this.serialNumber;
   }
 }

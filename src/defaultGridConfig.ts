@@ -1,4 +1,4 @@
-import { Config, Selection } from "./types/GridConfig";
+import { Config, Scroll, Selection } from "./types/GridConfig";
 
 /**
  * grid default config
@@ -19,7 +19,7 @@ export const initConfig = (): Config => {
     template: {},
     orginData: [],
     currentHeaderItems: [],
-    dataInfo: { colLen: 0, rowLen: 0, lastRowIdx: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
+    dataInfo: { colLen: 0, rowLen: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     rowOpt: {},
     sort: { orginData: [], sortMap: new Map() },
     pagingInfo: false,
@@ -43,24 +43,7 @@ export const initConfig = (): Config => {
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
     fixedHeaderIndex: -1,
-    scroll: {
-      containerLeft: 0,
-      before: {},
-      top: 0,
-      left: 0,
-      startCol: 0,
-      endCol: 0,
-      viewIdx: 0,
-      vBarPosition: 0,
-      hBarPosition: 0,
-      maxViewCount: 0,
-      viewCount: 0,
-      vTrackHeight: 0,
-      hTrackWidth: 0,
-      verticalScrollTimer: -1,
-      horizontalScrollTimer: -1,
-      mouseDown: false,
-    },
+    scroll: initScrollInfo(),
   };
 };
 
@@ -71,16 +54,16 @@ export const initConfig = (): Config => {
  */
 export const initSelectionInfo = (): Selection => {
   return {
-    curr: "",
+    id: "",
     range: {
       _key: "",
       mode: "",
-      startIdx: -1,
-      endIdx: -1,
+      startRow: -1,
+      endRow: -1,
       startCol: -1,
       endCol: -1,
-      minIdx: -1,
-      maxIdx: -1,
+      minRow: -1,
+      maxRow: -1,
       minCol: -1,
       maxCol: -1,
     },
@@ -89,10 +72,36 @@ export const initSelectionInfo = (): Selection => {
     isMouseDown: false,
     unSelectPosition: {},
     allSelect: false,
-    minIdx: -1,
-    maxIdx: -1,
+    minRow: -1,
+    maxRow: -1,
     minCol: -1,
     maxCol: -1,
-    startCell: { startIdx: -1, startCol: -1 },
+    startCell: { startRow: -1, startCol: -1 },
+  };
+};
+
+/**
+ * scroll info
+ *
+ * @returns {Scroll} scroll init info
+ */
+export const initScrollInfo = (): Scroll => {
+  return {
+    containerLeft: 0,
+    before: {},
+    top: 0,
+    left: 0,
+    startCol: 0,
+    endCol: 0,
+    viewRow: 0,
+    vBarPosition: 0,
+    hBarPosition: 0,
+    maxViewCount: 0,
+    viewCount: 0,
+    vTrackHeight: 0,
+    hTrackWidth: 0,
+    verticalScrollTimer: -1,
+    horizontalScrollTimer: -1,
+    mouseDown: false,
   };
 };

@@ -3,7 +3,7 @@ import { RULES } from "src/constants";
 import * as utils from "src/util/utils";
 import { validator } from "./validator";
 import { FieldItem } from "@t/GridField";
-import { GridConfig } from "@t/GridConfig";
+import { Config } from "@t/GridConfig";
 /**
  * string validator
  *
@@ -11,7 +11,7 @@ import { GridConfig } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: GridConfig): ValidResult | boolean => {
+export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | boolean => {
   let result: ValidResult = { name: field.name, constraint: [] };
 
   if (field.renderer.required && utils.isBlank(value)) {

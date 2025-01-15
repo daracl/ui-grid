@@ -1,7 +1,4 @@
 import AbstractRenderer from "../AbstractRenderer";
-import { numberValidator } from "src/rule/numberValidator";
-import { resetRowElementStyleClass, invalidMessage } from "src/util/validUtils";
-import { numberInputEvent } from "src/event/renderEvents";
 import { FieldItem } from "@t/GridField";
 
 /**
