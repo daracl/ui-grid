@@ -149,6 +149,7 @@ export const defaultOptions: GridOptions = {
       height: 14, // 가로 스크롤 높이
       speed: 1, // 스크롤 스피드
       enableWheel: true, //  wheel 로 스크롤 이동.
+      onUpdate: false,
     },
   },
   fields: [], //head item

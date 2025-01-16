@@ -23,7 +23,7 @@ export interface FieldItem {
   /**
    * 컬럼 넓이
    */
-  width?: number;
+  width: number;
   /**
    * 화면 표현여부
    */

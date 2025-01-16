@@ -154,28 +154,28 @@ export interface HeaderOptions {
    * header 보기 여부
    * @default true
    */
-  view?: boolean;
+  view: boolean;
 
   /**
    * header 높이
    * @default 25
    */
-  height?: number;
+  height: number;
 
   /**
    * 정렬 여부
    *
    * @default true
    */
-  sort?: {
+  sort: {
     /**
      * 정렬 활성화 여부
      */
-    enabled?: boolean;
+    enabled: boolean;
     /**
      * null value 를 항상 끝으로 유지 할지 여부
      */
-    nullsLast?: boolean;
+    nullsLast: boolean;
     /**
      * custom sorting function
      */
@@ -189,69 +189,69 @@ export interface HeaderOptions {
     /**
      *  resize 활성화 여부
      */
-    enabled?: boolean; // 활성화여부
+    enabled: boolean; // 활성화여부
 
     /**
      * 변경시 콜백 함수
      */
-    update?: boolean | OptionCallback;
+    update: boolean | OptionCallback;
     /**
      * 컬럼 최소 넓이
      */
-    minWidth?: number;
+    minWidth: number;
     /**
      * 컬럼 최대 넓이
      */
-    maxWidth?: number; // 컬럼 최대 넓이
+    maxWidth: number; // 컬럼 최대 넓이
   };
   /**
    * 전체 선택 활성화 여부
    */
-  enableAllColumnSelection?: boolean;
+  enableAllColumnSelection: boolean;
   /**
    * 마우스 휠로 가로 스크롤 이동할지 여부.
    */
-  enableScroll?: boolean;
+  enableScroll: boolean;
   /**
    * char 의 넓이값
    */
-  charWidth?: number;
+  charWidth: number;
   /**
    * 모든 header label 활성화 할지 여부
    */
-  enableViewAllLabel?: boolean;
+  enableViewAllLabel: boolean;
 
   /**
    *header contextmenu event
    */
-  contextMenu?: boolean | OptionCallback;
+  contextMenu: boolean | OptionCallback;
 
   /**
    * help 버튼 옵션
    */
-  help?: {
+  help: {
     /**
      * header help btn 활성 여부.
      */
-    enabled?: boolean;
+    enabled: boolean;
     /**
      * tooltip title
      */
-    title?: string;
+    title: string;
     /**
      * click event
      */
-    click?: boolean | OptionCallback;
+    click: boolean | OptionCallback;
     /**
      * double click event
      */
-    dblclick?: boolean | OptionCallback;
+    dblclick: boolean | OptionCallback;
   };
 
   /**
    * drag 여부
    */
-  drag?: {
+  drag: {
     /**
      * 활성화여부
      */
@@ -602,19 +602,19 @@ export interface ScrollOptions {
     /**
      * 가로 스크롤 높이
      */
-    height?: number;
+    height: number;
     /**
      * 스크롤 스피드
      */
-    speed?: number;
+    speed: number;
     /**
      * 마우스 wheel 로 스크롤 이동 여부
      */
-    enableWheel?: boolean;
+    enableWheel: boolean;
     /**
      * 스크롤 이벤트 콜백
      */
-    onUpdate?: OptionCallback;
+    onUpdate: OptionCallback | boolean;
   };
 }
 

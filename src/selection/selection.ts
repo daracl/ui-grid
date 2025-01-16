@@ -3,7 +3,7 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
-import { isFixedPostion, removeActiveColumnStyle, isMultipleSelection } from "src/util/gridUtils";
+import { isFixedPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition } from "src/util/gridUtils";
 
 export default class SelectionInfo {
   private options: GridOptions;
@@ -344,9 +344,9 @@ export default class SelectionInfo {
     if (initFlag) {
       removeActiveColumnStyle(this.element);
     } else {
-      this.element.body.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(function () {
+      this.element.body.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(() => {
         const sEle = $(this);
-        const posInfo = _$util.getCellPosition(sEle);
+        const posInfo = getCellPosition(sEle);
         if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {
         } else {
           sEle.removeClass("col-active");
@@ -458,29 +458,25 @@ export default class SelectionInfo {
    * @returns {{ startCol: number; endCol: number; }}
    */
   public getSelectionModeColInfo(selectionMode: string, col: number, dataInfo: any, isMouseDown: boolean) {
-    let _startCol = 0,
-      _endCol = 0;
+    let startCol, endCol;
 
-    if (selectionMode == "multiple-row") {
-      _startCol = 0;
-      _endCol = dataInfo.colLen - 1;
+    if (selectionMode == "multiple-row" || selectionMode == "row") {
+      startCol = 0;
+      endCol = dataInfo.colLen - 1;
     } else if (selectionMode == "multiple-cell") {
       if (isMouseDown) {
-        _startCol = -1;
+        startCol = -1;
       } else {
-        _startCol = col;
+        startCol = col;
       }
 
-      _endCol = col;
-    } else if (selectionMode == "row") {
-      _startCol = 0;
-      _endCol = dataInfo.colLen - 1;
+      endCol = col;
     } else {
-      _startCol = col;
-      _endCol = col;
+      startCol = col;
+      endCol = col;
     }
 
-    return { startCol: _startCol, endCol: _endCol };
+    return { startCol: startCol, endCol: endCol };
   }
 
   public setRangeInfo(evtKey: number, evt: Event, endRow: number, moveCol: number) {
@@ -497,18 +493,18 @@ export default class SelectionInfo {
     if (multipleFlag && evtKey != 9 && evt.shiftKey) {
       this.setSelectionRangeInfo(
         {
-          rangeInfo: { endRow: endRow, endCol: endCol },
+          range: { endRow: endRow, endCol: endCol },
           startCell: { startRow: endRow, startCol: moveCol },
-        },
+        } as any,
         false,
         true
       );
     } else {
       this.setSelectionRangeInfo(
         {
-          rangeInfo: { startRow: endRow, endRow: endRow, startCol: startCol, endCol: endCol },
+          range: { startRow: endRow, endRow: endRow, startCol: startCol, endCol: endCol },
           startCell: { startRow: endRow, startCol: moveCol },
-        },
+        } as any,
         true,
         true
       );

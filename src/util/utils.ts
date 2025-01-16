@@ -52,7 +52,7 @@ export const isUndefined = (value: any): value is undefined => {
   return typeof value === "undefined";
 };
 
-export const isFunction = (value: any): boolean => {
+export const isFunction = (value: any): value is Function => {
   return typeof value === "function";
 };
 
@@ -67,49 +67,12 @@ export const isNumber = (value: any): value is number => {
   return !isNaN(value);
 };
 
+export const intValue = (val: any): number => {
+  return parseInt(val, 10);
+};
+
 export const isArray = (value: any): value is Array<any> => {
   return Array.isArray(value);
-};
-
-/**
- * event key code
- * @param e Event
- * @returns
- */
-export const eventKeyCode = (e: any) => {
-  return window.event ? e.keyCode : e.which;
-};
-
-/**
- * event position
- *
- * @param e event
- * @returns
- */
-export const evtPos = (e: any) => {
-  const oe = e.originalEvent;
-  let evt;
-  if (oe) {
-    if (oe.changedTouches) {
-      evt = oe.changedTouches[0];
-    } else if (oe.touches) {
-      evt = oe[0];
-    }
-  }
-
-  evt = evt || e;
-
-  return { x: evt.pageX, y: evt.pageY };
-};
-
-/**
- * event stop
- *
- * @param e event
- */
-export const stopPreventCancel = (e: Event) => {
-  e.preventDefault();
-  e.stopPropagation();
 };
 
 export const copyStringToClipboard = (prefix: string, copyText: string) => {

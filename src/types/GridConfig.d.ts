@@ -40,7 +40,7 @@ export interface Config {
   };
   select: AnyKeyMap;
   template: AnyKeyMap;
-  orginData: Array;
+  items: Array;
   dataInfo: {
     colLen: number;
     rowLen: number;
@@ -48,6 +48,7 @@ export interface Config {
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;
   };
+  rowHeight: number;
   rowOpt: AnyKeyMap;
   sort: {
     orginData: Array;
@@ -142,12 +143,17 @@ export interface Scroll {
   /**
    * 스크롤 데이터 초기화
    */
+
+  enableVertical: boolean;
+  enableHorizontal: boolean;
   containerLeft: number;
   before: any;
   top: number;
   left: number;
   startCol: number;
   endCol: number;
+  insideStartCol: number;
+  insideEndCol: number;
   viewRow: number;
   vBarPosition: number;
   hBarPosition: number;
@@ -155,7 +161,39 @@ export interface Scroll {
   viewCount: number;
   vTrackHeight: number;
   hTrackWidth: number;
-  verticalScrollTimer: number;
-  horizontalScrollTimer: number;
+  oneColMove: number;
+  oneRowMove: number;
+  verticalScrollTimer: any;
+  horizontalScrollTimer: any;
   mouseDown: boolean;
+}
+
+// element 처리할것.
+export interface GridElement {
+  grid: HTMLElement;
+  hidden: HTMLElement;
+  container: HTMLElement;
+  toolbar: HTMLElement;
+  left: HTMLElement;
+  header: HTMLElement;
+  body: HTMLElement;
+  footer: HTMLElement;
+  navi: HTMLElement;
+  navSelectionInfo: HTMLElement;
+
+  status: HTMLElement;
+
+  hScrollBar: HTMLElement;
+  vScrollBar: HTMLElement;
+
+  hScrollEdge: HTMLElement;
+  resizeHelper: HTMLElement;
+  asideContent: HTMLElement[][];
+  leftContent: HTMLElement[][];
+  bodyContent: HTMLElement[][];
+
+  pasteArea: HTMLElement;
+
+  // measure element
+  measureEl: HTMLElement;
 }
