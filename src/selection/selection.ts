@@ -59,7 +59,7 @@ export default class SelectionInfo {
       currSelectionInfo.maxCol = Math.max(currSelectionInfo.maxCol, rangeInfo.endCol, rangeInfo.startCol);
 
       currSelectionInfo.minCol = currSelectionInfo.minCol < -1 ? 0 : currSelectionInfo.minCol;
-      currSelectionInfo.maxCol = currSelectionInfo.maxCol >= this.config.currentHeaderItems.length ? this.config.currentHeaderItems.length - 1 : currSelectionInfo.maxCol;
+      currSelectionInfo.maxCol = currSelectionInfo.maxCol >= this.config.currentFields.length ? this.config.currentFields.length - 1 : currSelectionInfo.maxCol;
     }
 
     if (isRangeInfo) return;
@@ -71,7 +71,7 @@ export default class SelectionInfo {
 
     if (initFlag !== true) {
       rangeInfo.minCol = rangeInfo.minCol < -1 ? 0 : rangeInfo.minCol;
-      rangeInfo.maxCol = rangeInfo.maxCol >= this.config.currentHeaderItems.length ? this.config.currentHeaderItems.length - 1 : rangeInfo.maxCol;
+      rangeInfo.maxCol = rangeInfo.maxCol >= this.config.currentFields.length ? this.config.currentFields.length - 1 : rangeInfo.maxCol;
 
       rangeInfo.minRow = rangeInfo.minRow < -1 ? 0 : rangeInfo.minRow;
       rangeInfo.maxRow = rangeInfo.maxRow >= this.config.dataInfo.lastRow ? this.config.dataInfo.lastRow : rangeInfo.maxRow;
@@ -158,7 +158,7 @@ export default class SelectionInfo {
 
     if (allSelectFlag) {
       sCol = 0;
-      eCol = this.config.currentHeaderItems.length - 1;
+      eCol = this.config.currentFields.length - 1;
       sRow = 0;
       eRow = this.config.dataInfo.lastRow;
     } else {
@@ -174,7 +174,7 @@ export default class SelectionInfo {
     const returnVal = [];
     let addRowFlag;
 
-    const headerItems = this.config.currentHeaderItems;
+    const headerItems = this.config.currentFields;
 
     let keyInfo = {} as any;
     let tmpVal: any;
@@ -485,7 +485,7 @@ export default class SelectionInfo {
 
     if (this.options.selectionMode == "multiple-row" || this.options.selectionMode == "row") {
       startCol = 0;
-      endCol = this.config.dataInfo.colLen - 1;
+      endCol = this.config.dataInfo.colLength - 1;
     }
 
     let multipleFlag = isMultipleSelection(this.options.selectionMode);

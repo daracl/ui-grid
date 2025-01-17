@@ -149,7 +149,7 @@ export default class DaraGrid {
     const _this = this,
       opts = this.options,
       _gw = this.config.container.width,
-      tci = this.config.currentHeaderItems,
+      tci = this.config.currentFields,
       tciLen = this.config.dataInfo.colLength;
 
     let verticalW = 0;
@@ -181,7 +181,7 @@ export default class DaraGrid {
           mainGridWidth += item.width;
         }
       }
-      this.config.currentHeaderItems[tciLen - 1].width += lastSpaceW;
+      this.config.currentFields[tciLen - 1].width += lastSpaceW;
       this.config.gridWidth.left = leftGridWidth;
       this.config.gridWidth.main = mainGridWidth + lastSpaceW;
     }

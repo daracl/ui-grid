@@ -44,7 +44,7 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement) => {
     c: posInfo.c,
     rowItemIdx: cellRow,
     rowItem: cfg.items[cellRow],
-    colInfo: cfg.currentHeaderItems[posInfo.c],
+    colInfo: cfg.currentFields[posInfo.c],
   };
 };
 
@@ -71,7 +71,7 @@ export const getCellPosition = (cellElement: HTMLElement) => {
 export const calcViewCol = (cfg: Config, leftVal: number): number => {
   const containerLeft = leftVal < 1 ? 0 : (cfg.gridWidth.mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
 
-  const tci = cfg.currentHeaderItems;
+  const tci = cfg.currentFields;
   const gridW = containerLeft + cfg.gridWidth.mainInsideWidth;
   let itemLeftVal = 0;
 

@@ -299,7 +299,7 @@ export default class ScrollInfo {
     let itemIdx = 0;
 
     if (topVal > 0) {
-      itemIdx = topVal / (this.config.scroll.vTrackHeight / (this.config.dataInfo.rowLen - this.config.scroll.viewCount));
+      itemIdx = topVal / (this.config.scroll.vTrackHeight / (this.config.dataInfo.rowLength - this.config.scroll.viewCount));
       itemIdx = Math.round(itemIdx);
     }
 
