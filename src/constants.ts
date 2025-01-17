@@ -74,6 +74,12 @@ export const ALIGN = {
   right: "right",
 } as const;
 
+export const ALIGN_STYLE = {
+  left: "al",
+  center: "ac",
+  right: "ar",
+} as const;
+
 export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];
 
 export type POSITION_TYPE = "left" | "center" | "right";

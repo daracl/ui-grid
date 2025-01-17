@@ -82,4 +82,44 @@ export interface FieldItem {
    * 실제 랜더러
    */
   $renderer: AbstractRenderer;
+
+  /**
+   * colspan number
+   */
+  $colspan: number;
+
+  /**
+   * row span count
+   */
+  $rowspan: number;
+
+  /**
+   * depth
+   */
+  $depth: number;
+
+  /**
+   * leaf node 여부
+   */
+  $isLeaf: boolean;
+
+  /**
+   * child length
+   */
+  $childLength: number;
+
+  /**
+   * resize idx
+   */
+  $resizeIdx: number;
+
+  /**
+   * grid max width
+   */
+  $maxWidth: number;
+
+  /**
+   * align style
+   */
+  $alignStyle: string;
 }

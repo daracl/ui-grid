@@ -8,7 +8,6 @@ export const defaultOptions: GridOptions = {
   height: "auto", // 높이 값
   width: "auto", // 넓이값
   copyMode: "single", // copy mode	single, multiple, none
-  fixedHeaderIndex: 0, // 고정 컬럼
   widthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
   editable: false, // 편집 모드 활성화
@@ -43,6 +42,7 @@ export const defaultOptions: GridOptions = {
       minWidth: 50, // 컬럼 최소 넓이
       maxWidth: 1500, // 컬럼 최대 넓이
     },
+    fixedIndex: 0, // 고정 컬럼 index
     enableAllColumnSelection: true, // 전체 선택 여부.
     enableScroll: true, // 마우스 휠로 가로 스크롤 이동할지 여부.
     charWidth: 7, // char 의 넓이값

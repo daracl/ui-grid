@@ -18,7 +18,7 @@ export interface Config {
     [key: string]: FieldItem;
   };
 
-  currentHeaderItems: FieldItem[];
+  currentFields: FieldItem[];
   container: {
     height: number;
     width: number;
@@ -42,8 +42,8 @@ export interface Config {
   template: AnyKeyMap;
   items: Array;
   dataInfo: {
-    colLen: number;
-    rowLen: number;
+    colLength: number;
+    rowLength: number;
     lastRow: number;
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;

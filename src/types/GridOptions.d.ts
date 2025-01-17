@@ -58,10 +58,6 @@ export interface GridOptions {
   copyMode: COPY_MODE;
 
   /**
-   *  고정 컬럼
-   */
-  fixedHeaderIndex: number;
-  /**
    * 수정 모드 활성화
    */
   editable: boolean;
@@ -161,6 +157,11 @@ export interface HeaderOptions {
    * @default 25
    */
   height: number;
+
+  /**
+   *  고정 컬럼
+   */
+  fixedIndex: number;
 
   /**
    * 정렬 여부
@@ -581,11 +582,11 @@ export interface ScrollOptions {
     /**
      * 넓이
      */
-    width?: number;
+    width: number;
     /**
      * 스크롤 스피드 row 1
      */
-    speed?: number;
+    speed: number;
     /**
      * 스크롤 이벤트 콜백
      */
