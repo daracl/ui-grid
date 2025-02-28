@@ -1,0 +1,11 @@
+@import "_daracl-common.scss";
+
+.dg-summary {
+  display: none;
+
+  &.on {
+    display: block;
+    padding: 3px 0px;
+    height: 30px;
+  }
+}

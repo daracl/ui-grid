@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>dom test</title>
+</head>
+
+<body onload="load()">
+
+    <div id="result"></div>
+
+    <div style="padding: 20px;">
+        <div id="table"></div>
+    </div>
+</body>
+
+</html>
+<style>
+    table {
+        width: 100%;
+        height: 100%;
+        table-layout: fixed;
+    }
+
+    table td {
+        width: 30px;
+        border: 1px solid #dddddd;
+    }
+</style>
+<script>
+    let cellElements = [[]];
+    let resultElement;
+    function load() {
+        resultElement = new daraElement(document.getElementById("result"));
+        stringTest()
+    }
+
+    function stringTest() {
+        const mainElement = new daraElement(document.getElementById("table"));
+        const start = performance.now();
+        let trtd = [];
+        for (let i = 0; i < 50; i++) {
+
+            let td = [];
+            for (let j = 0; j < 30; j++) {
+
+                td.push("<td>" + (i + "-" + j) + "</td>")
+            }
+
+            trtd.push(`<tr>${td.join("")}</tr>`);
+        }
+
+        var html = `<table>
+            ${trtd.join('')}
+        </table>`;
+
+        mainElement.html(html);
+
+        const end = performance.now();
+
+        domLoad(mainElement);
+
+        resultElement.html(`Execution time: ${end - start} milliseconds`)
+    }
+
+    function domLoad(mainElement) {
+        let trEles = mainElement.getElement().querySelectorAll('tr');
+
+        let rowIndex = 0;
+        for (let tr of trEles) {
+
+            let colIndex = 0;
+            let cells = [];
+            for (let tdEle of tr.children) {
+                cells.push(new daraElement(tdEle, rowIndex, colIndex));
+                colIndex++;
+            }
+            cellElements[rowIndex] = cells;
+            rowIndex++;
+        }
+
+    }
+
+
+
+    class daraElement {
+
+        constructor(element, row, col) {
+            this.element = element;
+            this.row = row;
+            this.col = col;
+            this.initEvt();
+        }
+
+        initEvt() {
+            this.eventOn('click mousedown', (e, ele) => {
+                console.log(`row: ${this.row}, col: ${this.col}`, ele)
+            })
+        }
+
+        before(renderElements) {
+            this.insertAdjacentHTML("beforebegin", renderElements);
+        }
+        after(renderElements) {
+            this.insertAdjacentHTML("afterend", renderElements);
+        }
+        prepend(renderElements) {
+            this.insertAdjacentHTML("afterbegin", renderElements);
+        }
+        append(renderElements) {
+            this.insertAdjacentHTML("beforeend", renderElements);
+        }
+
+        getElement() {
+            return this.element;
+        }
+
+        html(renderElements) {
+            this.empty();
+            this.insertAdjacentHTML("beforeend", renderElements);
+        }
+
+        empty() {
+            if (this.element == null) return this;
+
+            this.element.replaceChildren();
+
+            return this;
+        }
+
+        hasClass(styleClassName) {
+
+            if (this.element.classList.contains(styleClassName)) {
+                return true;
+            }
+
+
+            return false;
+        }
+
+        addClass(styleClassName) {
+            if (el == null) return el;
+
+            const classList = this.element.classList;
+
+            if (!classList.contains(styleClassName)) {
+                classList.add(styleClassName);
+            }
+
+        }
+
+        removeClass(styleClassName) {
+            this.element.classList.remove(styleClassName);
+        }
+
+        text() {
+            let divEle = document.createElement("div");
+            divEle.innerHTML = htmlText;
+            return divEle.innerText;
+        }
+
+        eventOn(type, selector, listener) {
+
+            const element = this.element;
+
+            if (!isString(selector)) {
+                listener = selector;
+
+                for (let eventType of type.split(" ")) {
+                    element.addEventListener(eventType, (e) => {
+                        if (listener(e, element) === false) {
+                            e.stopImmediatePropagation();
+                            e.preventDefault();
+                        }
+                    });
+                }
+
+
+                return this;
+            }
+
+            const fn = (e) => {
+                const evtTarget = e.target;
+
+                const selectorEle = evtTarget.closest(selector);
+
+                if (selectorEle) {
+                    if (listener(e, selectorEle) === false) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                    }
+                }
+            };
+
+            element.addEventListener(type, fn);
+
+        }
+
+
+        insertAdjacentHTML(insertPosition, renderElements) {
+            if (isString(renderElements)) {
+                this.element.insertAdjacentHTML(insertPosition, renderElements);
+            } else {
+
+                console.log('elements : ', elements)
+                this.element.insertAdjacentElement(insertPosition, renderElements);
+
+            }
+        }
+
+    }
+
+    function isString(str) {
+        return typeof str == 'string';
+    }
+
+
+</script>

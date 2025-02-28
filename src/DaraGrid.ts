@@ -46,9 +46,6 @@ export default class DaraGrid {
 
   private gridElement: HTMLElement;
 
-  // element
-  private elements: GridElement;
-
   public formTemplate: FormTemplate;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
@@ -75,6 +72,10 @@ export default class DaraGrid {
 
     allInstance[this.$uid] = this;
     this.createGrid();
+  }
+
+  public element() {
+    return this.gridElement;
   }
 
   public static create(gridElement: HTMLElement, options: GridOptions, message?: Message): DaraGrid {

@@ -1,0 +1,12 @@
+.dg-main {
+  .dg-main-container {
+    position: relative;
+    vertical-align: top;
+
+    @import "_main.header.scss";
+
+    @import "_main.body.scss";
+
+    @import "_main.summary.scss";
+  }
+}

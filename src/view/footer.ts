@@ -1,21 +1,12 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { defaultOptions } from "./defaultGridOption";
-import { initConfig } from "./defaultGridConfig";
-import { FIELD_PREFIX } from "./constants";
-
-import * as utils from "./util/utils";
 import { ValidResult } from "@t/ValidResult";
 import { Message } from "@t/Message";
-import Lanauage from "./util/Lanauage";
-import { stringValidator } from "./rule/stringValidator";
-import { numberValidator } from "./rule/numberValidator";
-import { regexpValidator } from "./rule/regexpValidator";
-import FormTemplate from "./GridTemplate";
-import AbstractRenderer from "./renderer/AbstractRenderer";
-import { addStyleTag } from "./util/styleUtils";
-import { isFixedPostion } from "./util/gridUtils";
+import Lanauage from "../util/Lanauage";
+import * as utils from "../util/utils";
+import { addStyleTag } from "../util/styleUtils";
+import { isFixedPostion } from "../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import { merge } from "src/util/utils";
@@ -35,7 +26,7 @@ let DARA_GRID_SEQ = 0;
  * @class DaraGrid
  * @typedef {DaraGrid}
  */
-export default class Header {
+export default class Footer {
   private grid: DaraGrid;
 
   private headerOptions: HeaderOptions;
@@ -62,10 +53,6 @@ export default class Header {
     let tciItem;
 
     const columnGroupInfo = this.getHeaderGroupInfo();
-
-    cfg.headerLeftGroup = columnGroupInfo.left;
-    cfg.headerBodyGroup = columnGroupInfo.body;
-
     // header element height
     if (headerOptions.view !== false) {
       this.config.header.height = headerOptions.height * columnGroupInfo.depth;
@@ -73,7 +60,7 @@ export default class Header {
 
     const fields = (cfg.currentFields = columnGroupInfo.leaf) as FieldItem[];
 
-    const viewAllLabel = calcFlag === false ? false : headerOptions.viewAllLabel === true ? true : false;
+    const viewAllLabel = calcFlag === false ? false : headerOptions.enableViewAllLabel === true ? true : false;
 
     let leftWidth = 0,
       mainWidth = 0,

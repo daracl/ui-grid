@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>dom test</title>
+</head>
+
+<body onload="load()">
+    <div id="result"></div>
+
+    <div style="padding: 20px;">
+        <div id="table"></div>
+    </div>
+</body>
+
+</html>
+<style>
+    table {
+        width: 100%;
+        height: 100%;
+        table-layout: fixed;
+    }
+
+    table td {
+        width: 30px;
+        border: 1px solid #dddddd;
+    }
+</style>
+<script>
+    function load() {
+        stringTest();
+    }
+
+    function stringTest() {
+        const mainElement = document.getElementById("table");
+
+        // 기존 테이블이 있으면 삭제
+        while (mainElement.firstChild) {
+            mainElement.removeChild(mainElement.firstChild);
+        }
+
+        let table = document.createElement("table");
+        for (let i = 0; i < 50; i++) {
+            let tr = document.createElement("tr");
+
+            for (let j = 0; j < 30; j++) {
+                let td = document.createElement("td");
+                td.textContent = `${i}-${j}`;
+                tr.appendChild(td);
+            }
+
+            table.appendChild(tr);
+        }
+
+        // 새로 생성된 테이블을 mainElement에 추가
+        mainElement.appendChild(table);
+    }
+</script>
