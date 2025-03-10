@@ -6,21 +6,17 @@ import { initConfig } from "./defaultGridConfig";
 import { FIELD_PREFIX } from "./constants";
 
 import * as utils from "./util/utils";
-import { ValidResult } from "@t/ValidResult";
 import { Message } from "@t/Message";
 import Lanauage from "./util/Lanauage";
-import { stringValidator } from "./rule/stringValidator";
-import { numberValidator } from "./rule/numberValidator";
-import { regexpValidator } from "./rule/regexpValidator";
-import FormTemplate from "./GridTemplate";
 import AbstractRenderer from "./renderer/AbstractRenderer";
 import { addStyleTag } from "./util/styleUtils";
 import { isFixedPostion } from "./util/gridUtils";
+import GridMain from "./view/main";
 
 declare const APP_VERSION: string;
 
 // all instance
-const allInstance: any = {};
+const ALL_INSTANCE: any = {};
 
 const SEQ_ATTR_KEY = "daracl-grid-uid";
 
@@ -37,6 +33,14 @@ export default class DaraGrid {
   private readonly options;
 
   /**
+   * grid element
+   *
+   * @private
+   * @type {GridElement}
+   */
+  public elementMap: GridElement;
+
+  /**
    * unique id
    */
   private readonly $uid: string;
@@ -45,8 +49,6 @@ export default class DaraGrid {
   private config: Config;
 
   private gridElement: HTMLElement;
-
-  public formTemplate: FormTemplate;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     this.options = utils.merge({}, defaultOptions, options) as GridOptions;
@@ -70,7 +72,7 @@ export default class DaraGrid {
 
     this.gridElement = gridElement;
 
-    allInstance[this.$uid] = this;
+    ALL_INSTANCE[this.$uid] = this;
     this.createGrid();
   }
 
@@ -90,6 +92,8 @@ export default class DaraGrid {
     this.config = initConfig();
 
     addStyleTag(this);
+
+    const main = new GridMain(this, this.config);
   }
 
   public getOptions(): GridOptions {
@@ -115,8 +119,8 @@ export default class DaraGrid {
   public static instance(eleOrUid: HTMLElement | string): DaraGrid {
     let element;
     if (utils.isString(eleOrUid)) {
-      if (allInstance[eleOrUid]) {
-        return allInstance[eleOrUid];
+      if (ALL_INSTANCE[eleOrUid]) {
+        return ALL_INSTANCE[eleOrUid];
       }
       element = document.querySelector(eleOrUid);
     } else {
@@ -125,8 +129,8 @@ export default class DaraGrid {
 
     let uid = (element as HTMLElement).querySelector(".dg-grid")?.getAttribute(SEQ_ATTR_KEY);
 
-    if (uid && allInstance[uid]) {
-      return allInstance[uid];
+    if (uid && ALL_INSTANCE[uid]) {
+      return ALL_INSTANCE[uid];
     }
 
     throw new Error(`instance not found : [${eleOrUid}]`);
@@ -147,8 +151,7 @@ export default class DaraGrid {
       return;
     }
 
-    const _this = this,
-      opts = this.options,
+    const opts = this.options,
       _gw = this.config.container.width,
       tci = this.config.currentFields,
       tciLen = this.config.dataInfo.colLength;
@@ -195,6 +198,10 @@ export default class DaraGrid {
    * @returns {*}
    */
   public getGridHeight(): number {
-    return this.options.height == "auto" ? this.gridElement.height() : this.options.height;
+    if (this.options.height == "auto") {
+      return this.gridElement.clientHeight;
+    } else {
+      return this.options.height;
+    }
   }
 }

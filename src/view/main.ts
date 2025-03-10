@@ -26,7 +26,7 @@ let DARA_GRID_SEQ = 0;
  * @class DaraGrid
  * @typedef {DaraGrid}
  */
-export default class Main {
+export default class GridMain {
   private grid: DaraGrid;
 
   private headerOptions: HeaderOptions;

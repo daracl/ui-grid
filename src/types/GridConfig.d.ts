@@ -174,12 +174,24 @@ export interface GridElement {
   hidden: HTMLElement;
   container: HTMLElement;
   toolbar: HTMLElement;
-  left: HTMLElement;
-  header: HTMLElement;
-  body: HTMLElement;
+  main: HTMLElement;
+
+  // main header
+  mainHeaderLeft: HTMLElement;
+  mainHeaderCenter: HTMLElement;
+  mainHeaderRight: HTMLElement;
+
+  // main body
+  mainBodyLeft: HTMLElement;
+  mainBodyCenter: HTMLElement;
+  mainBodyLeft: HTMLElement;
+
+  // main summary
+  mainSummaryLeft: HTMLElement;
+  mainSummaryBody: HTMLElement;
+  mainSummaryRight: HTMLElement;
+
   footer: HTMLElement;
-  navi: HTMLElement;
-  navSelectionInfo: HTMLElement;
 
   status: HTMLElement;
 
@@ -188,9 +200,6 @@ export interface GridElement {
 
   hScrollEdge: HTMLElement;
   resizeHelper: HTMLElement;
-  asideContent: HTMLElement[][];
-  leftContent: HTMLElement[][];
-  bodyContent: HTMLElement[][];
 
   pasteArea: HTMLElement;
 

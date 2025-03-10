@@ -4,8 +4,11 @@ import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition } from "src/util/gridUtils";
+import DaraGrid from "src/DaraGrid";
 
 export default class SelectionInfo {
+  private grid: DaraGrid;
+
   private options: GridOptions;
   private config: Config;
   private selection: Selection;
@@ -18,7 +21,8 @@ export default class SelectionInfo {
    */
   private serialNumber = 0;
 
-  constructor(options: GridOptions, config: Config) {
+  constructor(grid: DaraGrid, options: GridOptions, config: Config) {
+    this.grid = grid;
     this.options = options;
     this.config = config;
 
@@ -85,9 +89,9 @@ export default class SelectionInfo {
       const dataInfo = this.selectionData("json");
 
       if (!utils.isUndefined(dataInfo) && dataInfo.summaryInfo.count > 1) {
-        this.element.navSelectionInfo.empty().html(utils.replaceMesasgeFormat(this.options.navigation.selectionInfoFormat || "", dataInfo.summaryInfo));
+        //this.grid.elementMap.navSelectionInfo.empty().html(utils.replaceMesasgeFormat(this.options.navigation.selectionInfoFormat || "", dataInfo.summaryInfo));
       } else {
-        this.element.navSelectionInfo.empty();
+        //this.grid.elementMap.navSelectionInfo.innerHTML = "";
       }
     }
   }
@@ -313,89 +317,89 @@ export default class SelectionInfo {
 
     eRow = eRow > this.config.scroll.viewCount ? this.config.scroll.viewCount : eRow;
 
-    if (this.selection.range.mode == "remove") {
-      for (const i = sRow; i <= eRow; i++) {
-        for (const j = sCol; j <= eCol; j++) {
-          const cellPosition = i + "," + j;
-          const currRow = currViewRow + i;
+    // if (this.selection.range.mode == "remove") {
+    //   for (let i = sRow; i <= eRow; i++) {
+    //     for (let j = sCol; j <= eCol; j++) {
+    //       const cellPosition = i + "," + j;
+    //       const currRow = currViewRow + i;
 
-          let addEle;
+    //       let addEle;
 
-          if (isFixedPostion(this.config, j)) {
-            addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-          } else {
-            addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-          }
-          if (addEle == null) continue;
+    //       if (isFixedPostion(this.config, j)) {
+    //         addEle = this.grid.elementMap.mainBodyLeft.querySelector('[data-cell-position="' + cellPosition + '"]');
+    //       } else {
+    //         addEle = this.grid.elementMap.mainBodyCenter.querySelector('[data-cell-position="' + cellPosition + '"]');
+    //       }
+    //       if (addEle == null) continue;
 
-          this.selection.unSelectPosition[cellPosition] = "";
+    //       this.selection.unSelectPosition[cellPosition] = "";
 
-          addEle.removeAttribute("data-select-idx");
-          addEle.classList.remove("col-active");
+    //       addEle.removeAttribute("data-select-idx");
+    //       addEle.classList.remove("col-active");
 
-          addEle = null;
-        }
-      }
-      return;
-    }
+    //       addEle = null;
+    //     }
+    //   }
+    //   return;
+    // }
 
-    this.element.body.find(".pub-body-td.selection-start-col").removeClass("selection-start-col");
+    // this.grid.elementMap.main.find(".pub-body-td.selection-start-col").removeClass("selection-start-col");
 
-    if (initFlag) {
-      removeActiveColumnStyle(this.element);
-    } else {
-      this.element.body.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(() => {
-        const sEle = $(this);
-        const posInfo = getCellPosition(sEle);
-        if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {
-        } else {
-          sEle.removeClass("col-active");
-        }
-      });
-    }
+    // if (initFlag) {
+    //   removeActiveColumnStyle(this.grid.element);
+    // } else {
+    //   this.grid.elementMap.main.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(() => {
+    //     const sEle = $(this);
+    //     const posInfo = getCellPosition(sEle);
+    //     if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {
+    //     } else {
+    //       sEle.removeClass("col-active");
+    //     }
+    //   });
+    // }
 
-    const rangeKey = this.selection.range._key;
-    let isRowSelect = false,
-      isColSelect = false;
-    if (!utils.isUndefined(rangeKey)) {
-      isRowSelect = this.selection.range._key.indexOf("row") == 0;
-      isColSelect = this.selection.range._key.indexOf("col") == 0;
-    }
+    // const rangeKey = this.selection.range._key;
+    // let isRowSelect = false,
+    //   isColSelect = false;
+    // if (!utils.isUndefined(rangeKey)) {
+    //   isRowSelect = this.selection.range._key.indexOf("row") == 0;
+    //   isColSelect = this.selection.range._key.indexOf("col") == 0;
+    // }
 
-    for (let i = sRow; i <= eRow; i++) {
-      for (let j = sCol; j <= eCol; j++) {
-        const cellPosition = i + "," + j;
-        const currRow = currViewRow + i;
+    // for (let i = sRow; i <= eRow; i++) {
+    //   for (let j = sCol; j <= eCol; j++) {
+    //     const cellPosition = i + "," + j;
+    //     const currRow = currViewRow + i;
 
-        if (isRowSelect || isColSelect) {
-          delete this.selection.unSelectPosition[cellPosition];
-        }
+    //     if (isRowSelect || isColSelect) {
+    //       delete this.selection.unSelectPosition[cellPosition];
+    //     }
 
-        if (!this.isSelectPosition(currRow, j, true)) {
-          continue;
-        }
+    //     if (!this.isSelectPosition(currRow, j, true)) {
+    //       continue;
+    //     }
 
-        let addEle;
+    //     let addEle;
 
-        if (isFixedPostion(this.config, j)) {
-          addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-        } else {
-          addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-        }
-        if (addEle == null) continue;
+    //     if (isFixedPostion(this.config, j)) {
+    //       addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
+    //     } else {
+    //       addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
+    //     }
+    //     if (addEle == null) continue;
 
-        addEle.setAttribute("data-select-idx", currentId);
+    //     addEle.setAttribute("data-select-idx", currentId);
 
-        if (startCellInfo.startRow == currRow && startCellInfo.startCol == j) {
-          addEle.classList.add("col-active");
-          addEle.classList.add("selection-start-col");
-        } else {
-          addEle.classList.add("col-active");
-        }
+    //     if (startCellInfo.startRow == currRow && startCellInfo.startCol == j) {
+    //       addEle.classList.add("col-active");
+    //       addEle.classList.add("selection-start-col");
+    //     } else {
+    //       addEle.classList.add("col-active");
+    //     }
 
-        addEle = null;
-      }
-    }
+    //     addEle = null;
+    //   }
+    // }
   }
 
   /**
@@ -490,7 +494,12 @@ export default class SelectionInfo {
 
     let multipleFlag = isMultipleSelection(this.options.selectionMode);
 
-    if (multipleFlag && evtKey != 9 && evt.shiftKey) {
+    let shiftKeyFlag = false;
+    if (evt instanceof KeyboardEvent) {
+      shiftKeyFlag = (evt as KeyboardEvent).shiftKey;
+    }
+
+    if (multipleFlag && evtKey != 9 && shiftKeyFlag) {
       this.setSelectionRangeInfo(
         {
           range: { endRow: endRow, endCol: endCol },

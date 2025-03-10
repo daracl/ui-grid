@@ -1,0 +1,15 @@
+@use "./main/main.body" as _uBody;
+@use "./main/main.summary" as _uSummary;
+
+@mixin mainBody {
+  .dg-main {
+    .dg-main-container {
+      position: relative;
+      vertical-align: top;
+
+      @include _uBody.body;
+
+      @include _uSummary.summary;
+    }
+  }
+}

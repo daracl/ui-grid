@@ -1,30 +1,18 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { ValidResult } from "@t/ValidResult";
-import { Message } from "@t/Message";
-import Lanauage from "../util/Lanauage";
-import * as utils from "../util/utils";
-import { addStyleTag } from "../util/styleUtils";
-import { isFixedPostion } from "../util/gridUtils";
+import { addStyleTag } from "../../util/styleUtils";
+import { isFixedPostion } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { merge } from "src/util/utils";
+import * as utils from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
 
-declare const APP_VERSION: string;
-
-// all instance
-const allInstance: any = {};
-
-const SEQ_ATTR_KEY = "daracl-grid-uid";
-
-let DARA_GRID_SEQ = 0;
 /**
- * DaraGrid class
+ * Header class
  *
- * @class DaraGrid
- * @typedef {DaraGrid}
+ * @class Header
+ * @typedef {Header}
  */
 export default class Header {
   private grid: DaraGrid;
@@ -155,7 +143,7 @@ export default class Header {
         node.$isLeaf = false;
         node.$childLength = childrenLen;
         let colspan = 0;
-        for (const i = 0; i < childrenLen; i++) {
+        for (let i = 0; i < childrenLen; i++) {
           const childNode = children[i];
           this.groupInfo(childNode, node.$depth, columnGroupInfo);
           colspan += childNode.$colspan;
@@ -183,7 +171,7 @@ export default class Header {
       if (node.$colspan == 1) {
         columnGroupInfo.left[depth].push(node);
       } else {
-        const leftNode = merge({}, node);
+        const leftNode = utils.merge({}, node);
 
         if (leftNode.$resizeIdx > fixedIndex) {
           leftNode.$colspan = fixedIndex - (leftNode.$resizeIdx - leftNode.$colspan);
@@ -192,7 +180,7 @@ export default class Header {
 
         columnGroupInfo.left[depth].push(leftNode);
         if (fixedIndex < node.$resizeIdx) {
-          const bodyNode = merge({}, node);
+          const bodyNode = utils.merge({}, node);
           bodyNode.$colspan = node.$resizeIdx - fixedIndex;
           columnGroupInfo.body[depth].push(bodyNode);
         }

@@ -1,0 +1,52 @@
+@mixin boxSizing($boxtype) {
+  -webkit-box-sizing: $boxtype !important;
+  -moz-box-sizing: $boxtype !important;
+  box-sizing: $boxtype !important;
+}
+
+@mixin opacityVal($opacityNum: 0.7) {
+  $perVal: $opacityNum * 100;
+  opacity: $opacityNum;
+  -moz-opacity: $opacityNum;
+  -khtml-opacity: $opacityNum;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$perVal})";
+  filter: alpha(opacity=$perVal);
+}
+
+@mixin textShadow($themeName) {
+  text-shadow: 0 1px 0;
+}
+
+@mixin hoverStyle($themeName) {
+  color: map.get($theme_colors, $themeName, "a_hover_font_color");
+  background-color: map.get($theme_colors, $themeName, "a_hover_background_color");
+}
+
+@mixin keyFrame($animation_name) {
+  @keyframes #{$animation_name} {
+    @content;
+  }
+}
+
+@mixin animation($name, $delay, $duration, $loop) {
+  animation-name: $name;
+  animation-delay: $delay;
+
+  -webkit-animation-name: $name;
+  -webkit-animation-delay: $delay;
+
+  -moz-animation-name: $name;
+  -moz-animation-delay: $delay;
+
+  @if $duration != null {
+    animation-duration: $duration;
+    -webkit-animation-duration: $duration;
+    -moz-animation-duration: $duration;
+  }
+
+  @if $loop != null {
+    animation-iteration-count: $loop;
+    -webkit-animation-iteration-count: $loop;
+    -moz-animation-iteration-count: $loop;
+  }
+}

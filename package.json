@@ -2,7 +2,7 @@
   "name": "@daracl/grid",
   "version": "0.0.1",
   "sideEffects": false,
-  "description": "Daracl Grid validation ",
+  "description": "Daracl Grid",
   "author": {
     "name": "darainfo",
     "email": "info@daracl.com",
@@ -19,8 +19,6 @@
   "license": "MIT",
   "keywords": [
     "@daracl/grid",
-    "daraclValidation",
-    "daracl-validation",
     "daraclGrid",
     "daracl-grid",
     "grid",

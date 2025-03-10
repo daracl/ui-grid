@@ -1,0 +1,14 @@
+@import "../common/daracl-common";
+
+@mixin body {
+  .dg-body {
+    display: table-row;
+    position: relative;
+    z-index: 0;
+
+    & > div {
+      display: table-cell;
+      position: relative;
+    }
+  }
+}

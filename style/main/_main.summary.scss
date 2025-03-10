@@ -1,0 +1,13 @@
+@import "../common/daracl-common";
+
+@mixin summary {
+  .dg-summary {
+    display: none;
+
+    &.on {
+      display: block;
+      padding: 3px 0px;
+      height: 30px;
+    }
+  }
+}
