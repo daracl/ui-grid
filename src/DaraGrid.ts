@@ -51,6 +51,8 @@ export default class DaraGrid {
   private gridElement: HTMLElement;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
+    console.log("options ", options);
+
     this.options = utils.merge({}, defaultOptions, options) as GridOptions;
 
     Lanauage.set(message);
@@ -147,7 +149,7 @@ export default class DaraGrid {
    * @description width 계산.
    */
   public calcContainerWidth() {
-    if (this.options.widthFixed === true) {
+    if (this.options.enableWidthFixed === true) {
       return;
     }
 

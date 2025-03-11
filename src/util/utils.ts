@@ -221,10 +221,6 @@ function trim(s: string): string {
 }
 
 function cloneDeep(dst: any, src: any): any {
-  if (isObject(src)) {
-    return cloneObjectDeep(dst, src);
-  }
-
   if (isArray(src)) {
     return cloneArrayDeep(dst, src);
   }
@@ -232,6 +228,11 @@ function cloneDeep(dst: any, src: any): any {
   if (isDate(src)) {
     return new src.constructor(src);
   }
+
+  if (isObject(src)) {
+    return cloneObjectDeep(dst, src);
+  }
+
   return src;
 }
 
@@ -257,6 +258,10 @@ function cloneObjectDeep(dst: any, src: any): object {
     } else if (!isObject(val)) {
       dst[key] = val;
     } else {
+      if (!isObject(dst[key])) {
+        dst[key] = {};
+      }
+
       cloneDeep(dst[key], val);
     }
   }

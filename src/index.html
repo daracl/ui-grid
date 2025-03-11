@@ -3,34 +3,79 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Dara Form</title>
-  <script src="/dist/daracl.vender.min.js"></script>
-  <link href="/dist/daracl.vender.min.css" rel="stylesheet">
+  <title>Dara Grid</title>
+
 </head>
 
 <body>
-  <div class="header">
-    <div class="form-button">
-      <button type="button" onclick="formObj.addItem()">Add</button>
-      <button type="button" onclick="formObj.getValue()">getValue</button>
-      <button type="button" onclick="formObj.getValuePromise()">getValue(true)</button>
-      <button type="button" onclick="formObj.setValue()">setValue()</button>
-      <button type="button" onclick="formBuilder.isValidForm()">valid check</button>
-      <button type="button" onclick="formBuilder.resetForm()">Reset</button>
-      <button type="button" onclick="formBuilder.setFieldItems()">setFieldItems</button>
-    </div>
-
+  <div>
     <div>
-      Theme : <label>Light<input type="radio" name="theme-toggle" value="light" checked="true"></label>
-      <label>Dark<input type="radio" name="theme-toggle" value="dark"></label>
+      excel download시 <br />
+      <a href="https://github.com/eligrey/FileSaver.js/"> FileSaver.js </a> ,<a
+        href="https://github.com/exceljs/exceljs">exceljs.js</a>필요함.
     </div>
-  </div>
+    row
+    <select id="itemCount">
+      <option value="1">0</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="100" selected>100</option>
+      <option value="500">500</option>
+      <option value="1000">1000</option>
+      <option value="10000">10000</option>
+      <option value="100000">100000</option>
+    </select>
 
-  <div style="padding: 0px 20px">
-    <div id="sample" class="grid-container">
-    </div>
+    cell
+    <select id="cellCount">
+      <option value="1">1</option>
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+
+    <button type="button" onclick="fn_init()">regrid</button>
+
+    <button type="button" class="set-data">setData</button>
+
+    <button class="exceldown" mode="all" type="button">excel download</button>
+    <button class="exceldown" mode="select" type="button">select data excel download</button>
+
+    <button class="pdfdown" type="button">pdf download</button>
+
 
   </div>
+  <textarea id="dropTextArea" style="width:100%" rows="2"></textarea>
+  <table style="width:100%;height:100%;">
+    <colgroup>
+      <col style="width:50%">
+      <col style="width:48%">
+    </colgroup>
+    <tr>
+      <td>
+        <div class="asdfasdfWrapper">
+          <pre id="textTest"
+            style="display:inline-block;white-space: pre;position: relative;padding:0px;margin:0px;">SORT_ORDER</pre>
+          <div id="sample" style="height:calc(100vh - 200px)"></div>
+        </div>
+      </td>
+      <td>
+        <div class="asdfasdfWrapper">
+          <div id="asdfasdf1" style="height:calc(100vh - 200px)"></div>
+        </div>
+      </td>
+    </tr>
+
+  </table>
 </body>
 
 </html>
@@ -95,19 +140,13 @@
       })
     }
 
-    var aaa, colItem;
+    let aaa, colItem;
+    const itemType = 1;
 
-    $('asdfasdf').removeAttr('class');
-
-    var item = getItem(itemType);
+    let item = getItem(itemType);
 
     aaa = item.aaa;
     colItem = item.colItem;
-
-
-    if (parseInt($('#itemCount').val(), 10) == 1) {
-      aaa = [];
-    }
 
     gridDraw(document.getElementById('sample'), aaa, colItem);
 
@@ -115,19 +154,22 @@
     //gridDraw('#asdfasdf1',aaa, colItem);
 
   }
-  load();
+
+  document.addEventListener('DOMContentLoaded', function () {
+    load();
+  });
 
 
   var itemIdx = 0;
   function getItem(type) {
     itemIdx++;
-    var aaa = [];
-    var colItem = [];
-    var itemCount = parseInt($('#itemCount').val(), 10);
-    var cellCount = parseInt($('#cellCount').val(), 10);
+    let aaa = [];
+    let colItem = [];
+    let itemCount = parseInt(document.getElementById("itemCount").value, 10);
+    let cellCount = parseInt(document.getElementById("cellCount").value, 10);
 
     if (type == 1) {
-      for (var i = 0; i < itemCount; i++) {
+      for (let i = 0; i < itemCount; i++) {
         aaa.push({
           a: 'aaasdfasdfasdfasdfasdfasdfa' + i
           , b: 'ddd_' + i + 'asdf'
@@ -223,11 +265,11 @@
       ]
     } else {
 
-      for (var i = 0; i < itemCount; i++) {
-        var tmpItem = {};
+      for (let i = 0; i < itemCount; i++) {
+        let tmpItem = {};
 
-        for (var j = 0; j < cellCount; j++) {
-          var colName = 'col' + itemIdx + '_' + j;
+        for (let j = 0; j < cellCount; j++) {
+          let colName = 'col' + itemIdx + '_' + j;
           if (j == 0) {
             tmpItem[colName] = i + j;
           } else {
@@ -243,10 +285,10 @@
       if (aaa.length > 0) {
         colFirstItem = aaa[0];
 
-        var keyIdx = 0;
-        for (var key in colFirstItem) {
+        let keyIdx = 0;
+        for (let key in colFirstItem) {
 
-          var addColItem = {
+          let addColItem = {
             key: key
             , label: '한글' + key
             , width: 45
@@ -294,13 +336,12 @@
   }//test
 
   function gridDraw(element, aaa, colItem) {
-    var gridObj = DataGrid.create(element, {
-      fixedHeaderIndex: 0
-      , editable: true
+    let gridObj = Daracl.grid.create(element, {
+      editable: true
       , selectionMode: 'multiple-cell'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
-      , widthFixed: false
-      , showTooltip: true			// tooltip flag
-      , theme: $('#themeInfo').val()
+      , enableWidthFixed: false
+      , enableTooltip: true			// tooltip flag
+      , theme: document.getElementById("theme").value
       //,height: 360
       , asideOptions: {
         lineNumber: { enabled: true }
@@ -317,93 +358,65 @@
       , valueFilter: function (colInfo, objValue) {
         return objValue[colInfo.key];
       }
-      , headerOptions: {
+      , header: {
         view: true
-        , sort: true
+        , fixedIndex: 0
+        , sort: {
+          //정렬 활성화 여부
+          enabled: true
+          // null value 를 항상 끝으로 유지 할지 여부
+          , nullsLast: true
+          // custom sorting function
+          //,customSorting: ()=>{console.log(arguments)}
+        }
         //,height :30
-        , displayLineNumber: true	 // 라인 넘버 보기.
-        , displayRowSelector: false	 // row selecotr checkbox 보기
-        , displayModifyInfo: false	 // 수정여부 보기
-        , isColSelectAll: true		 // 컬럼 세로 선택 여부.
         , resize: {
           enabled: true
           , update: function (item) {
             //console.log(item);
           }
-          , getContent: function (colInfo, valuObj) {
-            console.log(colInfo, valuObj)
-            return valuObj[colInfo.key];
-          }
+          , minWidth: 100
+          , maxWidth: 1000
         }
         , contextMenu: {
-          callback: function (key, sObj) {
+          callback: (key, sObj) => {
             console.log('header context', this, key, sObj);
           }
           , items: [
             { key: "refresh", "name": "새로고침" }
           ]
         }
-        , helpBtn: {
+        , help: {
           enabled: true	// header help btn 활성 여부.
           , title: 'test'
-          , dblclick: function (clickInfo) {	// click event
+          , click: (clickInfo) => {	// click event
+            console.log('clickInfo : ', clickInfo)
+          }
+          , dblclick: (clickInfo) => {	// click event
             console.log('clickInfo : ', clickInfo)
           }
         }
         , drag: {
           enabled: true
           , dropSelector: '#dropTextArea'
-          , dropCallback: function (data) {
+          , dropCallback: (data) => {
 
           }
         }
       }
-      , scroll: {
-        vertical: {
-          onUpdate: function (item) {	// 스크롤 업데이트. 
-            //console.log(item);
-            //return true; 
-          }
-        }
-        , horizontal: {
-          enableWheel: false
-        }
-      }
-      , message: {
-        'asdf': ''
-        , empty: '데이타 없음'
-        //,empty: function (){ return '데이타 없음'}
-
-      }
-      , navigation: {
-        enablePaging: false
-        , status: true
-        , height: 32
-        , position: 'center'
-        , enableSelectionInfo: true
-        , callback: function (no) {
-          console.log(no);
-          //gridObj.setData(aaa);
-        }
-      }
-      , paging: {
-        totalCount: 155
-        , currPage: 9
-        , countPerPage: 10
-        , unitPage: 10
-      }
-      , setting: {
+      , finder: {
         enabled: true
         , enableColumnFix: true
         , click: false
         , mode: 'full'
         , width: 700
-        , h1eight: 250
-        , btnClose: true
-        , callback: function (data) {
+        , height: 250
+        , onlyCloseButton: true
+        , useRememberValue: true
+        , callback: (data) => {
           //console.log(data)
         }
-        , configVal: { search: { field: '$all', val: 'asdf' } }
+        , rememberValue: { field: '$all', val: 'asdf' }
       }
       , toolbar: {
         enabled: true
@@ -456,8 +469,53 @@
 
         ]
       }
-      , tColItem: colItem
-      , bodyOptions: {
+      , aside: {
+        // 번호 보일지 여부
+        lineNumber: true
+        , rowCheckbox: true
+        , modifyInfo: true
+      }
+      , scroll: {
+        vertical: {
+          onUpdate: function (item) {	// 스크롤 업데이트. 
+            //console.log(item);
+            //return true; 
+          }
+        }
+        , horizontal: {
+          enableWheel: false
+        }
+      }
+      , message: {
+        'asdf': ''
+        , empty: '데이타 없음'
+        //,empty: function (){ return '데이타 없음'}
+
+      }
+      , navigation: {
+        enablePaging: false
+        , enableStatus: true
+        , enableSelectionInfo: false
+        , height: 32
+        , position: 'center'
+        , callback: function (arg) {
+          console.log(arg);
+          //gridObj.setData(aaa);
+        }
+        , statusFormat: function (arg) {
+          console.log(arg);
+        }
+
+      }
+      , paging: {
+        totalCount: 155
+        , currPage: 9
+        , countPerPage: 10
+        , unitPage: 10
+      }
+      , fields: colItem
+      , items: aaa
+      , body: {
         cellDblClick: function (itemInfo) {
           //console.log('cellDblClick', itemInfo)
         }
@@ -465,80 +523,80 @@
         , keyNavHandler: function (moveInfo) {
           console.log(moveInfo);
         }
+        , row: {
+          height: 50
+          , dblClickCheck: false
+          , click: function (itemInfo) {
+            //console.log('rowOptions click' ,itemInfo)
+            return;
+          }
+          , dblClick1: function () {
+            console.log('dblclick')
+          }
+
+          , pasteBefore: function (a) {
+            console.log('pasteBefore', a);
+            return a;
+          }
+          , pasteAfter: function (a) {
+            console.log('pasteAfter', a)
+          }
+          , contextMenu: {
+            beforeSelect: function (info) {
+
+            }
+            , callback: function (key, sObj) {
+              console.log(this, key, sObj);
+
+              if (key == 'copy') {
+                gridObj.copyData();
+              }
+            }
+            , items: [
+              { key: "refresh", "name": "새로고침" }
+              , { key: "copy", "name": "복사", hotkey: 'Ctrl+C' }
+              , {
+                key: "sql_create", "name": "sql생성"
+                , subMenu: [
+                  { key: "selectStar", "name": "select *", mode: "selectStar" }
+                  , { key: "select", "name": "select column", mode: "select" }
+                  , { key: "insert", "name": "insert", mode: "insert" }
+                  , { key: "update", "name": "update", mode: "update" }
+                  , { key: "delete", "name": "delete", mode: "delete" }
+                  , { key: "drop", "name": "drop", mode: "drop" }
+                ]
+              }
+              , {
+                key: "create_ddl", "name": "DDL 보기", hotkey: 'Ctrl+shift+C'
+
+              }
+              , {
+                key: "mybatis-sql_create", "name": "mybatis Sql생성"
+                , subMenu: [
+                  { key: "mybatis_insert", "name": "insert", mode: "insert", param_yn: 'Y' }
+                  , { key: "mybatis_update", "name": "update", mode: "update", param_yn: 'Y' }
+                  , { key: "mybatis_delete", "name": "delete", mode: "delete", param_yn: 'Y' }
+                ]
+              }
+              , {
+                key: 'export', "name": "내보내기"
+                , subMenu: [
+                  { key: "export_data", "name": "데이타 내보내기" }
+                  , { key: "export_column", "name": "컬럼정보 내보내기" }
+                ]
+              }
+            ]
+          }
+        }
 
       }
-      , tbodyItem: aaa
-      , tfootItem: ['asdf']
-      , rowOptions: {
-        dblClickCheck: true
-        //, height : 50
-        , dblClick1: function () {
-          console.log('dblclick')
-        }
-        , click: function (itemInfo) {
-          //console.log('rowOptions click' ,itemInfo)
 
-          return;
 
-        }
-        , pasteBefore: function (a) {
-          console.log('pasteBefore', a);
-          return a;
-        }
-        , pasteAfter: function (a) {
-          console.log('pasteAfter', a)
-        }
-        , contextMenu: {
-          beforeSelect: function (info) {
-
-          }
-          , callback: function (key, sObj) {
-            console.log(this, key, sObj);
-
-            if (key == 'copy') {
-              gridObj.copyData();
-            }
-          }
-          , items: [
-            { key: "refresh", "name": "새로고침" }
-            , { key: "copy", "name": "복사", hotkey: 'Ctrl+C' }
-            , {
-              key: "sql_create", "name": "sql생성"
-              , subMenu: [
-                { key: "selectStar", "name": "select *", mode: "selectStar" }
-                , { key: "select", "name": "select column", mode: "select" }
-                , { key: "insert", "name": "insert", mode: "insert" }
-                , { key: "update", "name": "update", mode: "update" }
-                , { key: "delete", "name": "delete", mode: "delete" }
-                , { key: "drop", "name": "drop", mode: "drop" }
-              ]
-            }
-            , {
-              key: "create_ddl", "name": "DDL 보기", hotkey: 'Ctrl+shift+C'
-
-            }
-            , {
-              key: "mybatis-sql_create", "name": "mybatis Sql생성"
-              , subMenu: [
-                { key: "mybatis_insert", "name": "insert", mode: "insert", param_yn: 'Y' }
-                , { key: "mybatis_update", "name": "update", mode: "update", param_yn: 'Y' }
-                , { key: "mybatis_delete", "name": "delete", mode: "delete", param_yn: 'Y' }
-              ]
-            }
-            , {
-              key: 'export', "name": "내보내기"
-              , subMenu: [
-                { key: "export_data", "name": "데이타 내보내기" }
-                , { key: "export_column", "name": "컬럼정보 내보내기" }
-              ]
-            }
-          ]
-        }
-      }
     });
 
-  }
 
+
+  }
 
 
 </script>

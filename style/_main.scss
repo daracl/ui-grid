@@ -1,15 +1,21 @@
-@use "./main/main.body" as _uBody;
-@use "./main/main.summary" as _uSummary;
+/**
+* main css
+*/
+@use "./main/header" as _HEADER;
+@use "./main/body" as _BODY;
+@use "./main/summary" as _SUMMARY;
 
-@mixin mainBody {
+@mixin main {
   .dg-main {
     .dg-main-container {
       position: relative;
       vertical-align: top;
 
-      @include _uBody.body;
+      @include _HEADER.header;
 
-      @include _uSummary.summary;
+      @include _BODY.body;
+
+      @include _SUMMARY.summary;
     }
   }
 }

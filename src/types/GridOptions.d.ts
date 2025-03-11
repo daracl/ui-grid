@@ -25,7 +25,7 @@ export interface GridOptions {
   /**
    * 넓이 고정 여부.
    */
-  widthFixed: boolean;
+  enableWidthFixed: boolean;
   /**
    * 기본 포멧터 사용여부
    */

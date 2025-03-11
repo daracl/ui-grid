@@ -1,0 +1,12 @@
+/**
+* footer css
+*/
+
+@use "./common/common";
+
+@mixin footer {
+  .dg-footer {
+    position: relative;
+    vertical-align: top;
+  }
+}

@@ -8,7 +8,7 @@ export const defaultOptions: GridOptions = {
   height: "auto", // 높이 값
   width: "auto", // 넓이값
   copyMode: "single", // copy mode	single, multiple, none
-  widthFixed: false, // 넓이 고정 여부.
+  enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
   editable: false, // 편집 모드 활성화
   selectionMode: "multiple-cell", //cell 선택 모드 row, cell, multiple-row, multiple-cell

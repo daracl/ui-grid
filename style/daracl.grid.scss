@@ -1,5 +1,11 @@
-@use "./common/daracl-common" as comm;
-@use "./main" as main;
+/**
+* grid css
+*/
+
+@use "./common/common" as comm;
+@use "./toolbar" as _TOOLBAR;
+@use "./main" as _MAIN;
+@use "./footer" as _FOOTER;
 
 .daracl-noselect {
   -webkit-touch-callout: none;
@@ -57,6 +63,10 @@ body.dark .daracl-grid.dark {
 }
 
 .daracl-grid {
+  border: 1px solid var(--border_thick_color);
+  background: transparent;
+  @include comm.boxSizing(comm.$box_sizing_border);
+
   * {
     border-spacing: 0;
     border-collapse: separate;
@@ -64,10 +74,6 @@ body.dark .daracl-grid.dark {
     font-size: var(--font-size);
     @include comm.boxSizing(comm.$box_sizing_border);
   }
-
-  border: 1px solid var(--border_thick_color);
-  background: transparent;
-  @include comm.boxSizing(comm.$box_sizing_border);
 
   & > div {
     position: relative;
@@ -143,17 +149,7 @@ body.dark .daracl-grid.dark {
     user-select: text !important;
   }
 
-  @include main.mainBody;
-  // @import "_toolbar.scss";
-
-  // @import "_main_.scss";
-
-  // @import "_footer.scss";
-
-  .dg-header {
-    display: table;
-    position: relative;
-    border-bottom: 1px solid var(--border_thick_color);
-    z-index: 2;
-  }
+  @include _TOOLBAR.toolbar;
+  @include _MAIN.main;
+  @include _FOOTER.footer;
 }
