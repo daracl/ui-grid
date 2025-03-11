@@ -92,9 +92,9 @@ export interface GridOptions {
    */
   paging: boolean | PagingOptions;
   /**
-   * navigation option
+   * footer option
    */
-  navigation: NavigationOptions;
+  footer: FooterOptions;
   /**
    * icon
    */
@@ -623,14 +623,14 @@ export interface ScrollOptions {
  * Navigation option
  *
  * @export
- * @interface NavigationOptions
- * @typedef {NavigationOptions}
+ * @interface FooterOptions
+ * @typedef {FooterOptions}
  */
-export interface NavigationOptions {
+export interface FooterOptions {
   /**
    * navigation page 사용여부
    */
-  enablePaging?: boolean;
+  enabled?: boolean;
   /**
    * 상태 보이기 여부
    */

@@ -1,0 +1,76 @@
+@use "../common/common";
+
+@mixin scroll {
+  .dg-scroll-thumb {
+    background-color: var(--background-scroll-thumb);
+  }
+
+  .dg-scroll-button {
+    background-color: var(--background-scroll-button);
+  }
+
+  .dg-scroll-track {
+    position: relative;
+    height: 100%;
+    width: 100%;
+  }
+
+  .dg-scroll {
+    display: none;
+    background-color: var(--background-scroll-track);
+
+    /* vertical scroll */
+    &.vertical {
+      height: 100%;
+      width: 12px;
+      position: absolute;
+      text-align: center;
+      right: 0px;
+      top: 0px;
+      z-index: 3;
+      border-left: 1px solid #d5d5d8;
+      padding: 10px 0 10px 0;
+      border-bottom: 1px solid transparent;
+
+      /* scroll bar */
+      .dg-scroll-thumb {
+        position: absolute;
+        margin: 10px 0 10px 0;
+        height: 25px;
+      }
+
+      /* scroll button */
+      .dg-scroll-button {
+        position: absolute;
+        left: 0px;
+        width: 100%;
+        cursor: pointer;
+        line-height: 0.3;
+        &.up {
+          top: 0px;
+        }
+
+        &.down {
+          bottom: 0px;
+        }
+      }
+    }
+
+    /* horizontal scroll */
+    &.horizontal {
+      width: 100%;
+      height: 12px;
+      position: absolute;
+      vertical-align: middle;
+      bottom: 0px;
+      z-index: 3;
+      border-top: 1px solid #d5d5d8;
+      padding: 1px 0px 1px 0px;
+
+      .dg-scroll-track {
+        padding: 0px 10px 0px 10px;
+        border-bottom: 1px solid transparent;
+      }
+    }
+  }
+}

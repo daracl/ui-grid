@@ -19,6 +19,11 @@
 .daracl-grid {
   --border-color: #dfe1e5;
   --border_thick_color: #b9bdc1;
+  --background-scroll: #f1f1f1;
+  --background-scroll-track: #f1f1f1;
+  --background-scroll-thumb: #c1c1c1;
+  --background-scroll-button: #c5c3c3;
+
   --color-danger: #d9534f;
   --background-danger: #d9534f;
   --font-color: #686868;
@@ -42,6 +47,11 @@
 body.dark .daracl-grid.dark {
   --border-color: #41444c;
   --border_thick_color: #b9bdc1;
+  --background-scroll: #262729;
+  --background-scroll-track: #262729;
+  --background-scroll-thumb: #6b5b5b;
+  --background-scroll-button: #c5c3c3;
+
   --color-danger: #d9534f;
   --background-danger: #d9534f;
   --font-color: #b9bdc1;
@@ -63,7 +73,6 @@ body.dark .daracl-grid.dark {
 }
 
 .daracl-grid {
-  border: 1px solid var(--border_thick_color);
   background: transparent;
   @include comm.boxSizing(comm.$box_sizing_border);
 

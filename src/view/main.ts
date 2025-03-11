@@ -43,10 +43,12 @@ export default class GridMain {
   }
 
   public init() {
+    const opts = this.grid.getOptions();
+
     this.grid.element().innerHTML = `
       <div class="daracl-grid">
-        <div class="dg-toolbar on"></div>
-        <div class="dg-main daracl-noselect">
+        ${opts.toolbar.enabled ? `<div class="dg-toolbar"></div>` : ""}
+        <div class="dg-main daracl-noselect" data-scroll="both">
             <div class="dg-main-container">
                 <div class="dg-panel dg-header">
                     <div class="dg-left"></div>
@@ -65,11 +67,11 @@ export default class GridMain {
                 </div>
             </div>
             <div class="dg-scroll-container">
-                <div class="dg-scroll-vertical"></div>
-                <div class="dg-scroll-horizontal"></div>
+                <div class="dg-scroll vertical"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
+                <div class="dg-scroll horizontal"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
             </div>
         </div>
-        <div class="dg-footer"></div>
+        ${opts.footer.enabled ? `<div class="dg-footer"></div>` : ""}
     </div>
     `;
   }

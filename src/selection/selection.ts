@@ -85,7 +85,7 @@ export default class SelectionInfo {
       this.setCellSelect(initFlag);
     }
 
-    if (this.options.navigation.enableSelectionInfo) {
+    if (this.options.footer.enableSelectionInfo) {
       const dataInfo = this.selectionData("json");
 
       if (!utils.isUndefined(dataInfo) && dataInfo.summaryInfo.count > 1) {

@@ -154,8 +154,8 @@ export const defaultOptions: GridOptions = {
   },
   fields: [], //head item
   items: [], // body item
-  navigation: {
-    enablePaging: false, // 페이지 사용여부
+  footer: {
+    enabled: false, // 페이지 사용여부
     enableStatus: false,
     statusFormat: "{{currStart}} - {{currEnd}} of {{total}}",
     height: 32, // 높이 값
