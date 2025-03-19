@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>header test</title>
+</head>
+
+<body>
+    console 확인
+
+    <div style="padding: 20px;">
+        <table id="tableHeader"></table>
+    </div>
+</body>
+
+</html>
+<style>
+    .form-button {
+        text-align: center;
+
+    }
+</style>
+<script>
+    var columnLayout = [{
+        label: " ",
+        children: [{
+            label: "Column1",
+            name: "col1",
+            dataType: "text",
+            width: 120
+        }, {
+            label: "Column2",
+            name: "col2",
+            dataType: "numeric",
+            width: 120
+        }, {
+            label: "Column3",
+            name: "col3",
+            dataType: "numeric",
+            width: 120
+        }]
+    }, {
+        label: "Column4",
+        children: [{
+            label: "Column4-1",
+            children: [{
+                label: " ",
+                children: [{
+                    label: "Column4-1-1",
+                    name: "col4",
+                    dataType: "numeric",
+                    width: 120
+                }]
+            }]
+        }]
+    }, {
+        label: "Column5",
+        children: [{
+            label: "Column5-1",
+            children: [{
+                label: "Column5-1-1",
+                children: [{
+                    label: "Column5-1-1-1",
+                    name: "col5",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-1-1-2",
+                    name: "col6",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-1-1-3",
+                    name: "co7",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-1-1-4",
+                    name: "co8",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-1-1-5",
+                    name: "col9",
+                    dataType: "numeric",
+                    width: 120
+                }]
+            }]
+        }, {
+            label: "Column5-2",
+            children: [{
+                label: "Column5-2-1",
+                children: [{
+                    label: "Column5-2-1-1",
+                    name: "col10",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-2-1-2",
+                    name: "col11",
+                    dataType: "numeric",
+                    width: 120
+                }, {
+                    label: "Column5-2-13",
+                    name: "col12",
+                    dataType: "numeric",
+                    width: 120
+                }]
+            }]
+        }]
+    }];
+
+
+    function groupInfo(node, depth, columnGroupInfo, headerOptions) {
+        if (node.hidden) {
+            node.$colspan = 0;
+            return node;
+        }
+
+        node.$depth = depth + 1;
+        node.$isLeaf = true;
+        node.$colspan = 1;
+        node.$rowspan = 1;
+        node.$childLength = 0;
+
+        columnGroupInfo.depth = Math.max(columnGroupInfo.depth, node.$depth);
+
+        var children = node.children;
+        if (children) {
+            var childrenLen = children.length;
+
+            if (childrenLen > 0) {
+                node.$isLeaf = false;
+                node.$childLength = childrenLen;
+                var colspan = 0;
+                for (var i = 0; i < childrenLen; i++) {
+                    var childNode = children[i];
+                    groupInfo(childNode, node.$depth, columnGroupInfo, headerOptions);
+                    colspan += childNode.$colspan;
+                }
+
+                node.$colspan = colspan;
+                node.$resizeIdx = columnGroupInfo.leaf.length - 1;
+            }
+        } else {
+            node.$resizeIdx = columnGroupInfo.leaf.length;
+        }
+
+        var fixedIndex = headerOptions.fixedIndex - 1;
+
+        if (typeof columnGroupInfo.left[depth] === "undefined") {
+            columnGroupInfo.left[depth] = [];
+        }
+        if (typeof columnGroupInfo.body[depth] === "undefined") {
+            columnGroupInfo.body[depth] = [];
+        }
+
+        if (fixedIndex > node.$resizeIdx - node.$colspan) {
+            // 컬럼 고정 처리.
+
+            if (node.$colspan == 1) {
+                columnGroupInfo.left[depth].push(node);
+            } else {
+                var leftNode = JSON.parse(JSON.stringify(node));
+
+                if (leftNode.$resizeIdx > fixedIndex) {
+                    leftNode.$colspan = fixedIndex - (leftNode.$resizeIdx - leftNode.$colspan);
+                    leftNode.$resizeIdx = fixedIndex;
+                }
+
+                columnGroupInfo.left[depth].push(leftNode);
+                if (fixedIndex < node.$resizeIdx) {
+                    var bodyNode = JSON.parse(JSON.stringify(node));
+                    bodyNode.$colspan = node.$resizeIdx - fixedIndex;
+                    columnGroupInfo.body[depth].push(bodyNode);
+                }
+            }
+        } else {
+            columnGroupInfo.body[depth].push(node);
+        }
+
+        if (node.$isLeaf) {
+            node.isSort = node.sort === false ? false : true;
+            columnGroupInfo.leaf.push(node);
+        }
+
+        return node;
+    }
+
+
+
+    function getHeaderGroupInfo() {
+        /*
+          header group 수정 할것. 
+          검색값 처리 할것. 
+          */
+        var tci = columnLayout;
+
+        var fixedHeaderIndex = 2;
+        var columnGroupInfo = { left: [], body: [], leaf: [], depth: 1 };
+
+        for (var i = 0; i < tci.length; i++) {
+            groupInfo(tci[i], 0, columnGroupInfo, { fixedIndex: fixedHeaderIndex });
+        }
+
+
+        return columnGroupInfo;
+    }
+
+
+    function viewHeaderHtml() {
+        let headerGroupInfo = getHeaderGroupInfo();
+
+        let headerGroup = headerGroupInfo.body;
+        let strHtm = [];
+        strHtm.push("<thead>");
+        var headerGroupLength = headerGroup.length;
+        if (headerGroupLength > 0) {
+            var ghArr, ghItem;
+
+            for (var i = 0, len = headerGroup.length; i < len; i++) {
+                ghArr = headerGroup[i];
+
+                strHtm.push('<tr class="pub-header-tr">');
+                for (var j = 0; j < ghArr.length; j++) {
+                    ghItem = ghArr[j];
+
+                    if (ghItem.$isLeaf && ghItem.$depth < headerGroupLength) {
+                        ghItem.$rowspan = headerGroupLength - ghItem.$depth + 1;
+                    }
+                    var spanHtm = "";
+
+                    if (ghItem.$colspan > 1) {
+                        spanHtm = ' scope="colgroup" colspan="' + ghItem.$colspan + '" ';
+                    }
+
+                    if (ghItem.$rowspan > 1) {
+                        spanHtm += ' rowspan="' + ghItem.$rowspan + '" ';
+                    }
+
+                    var resizeIdx = ghItem.$resizeIdx;
+
+                    strHtm.push(" <th " + spanHtm + ' data-header-info="' + i + "," + j + '" header-col-idx="' + resizeIdx + '" class="pubGrid-header-th" ' + (ghItem.style ? ' style="' + ghItem.style + '" ' : "") + ">");
+
+                    strHtm.push('  <div class="label-wrapper">');
+                    strHtm.push('   <div class="pub-header-cont ' + (ghItem.isSort === true ? "sort-header" : "") + '" ><div class="pub-inner"><div class="centered">' + ghItem.label + "</div></div>");
+                    if (ghItem.isSort === true) {
+                        strHtm.push('<div class="pub-sort-icon pubGrid-sort-up">' + 'u' + '</div><div class="pub-sort-icon pubGrid-sort-down">' + 'd' + "</div>");
+                    }
+                    strHtm.push("   </div>");
+                    strHtm.push("  </div>");
+                    strHtm.push('   <div class="pub-header-resizer"></div>');
+                    strHtm.push(" </th>");
+                }
+                strHtm.push("</tr>");
+            }
+        }
+        strHtm.push("</thead>");
+
+        document.getElementById('tableHeader').innerHTML = strHtm.join('');
+    }
+
+
+    viewHeaderHtml()
+
+    console.log()
+
+</script>
+<style>
+    table tr,
+    table td,
+    table th {
+        border: 1px solid #ddd;
+    }
+</style>

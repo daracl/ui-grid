@@ -2,11 +2,14 @@ import { GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
-import { isFixedPostion } from "../../util/gridUtils";
+import { isFixedLeftPostion } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
+import DaraElement from "src/element/DaraElement";
+import { getRenderer } from "src/util/renderFactory";
+import GridMain from "../GridMain";
 
 /**
  * Header class
@@ -16,79 +19,89 @@ import { ALIGN_STYLE } from "src/constants";
  */
 export default class Header {
   private grid: DaraGrid;
+  private gridMain: GridMain;
 
   private headerOptions: HeaderOptions;
 
-  private config: Config;
+  private leftElement: DaraElement;
+  private centerElement: DaraElement;
+  private rightElement: DaraElement;
 
-  constructor(grid: DaraGrid, config: Config) {
+  constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
-    this.config = config;
+    this.gridMain = gridMain;
 
     this.headerOptions = grid.getOptions().header;
+
+    this.leftElement = this.grid.element().find(".dg-header>.dg-left");
+    this.centerElement = this.grid.element().find(".dg-header>.dg-center");
+    this.rightElement = this.grid.element().find(".dg-header>.dg-right");
+
+    // 헤더정보 계산할것.================================================
+
+    this.calculation(true);
   }
 
   /**
-   * @method calcHeader
+   * @method calculation
    * @description 헤더 정보 계산
    */
-  public calcHeader(calcFlag: boolean) {
-    const cfg = this.config,
-      gridElementWidth = cfg.container.width;
+  public calculation(calcFlag: boolean) {
+    const cfg = this.grid.config(),
+      gridElementWidth = cfg.dimension.width;
 
     const headerOptions = this.headerOptions;
-
-    let tciItem;
 
     const columnGroupInfo = this.getHeaderGroupInfo();
     // header element height
     if (headerOptions.view !== false) {
-      this.config.header.height = headerOptions.height * columnGroupInfo.depth;
+      cfg.dimension.mainHeaderHeight = headerOptions.height * columnGroupInfo.depth;
     }
 
     const fields = (cfg.currentFields = columnGroupInfo.leaf) as FieldItem[];
 
-    const viewAllLabel = calcFlag === false ? false : headerOptions.enableViewAllLabel === true ? true : false;
+    const enableViewAllLabel = calcFlag === false ? false : headerOptions.enableViewAllLabel === true;
 
     let leftWidth = 0,
       mainWidth = 0,
       viewColCount = 0;
     for (let j = 0; j < fields.length; j++) {
-      const tciItem = fields[j];
-      tciItem.$maxWidth = -1; // max width
+      const field = fields[j];
+      field.$maxWidth = -1; // max width
 
-      if (tciItem.visible === false) continue;
+      if (field.hidden) continue;
 
-      tciItem.renderer = tciItem.renderer || { type: "text" };
+      field.renderer = field.renderer;
+      field.$renderer = getRenderer(field);
 
       ++viewColCount;
 
-      if (viewAllLabel) {
-        const labelWidth = tciItem.label.length * 5;
-        if (utils.isNumber(tciItem.width)) {
-          tciItem.width = labelWidth > tciItem.width ? labelWidth : tciItem.width;
+      if (enableViewAllLabel) {
+        const labelWidth = field.label.length * 5;
+        if (utils.isNumber(field.width)) {
+          field.width = labelWidth > field.width ? labelWidth : field.width;
         } else {
-          tciItem.width = labelWidth;
+          field.width = labelWidth;
         }
       } else {
-        tciItem.width = isNaN(tciItem.width) ? headerOptions.resize.minWidth : tciItem.width;
+        field.width = isNaN(field.width) ? headerOptions.resize.minWidth : field.width;
       }
 
-      tciItem.width = Math.max(tciItem.width, headerOptions.resize.minWidth);
+      field.width = Math.max(field.width, headerOptions.resize.minWidth);
 
-      tciItem.$alignStyle = ALIGN_STYLE[tciItem.align] ?? ALIGN_STYLE.left;
+      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
 
-      cfg.currentFields[j] = tciItem;
+      cfg.currentFields[j] = field;
 
-      if (isFixedPostion(cfg, j)) {
-        leftWidth += tciItem.width;
+      if (isFixedLeftPostion(cfg, j)) {
+        leftWidth += field.width;
       } else {
-        mainWidth += tciItem.width;
+        mainWidth += field.width;
       }
     }
 
-    cfg.gridWidth.left = leftWidth;
-    cfg.gridWidth.main = mainWidth;
+    cfg.dimension.mainLeftWidth = leftWidth;
+    cfg.dimension.mainCenterWidth = mainWidth;
 
     cfg.dataInfo.colLength = viewColCount;
 
@@ -96,7 +109,7 @@ export default class Header {
       return;
     }
 
-    this.grid.calcContainerWidth();
+    this.gridMain.calcContainerWidth();
   }
 
   /**
@@ -108,7 +121,7 @@ export default class Header {
   header group 수정 할것. 
   검색값 처리 할것. 
   */
-    const cfg = this.config;
+    const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     const tci = cfg.currentFields || opts.fields;
 
@@ -122,7 +135,7 @@ export default class Header {
   }
 
   public groupInfo(node: FieldItem, depth: number, columnGroupInfo: any) {
-    if (node.visible === false) {
+    if (node.hidden) {
       node.$colspan = 0;
       return node;
     }

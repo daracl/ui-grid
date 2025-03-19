@@ -1,4 +1,7 @@
+import { FieldItem } from "@t/GridField";
 import { GridOptions } from "@t/GridOptions";
+import { RendererInfo } from "@t/RendererInfo";
+import { RENDER_TEMPLATE } from "./constants";
 
 /**
  * grid default option
@@ -178,4 +181,34 @@ export const defaultOptions: GridOptions = {
     sortdown: '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>',
   },
   operators: {}, // setting condition operator
+};
+
+export const defaultFieldInfo: FieldItem = {
+  name: "",
+  label: "",
+  width: 0,
+  hidden: false,
+  sort: false,
+  align: "center",
+  dataType: "text",
+  renderer: {
+    type: "text",
+  },
+  formatter: undefined,
+  defaultValue: "",
+  click: undefined,
+  styleClass: undefined,
+  tooltip: {
+    show: false,
+    formatter: undefined,
+  },
+  $renderer: RENDER_TEMPLATE["text"],
+  $colspan: 0,
+  $rowspan: 0,
+  $depth: 0,
+  $isLeaf: false,
+  $childLength: 0,
+  $resizeIdx: 0,
+  $maxWidth: 0,
+  $alignStyle: "",
 };

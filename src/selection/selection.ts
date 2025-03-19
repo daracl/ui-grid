@@ -3,7 +3,7 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
-import { isFixedPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition } from "src/util/gridUtils";
+import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition } from "src/util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 
 export default class SelectionInfo {
@@ -193,7 +193,7 @@ export default class SelectionInfo {
       for (let j = sCol; j <= eCol; j++) {
         const colItem = headerItems[j];
 
-        if (colItem.visible === false) continue;
+        if (colItem.hidden) continue;
 
         const colName = colItem.name;
 

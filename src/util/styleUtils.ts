@@ -12,7 +12,7 @@ export const addStyleTag = (grid: DaraGrid) => {
 
   const rowOptHeight = options.body.row.height;
 
-  const uidAttribute = grid.getUidAttribute();
+  const uidAttribute = grid.getIdAttribute();
 
   if (!isNaN(rowOptHeight)) {
     cssStr.push(`${uidAttribute} .pub-body-td, ${uidAttribute} .pub-body-aside-td{max-height:${rowOptHeight}px;height:${rowOptHeight}px;line-height:${rowOptHeight - 4}px;}`);
@@ -45,4 +45,17 @@ export const addStyleTag = (grid: DaraGrid) => {
   } else {
     styleTag.innerHTML = cssStr.join("");
   }
+};
+
+/**
+ * style class split
+ * @example
+ * ```
+ * 'a b c' => ['a','b','c']
+ * ```
+ * @param {string} styleClass
+ * @returns {*}
+ */
+export const styleClassSplit = (styleClass: string) => {
+  return styleClass.split(/\s+/);
 };

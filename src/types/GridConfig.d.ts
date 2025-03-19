@@ -1,16 +1,38 @@
 import { OptionCallback, AnyKeyMap, StringKeyMap, Map } from "./Common";
 import FieldInfoMap from "../FieldInfoMap";
 import { FieldItem } from "./GridField";
+import DaraElement from "src/element/DaraElement";
 
 /**
  * grid config info
  */
 export interface Config {
-  gridWidth: {
-    aside: number;
-    left: number;
-    main: number;
-    total: number;
+  dimension: {
+    // grid total width
+    width: number;
+    // grid total height
+    height: number;
+    // toolbar height
+    toolbarHeight: number;
+    // footer height
+    footerHeight: number;
+    // main
+    mainWidth: number;
+    mainHeight: number;
+
+    mainHeaderHeight: number;
+    mainBodyHeight: number;
+    mainSummaryHeight: number;
+
+    // main left panel width
+    mainLeftWidth: number;
+    // main center panel width
+    mainCenterWidth: number;
+    // main right panel width
+    mainRightWidth: number;
+    // grid total width
+    totalWidth: number;
+
     mainOverWidth: number;
     mainInsideWidth: number;
   };
@@ -19,11 +41,7 @@ export interface Config {
   };
 
   currentFields: FieldItem[];
-  container: {
-    height: number;
-    width: number;
-    bodyHeight: number;
-  };
+
   searchEnable: boolean;
   header: {
     height: number;
@@ -74,8 +92,10 @@ export interface Config {
     searchCheckItem: boolean; // 검색 정규식
     filterCheckItem: boolean; // filter info {checkFn; check condition}
   };
-  fixedHeaderIndex: number;
+  fixedLeftIndex: number;
+  fixedRightIndex: number;
   scroll: Scroll;
+  element: GridElement;
 }
 
 export interface Selection {
@@ -170,39 +190,38 @@ export interface Scroll {
 
 // element 처리할것.
 export interface GridElement {
-  grid: HTMLElement;
-  hidden: HTMLElement;
-  container: HTMLElement;
-  toolbar: HTMLElement;
-  main: HTMLElement;
+  grid?: DaraElement;
+  container?: DaraElement;
+  toolbar?: DaraElement;
+  main?: DaraElement;
 
   // main header
-  mainHeaderLeft: HTMLElement;
-  mainHeaderCenter: HTMLElement;
-  mainHeaderRight: HTMLElement;
+  mainHeaderLeft?: DaraElement;
+  mainHeaderCenter?: DaraElement;
+  mainHeaderRight?: DaraElement;
 
   // main body
-  mainBodyLeft: HTMLElement;
-  mainBodyCenter: HTMLElement;
-  mainBodyLeft: HTMLElement;
+  mainBodyLeft?: DaraElement;
+  mainBodyCenter?: DaraElement;
+  mainBodyRight?: DaraElement;
 
   // main summary
-  mainSummaryLeft: HTMLElement;
-  mainSummaryBody: HTMLElement;
-  mainSummaryRight: HTMLElement;
+  mainSummaryLeft?: DaraElement;
+  mainSummaryBody?: DaraElement;
+  mainSummaryRight?: DaraElement;
 
-  footer: HTMLElement;
+  footer?: DaraElement;
 
-  status: HTMLElement;
+  status?: DaraElement;
 
-  hScrollBar: HTMLElement;
-  vScrollBar: HTMLElement;
+  hScrollBar?: DaraElement;
+  vScrollBar?: DaraElement;
 
-  hScrollEdge: HTMLElement;
-  resizeHelper: HTMLElement;
+  hScrollEdge?: DaraElement;
+  resizeHelper?: DaraElement;
 
-  pasteArea: HTMLElement;
+  pasteArea?: DaraElement;
 
   // measure element
-  measureEl: HTMLElement;
+  measureEl?: DaraElement;
 }

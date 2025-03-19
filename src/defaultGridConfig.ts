@@ -1,14 +1,36 @@
 import { Config, Scroll, Selection } from "./types/GridConfig";
 
 /**
+ * 
+ * 
+    mainHeaderHeight: number;
+    mainBodyHeight: number;
+    mainSummaryHeight: number;
+
+
  * grid default config
  */
 export const initConfig = (): Config => {
   return {
-    gridWidth: { aside: 0, left: 0, main: 0, total: 0, mainOverWidth: 0, mainInsideWidth: 0 },
+    dimension: {
+      width: 0,
+      height: 0,
+      toolbarHeight: 0,
+      footerHeight: 0,
+      mainWidth: 0,
+      mainHeaderHeight: 0,
+      mainBodyHeight: 0,
+      mainSummaryHeight: 0,
+      mainHeight: 0,
+      mainLeftWidth: 0,
+      mainCenterWidth: 0,
+      mainRightWidth: 0,
+      totalWidth: 0,
+      mainOverWidth: 0,
+      mainInsideWidth: 0,
+    },
     allColumnMap: {},
     rowHeight: 0,
-    container: { height: 0, width: 0, bodyHeight: 0 },
     searchEnable: false,
     header: { height: 0, width: 0 },
     footer: { height: 0, width: 0 },
@@ -43,8 +65,45 @@ export const initConfig = (): Config => {
       searchCheckItem: false, // 검색 정규식
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
-    fixedHeaderIndex: -1,
+    fixedLeftIndex: -1,
+    fixedRightIndex: 100000,
     scroll: initScrollInfo(),
+    element: {
+      grid: undefined,
+      container: undefined,
+      toolbar: undefined,
+      main: undefined,
+
+      // main header
+      mainHeaderLeft: undefined,
+      mainHeaderCenter: undefined,
+      mainHeaderRight: undefined,
+
+      // main body
+      mainBodyLeft: undefined,
+      mainBodyCenter: undefined,
+      mainBodyRight: undefined,
+
+      // main summary
+      mainSummaryLeft: undefined,
+      mainSummaryBody: undefined,
+      mainSummaryRight: undefined,
+
+      footer: undefined,
+
+      status: undefined,
+
+      hScrollBar: undefined,
+      vScrollBar: undefined,
+
+      hScrollEdge: undefined,
+      resizeHelper: undefined,
+
+      pasteArea: undefined,
+
+      // measure element
+      measureEl: undefined,
+    },
   };
 };
 

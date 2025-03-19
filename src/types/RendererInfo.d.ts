@@ -17,12 +17,12 @@ export interface ValuesInfo {
  * @typedef {EditRenderer}
  */
 export interface RendererInfo {
-  type?: RENDERER_TYPE | string;
-  customOptions: any;
-  tooltip: string; // 툴팁 문구
+  type: RENDERER_TYPE | string;
+  customOptions?: any;
+  tooltip?: string; // 툴팁 문구
   required?: boolean; //true // 필수 여부
   regexpType?: REGEXP_TYPE; // 정규식 타입
-  rule: {
+  rule?: {
     // 규칙
     minLength: number; // 3
     maxLength: number; //100
@@ -31,18 +31,18 @@ export interface RendererInfo {
     maximum: number;
     exclusiveMaximum: boolean;
   };
-  different: {
+  different?: {
     // field 값이 다른지 비교
     field: string;
     message: string;
   };
-  identical: {
+  identical?: {
     // field 값이 같은지 비교
     field: string;
     message: string;
   };
-  defaultValue: string; // 기본값
-  listItem: ValuesInfo; // dropdown, radio, checkbox
+  defaultValue?: string; // 기본값
+  listItem?: ValuesInfo; // dropdown, radio, checkbox
   validator?: OptionCallback; // custom validator
   onChange?: OptionCallback; //  입력값 변경시 체크 function
   onClick?: OptionCallback; // button onclick function

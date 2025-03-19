@@ -6,11 +6,12 @@ import { Message } from "@t/Message";
 import Lanauage from "../util/Lanauage";
 import * as utils from "../util/utils";
 import { addStyleTag } from "../util/styleUtils";
-import { isFixedPostion } from "../util/gridUtils";
+import { isFixedLeftPostion } from "../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import { merge } from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
+import Header from "./main/Header";
 
 declare const APP_VERSION: string;
 
@@ -29,23 +30,32 @@ let DARA_GRID_SEQ = 0;
 export default class GridMain {
   private grid: DaraGrid;
 
+  private header: Header;
+
   private headerOptions: HeaderOptions;
 
-  private config: Config;
-
-  constructor(grid: DaraGrid, config: Config) {
+  constructor(grid: DaraGrid) {
     this.grid = grid;
-    this.config = config;
 
     this.headerOptions = grid.getOptions().header;
 
-    this.init();
+    this.initTemplate();
+
+    this.header = new Header(grid, this);
   }
 
-  public init() {
+  /**
+   * 치수 셋팅
+   */
+  setGridDimention() {
+    this.grid.config().dimension.width = this.grid.element().width();
+    this.grid.config().dimension.height = this.grid.element().height();
+  }
+
+  public initTemplate() {
     const opts = this.grid.getOptions();
 
-    this.grid.element().innerHTML = `
+    let templateHtml = `
       <div class="daracl-grid">
         ${opts.toolbar.enabled ? `<div class="dg-toolbar"></div>` : ""}
         <div class="dg-main daracl-noselect" data-scroll="both">
@@ -74,5 +84,60 @@ export default class GridMain {
         ${opts.footer.enabled ? `<div class="dg-footer"></div>` : ""}
     </div>
     `;
+
+    this.grid.element().html(templateHtml);
+
+    this.setGridDimention();
+  }
+
+  /**
+   * @method _calcContainerWidth
+   * @description width 계산.
+   */
+  public calcContainerWidth() {
+    const opts = this.grid.getOptions();
+    if (opts.enableWidthFixed === true) {
+      return;
+    }
+
+    const cfg = this.grid.config();
+
+    const _gw = cfg.dimension.width,
+      tci = cfg.currentFields,
+      tciLen = cfg.dataInfo.colLength;
+
+    let verticalScrollWidth = 0;
+
+    if (opts.items.length > 0) {
+      if (opts.items.length * cfg.rowHeight > cfg.dimension.mainHeight) {
+        verticalScrollWidth = opts.scroll.vertical.width;
+      }
+    }
+
+    const _totW = cfg.dimension.mainLeftWidth + cfg.dimension.mainLeftWidth + cfg.dimension.mainCenterWidth + verticalScrollWidth;
+
+    const resizeFlag = _totW < _gw;
+    const remainderWidth = Math.floor((_gw - _totW) / tciLen),
+      lastSpaceW = _gw - _totW - remainderWidth * tciLen;
+
+    if (resizeFlag) {
+      let leftGridWidth = 0,
+        mainGridWidth = 0;
+      const resizeMinWidth = opts.header.resize.minWidth;
+      for (let j = 0; j < tciLen; j++) {
+        const item = tci[j];
+        item.width += remainderWidth;
+        item.width = Math.max(item.width, resizeMinWidth);
+
+        if (isFixedLeftPostion(cfg, j)) {
+          leftGridWidth += item.width;
+        } else {
+          mainGridWidth += item.width;
+        }
+      }
+      cfg.currentFields[tciLen - 1].width += lastSpaceW;
+      cfg.dimension.mainLeftWidth = leftGridWidth;
+      cfg.dimension.mainCenterWidth = mainGridWidth + lastSpaceW;
+    }
   }
 }

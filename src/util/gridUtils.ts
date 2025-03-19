@@ -10,10 +10,16 @@ import { intValue } from "./utils";
  * @param {string} position
  * @returns {boolean}
  */
-export const isFixedPostion = (cfg: Config, idx: number, position?: string): boolean => {
+export const isFixedLeftPostion = (cfg: Config, idx: number, position?: string): boolean => {
   //position = position || "l";
 
-  return idx < cfg.fixedHeaderIndex;
+  return idx < cfg.fixedLeftIndex;
+};
+
+export const isFixedRightPostion = (cfg: Config, idx: number, position?: string): boolean => {
+  //position = position || "l";
+
+  return idx > cfg.fixedRightIndex;
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {
@@ -69,10 +75,10 @@ export const getCellPosition = (cellElement: HTMLElement) => {
  * @description view col 위치 구하기.
  */
 export const calcViewCol = (cfg: Config, leftVal: number): number => {
-  const containerLeft = leftVal < 1 ? 0 : (cfg.gridWidth.mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
+  const containerLeft = leftVal < 1 ? 0 : (cfg.dimension.mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
 
   const tci = cfg.currentFields;
-  const gridW = containerLeft + cfg.gridWidth.mainInsideWidth;
+  const gridW = containerLeft + cfg.dimension.mainInsideWidth;
   let itemLeftVal = 0;
 
   let startCol = 0,
@@ -81,7 +87,7 @@ export const calcViewCol = (cfg: Config, leftVal: number): number => {
   let startFlag = true,
     inSideStartFlag = true;
 
-  for (let i = cfg.fixedHeaderIndex; i < tci.length; i++) {
+  for (let i = cfg.fixedLeftIndex; i < tci.length; i++) {
     if (inSideStartFlag && itemLeftVal >= containerLeft) {
       cfg.scroll.insideStartCol = i;
       inSideStartFlag = false;

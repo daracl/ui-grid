@@ -10,15 +10,18 @@ import { Message } from "@t/Message";
 import Lanauage from "./util/Lanauage";
 import AbstractRenderer from "./renderer/AbstractRenderer";
 import { addStyleTag } from "./util/styleUtils";
-import { isFixedPostion } from "./util/gridUtils";
-import GridMain from "./view/main";
+import { isFixedLeftPostion } from "./util/gridUtils";
+import GridMain from "./view/GridMain";
+import DaraElement from "./element/DaraElement";
 
 declare const APP_VERSION: string;
 
 // all instance
 const ALL_INSTANCE: any = {};
 
-const SEQ_ATTR_KEY = "daracl-grid-uid";
+const SEQ_ATTR_KEY = "daracl-grid-id";
+
+let HIDDEN_ELEMENT: HTMLElement | null = null;
 
 let DARA_GRID_SEQ = 0;
 /**
@@ -46,9 +49,9 @@ export default class DaraGrid {
   private readonly $uid: string;
 
   // grid 설정
-  private config: Config;
+  private mainConfig: Config;
 
-  private gridElement: HTMLElement;
+  private gridElement: DaraElement;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     console.log("options ", options);
@@ -63,23 +66,29 @@ export default class DaraGrid {
 
     this.$uid = `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
 
-    /*
-    gridElement.classList.add("daracl-grid");
     gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
 
-    if (this.options.width) {
-      gridElement.setAttribute("style", `width:${this.options.width};`);
-    }
-    */
-
-    this.gridElement = gridElement;
+    this.gridElement = new DaraElement(gridElement);
 
     ALL_INSTANCE[this.$uid] = this;
     this.createGrid();
   }
 
+  createHiddenElement() {
+    if (HIDDEN_ELEMENT === null) {
+      const hiddenElement = document.createElement("div");
+      hiddenElement.classList.add("daracl-grid-hidden-container");
+      document.body.appendChild(hiddenElement);
+      HIDDEN_ELEMENT = hiddenElement;
+    }
+  }
+
   public element() {
     return this.gridElement;
+  }
+
+  public config() {
+    return this.mainConfig;
   }
 
   public static create(gridElement: HTMLElement, options: GridOptions, message?: Message): DaraGrid {
@@ -91,18 +100,20 @@ export default class DaraGrid {
   }
 
   private createGrid() {
-    this.config = initConfig();
+    this.mainConfig = initConfig();
+
+    this.createHiddenElement();
 
     addStyleTag(this);
 
-    const main = new GridMain(this, this.config);
+    const main = new GridMain(this);
   }
 
   public getOptions(): GridOptions {
     return this.options;
   }
 
-  public getUidAttribute() {
+  public getIdAttribute() {
     return `[${SEQ_ATTR_KEY}="${this.$uid}"]`;
   }
 
@@ -115,27 +126,22 @@ export default class DaraGrid {
    *
    * @public
    * @static
-   * @param {(HTMLElement | string)} eleOrUid grid element, grid uid
+   * @param {(HTMLElement | string)} eleOrId grid element, grid uid
    * @returns {DaraGrid} 그리드 object
    */
-  public static instance(eleOrUid: HTMLElement | string): DaraGrid {
-    let element;
-    if (utils.isString(eleOrUid)) {
-      if (ALL_INSTANCE[eleOrUid]) {
-        return ALL_INSTANCE[eleOrUid];
-      }
-      element = document.querySelector(eleOrUid);
+  public static instance(eleOrId: HTMLElement | string): DaraGrid {
+    let id;
+    if (utils.isString(eleOrId)) {
+      id = eleOrId;
     } else {
-      element = eleOrUid;
+      id = eleOrId instanceof HTMLElement ? eleOrId?.getAttribute(SEQ_ATTR_KEY) : "";
     }
 
-    let uid = (element as HTMLElement).querySelector(".dg-grid")?.getAttribute(SEQ_ATTR_KEY);
-
-    if (uid && ALL_INSTANCE[uid]) {
-      return ALL_INSTANCE[uid];
+    if (id && ALL_INSTANCE[id]) {
+      return ALL_INSTANCE[id];
     }
 
-    throw new Error(`instance not found : [${eleOrUid}]`);
+    throw new Error(`instance not found : [${eleOrId}]`);
   }
   /**
    * 모든 field 얻기
@@ -145,55 +151,6 @@ export default class DaraGrid {
   };
 
   /**
-   * @method _calcContainerWidth
-   * @description width 계산.
-   */
-  public calcContainerWidth() {
-    if (this.options.enableWidthFixed === true) {
-      return;
-    }
-
-    const opts = this.options,
-      _gw = this.config.container.width,
-      tci = this.config.currentFields,
-      tciLen = this.config.dataInfo.colLength;
-
-    let verticalW = 0;
-
-    if (opts.items.length > 0) {
-      if (opts.items.length * this.config.rowHeight > this.getGridHeight() - this.config.header.height - this.config.footer.height) {
-        verticalW = opts.scroll.vertical.width;
-      }
-    }
-
-    const _totW = this.config.gridWidth.aside + this.config.gridWidth.left + this.config.gridWidth.main + verticalW;
-
-    const resizeFlag = _totW < _gw;
-    const remainderWidth = Math.floor((_gw - _totW) / tciLen),
-      lastSpaceW = _gw - _totW - remainderWidth * tciLen;
-
-    if (resizeFlag) {
-      let leftGridWidth = 0,
-        mainGridWidth = 0;
-      const resizeMinWidth = opts.header.resize.minWidth;
-      for (let j = 0; j < tciLen; j++) {
-        const item = tci[j];
-        item.width += remainderWidth;
-        item.width = Math.max(item.width, resizeMinWidth);
-
-        if (isFixedPostion(this.config, j)) {
-          leftGridWidth += item.width;
-        } else {
-          mainGridWidth += item.width;
-        }
-      }
-      this.config.currentFields[tciLen - 1].width += lastSpaceW;
-      this.config.gridWidth.left = leftGridWidth;
-      this.config.gridWidth.main = mainGridWidth + lastSpaceW;
-    }
-  }
-
-  /**
    * grid height
    *
    * @public
@@ -201,7 +158,7 @@ export default class DaraGrid {
    */
   public getGridHeight(): number {
     if (this.options.height == "auto") {
-      return this.gridElement.clientHeight;
+      return this.gridElement.height();
     } else {
       return this.options.height;
     }

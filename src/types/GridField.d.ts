@@ -27,11 +27,11 @@ export interface FieldItem {
   /**
    * 화면 표현여부
    */
-  visible?: boolean;
+  hidden: boolean;
   /**
    * 정렬 여부
    */
-  sort?: boolean;
+  sort: boolean;
   /**
    * 글자 정렬
    */
@@ -47,7 +47,7 @@ export interface FieldItem {
   /**
    * 포멧터
    */
-  formatter: OptionCallback;
+  formatter?: OptionCallback;
   /**
    * add item default value
    */
@@ -55,15 +55,15 @@ export interface FieldItem {
   /**
    * cell click event
    */
-  click: OptionCallback;
+  click?: OptionCallback;
   /**
    * cell add class
    */
-  styleClass: OptionCallback;
+  styleClass?: OptionCallback;
   /**
    * tooltip 설정
    */
-  tooltip: {
+  tooltip?: {
     /**
      * 툴팁 보일지 여부.
      */
@@ -71,7 +71,7 @@ export interface FieldItem {
     /**
      * 툴팁 내용
      */
-    formatter: OptionCallback;
+    formatter?: OptionCallback;
   };
   /**
    * 자식 컬럼 정보
