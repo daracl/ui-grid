@@ -100,7 +100,7 @@ export default class DaraGrid {
   }
 
   private createGrid() {
-    this.mainConfig = initConfig();
+    this.mainConfig = initConfig(this.options);
 
     this.createHiddenElement();
 

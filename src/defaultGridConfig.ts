@@ -1,4 +1,5 @@
-import { Config, Scroll, Selection } from "./types/GridConfig";
+import { GridOptions } from "@t/GridOptions";
+import { Config, FieldHeaderGroupInfo, Scroll, Selection } from "./types/GridConfig";
 
 /**
  * 
@@ -10,7 +11,7 @@ import { Config, Scroll, Selection } from "./types/GridConfig";
 
  * grid default config
  */
-export const initConfig = (): Config => {
+export const initConfig = (opts: GridOptions): Config => {
   return {
     dimension: {
       width: 0,
@@ -32,7 +33,7 @@ export const initConfig = (): Config => {
     allColumnMap: {},
     rowHeight: 0,
     searchEnable: false,
-    header: { height: 0, width: 0 },
+    fieldHeaderGroup: defaultFieldGroupInfo(),
     footer: { height: 0, width: 0 },
     navi: { height: 0, width: 0 },
     toolbar: { height: 0, width: 0 },
@@ -65,8 +66,8 @@ export const initConfig = (): Config => {
       searchCheckItem: false, // 검색 정규식
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
-    fixedLeftIndex: -1,
-    fixedRightIndex: 100000,
+    fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex - 1 : -1,
+    fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex - 1 : 10000,
     scroll: initScrollInfo(),
     element: {
       grid: undefined,
@@ -169,5 +170,18 @@ export const initScrollInfo = (): Scroll => {
     verticalScrollTimer: -1,
     horizontalScrollTimer: -1,
     mouseDown: false,
+  };
+};
+
+export const defaultFieldGroupInfo = (): FieldHeaderGroupInfo => {
+  return {
+    left: [],
+    center: [],
+    right: [],
+    leaf: [],
+    leafLeft: [],
+    leafCenter: [],
+    leafRight: [],
+    depth: 1,
   };
 };

@@ -22,6 +22,17 @@ export interface GridOptions {
    *  넓이값
    */
   width: "auto" | number;
+
+  /**
+   *  왼쪽 고정 컬럼
+   */
+  fixedLeftIndex: number;
+
+  /**
+   *  오른쪽 고정 컬럼
+   */
+  fixedRightIndex: number;
+
   /**
    * 넓이 고정 여부.
    */
@@ -159,9 +170,11 @@ export interface HeaderOptions {
   height: number;
 
   /**
-   *  고정 컬럼
+   * 헤더 그룹일 경우 높이 값
+   *
+   * @type {number[]}
    */
-  fixedIndex: number;
+  heights: number[];
 
   /**
    * 정렬 여부

@@ -1,14 +1,115 @@
-@use "../common/common";
+@use "../common/common" as comm;
 
 @mixin header {
   .dg-header {
     display: table-row;
     position: relative;
-    z-index: 1;
+    z-index: 0;
 
     & > div {
       display: table-cell;
       position: relative;
+
+      > .dg-header-table {
+        table-layout: fixed;
+        min-width: auto !important;
+        border-collapse: separate !important;
+
+        tr > th {
+          border: 1px solid #ddd;
+          border-top: none !important;
+          border-left: none !important;
+          position: relative;
+        }
+
+        .label-wrapper {
+          position: relative;
+          padding: 0;
+          width: 100%;
+          .dg-sort-icon {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            top: 0px;
+            right: 2px;
+            display: none;
+          }
+
+          &.sortasc {
+            .sort-up {
+              display: block;
+            }
+          }
+
+          &.sortdesc {
+            .sort-down {
+              display: block;
+            }
+          }
+        }
+
+        .dg-header-cont {
+          width: 100%;
+          height: 100%;
+          font-weight: normal;
+
+          .dg-inner {
+            vertical-align: middle;
+            text-align: center;
+            .centered {
+              position: relative;
+              padding: 0px 8px 0px 5px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+
+          &.sort-header {
+            cursor: pointer;
+          }
+        }
+
+        .dg-header-resizer {
+          position: absolute;
+          right: -2px;
+          top: 0px;
+          width: 4px;
+          height: 100%;
+          cursor: col-resize;
+          z-index: 2;
+        }
+
+        .dg-header-resizer:hover {
+          width: 12px;
+          right: -6px;
+        }
+
+        .dg-header-help-wrapper {
+          position: absolute;
+          top: 0px;
+          z-index: 1;
+
+          .dg-header-help {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 12px;
+            height: 12px;
+            z-index: 1;
+
+            .dg-header-help-btn {
+              @include comm.opacityVal(0.4);
+              fill: var(--bg-header-help);
+            }
+
+            .dg-header-help-btn:hover {
+              @include comm.opacityVal(1);
+              fill: var(--bg-header-help-hover);
+            }
+          }
+        }
+      }
     }
   }
 }

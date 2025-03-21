@@ -43,10 +43,7 @@ export interface Config {
   currentFields: FieldItem[];
 
   searchEnable: boolean;
-  header: {
-    height: number;
-    width: number;
-  };
+  fieldHeaderGroup: FieldHeaderGroupInfo;
   footer: { height: number; width: number };
   navi: { height: number; width: number };
   toolbar: { height: number; width: number };
@@ -224,4 +221,24 @@ export interface GridElement {
 
   // measure element
   measureEl?: DaraElement;
+}
+
+/**
+ * field header group
+ *
+ * @export
+ * @interface FieldHeaderGroupInfo
+ * @typedef {FieldHeaderGroupInfo}
+ */
+export interface FieldHeaderGroupInfo {
+  left: FieldItem[][];
+  center: FieldItem[][];
+  right: FieldItem[][];
+  leaf: FieldItem[];
+
+  leafLeft: FieldItem[];
+  leafCenter: FieldItem[];
+  leafRight: FieldItem[];
+
+  depth: number;
 }

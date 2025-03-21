@@ -42,6 +42,9 @@
   --input-color: #212529;
   --input-disabled-bg: #ebebeb;
   --bg-grid-header: #f1f1f1;
+
+  --bg-header-help: #d6e0fe;
+  --bg-header-help-hover: #c4d0f5;
 }
 
 body.dark .daracl-grid.dark {
@@ -70,6 +73,9 @@ body.dark .daracl-grid.dark {
   --input-color: #c6cddb;
   --input-disabled-bg: #878787;
   --bg-grid-header: #878787;
+
+  --bg-header-help: #d6e0fe;
+  --bg-header-help-hover: #c4d0f5;
 }
 
 .daracl-grid {
@@ -80,7 +86,7 @@ body.dark .daracl-grid.dark {
     border-spacing: 0;
     border-collapse: separate;
     color: var(--font-color);
-    font-size: var(--font-size);
+    font-size: 12px;
     @include comm.boxSizing(comm.$box_sizing_border);
   }
 

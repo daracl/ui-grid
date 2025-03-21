@@ -1,6 +1,5 @@
 import { FieldItem } from "@t/GridField";
 import { GridOptions } from "@t/GridOptions";
-import { RendererInfo } from "@t/RendererInfo";
 import { RENDER_TEMPLATE } from "./constants";
 
 /**
@@ -10,6 +9,8 @@ export const defaultOptions: GridOptions = {
   theme: "light", // 테마 값
   height: "auto", // 높이 값
   width: "auto", // 넓이값
+  fixedLeftIndex: -1,
+  fixedRightIndex: 10000,
   copyMode: "single", // copy mode	single, multiple, none
   enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
@@ -29,8 +30,9 @@ export const defaultOptions: GridOptions = {
     threshold: 150, // resize 반응 시간
   },
   header: {
-    view: true, // header 보기 여부
-    height: 25, // header 높이
+    view: true, //  보기 여부
+    height: 25, //  높이
+    heights: [], // 그룹일 경우 높이 배열
     sort: {
       enabled: true,
       nullsLast: false, // null value 를 항상 끝으로 유지 할지 여부
@@ -45,7 +47,6 @@ export const defaultOptions: GridOptions = {
       minWidth: 50, // 컬럼 최소 넓이
       maxWidth: 1500, // 컬럼 최대 넓이
     },
-    fixedIndex: 0, // 고정 컬럼 index
     enableAllColumnSelection: true, // 전체 선택 여부.
     enableScroll: true, // 마우스 휠로 가로 스크롤 이동할지 여부.
     charWidth: 7, // char 의 넓이값
