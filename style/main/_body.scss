@@ -9,6 +9,19 @@
     & > div {
       display: table-cell;
       position: relative;
+
+      > .dg-body-table {
+        table-layout: fixed;
+        min-width: auto !important;
+        border-collapse: separate !important;
+
+        tr > td {
+          border: 1px solid #ddd;
+          border-top: none !important;
+          border-left: none !important;
+          position: relative;
+        }
+      }
     }
   }
 }

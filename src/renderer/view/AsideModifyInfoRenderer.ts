@@ -2,18 +2,18 @@ import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 
 /**
- * bar renderer
+ * aside modify info
  *
- * @class BarRenderer
- * @typedef {BarRenderer}
+ * @class AsideModifyInfoRenderer
+ * @typedef {AsideModifyInfoRenderer}
  * @extends {ViewRenderer}
  */
-export default class BarRenderer extends ViewRenderer {
+export default class AsideModifyInfoRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
   public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerHTML = `<div>bar${value}</div>`;
+    element.innerText = ``;
   }
 }

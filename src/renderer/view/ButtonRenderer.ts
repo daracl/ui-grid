@@ -1,28 +1,18 @@
-import AbstractRenderer from "../AbstractRenderer";
 import { FieldItem } from "@t/GridField";
+import ViewRenderer from "../ViewRenderer";
 
 /**
  * button renderer
  * @class ButtonRenderer
  * @typedef {ButtonRenderer}
- * @extends {AbstractRenderer}
+ * @extends {ViewRenderer}
  */
-export default class ButtonRenderer extends AbstractRenderer {
+export default class ButtonRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public render(element: HTMLElement, value: any): void {
-    element.innerHTML = `<button>${this.getValue(value)}</button>`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
-    element.innerText = this.getValue(value);
-  }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
-  }
-
-  valid(element: HTMLElement): any {
-    return true;
+  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+    element.innerHTML = `<button>${value}</button>`;
   }
 }

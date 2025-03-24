@@ -5,7 +5,7 @@ import { RENDER_TEMPLATE } from "./constants";
 /**
  * grid default option
  */
-export const defaultOptions: GridOptions = {
+export const DEFAULT_OPTIONS: GridOptions = {
   theme: "light", // 테마 값
   height: "auto", // 높이 값
   width: "auto", // 넓이값
@@ -99,16 +99,18 @@ export const defaultOptions: GridOptions = {
     // aside 옵션
     lineNumber: {
       // 번호
-      enabled: false, // 활성화 여부
-      name: "", //  컬럼명
+      enabled: true, // 활성화 여부
+      label: "", //  컬럼명
+      order: 0, // 순서
       width: 40, // 넓이
       enableRowSelection: true, // 선택 여부
     },
     rowCheckbox: {
       // 체크 박스
       enabled: false, // 활성화 여부
-      name: "V", // name
+      label: "V", // name
       width: 25, // 넓이값
+      order: 1,
       click: (rowInfo: any) => {
         // click event , return false 일경우 체크 안함.
       },
@@ -116,7 +118,8 @@ export const defaultOptions: GridOptions = {
     modifyInfo: {
       // 수정 여부
       enabled: false, // 활성화 여부
-      name: "modify", // name
+      order: 3,
+      label: "modify", // name
       width: 10, // 넓이값
     },
   },
@@ -184,14 +187,13 @@ export const defaultOptions: GridOptions = {
   operators: {}, // setting condition operator
 };
 
-export const defaultFieldInfo: FieldItem = {
+export const DEFAULT_FIELD_INFO: FieldItem = {
   name: "",
   label: "",
   width: 0,
   hidden: false,
   sort: false,
   align: "center",
-  dataType: "text",
   renderer: {
     type: "text",
   },
@@ -204,6 +206,7 @@ export const defaultFieldInfo: FieldItem = {
     formatter: undefined,
   },
   $renderer: RENDER_TEMPLATE["text"],
+  $editRenderer: RENDER_TEMPLATE["text"],
   $colspan: 0,
   $rowspan: 0,
   $depth: 0,
@@ -212,4 +215,6 @@ export const defaultFieldInfo: FieldItem = {
   $resizeIdx: 0,
   $maxWidth: 0,
   $alignStyle: "",
+  $isAside: false,
+  $panel: "center",
 };

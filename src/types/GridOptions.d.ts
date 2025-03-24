@@ -471,11 +471,15 @@ export interface AsideOptions {
     /**
      * 컬럼명
      */
-    name?: string;
+    label?: string;
     /**
      * 넓이
      */
     width?: number;
+    /**
+     * 순서
+     */
+    order?: number;
     /**
      * click시 row 전체 선택여부
      */
@@ -492,11 +496,15 @@ export interface AsideOptions {
     /**
      * 컬럼명
      */
-    name?: string;
+    label?: string;
     /**
      * 넓이
      */
     width?: number;
+    /**
+     * 순서
+     */
+    order?: number;
     /**
      * click 콜백
      */
@@ -513,7 +521,11 @@ export interface AsideOptions {
     /**
      * 컬럼명
      */
-    name?: string;
+    label?: string;
+    /**
+     * 순서
+     */
+    order?: number;
     /**
      * 넓이
      */

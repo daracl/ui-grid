@@ -48,11 +48,6 @@ export interface Config {
   navi: { height: number; width: number };
   toolbar: { height: number; width: number };
   initSettingFlag: boolean;
-  aside: {
-    items: Array;
-    lineNumberCharLength: number;
-    initWidth: number;
-  };
   select: AnyKeyMap;
   template: AnyKeyMap;
   items: Array;
@@ -63,7 +58,6 @@ export interface Config {
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;
   };
-  rowHeight: number;
   rowOpt: AnyKeyMap;
   sort: {
     orginData: Array;

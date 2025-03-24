@@ -1,16 +1,14 @@
 import { GridOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { defaultOptions } from "./defaultGridOption";
+import { DEFAULT_OPTIONS } from "./defaultGridOption";
 import { initConfig } from "./defaultGridConfig";
 import { FIELD_PREFIX } from "./constants";
 
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
 import Lanauage from "./util/Lanauage";
-import AbstractRenderer from "./renderer/AbstractRenderer";
 import { addStyleTag } from "./util/styleUtils";
-import { isFixedLeftPostion } from "./util/gridUtils";
 import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
 
@@ -56,7 +54,7 @@ export default class DaraGrid {
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     console.log("options ", options);
 
-    this.options = utils.merge({}, defaultOptions, options) as GridOptions;
+    this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
     Lanauage.set(message);
 

@@ -1,10 +1,22 @@
 import { RENDER_TEMPLATE } from "../constants";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
-import AbstractRenderer from "src/renderer/AbstractRenderer";
 import { isPlainObject, isString, isUndefined, merge } from "./utils";
+import ViewRenderer from "src/renderer/ViewRenderer";
+import EditRenderer from "src/renderer/EditRenderer";
 
-export const getRenderer = (field: FieldItem): AbstractRenderer => {
+export const getViewRenderer = (field: FieldItem): ViewRenderer => {
+  let render;
+  if (field.renderer.type) {
+    render = RENDER_TEMPLATE[field.renderer.type];
+
+    if (render) return render;
+  }
+
+  return RENDER_TEMPLATE["text"];
+};
+
+export const getEditRenderer = (field: FieldItem): EditRenderer => {
   let render;
   if (field.renderer.type) {
     render = RENDER_TEMPLATE[field.renderer.type];

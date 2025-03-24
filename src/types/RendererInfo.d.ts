@@ -1,6 +1,6 @@
 import { RENDERER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, ORIENTATION_TYPE, EDIT_RENDER_TYPE } from "src/constants";
 import { OptionCallback } from "@t/Common";
-import { AbstaractRenderer } from "../renderer/AbstractRenderer";
+import { AbstaractRenderer } from "../renderer/EditRenderer";
 
 export interface ValuesInfo {
   labelField: string;
@@ -41,6 +41,7 @@ export interface RendererInfo {
     field: string;
     message: string;
   };
+  refValue?: OptionCallback | any; // view 참조값 {key: {}} 참조값
   defaultValue?: string; // 기본값
   listItem?: ValuesInfo; // dropdown, radio, checkbox
   validator?: OptionCallback; // custom validator

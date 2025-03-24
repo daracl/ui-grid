@@ -1,5 +1,5 @@
-import AbstractRenderer from "../AbstractRenderer";
 import { FieldItem } from "@t/GridField";
+import ViewRenderer from "../ViewRenderer";
 
 /**
  * link renderer
@@ -7,24 +7,19 @@ import { FieldItem } from "@t/GridField";
  * @export
  * @class LinkRenderer
  * @typedef {LinkRenderer}
- * @extends {AbstractRenderer}
+ * @extends {ViewRenderer}
  */
-export default class LinkRenderer extends AbstractRenderer {
+export default class LinkRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public render(element: HTMLElement, value: any): void {
-    element.innerHTML = `<a href="${this.getValue(value)}">${this.getValue(value)}</a>`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
-    element.innerText = this.getValue(value);
-  }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
-  }
-
-  valid(element: HTMLElement): any {
-    return true;
+  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+    const refValue = this.getRefValue(value);
+    if (refValue) {
+      element.innerHTML = `<a href="${refValue.href}" _blank="${refValue.target ?? ""}">${value}</a>`;
+    } else {
+      element.innerHTML = `<a href="${value}">${value}</a>`;
+    }
   }
 }

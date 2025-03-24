@@ -2,18 +2,18 @@ import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 
 /**
- * bar renderer
+ * view custom renderer
  *
- * @class BarRenderer
- * @typedef {BarRenderer}
+ * @class ViewCustomRenderer
+ * @typedef {ViewCustomRenderer}
  * @extends {ViewRenderer}
  */
-export default class BarRenderer extends ViewRenderer {
+export default class ViewCustomRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
   public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerHTML = `<div>bar${value}</div>`;
+    element.innerText = `<input type="text">`;
   }
 }

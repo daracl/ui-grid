@@ -1,16 +1,14 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, FieldHeaderGroupInfo, GridElement, Selection } from "@t/GridConfig";
 
-import { addStyleTag } from "../../util/styleUtils";
-import { isFixedLeftPostion } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE, RENDER_TEMPLATE } from "src/constants";
 import DaraElement from "src/element/DaraElement";
-import { getRenderer } from "src/util/renderFactory";
 import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
+import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 
 /**
  * Header class
@@ -43,13 +41,13 @@ export default class Header {
 
   public createTemplate() {
     const containerElement = this.grid.element();
-    this.leftElement = containerElement.find(".dg-header>.dg-left");
-    this.centerElement = containerElement.find(".dg-header>.dg-center");
-    this.rightElement = containerElement.find(".dg-header>.dg-right");
+    this.leftElement = containerElement.findDaraElement(".dg-header>.dg-left");
+    this.centerElement = containerElement.findDaraElement(".dg-header>.dg-center");
+    this.rightElement = containerElement.findDaraElement(".dg-header>.dg-right");
 
-    this.leftElement.html(this.headerTemplate("left"));
-    this.centerElement.html(this.headerTemplate("center"));
-    this.rightElement.html(this.headerTemplate("right"));
+    this.leftElement.html(this.template("left"));
+    this.centerElement.html(this.template("center"));
+    this.rightElement.html(this.template("right"));
   }
 
   /**
@@ -57,8 +55,7 @@ export default class Header {
    * @description 헤더 정보 계산
    */
   public calculation(calcFlag: boolean) {
-    const cfg = this.grid.config(),
-      gridElementWidth = cfg.dimension.width;
+    const cfg = this.grid.config();
 
     const headerOptions = this.headerOptions;
 
@@ -69,13 +66,17 @@ export default class Header {
       cfg.dimension.mainHeaderHeight = headerOptions.height * fieldGroupInfo.depth;
     }
 
-    const fields = (cfg.currentFields = fieldGroupInfo.leaf) as FieldItem[];
+    cfg.currentFields = fieldGroupInfo.leaf;
 
     const enableViewAllLabel = calcFlag === false ? false : headerOptions.enableViewAllLabel === true;
 
     let leftWidth = 0,
-      mainWidth = 0,
+      centerWidth = 0,
+      rightWidth = 0,
       viewColCount = 0;
+
+    const fields = fieldGroupInfo.leaf;
+
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
       field.$maxWidth = -1; // max width
@@ -86,32 +87,38 @@ export default class Header {
 
       ++viewColCount;
 
-      if (enableViewAllLabel) {
-        const labelWidth = field.label.length * 5;
-        if (utils.isNumber(field.width)) {
-          field.width = labelWidth > field.width ? labelWidth : field.width;
-        } else {
-          field.width = labelWidth;
-        }
-      } else {
+      if (field.$isAside) {
         field.width = isNaN(field.width) ? headerOptions.resize.minWidth : field.width;
+      } else {
+        if (enableViewAllLabel) {
+          const labelWidth = field.label.length * 5;
+          if (utils.isNumber(field.width)) {
+            field.width = labelWidth > field.width ? labelWidth : field.width;
+          } else {
+            field.width = labelWidth;
+          }
+        } else {
+          field.width = isNaN(field.width) ? headerOptions.resize.minWidth : field.width;
+        }
+        field.width = Math.max(field.width, headerOptions.resize.minWidth);
       }
-
-      field.width = Math.max(field.width, headerOptions.resize.minWidth);
 
       field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
 
       cfg.currentFields[j] = field;
 
-      if (isFixedLeftPostion(cfg, j)) {
+      if (field.$panel == "left") {
         leftWidth += field.width;
+      } else if (field.$panel == "right") {
+        rightWidth += field.width;
       } else {
-        mainWidth += field.width;
+        centerWidth += field.width;
       }
     }
 
     cfg.dimension.mainLeftWidth = leftWidth;
-    cfg.dimension.mainCenterWidth = mainWidth;
+    cfg.dimension.mainCenterWidth = centerWidth;
+    cfg.dimension.mainRightWidth = rightWidth;
 
     cfg.dataInfo.colLength = viewColCount;
 
@@ -119,7 +126,63 @@ export default class Header {
       return;
     }
 
-    this.gridMain.calcContainerWidth();
+    this.calcContainerWidth();
+  }
+
+  /**
+   * @method _calcContainerWidth
+   * @description width 계산.
+   */
+  public calcContainerWidth() {
+    const opts = this.grid.getOptions();
+    if (opts.enableWidthFixed === true) {
+      return;
+    }
+
+    const cfg = this.grid.config();
+
+    const _gw = cfg.dimension.width,
+      tci = cfg.currentFields,
+      tciLen = cfg.dataInfo.colLength;
+
+    let verticalScrollWidth = 0;
+
+    if (opts.items.length > 0) {
+      if (opts.items.length * opts.body.row.height > cfg.dimension.mainHeight) {
+        verticalScrollWidth = opts.scroll.vertical.width;
+      }
+    }
+
+    const _totW = cfg.dimension.mainLeftWidth + cfg.dimension.mainLeftWidth + cfg.dimension.mainCenterWidth + verticalScrollWidth;
+
+    const resizeFlag = _totW < _gw;
+    const remainderWidth = Math.floor((_gw - _totW) / tciLen),
+      lastSpaceW = _gw - _totW - remainderWidth * tciLen;
+
+    if (resizeFlag) {
+      let leftWidth = 0,
+        rightWidth = 0,
+        centerWidth = 0;
+      const resizeMinWidth = opts.header.resize.minWidth;
+
+      for (let j = 0; j < tciLen; j++) {
+        const field = tci[j];
+
+        if (field.$panel == "left") {
+          leftWidth += field.width;
+        } else if (field.$panel == "right") {
+          rightWidth += field.width;
+        } else {
+          field.width += remainderWidth;
+          field.width = Math.max(field.width, resizeMinWidth);
+          centerWidth += field.width;
+        }
+      }
+      cfg.currentFields[tciLen - 1].width += lastSpaceW;
+      cfg.dimension.mainLeftWidth = rightWidth;
+      cfg.dimension.mainCenterWidth = rightWidth + lastSpaceW;
+      cfg.dimension.mainRightWidth = rightWidth;
+    }
   }
 
   /**
@@ -155,14 +218,39 @@ export default class Header {
   public initFieldGroupInfo() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
-    const fields = utils.deepCopy(opts.fields);
-
-    console.log("opts.fields ", opts.fields, fields);
+    let fields = utils.deepCopy(opts.fields);
 
     cfg.fieldHeaderGroup = defaultFieldGroupInfo();
 
+    let asideOrder: any[] = [];
+
+    // linenumber
+    if (opts.aside.lineNumber.enabled === true) {
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: "lineNumber", renderer: { type: "lineNumber" }, $isAside: true });
+      console.log("lineNumber    ", opts.aside.lineNumber, fieldItem);
+
+      asideOrder[opts.aside.lineNumber.order ?? 0] = fieldItem;
+    }
+
+    // rowCheckbox
+    if (opts.aside.rowCheckbox.enabled === true) {
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "rowCheckbox", renderer: { type: "rowCheckbox" }, $isAside: true });
+      asideOrder[opts.aside.rowCheckbox.order ?? 1] = fieldItem;
+    }
+
+    // modifyInfo 추가.
+    if (opts.aside.modifyInfo.enabled === true) {
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
+      asideOrder[opts.aside.modifyInfo.order ?? 2] = fieldItem;
+    }
+
+    const fixedLeftIndex = asideOrder.length + cfg.fixedLeftIndex;
+    const fixedRightIndex = cfg.fixedRightIndex;
+
+    fields.unshift(...asideOrder);
+
     for (let field of fields) {
-      this.groupInfo(field, 0, cfg.fieldHeaderGroup, cfg);
+      this.groupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex);
     }
   }
 
@@ -176,7 +264,7 @@ export default class Header {
    * @param {Config} cfg 설정정보
    * @returns {FieldItem} 필드 정보
    */
-  public groupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, cfg: Config) {
+  public groupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, fixedLeftIndex: number, fixedRightIndex: number) {
     if (field.hidden) {
       field.$colspan = 0;
       return field;
@@ -199,7 +287,7 @@ export default class Header {
         field.$childLength = childrenLen;
         let colspan = 0;
         for (let childNode of children) {
-          this.groupInfo(childNode, field.$depth, fieldGroupInfo, cfg);
+          this.groupInfo(childNode, field.$depth, fieldGroupInfo, fixedLeftIndex, fixedRightIndex);
           colspan += childNode.$colspan;
         }
 
@@ -209,9 +297,6 @@ export default class Header {
     } else {
       field.$resizeIdx = fieldGroupInfo.leaf.length;
     }
-
-    const fixedLeftIndex = cfg.fixedLeftIndex;
-    const fixedRightIndex = cfg.fixedRightIndex;
 
     if (utils.isUndefined(fieldGroupInfo.left[depth])) {
       fieldGroupInfo.left[depth] = [];
@@ -243,12 +328,15 @@ export default class Header {
           fieldGroupInfo.center[depth].push(bodyNode);
         }
       }
+      field.$panel = "left";
       if (field.$isLeaf) fieldGroupInfo.leafLeft.push(field);
     } else if (fixedRightIndex <= field.$resizeIdx - field.$colspan) {
       fieldGroupInfo.right[depth].push(field);
+      field.$panel = "right";
       if (field.$isLeaf) fieldGroupInfo.leafRight.push(field);
     } else {
       fieldGroupInfo.center[depth].push(field);
+      field.$panel = "center";
       if (field.$isLeaf) fieldGroupInfo.leafCenter.push(field);
     }
 
@@ -266,7 +354,7 @@ export default class Header {
    * @param {string} type position type
    * @returns {string} template string
    */
-  public headerTemplate(type: string) {
+  public template(type: string) {
     const cfg = this.grid.config(),
       opts = this.grid.getOptions();
 
@@ -312,20 +400,31 @@ export default class Header {
           ghItem.$rowspan = headerGroupLength - ghItem.$depth + 1;
         }
 
-        let thHtm = `<th class="dg-header-th ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
+        let thHtm = [];
+        thHtm.push(`<th class="dg-header-th ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
               ${ghItem.$colspan > 1 ? ` scope="colgroup" colspan="${ghItem.$colspan}" ` : ""}
               ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""}
               data-header-info="${i + "," + j}" 
               data-col-idx="${ghItem.$resizeIdx}"
-            ">
-            
-            ${
-              helpEnabled
-                ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
+        ">`);
+
+        if (ghItem.$isAside) {
+          thHtm.push(`
+           <div class="label-wrapper">
+             <div class="dg-header-cont ${ghItem.sort === true ? "sort-header" : ""} ">
+               <div class="dg-inner"><div class="centered">${ghItem.label}</div></div>
+             </div>
+           </div>
+           `);
+        } else {
+          thHtm.push(`
+             ${
+               helpEnabled
+                 ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
               <svg class="dg-header-help" viewBox="0 0 100 100"><g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g></svg> 
             </div>`
-                : ""
-            }
+                 : ""
+             }
               
             <div class="label-wrapper">
               <div class="dg-header-cont ${ghItem.sort === true ? "sort-header" : ""} ">
@@ -334,10 +433,12 @@ export default class Header {
               </div>
             </div>
             <div class="dg-header-resizer"></div>
-            </th>
-          `;
+            `);
+        }
 
-        strHtm.push(thHtm);
+        thHtm.push(`  </th> `);
+
+        strHtm.push(thHtm.join(""));
       }
       strHtm.push("</tr>");
     }
@@ -351,6 +452,9 @@ export default class Header {
       colGroupHtm.push(`<col data-col-idx="${colGroupIdx++}" style="width:${nodeWidth}px;">`);
     }
 
-    return `<table class="dg-header-table" style="width:${tableWidth}px;"><colgroup>${colGroupHtm.join("")}</colgroup><thead>${strHtm.join("")}</thead></table>`;
+    return `<table class="dg-header-table" style="width:${tableWidth}px;">
+      <colgroup>${colGroupHtm.join("")}</colgroup>
+      <thead>${strHtm.join("")}</thead>
+    </table>`;
   }
 }

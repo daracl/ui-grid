@@ -1,19 +1,20 @@
+import AbstractRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 
 /**
- * bar renderer
+ * number renderer
  *
- * @class BarRenderer
- * @typedef {BarRenderer}
- * @extends {ViewRenderer}
+ * @class NumberRenderer
+ * @typedef {NumberRenderer}
+ * @extends {AbstractRenderer}
  */
-export default class BarRenderer extends ViewRenderer {
+export default class AsideLineNumberRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
   public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerHTML = `<div>bar${value}</div>`;
+    element.innerText = value;
   }
 }

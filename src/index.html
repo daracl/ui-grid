@@ -187,9 +187,9 @@
         {
           label: 'a+b',
           children: [
-            { key: 'a', label: '에이에이에이에이에이에이', width: 150, sort: true, editable: false }
+            { name: 'a', label: '에이에이에이에이에이에이', width: 150, sort: true, editable: false }
             , {
-              key: 'b', label: '비', width: 100, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
+              name: 'b', label: '비', width: 100, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
                 if (rowInfo.rowItemIdx % 3 == 0) {
                   return 'pub-bg-primary';
                 } else if (rowInfo.rowItemIdx % 3 == 1) {
@@ -202,7 +202,7 @@
           ]
         }
         , {
-          key: 'c', label: '씨', width: 100, align: 'center', type: 'money', renderer: {
+          name: 'c', label: '씨', width: 100, align: 'center', type: 'money', renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , click1: function (item) {
@@ -211,7 +211,7 @@
           }
         }
         , {
-          key: 'd', label: '디', width: 100, type: 'text', renderer: {
+          name: 'd', label: '디', width: 100, type: 'text', renderer: {
             type: 'dropdown'
             , labelField: 'name'
             , valueField: 'cd'
@@ -236,12 +236,12 @@
           }
         }
         , {
-          key: 'e', label: '이', width: 100, renderer: {
+          name: 'e', label: '이', width: 100, renderer: {
             type: 'checkbox'
           }
         }
         , {
-          key: 'f', label: 'f', width: 100, align: 'center', renderer: {
+          name: 'f', label: 'f', width: 100, align: 'center', renderer: {
             type: 'button'
             , label: 'button click'
             , click: function (info) {
@@ -250,13 +250,13 @@
           }
         }
         , {
-          key: 'g', label: 'g', width: 100, align: 'center', visible: false, renderer: {
+          name: 'g', label: 'g', width: 100, align: 'center', visible: false, renderer: {
             type: 'image1'
             , src: './image/{{g}}'
           }
         }
         , {
-          key: 'h', label: 'h', width: 100, align: 'center', type: 'number', visible: true, renderer: {
+          name: 'h', label: 'h', width: 100, align: 'center', type: 'number', visible: true, renderer: {
             type: 'number'
           }
         }
@@ -341,12 +341,12 @@
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
-      , fixedLeftIndex: 0
-      , fixedRightIndex: 4
+      , fixedLeftIndex: 2
+      , fixedRightIndex: 6
       //,height: 360
-      , asideOptions: {
+      , aside: {
         lineNumber: { enabled: true }
-        , rowSelector: {
+        , rowCheckbox: {
           enabled: true
           , key: 'checkbox'
           , name: 'V'
@@ -469,12 +469,6 @@
 
         ]
       }
-      , aside: {
-        // 번호 보일지 여부
-        lineNumber: true
-        , rowCheckbox: true
-        , modifyInfo: true
-      }
       , scroll: {
         vertical: {
           onUpdate: function (item) {	// 스크롤 업데이트. 
@@ -524,8 +518,7 @@
           console.log(moveInfo);
         }
         , row: {
-          height: 50
-          , dblClickCheck: false
+          dblClickCheck: false
           , click: function (itemInfo) {
             //console.log('rowOptions click' ,itemInfo)
             return;

@@ -1,30 +1,25 @@
-import AbstractRenderer from "../AbstractRenderer";
 import { FieldItem } from "@t/GridField";
+import ViewRenderer from "../ViewRenderer";
 
 /**
- * button renderer
+ * image renderer
  *
  * @export
- * @class ButtonRenderer
- * @typedef {ButtonRenderer}
- * @extends {AbstractRenderer}
+ * @class ImageRenderer
+ * @typedef {ImageRenderer}
+ * @extends {ViewRenderer}
  */
-export default class ButtonRenderer extends AbstractRenderer {
+export default class ImageRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public render(element: HTMLElement, value: any): void {
-    element.innerHTML = `<img src="${this.getValue(value)}" />`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
-    element.innerText = this.getValue(value);
-  }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
-  }
-
-  valid(element: HTMLElement): any {
-    return true;
+  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+    const refValue = this.getRefValue(value);
+    if (refValue) {
+      element.innerHTML = `<img src="${refValue.src}" ${refValue.alt ? 'alt="' + refValue.alt + '"' : ""}"/>`;
+    } else {
+      element.innerHTML = `<img src="${value}"/>`;
+    }
   }
 }

@@ -1,14 +1,14 @@
 import { FieldItem } from "@t/GridField";
-import AbstractRenderer from "../AbstractRenderer";
+import EditRenderer from "../EditRenderer";
 
 /**
  * radio renderer
  *
  *  @class RadioRenderer
  * @typedef {RadioRenderer}
- * @extends {AbstractRenderer}
+ * @extends {EditRenderer}
  */
-export default class RadioRenderer extends AbstractRenderer {
+export default class RadioRenderer extends EditRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
@@ -20,9 +20,6 @@ export default class RadioRenderer extends AbstractRenderer {
     (element as HTMLInputElement).value = this.getValue(value);
   }
   public render(element: HTMLElement, value: any): void {
-    element.innerText = `${this.getValue(value)}`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
     element.innerText = `<input type="text">`;
 
     this.getValue(value);

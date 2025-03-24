@@ -1,4 +1,4 @@
-import AbstractRenderer from "../AbstractRenderer";
+import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 
 /**
@@ -7,17 +7,14 @@ import { FieldItem } from "@t/GridField";
  * @export
  * @class TextAreaRenderer
  * @typedef {TextAreaRenderer}
- * @extends {AbstractRenderer}
+ * @extends {EditRenderer}
  */
-export default class TextAreaRenderer extends AbstractRenderer {
+export default class TextAreaRenderer extends EditRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
   public render(element: HTMLElement, value: any): void {
-    element.innerText = `${this.getValue(value)}`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
     element.innerText = `<input type="text">`;
 
     this.getValue(value);

@@ -10,8 +10,12 @@ export default class DaraElement {
     }
   }
 
-  find(selector: string): DaraElement {
+  findDaraElement(selector: string): DaraElement {
     return new DaraElement(this.element.querySelector(selector));
+  }
+
+  find(selector: string): HTMLElement {
+    return this.element.querySelector(selector) as HTMLElement;
   }
 
   before(renderElements: HTMLElement) {

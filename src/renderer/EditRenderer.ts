@@ -2,10 +2,9 @@ import { FieldItem } from "@t/GridField";
 
 import { ValidResult } from "@t/ValidResult";
 import * as utils from "src/util/utils";
+import Renderer from "./Renderer";
 
-export default abstract class AbstractRenderer {
-  protected field;
-
+export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
 
   protected listValueKey;
@@ -13,7 +12,7 @@ export default abstract class AbstractRenderer {
   protected listLabelKey;
 
   constructor(field: FieldItem) {
-    this.field = field;
+    super(field);
 
     this.listValueKey = field.renderer?.listItem?.valueField ? field.renderer?.listItem.valueField : "value";
 
@@ -28,15 +27,8 @@ export default abstract class AbstractRenderer {
    */
   public abstract render(element: HTMLElement, value: any): void;
 
-  /**
-   * edit row render
-   *
-   * @param {HTMLElement} element element td element
-   * @param {*} value value row item
-   */
-  public abstract editRender(element: HTMLElement, value: any): void;
-
   public abstract reset(element: HTMLElement): void;
+
   public abstract valid(element: HTMLElement): ValidResult | boolean;
 
   /**
@@ -88,7 +80,7 @@ export default abstract class AbstractRenderer {
 
   public changeEventCall(e: Event | null, element: HTMLElement): boolean | undefined {
     const field = this.field;
-    const fieldValue = field.$renderer.getValue(element);
+    const fieldValue = field.$editRenderer.getValue(element);
 
     if (field.renderer.onChange) {
       let changeInfo: any = {
@@ -121,7 +113,7 @@ export default abstract class AbstractRenderer {
       }
 
       if (changeInfo.oldValue != changeInfo.value && field.renderer.onChange.call(null, changeInfo) === false) {
-        field.$renderer.setValue(fieldValue, false);
+        field.$editRenderer.setValue(fieldValue, false);
         return false;
       }
 

@@ -1,4 +1,4 @@
-import AbstractRenderer from "../AbstractRenderer";
+import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 
 /**
@@ -6,17 +6,13 @@ import { FieldItem } from "@t/GridField";
  *
  * @class NumberRenderer
  * @typedef {NumberRenderer}
- * @extends {AbstractRenderer}
+ * @extends {EditRenderer}
  */
-export default class NumberRenderer extends AbstractRenderer {
+export default class NumberRenderer extends EditRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
-
   public render(element: HTMLElement, value: any): void {
-    element.innerText = `${this.getValue(value)}`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
     element.innerText = `<input type="number">`;
 
     this.getValue(value);

@@ -1,5 +1,5 @@
 import CheckboxRenderer from "./renderer/edit/CheckboxRenderer";
-import CustomRenderer from "./renderer/edit/CustomRenderer";
+import EditCustomRenderer from "./renderer/edit/EditCustomRenderer";
 import DateRenderer from "./renderer/edit/DateRenderer";
 import DropdownRenderer from "./renderer/edit/DropdownRenderer";
 import NumberRenderer from "./renderer/edit/NumberRenderer";
@@ -8,6 +8,9 @@ import RadioRenderer from "./renderer/edit/RadioRenderer";
 import RangeRenderer from "./renderer/edit/RangeRenderer";
 import TextAreaRenderer from "./renderer/edit/TextAreaRenderer";
 import TextRenderer from "./renderer/edit/TextRenderer";
+import AsideLineNumberRenderer from "./renderer/view/AsideLineNumberRenderer";
+import AsideModifyInfoRenderer from "./renderer/view/AsideModifyInfoRenderer";
+import AsideRowCheckRenderer from "./renderer/view/AsideRowCheckRenderer";
 
 import BarRenderer from "./renderer/view/BarRenderer";
 import ButtonRenderer from "./renderer/view/ButtonRenderer";
@@ -51,7 +54,7 @@ export const FIELD_PREFIX = "dg"; // daracl grid field
 
 export const RENDER_TEMPLATE: any = {
   checkbox: CheckboxRenderer,
-  custom: CustomRenderer,
+  custom: EditCustomRenderer,
   date: DateRenderer,
   dropdown: DropdownRenderer,
   number: NumberRenderer,
@@ -66,6 +69,9 @@ export const RENDER_TEMPLATE: any = {
   html: HtmlRenderer,
   image: ImageRenderer,
   link: LinkRenderer,
+  lineNumber: AsideLineNumberRenderer,
+  rowCheckbox: AsideRowCheckRenderer,
+  modifyInfo: AsideModifyInfoRenderer,
 };
 
 export const ALIGN = {

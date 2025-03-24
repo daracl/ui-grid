@@ -1,14 +1,14 @@
 import { FieldItem } from "@t/GridField";
-import AbstractRenderer from "../AbstractRenderer";
+import EditRenderer from "../EditRenderer";
 
 /**
  * dropdown renderer
  *
  * @class DropdownRenderer
  * @typedef {DropdownRenderer}
- * @extends {AbstractRenderer}
+ * @extends {EditRenderer}
  */
-export default class DropdownRenderer extends AbstractRenderer {
+export default class DropdownRenderer extends EditRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
@@ -20,9 +20,6 @@ export default class DropdownRenderer extends AbstractRenderer {
     (element as HTMLInputElement).value = this.getValue(value);
   }
   public render(element: HTMLElement, value: any): void {
-    element.innerText = `${this.getValue(value)}`;
-  }
-  public editRender(element: HTMLElement, value: any): void {
     element.innerText = `<input type="text">`;
 
     this.getValue(value);

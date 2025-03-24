@@ -10,16 +10,12 @@ import { intValue } from "./utils";
  * @param {string} position
  * @returns {boolean}
  */
-export const isFixedLeftPostion = (cfg: Config, idx: number, position?: string): boolean => {
-  //position = position || "l";
-
-  return idx < cfg.fixedLeftIndex;
+export const isFixedLeftPostion = (fixedLeftIndex: number, idx: number): boolean => {
+  return idx < fixedLeftIndex;
 };
 
-export const isFixedRightPostion = (cfg: Config, idx: number, position?: string): boolean => {
-  //position = position || "l";
-
-  return idx > cfg.fixedRightIndex;
+export const isFixedRightPostion = (fixedRightIndex: number, idx: number): boolean => {
+  return idx > fixedRightIndex;
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {

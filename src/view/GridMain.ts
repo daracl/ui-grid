@@ -12,6 +12,7 @@ import { FieldItem } from "@t/GridField";
 import { merge } from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
 import Header from "./main/Header";
+import Body from "./main/Body";
 
 declare const APP_VERSION: string;
 
@@ -32,16 +33,16 @@ export default class GridMain {
 
   private header: Header;
 
-  private headerOptions: HeaderOptions;
+  private body: Body;
 
   constructor(grid: DaraGrid) {
     this.grid = grid;
 
-    this.headerOptions = grid.getOptions().header;
-
     this.initTemplate();
 
     this.header = new Header(grid, this);
+
+    this.body = new Body(grid, this);
   }
 
   /**
@@ -88,56 +89,5 @@ export default class GridMain {
     this.grid.element().html(templateHtml);
 
     this.setGridDimention();
-  }
-
-  /**
-   * @method _calcContainerWidth
-   * @description width 계산.
-   */
-  public calcContainerWidth() {
-    const opts = this.grid.getOptions();
-    if (opts.enableWidthFixed === true) {
-      return;
-    }
-
-    const cfg = this.grid.config();
-
-    const _gw = cfg.dimension.width,
-      tci = cfg.currentFields,
-      tciLen = cfg.dataInfo.colLength;
-
-    let verticalScrollWidth = 0;
-
-    if (opts.items.length > 0) {
-      if (opts.items.length * cfg.rowHeight > cfg.dimension.mainHeight) {
-        verticalScrollWidth = opts.scroll.vertical.width;
-      }
-    }
-
-    const _totW = cfg.dimension.mainLeftWidth + cfg.dimension.mainLeftWidth + cfg.dimension.mainCenterWidth + verticalScrollWidth;
-
-    const resizeFlag = _totW < _gw;
-    const remainderWidth = Math.floor((_gw - _totW) / tciLen),
-      lastSpaceW = _gw - _totW - remainderWidth * tciLen;
-
-    if (resizeFlag) {
-      let leftGridWidth = 0,
-        mainGridWidth = 0;
-      const resizeMinWidth = opts.header.resize.minWidth;
-      for (let j = 0; j < tciLen; j++) {
-        const item = tci[j];
-        item.width += remainderWidth;
-        item.width = Math.max(item.width, resizeMinWidth);
-
-        if (isFixedLeftPostion(cfg, j)) {
-          leftGridWidth += item.width;
-        } else {
-          mainGridWidth += item.width;
-        }
-      }
-      cfg.currentFields[tciLen - 1].width += lastSpaceW;
-      cfg.dimension.mainLeftWidth = leftGridWidth;
-      cfg.dimension.mainCenterWidth = mainGridWidth + lastSpaceW;
-    }
   }
 }

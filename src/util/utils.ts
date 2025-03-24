@@ -120,7 +120,7 @@ function fallbackCopyToClipboard(prefix: string, copyText: string) {
  * @returns {boolean} type hidden true , false
  */
 export function isHiddenField(field: FieldItem): boolean {
-  return field.dataType == "hidden";
+  return field.hidden;
 }
 
 /**

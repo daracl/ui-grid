@@ -2,7 +2,8 @@ import { FieldItem } from "@t/GridField";
 import { RENDERER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
 import { RendererInfo } from "./RendererInfo";
-import AbstractRenderer from "src/renderer/AbstractRenderer";
+import ViewRenderer from "src/renderer/ViewRenderer";
+import EditRenderer from "src/renderer/EditRenderer";
 
 /**
  * Field info
@@ -36,10 +37,6 @@ export interface FieldItem {
    * 글자 정렬
    */
   align: TEXT_ALIGN_TYPE;
-  /**
-   * value type
-   */
-  dataType: string;
   /**
    * RENDER_TYPE
    */
@@ -81,7 +78,13 @@ export interface FieldItem {
   /**
    * 실제 랜더러
    */
-  $renderer: AbstractRenderer;
+  $renderer: ViewRenderer;
+
+  /**
+   * edit renderer
+   *
+   */
+  $editRenderer: EditRenderer;
 
   /**
    * colspan number
@@ -122,4 +125,14 @@ export interface FieldItem {
    * align style
    */
   $alignStyle: string;
+
+  /**
+   * panel position
+   */
+  $isAside: boolean;
+
+  /**
+   *panel
+   */
+  $panel: "left" | "center" | "right";
 }
