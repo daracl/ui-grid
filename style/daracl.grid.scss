@@ -19,67 +19,77 @@
 .daracl-grid {
   --border-color: #dfe1e5;
   --border_thick_color: #b9bdc1;
-  --background-scroll: #f1f1f1;
-  --background-scroll-track: #f1f1f1;
-  --background-scroll-thumb: #c1c1c1;
-  --background-scroll-button: #c5c3c3;
+  --scroll-bg: #f1f1f1;
+  --scroll-track-bg: #f1f1f1;
+  --scroll-thumb-bg: #c1c1c1;
+  --scroll-button-bg: #c5c3c3;
 
-  --color-danger: #d9534f;
-  --background-danger: #d9534f;
+  --status-danger-color: #d9534f;
+  --status-danger-bg: #d9534f;
   --font-color: #686868;
   --font-hover-color: #3a3d41;
   --invalid-font-color: #ff4136;
   --invalid-border-color: #ffb6b4;
-  --invalid-background-color: #fdd;
-  --button-bg: #f6f6f6;
-  --button-bg-hover: #ebebeb;
+  --invalid-bg: #fdd;
+  --button-bg: #e8ecef;
+  --button-bg-hover: #f2f3f4;
   --tab-bg: #f6f6f6;
   --tab-bg-hover: #ebebeb;
-  --tooltip-background: #3e3e3e;
+  --tooltip-bg: #3e3e3e;
   --tooltip-color: #fff;
   --field-margin-top: 10px;
   --input-bg: #fff;
   --input-color: #212529;
   --input-disabled-bg: #ebebeb;
-  --bg-grid-header: #f1f1f1;
+  --header-bg: #f1f1f1;
 
-  --bg-header-help: #d6e0fe;
-  --bg-header-help-hover: #c4d0f5;
+  --header-help-bg: #d6e0fe;
+  --header-help-bg-hover: #c4d0f5;
+
+  --cell-bg-hover: #efefef;
+  --cell-bg-selection: #aaeaff;
+  --row-bg: #f3f6fa;
 }
 
 body.dark .daracl-grid.dark {
   --border-color: #41444c;
   --border_thick_color: #b9bdc1;
-  --background-scroll: #262729;
-  --background-scroll-track: #262729;
-  --background-scroll-thumb: #6b5b5b;
-  --background-scroll-button: #c5c3c3;
+  --scroll-bg: #262729;
+  --scroll-track-bg: #262729;
+  --scroll-thumb-bg: #6b5b5b;
+  --scroll-button-bg: #c5c3c3;
 
-  --color-danger: #d9534f;
-  --background-danger: #d9534f;
+  --status-danger-color: #d9534f;
+  --status-danger-bg: #d9534f;
   --font-color: #b9bdc1;
   --font-hover-color: #f5f3f3;
   --invalid-font-color: #ff4136;
   --invalid-border-color: #ffb6b4;
-  --invalid-background-color: #fdd;
+  --invalid-bg: #fdd;
   --button-bg: #435ebe;
   --button-bg-hover: #3950a2;
   --tab-bg: #23418f;
   --tab-bg-hover: #516db1;
-  --tooltip-background: #3e3e3e;
+  --tooltip-bg: #3e3e3e;
   --tooltip-color: #fff;
   --field-margin-top: 10px;
   --input-bg: transparent;
   --input-color: #c6cddb;
   --input-disabled-bg: #878787;
-  --bg-grid-header: #878787;
+  --header-bg: #878787;
 
-  --bg-header-help: #d6e0fe;
-  --bg-header-help-hover: #c4d0f5;
+  --header-help-bg: #d6e0fe;
+  --header-help-bg-hover: #c4d0f5;
+
+  --cell-bg-hover: #efefef;
+  --cell-bg-selection: #aaeaff;
+  --row-bg: #f3f6fa;
 }
 
 .daracl-grid {
   background: transparent;
+  height: 100%;
+  position: relative;
   @include comm.boxSizing(comm.$box_sizing_border);
 
   * {

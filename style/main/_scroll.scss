@@ -2,11 +2,11 @@
 
 @mixin scroll {
   .dg-scroll-thumb {
-    background-color: var(--background-scroll-thumb);
+    background-color: var(--scroll-thumb-bg);
   }
 
   .dg-scroll-button {
-    background-color: var(--background-scroll-button);
+    background-color: var(--scroll-button-bg);
   }
 
   .dg-scroll-track {
@@ -17,7 +17,7 @@
 
   .dg-scroll {
     display: none;
-    background-color: var(--background-scroll-track);
+    background-color: var(--scroll-track-bg);
 
     /* vertical scroll */
     &.vertical {

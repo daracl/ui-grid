@@ -69,6 +69,10 @@ export default class DaraElement {
     return this.element.getBoundingClientRect().height;
   }
 
+  setHeight(height: number) {
+    this.element.style.height = height + "px";
+  }
+
   /**
    * 패딩을 포함한 콘텐츠 영역의 높이
    *

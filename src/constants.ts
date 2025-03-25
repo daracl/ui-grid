@@ -7,7 +7,8 @@ import PasswordRenderer from "./renderer/edit/PasswordRenderer";
 import RadioRenderer from "./renderer/edit/RadioRenderer";
 import RangeRenderer from "./renderer/edit/RangeRenderer";
 import TextAreaRenderer from "./renderer/edit/TextAreaRenderer";
-import TextRenderer from "./renderer/edit/TextRenderer";
+import EditTextRenderer from "./renderer/edit/EditTextRenderer";
+
 import AsideLineNumberRenderer from "./renderer/view/AsideLineNumberRenderer";
 import AsideModifyInfoRenderer from "./renderer/view/AsideModifyInfoRenderer";
 import AsideRowCheckRenderer from "./renderer/view/AsideRowCheckRenderer";
@@ -18,6 +19,8 @@ import HiddenRenderer from "./renderer/view/HiddenRenderer";
 import HtmlRenderer from "./renderer/view/HtmlRenderer";
 import ImageRenderer from "./renderer/view/ImageRenderer";
 import LinkRenderer from "./renderer/view/LinkRenderer";
+import TextRenderer from "./renderer/view/TextRenderer";
+import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -52,26 +55,33 @@ export const RULES = {
 
 export const FIELD_PREFIX = "dg"; // daracl grid field
 
-export const RENDER_TEMPLATE: any = {
-  checkbox: CheckboxRenderer,
-  custom: EditCustomRenderer,
-  date: DateRenderer,
-  dropdown: DropdownRenderer,
-  number: NumberRenderer,
-  password: PasswordRenderer,
-  radio: RadioRenderer,
-  range: RangeRenderer,
-  textarea: TextAreaRenderer,
-  text: TextRenderer,
+// renderer type
+export const VIEW_RENDERER: any = {
+  lineNumber: AsideLineNumberRenderer,
+  modifyInfo: AsideModifyInfoRenderer,
+  rowCheckbox: AsideRowCheckRenderer,
   bar: BarRenderer,
   button: ButtonRenderer,
   hidden: HiddenRenderer,
   html: HtmlRenderer,
   image: ImageRenderer,
   link: LinkRenderer,
-  lineNumber: AsideLineNumberRenderer,
-  rowCheckbox: AsideRowCheckRenderer,
-  modifyInfo: AsideModifyInfoRenderer,
+  text: TextRenderer,
+  custom: ViewCustomRenderer,
+};
+
+// edit renderer type
+export const EDIT_RENDERER: any = {
+  checkbox: CheckboxRenderer,
+  date: DateRenderer,
+  dropdown: DropdownRenderer,
+  custom: EditCustomRenderer,
+  text: EditTextRenderer,
+  number: NumberRenderer,
+  password: PasswordRenderer,
+  radio: RadioRenderer,
+  range: RangeRenderer,
+  textarea: TextAreaRenderer,
 };
 
 export const ALIGN = {
@@ -81,9 +91,9 @@ export const ALIGN = {
 } as const;
 
 export const ALIGN_STYLE = {
-  left: "al",
-  center: "ac",
-  right: "ar",
+  left: "text-al",
+  center: "text-ac",
+  right: "text-ar",
 } as const;
 
 export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];

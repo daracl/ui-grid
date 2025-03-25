@@ -1,4 +1,3 @@
-import AbstractRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 
@@ -7,14 +6,14 @@ import ViewRenderer from "../ViewRenderer";
  *
  * @class NumberRenderer
  * @typedef {NumberRenderer}
- * @extends {AbstractRenderer}
+ * @extends {ViewRenderer}
  */
 export default class AsideLineNumberRenderer extends ViewRenderer {
   constructor(field: FieldItem) {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerText = value;
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    element.innerText = rowNumber + 1 + "";
   }
 }

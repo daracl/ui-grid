@@ -1,5 +1,5 @@
 import { FieldItem } from "@t/GridField";
-import { RENDERER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, VIEW_RENDER_TYPE } from "src/constants";
+import { TEXT_ALIGN_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
 import { RendererInfo } from "./RendererInfo";
 import ViewRenderer from "src/renderer/ViewRenderer";

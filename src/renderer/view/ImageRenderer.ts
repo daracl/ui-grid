@@ -14,7 +14,8 @@ export default class ImageRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
     if (refValue) {
       element.innerHTML = `<img src="${refValue.src}" ${refValue.alt ? 'alt="' + refValue.alt + '"' : ""}"/>`;

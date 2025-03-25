@@ -1,6 +1,6 @@
-import { RENDERER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, ORIENTATION_TYPE, EDIT_RENDER_TYPE } from "src/constants";
+import { REGEXP_TYPE, ORIENTATION_TYPE } from "src/constants";
 import { OptionCallback } from "@t/Common";
-import { AbstaractRenderer } from "../renderer/EditRenderer";
+import { EditRenderer } from "../renderer/EditRenderer";
 
 export interface ValuesInfo {
   labelField: string;
@@ -10,14 +10,14 @@ export interface ValuesInfo {
 }
 
 /**
- * form field
+ * renderer info
  *
  * @export
- * @interface EditRenderer
- * @typedef {EditRenderer}
+ * @interface RendererInfo
+ * @typedef {RendererInfo}
  */
 export interface RendererInfo {
-  type: RENDERER_TYPE | string;
+  type: string;
   customOptions?: any;
   tooltip?: string; // 툴팁 문구
   required?: boolean; //true // 필수 여부
@@ -41,12 +41,12 @@ export interface RendererInfo {
     field: string;
     message: string;
   };
-  refValue?: OptionCallback | any; // view 참조값 {key: {}} 참조값
+  refValue?: OptionCallback | any; // value에 대한 참조값 {key: {}} 참조값
   defaultValue?: string; // 기본값
   listItem?: ValuesInfo; // dropdown, radio, checkbox
   validator?: OptionCallback; // custom validator
   onChange?: OptionCallback; //  입력값 변경시 체크 function
   onClick?: OptionCallback; // button onclick function
-  editRender?: AbstaractRenderer;
+  editRender?: EditRenderer;
   conditional?: ConditionInfo; // 보이기 여부
 }

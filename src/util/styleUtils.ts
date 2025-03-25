@@ -15,9 +15,9 @@ export const addStyleTag = (grid: DaraGrid) => {
   const uidAttribute = grid.getIdAttribute();
 
   if (!isNaN(rowOptHeight)) {
-    cssStr.push(`${uidAttribute} .pub-body-td, ${uidAttribute} .pub-body-aside-td{max-height:${rowOptHeight}px;height:${rowOptHeight}px;line-height:${rowOptHeight - 4}px;}`);
-    cssStr.push("${uidAttribute} .pub-body-td>.pub-content, ${uidAttribute} .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;max-height:${(rowOptHeight - 3)}px; }");
-    //cssStr.push('#'+_this.prefix+'_pubGrid .pub-body-td>.pub-content, #'+_this.prefix+'_pubGrid .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;height:'+(rowOptHeight-3)+'px; line-height:'+(rowOptHeight-5)+'px;}');
+    cssStr.push(`${uidAttribute} .dg-cell, ${uidAttribute} .pub-body-aside-td{max-height:${rowOptHeight}px;height:${rowOptHeight}px;line-height:${rowOptHeight - 4}px;}`);
+    cssStr.push("${uidAttribute} .dg-cell>.pub-content, ${uidAttribute} .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;max-height:${(rowOptHeight - 3)}px; }");
+    //cssStr.push('#'+_this.prefix+'_pubGrid .dg-cell>.pub-content, #'+_this.prefix+'_pubGrid .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;height:'+(rowOptHeight-3)+'px; line-height:'+(rowOptHeight-5)+'px;}');
   }
 
   const headerHeight = options.header.height;

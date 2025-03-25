@@ -3,8 +3,8 @@ import { FieldItem } from "@t/GridField";
 
 export const inputEvent = (field: FieldItem, element: HTMLElement) => {
   element.addEventListener("input", (e: Event) => {
-    field.$renderer.changeEventCall(e, element);
-    field.$renderer.valid(element);
+    field.$editRenderer.changeEventCall(e, element);
+    field.$editRenderer.valid(element);
   });
 };
 
@@ -16,8 +16,8 @@ export const numberInputEvent = (field: FieldItem, element: HTMLInputElement) =>
       element.value = val.replace(/[^0-9.\-+]/g, "");
       e.preventDefault();
     }
-    field.$renderer.changeEventCall(e, element);
-    field.$renderer.valid(element);
+    field.$editRenderer.changeEventCall(e, element);
+    field.$editRenderer.valid(element);
   });
 
   /*
@@ -30,7 +30,7 @@ export const numberInputEvent = (field: FieldItem, element: HTMLInputElement) =>
 
 export const dropdownChangeEvent = (field: FieldItem, element: HTMLElement) => {
   element.addEventListener("change", (e: any) => {
-    field.$renderer.changeEventCall(e, element);
-    field.$renderer.valid(element);
+    field.$editRenderer.changeEventCall(e, element);
+    field.$editRenderer.valid(element);
   });
 };

@@ -233,6 +233,6 @@ export interface FieldHeaderGroupInfo {
   leafLeft: FieldItem[];
   leafCenter: FieldItem[];
   leafRight: FieldItem[];
-
+  heights: number[];
   depth: number;
 }

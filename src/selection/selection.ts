@@ -343,12 +343,12 @@ export default class SelectionInfo {
     //   return;
     // }
 
-    // this.grid.elementMap.main.find(".pub-body-td.selection-start-col").removeClass("selection-start-col");
+    // this.grid.elementMap.main.find(".dg-cell.selection-start-col").removeClass("selection-start-col");
 
     // if (initFlag) {
     //   removeActiveColumnStyle(this.grid.element);
     // } else {
-    //   this.grid.elementMap.main.find('.pub-body-td[data-select-idx="' + currentId + '"].col-active').each(() => {
+    //   this.grid.elementMap.main.find('.dg-cell[data-select-idx="' + currentId + '"].col-active').each(() => {
     //     const sEle = $(this);
     //     const posInfo = getCellPosition(sEle);
     //     if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {

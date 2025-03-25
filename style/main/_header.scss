@@ -100,12 +100,12 @@
 
             .dg-header-help-btn {
               @include comm.opacityVal(0.4);
-              fill: var(--bg-header-help);
+              fill: var(--header-help-bg);
             }
 
             .dg-header-help-btn:hover {
               @include comm.opacityVal(1);
-              fill: var(--bg-header-help-hover);
+              fill: var(--header-help-bg-hover);
             }
           }
         }

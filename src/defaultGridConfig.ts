@@ -180,6 +180,7 @@ export const defaultFieldGroupInfo = (): FieldHeaderGroupInfo => {
     leafLeft: [],
     leafCenter: [],
     leafRight: [],
+    heights: [],
     depth: 1,
   };
 };

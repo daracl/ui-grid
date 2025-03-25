@@ -15,11 +15,33 @@
         min-width: auto !important;
         border-collapse: separate !important;
 
+        .dg-row {
+          &.shadow {
+            background-color: var(--row-bg);
+          }
+        }
+
         tr > td {
           border: 1px solid #ddd;
           border-top: none !important;
           border-left: none !important;
           position: relative;
+          padding: 0px 5px 0px 5px !important;
+          margin: 0 !important;
+
+          &:hover {
+            background-color: var(--cell-bg-hover) !important;
+          }
+
+          &.selection {
+            background-color: var(--cell-bg-selection);
+          }
+
+          .dg-cell-btn {
+            border-radius: 3px;
+            margin-top: 1px;
+            background-color: var(--button-bg);
+          }
         }
       }
     }

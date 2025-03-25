@@ -13,7 +13,7 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
     element.innerHTML = `<input type="checkbox"/>`;
   }
 }

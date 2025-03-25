@@ -40,9 +40,12 @@ export default class GridMain {
 
     this.initTemplate();
 
-    this.header = new Header(grid, this);
+    this.initMainView();
+  }
+  initMainView() {
+    this.header = new Header(this.grid, this);
 
-    this.body = new Body(grid, this);
+    this.body = new Body(this.grid, this);
   }
 
   /**
@@ -58,8 +61,8 @@ export default class GridMain {
 
     let templateHtml = `
       <div class="daracl-grid">
-        ${opts.toolbar.enabled ? `<div class="dg-toolbar"></div>` : ""}
-        <div class="dg-main daracl-noselect" data-scroll="both">
+        ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${opts.toolbar.height}px;"></div>` : ""}
+        <div class="dg-main daracl-noselect" style="height:calc(100% - ${(opts.toolbar.height ?? 0) + (opts.footer.height ?? 0)}px);" data-scroll="both">
             <div class="dg-main-container">
                 <div class="dg-panel dg-header">
                     <div class="dg-left"></div>
@@ -82,7 +85,7 @@ export default class GridMain {
                 <div class="dg-scroll horizontal"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
             </div>
         </div>
-        ${opts.footer.enabled ? `<div class="dg-footer"></div>` : ""}
+        ${opts.footer.enabled ? `<div class="dg-footer" style="height:${opts.footer.height}px;"></div>` : ""}
     </div>
     `;
 

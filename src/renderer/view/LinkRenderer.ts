@@ -1,5 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
+import { isUndefined } from "src/util/utils";
 
 /**
  * link renderer
@@ -14,9 +15,12 @@ export default class LinkRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
-    if (refValue) {
+
+    console.log("refValue ", refValue);
+    if (!isUndefined(refValue)) {
       element.innerHTML = `<a href="${refValue.href}" _blank="${refValue.target ?? ""}">${value}</a>`;
     } else {
       element.innerHTML = `<a href="${value}">${value}</a>`;

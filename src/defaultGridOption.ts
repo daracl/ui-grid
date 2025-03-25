@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import { GridOptions } from "@t/GridOptions";
-import { RENDER_TEMPLATE } from "./constants";
+import { VIEW_RENDERER } from "./constants";
 
 /**
  * grid default option
@@ -205,8 +205,8 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
     show: false,
     formatter: undefined,
   },
-  $renderer: RENDER_TEMPLATE["text"],
-  $editRenderer: RENDER_TEMPLATE["text"],
+  $renderer: VIEW_RENDERER["text"],
+  $editRenderer: VIEW_RENDERER["text"],
   $colspan: 0,
   $rowspan: 0,
   $depth: 0,

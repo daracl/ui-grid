@@ -9,7 +9,7 @@ export default abstract class ViewRenderer extends Renderer {
 
   constructor(field: FieldItem) {
     super(field);
-    this.refValue = this.field.renderer.refValue;
+    this.refValue = this.field.renderer.refValue ?? {};
     this.isRefFunction = isFunction(this.refValue);
   }
 

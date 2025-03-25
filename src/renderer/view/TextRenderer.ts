@@ -13,7 +13,7 @@ export default class TextRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerText = value;
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    element.innerText = item[this.fieldName];
   }
 }

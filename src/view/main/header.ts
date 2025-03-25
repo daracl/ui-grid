@@ -4,7 +4,7 @@ import { Config, FieldHeaderGroupInfo, GridElement, Selection } from "@t/GridCon
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ALIGN_STYLE, RENDER_TEMPLATE } from "src/constants";
+import { ALIGN_STYLE, VIEW_RENDERER } from "src/constants";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
@@ -20,8 +20,9 @@ export default class Header {
   private grid: DaraGrid;
   private gridMain: GridMain;
 
-  private headerOptions: HeaderOptions;
+  private headerOpts: HeaderOptions;
 
+  private headerElement: DaraElement;
   private leftElement: DaraElement;
   private centerElement: DaraElement;
   private rightElement: DaraElement;
@@ -30,20 +31,35 @@ export default class Header {
     this.grid = grid;
     this.gridMain = gridMain;
 
-    this.headerOptions = grid.getOptions().header;
+    this.headerOpts = grid.getOptions().header;
 
     // 헤더정보 계산할것.================================================
 
+    this.initHeader();
+  }
+
+  initHeader() {
     this.calculation(true);
 
     this.createTemplate();
+
+    this.setHeight(this.grid.config().dimension.mainHeaderHeight);
+  }
+
+  /**
+   * set header height
+   *
+   * @param {number} header height
+   */
+  setHeight(height: number) {
+    this.headerElement.setHeight(height);
   }
 
   public createTemplate() {
-    const containerElement = this.grid.element();
-    this.leftElement = containerElement.findDaraElement(".dg-header>.dg-left");
-    this.centerElement = containerElement.findDaraElement(".dg-header>.dg-center");
-    this.rightElement = containerElement.findDaraElement(".dg-header>.dg-right");
+    this.headerElement = this.grid.element().findDaraElement(".dg-header");
+    this.leftElement = this.headerElement.findDaraElement(".dg-header>.dg-left");
+    this.centerElement = this.headerElement.findDaraElement(".dg-header>.dg-center");
+    this.rightElement = this.headerElement.findDaraElement(".dg-header>.dg-right");
 
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));
@@ -57,18 +73,14 @@ export default class Header {
   public calculation(calcFlag: boolean) {
     const cfg = this.grid.config();
 
-    const headerOptions = this.headerOptions;
+    const headerOpts = this.headerOpts;
 
     this.initFieldGroupInfo();
     let fieldGroupInfo = cfg.fieldHeaderGroup;
-    // header element height
-    if (headerOptions.view !== false) {
-      cfg.dimension.mainHeaderHeight = headerOptions.height * fieldGroupInfo.depth;
-    }
 
     cfg.currentFields = fieldGroupInfo.leaf;
 
-    const enableViewAllLabel = calcFlag === false ? false : headerOptions.enableViewAllLabel === true;
+    const enableViewAllLabel = calcFlag === false ? false : headerOpts.enableViewAllLabel === true;
 
     let leftWidth = 0,
       centerWidth = 0,
@@ -88,7 +100,7 @@ export default class Header {
       ++viewColCount;
 
       if (field.$isAside) {
-        field.width = isNaN(field.width) ? headerOptions.resize.minWidth : field.width;
+        field.width = isNaN(field.width) ? headerOpts.resize.minWidth : field.width;
       } else {
         if (enableViewAllLabel) {
           const labelWidth = field.label.length * 5;
@@ -98,9 +110,9 @@ export default class Header {
             field.width = labelWidth;
           }
         } else {
-          field.width = isNaN(field.width) ? headerOptions.resize.minWidth : field.width;
+          field.width = isNaN(field.width) ? headerOpts.resize.minWidth : field.width;
         }
-        field.width = Math.max(field.width, headerOptions.resize.minWidth);
+        field.width = Math.max(field.width, headerOpts.resize.minWidth);
       }
 
       field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
@@ -200,13 +212,13 @@ export default class Header {
       renderInfo = { type: field.renderer };
     }
 
-    let render = RENDER_TEMPLATE[renderInfo.type];
+    let render = VIEW_RENDERER[renderInfo.type];
     if (utils.isUndefined(render)) {
       renderInfo.type = "text";
     }
 
     field.renderer = renderInfo;
-    field.$renderer = RENDER_TEMPLATE[renderInfo.type];
+    field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
 
     return field;
   }
@@ -227,8 +239,6 @@ export default class Header {
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
       let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: "lineNumber", renderer: { type: "lineNumber" }, $isAside: true });
-      console.log("lineNumber    ", opts.aside.lineNumber, fieldItem);
-
       asideOrder[opts.aside.lineNumber.order ?? 0] = fieldItem;
     }
 
@@ -252,6 +262,40 @@ export default class Header {
     for (let field of fields) {
       this.groupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex);
     }
+
+    cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
+
+    this.calcHeaderHeight(cfg);
+  }
+
+  /**
+   * main header height calc
+   *
+   * @public
+   * @param {Config} cfg main config
+   */
+  public calcHeaderHeight(cfg: Config) {
+    const headerOpts = this.headerOpts;
+
+    const height = headerOpts.height;
+    const heights = headerOpts.heights;
+    const groupDepth = cfg.fieldHeaderGroup.depth;
+
+    cfg.fieldHeaderGroup.heights = new Array(groupDepth);
+
+    let mainHeaderHeight = 0;
+
+    for (let i = 0; i < groupDepth; i++) {
+      let trHeight = height;
+      if (heights.length > i) {
+        trHeight = heights[i];
+        trHeight = trHeight > 0 ? trHeight : height;
+      }
+      mainHeaderHeight += trHeight;
+      cfg.fieldHeaderGroup.heights[i] = trHeight;
+    }
+
+    cfg.dimension.mainHeaderHeight = mainHeaderHeight;
   }
 
   /**
@@ -275,8 +319,6 @@ export default class Header {
     field.$colspan = 1;
     field.$rowspan = 1;
     field.$childLength = 0;
-
-    fieldGroupInfo.depth = Math.max(fieldGroupInfo.depth, field.$depth);
 
     const children = field.children;
     if (children) {
@@ -377,22 +419,15 @@ export default class Header {
 
     let strHtm = [];
 
-    const height = opts.header.height;
-    const heights = opts.header.heights;
-
     const helpEnabled = opts.header.help.enabled;
     const helpTitle = opts.header.help.title;
 
-    for (let i = 0, len = headerGroupLength; i < len; i++) {
+    for (let i = 0; i < headerGroupLength; i++) {
       let ghArr = headerGroup[i];
 
-      let trHeight = height;
-      if (heights.length > i) {
-        trHeight = heights[i];
-        trHeight = trHeight > 0 ? trHeight : height;
-      }
+      let trHeight = cfg.fieldHeaderGroup.heights[i];
 
-      strHtm.push(`<tr class="dg-header-tr" style="height:${trHeight}px">`);
+      strHtm.push(`<tr class="dg-header-row" style="height:${trHeight}px">`);
       for (let j = 0; j < ghArr.length; j++) {
         let ghItem = ghArr[j];
 
@@ -401,7 +436,7 @@ export default class Header {
         }
 
         let thHtm = [];
-        thHtm.push(`<th class="dg-header-th ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
+        thHtm.push(`<th class="dg-header-col ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
               ${ghItem.$colspan > 1 ? ` scope="colgroup" colspan="${ghItem.$colspan}" ` : ""}
               ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""}
               data-header-info="${i + "," + j}" 

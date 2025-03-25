@@ -65,7 +65,7 @@
         <div class="asdfasdfWrapper">
           <pre id="textTest"
             style="display:inline-block;white-space: pre;position: relative;padding:0px;margin:0px;">SORT_ORDER</pre>
-          <div id="sample" style="height:calc(100vh - 200px);width:1000px;"></div>
+          <div id="sample" style="height:350px;width:1000px;"></div>
         </div>
       </td>
 
@@ -236,7 +236,7 @@
           }
         }
         , {
-          name: 'e', label: '이', width: 100, renderer: {
+          name: 'e', label: '이', width: 100, align: 'right', renderer: {
             type: 'checkbox'
           }
         }
@@ -256,7 +256,7 @@
           }
         }
         , {
-          name: 'h', label: 'h', width: 100, align: 'center', type: 'number', visible: true, renderer: {
+          name: 'h', label: 'h', width: 100, align: 'right', type: 'number', visible: true, renderer: {
             type: 'number'
           }
         }
@@ -419,7 +419,7 @@
         , rememberValue: { field: '$all', val: 'asdf' }
       }
       , toolbar: {
-        enabled: true
+        enabled: false
 
         , items: [
           {

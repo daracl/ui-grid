@@ -12,7 +12,8 @@ export default class ButtonRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, value: any, element: HTMLElement): void {
-    element.innerHTML = `<button>${value}</button>`;
+  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    const value = item[this.fieldName];
+    element.innerHTML = `<div class="dg-cell-btn">${value}</div>`;
   }
 }

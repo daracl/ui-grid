@@ -34,7 +34,7 @@ export default class Body {
 
     this.createTemplate();
 
-    this.dataDraw();
+    // this.dataDraw();
   }
 
   public createTemplate() {
@@ -55,16 +55,28 @@ export default class Body {
     const opts = this.grid.getOptions();
     const items = opts.items;
     const cfg = this.grid.config();
-    const fields = cfg.currentFields;
+    const leftFields = cfg.fieldHeaderGroup.leafLeft;
+    const centerFields = cfg.fieldHeaderGroup.leafCenter;
+    const rightFields = cfg.fieldHeaderGroup.leafRight;
 
     for (let i = 0; i < items.length; i++) {
       let item = items[i];
-      for (let j = 0; j < fields.length; j++) {
-        const field = fields[j];
+      // left panel
+      for (let j = 0; j < leftFields.length; j++) {
+        const field = leftFields[j];
+        field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+      }
 
-        if (field.$panel == "left") {
-          field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]'));
-        }
+      // center panel
+      for (let j = 0; j < centerFields.length; j++) {
+        const field = centerFields[j];
+        field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+      }
+
+      // center panel
+      for (let j = 0; j < rightFields.length; j++) {
+        const field = rightFields[j];
+        field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
     }
   }
@@ -95,24 +107,21 @@ export default class Body {
     let strHtm = [];
 
     const opts = this.grid.getOptions();
-    const height = opts.body.row.height;
+    const rowHeight = opts.body.row.height;
 
-    for (let i = 0, len = leafLength; i < len; i++) {
-      let trHeight = height;
-
-      strHtm.push(`<tr class="dg-body-tr ${i % 2 == 0 ? "tr0" : "tr1"}" rowinfo="${i}" style="height:${trHeight}px">`);
+    for (let i = 0; i < leafLength; i++) {
+      strHtm.push(`<tr class="dg-row ${(i + 1) % 2 == 0 ? "shadow" : ""}" rowinfo="${i}" style="height:${rowHeight}px">`);
 
       for (let j = 0; j < leafLength; j++) {
         let field = leafFields[j];
         let clickFlag = field.click;
 
-        let tdHtm = `<td scope="col" class="pub-body-td" data-cell-position="${i + "," + j}">
-          <div class="pub-content pub-content-ellipsis ${field.$alignStyle}  + ${clickFlag ? "pub-body-td-click" : ""}"></div>
+        let tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
+          <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
         </td>`;
 
         strHtm.push(tdHtm);
       }
-      strHtm.push("</tr>");
 
       strHtm.push("</tr>");
     }
