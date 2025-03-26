@@ -203,4 +203,29 @@ export default class DaraElement {
       this.element.insertAdjacentElement(insertPosition, renderElements);
     }
   }
+  /**
+   * add attribute
+   * @param attrs element attribute object
+   * @returns this
+   */
+  attr(attrs: any): DaraElement {
+    for (let key in attrs) {
+      this.element.setAttribute(key, attrs[key]);
+    }
+
+    return this;
+  }
+
+  /**
+   * remove attribute
+   * @param attrKey element attribute keys ["class","style"]
+   * @returns this
+   */
+  removeAttr(...attrKey: string[]): DaraElement {
+    for (let key of attrKey) {
+      this.element.removeAttribute(key);
+    }
+
+    return this;
+  }
 }

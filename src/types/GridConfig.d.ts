@@ -7,7 +7,7 @@ import DaraElement from "src/element/DaraElement";
  * grid config info
  */
 export interface Config {
-  dimension: {
+  dimensions: {
     // grid total width
     width: number;
     // grid total height
@@ -168,8 +168,7 @@ export interface Scroll {
   viewRow: number;
   vBarPosition: number;
   hBarPosition: number;
-  maxViewCount: number;
-  viewCount: number;
+
   vTrackHeight: number;
   hTrackWidth: number;
   oneColMove: number;

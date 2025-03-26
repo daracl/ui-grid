@@ -107,3 +107,17 @@ export type REGEXP_TYPE = "email" | "url" | "alpha" | "alpha-num";
 export type PASSWORD_TYPE = "number" | "upper" | "upper-special" | "upper-special-number"; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
 
 export type ORIENTATION_TYPE = "horizontal" | "vertical";
+
+/**
+ * default toolbar height
+ *
+ * @type {50}
+ */
+export const TOOLBAR_HEIGHT = 35;
+
+/**
+ * default footer height
+ *
+ * @type {50}
+ */
+export const FOOTER_HEIGHT = 35;

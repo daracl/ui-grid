@@ -13,7 +13,7 @@ import { Config, FieldHeaderGroupInfo, Scroll, Selection } from "./types/GridCon
  */
 export const initConfig = (opts: GridOptions): Config => {
   return {
-    dimension: {
+    dimensions: {
       width: 0,
       height: 0,
       toolbarHeight: 0,
@@ -157,10 +157,8 @@ export const initScrollInfo = (): Scroll => {
     viewRow: 0,
     vBarPosition: 0,
     hBarPosition: 0,
-    maxViewCount: 0,
     oneColMove: 0,
     oneRowMove: 0,
-    viewCount: 0,
     vTrackHeight: 0,
     hTrackWidth: 0,
     enableVertical: false,

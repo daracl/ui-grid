@@ -71,10 +71,10 @@ export const getCellPosition = (cellElement: HTMLElement) => {
  * @description view col 위치 구하기.
  */
 export const calcViewCol = (cfg: Config, leftVal: number): number => {
-  const containerLeft = leftVal < 1 ? 0 : (cfg.dimension.mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
+  const containerLeft = leftVal < 1 ? 0 : (cfg.dimensions.mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
 
   const tci = cfg.currentFields;
-  const gridW = containerLeft + cfg.dimension.mainInsideWidth;
+  const gridW = containerLeft + cfg.dimensions.mainInsideWidth;
   let itemLeftVal = 0;
 
   let startCol = 0,

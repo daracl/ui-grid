@@ -10,9 +10,10 @@ import { isFixedLeftPostion } from "../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import { merge } from "src/util/utils";
-import { ALIGN_STYLE } from "src/constants";
+import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
+import DaraElement from "src/element/DaraElement";
 
 declare const APP_VERSION: string;
 
@@ -35,9 +36,11 @@ export default class GridMain {
 
   private body: Body;
 
+  private mainElement: DaraElement;
+
   constructor(grid: DaraGrid) {
     this.grid = grid;
-
+    this.calcGridDimention();
     this.initTemplate();
 
     this.initMainView();
@@ -51,18 +54,42 @@ export default class GridMain {
   /**
    * 치수 셋팅
    */
-  setGridDimention() {
-    this.grid.config().dimension.width = this.grid.element().width();
-    this.grid.config().dimension.height = this.grid.element().height();
+  calcGridDimention() {
+    const cfg = this.grid.config();
+
+    const opts = this.grid.getOptions();
+
+    // 수치 계산할것.
+    cfg.dimensions.width = utils.isNumber(opts.width) ? opts.width : this.grid.element().width();
+    cfg.dimensions.height = utils.isNumber(opts.height) ? opts.height : this.grid.element().height();
+
+    if (opts.toolbar.enabled) {
+      cfg.dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
+    }
+
+    if (opts.footer.enabled) {
+      cfg.dimensions.footerHeight = utils.isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
+    }
+
+    cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
+  }
+
+  public changeScrollMode(mode: string) {
+    if (mode == "none") {
+      this.mainElement.removeAttr("data-scroll");
+    } else {
+      this.mainElement.attr({ "data-scroll": mode });
+    }
   }
 
   public initTemplate() {
+    const dimensions = this.grid.config().dimensions;
     const opts = this.grid.getOptions();
 
     let templateHtml = `
-      <div class="daracl-grid">
-        ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${opts.toolbar.height}px;"></div>` : ""}
-        <div class="dg-main daracl-noselect" style="height:calc(100% - ${(opts.toolbar.height ?? 0) + (opts.footer.height ?? 0)}px);" data-scroll="both">
+      <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
+        ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
+        <div class="dg-main daracl-noselect" style="height:${dimensions.mainHeight}px;" data-scroll="both">
             <div class="dg-main-container">
                 <div class="dg-panel dg-header">
                     <div class="dg-left"></div>
@@ -85,12 +112,12 @@ export default class GridMain {
                 <div class="dg-scroll horizontal"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
             </div>
         </div>
-        ${opts.footer.enabled ? `<div class="dg-footer" style="height:${opts.footer.height}px;"></div>` : ""}
+        ${opts.footer.enabled ? `<div class="dg-footer" style="height:${dimensions.footerHeight}px;"></div>` : ""}
     </div>
     `;
 
     this.grid.element().html(templateHtml);
 
-    this.setGridDimention();
+    this.mainElement = new DaraElement(this.grid.element().find(".dg-main"));
   }
 }

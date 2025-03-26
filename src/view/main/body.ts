@@ -1,4 +1,4 @@
-import { GridOptions, HeaderOptions } from "@t/GridOptions";
+import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
@@ -20,7 +20,7 @@ export default class Body {
   private grid: DaraGrid;
   private gridMain: GridMain;
 
-  private headerOptions: HeaderOptions;
+  private bodyOpts: BodyOptions;
 
   private leftElement: DaraElement;
   private centerElement: DaraElement;
@@ -30,11 +30,30 @@ export default class Body {
     this.grid = grid;
     this.gridMain = gridMain;
 
+    this.bodyOpts = this.grid.getOptions().body;
+
     this.grid = grid;
+
+    this.calcBodyDemention();
 
     this.createTemplate();
 
-    // this.dataDraw();
+    this.dataDraw();
+  }
+  public calcBodyDemention() {
+    const cfg = this.grid.config();
+    const rowHeight = this.bodyOpts.row.height;
+    cfg.dataInfo.rowLength = this.grid.getOptions().items.length;
+    cfg.dimensions.mainBodyHeight = cfg.dimensions.mainHeight - cfg.dimensions.mainHeaderHeight;
+    cfg.scroll.viewRow = Math.ceil(cfg.dimensions.mainBodyHeight / rowHeight);
+    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
+
+    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > cfg.dimensions.mainBodyHeight;
+    cfg.scroll.enableHorizontal = cfg.dimensions.mainWidth > cfg.dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
+
+    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0); // vertical을 왼쪽으로 1비트 이동하고, horizontal과 OR 연산
+
+    this.gridMain.changeScrollMode(["none", "horizontal", "vertical", "both"][scrollMode]);
   }
 
   public createTemplate() {
@@ -59,24 +78,31 @@ export default class Body {
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
     const rightFields = cfg.fieldHeaderGroup.leafRight;
 
-    for (let i = 0; i < items.length; i++) {
+    const viewRow = cfg.scroll.viewRow;
+
+    for (let i = 0; i < viewRow; i++) {
       let item = items[i];
       // left panel
-      for (let j = 0; j < leftFields.length; j++) {
-        const field = leftFields[j];
-        field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-      }
 
-      // center panel
-      for (let j = 0; j < centerFields.length; j++) {
-        const field = centerFields[j];
-        field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-      }
+      try {
+        for (let j = 0; j < leftFields.length; j++) {
+          const field = leftFields[j];
+          field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        }
 
-      // center panel
-      for (let j = 0; j < rightFields.length; j++) {
-        const field = rightFields[j];
-        field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        // center panel
+        for (let j = 0; j < centerFields.length; j++) {
+          const field = centerFields[j];
+          field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        }
+
+        // center panel
+        for (let j = 0; j < rightFields.length; j++) {
+          const field = rightFields[j];
+          field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        }
+      } catch (e) {
+        console.log(`row : ${i}`, e);
       }
     }
   }
@@ -100,16 +126,19 @@ export default class Body {
       leafFields = cfg.fieldHeaderGroup.leafCenter;
     }
 
+    const viewRow = cfg.scroll.viewRow;
+
+    console.log("viewRow ", viewRow);
     const leafLength = leafFields.length;
 
-    if (leafLength < 1) return "";
+    if (viewRow < 1 || leafLength < 1) return "";
 
     let strHtm = [];
 
     const opts = this.grid.getOptions();
     const rowHeight = opts.body.row.height;
 
-    for (let i = 0; i < leafLength; i++) {
+    for (let i = 0; i < viewRow; i++) {
       strHtm.push(`<tr class="dg-row ${(i + 1) % 2 == 0 ? "shadow" : ""}" rowinfo="${i}" style="height:${rowHeight}px">`);
 
       for (let j = 0; j < leafLength; j++) {

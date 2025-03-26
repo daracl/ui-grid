@@ -315,7 +315,7 @@ export default class SelectionInfo {
     sRow = sRow < currViewRow ? 0 : sRow - currViewRow;
     eRow = eRow - currViewRow;
 
-    eRow = eRow > this.config.scroll.viewCount ? this.config.scroll.viewCount : eRow;
+    eRow = eRow > this.config.scroll.viewRow ? this.config.scroll.viewRow : eRow;
 
     // if (this.selection.range.mode == "remove") {
     //   for (let i = sRow; i <= eRow; i++) {
@@ -435,8 +435,8 @@ export default class SelectionInfo {
       startRow = selectionStartRow - this.config.scroll.viewRow;
     }
 
-    if (this.config.scroll.viewRow + this.config.scroll.maxViewCount <= selectionEndRow) {
-      endRow = this.config.scroll.viewCount - 1;
+    if (this.config.scroll.viewRow + this.config.scroll.viewRow <= selectionEndRow) {
+      endRow = this.config.scroll.viewRow - 1;
     } else {
       endRow = selectionEndRow - this.config.scroll.viewRow;
     }

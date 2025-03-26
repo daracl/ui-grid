@@ -43,7 +43,7 @@ export default class Header {
 
     this.createTemplate();
 
-    this.setHeight(this.grid.config().dimension.mainHeaderHeight);
+    this.setHeight(this.grid.config().dimensions.mainHeaderHeight);
   }
 
   /**
@@ -128,9 +128,10 @@ export default class Header {
       }
     }
 
-    cfg.dimension.mainLeftWidth = leftWidth;
-    cfg.dimension.mainCenterWidth = centerWidth;
-    cfg.dimension.mainRightWidth = rightWidth;
+    cfg.dimensions.mainLeftWidth = leftWidth;
+    cfg.dimensions.mainCenterWidth = centerWidth;
+    cfg.dimensions.mainRightWidth = rightWidth;
+    cfg.dimensions.mainWidth = leftWidth + centerWidth + rightWidth;
 
     cfg.dataInfo.colLength = viewColCount;
 
@@ -153,19 +154,19 @@ export default class Header {
 
     const cfg = this.grid.config();
 
-    const _gw = cfg.dimension.width,
+    const _gw = cfg.dimensions.width,
       tci = cfg.currentFields,
       tciLen = cfg.dataInfo.colLength;
 
     let verticalScrollWidth = 0;
 
     if (opts.items.length > 0) {
-      if (opts.items.length * opts.body.row.height > cfg.dimension.mainHeight) {
-        verticalScrollWidth = opts.scroll.vertical.width;
+      if (opts.items.length * opts.body.row.height > cfg.dimensions.mainHeight) {
+        verticalScrollWidth = opts.scroll.width;
       }
     }
 
-    const _totW = cfg.dimension.mainLeftWidth + cfg.dimension.mainLeftWidth + cfg.dimension.mainCenterWidth + verticalScrollWidth;
+    const _totW = cfg.dimensions.mainLeftWidth + cfg.dimensions.mainLeftWidth + cfg.dimensions.mainCenterWidth + verticalScrollWidth;
 
     const resizeFlag = _totW < _gw;
     const remainderWidth = Math.floor((_gw - _totW) / tciLen),
@@ -191,9 +192,9 @@ export default class Header {
         }
       }
       cfg.currentFields[tciLen - 1].width += lastSpaceW;
-      cfg.dimension.mainLeftWidth = rightWidth;
-      cfg.dimension.mainCenterWidth = rightWidth + lastSpaceW;
-      cfg.dimension.mainRightWidth = rightWidth;
+      cfg.dimensions.mainLeftWidth = rightWidth;
+      cfg.dimensions.mainCenterWidth = rightWidth + lastSpaceW;
+      cfg.dimensions.mainRightWidth = rightWidth;
     }
   }
 
@@ -265,7 +266,7 @@ export default class Header {
 
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
 
-    this.calcHeaderHeight(cfg);
+    this.calcHeaderDimensions(cfg);
   }
 
   /**
@@ -274,7 +275,7 @@ export default class Header {
    * @public
    * @param {Config} cfg main config
    */
-  public calcHeaderHeight(cfg: Config) {
+  public calcHeaderDimensions(cfg: Config) {
     const headerOpts = this.headerOpts;
 
     const height = headerOpts.height;
@@ -295,7 +296,7 @@ export default class Header {
       cfg.fieldHeaderGroup.heights[i] = trHeight;
     }
 
-    cfg.dimension.mainHeaderHeight = mainHeaderHeight;
+    cfg.dimensions.mainHeaderHeight = mainHeaderHeight;
   }
 
   /**

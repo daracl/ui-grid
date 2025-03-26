@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import { GridOptions } from "@t/GridOptions";
-import { VIEW_RENDERER } from "./constants";
+import { FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "./constants";
 
 /**
  * grid default option
@@ -92,7 +92,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   toolbar: {
     enabled: false,
     position: "right", // left, center, right
-    height: 30,
+    height: TOOLBAR_HEIGHT,
     items: [],
   },
   aside: {
@@ -143,8 +143,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
   scroll: {
     // 스크롤 옵션
     enableStopPropagation: false, // 이벤트 전파 여부.
+    width: 14, // 세로 스크롤
     vertical: {
-      width: 14, // 세로 스크롤
       speed: 2, // 스크롤 스피드 row 1
       onUpdate: (item) => {
         // 스크롤 업데이트.
@@ -153,7 +153,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
       enableTooltip: false, // item count tooltip
     },
     horizontal: {
-      height: 14, // 가로 스크롤 높이
       speed: 1, // 스크롤 스피드
       enableWheel: true, //  wheel 로 스크롤 이동.
       onUpdate: false,
@@ -165,7 +164,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     enabled: false, // 페이지 사용여부
     enableStatus: false,
     statusFormat: "{{currStart}} - {{currEnd}} of {{total}}",
-    height: 32, // 높이 값
+    height: FOOTER_HEIGHT, // 높이 값
     position: "center", // 위치 값
     callback: false, // 페이지 콜백
     enableSelectionInfo: false,

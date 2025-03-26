@@ -601,13 +601,13 @@ export interface ScrollOptions {
    */
   enableStopPropagation?: boolean;
   /**
+   * size
+   */
+  width: number;
+  /**
    * 세로 스크롤 옵션
    */
   vertical: {
-    /**
-     * 넓이
-     */
-    width: number;
     /**
      * 스크롤 스피드 row 1
      */
@@ -625,10 +625,6 @@ export interface ScrollOptions {
    * 가로 스크롤 옵션
    */
   horizontal: {
-    /**
-     * 가로 스크롤 높이
-     */
-    height: number;
     /**
      * 스크롤 스피드
      */
