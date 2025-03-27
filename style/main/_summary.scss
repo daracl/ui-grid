@@ -2,8 +2,10 @@
 
 @mixin summary {
   .dg-summary {
-    position: relative;
-    padding: 3px 0px;
     height: 30px;
+    position: absolute;
+    bottom: 0px;
+    background: #eeeeee;
+    width: 100%;
   }
 }

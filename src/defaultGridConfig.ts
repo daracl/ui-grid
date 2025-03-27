@@ -41,7 +41,7 @@ export const initConfig = (opts: GridOptions): Config => {
     template: {},
     items: [],
     currentFields: [],
-    dataInfo: { colLength: 0, rowLength: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
+    dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     rowOpt: {},
     sort: { orginData: [], sortMap: new Map() },
     pagingInfo: false,

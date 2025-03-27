@@ -284,7 +284,7 @@
         for (let key in colFirstItem) {
 
           let addColItem = {
-            key: key
+            name: key
             , label: '한글' + key
             , width: 45
             , type: (keyIdx == 0 ? 'number' : 'string')
@@ -292,6 +292,7 @@
           }
 
           if (keyIdx == 1) {
+            addColItem.colspan = 2;
             addColItem.editor = {
               type: 'text'
             }

@@ -139,7 +139,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       pasteAfter: false, // 붙여 넣기 후 호출 메소드
     },
   },
-
+  summary: { items: [] },
   scroll: {
     // 스크롤 옵션
     enableStopPropagation: false, // 이벤트 전파 여부.
@@ -190,6 +190,8 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   name: "",
   label: "",
   width: 0,
+  colspan: 0,
+  rowspan: 0,
   hidden: false,
   sort: false,
   align: "center",

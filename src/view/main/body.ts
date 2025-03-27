@@ -42,18 +42,6 @@ export default class Body {
   }
   public calcBodyDemention() {
     const cfg = this.grid.config();
-    const rowHeight = this.bodyOpts.row.height;
-    cfg.dataInfo.rowLength = this.grid.getOptions().items.length;
-    cfg.dimensions.mainBodyHeight = cfg.dimensions.mainHeight - cfg.dimensions.mainHeaderHeight;
-    cfg.scroll.viewRow = Math.ceil(cfg.dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
-
-    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > cfg.dimensions.mainBodyHeight;
-    cfg.scroll.enableHorizontal = cfg.dimensions.mainWidth > cfg.dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
-
-    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0); // vertical을 왼쪽으로 1비트 이동하고, horizontal과 OR 연산
-
-    this.gridMain.changeScrollMode(["none", "horizontal", "vertical", "both"][scrollMode]);
   }
 
   public createTemplate() {
@@ -84,25 +72,21 @@ export default class Body {
       let item = items[i];
       // left panel
 
-      try {
-        for (let j = 0; j < leftFields.length; j++) {
-          const field = leftFields[j];
-          field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-        }
+      for (let j = 0; j < leftFields.length; j++) {
+        const field = leftFields[j];
+        field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+      }
 
-        // center panel
-        for (let j = 0; j < centerFields.length; j++) {
-          const field = centerFields[j];
-          field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-        }
+      // center panel
+      for (let j = 0; j < centerFields.length; j++) {
+        const field = centerFields[j];
+        field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+      }
 
-        // center panel
-        for (let j = 0; j < rightFields.length; j++) {
-          const field = rightFields[j];
-          field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-        }
-      } catch (e) {
-        console.log(`row : ${i}`, e);
+      // center panel
+      for (let j = 0; j < rightFields.length; j++) {
+        const field = rightFields[j];
+        field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
     }
   }

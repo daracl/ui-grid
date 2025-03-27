@@ -26,6 +26,14 @@ export interface FieldItem {
    */
   width: number;
   /**
+   * colspan
+   */
+  colspan: number;
+  /**
+   * rowspan
+   */
+  rowspan: number;
+  /**
    * 화면 표현여부
    */
   hidden: boolean;

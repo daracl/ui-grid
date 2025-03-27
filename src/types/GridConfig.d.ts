@@ -57,6 +57,7 @@ export interface Config {
     lastRow: number;
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;
+    asideLength: number;
   };
   rowOpt: AnyKeyMap;
   sort: {

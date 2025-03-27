@@ -147,6 +147,11 @@ export interface GridOptions {
    * row info
    */
   items: any[];
+
+  /**
+   * 요약정보
+   */
+  summary?: SummaryOptions;
 }
 
 /**
@@ -725,4 +730,23 @@ export interface ValueFormatter {
    * custom formatter
    */
   formatter?: OptionCallback;
+}
+
+export interface SummaryOptions {
+  items: SummaryItem[][];
+}
+
+export interface SummaryItem {
+  /**
+   * field name
+   */
+  name: string;
+  /**
+   * 표시명
+   */
+  label: string;
+  /**
+   * sum, avg 연산
+   */
+  expression: string | OptionCallback;
 }
