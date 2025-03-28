@@ -46,8 +46,6 @@ export default class GridMain {
 
   private cellMinWidth: number;
 
-  private enableWidthFixed: boolean;
-
   constructor(grid: DaraGrid) {
     this.grid = grid;
 
@@ -55,7 +53,6 @@ export default class GridMain {
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
 
     this.cellMinWidth = headerOpts.resize.minWidth;
-    this.enableWidthFixed = grid.getOptions().enableWidthFixed;
 
     this.calculation();
     this.initTemplate();
@@ -70,8 +67,8 @@ export default class GridMain {
 
   public calculation() {
     this.calcGridDimention();
-    this.calcScroll();
     this.calcHeader(true);
+    this.calcBody();
   }
 
   /**
@@ -105,41 +102,23 @@ export default class GridMain {
     dimensions.mainHeight = dimensions.height - (dimensions.toolbarHeight + dimensions.footerHeight);
   }
 
-  /**
-   * 스크롭 계산
-   */
-  calcScroll() {
-    const cfg = this.grid.config();
-    const dimensions = cfg.dimensions;
-
-    const rowHeight = this.grid.getOptions().body.row.height;
-
-    dimensions.mainBodyHeight = dimensions.mainHeight - dimensions.mainHeaderHeight;
-    cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
-
-    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-    cfg.scroll.enableHorizontal = dimensions.mainWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
-  }
-
-  /**
-   * @method calcHeader
-   * @description 헤더 정보 계산
-   */
-  public calcHeader(calcFlag: boolean) {
+  public calcBody() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
-
-    let fieldGroupInfo = this.calcHeaderGroupInfo();
-
-    cfg.currentFields = fieldGroupInfo.leaf;
-
     const fields = cfg.currentFields;
     const fieldLength = fields.length;
 
+    let mainWidth = 0;
+    for (const field of fields) {
+      mainWidth += field.width;
+    }
+    cfg.dimensions.mainWidth = mainWidth;
+
+    this.calcScroll();
+
     const totalGridWidth = cfg.dimensions.width;
 
-    const viewGridWidth = cfg.dimensions.mainWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+    const viewGridWidth = mainWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
     const overWidth = totalGridWidth - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -167,21 +146,6 @@ export default class GridMain {
       if (field.$isAside || opts.enableWidthFixed === true) {
         field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
       } else {
-        //넓이 처리 할것.
-        //ㅁㄴㅇㄹ/ㅁㅈㄷ
-        // ㅁ;
-        // ㅈㄷㄹ;
-        // ㅁㅈ;
-        // ㄷㄻ;
-        // ㅈㄹㄷ;
-
-        if (this.enableViewAllLabel) {
-          const labelWidth = field.label.length * 5;
-          field.width = utils.isNumber(field.width) && field.width > labelWidth ? field.width : labelWidth;
-        } else {
-          field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
-        }
-
         field.width = field.width + remainderWidth + (lastSpaceW > 0 ? 1 : 0);
 
         lastSpaceW = lastSpaceW - 1;
@@ -211,36 +175,27 @@ export default class GridMain {
   }
 
   /**
-   * 필드에 랜더링 정보 추가
-   *
-   * @param {FieldItem} field 필드 정보
-   * @returns {FieldItem} 필드 item
+   * 스크롭 계산
    */
-  public setRendererInfo(field: FieldItem): FieldItem {
-    let renderInfo = { type: "text" };
+  calcScroll() {
+    const cfg = this.grid.config();
+    const dimensions = cfg.dimensions;
 
-    if (utils.isPlainObject(field.renderer)) {
-      renderInfo = utils.merge({}, field.renderer);
-    } else if (utils.isString(field.renderer)) {
-      renderInfo = { type: field.renderer };
-    }
+    const rowHeight = this.grid.getOptions().body.row.height;
 
-    let render = VIEW_RENDERER[renderInfo.type];
-    if (utils.isUndefined(render)) {
-      renderInfo.type = "text";
-    }
+    dimensions.mainBodyHeight = dimensions.mainHeight - dimensions.mainHeaderHeight;
+    cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
+    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
-    field.renderer = renderInfo;
-    field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
-
-    return field;
+    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
+    cfg.scroll.enableHorizontal = dimensions.mainWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
   }
 
   /**
-   * @method _getColumnGroupInfo
-   * @description 헤더 그룹 정보
+   * @method calcHeader
+   * @description 헤더 정보 계산
    */
-  public calcHeaderGroupInfo() {
+  public calcHeader(calcFlag: boolean) {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     let fields = utils.deepCopy(opts.fields);
@@ -274,7 +229,7 @@ export default class GridMain {
     fields.unshift(...asideOrder);
 
     for (let field of fields) {
-      this.groupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex);
+      this.headerGroupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex);
     }
 
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
@@ -299,7 +254,7 @@ export default class GridMain {
 
     cfg.dimensions.mainHeaderHeight = mainHeaderHeight;
 
-    return cfg.fieldHeaderGroup;
+    cfg.currentFields = cfg.fieldHeaderGroup.leaf;
   }
 
   /**
@@ -312,7 +267,7 @@ export default class GridMain {
    * @param {Config} cfg 설정정보
    * @returns {FieldItem} 필드 정보
    */
-  public groupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, fixedLeftIndex: number, fixedRightIndex: number) {
+  public headerGroupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, fixedLeftIndex: number, fixedRightIndex: number) {
     if (field.hidden) {
       field.$colspan = 0;
       return field;
@@ -333,7 +288,7 @@ export default class GridMain {
         field.$childLength = childrenLen;
         let colspan = 0;
         for (let childNode of children) {
-          this.groupInfo(childNode, field.$depth, fieldGroupInfo, fixedLeftIndex, fixedRightIndex);
+          this.headerGroupInfo(childNode, field.$depth, fieldGroupInfo, fixedLeftIndex, fixedRightIndex);
           colspan += childNode.$colspan;
         }
 
@@ -387,19 +342,41 @@ export default class GridMain {
     }
 
     if (field.$isLeaf) {
-      if (field.$isAside || this.enableWidthFixed === true) {
-        field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
+      if (this.enableViewAllLabel) {
+        const labelWidth = field.label.length * 5;
+        field.width = utils.isNumber(field.width) && field.width > labelWidth ? field.width : labelWidth;
       } else {
-        if (this.enableViewAllLabel) {
-          const labelWidth = field.label.length * 5;
-          field.width = utils.isNumber(field.width) && field.width > labelWidth ? field.width : labelWidth;
-        } else {
-          field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
-        }
+        field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
       }
 
       fieldGroupInfo.leaf.push(field);
     }
+
+    return field;
+  }
+
+  /**
+   * 필드에 랜더링 정보 추가
+   *
+   * @param {FieldItem} field 필드 정보
+   * @returns {FieldItem} 필드 item
+   */
+  public setRendererInfo(field: FieldItem): FieldItem {
+    let renderInfo = { type: "text" };
+
+    if (utils.isPlainObject(field.renderer)) {
+      renderInfo = utils.merge({}, field.renderer);
+    } else if (utils.isString(field.renderer)) {
+      renderInfo = { type: field.renderer };
+    }
+
+    let render = VIEW_RENDERER[renderInfo.type];
+    if (utils.isUndefined(render)) {
+      renderInfo.type = "text";
+    }
+
+    field.renderer = renderInfo;
+    field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
 
     return field;
   }
