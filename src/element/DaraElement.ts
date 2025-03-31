@@ -1,5 +1,6 @@
 import { styleClassSplit } from "../util/styleUtils";
 import { isString, isUndefined } from "../util/utils";
+import eventUtils from "./eventUtils";
 
 export default class DaraElement {
   private readonly element: HTMLElement;
@@ -162,38 +163,12 @@ export default class DaraElement {
     }
   }
 
-  eventOn(type: string, selector: any, listener: any) {
-    const element = this.element;
+  eventOff(type: string) {
+    eventUtils.eventOff(this.element, type);
+  }
 
-    if (!isString(selector)) {
-      listener = selector;
-
-      for (let eventType of type.split(" ")) {
-        element.addEventListener(eventType, (e) => {
-          if (listener(e, element) === false) {
-            e.stopImmediatePropagation();
-            e.preventDefault();
-          }
-        });
-      }
-
-      return this;
-    }
-
-    const fn = (e: Event) => {
-      const evtTarget = e.target;
-
-      const selectorEle = (evtTarget as HTMLElement)?.closest(selector);
-
-      if (selectorEle) {
-        if (listener(e, selectorEle) === false) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
-        }
-      }
-    };
-
-    element.addEventListener(type, fn);
+  eventOn(type: string, selector: any, listener?: any) {
+    eventUtils.eventOn(this.element, type, selector, listener);
   }
 
   insertAdjacentHTML(insertPosition: InsertPosition, renderElements: HTMLElement | string) {
@@ -206,7 +181,7 @@ export default class DaraElement {
   /**
    * add attribute
    * @param attrs element attribute object
-   * @returns this
+   * @returns DaraElement
    */
   attr(attrs: any): DaraElement {
     for (let key in attrs) {
@@ -228,4 +203,42 @@ export default class DaraElement {
 
     return this;
   }
+
+  /**
+   * css
+   *
+   * @param cssValueObject  css value object
+   * @returns
+   */
+  css(attrs: any): DaraElement {
+    for (let key in attrs) {
+      if (attrs.hasOwnProperty(key)) {
+        this.element.style.setProperty(key, attrs[key]);
+      }
+    }
+
+    return this;
+  }
+
+  /**
+   * css
+   *
+   * @param cssValueObject  css value object
+   * @returns
+   */
+  removeCss(csskeys: string[]): DaraElement {
+    for (let key in csskeys) {
+      this.element.style.removeProperty(key);
+    }
+
+    return this;
+  }
+}
+
+const EVENT_HANDLER_MAP = new Map();
+function addEventInfo(el: any, eventType: string, listener: any) {
+  if (!EVENT_HANDLER_MAP.has(el)) {
+    EVENT_HANDLER_MAP.set(el, {});
+  }
+  EVENT_HANDLER_MAP.get(el)[eventType] = listener;
 }

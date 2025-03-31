@@ -86,7 +86,7 @@ export interface Config {
   };
   fixedLeftIndex: number;
   fixedRightIndex: number;
-  scroll: Scroll;
+  scroll: ScrollInfo;
   element: GridElement;
 }
 
@@ -151,7 +151,7 @@ export interface SelectionRange {
   maxCol: number;
 }
 
-export interface Scroll {
+export interface ScrollInfo {
   /**
    * 스크롤 데이터 초기화
    */
@@ -167,11 +167,17 @@ export interface Scroll {
   insideStartCol: number;
   insideEndCol: number;
   viewRow: number;
-  vBarPosition: number;
-  hBarPosition: number;
 
+  vHeight: number;
+  vBarPosition: number;
+  vThumbHeight: number;
   vTrackHeight: number;
+
+  hWidth: number;
+  hBarPosition: number;
+  hThumbWidth: number;
   hTrackWidth: number;
+
   oneColMove: number;
   oneRowMove: number;
   verticalScrollTimer: any;

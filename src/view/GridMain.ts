@@ -1,21 +1,15 @@
-import { GridOptions, HeaderOptions } from "@t/GridOptions";
-import { Config, FieldHeaderGroupInfo, GridElement, Selection } from "@t/GridConfig";
+import { FieldHeaderGroupInfo } from "@t/GridConfig";
 
-import { ValidResult } from "@t/ValidResult";
-import { Message } from "@t/Message";
-import Lanauage from "../util/Lanauage";
 import * as utils from "../util/utils";
-import { addStyleTag } from "../util/styleUtils";
-import { isFixedLeftPostion } from "../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { merge } from "src/util/utils";
 import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
+import Scroll from "./main/Scroll";
 
 declare const APP_VERSION: string;
 
@@ -40,11 +34,13 @@ export default class GridMain {
 
   private body: Body;
 
-  private mainElement: DaraElement;
+  private scroll: Scroll;
 
-  private enableViewAllLabel: boolean;
+  private _mainElement: DaraElement;
 
-  private cellMinWidth: number;
+  private readonly enableViewAllLabel: boolean;
+
+  private readonly cellMinWidth: number;
 
   constructor(grid: DaraGrid) {
     this.grid = grid;
@@ -57,18 +53,40 @@ export default class GridMain {
     this.calculation();
     this.initTemplate();
 
+    this.setElementsDimentions();
+
     this.initMainView();
   }
+
   initMainView() {
     this.header = new Header(this.grid, this);
-
     this.body = new Body(this.grid, this);
+    this.scroll = new Scroll(this.grid, this);
+  }
+
+  public initEvent() {
+    //this.scroll();
   }
 
   public calculation() {
     this.calcGridDimention();
-    this.calcHeader(true);
+    this.calcHeader();
     this.calcBody();
+  }
+
+  public mainElement() {
+    return this._mainElement;
+  }
+
+  public getBody() {
+    return this.body;
+  }
+
+  setElementsDimentions() {
+    const cfg = this.grid.config();
+    const dimensions = cfg.dimensions;
+    this._mainElement.setHeight(dimensions.mainHeight);
+    this._mainElement.findDaraElement(".dg-body").setHeight(dimensions.mainBodyHeight);
   }
 
   /**
@@ -104,6 +122,7 @@ export default class GridMain {
 
   public calcBody() {
     const cfg = this.grid.config();
+    const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
     const fields = cfg.currentFields;
     const fieldLength = fields.length;
@@ -112,36 +131,28 @@ export default class GridMain {
     for (const field of fields) {
       mainWidth += field.width;
     }
-    cfg.dimensions.mainWidth = mainWidth;
+    dimensions.mainWidth = mainWidth;
 
     this.calcScroll();
 
-    const totalGridWidth = cfg.dimensions.width;
-
     const viewGridWidth = mainWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
-    const overWidth = totalGridWidth - viewGridWidth;
+    const overWidth = dimensions.width - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
     if (overWidth > 0) {
       remainderWidth = Math.floor(overWidth / (fieldLength - cfg.dataInfo.asideLength));
-
       lastSpaceW = overWidth - remainderWidth * (fieldLength - cfg.dataInfo.asideLength);
     }
 
-    console.table({ totalGridWidth, viewGridWidth, remainderWidth, lastSpaceW });
-
     let leftWidth = 0,
       centerWidth = 0,
-      rightWidth = 0,
-      viewColCount = 0;
+      rightWidth = 0;
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
       field.$maxWidth = -1; // max width
 
       this.setRendererInfo(field);
-
-      ++viewColCount;
 
       if (field.$isAside || opts.enableWidthFixed === true) {
         field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
@@ -166,36 +177,57 @@ export default class GridMain {
       }
     }
 
-    cfg.dimensions.mainLeftWidth = leftWidth;
-    cfg.dimensions.mainCenterWidth = centerWidth;
-    cfg.dimensions.mainRightWidth = rightWidth;
-    cfg.dimensions.mainWidth = leftWidth + centerWidth + rightWidth;
+    dimensions.mainLeftWidth = leftWidth;
+    dimensions.mainCenterWidth = centerWidth;
+    dimensions.mainRightWidth = rightWidth;
+    dimensions.mainWidth = leftWidth + centerWidth + rightWidth;
 
-    cfg.dataInfo.colLength = viewColCount;
+    cfg.dataInfo.colLength = fieldLength;
   }
-
-  /**
-   * 스크롭 계산
-   */
   calcScroll() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
+    const opts = this.grid.getOptions();
 
+    //스크롭 계산
     const rowHeight = this.grid.getOptions().body.row.height;
+    const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
 
-    dimensions.mainBodyHeight = dimensions.mainHeight - dimensions.mainHeaderHeight;
+    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight);
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
     cfg.scroll.enableHorizontal = dimensions.mainWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
+
+    const scrollHeight = dimensions.mainHeight;
+
+    let barHeight = (scrollHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
+    if (scrollHeight < 25) {
+      barHeight = 1;
+    } else {
+      barHeight = barHeight < 25 ? 25 : barHeight > scrollHeight ? scrollHeight : barHeight;
+    }
+
+    cfg.scroll.vHeight = scrollHeight;
+    cfg.scroll.vThumbHeight = barHeight;
+    cfg.scroll.vTrackHeight = scrollHeight - barHeight;
+    cfg.scroll.oneRowMove = cfg.scroll.vTrackHeight / (cfg.dataInfo.rowLength - cfg.scroll.viewRow);
+
+    /*
+    스크롤 처리할것. 
+    */
+
+    topVal = (cfg.scroll.vTrackHeight * cfg.scroll.vBarPosition) / 100;
+
+    _this.element.vScrollBar.css("height", barHeight);
   }
 
   /**
    * @method calcHeader
    * @description 헤더 정보 계산
    */
-  public calcHeader(calcFlag: boolean) {
+  public calcHeader() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     let fields = utils.deepCopy(opts.fields);
@@ -349,6 +381,10 @@ export default class GridMain {
         field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
       }
 
+      if (!field.$isAside) {
+        field.width = Math.max(field.width, this.cellMinWidth);
+      }
+
       fieldGroupInfo.leaf.push(field);
     }
 
@@ -388,9 +424,9 @@ export default class GridMain {
    */
   public changeScrollMode(mode: string) {
     if (mode == "none") {
-      this.mainElement.removeAttr("data-scroll");
+      this._mainElement.removeAttr("data-scroll");
     } else {
-      this.mainElement.attr({ "data-scroll": mode });
+      this._mainElement.attr({ "data-scroll": mode });
     }
   }
 
@@ -404,11 +440,11 @@ export default class GridMain {
     let templateHtml = `
       <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
         ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-        <div class="dg-main daracl-noselect" style="height:${dimensions.mainHeight}px;" data-scroll="${SCROLL_MODE[scrollMode]}">
+        <div class="dg-main daracl-noselect" data-scroll="${SCROLL_MODE[scrollMode]}">
             <div class="dg-main-container">
                ${
                  opts.header.view
-                   ? `<div class="dg-panel dg-header">
+                   ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
                     <div class="dg-left"></div>
                     <div class="dg-center"></div>
                     <div class="dg-right"></div>
@@ -423,7 +459,7 @@ export default class GridMain {
                 </div>
                 ${
                   dimensions.mainSummaryHeight > 0
-                    ? `<div class="dg-panel dg-summary">
+                    ? `<div class="dg-panel dg-summary" style="height:${dimensions.mainSummaryHeight}px;">
                     <div class="dg-left"></div>
                     <div class="dg-center"></div>
                     <div class="dg-right"></div>
@@ -442,6 +478,6 @@ export default class GridMain {
 
     this.grid.element().html(templateHtml);
 
-    this.mainElement = new DaraElement(this.grid.element().find(".dg-main"));
+    this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
   }
 }

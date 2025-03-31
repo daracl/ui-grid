@@ -1,5 +1,5 @@
 import { GridOptions } from "@t/GridOptions";
-import { Config, FieldHeaderGroupInfo, Scroll, Selection } from "./types/GridConfig";
+import { Config, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
 
 /**
  * 
@@ -142,9 +142,9 @@ export const initSelectionInfo = (): Selection => {
 /**
  * scroll info
  *
- * @returns {Scroll} scroll init info
+ * @returns {ScrollInfo} scroll init info
  */
-export const initScrollInfo = (): Scroll => {
+export const initScrollInfo = (): ScrollInfo => {
   return {
     containerLeft: 0,
     before: {},
@@ -155,11 +155,17 @@ export const initScrollInfo = (): Scroll => {
     insideStartCol: 0,
     insideEndCol: 0,
     viewRow: 0,
-    vBarPosition: 0,
-    hBarPosition: 0,
+
     oneColMove: 0,
     oneRowMove: 0,
+    vHeight: 0,
+    vBarPosition: 0,
+    vThumbHeight: 0,
     vTrackHeight: 0,
+
+    hWidth: 0,
+    hBarPosition: 0,
+    hThumbWidth: 0,
     hTrackWidth: 0,
     enableVertical: false,
     enableHorizontal: false,

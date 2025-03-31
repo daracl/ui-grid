@@ -40,6 +40,7 @@ export default class Body {
 
     this.dataDraw();
   }
+
   public calcBodyDemention() {
     const cfg = this.grid.config();
   }
@@ -58,7 +59,7 @@ export default class Body {
   /**
    * body 데이터 그리기
    */
-  public dataDraw() {
+  public dataDraw(mode?: string) {
     const opts = this.grid.getOptions();
     const items = opts.items;
     const cfg = this.grid.config();
@@ -111,8 +112,6 @@ export default class Body {
     }
 
     const viewRow = cfg.scroll.viewRow;
-
-    console.log("viewRow ", viewRow);
     const leafLength = leafFields.length;
 
     if (viewRow < 1 || leafLength < 1) return "";

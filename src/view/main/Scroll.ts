@@ -1,20 +1,34 @@
 import { GridOptions } from "@t/GridOptions";
-import { Config, Scroll, Selection, SelectionRange } from "@t/GridConfig";
+import { Config, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, calcViewCol } from "src/util/gridUtils";
 import { eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
+import GridMain from "../GridMain";
+import DaraElement from "src/element/DaraElement";
 
-export default class ScrollInfo {
+export default class Scroll {
   private grid: DaraGrid;
-  private options: GridOptions;
-  private config: Config;
+  private gridMain: GridMain;
 
-  constructor(grid: DaraGrid, config: Config) {
+  private opts: GridOptions;
+
+  private horizontalElement: DaraElement;
+  private verticalElement: DaraElement;
+
+  constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
-    this.config = config;
+    this.gridMain = gridMain;
+
+    this.opts = this.grid.getOptions();
+
+    this.grid.config().scroll.oneRowMove = this.opts.body.row.height;
+
+    this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.horizontal");
+    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.vertical");
+
     this.initEvent();
   }
 
@@ -23,45 +37,45 @@ export default class ScrollInfo {
    * @description 스크롤 컨트롤.
    */
   public initEvent() {
-    // this.initMouseWheel();
+    this.initMouseWheel();
 
     // this.initHorizontal();
 
     // this.initVertical();
 
-    this.config;
+    //this.config;
   }
 
-  // private initMouseWheel() {
-  //   this.grid.elementMap.container.off("mousewheel DOMMouseScroll");
-  //   this.grid.elementMap.container.on("mousewheel DOMMouseScroll", (e: Event) => {
-  //     const oe = e.originalEvent;
-  //     let delta = 0;
+  private initMouseWheel() {
+    const cfg = this.grid.config();
+    const opts = this.opts;
 
-  //     if (oe.detail) {
-  //       delta = oe.detail * -40;
-  //     } else {
-  //       delta = oe.wheelDelta;
-  //     }
+    this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
+    this.gridMain.mainElement().eventOn("wheel DOMMouseScroll", (evt: WheelEvent) => {
+      let delta = evt.deltaY;
 
-  //     //delta > 0--up
-  //     if (this.config.scroll.enableVertical) {
-  //       this.moveVerticalScroll({ pos: delta > 0 ? "U" : "D", speed: this.options.scroll.vertical.speed });
+      console.log("mousewheel : ", evt.detail, cfg.scroll.enableVertical, delta);
 
-  //       if (this.options.scroll.enableStopPropagation === true || (this.config.scroll.top != 0 && this.config.scroll.top != this.config.scroll.vTrackHeight)) {
-  //         stopPreventCancel(e);
-  //       }
-  //     } else {
-  //       if (this.config.scroll.enableHorizontal && this.options.scroll.horizontal.enableWheel === true) {
-  //         this.moveHorizontalScroll({ pos: delta > 0 ? "L" : "R", speed: this.options.scroll.horizontal.speed });
+      //delta > 0--up
+      if (cfg.scroll.enableVertical) {
+        this.moveVerticalScroll({ pos: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
 
-  //         if (this.options.scroll.enableStopPropagation === true || (this.config.scroll.left != 0 && this.config.scroll.left != this.config.scroll.hTrackWidth)) {
-  //           stopPreventCancel(e);
-  //         }
-  //       }
-  //     }
-  //   });
-  // }
+        if (opts.scroll.enableStopPropagation === true) {
+          stopPreventCancel(evt);
+        } else if (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight) {
+          stopPreventCancel(evt);
+        }
+      } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
+        this.moveHorizontalScroll({ pos: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
+
+        if (opts.scroll.enableStopPropagation === true) {
+          stopPreventCancel(evt);
+        } else if (cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
+          stopPreventCancel(evt);
+        }
+      }
+    });
+  }
 
   // private initVertical() {
   //   $("#" + this.prefix + "_vscroll .pubGrid-vscroll-bar-bg").off("mousedown touchstart mouseup touchend mouseleave");
@@ -231,95 +245,100 @@ export default class ScrollInfo {
   //     $(document).off("touchmove.pubvscroll mousemove.pubvscroll").off("touchend.pubvscroll mouseup.pubvscroll mouseleave.pubvscroll");
   //   }
   // }
-  // /**
-  //  * 세로 스크롤 이동.
-  //  *
-  //  * @method moveVerticalScroll
-  //  * @param  moveObj.pos {String ,Integer} 'U' or 'D' or top position
-  //  * @param  moveObj.resizeFlag {boolean} resize flag
-  //  * @param  moveObj.drawFlag {boolean} redraw flag
-  //  * @param  moveObj.speed {Integer} row move count
-  //  * @param  moveObj.rowIdx {Integer} move row idx
-  //  */
-  // public moveVerticalScroll(moveObj: any) {
-  //   const _this = this,
-  //     opt = this.options;
 
-  //   if (!this.config.scroll.enableVertical && moveObj.resizeFlag !== true) {
-  //     this.config.scroll.viewRow = 0;
-  //     return;
-  //   }
+  /**
+   * 세로 스크롤 이동.
+   *
+   * @method moveVerticalScroll
+   * @param  moveObj.pos {String ,Integer} 'U' or 'D' or top position
+   * @param  moveObj.resizeFlag {boolean} resize flag
+   * @param  moveObj.drawFlag {boolean} redraw flag
+   * @param  moveObj.speed {Integer} row move count
+   * @param  moveObj.rowIdx {Integer} move row idx
+   */
+  public moveVerticalScroll(moveObj: any) {
+    const cfg = this.grid.config();
 
-  //   const posVal = moveObj.pos,
-  //     speed = moveObj.speed || 1,
-  //     drawFlag = moveObj.drawFlag,
-  //     rowIdx = moveObj.rowIdx;
+    if (!cfg.scroll.enableVertical && moveObj.resizeFlag !== true) {
+      cfg.scroll.viewRow = 0;
+      return;
+    }
 
-  //   let topVal = posVal;
+    const posVal = moveObj.pos,
+      speed = moveObj.speed || 1,
+      rowIdx = moveObj.rowIdx;
 
-  //   if (!isNaN(rowIdx)) {
-  //     topVal = rowIdx * this.config.scroll.oneRowMove;
-  //   } else {
-  //     if (isNaN(posVal)) {
-  //       topVal = this.config.scroll.top + (topVal == "U" ? -1 : 1) * speed * this.config.scroll.oneRowMove;
-  //     }
-  //   }
+    let topVal = posVal;
 
-  //   this.moveVScrollPosition(topVal, moveObj.drawFlag);
-  // }
+    if (utils.isNumber(rowIdx)) {
+      console.log("111");
+      topVal = rowIdx * cfg.scroll.oneRowMove;
+    } else if (utils.isString(posVal)) {
+      topVal = cfg.scroll.top + (topVal == "U" ? -1 : 1) * speed * cfg.scroll.oneRowMove;
+    }
 
-  // /**
-  //  *세로 스크롤 위치 이동.
-  //  */
-  // public moveVScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
-  //   let barPos = 0;
+    console.log("cfg.scroll.enableVertical ", cfg.scroll.enableVertical, topVal, cfg.scroll.oneRowMove);
 
-  //   if (topVal > 0) {
-  //     if (topVal >= this.config.scroll.vTrackHeight) {
-  //       topVal = this.config.scroll.vTrackHeight;
-  //     }
-  //     barPos = (topVal / this.config.scroll.vTrackHeight) * 100;
-  //   } else {
-  //     topVal = 0;
-  //     barPos = 0;
-  //   }
+    this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
+  }
 
-  //   if (this.config.scroll.top == topVal) {
-  //     return;
-  //   }
+  /**
+   *세로 스크롤 위치 이동.
+   */
+  public moveVerticalScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
+    const cfg = this.grid.config();
 
-  //   if (updateChkFlag !== false) {
-  //     const onUpdateFn = this.options.scroll.vertical.onUpdate;
-  //     if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
-  //       if (onUpdateFn({ scrollTop: topVal, height: this.config.scroll.vTrackHeight, barPosition: barPos }) === false) {
-  //         return;
-  //       }
-  //     }
-  //   }
+    let barPos = 0;
 
-  //   this.config.scroll.top = topVal;
-  //   this.grid.elementMap.vScrollBar.css("top", topVal);
+    if (topVal > 0) {
+      if (topVal >= cfg.scroll.vTrackHeight) {
+        topVal = cfg.scroll.vTrackHeight;
+      }
+      barPos = (topVal / cfg.scroll.vTrackHeight) * 100;
+    } else {
+      topVal = 0;
+      barPos = 0;
+    }
 
-  //   let itemIdx = 0;
+    if (cfg.scroll.top == topVal) {
+      return;
+    }
 
-  //   if (topVal > 0) {
-  //     itemIdx = topVal / (this.config.scroll.vTrackHeight / (this.config.dataInfo.rowLength - this.config.scroll.viewRow));
-  //     itemIdx = Math.round(itemIdx);
-  //   }
+    if (updateChkFlag !== false) {
+      const onUpdateFn = this.grid.getOptions().scroll.vertical.onUpdate;
+      if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
+        if (onUpdateFn({ scrollTop: topVal, height: cfg.scroll.vTrackHeight, barPosition: barPos }) === false) {
+          return;
+        }
+      }
+    }
 
-  //   this.config.scroll.vBarPosition = barPos;
+    cfg.scroll.top = topVal;
 
-  //   if (drawFlag === false) {
-  //     this.config.scroll.viewRow = itemIdx;
-  //     return;
-  //   }
+    this.verticalElement.css({ top: topVal + "px" });
 
-  //   if (this.config.scroll.viewRow == itemIdx) return;
+    let itemIdx = 0;
 
-  //   this.config.scroll.viewRow = itemIdx;
+    if (topVal > 0) {
+      itemIdx = topVal / (cfg.scroll.vTrackHeight / (cfg.dataInfo.rowLength - cfg.scroll.viewRow));
+      itemIdx = Math.round(itemIdx);
+    }
 
-  //   this.drawGrid("vscroll");
-  // }
+    console.log("itemIdx ", itemIdx);
+
+    cfg.scroll.vBarPosition = barPos;
+
+    if (drawFlag === false) {
+      cfg.scroll.viewRow = itemIdx;
+      return;
+    }
+
+    if (cfg.scroll.viewRow == itemIdx) return;
+
+    cfg.scroll.viewRow = itemIdx;
+
+    this.gridMain.getBody().dataDraw("vscroll");
+  }
 
   // /**
   //  * 가로 스크롤 드래그 이동
@@ -334,102 +353,100 @@ export default class ScrollInfo {
   //   }
   // }
 
-  // /**
-  //  * @method moveHorizontalScroll
-  //  * @param  moveObj.pos {String ,Integer} 'L' or 'R' or left position
-  //  * @param  moveObj.resizeFlag {boolean} resize flag
-  //  * @param  moveObj.drawFlag {boolean} redraw flag
-  //  * @param  moveObj.speed {Integer} row move count
-  //  * @description 가로 스크롤 이동.
-  //  */
-  // public moveHorizontalScroll(moveObj: any) {
-  //   const _this = this;
+  /**
+   * @method moveHorizontalScroll
+   * @param  moveObj.pos {String ,Integer} 'L' or 'R' or left position
+   * @param  moveObj.resizeFlag {boolean} resize flag
+   * @param  moveObj.drawFlag {boolean} redraw flag
+   * @param  moveObj.speed {Integer} row move count
+   * @description 가로 스크롤 이동.
+   */
+  public moveHorizontalScroll(moveObj: any) {
+    const cfg = this.grid.config();
 
-  //   if (!this.config.scroll.enableHorizontal) {
-  //     if (this.config.scroll.left > 0) {
-  //       this.moveHScrollPosition(0, moveObj.drawFlag);
-  //     }
+    if (!cfg.scroll.enableHorizontal) {
+      if (cfg.scroll.left > 0) {
+        this.moveHorizontalScrollPosition(0, moveObj.drawFlag);
+      }
 
-  //     if (moveObj.resizeFlag !== true) {
-  //       return;
-  //     }
-  //   }
+      if (moveObj.resizeFlag !== true) {
+        return;
+      }
+    }
 
-  //   const posVal = moveObj.pos;
+    const posVal = moveObj.pos;
 
-  //   let leftVal = posVal;
+    let leftVal = posVal;
 
-  //   if (isNaN(posVal)) {
-  //     if (utils.isUndefined(moveObj.colIdx)) {
-  //       leftVal = this.config.scroll.left + (posVal == "L" ? -1 : 1) * this.config.scroll.oneColMove;
-  //     } else {
-  //       const firstRowEle = this.grid.elementMap.body.find('[data-cell-position="0,' + moveObj.colIdx + '"]');
-  //       const headerPos = firstRowEle.position();
+    if (isNaN(posVal)) {
+      if (utils.isUndefined(moveObj.colIdx)) {
+        leftVal = cfg.scroll.left + (posVal == "L" ? -1 : 1) * cfg.scroll.oneColMove;
+      } else {
+        const constLeft = cfg.scroll.left;
 
-  //       if (posVal == "L") {
-  //         leftVal = headerPos.left;
-  //       } else {
-  //         leftVal = headerPos.left + firstRowEle.outerWidth();
-  //         leftVal = leftVal - this.config.gridWidth.mainInsideWidth;
-  //       }
+        if (posVal == "L") {
+          leftVal = constLeft;
+        } else {
+          leftVal = constLeft + cfg.dimensions.mainWidth;
+          leftVal = leftVal - cfg.dimensions.mainInsideWidth;
+        }
 
-  //       leftVal = (leftVal / this.config.gridWidth.mainOverWidth) * 100;
-  //       leftVal = (leftVal * this.config.scroll.hTrackWidth) / 100;
-  //     }
-  //   }
+        leftVal = (leftVal / cfg.dimensions.mainInsideWidth) * 100;
+        leftVal = (leftVal * cfg.scroll.hTrackWidth) / 100;
+      }
+    }
 
-  //   this.moveHScrollPosition(leftVal, moveObj.drawFlag);
-  // }
+    this.moveHorizontalScrollPosition(leftVal, moveObj.drawFlag);
+  }
 
-  // /**
-  //  * @method _getBodyContainerLeft
-  //  * @param leftVal {Integer} body left position
-  //  * @param drawFlag {Boolean} draw flag
-  //  * @param updateChkFlag {Boolean} 업데이트 여부.
-  //  * @description 가로 스크롤바 위치 이동
-  //  */
-  // public _getBodyContainerLeft(leftVal: number) {
-  //   return leftVal < 1 ? 0 : (this.config.gridWidth.mainOverWidth * ((leftVal / this.config.scroll.hTrackWidth) * 100)) / 100;
-  // }
+  /**
+   * @method moveHorizontalScrollPosition
+   * @param leftVal {Integer} body left position
+   * @param drawFlag {Boolean} draw flag
+   * @param updateChkFlag {Boolean} 업데이트 여부.
+   * @description 가로 스크롤바 위치 이동
+   */
+  public moveHorizontalScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
+    const cfg = this.grid.config();
 
-  // /**
-  //  * @method moveHScrollPosition
-  //  * @param leftVal {Integer} body left position
-  //  * @param drawFlag {Boolean} draw flag
-  //  * @param updateChkFlag {Boolean} 업데이트 여부.
-  //  * @description 가로 스크롤바 위치 이동
-  //  */
-  // public moveHScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
-  //   const hw = this.config.scroll.hTrackWidth;
-  //   leftVal = leftVal >= hw ? hw : leftVal;
-  //   leftVal = leftVal > -1 ? leftVal : 0;
+    const hw = cfg.scroll.hTrackWidth;
+    leftVal = leftVal >= hw ? hw : leftVal;
+    leftVal = leftVal > -1 ? leftVal : 0;
 
-  //   if (this.config.scroll.left == leftVal) {
-  //     return;
-  //   }
+    if (cfg.scroll.left == leftVal) {
+      return;
+    }
 
-  //   const contLeftVal = calcViewCol(this.config, leftVal);
+    const contLeftVal = calcViewCol(cfg, leftVal);
 
-  //   this.config.scroll.left = leftVal;
-  //   this.config.scroll.hBarPosition = (leftVal / hw) * 100;
+    cfg.scroll.left = leftVal;
+    cfg.scroll.hBarPosition = (leftVal / hw) * 100;
 
-  //   if (updateChkFlag !== false) {
-  //     const onUpdateFn = this.options.scroll.horizontal.onUpdate;
-  //     if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
-  //       if (onUpdateFn.call(null, { scrollLeft: leftVal, width: this.config.scroll.hTrackWidth, barPosition: this.config.scroll.hBarPosition }) === false) {
-  //         return;
-  //       }
-  //     }
-  //   }
+    if (updateChkFlag !== false) {
+      const onUpdateFn = this.opts.scroll.horizontal.onUpdate;
+      if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
+        if (onUpdateFn.call(null, { scrollLeft: leftVal, width: cfg.scroll.hTrackWidth, barPosition: cfg.scroll.hBarPosition }) === false) {
+          return;
+        }
+      }
+    }
 
-  //   this.grid.elementMap.hScrollBar.css("left", this.config.scroll.left + "px");
-  //   this.grid.elementMap.header.find(".pubGrid-header-cont-wrapper").css("left", "-" + contLeftVal + "px");
-  //   this.grid.elementMap.body.find(".pubGrid-body-cont-wrapper").css("left", "-" + contLeftVal + "px");
+    this.horizontalElement.css({ left: cfg.scroll.left + "px" });
 
-  //   if (drawFlag !== false) {
-  //     this.grid.drawGrid("hscroll");
-  //   }
-  // }
+    this.gridMain
+      .mainElement()
+      .findDaraElement(".dg-header > .dg-center")
+      .css({ left: "-" + contLeftVal + "px" });
+
+    this.gridMain
+      .mainElement()
+      .findDaraElement(".dg-body > .dg-center")
+      .css({ left: "-" + contLeftVal + "px" });
+
+    if (drawFlag !== false) {
+      this.gridMain.getBody().dataDraw("hscroll");
+    }
+  }
 
   // public verticalMove(pEvtY: number, pTop: number, vThumbHeight: number, oneRowMove: number) {
   //   this.config.scroll.mouseDown = true;
@@ -489,5 +506,16 @@ export default class ScrollInfo {
   //       this.horizontalMove(pEvtX, pLeft, hThumbWidth, oneColMove);
   //     }, 100);
   //   }
+  // }
+
+  // /**
+  //  * @method _getBodyContainerLeft
+  //  * @param leftVal {Integer} body left position
+  //  * @param drawFlag {Boolean} draw flag
+  //  * @param updateChkFlag {Boolean} 업데이트 여부.
+  //  * @description 가로 스크롤바 위치 이동
+  //  */
+  // public _getBodyContainerLeft(leftVal: number) {
+  //   return leftVal < 1 ? 0 : (this.config.gridWidth.mainOverWidth * ((leftVal / this.config.scroll.hTrackWidth) * 100)) / 100;
   // }
 }
