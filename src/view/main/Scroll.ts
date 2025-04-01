@@ -16,7 +16,10 @@ export default class Scroll {
   private opts: GridOptions;
 
   private horizontalElement: DaraElement;
+  private horizontalThumbElement: DaraElement;
+
   private verticalElement: DaraElement;
+  private verticalThumbElement: DaraElement;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
@@ -24,12 +27,69 @@ export default class Scroll {
 
     this.opts = this.grid.getOptions();
 
-    this.grid.config().scroll.oneRowMove = this.opts.body.row.height;
-
     this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.horizontal");
-    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.vertical");
+    this.horizontalThumbElement = this.horizontalElement.findDaraElement(".dg-scroll-thumb");
 
+    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.vertical");
+    this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
+
+    this.calcScroll();
+
+    this.setElementsDimentions();
     this.initEvent();
+  }
+
+  public setElementsDimentions() {}
+
+  public calcScroll() {
+    const cfg = this.grid.config();
+    const dimensions = cfg.dimensions;
+    const opts = this.grid.getOptions();
+
+    const rowHeight = opts.body.row.height;
+
+    if (cfg.scroll.enableVertical) {
+      const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
+      const scrollHeight = dimensions.mainHeight;
+
+      let barHeight = (scrollHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
+      if (scrollHeight < 25) {
+        barHeight = 1;
+      } else {
+        barHeight = barHeight < 25 ? 25 : barHeight > scrollHeight ? scrollHeight : barHeight;
+      }
+
+      cfg.scroll.vHeight = scrollHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
+      cfg.scroll.vThumbHeight = barHeight;
+      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - (barHeight + 20);
+      cfg.scroll.oneRowMove = cfg.scroll.vTrackHeight / cfg.dataInfo.rowLength;
+
+      console.log("(cfg.scroll.vTrackHeight - barHeight) : ", cfg.scroll.oneRowMove);
+
+      this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
+      this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
+      this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
+    }
+
+    if (cfg.scroll.enableHorizontal) {
+      const columnTotalWidth = dimensions.mainTotalWidth;
+      const horizontalWidth = dimensions.width - (10 * 2 + (cfg.scroll.enableVertical ? opts.scroll.width : 0));
+
+      let barWidth = (horizontalWidth * ((dimensions.width / columnTotalWidth) * 100)) / 100;
+
+      barWidth = barWidth < 25 ? 25 : barWidth > horizontalWidth ? horizontalWidth : barWidth;
+
+      cfg.scroll.hThumbWidth = barWidth;
+      cfg.scroll.hTrackWidth = horizontalWidth - barWidth;
+      cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
+
+      // 스크롤 처리 할것.
+
+      this.horizontalElement.css({ width: dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) + "px" });
+      this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
+
+      //cfg.scroll.left = (cfg.scroll.hTrackWidth * cfg.scroll.hBarPosition) / 100;
+    }
   }
 
   /**
@@ -260,7 +320,7 @@ export default class Scroll {
     const cfg = this.grid.config();
 
     if (!cfg.scroll.enableVertical && moveObj.resizeFlag !== true) {
-      cfg.scroll.viewRow = 0;
+      cfg.scroll.startRow = 0;
       return;
     }
 
@@ -271,13 +331,14 @@ export default class Scroll {
     let topVal = posVal;
 
     if (utils.isNumber(rowIdx)) {
-      console.log("111");
       topVal = rowIdx * cfg.scroll.oneRowMove;
     } else if (utils.isString(posVal)) {
       topVal = cfg.scroll.top + (topVal == "U" ? -1 : 1) * speed * cfg.scroll.oneRowMove;
     }
 
-    console.log("cfg.scroll.enableVertical ", cfg.scroll.enableVertical, topVal, cfg.scroll.oneRowMove);
+    console.log("cfg.scroll.enableVertical ", cfg.scroll.vHeight, cfg.scroll.enableVertical, topVal, cfg.scroll.oneRowMove);
+
+    //topVal = (cfg.scroll.vTrackHeight * topVal) / 100;
 
     this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
   }
@@ -288,16 +349,12 @@ export default class Scroll {
   public moveVerticalScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
     const cfg = this.grid.config();
 
-    let barPos = 0;
-
     if (topVal > 0) {
       if (topVal >= cfg.scroll.vTrackHeight) {
         topVal = cfg.scroll.vTrackHeight;
       }
-      barPos = (topVal / cfg.scroll.vTrackHeight) * 100;
     } else {
       topVal = 0;
-      barPos = 0;
     }
 
     if (cfg.scroll.top == topVal) {
@@ -307,7 +364,7 @@ export default class Scroll {
     if (updateChkFlag !== false) {
       const onUpdateFn = this.grid.getOptions().scroll.vertical.onUpdate;
       if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
-        if (onUpdateFn({ scrollTop: topVal, height: cfg.scroll.vTrackHeight, barPosition: barPos }) === false) {
+        if (onUpdateFn({ scrollTop: topVal, height: cfg.scroll.vTrackHeight }) === false) {
           return;
         }
       }
@@ -315,27 +372,23 @@ export default class Scroll {
 
     cfg.scroll.top = topVal;
 
-    this.verticalElement.css({ top: topVal + "px" });
+    this.verticalThumbElement.css({ top: topVal + "px" });
 
-    let itemIdx = 0;
+    let startRow = 0;
 
     if (topVal > 0) {
-      itemIdx = topVal / (cfg.scroll.vTrackHeight / (cfg.dataInfo.rowLength - cfg.scroll.viewRow));
-      itemIdx = Math.round(itemIdx);
+      startRow = topVal / cfg.scroll.oneRowMove;
+      startRow = Math.round(startRow);
     }
 
-    console.log("itemIdx ", itemIdx);
-
-    cfg.scroll.vBarPosition = barPos;
-
     if (drawFlag === false) {
-      cfg.scroll.viewRow = itemIdx;
+      cfg.scroll.startRow = startRow;
       return;
     }
 
-    if (cfg.scroll.viewRow == itemIdx) return;
+    if (cfg.scroll.startRow == startRow) return;
 
-    cfg.scroll.viewRow = itemIdx;
+    cfg.scroll.startRow = startRow;
 
     this.gridMain.getBody().dataDraw("vscroll");
   }
@@ -387,7 +440,7 @@ export default class Scroll {
         if (posVal == "L") {
           leftVal = constLeft;
         } else {
-          leftVal = constLeft + cfg.dimensions.mainWidth;
+          leftVal = constLeft + cfg.dimensions.mainTotalWidth;
           leftVal = leftVal - cfg.dimensions.mainInsideWidth;
         }
 
@@ -431,7 +484,7 @@ export default class Scroll {
       }
     }
 
-    this.horizontalElement.css({ left: cfg.scroll.left + "px" });
+    this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
     this.gridMain
       .mainElement()

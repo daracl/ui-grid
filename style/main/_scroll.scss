@@ -18,6 +18,7 @@
   .dg-scroll {
     display: none;
     background-color: var(--scroll-track-bg);
+    opacity: 0.3;
 
     /* vertical scroll */
     &.vertical {
@@ -34,15 +35,18 @@
 
       /* scroll bar */
       .dg-scroll-thumb {
+        top: 0px;
         position: absolute;
         margin: 10px 0 10px 0;
-        height: 25px;
+        width: 100%;
+        z-index: 1;
       }
 
       /* scroll button */
       .dg-scroll-button {
         position: absolute;
         left: 0px;
+        height: 10px;
         width: 100%;
         cursor: pointer;
         line-height: 0.3;
@@ -67,9 +71,33 @@
       border-top: 1px solid #d5d5d8;
       padding: 1px 0px 1px 0px;
 
+      .dg-scroll-thumb {
+        left: 0px;
+        top: 0px;
+        height: 100%;
+        z-index: 1;
+        position: absolute;
+        margin: 0px 10px 0px 10px;
+      }
+
       .dg-scroll-track {
         padding: 0px 10px 0px 10px;
         border-bottom: 1px solid transparent;
+      }
+
+      /* scroll button */
+      .dg-scroll-button {
+        position: absolute;
+        top: 0px;
+        width: 8px;
+        cursor: pointer;
+        &.left {
+          left: 0px;
+        }
+
+        &.right {
+          right: 0px;
+        }
       }
     }
   }

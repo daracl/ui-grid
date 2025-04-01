@@ -127,15 +127,24 @@ export default class GridMain {
     const fields = cfg.currentFields;
     const fieldLength = fields.length;
 
-    let mainWidth = 0;
+    let mainTotalWidth = 0;
     for (const field of fields) {
-      mainWidth += field.width;
+      mainTotalWidth += field.width;
     }
-    dimensions.mainWidth = mainWidth;
+    dimensions.mainTotalWidth = mainTotalWidth;
 
-    this.calcScroll();
+    //세로 스크롭 계산 start
+    const rowHeight = this.grid.getOptions().body.row.height;
 
-    const viewGridWidth = mainWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight);
+    cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
+    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
+
+    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
+
+    //세로 스크롭 계산 end
+
+    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
     const overWidth = dimensions.width - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -180,47 +189,11 @@ export default class GridMain {
     dimensions.mainLeftWidth = leftWidth;
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
-    dimensions.mainWidth = leftWidth + centerWidth + rightWidth;
+    dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
+
+    cfg.scroll.enableHorizontal = dimensions.mainTotalWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
 
     cfg.dataInfo.colLength = fieldLength;
-  }
-  calcScroll() {
-    const cfg = this.grid.config();
-    const dimensions = cfg.dimensions;
-    const opts = this.grid.getOptions();
-
-    //스크롭 계산
-    const rowHeight = this.grid.getOptions().body.row.height;
-    const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
-
-    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight);
-    cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
-
-    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-    cfg.scroll.enableHorizontal = dimensions.mainWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
-
-    const scrollHeight = dimensions.mainHeight;
-
-    let barHeight = (scrollHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-    if (scrollHeight < 25) {
-      barHeight = 1;
-    } else {
-      barHeight = barHeight < 25 ? 25 : barHeight > scrollHeight ? scrollHeight : barHeight;
-    }
-
-    cfg.scroll.vHeight = scrollHeight;
-    cfg.scroll.vThumbHeight = barHeight;
-    cfg.scroll.vTrackHeight = scrollHeight - barHeight;
-    cfg.scroll.oneRowMove = cfg.scroll.vTrackHeight / (cfg.dataInfo.rowLength - cfg.scroll.viewRow);
-
-    /*
-    스크롤 처리할것. 
-    */
-
-    topVal = (cfg.scroll.vTrackHeight * cfg.scroll.vBarPosition) / 100;
-
-    _this.element.vScrollBar.css("height", barHeight);
   }
 
   /**
@@ -468,8 +441,18 @@ export default class GridMain {
                 }
             </div>
             <div class="dg-scroll-container">
-                <div class="dg-scroll vertical"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
-                <div class="dg-scroll horizontal"><div class="dg-scroll-track"></div><div class="dg-scroll-thumb"></div><div class="dg-scroll-button up"></div><div class="dg-scroll-button down"></div></div>
+                <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
+                  <div class="dg-scroll-track"></div>
+                  <div class="dg-scroll-thumb"></div>
+                  <div class="dg-scroll-button up"><svg width="12px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg></div>
+                  <div class="dg-scroll-button down"><svg width="12px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg></div>
+                </div>
+                <div class="dg-scroll horizontal" style="height:${opts.scroll.width}px">
+                  <div class="dg-scroll-track"></div>
+                  <div class="dg-scroll-thumb"></div>
+                  <div class="dg-scroll-button left"><svg width="8px" height="12px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="10,50 100,0 100,100" fill="#737171"></polygon></g></svg></div>
+                  <div class="dg-scroll-button right"><svg width="8px" height="12px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 0,100 90,50" fill="#737171"></polygon></g></svg></div>
+                </div>
             </div>
         </div>
         ${opts.footer.enabled ? `<div class="dg-footer" style="height:${dimensions.footerHeight}px;"></div>` : ""}

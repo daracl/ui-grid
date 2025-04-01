@@ -16,8 +16,9 @@ export interface Config {
     toolbarHeight: number;
     // footer height
     footerHeight: number;
-    // main
+    // main element width
     mainWidth: number;
+    // main element height
     mainHeight: number;
 
     mainHeaderHeight: number;
@@ -31,7 +32,7 @@ export interface Config {
     // main right panel width
     mainRightWidth: number;
     // grid total width
-    totalWidth: number;
+    mainTotalWidth: number;
 
     mainOverWidth: number;
     mainInsideWidth: number;
@@ -166,7 +167,11 @@ export interface ScrollInfo {
   endCol: number;
   insideStartCol: number;
   insideEndCol: number;
+
+  // grid 보여지는 row 수
   viewRow: number;
+  // 시작 start row
+  startRow: number;
 
   vHeight: number;
   vBarPosition: number;

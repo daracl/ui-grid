@@ -26,7 +26,7 @@ export const initConfig = (opts: GridOptions): Config => {
       mainLeftWidth: 0,
       mainCenterWidth: 0,
       mainRightWidth: 0,
-      totalWidth: 0,
+      mainTotalWidth: 0,
       mainOverWidth: 0,
       mainInsideWidth: 0,
     },
@@ -155,6 +155,7 @@ export const initScrollInfo = (): ScrollInfo => {
     insideStartCol: 0,
     insideEndCol: 0,
     viewRow: 0,
+    startRow: 0,
 
     oneColMove: 0,
     oneRowMove: 0,

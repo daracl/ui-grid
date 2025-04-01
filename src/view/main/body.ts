@@ -67,27 +67,30 @@ export default class Body {
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
     const rightFields = cfg.fieldHeaderGroup.leafRight;
 
-    const viewRow = cfg.scroll.viewRow;
+    let viewRow = cfg.scroll.viewRow;
+    const startRow = cfg.scroll.startRow;
+
+    viewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
 
     for (let i = 0; i < viewRow; i++) {
-      let item = items[i];
+      const startRowIdx = startRow + i;
+      let item = items[startRowIdx];
       // left panel
-
       for (let j = 0; j < leftFields.length; j++) {
         const field = leftFields[j];
-        field.$renderer.render(i, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        field.$renderer.render(startRowIdx, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
 
       // center panel
       for (let j = 0; j < centerFields.length; j++) {
         const field = centerFields[j];
-        field.$renderer.render(i, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        field.$renderer.render(startRowIdx, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
 
       // center panel
       for (let j = 0; j < rightFields.length; j++) {
         const field = rightFields[j];
-        field.$renderer.render(i, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        field.$renderer.render(startRowIdx, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
     }
   }
@@ -149,7 +152,7 @@ export default class Body {
 
     return `<table class="dg-body-table" style="width:${tableWidth}px;">
       <colgroup>${colGroupHtm.join("")}</colgroup>
-      <thead>${strHtm.join("")}</thead>
+      <tbody>${strHtm.join("")}</tbody>
     </table>`;
   }
 }
