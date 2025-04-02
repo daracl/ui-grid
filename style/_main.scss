@@ -46,6 +46,41 @@
       }
     }
 
+    /* grid style 처리*/
+    &.dg-style- {
+      &default {
+      }
+      &borderless {
+        border: 1px solid transparent !important;
+
+        .dg-header-table {
+          tr > .dg-header-col {
+            border: 1px solid transparent !important;
+          }
+        }
+        .dg-body-table {
+          tr > td {
+            border: 1px solid transparent !important;
+          }
+        }
+      }
+      &striped {
+        .dg-body {
+          &[data-striped-type="odd"] {
+            .dg-row:nth-child(odd) {
+              background-color: var(--row-bg);
+            }
+          }
+
+          &[data-striped-type="even"] {
+            .dg-row:nth-child(even) {
+              background-color: var(--row-bg);
+            }
+          }
+        }
+      }
+    }
+
     /* main container */
     .dg-main-container {
       position: relative;

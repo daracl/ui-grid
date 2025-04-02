@@ -34,6 +34,11 @@ export interface GridOptions {
   fixedRightIndex: number;
 
   /**
+   *
+   */
+  styleClass: string;
+
+  /**
    * 넓이 고정 여부.
    */
   enableWidthFixed: boolean;
@@ -554,6 +559,7 @@ export interface BodyOptions {
    * arrows key handler function
    */
   keyNavHandler: boolean | OptionCallback;
+
   /**
    * 로우 옵션.
    */

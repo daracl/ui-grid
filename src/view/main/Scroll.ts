@@ -8,6 +8,8 @@ import { eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
+import eventUtils from "src/element/eventUtils";
+import domUtils from "src/element/domUtils";
 
 export default class Scroll {
   private grid: DaraGrid;
@@ -61,10 +63,9 @@ export default class Scroll {
 
       cfg.scroll.vHeight = scrollHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
       cfg.scroll.vThumbHeight = barHeight;
-      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - (barHeight + 20);
-      cfg.scroll.oneRowMove = cfg.scroll.vTrackHeight / cfg.dataInfo.rowLength;
-
-      console.log("(cfg.scroll.vTrackHeight - barHeight) : ", cfg.scroll.oneRowMove);
+      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - 20;
+      // row 보이기 기준으로 계산
+      cfg.scroll.oneRowMove = (cfg.scroll.vHeight - (barHeight + 20)) / (cfg.dataInfo.rowLength - Math.floor((dimensions.mainBodyHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0)) / rowHeight));
 
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
       this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
@@ -83,12 +84,8 @@ export default class Scroll {
       cfg.scroll.hTrackWidth = horizontalWidth - barWidth;
       cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
 
-      // 스크롤 처리 할것.
-
       this.horizontalElement.css({ width: dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) + "px" });
       this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
-
-      //cfg.scroll.left = (cfg.scroll.hTrackWidth * cfg.scroll.hBarPosition) / 100;
     }
   }
 
@@ -99,9 +96,9 @@ export default class Scroll {
   public initEvent() {
     this.initMouseWheel();
 
-    // this.initHorizontal();
+    this.initVertical();
 
-    // this.initVertical();
+    // this.initHorizontal();
 
     //this.config;
   }
@@ -114,109 +111,180 @@ export default class Scroll {
     this.gridMain.mainElement().eventOn("wheel DOMMouseScroll", (evt: WheelEvent) => {
       let delta = evt.deltaY;
 
-      console.log("mousewheel : ", evt.detail, cfg.scroll.enableVertical, delta);
-
       //delta > 0--up
       if (cfg.scroll.enableVertical) {
-        this.moveVerticalScroll({ pos: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
+        this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
 
-        if (opts.scroll.enableStopPropagation === true) {
-          stopPreventCancel(evt);
-        } else if (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight) {
+        if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight)) {
           stopPreventCancel(evt);
         }
       } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
-        this.moveHorizontalScroll({ pos: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
+        this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
 
-        if (opts.scroll.enableStopPropagation === true) {
-          stopPreventCancel(evt);
-        } else if (cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
+        if (opts.scroll.enableStopPropagation === true && cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
           stopPreventCancel(evt);
         }
       }
     });
   }
 
-  // private initVertical() {
-  //   $("#" + this.prefix + "_vscroll .pubGrid-vscroll-bar-bg").off("mousedown touchstart mouseup touchend mouseleave");
-  //   $("#" + this.prefix + "_vscroll .pubGrid-vscroll-bar-bg")
-  //     .on("mousedown touchstart", (e: Event) => {
-  //       this.verticalMove(e.offsetY, this.config.scroll.top, this.config.scroll.vThumbHeight, this.config.scroll.oneRowMove * this.options.scroll.horizontal.speed);
-  //     })
-  //     .on("mouseup touchend mouseleave", (e: Event) => {
-  //       this.config.scroll.mouseDown = false;
-  //       clearTimeout(this.config.scroll.verticalScrollTimer);
-  //     });
+  private initVertical() {
+    const cfg = this.grid.config();
+    const opts = this.opts;
 
-  //   let scrollbarDragTimer: any;
-  //   const tooltipFlag = this.options.scroll.vertical.tooltip;
-  //   const vDragDelay = this.options.scroll.vertical.dragDelay;
-  //   const tooltipEle = this.grid.elementMap.vScrollBar.find(".pubGrid-vscroll-bar-tip");
-  //   // 세로 스크롤 바 .
-  //   this.grid.elementMap.vScrollBar.off("touchstart.pubvscroll mousedown.pubvscroll");
-  //   this.grid.elementMap.vScrollBar.on("touchstart.pubvscroll mousedown.pubvscroll", (e: Event) => {
-  //     e.stopPropagation();
+    const loopcount = 5;
+    let bgMoveMode = 0;
+    let upFlag = false;
+    let oneRowMove = cfg.scroll.oneRowMove;
+    let startEventY = 0;
+    let bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
+    let verticalScrollTimer: any;
+    const trackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
+    trackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    trackElement
+      .eventOn("mousedown touchstart", (e: MouseEvent) => {
+        cfg.scroll.mouseDown = true;
 
-  //     const ele = $(this);
-  //     const data = {} as any;
-  //     data.top = this.config.scroll.top;
-  //     data.pageY = eventPosition(e).y;
+        bgMoveMode = 1;
+        startEventY = e.offsetY;
 
-  //     ele.addClass("active");
+        upFlag = startEventY < cfg.scroll.top;
 
-  //     let startTime: number = -1;
+        verticalScrollTimer = setInterval(() => {
+          bgMoveMode = 2;
 
-  //     $(document)
-  //       .on("touchmove.pubvscroll mousemove.pubvscroll", (e1: Event) => {
-  //         if (startTime == -1) {
-  //           startTime = new Date().getTime();
-  //         }
+          this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
+        }, 100);
+      })
+      .eventOn("mouseup touchend mouseleave", (e: Event) => {
+        if (bgMoveMode == 1) {
+          this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
+        }
+        clearTimeout(verticalScrollTimer);
+        bgMoveMode = 0;
+      });
 
-  //         if (new Date().getTime() - vDragDelay <= startTime) {
-  //           clearTimeout(scrollbarDragTimer);
-  //         }
+    let scrollbarDragTimer: any;
+    const tooltipFlag = opts.scroll.vertical.enableTooltip;
+    const vDragDelay = 7; //opts.scroll.vertical.dragDelay;
 
-  //         scrollbarDragTimer = setTimeout(() => {
-  //           startTime = -1;
-  //           this.verticalScroll(data, e1, "move");
+    const tooltipEle = this.verticalElement.findDaraElement(".dg-vscroll-bar-tip");
 
-  //           if (tooltipFlag) {
-  //             tooltipEle.text(this.config.scroll.viewRow + 1);
-  //             tooltipEle.show();
-  //           }
-  //         }, vDragDelay);
-  //       })
-  //       .on("touchend.pubvscroll mouseup.pubvscroll mouseleave.pubvscroll", (e1: Event) => {
-  //         ele.removeClass("active");
-  //         clearTimeout(scrollbarDragTimer);
-  //         this.verticalScroll(data, e1, "end");
-  //         startTime = -1;
+    const verticalThumbElement = this.verticalThumbElement;
+    // 세로 스크롤 바 .
+    verticalThumbElement.eventOff("touchstart mousedown");
+    verticalThumbElement.eventOn("touchstart mousedown", (e: MouseEvent) => {
+      stopPreventCancel(e);
 
-  //         if (tooltipFlag) {
-  //           tooltipEle.hide();
-  //         }
-  //       });
+      const data = {} as any;
+      data.top = cfg.scroll.top;
+      data.pageY = eventPosition(e).y;
 
-  //     return true;
-  //   });
+      verticalThumbElement.addClass("active");
 
-  //   let scrollBtnTimer: any;
+      let startTime: number = -1;
 
-  //   //세로 스크롤 방향키
-  //   $("#" + this.prefix + "_vscroll .pubGrid-vscroll-btn").off("mousedown touchstart mouseup touchend mouseleave");
-  //   $("#" + this.prefix + "_vscroll .pubGrid-vscroll-btn")
-  //     .on("mousedown touchstart", (e: Event) => {
-  //       const sEle = $(this),
-  //         mode = sEle.attr("data-pubgrid-btn");
+      eventUtils.eventOn(document, "touchmove mousemove", (e1: Event) => {
+        if (startTime == -1) {
+          startTime = new Date().getTime();
+        }
 
-  //       scrollBtnTimer = setInterval(() => {
-  //         this.moveVerticalScroll({ pos: mode });
-  //       }, vBtnDelay);
-  //     })
-  //     .on("mouseup touchend mouseleave", function (e) {
-  //       clearInterval(scrollBtnTimer);
-  //     });
-  // }
+        if (new Date().getTime() - vDragDelay <= startTime) {
+          clearTimeout(scrollbarDragTimer);
+        }
+
+        scrollbarDragTimer = setTimeout(() => {
+          startTime = -1;
+          this.verticalScroll(data, e1, "move");
+
+          if (tooltipFlag) {
+            tooltipEle.text(cfg.scroll.viewRow + 1);
+            tooltipEle.show();
+          }
+        }, vDragDelay);
+      });
+
+      eventUtils.eventOn(document, "touchend mouseup", (e1: Event) => {
+        verticalThumbElement.removeClass("active");
+        clearTimeout(scrollbarDragTimer);
+        this.verticalScroll(data, e1, "end");
+        startTime = -1;
+
+        if (tooltipFlag) {
+          tooltipEle.hide();
+        }
+      });
+
+      return true;
+    });
+
+    let scrollBtnTimer: any;
+    let vBtnDelay = 100;
+    const scrollButtonElements = this.verticalElement.finds(".dg-scroll-button");
+    let buttonMoveMode = 0;
+    //세로 방향키
+    eventUtils.eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
+    eventUtils.eventOn(scrollButtonElements, "mousedown touchstart", (e: Event) => {
+      const sEle = e.currentTarget as HTMLElement;
+
+      const mode = domUtils.hasClass(sEle, "up");
+      buttonMoveMode = 1;
+
+      scrollBtnTimer = setInterval(() => {
+        buttonMoveMode = 2;
+        this.moveVerticalScroll({ direction: mode ? "U" : "D" });
+      }, vBtnDelay);
+    });
+    eventUtils.eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
+      if (buttonMoveMode == 1) {
+        const sEle = e.currentTarget as HTMLElement;
+        const mode = domUtils.hasClass(sEle, "up");
+        this.moveVerticalScroll({ direction: mode ? "U" : "D" });
+      }
+      clearInterval(scrollBtnTimer);
+      buttonMoveMode = 0;
+    });
+  }
+
+  /**
+   *
+   * @param cfg 설정 정보
+   * @param startEventY start event y
+   * @param oneRowMove row move value
+   * @param upFlag up down flag up = true
+   * @param bgMoveRow
+   * @returns
+   */
+  public getVerticalBgMovePostion(cfg: Config, startEventY: number, oneRowMove: number, upFlag: boolean, bgMoveRow: number) {
+    let pTop = cfg.scroll.top + (upFlag ? -1 : 1) * bgMoveRow;
+
+    if (upFlag) {
+      if (startEventY >= pTop) {
+        cfg.scroll.mouseDown = false;
+        pTop = startEventY - oneRowMove * 2;
+      }
+    } else if (startEventY <= pTop + cfg.scroll.vThumbHeight) {
+      cfg.scroll.mouseDown = false;
+      pTop = startEventY - cfg.scroll.vThumbHeight + oneRowMove * 2;
+    }
+    return pTop;
+  }
+
+  /**
+   * 세로 스크롤 드래그 이동
+   *
+   * @param {*} data
+   * @param {*} e
+   * @param {*} type
+   */
+  public verticalScroll(data: any, e: Event, type: string) {
+    const oy = data.top + (eventPosition(e).y - data.pageY);
+
+    this.moveVerticalScroll({ position: oy });
+    if (type == "end") {
+      eventUtils.eventOff(document, "touchmove mousemove touchend mouseup");
+    }
+  }
 
   // private initHorizontal() {
   //   $("#" + this.prefix + "_hscroll .pubGrid-hscroll-bar-bg").off("mousedown touchstart mouseup touchend mouseleave");
@@ -282,7 +350,7 @@ export default class Scroll {
   //         mode = sEle.attr("data-pubgrid-btn");
 
   //       scrollBtnTimer = setInterval(() => {
-  //         this.moveHorizontalScroll({ pos: mode });
+  //         this.moveHorizontalScroll({ direction: mode });
   //       }, hBtnDelay);
   //     })
   //     .on("mouseup touchend mouseleave", function (e) {
@@ -290,27 +358,11 @@ export default class Scroll {
   //     });
   // }
 
-  // /**
-  //  * 세로 스크롤 드래그 이동
-  //  *
-  //  * @param {*} data
-  //  * @param {*} e
-  //  * @param {*} type
-  //  */
-  // public verticalScroll(data: any, e: Event, type: string) {
-  //   const oy = data.top + (eventPosition(e).y - data.pageY);
-
-  //   this.moveVerticalScroll({ pos: oy });
-  //   if (type == "end") {
-  //     $(document).off("touchmove.pubvscroll mousemove.pubvscroll").off("touchend.pubvscroll mouseup.pubvscroll mouseleave.pubvscroll");
-  //   }
-  // }
-
   /**
    * 세로 스크롤 이동.
    *
-   * @method moveVerticalScroll
-   * @param  moveObj.pos {String ,Integer} 'U' or 'D' or top position
+   * @param  moveObj.position {Integer} top position
+   * @param  moveObj.direction {String} 'U' or 'D'
    * @param  moveObj.resizeFlag {boolean} resize flag
    * @param  moveObj.drawFlag {boolean} redraw flag
    * @param  moveObj.speed {Integer} row move count
@@ -324,21 +376,16 @@ export default class Scroll {
       return;
     }
 
-    const posVal = moveObj.pos,
-      speed = moveObj.speed || 1,
-      rowIdx = moveObj.rowIdx;
+    let topVal = 0;
 
-    let topVal = posVal;
-
-    if (utils.isNumber(rowIdx)) {
-      topVal = rowIdx * cfg.scroll.oneRowMove;
-    } else if (utils.isString(posVal)) {
-      topVal = cfg.scroll.top + (topVal == "U" ? -1 : 1) * speed * cfg.scroll.oneRowMove;
+    if (utils.isNumber(moveObj.position)) {
+      topVal = moveObj.position;
+    } else if (utils.isNumber(moveObj.rowIdx)) {
+      topVal = moveObj.rowIdx * cfg.scroll.oneRowMove;
+    } else if (utils.isString(moveObj.direction)) {
+      const speed = moveObj.speed || 1;
+      topVal = cfg.scroll.top + (moveObj.direction == "U" ? -1 : 1) * speed * cfg.scroll.oneRowMove;
     }
-
-    console.log("cfg.scroll.enableVertical ", cfg.scroll.vHeight, cfg.scroll.enableVertical, topVal, cfg.scroll.oneRowMove);
-
-    //topVal = (cfg.scroll.vTrackHeight * topVal) / 100;
 
     this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
   }
@@ -349,11 +396,9 @@ export default class Scroll {
   public moveVerticalScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
     const cfg = this.grid.config();
 
-    if (topVal > 0) {
-      if (topVal >= cfg.scroll.vTrackHeight) {
-        topVal = cfg.scroll.vTrackHeight;
-      }
-    } else {
+    if (topVal >= cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight) {
+      topVal = cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight;
+    } else if (topVal <= 0) {
       topVal = 0;
     }
 
@@ -399,7 +444,7 @@ export default class Scroll {
   // public horizontalScroll(data: any, e: Event, type: string) {
   //   const ox = data.left + (eventPosition(e).x - data.pageX);
 
-  //   this.moveHorizontalScroll({ pos: ox });
+  //   this.moveHorizontalScroll({ direction: ox });
 
   //   if (type == "end") {
   //     $(document).off("touchmove.pubhscroll mousemove.pubhscroll").off("touchend.pubhscroll mouseup.pubhscroll mouseleave.pubhscroll");
@@ -408,7 +453,7 @@ export default class Scroll {
 
   /**
    * @method moveHorizontalScroll
-   * @param  moveObj.pos {String ,Integer} 'L' or 'R' or left position
+   * @param  moveObj.direction {String ,Integer} 'L' or 'R' or left position
    * @param  moveObj.resizeFlag {boolean} resize flag
    * @param  moveObj.drawFlag {boolean} redraw flag
    * @param  moveObj.speed {Integer} row move count
@@ -427,7 +472,7 @@ export default class Scroll {
       }
     }
 
-    const posVal = moveObj.pos;
+    const posVal = moveObj.direction;
 
     let leftVal = posVal;
 
@@ -501,37 +546,6 @@ export default class Scroll {
     }
   }
 
-  // public verticalMove(pEvtY: number, pTop: number, vThumbHeight: number, oneRowMove: number) {
-  //   this.config.scroll.mouseDown = true;
-
-  //   clearTimeout(this.config.scroll.verticalScrollTimer);
-
-  //   const upFlag = pEvtY < this.config.scroll.top;
-  //   const loopcount = 5;
-
-  //   pTop = pTop + (upFlag ? -1 : 1) * (oneRowMove * loopcount);
-
-  //   if (upFlag) {
-  //     if (pEvtY >= pTop) {
-  //       this.config.scroll.mouseDown = false;
-  //       pTop = pEvtY;
-  //     }
-  //   } else {
-  //     if (pEvtY <= pTop + vThumbHeight) {
-  //       this.config.scroll.mouseDown = false;
-  //       pTop = pEvtY - vThumbHeight;
-  //     }
-  //   }
-
-  //   this.moveVerticalScroll({ pos: pTop });
-
-  //   if (this.config.scroll.mouseDown) {
-  //     this.config.scroll.verticalScrollTimer = setTimeout(() => {
-  //       this.verticalMove(pEvtY, pTop, vThumbHeight, oneRowMove * this.options.scroll.horizontal.speed);
-  //     }, 100);
-  //   }
-  // }
-
   // public horizontalMove(pEvtX: number, pLeft: number, hThumbWidth: number, oneColMove: number) {
   //   this.config.scroll.mouseDown = true;
 
@@ -552,7 +566,7 @@ export default class Scroll {
   //     pLeft = pEvtX - hThumbWidth;
   //   }
 
-  //   this.moveHorizontalScroll({ pos: pLeft });
+  //   this.moveHorizontalScroll({ direction: pLeft });
 
   //   if (this.config.scroll.mouseDown) {
   //     this.config.scroll.horizontalScrollTimer = setTimeout(() => {

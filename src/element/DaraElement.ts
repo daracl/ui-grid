@@ -19,6 +19,10 @@ export default class DaraElement {
     return this.element.querySelector(selector) as HTMLElement;
   }
 
+  finds(selector: string): NodeList {
+    return this.element.querySelectorAll(selector);
+  }
+
   before(renderElements: HTMLElement) {
     this.insertAdjacentHTML("beforebegin", renderElements);
   }
@@ -32,7 +36,7 @@ export default class DaraElement {
     this.insertAdjacentHTML("beforeend", renderElements);
   }
 
-  text(text: string) {
+  text(text: any) {
     if (isUndefined(text)) {
       return this.element.textContent;
     }
@@ -81,6 +85,16 @@ export default class DaraElement {
    */
   clientHeight() {
     return this.element.clientHeight;
+  }
+
+  show() {
+    this.element.style.display = "block";
+    return this;
+  }
+
+  hide() {
+    this.element.style.display = "none";
+    return this;
   }
 
   /**
@@ -165,10 +179,12 @@ export default class DaraElement {
 
   eventOff(type: string) {
     eventUtils.eventOff(this.element, type);
+    return this;
   }
 
   eventOn(type: string, selector: any, listener?: any) {
     eventUtils.eventOn(this.element, type, selector, listener);
+    return this;
   }
 
   insertAdjacentHTML(insertPosition: InsertPosition, renderElements: HTMLElement | string) {
@@ -183,7 +199,7 @@ export default class DaraElement {
    * @param attrs element attribute object
    * @returns DaraElement
    */
-  attr(attrs: any): DaraElement {
+  attr(attrs: any) {
     for (let key in attrs) {
       this.element.setAttribute(key, attrs[key]);
     }
@@ -196,7 +212,7 @@ export default class DaraElement {
    * @param attrKey element attribute keys ["class","style"]
    * @returns this
    */
-  removeAttr(...attrKey: string[]): DaraElement {
+  removeAttr(...attrKey: string[]) {
     for (let key of attrKey) {
       this.element.removeAttribute(key);
     }
@@ -210,7 +226,7 @@ export default class DaraElement {
    * @param cssValueObject  css value object
    * @returns
    */
-  css(attrs: any): DaraElement {
+  css(attrs: any) {
     for (let key in attrs) {
       if (attrs.hasOwnProperty(key)) {
         this.element.style.setProperty(key, attrs[key]);
@@ -226,7 +242,7 @@ export default class DaraElement {
    * @param cssValueObject  css value object
    * @returns
    */
-  removeCss(csskeys: string[]): DaraElement {
+  removeCss(csskeys: string[]) {
     for (let key in csskeys) {
       this.element.style.removeProperty(key);
     }

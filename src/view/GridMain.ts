@@ -413,8 +413,8 @@ export default class GridMain {
     let templateHtml = `
       <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
         ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-        <div class="dg-main daracl-noselect" data-scroll="${SCROLL_MODE[scrollMode]}">
-            <div class="dg-main-container">
+        <div class="dg-main daracl-noselect dg-style-${opts.styleClass}" data-scroll="${SCROLL_MODE[scrollMode]}">
+            <div class="dg-main-container ">
                ${
                  opts.header.view
                    ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
@@ -425,7 +425,7 @@ export default class GridMain {
                    : ""
                }
                 
-                <div class="dg-panel dg-body">
+                <div class="dg-panel dg-body ">
                     <div class="dg-left"></div>
                     <div class="dg-center"></div>
                     <div class="dg-right"></div>

@@ -11,6 +11,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   width: "auto", // 넓이값
   fixedLeftIndex: -1,
   fixedRightIndex: 10000,
+  styleClass: "default",
   copyMode: "single", // copy mode	single, multiple, none
   enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부

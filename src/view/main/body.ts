@@ -22,6 +22,7 @@ export default class Body {
 
   private bodyOpts: BodyOptions;
 
+  private bodyElement: DaraElement;
   private leftElement: DaraElement;
   private centerElement: DaraElement;
   private rightElement: DaraElement;
@@ -46,10 +47,11 @@ export default class Body {
   }
 
   public createTemplate() {
-    const containerElement = this.grid.element();
-    this.leftElement = containerElement.findDaraElement(".dg-body>.dg-left");
-    this.centerElement = containerElement.findDaraElement(".dg-body>.dg-center");
-    this.rightElement = containerElement.findDaraElement(".dg-body>.dg-right");
+    const bodyElement = this.grid.element().findDaraElement(".dg-body");
+    this.bodyElement = bodyElement;
+    this.leftElement = bodyElement.findDaraElement(".dg-left");
+    this.centerElement = bodyElement.findDaraElement(".dg-center");
+    this.rightElement = bodyElement.findDaraElement(".dg-right");
 
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));
@@ -70,11 +72,29 @@ export default class Body {
     let viewRow = cfg.scroll.viewRow;
     const startRow = cfg.scroll.startRow;
 
-    viewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
+    const currentViewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
 
-    for (let i = 0; i < viewRow; i++) {
+    // 마지막 라인 처리
+    if (currentViewRow < viewRow) {
+      for (let i = currentViewRow; i < viewRow; i++) {
+        this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+      }
+    } else {
+      for (let i = viewRow - 2; i < viewRow; i++) {
+        this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+      }
+    }
+
+    this.bodyElement.attr({ "data-striped-type": startRow % 2 == 0 ? "odd" : "even" });
+
+    for (let i = 0; i < currentViewRow; i++) {
       const startRowIdx = startRow + i;
       let item = items[startRowIdx];
+
       // left panel
       for (let j = 0; j < leftFields.length; j++) {
         const field = leftFields[j];
@@ -87,7 +107,7 @@ export default class Body {
         field.$renderer.render(startRowIdx, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
 
-      // center panel
+      // right panel
       for (let j = 0; j < rightFields.length; j++) {
         const field = rightFields[j];
         field.$renderer.render(startRowIdx, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
@@ -125,15 +145,22 @@ export default class Body {
     const rowHeight = opts.body.row.height;
 
     for (let i = 0; i < viewRow; i++) {
-      strHtm.push(`<tr class="dg-row ${(i + 1) % 2 == 0 ? "shadow" : ""}" rowinfo="${i}" style="height:${rowHeight}px">`);
+      strHtm.push(`<tr class="dg-row" rowinfo="${i}" style="height:${rowHeight}px">`);
 
       for (let j = 0; j < leafLength; j++) {
         let field = leafFields[j];
         let clickFlag = field.click;
 
-        let tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
+        let tdHtm = "";
+        if (field.$isAside) {
+          tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
+          <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
+        </td>`;
+        } else {
+          tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
           <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
         </td>`;
+        }
 
         strHtm.push(tdHtm);
       }

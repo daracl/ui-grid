@@ -15,12 +15,6 @@
         min-width: auto !important;
         border-collapse: separate !important;
 
-        .dg-row {
-          &.shadow {
-            background-color: var(--row-bg);
-          }
-        }
-
         tr > td {
           border: 1px solid #ddd;
           border-top: none !important;

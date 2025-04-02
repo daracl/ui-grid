@@ -24,6 +24,7 @@ export default {
     if (isEmpty(evtInfo)) {
       return;
     }
+
     for (const eventType of eventTypes) {
       if (isUndefined(evtInfo[eventType])) continue;
 
@@ -33,6 +34,7 @@ export default {
 
       delete evtInfo[eventType];
     }
+
     if (Object.keys(evtInfo).length < 1) {
       EVENT_HANDLER_MAP.delete(el);
     }
