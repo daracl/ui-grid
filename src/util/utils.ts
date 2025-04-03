@@ -129,7 +129,7 @@ export function isHiddenField(field: FieldItem): boolean {
  * @param {*} value
  * @returns {boolean}
  */
-export const isEmpty = (value: any): boolean => isUndefined(value) || value == null; //_isEmpty(value);
+export const isEmpty = (value: any): boolean => isUndefined(value) || value == null;
 
 export const getHashCode = (str: string) => {
   let hash = 0;

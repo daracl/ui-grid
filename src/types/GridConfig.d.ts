@@ -16,8 +16,8 @@ export interface Config {
     toolbarHeight: number;
     // footer height
     footerHeight: number;
-    // main element width
-    mainWidth: number;
+    // main inside  width
+    mainInsideWidth: number;
     // main element height
     mainHeight: number;
 
@@ -35,7 +35,6 @@ export interface Config {
     mainTotalWidth: number;
 
     mainOverWidth: number;
-    mainInsideWidth: number;
   };
   allColumnMap: {
     [key: string]: FieldItem;

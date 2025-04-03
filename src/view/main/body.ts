@@ -56,6 +56,8 @@ export default class Body {
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));
     this.rightElement.html(this.template("right"));
+
+    this.centerElement.css({ left: this.grid.config().dimensions.mainLeftWidth + "px" });
   }
 
   /**

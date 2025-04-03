@@ -14,6 +14,6 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
   }
 
   public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
-    element.innerHTML = `<input type="checkbox"/>`;
+    element.innerHTML = `<input name="dgRowCheck" type="checkbox"/>`;
   }
 }

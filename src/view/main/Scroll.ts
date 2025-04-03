@@ -4,12 +4,11 @@ import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, calcViewCol } from "src/util/gridUtils";
-import { eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import eventUtils from "src/element/eventUtils";
-import domUtils from "src/element/domUtils";
+import domUtils from "src/util/domUtils";
 
 export default class Scroll {
   private grid: DaraGrid;
@@ -96,9 +95,9 @@ export default class Scroll {
   public initEvent() {
     this.initMouseWheel();
 
-    this.initVertical();
+    this.initVerticalEvent();
 
-    // this.initHorizontal();
+    this.initHorizontalEvent();
 
     //this.config;
   }
@@ -108,31 +107,42 @@ export default class Scroll {
     const opts = this.opts;
 
     this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
-    this.gridMain.mainElement().eventOn("wheel DOMMouseScroll", (evt: WheelEvent) => {
-      let delta = evt.deltaY;
+    this.gridMain.mainElement().eventOn(
+      "wheel DOMMouseScroll",
+      (evt: WheelEvent) => {
+        let delta = evt.deltaY;
 
-      //delta > 0--up
-      if (cfg.scroll.enableVertical) {
-        this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
+        if (utils.isEmpty(delta)) return;
 
-        if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight)) {
-          stopPreventCancel(evt);
+        //delta > 0--up
+        if (cfg.scroll.enableVertical) {
+          this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
+
+          if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
+            stopPreventCancel(evt);
+          }
+        } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
+          this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
+
+          if (opts.scroll.enableStopPropagation === true && cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
+            stopPreventCancel(evt);
+          }
         }
-      } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
-        this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
-
-        if (opts.scroll.enableStopPropagation === true && cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
-          stopPreventCancel(evt);
-        }
-      }
-    });
+      },
+      null,
+      { passive: false }
+    );
   }
 
-  private initVertical() {
+  /**
+   * vertical event 초기화
+   *
+   * @private
+   */
+  private initVerticalEvent() {
     const cfg = this.grid.config();
     const opts = this.opts;
 
-    const loopcount = 5;
     let bgMoveMode = 0;
     let upFlag = false;
     let oneRowMove = cfg.scroll.oneRowMove;
@@ -142,20 +152,23 @@ export default class Scroll {
     const trackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
     trackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
     trackElement
-      .eventOn("mousedown touchstart", (e: MouseEvent) => {
-        cfg.scroll.mouseDown = true;
+      .eventOn(
+        "mousedown touchstart",
+        (e: MouseEvent) => {
+          bgMoveMode = 1;
+          startEventY = e.offsetY;
 
-        bgMoveMode = 1;
-        startEventY = e.offsetY;
+          upFlag = startEventY < cfg.scroll.top;
 
-        upFlag = startEventY < cfg.scroll.top;
+          verticalScrollTimer = setInterval(() => {
+            bgMoveMode = 2;
 
-        verticalScrollTimer = setInterval(() => {
-          bgMoveMode = 2;
-
-          this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
-        }, 100);
-      })
+            this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
+          }, 100);
+        },
+        null,
+        { passive: false }
+      )
       .eventOn("mouseup touchend mouseleave", (e: Event) => {
         if (bgMoveMode == 1) {
           this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
@@ -173,72 +186,84 @@ export default class Scroll {
     const verticalThumbElement = this.verticalThumbElement;
     // 세로 스크롤 바 .
     verticalThumbElement.eventOff("touchstart mousedown");
-    verticalThumbElement.eventOn("touchstart mousedown", (e: MouseEvent) => {
-      stopPreventCancel(e);
+    verticalThumbElement.eventOn(
+      "touchstart mousedown",
+      (e: MouseEvent) => {
+        stopPreventCancel(e);
 
-      const data = {} as any;
-      data.top = cfg.scroll.top;
-      data.pageY = eventPosition(e).y;
+        const data = {} as any;
+        data.top = cfg.scroll.top;
+        data.pageY = eventPosition(e).y;
 
-      verticalThumbElement.addClass("active");
+        verticalThumbElement.addClass("active");
 
-      let startTime: number = -1;
+        let startTime: number = -1;
 
-      eventUtils.eventOn(document, "touchmove mousemove", (e1: Event) => {
-        if (startTime == -1) {
-          startTime = new Date().getTime();
-        }
+        eventOn(document, "touchmove mousemove", (e1: Event) => {
+          if (startTime == -1) {
+            startTime = new Date().getTime();
+          }
 
-        if (new Date().getTime() - vDragDelay <= startTime) {
+          if (new Date().getTime() - vDragDelay <= startTime) {
+            clearTimeout(scrollbarDragTimer);
+          }
+
+          scrollbarDragTimer = setTimeout(() => {
+            startTime = -1;
+
+            this.moveVerticalScroll({ position: data.top + (eventPosition(e1).y - data.pageY) });
+
+            if (tooltipFlag) {
+              tooltipEle.text(cfg.scroll.viewRow + 1);
+              tooltipEle.show();
+            }
+          }, vDragDelay);
+        });
+
+        eventOn(document, "touchend mouseup", (e1: Event) => {
+          verticalThumbElement.removeClass("active");
           clearTimeout(scrollbarDragTimer);
-        }
 
-        scrollbarDragTimer = setTimeout(() => {
+          this.moveVerticalScroll({ position: data.top + (eventPosition(e1).y - data.pageY) });
+          eventOff(document, "touchmove mousemove touchend mouseup");
+
           startTime = -1;
-          this.verticalScroll(data, e1, "move");
 
           if (tooltipFlag) {
-            tooltipEle.text(cfg.scroll.viewRow + 1);
-            tooltipEle.show();
+            tooltipEle.hide();
           }
-        }, vDragDelay);
-      });
+        });
 
-      eventUtils.eventOn(document, "touchend mouseup", (e1: Event) => {
-        verticalThumbElement.removeClass("active");
-        clearTimeout(scrollbarDragTimer);
-        this.verticalScroll(data, e1, "end");
-        startTime = -1;
-
-        if (tooltipFlag) {
-          tooltipEle.hide();
-        }
-      });
-
-      return true;
-    });
+        return true;
+      },
+      null,
+      { passive: false }
+    );
 
     let scrollBtnTimer: any;
     let vBtnDelay = 100;
     const scrollButtonElements = this.verticalElement.finds(".dg-scroll-button");
     let buttonMoveMode = 0;
     //세로 방향키
-    eventUtils.eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
-    eventUtils.eventOn(scrollButtonElements, "mousedown touchstart", (e: Event) => {
-      const sEle = e.currentTarget as HTMLElement;
+    eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
+    eventOn(
+      scrollButtonElements,
+      "mousedown touchstart",
+      (e: Event) => {
+        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "up");
+        buttonMoveMode = 1;
 
-      const mode = domUtils.hasClass(sEle, "up");
-      buttonMoveMode = 1;
-
-      scrollBtnTimer = setInterval(() => {
-        buttonMoveMode = 2;
-        this.moveVerticalScroll({ direction: mode ? "U" : "D" });
-      }, vBtnDelay);
-    });
-    eventUtils.eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
+        scrollBtnTimer = setInterval(() => {
+          buttonMoveMode = 2;
+          this.moveVerticalScroll({ direction: mode ? "U" : "D" });
+        }, vBtnDelay);
+      },
+      null,
+      { passive: false }
+    );
+    eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
       if (buttonMoveMode == 1) {
-        const sEle = e.currentTarget as HTMLElement;
-        const mode = domUtils.hasClass(sEle, "up");
+        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "up");
         this.moveVerticalScroll({ direction: mode ? "U" : "D" });
       }
       clearInterval(scrollBtnTimer);
@@ -260,103 +285,161 @@ export default class Scroll {
 
     if (upFlag) {
       if (startEventY >= pTop) {
-        cfg.scroll.mouseDown = false;
         pTop = startEventY - oneRowMove * 2;
       }
     } else if (startEventY <= pTop + cfg.scroll.vThumbHeight) {
-      cfg.scroll.mouseDown = false;
       pTop = startEventY - cfg.scroll.vThumbHeight + oneRowMove * 2;
     }
     return pTop;
   }
 
   /**
-   * 세로 스크롤 드래그 이동
+   * horizontal event 초기화
    *
-   * @param {*} data
-   * @param {*} e
-   * @param {*} type
+   * @private
    */
-  public verticalScroll(data: any, e: Event, type: string) {
-    const oy = data.top + (eventPosition(e).y - data.pageY);
+  private initHorizontalEvent() {
+    const cfg = this.grid.config();
+    const opts = this.opts;
 
-    this.moveVerticalScroll({ position: oy });
-    if (type == "end") {
-      eventUtils.eventOff(document, "touchmove mousemove touchend mouseup");
-    }
+    let bgMoveMode = 0;
+    let leftFlag = false;
+    let oneColMove = cfg.scroll.oneColMove;
+    let startEventX = 0;
+    let bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
+    let horizontalScrollTimer: any;
+    const trackElement = this.horizontalElement.findDaraElement(".dg-scroll-track");
+    trackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    trackElement
+      .eventOn(
+        "mousedown touchstart",
+        (e: MouseEvent) => {
+          bgMoveMode = 1;
+          startEventX = e.offsetX;
+
+          leftFlag = startEventX < cfg.scroll.left;
+
+          horizontalScrollTimer = setInterval(() => {
+            bgMoveMode = 2;
+
+            this.moveHorizontalScroll({ position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol) });
+          }, 100);
+        },
+        null,
+        { passive: false }
+      )
+      .eventOn("mouseup touchend mouseleave", (e: Event) => {
+        if (bgMoveMode == 1) {
+          this.moveHorizontalScroll({ position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol) });
+        }
+        clearTimeout(horizontalScrollTimer);
+        bgMoveMode = 0;
+      });
+
+    let scrollbarDragTimer: any;
+    const hDragDelay = 7; //opts.scroll.horizontal.dragDelay;
+
+    const horizontalThumbElement = this.horizontalThumbElement;
+
+    horizontalThumbElement.eventOff("touchstart mousedown");
+    horizontalThumbElement.eventOn(
+      "touchstart mousedown",
+      (e: MouseEvent) => {
+        stopPreventCancel(e);
+
+        const data = {} as any;
+
+        data.left = cfg.scroll.left;
+        data.pageX = eventPosition(e).x;
+
+        horizontalThumbElement.addClass("active");
+        let startTime: number = -1;
+
+        eventOn(document, "touchmove mousemove", (e1: Event) => {
+          if (startTime == -1) {
+            startTime = new Date().getTime();
+          }
+
+          if (new Date().getTime() - hDragDelay <= startTime) {
+            clearTimeout(scrollbarDragTimer);
+          }
+
+          scrollbarDragTimer = setTimeout(() => {
+            startTime = -1;
+
+            this.moveHorizontalScroll({ position: data.left + (eventPosition(e1).x - data.pageX) });
+          }, hDragDelay);
+        });
+
+        eventOn(document, "touchend mouseup", (e1: Event) => {
+          horizontalThumbElement.removeClass("active");
+          clearTimeout(scrollbarDragTimer);
+
+          this.moveHorizontalScroll({ position: data.left + (eventPosition(e1).x - data.pageX) });
+          eventOff(document, "touchmove mousemove touchend mouseup");
+
+          startTime = -1;
+        });
+
+        return true;
+      },
+      null,
+      { passive: false }
+    );
+
+    let scrollBtnTimer: any;
+    let vBtnDelay = 100;
+    const scrollButtonElements = this.horizontalElement.finds(".dg-scroll-button");
+    let buttonMoveMode = 0;
+    //세로 방향키
+    eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
+    eventOn(
+      scrollButtonElements,
+      "mousedown touchstart",
+      (e: Event) => {
+        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "left");
+        buttonMoveMode = 1;
+
+        scrollBtnTimer = setInterval(() => {
+          buttonMoveMode = 2;
+          this.moveHorizontalScroll({ direction: mode ? "L" : "R" });
+        }, vBtnDelay);
+      },
+      null,
+      { passive: false }
+    );
+    eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
+      if (buttonMoveMode == 1) {
+        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "left");
+        this.moveHorizontalScroll({ direction: mode ? "L" : "R" });
+      }
+      clearInterval(scrollBtnTimer);
+      buttonMoveMode = 0;
+    });
   }
 
-  // private initHorizontal() {
-  //   $("#" + this.prefix + "_hscroll .pubGrid-hscroll-bar-bg").off("mousedown touchstart mouseup touchend mouseleave");
-  //   $("#" + this.prefix + "_hscroll .pubGrid-hscroll-bar-bg")
-  //     .on("mousedown touchstart", (e: Event) => {
-  //       this.horizontalMove(e.offsetX, this.config.scroll.left, this.config.scroll.hThumbWidth, this.config.scroll.oneColMove);
-  //     })
-  //     .on("mouseup touchend mouseleave", (e: Event) => {
-  //       this.config.scroll.mouseDown = false;
-  //       clearTimeout(this.config.scroll.horizontalScrollTimer);
-  //     });
+  /**
+   *
+   * @param cfg 설정 정보
+   * @param startEventY start event y
+   * @param oneRowMove row move value
+   * @param upFlag up down flag up = true
+   * @param bgMoveCol
+   * @returns
+   */
+  public getHorizontalBgMovePostion(cfg: Config, startEventX: number, oneColMove: number, leftFlag: boolean, bgMoveCol: number) {
+    let leftPosition = cfg.scroll.left + (leftFlag ? -1 : 1) * bgMoveCol;
 
-  //   let scrollbarDragTimer: any;
-  //   let startTime: number = -1;
-  //   const hDragDelay = this.options.scroll.horizontal.dragDelay;
-  //   // 가로 스크롤 bar drag
-  //   this.grid.elementMap.hScrollBar.off("touchstart.pubhscroll mousedown.pubhscroll");
-  //   this.grid.elementMap.hScrollBar.on("touchstart.pubhscroll mousedown.pubhscroll", (e: Event) => {
-  //     e.stopPropagation();
+    if (leftFlag) {
+      if (startEventX >= leftPosition) {
+        leftPosition = startEventX - oneColMove;
+      }
+    } else if (startEventX <= leftPosition + cfg.scroll.hThumbWidth) {
+      leftPosition = startEventX - cfg.scroll.hThumbWidth + oneColMove * 2;
+    }
 
-  //     const ele = $(this);
-  //     const data = {} as any;
-
-  //     data.left = this.config.scroll.left;
-  //     data.pageX = eventPosition(e).x;
-
-  //     ele.addClass("active");
-
-  //     $(document)
-  //       .on("touchmove.pubhscroll mousemove.pubhscroll", (e1: Event) => {
-  //         if (startTime == -1) {
-  //           startTime = new Date().getTime();
-  //         }
-
-  //         if (new Date().getTime() - hDragDelay <= startTime) {
-  //           clearTimeout(scrollbarDragTimer);
-  //         }
-
-  //         scrollbarDragTimer = setTimeout(() => {
-  //           startTime = -1;
-  //           this.horizontalScroll(data, e1, "move");
-  //         }, hDragDelay);
-  //       })
-  //       .on("touchend.pubhscroll mouseup.pubhscroll mouseleave.pubhscroll", (e1: Event) => {
-  //         ele.removeClass("active");
-  //         clearTimeout(scrollbarDragTimer);
-  //         startTime = -1;
-  //         this.horizontalScroll(data, e1, "end");
-  //       });
-
-  //     return true;
-  //   });
-
-  //   // 가로 스크롤 방향키
-  //   let scrollBtnTimer: any,
-  //     vBtnDelay = this.options.scroll.vertical.btnDelay,
-  //     hBtnDelay = this.options.scroll.horizontal.btnDelay;
-
-  //   $("#" + this.prefix + "_hscroll .pubGrid-hscroll-btn").off("mousedown touchstart mouseup touchend mouseleave");
-  //   $("#" + this.prefix + "_hscroll .pubGrid-hscroll-btn")
-  //     .on("mousedown touchstart", (e: Event) => {
-  //       const sEle = $(this),
-  //         mode = sEle.attr("data-pubgrid-btn");
-
-  //       scrollBtnTimer = setInterval(() => {
-  //         this.moveHorizontalScroll({ direction: mode });
-  //       }, hBtnDelay);
-  //     })
-  //     .on("mouseup touchend mouseleave", function (e) {
-  //       clearInterval(scrollBtnTimer);
-  //     });
-  // }
+    return leftPosition;
+  }
 
   /**
    * 세로 스크롤 이동.
@@ -438,19 +521,6 @@ export default class Scroll {
     this.gridMain.getBody().dataDraw("vscroll");
   }
 
-  // /**
-  //  * 가로 스크롤 드래그 이동
-  //  */
-  // public horizontalScroll(data: any, e: Event, type: string) {
-  //   const ox = data.left + (eventPosition(e).x - data.pageX);
-
-  //   this.moveHorizontalScroll({ direction: ox });
-
-  //   if (type == "end") {
-  //     $(document).off("touchmove.pubhscroll mousemove.pubhscroll").off("touchend.pubhscroll mouseup.pubhscroll mouseleave.pubhscroll");
-  //   }
-  // }
-
   /**
    * @method moveHorizontalScroll
    * @param  moveObj.direction {String ,Integer} 'L' or 'R' or left position
@@ -472,26 +542,15 @@ export default class Scroll {
       }
     }
 
-    const posVal = moveObj.direction;
+    let leftVal = 0;
 
-    let leftVal = posVal;
-
-    if (isNaN(posVal)) {
-      if (utils.isUndefined(moveObj.colIdx)) {
-        leftVal = cfg.scroll.left + (posVal == "L" ? -1 : 1) * cfg.scroll.oneColMove;
-      } else {
-        const constLeft = cfg.scroll.left;
-
-        if (posVal == "L") {
-          leftVal = constLeft;
-        } else {
-          leftVal = constLeft + cfg.dimensions.mainTotalWidth;
-          leftVal = leftVal - cfg.dimensions.mainInsideWidth;
-        }
-
-        leftVal = (leftVal / cfg.dimensions.mainInsideWidth) * 100;
-        leftVal = (leftVal * cfg.scroll.hTrackWidth) / 100;
-      }
+    if (utils.isNumber(moveObj.position)) {
+      leftVal = moveObj.position;
+    } else if (utils.isNumber(moveObj.rowIdx)) {
+      leftVal = moveObj.rowIdx * cfg.scroll.oneRowMove;
+    } else if (utils.isString(moveObj.direction)) {
+      const speed = moveObj.speed || 1;
+      leftVal = cfg.scroll.left + (moveObj.direction == "L" ? -1 : 1) * speed * cfg.scroll.oneColMove;
     }
 
     this.moveHorizontalScrollPosition(leftVal, moveObj.drawFlag);
@@ -529,51 +588,24 @@ export default class Scroll {
       }
     }
 
+    console.log("contLeftVal : ", contLeftVal);
+
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
     this.gridMain
       .mainElement()
       .findDaraElement(".dg-header > .dg-center")
-      .css({ left: "-" + contLeftVal + "px" });
+      .css({ "margin-left": cfg.dimensions.mainLeftWidth + "px", left: "-" + contLeftVal + "px" });
 
     this.gridMain
       .mainElement()
       .findDaraElement(".dg-body > .dg-center")
-      .css({ left: "-" + contLeftVal + "px" });
+      .css({ "margin-left": cfg.dimensions.mainLeftWidth + "px", left: "-" + contLeftVal + "px" });
 
     if (drawFlag !== false) {
       this.gridMain.getBody().dataDraw("hscroll");
     }
   }
-
-  // public horizontalMove(pEvtX: number, pLeft: number, hThumbWidth: number, oneColMove: number) {
-  //   this.config.scroll.mouseDown = true;
-
-  //   clearTimeout(this.config.scroll.horizontalScrollTimer);
-
-  //   const leftFlag = pEvtX < this.config.scroll.left;
-  //   const loopcount = 10;
-
-  //   pLeft = pLeft + (leftFlag ? -1 : 1) * (oneColMove * loopcount);
-
-  //   if (leftFlag) {
-  //     if (pEvtX >= pLeft) {
-  //       this.config.scroll.mouseDown = false;
-  //       pLeft = pEvtX;
-  //     }
-  //   } else if (pEvtX <= pLeft + hThumbWidth) {
-  //     this.config.scroll.mouseDown = false;
-  //     pLeft = pEvtX - hThumbWidth;
-  //   }
-
-  //   this.moveHorizontalScroll({ direction: pLeft });
-
-  //   if (this.config.scroll.mouseDown) {
-  //     this.config.scroll.horizontalScrollTimer = setTimeout(() => {
-  //       this.horizontalMove(pEvtX, pLeft, hThumbWidth, oneColMove);
-  //     }, 100);
-  //   }
-  // }
 
   // /**
   //  * @method _getBodyContainerLeft

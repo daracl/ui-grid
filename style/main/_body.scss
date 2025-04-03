@@ -2,13 +2,26 @@
 
 @mixin body {
   .dg-body {
-    display: table-row;
     position: relative;
     z-index: 0;
 
     & > div {
-      display: table-cell;
-      position: relative;
+      position: absolute;
+      background: var(--body-bg);
+
+      &.dg-left {
+        left: 0px;
+        z-index: 1;
+      }
+
+      &.dg-center {
+        z-index: 0;
+      }
+
+      &.dg-right {
+        right: 0px;
+        z-index: 1;
+      }
 
       > .dg-body-table {
         table-layout: fixed;

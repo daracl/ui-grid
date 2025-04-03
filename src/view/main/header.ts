@@ -42,6 +42,9 @@ export default class Header {
     this.createTemplate();
 
     this.setHeight(this.grid.config().dimensions.mainHeaderHeight);
+
+    // left 값 셋팅
+    this.centerElement.css({ left: this.grid.config().dimensions.mainLeftWidth + "px" });
   }
 
   /**

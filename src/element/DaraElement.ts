@@ -1,6 +1,6 @@
+import { eventOff, eventOn } from "src/util/eventUtils";
 import { styleClassSplit } from "../util/styleUtils";
 import { isString, isUndefined } from "../util/utils";
-import eventUtils from "./eventUtils";
 
 export default class DaraElement {
   private readonly element: HTMLElement;
@@ -178,12 +178,12 @@ export default class DaraElement {
   }
 
   eventOff(type: string) {
-    eventUtils.eventOff(this.element, type);
+    eventOff(this.element, type);
     return this;
   }
 
-  eventOn(type: string, selector: any, listener?: any) {
-    eventUtils.eventOn(this.element, type, selector, listener);
+  eventOn(type: string, listener: any, selector?: any, fnOpts?: any) {
+    eventOn(this.element, type, listener, selector, fnOpts);
     return this;
   }
 

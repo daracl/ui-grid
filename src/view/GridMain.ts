@@ -30,6 +30,8 @@ let DARA_GRID_SEQ = 0;
 export default class GridMain {
   private grid: DaraGrid;
 
+  private _BODY_STYLE: string[] = ["default", "striped", "borderless"];
+
   private header: Header;
 
   private body: Body;
@@ -131,7 +133,6 @@ export default class GridMain {
     for (const field of fields) {
       mainTotalWidth += field.width;
     }
-    dimensions.mainTotalWidth = mainTotalWidth;
 
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
@@ -190,6 +191,7 @@ export default class GridMain {
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
+    dimensions.mainInsideWidth = dimensions.width + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
     cfg.scroll.enableHorizontal = dimensions.mainTotalWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
 
@@ -413,7 +415,7 @@ export default class GridMain {
     let templateHtml = `
       <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
         ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-        <div class="dg-main daracl-noselect dg-style-${opts.styleClass}" data-scroll="${SCROLL_MODE[scrollMode]}">
+        <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="${SCROLL_MODE[scrollMode]}">
             <div class="dg-main-container ">
                ${
                  opts.header.view
