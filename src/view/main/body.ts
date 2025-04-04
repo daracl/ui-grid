@@ -75,19 +75,21 @@ export default class Body {
     const startRow = cfg.scroll.startRow;
 
     const currentViewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
-
+    const leftLength = leftFields.length;
+    const centerLength = centerFields.length;
+    const rightLength = rightFields.length;
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       for (let i = currentViewRow; i < viewRow; i++) {
-        this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
-        this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
-        this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
       }
     } else {
       for (let i = viewRow - 2; i < viewRow; i++) {
-        this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
-        this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
-        this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
       }
     }
 
@@ -98,19 +100,19 @@ export default class Body {
       let item = items[startRowIdx];
 
       // left panel
-      for (let j = 0; j < leftFields.length; j++) {
+      for (let j = 0; j < leftLength; j++) {
         const field = leftFields[j];
         field.$renderer.render(startRowIdx, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
 
       // center panel
-      for (let j = 0; j < centerFields.length; j++) {
+      for (let j = 0; j < centerLength; j++) {
         const field = centerFields[j];
         field.$renderer.render(startRowIdx, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
 
       // right panel
-      for (let j = 0; j < rightFields.length; j++) {
+      for (let j = 0; j < rightLength; j++) {
         const field = rightFields[j];
         field.$renderer.render(startRowIdx, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
@@ -182,6 +184,6 @@ export default class Body {
     return `<table class="dg-body-table" style="width:${tableWidth}px;">
       <colgroup>${colGroupHtm.join("")}</colgroup>
       <tbody>${strHtm.join("")}</tbody>
-    </table>`;
+    </table> ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
   }
 }

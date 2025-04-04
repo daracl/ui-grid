@@ -50,21 +50,22 @@ export default class Scroll {
     const rowHeight = opts.body.row.height;
 
     if (cfg.scroll.enableVertical) {
+      const arrowButtonHeight = 10 * 2;
       const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
-      const scrollHeight = dimensions.mainHeight;
+      const verticalHeight = dimensions.mainHeight;
 
-      let barHeight = (scrollHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-      if (scrollHeight < 25) {
+      let barHeight = (verticalHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
+      if (verticalHeight < 25) {
         barHeight = 1;
       } else {
-        barHeight = barHeight < 25 ? 25 : barHeight > scrollHeight ? scrollHeight : barHeight;
+        barHeight = barHeight < 25 ? 25 : barHeight > verticalHeight ? verticalHeight : barHeight;
       }
 
-      cfg.scroll.vHeight = scrollHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
+      cfg.scroll.vHeight = verticalHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
       cfg.scroll.vThumbHeight = barHeight;
-      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - 20;
+      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonHeight;
       // row 보이기 기준으로 계산
-      cfg.scroll.oneRowMove = (cfg.scroll.vHeight - (barHeight + 20)) / (cfg.dataInfo.rowLength - Math.floor((dimensions.mainBodyHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0)) / rowHeight));
+      cfg.scroll.oneRowMove = (cfg.scroll.vHeight - (barHeight + arrowButtonHeight)) / (cfg.dataInfo.rowLength - Math.floor((dimensions.mainBodyHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0)) / rowHeight));
 
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
       this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
@@ -72,17 +73,20 @@ export default class Scroll {
     }
 
     if (cfg.scroll.enableHorizontal) {
+      const arrowButtonWidth = 10 * 2;
       const columnTotalWidth = dimensions.mainTotalWidth;
-      const horizontalWidth = dimensions.width - (10 * 2 + (cfg.scroll.enableVertical ? opts.scroll.width : 0));
+      const horizontalWidth = dimensions.width;
 
       let barWidth = (horizontalWidth * ((dimensions.width / columnTotalWidth) * 100)) / 100;
 
       barWidth = barWidth < 25 ? 25 : barWidth > horizontalWidth ? horizontalWidth : barWidth;
 
+      cfg.scroll.hWidth = horizontalWidth - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
       cfg.scroll.hThumbWidth = barWidth;
-      cfg.scroll.hTrackWidth = horizontalWidth - barWidth;
+      cfg.scroll.hTrackWidth = cfg.scroll.hWidth - arrowButtonWidth;
       cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
 
+      this.horizontalElement.find(".dg-scroll-track").style.width = cfg.scroll.hTrackWidth + "px";
       this.horizontalElement.css({ width: dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) + "px" });
       this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
     }
@@ -566,9 +570,13 @@ export default class Scroll {
   public moveHorizontalScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
     const cfg = this.grid.config();
 
-    const hw = cfg.scroll.hTrackWidth;
-    leftVal = leftVal >= hw ? hw : leftVal;
-    leftVal = leftVal > -1 ? leftVal : 0;
+    //
+
+    if (leftVal >= cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth) {
+      leftVal = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
+    } else if (leftVal <= 0) {
+      leftVal = 0;
+    }
 
     if (cfg.scroll.left == leftVal) {
       return;
@@ -577,7 +585,6 @@ export default class Scroll {
     const contLeftVal = calcViewCol(cfg, leftVal);
 
     cfg.scroll.left = leftVal;
-    cfg.scroll.hBarPosition = (leftVal / hw) * 100;
 
     if (updateChkFlag !== false) {
       const onUpdateFn = this.opts.scroll.horizontal.onUpdate;

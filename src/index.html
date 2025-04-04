@@ -139,7 +139,7 @@
     }
 
     let aaa, colItem;
-    const itemType = 2;
+    const itemType = 1;
 
     let item = getItem(itemType);
 
@@ -292,7 +292,6 @@
           }
 
           if (keyIdx == 1) {
-            addColItem.colspan = 2;
             addColItem.editor = {
               type: 'text'
             }
@@ -339,12 +338,12 @@
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
-      , fixedLeftIndex: 2
-      , fixedRightIndex: 40
+      , fixedLeftIndex: 1
+      , fixedRightIndex: 0
       //,height: 360
       , aside: {
-        lineNumber: { enabled: true }
-        , rowCheckbox: {
+        lineNumber: { enabled: true },
+        rowCheckbox: {
           enabled: true
           , key: 'checkbox'
           , name: 'V'

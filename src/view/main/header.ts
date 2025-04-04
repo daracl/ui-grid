@@ -168,6 +168,6 @@ export default class Header {
     return `<table class="dg-header-table" style="width:${tableWidth}px;">
       <colgroup>${colGroupHtm.join("")}</colgroup>
       <thead>${strHtm.join("")}</thead>
-    </table>`;
+    </table>${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
   }
 }

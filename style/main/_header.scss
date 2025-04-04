@@ -8,9 +8,14 @@
     & > div {
       position: absolute;
       background: var(--header-bg);
+
       &.dg-left {
         left: 0px;
         z-index: 1;
+
+        .fixed-column-line {
+          right: 0px;
+        }
       }
 
       &.dg-center {
@@ -20,6 +25,10 @@
       &.dg-right {
         right: 0px;
         z-index: 1;
+
+        .fixed-column-line {
+          left: 0px;
+        }
       }
 
       > .dg-header-table {

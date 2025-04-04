@@ -1,6 +1,6 @@
 import { eventOff, eventOn } from "src/util/eventUtils";
 import { styleClassSplit } from "../util/styleUtils";
-import { isString, isUndefined } from "../util/utils";
+import { isBlank, isString, isUndefined } from "../util/utils";
 
 export default class DaraElement {
   private readonly element: HTMLElement;
@@ -50,6 +50,9 @@ export default class DaraElement {
     }
 
     this.empty();
+
+    if (isBlank(text)) return;
+
     this.element.innerHTML = text;
   }
 

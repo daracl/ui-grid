@@ -143,9 +143,9 @@ export default class GridMain {
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
 
+    console.log("cfg.fixedRightIndex : ", cfg.fixedRightIndex);
     //세로 스크롭 계산 end
-
-    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 2); // 마지막 여백처리;
     const overWidth = dimensions.width - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -191,7 +191,7 @@ export default class GridMain {
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
-    dimensions.mainInsideWidth = dimensions.width + (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+    dimensions.mainInsideWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
     cfg.scroll.enableHorizontal = dimensions.mainTotalWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
 
@@ -229,10 +229,15 @@ export default class GridMain {
       asideOrder[opts.aside.modifyInfo.order ?? 2] = fieldItem;
     }
 
-    const fixedLeftIndex = asideOrder.length + cfg.fixedLeftIndex;
-    const fixedRightIndex = cfg.fixedRightIndex;
+    asideOrder = asideOrder.filter((item) => item !== null && item !== undefined);
 
     cfg.dataInfo.asideLength = asideOrder.length;
+
+    const fixedLeftIndex = cfg.dataInfo.asideLength + cfg.fixedLeftIndex - 1;
+    const fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : cfg.dataInfo.asideLength + cfg.fixedRightIndex;
+
+    //console.log("fixedRightIndex : ", fixedRightIndex, cfg.fixedRightIndex);
+
     fields.unshift(...asideOrder);
 
     for (let field of fields) {
@@ -318,7 +323,7 @@ export default class GridMain {
     }
 
     // 컬럼 고정 처리.
-    if (fixedLeftIndex > field.$resizeIdx - field.$colspan) {
+    if ((field.$childLength > 0 && fixedLeftIndex > field.$resizeIdx - field.$colspan) || (field.$childLength < 1 && fixedLeftIndex >= field.$resizeIdx)) {
       if (field.$colspan == 1) {
         fieldGroupInfo.left[depth].push(field);
       } else {
@@ -338,8 +343,33 @@ export default class GridMain {
       }
       field.$panel = "left";
       if (field.$isLeaf) fieldGroupInfo.leafLeft.push(field);
-    } else if (fixedRightIndex <= field.$resizeIdx - field.$colspan) {
-      fieldGroupInfo.right[depth].push(field);
+    } else if ((field.$childLength > 0 && fixedRightIndex < field.$resizeIdx + field.$colspan) || (field.$childLength < 1 && fixedRightIndex <= field.$resizeIdx)) {
+      if (field.$colspan == 1) {
+        fieldGroupInfo.right[depth].push(field);
+      } else {
+        const rightNode = utils.merge({}, field);
+
+        if (rightNode.$resizeIdx > fixedRightIndex) {
+          rightNode.$colspan = fixedRightIndex - rightNode.$resizeIdx;
+          rightNode.$resizeIdx = fixedRightIndex;
+        }
+
+        console.log("rightNode ", fixedRightIndex, rightNode.$resizeIdx, rightNode);
+
+        // right 처리 할것.
+        /**
+          ㄴㅁㄻㄴㅇㄻㄴㅇㄹ
+
+        */
+
+        fieldGroupInfo.right[depth].push(rightNode);
+        if (fixedRightIndex <= field.$resizeIdx) {
+          const bodyNode = utils.merge({}, field);
+          bodyNode.$colspan = field.$resizeIdx - rightNode.$colspan;
+          fieldGroupInfo.center[depth].push(bodyNode);
+        }
+      }
+
       field.$panel = "right";
       if (field.$isLeaf) fieldGroupInfo.leafRight.push(field);
     } else {

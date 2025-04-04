@@ -77,9 +77,9 @@ export const calcViewCol = (cfg: Config, leftVal: number): number => {
 
   const mainOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth;
 
-  const containerLeft = leftVal < 1 ? 0 : (mainOverWidth * ((leftVal / cfg.scroll.hTrackWidth) * 100)) / 100;
+  console.log("cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth : ", cfg.scroll.hTrackWidth, cfg.scroll.hThumbWidth, leftVal, (leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100);
 
-  console.log(dimensions.mainTotalWidth, dimensions.mainInsideWidth, " dimensions.mainLeftWidth : ", dimensions.mainLeftWidth, "containerLeft : ", containerLeft, cfg.scroll.hTrackWidth, (leftVal / cfg.scroll.hTrackWidth) * 100);
+  const containerLeft = leftVal < 1 ? 0 : (mainOverWidth * ((leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
 
   const tci = cfg.currentFields;
   const gridW = containerLeft + cfg.dimensions.mainInsideWidth;

@@ -63,8 +63,8 @@ export const initConfig = (opts: GridOptions): Config => {
       searchCheckItem: false, // 검색 정규식
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
-    fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex - 1 : -1,
-    fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex - 1 : 10000,
+    fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex : 0,
+    fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex : 0,
     scroll: initScrollInfo(),
     element: {
       grid: undefined,

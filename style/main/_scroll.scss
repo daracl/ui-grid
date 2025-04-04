@@ -68,8 +68,8 @@
       vertical-align: middle;
       bottom: 0px;
       z-index: 3;
+      padding: 0px 10px 0px 10px;
       border-top: 1px solid #d5d5d8;
-      padding: 1px 0px 1px 0px;
 
       .dg-scroll-thumb {
         left: 0px;
@@ -81,7 +81,6 @@
       }
 
       .dg-scroll-track {
-        padding: 0px 10px 0px 10px;
         border-bottom: 1px solid transparent;
       }
 
