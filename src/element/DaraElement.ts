@@ -174,7 +174,7 @@ export default class DaraElement {
     const classList = this.element.classList;
 
     for (let className of styleClassSplit(styleClasss)) {
-      if (!classList.contains(className)) {
+      if (classList.contains(className)) {
         classList.remove(className);
       }
     }

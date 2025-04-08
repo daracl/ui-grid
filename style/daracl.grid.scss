@@ -19,9 +19,10 @@
 .daracl-grid {
   --border-color: #dfe1e5;
   --border_thick_color: #b9bdc1;
-  --scroll-bg: #f1f1f1;
-  --scroll-track-bg: #f1f1f1;
+  --scroll-bg: #ffffff;
+  --scroll-track-bg: #ffffff;
   --scroll-thumb-bg: #a5a5a5;
+  --scroll-thumb-hover-bg: #696969;
   --scroll-button-bg: #c5c3c3;
 
   --status-danger-color: #d9534f;
@@ -60,6 +61,7 @@ body.dark .daracl-grid.dark {
   --scroll-bg: #262729;
   --scroll-track-bg: #262729;
   --scroll-thumb-bg: #afa0a0;
+  --scroll-thumb-hover-bg: #ccc9c9;
   --scroll-button-bg: #c5c3c3;
 
   --status-danger-color: #d9534f;

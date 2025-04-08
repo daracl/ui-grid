@@ -33,8 +33,8 @@
       <option value="5">5</option>
       <option value="10">10</option>
       <option value="20">20</option>
-      <option value="30">30</option>
-      <option value="50" selected>50</option>
+      <option value="30" selected>30</option>
+      <option value="50">50</option>
       <option value="100">100</option>
     </select>
     theme
@@ -43,6 +43,12 @@
       <option value="dark">dark</option>
     </select>
 
+    타입
+    <select id="dataType">
+      <option value="1">헤더 2단</option>
+      <option value="2">헤더 3단</option>
+      <option value="3" selected>헤더 1단</option>
+    </select>
     <button type="button" onclick="fn_init()">regrid</button>
 
     <button type="button" class="set-data">setData</button>
@@ -139,7 +145,7 @@
     }
 
     let aaa, colItem;
-    const itemType = 1;
+    const itemType = document.getElementById('dataType').value;
 
     let item = getItem(itemType);
 
@@ -176,6 +182,7 @@
           , h: i
           , i: 'iiii' + i
           , j: 'jjjj' + i
+          , z: 'zzzz[[]]' + i
           , idx: i
         });
       }
@@ -183,9 +190,9 @@
         {
           label: 'a+b',
           children: [
-            { name: 'a', label: '에이에이에이에이에이에이', width: 150, sort: true, editable: false }
+            { name: 'a', label: '에이에이에이에이에이에이', width: 50, sort: true, editable: false }
             , {
-              name: 'b', label: '비', width: 100, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
+              name: 'b', label: '비', width: 50, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
                 if (rowInfo.rowItemIdx % 3 == 0) {
                   return 'pub-bg-primary';
                 } else if (rowInfo.rowItemIdx % 3 == 1) {
@@ -195,6 +202,8 @@
                 }
               }
             }
+            , { name: 'z', label: 'ZZZZ', width: 50, sort: true, editable: false }
+
           ]
         }
         , {
@@ -258,6 +267,151 @@
         }
         //,{key :'d', label:'디', hidden:true}
       ]
+    } else if (type == 2) {
+
+      for (let i = 0; i < itemCount; i++) {
+        let item = {};
+        item["sample"] = i + " samplesample"
+
+        for (let j = 1; j <= 12; j++) {
+          item['a' + j] = i + "_" + j + " a --- 222222222";
+          item['b' + j] = i + "_" + j + " b --- 222222222";
+        }
+
+        aaa.push(item);
+      }
+
+      colItem = [{
+        name: "sample",
+        label: "지역",
+        width: 120
+      }, {
+        label: "2022",
+        children: [{
+          label: "1분기",
+          children: [{
+            name: "a1",
+            label: "1월",
+            dataType: "numeric"
+          }, {
+            name: "a2",
+            label: "2월",
+            dataType: "numeric"
+          }, {
+            name: "a3",
+            label: "3월",
+            dataType: "numeric"
+          }]
+
+        }, {
+          label: "2분기",
+          children: [{
+            name: "a4",
+            label: "4월",
+            dataType: "numeric"
+          }, {
+            name: "a5",
+            label: "5월",
+            dataType: "numeric"
+          }, {
+            name: "a6",
+            label: "6월",
+          }]
+        }, {
+          label: "3분기",
+          children: [{
+            name: "a7",
+            label: "7월",
+            dataType: "numeric"
+          }, {
+            name: "a8",
+            label: "8월",
+            dataType: "numeric"
+          }, {
+            name: "a9",
+            label: "9월",
+            dataType: "numeric"
+          }]
+        }, {
+          label: "4분기",
+          children: [{
+            name: "a10",
+            label: "10월",
+            dataType: "numeric"
+          }, {
+            name: "a11",
+            label: "11월",
+            dataType: "numeric"
+          }, {
+            name: "a12",
+            label: "12월",
+            dataType: "numeric"
+          }]
+        }]
+      }, {
+        label: "2025",
+        children: [{
+          label: "1분기",
+          children: [{
+            name: "b1",
+            label: "1월",
+            dataType: "numeric"
+          }, {
+            name: "b2",
+            label: "2월",
+            dataType: "numeric"
+          }, {
+            name: "b3",
+            label: "3월",
+            dataType: "numeric"
+          }]
+        }, {
+          label: "2분기",
+          children: [{
+            name: "b4",
+            label: "4월",
+            dataType: "numeric"
+          }, {
+            name: "b5",
+            label: "5월",
+            dataType: "numeric"
+          }, {
+            name: "b6",
+            label: "6월",
+            dataType: "numeric"
+          }]
+        }, {
+          label: "3분기",
+          children: [{
+            name: "b7",
+            label: "7월",
+            dataType: "numeric"
+          }, {
+            name: "b8",
+            label: "8월",
+            dataType: "numeric"
+          }, {
+            name: "b9",
+            label: "9월",
+            dataType: "numeric"
+          }]
+        }, {
+          label: "4분기",
+          children: [{
+            name: "b10",
+            label: "10월",
+            dataType: "numeric"
+          }, {
+            name: "b11",
+            label: "11월",
+            dataType: "numeric"
+          }, {
+            name: "b12",
+            label: "12월",
+            dataType: "numeric"
+          }]
+        }]
+      }];
     } else {
 
       for (let i = 0; i < itemCount; i++) {
@@ -338,8 +492,8 @@
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
-      , fixedLeftIndex: 1
-      , fixedRightIndex: 0
+      , fixedLeftIndex: 3
+      , fixedRightIndex: 24
       //,height: 360
       , aside: {
         lineNumber: { enabled: true },
@@ -401,6 +555,7 @@
           }
         }
       }
+      , summary: { items: [{ test: 111 }] }
       , finder: {
         enabled: true
         , enableColumnFix: true
@@ -474,7 +629,7 @@
           }
         }
         , horizontal: {
-          enableWheel: false
+          enableWheel: true
         }
       }
       , message: {

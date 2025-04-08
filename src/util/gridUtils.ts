@@ -71,13 +71,9 @@ export const getCellPosition = (cellElement: HTMLElement) => {
  * @description view col 위치 구하기.
  */
 export const calcViewCol = (cfg: Config, leftVal: number): number => {
-  //처리할것.
-  //00222222222222222222222222
   const dimensions = cfg.dimensions;
 
   const mainOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth;
-
-  console.log("cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth : ", cfg.scroll.hTrackWidth, cfg.scroll.hThumbWidth, leftVal, (leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100);
 
   const containerLeft = leftVal < 1 ? 0 : (mainOverWidth * ((leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
 

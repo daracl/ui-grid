@@ -219,4 +219,5 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   $alignStyle: "",
   $isAside: false,
   $panel: "center",
+  $uid: "",
 };

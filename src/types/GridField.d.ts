@@ -143,4 +143,9 @@ export interface FieldItem {
    *panel
    */
   $panel: "left" | "center" | "right";
+
+  /**
+   * field unique id
+   */
+  $uid: string;
 }

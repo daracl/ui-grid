@@ -64,7 +64,7 @@ export const initConfig = (opts: GridOptions): Config => {
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
     fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex : 0,
-    fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex : 0,
+    fixedRightIndex: opts.fixedRightIndex > 0 && opts.fields.length > opts.fixedRightIndex ? opts.fixedRightIndex : 0,
     scroll: initScrollInfo(),
     element: {
       grid: undefined,

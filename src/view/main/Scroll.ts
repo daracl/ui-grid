@@ -49,23 +49,26 @@ export default class Scroll {
 
     const rowHeight = opts.body.row.height;
 
-    if (cfg.scroll.enableVertical) {
-      const arrowButtonHeight = 10 * 2;
-      const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
-      const verticalHeight = dimensions.mainHeight;
+    const arrowButtonSize = 14 * 2;
 
-      let barHeight = (verticalHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
+    if (cfg.scroll.enableVertical) {
+      const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
+      const verticalHeight = dimensions.mainHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
+
+      cfg.scroll.vHeight = verticalHeight;
+      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonSize;
+
+      let barHeight = (cfg.scroll.vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
       if (verticalHeight < 25) {
         barHeight = 1;
       } else {
         barHeight = barHeight < 25 ? 25 : barHeight > verticalHeight ? verticalHeight : barHeight;
       }
 
-      cfg.scroll.vHeight = verticalHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
       cfg.scroll.vThumbHeight = barHeight;
-      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonHeight;
+
       // row 보이기 기준으로 계산
-      cfg.scroll.oneRowMove = (cfg.scroll.vHeight - (barHeight + arrowButtonHeight)) / (cfg.dataInfo.rowLength - Math.floor((dimensions.mainBodyHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0)) / rowHeight));
+      cfg.scroll.oneRowMove = (cfg.scroll.vTrackHeight - barHeight) / (cfg.dataInfo.rowLength - Math.floor(dimensions.mainBodyHeight / rowHeight));
 
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
       this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
@@ -73,7 +76,6 @@ export default class Scroll {
     }
 
     if (cfg.scroll.enableHorizontal) {
-      const arrowButtonWidth = 10 * 2;
       const columnTotalWidth = dimensions.mainTotalWidth;
       const horizontalWidth = dimensions.width;
 
@@ -83,7 +85,7 @@ export default class Scroll {
 
       cfg.scroll.hWidth = horizontalWidth - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
       cfg.scroll.hThumbWidth = barWidth;
-      cfg.scroll.hTrackWidth = cfg.scroll.hWidth - arrowButtonWidth;
+      cfg.scroll.hTrackWidth = cfg.scroll.hWidth - arrowButtonSize;
       cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
 
       this.horizontalElement.find(".dg-scroll-track").style.width = cfg.scroll.hTrackWidth + "px";
@@ -128,7 +130,7 @@ export default class Scroll {
         } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
           this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
 
-          if (opts.scroll.enableStopPropagation === true && cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth) {
+          if (opts.scroll.enableStopPropagation === true || (cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) {
             stopPreventCancel(evt);
           }
         }
@@ -570,8 +572,6 @@ export default class Scroll {
   public moveHorizontalScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
     const cfg = this.grid.config();
 
-    //
-
     if (leftVal >= cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth) {
       leftVal = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
     } else if (leftVal <= 0) {
@@ -582,7 +582,7 @@ export default class Scroll {
       return;
     }
 
-    const contLeftVal = calcViewCol(cfg, leftVal);
+    const contLeftVal = calcViewCol(cfg, leftVal) + (cfg.scroll.enableVertical ? (cfg.fixedRightIndex > 0 ? 1 : 2) : 0);
 
     cfg.scroll.left = leftVal;
 
@@ -595,19 +595,17 @@ export default class Scroll {
       }
     }
 
-    console.log("contLeftVal : ", contLeftVal);
-
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
     this.gridMain
       .mainElement()
       .findDaraElement(".dg-header > .dg-center")
-      .css({ "margin-left": cfg.dimensions.mainLeftWidth + "px", left: "-" + contLeftVal + "px" });
+      .css({ "margin-left": cfg.dimensions.mainLeftWidth - 1 + "px", left: "-" + contLeftVal + "px" });
 
     this.gridMain
       .mainElement()
       .findDaraElement(".dg-body > .dg-center")
-      .css({ "margin-left": cfg.dimensions.mainLeftWidth + "px", left: "-" + contLeftVal + "px" });
+      .css({ "margin-left": cfg.dimensions.mainLeftWidth - 1 + "px", left: "-" + contLeftVal + "px" });
 
     if (drawFlag !== false) {
       this.gridMain.getBody().dataDraw("hscroll");

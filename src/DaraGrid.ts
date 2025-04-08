@@ -52,8 +52,6 @@ export default class DaraGrid {
   private gridElement: DaraElement;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
-    console.log("options ", options);
-
     this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
     Lanauage.set(message);

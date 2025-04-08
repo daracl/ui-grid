@@ -116,7 +116,7 @@ export default class GridMain {
 
     if (!utils.isUndefined(opts.summary)) {
       const summaryItemLength = opts.summary.items.length > 0 ? opts.summary.items.length : 0;
-      dimensions.mainSummaryHeight = summaryItemLength + opts.body.row.height;
+      dimensions.mainSummaryHeight = summaryItemLength * opts.body.row.height;
     }
 
     dimensions.mainHeight = dimensions.height - (dimensions.toolbarHeight + dimensions.footerHeight);
@@ -134,18 +134,19 @@ export default class GridMain {
       mainTotalWidth += field.width;
     }
 
+    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
+
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
 
-    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight);
+    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-
-    console.log("cfg.fixedRightIndex : ", cfg.fixedRightIndex);
     //세로 스크롭 계산 end
-    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 2); // 마지막 여백처리;
+
+    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 3); // 마지막 여백처리;
     const overWidth = dimensions.width - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -160,17 +161,14 @@ export default class GridMain {
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
-      field.$maxWidth = -1; // max width
+      field.$maxWidth = -1;
 
       this.setRendererInfo(field);
 
-      if (field.$isAside || opts.enableWidthFixed === true) {
-        field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
-      } else {
+      // 그리드 남는 영역을 계산 해서 컬럼에 추가.
+      if (!field.$isAside && opts.enableWidthFixed !== true) {
         field.width = field.width + remainderWidth + (lastSpaceW > 0 ? 1 : 0);
-
         lastSpaceW = lastSpaceW - 1;
-
         field.width = Math.max(field.width, this.cellMinWidth);
       }
 
@@ -191,9 +189,7 @@ export default class GridMain {
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
-    dimensions.mainInsideWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
-
-    cfg.scroll.enableHorizontal = dimensions.mainTotalWidth > dimensions.width + (cfg.scroll.enableVertical ? this.grid.getOptions().scroll.width : 0);
+    dimensions.mainInsideWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) - (cfg.fixedRightIndex > 0 ? 0 : 1); // 마지막 여백처리;
 
     cfg.dataInfo.colLength = fieldLength;
   }
@@ -234,14 +230,16 @@ export default class GridMain {
     cfg.dataInfo.asideLength = asideOrder.length;
 
     const fixedLeftIndex = cfg.dataInfo.asideLength + cfg.fixedLeftIndex - 1;
-    const fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : cfg.dataInfo.asideLength + cfg.fixedRightIndex;
+    let fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : cfg.dataInfo.asideLength + cfg.fixedRightIndex;
 
-    //console.log("fixedRightIndex : ", fixedRightIndex, cfg.fixedRightIndex);
+    fixedRightIndex = fixedRightIndex > fixedLeftIndex + 1 ? fixedRightIndex : 0;
 
     fields.unshift(...asideOrder);
 
+    let fieldIndex = 0;
+
     for (let field of fields) {
-      this.headerGroupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex);
+      this.headerGroupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex, "" + fieldIndex++);
     }
 
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
@@ -279,13 +277,15 @@ export default class GridMain {
    * @param {Config} cfg 설정정보
    * @returns {FieldItem} 필드 정보
    */
-  public headerGroupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, fixedLeftIndex: number, fixedRightIndex: number) {
+  public headerGroupInfo(field: FieldItem, depth: number, fieldGroupInfo: FieldHeaderGroupInfo, fixedLeftIndex: number, fixedRightIndex: number, fieldIndex: string) {
     if (field.hidden) {
       field.$colspan = 0;
       return field;
     }
 
     field.$depth = depth + 1;
+
+    field.$uid = "u_" + field.$depth + "_" + fieldIndex;
     field.$isLeaf = true;
     field.$colspan = field.colspan ?? 1;
     field.$rowspan = field.rowspan ?? 1;
@@ -299,8 +299,9 @@ export default class GridMain {
         field.$isLeaf = false;
         field.$childLength = childrenLen;
         let colspan = 0;
+        let childFieldIndex = 0;
         for (let childNode of children) {
-          this.headerGroupInfo(childNode, field.$depth, fieldGroupInfo, fixedLeftIndex, fixedRightIndex);
+          this.headerGroupInfo(childNode, field.$depth, fieldGroupInfo, fixedLeftIndex, fixedRightIndex, fieldIndex + "_" + childFieldIndex++);
           colspan += childNode.$colspan;
         }
 
@@ -322,7 +323,7 @@ export default class GridMain {
       fieldGroupInfo.right[depth] = [];
     }
 
-    // 컬럼 고정 처리.
+    // left 고정 컬럼
     if ((field.$childLength > 0 && fixedLeftIndex > field.$resizeIdx - field.$colspan) || (field.$childLength < 1 && fixedLeftIndex >= field.$resizeIdx)) {
       if (field.$colspan == 1) {
         fieldGroupInfo.left[depth].push(field);
@@ -343,36 +344,42 @@ export default class GridMain {
       }
       field.$panel = "left";
       if (field.$isLeaf) fieldGroupInfo.leafLeft.push(field);
-    } else if ((field.$childLength > 0 && fixedRightIndex < field.$resizeIdx + field.$colspan) || (field.$childLength < 1 && fixedRightIndex <= field.$resizeIdx)) {
+    }
+
+    // right 고정 컬럼
+    if (fixedRightIndex > 0 && fixedRightIndex <= field.$resizeIdx) {
       if (field.$colspan == 1) {
         fieldGroupInfo.right[depth].push(field);
       } else {
+        let rightColspan = field.$colspan;
+        if (fixedRightIndex <= field.$resizeIdx) {
+          const bodyNode = utils.merge({}, field) as FieldItem;
+          bodyNode.$colspan = field.$colspan - (field.$resizeIdx - fixedRightIndex) - 1;
+          bodyNode.$resizeIdx = fixedRightIndex - 1;
+          rightColspan = rightColspan - bodyNode.$colspan;
+
+          const idx = fieldGroupInfo.center[depth].findIndex((value) => value.$uid === bodyNode.$uid);
+
+          if (idx > -1) {
+            fieldGroupInfo.center[depth][idx] = bodyNode;
+          } else {
+            fieldGroupInfo.center[depth].push(bodyNode);
+          }
+        }
+
         const rightNode = utils.merge({}, field);
 
-        if (rightNode.$resizeIdx > fixedRightIndex) {
-          rightNode.$colspan = fixedRightIndex - rightNode.$resizeIdx;
-          rightNode.$resizeIdx = fixedRightIndex;
-        }
-
-        console.log("rightNode ", fixedRightIndex, rightNode.$resizeIdx, rightNode);
-
-        // right 처리 할것.
-        /**
-          ㄴㅁㄻㄴㅇㄻㄴㅇㄹ
-
-        */
+        rightNode.$colspan = rightColspan;
+        rightNode.$resizeIdx = field.$resizeIdx;
 
         fieldGroupInfo.right[depth].push(rightNode);
-        if (fixedRightIndex <= field.$resizeIdx) {
-          const bodyNode = utils.merge({}, field);
-          bodyNode.$colspan = field.$resizeIdx - rightNode.$colspan;
-          fieldGroupInfo.center[depth].push(bodyNode);
-        }
       }
 
       field.$panel = "right";
       if (field.$isLeaf) fieldGroupInfo.leafRight.push(field);
-    } else {
+    }
+
+    if (utils.isUndefined(field.$panel)) {
       fieldGroupInfo.center[depth].push(field);
       field.$panel = "center";
       if (field.$isLeaf) fieldGroupInfo.leafCenter.push(field);
@@ -440,7 +447,7 @@ export default class GridMain {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0); // vertical을 왼쪽으로 1비트 이동하고, horizontal과 OR 연산
+    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
     let templateHtml = `
       <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
@@ -476,14 +483,14 @@ export default class GridMain {
                 <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
                   <div class="dg-scroll-track"></div>
                   <div class="dg-scroll-thumb"></div>
-                  <div class="dg-scroll-button up"><svg width="12px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg></div>
-                  <div class="dg-scroll-button down"><svg width="12px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg></div>
+                  <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
+                  <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
                 </div>
                 <div class="dg-scroll horizontal" style="height:${opts.scroll.width}px">
                   <div class="dg-scroll-track"></div>
                   <div class="dg-scroll-thumb"></div>
-                  <div class="dg-scroll-button left"><svg width="8px" height="12px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="10,50 100,0 100,100" fill="#737171"></polygon></g></svg></div>
-                  <div class="dg-scroll-button right"><svg width="8px" height="12px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 0,100 90,50" fill="#737171"></polygon></g></svg></div>
+                  <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
+                  <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                 </div>
             </div>
         </div>
