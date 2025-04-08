@@ -26,8 +26,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   },
   autoResize: {
     //리사이즈 설정
-    enabled: true, // 리사이즈시 그리드 리사이즈 여부.
-    responsive: true, // 반응형 여부
+    enabled: true, // auto resize 활성화 여부
     threshold: 150, // resize 반응 시간
   },
   header: {

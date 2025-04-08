@@ -58,6 +58,8 @@ export default class GridMain {
     this.setElementsDimentions();
 
     this.initMainView();
+
+    this.initEvent();
   }
 
   initMainView() {
@@ -67,7 +69,42 @@ export default class GridMain {
   }
 
   public initEvent() {
-    //this.scroll();
+    const opts = this.grid.getOptions();
+
+    if (opts.autoResize.enabled === true) {
+      this.initResizeEvent();
+    }
+  }
+
+  /**
+   * resize event
+   *
+   * @private
+   */
+  private initResizeEvent() {
+    let beforeResizeTime = -1;
+    const opts = this.grid.getOptions();
+    const threshold = opts.autoResize.threshold;
+    window.addEventListener("resize", () => {
+      console.log("aaaa");
+
+      if (threshold < 1) {
+        console.log("2222");
+        return;
+      }
+
+      if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
+        return;
+      }
+
+      beforeResizeTime = new Date().getTime();
+
+      window.requestAnimationFrame(() => {
+        setTimeout(() => {
+          console.log("this._mainElement.width() : ", this.grid.element().width(), this.grid.element().height());
+        }, threshold);
+      });
+    });
   }
 
   public calculation() {
@@ -84,6 +121,18 @@ export default class GridMain {
     return this.body;
   }
 
+  setSize(width?: number, height?: number) {
+    const cfg = this.grid.config();
+    cfg.dimensions.width = utils.isNumber(width) ? width : this.grid.element().width();
+    cfg.dimensions.height = utils.isNumber(height) ? height : this.grid.element().height();
+
+    //
+    //처리할것.
+    //
+
+    cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
+  }
+
   setElementsDimentions() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
@@ -92,7 +141,7 @@ export default class GridMain {
   }
 
   /**
-   * 치수 셋팅
+   * 사이즈 계산 후
    */
   calcGridDimention() {
     const cfg = this.grid.config();
@@ -101,10 +150,6 @@ export default class GridMain {
     const opts = this.grid.getOptions();
 
     cfg.dataInfo.rowLength = this.grid.getOptions().items.length;
-
-    // 수치 계산할것.
-    dimensions.width = utils.isNumber(opts.width) ? opts.width : this.grid.element().width();
-    dimensions.height = utils.isNumber(opts.height) ? opts.height : this.grid.element().height();
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
@@ -119,9 +164,14 @@ export default class GridMain {
       dimensions.mainSummaryHeight = summaryItemLength * opts.body.row.height;
     }
 
-    dimensions.mainHeight = dimensions.height - (dimensions.toolbarHeight + dimensions.footerHeight);
+    this.setSize();
   }
 
+  /**
+   * grid body 계산
+   *
+   * @public
+   */
   public calcBody() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
@@ -450,51 +500,53 @@ export default class GridMain {
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
     let templateHtml = `
-      <div class="daracl-grid" style="width:${dimensions.width}px;height:${dimensions.height}px;">
-        ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-        <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="${SCROLL_MODE[scrollMode]}">
-            <div class="dg-main-container ">
-               ${
-                 opts.header.view
-                   ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
-                    <div class="dg-left"></div>
-                    <div class="dg-center"></div>
-                    <div class="dg-right"></div>
-                </div>`
-                   : ""
-               }
-                
-                <div class="dg-panel dg-body ">
-                    <div class="dg-left"></div>
-                    <div class="dg-center"></div>
-                    <div class="dg-right"></div>
-                </div>
-                ${
-                  dimensions.mainSummaryHeight > 0
-                    ? `<div class="dg-panel dg-summary" style="height:${dimensions.mainSummaryHeight}px;">
-                    <div class="dg-left"></div>
-                    <div class="dg-center"></div>
-                    <div class="dg-right"></div>
-                </div>`
-                    : ""
-                }
-            </div>
-            <div class="dg-scroll-container">
-                <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
-                  <div class="dg-scroll-track"></div>
-                  <div class="dg-scroll-thumb"></div>
-                  <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
-                  <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
-                </div>
-                <div class="dg-scroll horizontal" style="height:${opts.scroll.width}px">
-                  <div class="dg-scroll-track"></div>
-                  <div class="dg-scroll-thumb"></div>
-                  <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
-                  <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
-                </div>
-            </div>
+      <div class="daracl-grid">
+        <div style="width:${dimensions.width}px;height:${dimensions.height}px;overflow: hidden;position:absolute;">
+          ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
+          <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="${SCROLL_MODE[scrollMode]}">
+              <div class="dg-main-container ">
+                  ${
+                    opts.header.view
+                      ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
+                        <div class="dg-left"></div>
+                        <div class="dg-center"></div>
+                        <div class="dg-right"></div>
+                    </div>`
+                      : ""
+                  }
+                  
+                  <div class="dg-panel dg-body ">
+                      <div class="dg-left"></div>
+                      <div class="dg-center"></div>
+                      <div class="dg-right"></div>
+                  </div>
+                  ${
+                    dimensions.mainSummaryHeight > 0
+                      ? `<div class="dg-panel dg-summary" style="height:${dimensions.mainSummaryHeight}px;">
+                      <div class="dg-left"></div>
+                      <div class="dg-center"></div>
+                      <div class="dg-right"></div>
+                  </div>`
+                      : ""
+                  }
+              </div>
+              <div class="dg-scroll-container">
+                  <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
+                    <div class="dg-scroll-track"></div>
+                    <div class="dg-scroll-thumb"></div>
+                    <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
+                    <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
+                  </div>
+                  <div class="dg-scroll horizontal" style="height:${opts.scroll.width}px">
+                    <div class="dg-scroll-track"></div>
+                    <div class="dg-scroll-thumb"></div>
+                    <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
+                    <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
+                  </div>
+              </div>
+          </div>
+          ${opts.footer.enabled ? `<div class="dg-footer" style="height:${dimensions.footerHeight}px;"></div>` : ""}
         </div>
-        ${opts.footer.enabled ? `<div class="dg-footer" style="height:${dimensions.footerHeight}px;"></div>` : ""}
     </div>
     `;
 

@@ -136,10 +136,6 @@ export interface GridOptions {
      */
     enabled: boolean;
     /**
-     * 반응형 여부
-     */
-    responsive: true;
-    /**
      * resize 반응 시간
      */
     threshold: 150;
