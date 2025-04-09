@@ -22,10 +22,10 @@ export default class Header {
 
   private headerOpts: HeaderOptions;
 
-  private headerElement: DaraElement;
-  private leftElement: DaraElement;
-  private centerElement: DaraElement;
-  private rightElement: DaraElement;
+  public headerElement: DaraElement;
+  public leftElement: DaraElement;
+  public centerElement: DaraElement;
+  public rightElement: DaraElement;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;

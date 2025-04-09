@@ -23,9 +23,10 @@ export default class Body {
   private bodyOpts: BodyOptions;
 
   private bodyElement: DaraElement;
-  private leftElement: DaraElement;
-  private centerElement: DaraElement;
-  private rightElement: DaraElement;
+
+  public leftElement: DaraElement;
+  public centerElement: DaraElement;
+  public rightElement: DaraElement;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
@@ -78,6 +79,30 @@ export default class Body {
     const leftLength = leftFields.length;
     const centerLength = centerFields.length;
     const rightLength = rightFields.length;
+
+    const beforeViewRow = cfg.scroll.before.viewRow;
+    if (beforeViewRow > viewRow) {
+      for (let i = viewRow; i < beforeViewRow; i++) {
+        console.log(i, "remove");
+        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').remove();
+        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').remove();
+        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').remove();
+      }
+      cfg.scroll.before.viewRow = viewRow;
+    } else if (beforeViewRow < viewRow && cfg.scroll.before.viewRow > 0) {
+      const rowHeight = opts.body.row.height;
+
+      const addViewRow = viewRow - beforeViewRow;
+      if (leftLength > 0) this.leftElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafLeft));
+      if (centerLength > 0) this.centerElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafCenter));
+      if (rightLength > 0) this.rightElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafRight));
+
+      cfg.scroll.before.viewRow = viewRow;
+    }
+
+    if (viewRow < 1) {
+      return;
+    }
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       for (let i = currentViewRow; i < viewRow; i++) {
@@ -85,7 +110,7 @@ export default class Body {
         if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
         if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
       }
-    } else {
+    } else if (currentViewRow > viewRow) {
       for (let i = viewRow - 2; i < viewRow; i++) {
         if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
         if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
@@ -143,35 +168,6 @@ export default class Body {
 
     if (viewRow < 1 || leafLength < 1) return "";
 
-    let strHtm = [];
-
-    const opts = this.grid.getOptions();
-    const rowHeight = opts.body.row.height;
-
-    for (let i = 0; i < viewRow; i++) {
-      strHtm.push(`<tr class="dg-row" rowinfo="${i}" style="height:${rowHeight}px">`);
-
-      for (let j = 0; j < leafLength; j++) {
-        let field = leafFields[j];
-        let clickFlag = field.click;
-
-        let tdHtm = "";
-        if (field.$isAside) {
-          tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
-          <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
-        </td>`;
-        } else {
-          tdHtm = `<td scope="col" class="dg-cell" data-cell-position="${i + "," + j}">
-          <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
-        </td>`;
-        }
-
-        strHtm.push(tdHtm);
-      }
-
-      strHtm.push("</tr>");
-    }
-
     let colGroupHtm = [];
     let colGroupIdx = 0;
     let tableWidth = 0;
@@ -183,7 +179,49 @@ export default class Body {
 
     return `<table class="dg-body-table" style="width:${tableWidth}px;">
       <colgroup>${colGroupHtm.join("")}</colgroup>
-      <tbody>${strHtm.join("")}</tbody>
-    </table> ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+      <tbody>
+        ${this.rowTemplate(0, viewRow, this.grid.getOptions().body.row.height, leafFields)}
+      </tbody>
+    </table> 
+    ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+  }
+
+  /**
+   * row template
+   *
+   * @private
+   * @param {number} rowIdx row index
+   * @param {number} rowHeight row height
+   * @param {FieldItem[]} fields fields 정보
+   * @returns {string} template
+   */
+  private rowTemplate(startRowIdx: number, rowCount: number, rowHeight: number, fields: FieldItem[]): any {
+    const returnTemplate = [];
+
+    for (let i = 0; i < rowCount; i++) {
+      let rowIdx = startRowIdx + i;
+
+      let cellTemplate = [];
+      for (let j = 0; j < fields.length; j++) {
+        let field = fields[j];
+        let clickFlag = field.click;
+
+        if (field.$isAside) {
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + j}">
+          <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
+        </td>`);
+        } else {
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + j}">
+          <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
+        </td>`);
+        }
+      }
+
+      returnTemplate.push(`<tr class="dg-row" rowinfo="${rowIdx}" style="height:${rowHeight}px">
+        ${cellTemplate.join("")}
+      </tr>`);
+    }
+
+    return returnTemplate.join("");
   }
 }

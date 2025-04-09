@@ -40,9 +40,13 @@ export default class GridMain {
 
   private _mainElement: DaraElement;
 
+  private containerElement: DaraElement;
+
   private readonly enableViewAllLabel: boolean;
 
   private readonly cellMinWidth: number;
+
+  private GRID_OFFSET: any;
 
   constructor(grid: DaraGrid) {
     this.grid = grid;
@@ -55,7 +59,7 @@ export default class GridMain {
     this.calculation();
     this.initTemplate();
 
-    this.setElementsDimentions();
+    this.setElementDimentions();
 
     this.initMainView();
 
@@ -85,28 +89,55 @@ export default class GridMain {
     let beforeResizeTime = -1;
     const opts = this.grid.getOptions();
     const threshold = opts.autoResize.threshold;
-    window.addEventListener("resize", () => {
-      console.log("aaaa");
 
-      if (threshold < 1) {
-        console.log("2222");
-        return;
-      }
+    const el = this.grid.element();
 
-      if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
-        return;
-      }
+    this.GRID_OFFSET = { width: el.width(), height: el.height() };
 
-      beforeResizeTime = new Date().getTime();
+    if (typeof ResizeObserver !== "undefined") {
+      const resizeObserver = new ResizeObserver(() => {
+        if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
+          return;
+        }
 
-      window.requestAnimationFrame(() => {
-        setTimeout(() => {
-          console.log("this._mainElement.width() : ", this.grid.element().width(), this.grid.element().height());
-        }, threshold);
+        beforeResizeTime = new Date().getTime();
+
+        this.resize(el);
       });
+
+      resizeObserver.observe(el.getElement());
+    } else {
+      window.addEventListener("resize", () => {
+        if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
+          return;
+        }
+
+        beforeResizeTime = new Date().getTime();
+
+        this.resize(el);
+      });
+    }
+  }
+
+  /**
+   * resize event 처리
+   *
+   * @param el grid element
+   */
+  public resize(el: DaraElement) {
+    requestAnimationFrame(() => {
+      let newOffset = { width: el.width(), height: el.height() };
+      if (this.GRID_OFFSET.height != newOffset.height || this.GRID_OFFSET.width != newOffset.width) {
+        this.GRID_OFFSET = newOffset;
+        this.setSize(el.width(), el.height());
+        this.body.dataDraw("resize");
+      }
     });
   }
 
+  /**
+   * grid size 및 field 정보 계산
+   */
   public calculation() {
     this.calcGridDimention();
     this.calcHeader();
@@ -121,23 +152,75 @@ export default class GridMain {
     return this.body;
   }
 
-  setSize(width?: number, height?: number) {
+  /**
+   * set size
+   *
+   * @public
+   * @param {?number} [width] 넓이
+   * @param {?number} [height] 높이
+   */
+  public setSize(width?: number, height?: number) {
     const cfg = this.grid.config();
     cfg.dimensions.width = utils.isNumber(width) ? width : this.grid.element().width();
     cfg.dimensions.height = utils.isNumber(height) ? height : this.grid.element().height();
-
-    //
-    //처리할것.
-    //
-
     cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
+
+    if (!utils.isUndefined(width)) {
+      this.calcBody();
+    }
+
+    if (!utils.isUndefined(this._mainElement)) {
+      this.setElementDimentions();
+      this.scroll.calcScroll();
+      this.fieldResize();
+    }
   }
 
-  setElementsDimentions() {
+  /**
+   * cell size 설정
+   */
+  fieldResize() {
+    const cfg = this.grid.config();
+
+    const leftFields = cfg.fieldHeaderGroup.leafLeft;
+    const centerFields = cfg.fieldHeaderGroup.leafCenter;
+    const rightFields = cfg.fieldHeaderGroup.leafRight;
+
+    // left panel
+    for (let j = 0; j < leftFields.length; j++) {
+      const field = leftFields[j];
+      if (!field.$isAside) {
+        this.header.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+        this.body.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+      }
+    }
+
+    // center panel
+    for (let j = 0; j < centerFields.length; j++) {
+      const field = centerFields[j];
+      this.header.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+      this.body.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+    }
+
+    // right panel
+    for (let j = 0; j < rightFields.length; j++) {
+      const field = rightFields[j];
+      this.header.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+      this.body.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+    }
+  }
+
+  setElementDimentions() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     this._mainElement.setHeight(dimensions.mainHeight);
     this._mainElement.findDaraElement(".dg-body").setHeight(dimensions.mainBodyHeight);
+    this.containerElement.css({
+      width: dimensions.width + "px",
+      height: dimensions.height + "px",
+    });
+
+    this.changeScrollMode();
   }
 
   /**
@@ -184,16 +267,18 @@ export default class GridMain {
       mainTotalWidth += field.width;
     }
 
-    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
+    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - this.grid.getOptions().scroll.width;
 
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
 
     dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
+    cfg.scroll.before.viewRow = cfg.scroll.viewRow;
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
+
     //세로 스크롭 계산 end
 
     const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 3); // 마지막 여백처리;
@@ -484,11 +569,14 @@ export default class GridMain {
    *
    * @param mode scroll mode
    */
-  public changeScrollMode(mode: string) {
-    if (mode == "none") {
+  private changeScrollMode() {
+    const cfg = this.grid.config();
+    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
+
+    if (scrollMode == 0) {
       this._mainElement.removeAttr("data-scroll");
     } else {
-      this._mainElement.attr({ "data-scroll": mode });
+      this._mainElement.attr({ "data-scroll": SCROLL_MODE[scrollMode] });
     }
   }
 
@@ -497,13 +585,11 @@ export default class GridMain {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
-
     let templateHtml = `
       <div class="daracl-grid">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;overflow: hidden;position:absolute;">
-          ${opts.toolbar.enabled ? `<div class="dg-toolbar" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-          <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="${SCROLL_MODE[scrollMode]}">
+          ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
+          <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
                   ${
                     opts.header.view
@@ -515,7 +601,7 @@ export default class GridMain {
                       : ""
                   }
                   
-                  <div class="dg-panel dg-body ">
+                  <div class="dg-panel dg-body">
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
@@ -545,7 +631,7 @@ export default class GridMain {
                   </div>
               </div>
           </div>
-          ${opts.footer.enabled ? `<div class="dg-footer" style="height:${dimensions.footerHeight}px;"></div>` : ""}
+          ${opts.footer.enabled ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;"></div>` : ""}
         </div>
     </div>
     `;
@@ -553,5 +639,6 @@ export default class GridMain {
     this.grid.element().html(templateHtml);
 
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
+    this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
   }
 }

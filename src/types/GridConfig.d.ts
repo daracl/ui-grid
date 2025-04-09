@@ -159,7 +159,11 @@ export interface ScrollInfo {
   enableVertical: boolean;
   enableHorizontal: boolean;
   containerLeft: number;
-  before: any;
+  before: {
+    viewRow: number;
+    startCol: number;
+    endCol: number;
+  };
   top: number;
   left: number;
   startCol: number;

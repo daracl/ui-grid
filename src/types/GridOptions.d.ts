@@ -138,7 +138,7 @@ export interface GridOptions {
     /**
      * resize 반응 시간
      */
-    threshold: 150;
+    threshold: number;
   };
   /**
    * column info

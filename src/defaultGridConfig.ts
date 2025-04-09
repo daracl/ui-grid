@@ -146,7 +146,11 @@ export const initSelectionInfo = (): Selection => {
 export const initScrollInfo = (): ScrollInfo => {
   return {
     containerLeft: 0,
-    before: {},
+    before: {
+      viewRow: 0,
+      startCol: 0,
+      endCol: 0,
+    },
     top: 0,
     left: 0,
     startCol: 0,

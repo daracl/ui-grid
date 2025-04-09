@@ -36,13 +36,15 @@ export default class Scroll {
 
     this.calcScroll();
 
-    this.setElementsDimentions();
     this.initEvent();
   }
 
-  public setElementsDimentions() {}
-
   public calcScroll() {
+    // 스크롤 처리 할것
+    //
+    //
+    //
+
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
@@ -73,24 +75,34 @@ export default class Scroll {
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
       this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
       this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
+    } else {
+      cfg.scroll.startRow = 0;
     }
 
     if (cfg.scroll.enableHorizontal) {
       const columnTotalWidth = dimensions.mainTotalWidth;
-      const horizontalWidth = dimensions.width;
 
-      let barWidth = (horizontalWidth * ((dimensions.width / columnTotalWidth) * 100)) / 100;
-
-      barWidth = barWidth < 25 ? 25 : barWidth > horizontalWidth ? horizontalWidth : barWidth;
-
-      cfg.scroll.hWidth = horizontalWidth - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
-      cfg.scroll.hThumbWidth = barWidth;
+      cfg.scroll.hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
       cfg.scroll.hTrackWidth = cfg.scroll.hWidth - arrowButtonSize;
       cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
+
+      let barWidth = (cfg.scroll.hTrackWidth * ((cfg.scroll.hTrackWidth / columnTotalWidth) * 100)) / 100;
+
+      barWidth = barWidth < 25 ? 25 : barWidth;
+
+      cfg.scroll.hThumbWidth = barWidth;
 
       this.horizontalElement.find(".dg-scroll-track").style.width = cfg.scroll.hTrackWidth + "px";
       this.horizontalElement.css({ width: dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) + "px" });
       this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
+
+      if (cfg.scroll.left + cfg.scroll.hThumbWidth > cfg.scroll.hTrackWidth) {
+        cfg.scroll.left = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
+        this.setHorizontalPosition(cfg);
+      }
+    } else {
+      cfg.scroll.left = 0;
+      this.setHorizontalPosition(cfg);
     }
   }
 
@@ -582,8 +594,6 @@ export default class Scroll {
       return;
     }
 
-    const contLeftVal = calcViewCol(cfg, leftVal) + (cfg.scroll.enableVertical ? (cfg.fixedRightIndex > 0 ? 1 : 2) : 0);
-
     cfg.scroll.left = leftVal;
 
     if (updateChkFlag !== false) {
@@ -594,6 +604,24 @@ export default class Scroll {
         }
       }
     }
+
+    this.setHorizontalPosition(cfg);
+
+    if (drawFlag !== false) {
+      this.gridMain.getBody().dataDraw("hscroll");
+    }
+  }
+
+  /**
+   * 가로 스크롤 위치 셋팅
+   *
+   * @private
+   * @param {Config} cfg 설정값
+   * @param {number} contLeftVal scroll position
+   */
+  private setHorizontalPosition(cfg: Config) {
+    const leftVal = cfg.scroll.left;
+    const contLeftVal = calcViewCol(cfg, leftVal) + (cfg.scroll.enableVertical ? (cfg.fixedRightIndex > 0 ? 1 : 2) : 0);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
@@ -606,10 +634,6 @@ export default class Scroll {
       .mainElement()
       .findDaraElement(".dg-body > .dg-center")
       .css({ "margin-left": cfg.dimensions.mainLeftWidth - 1 + "px", left: "-" + contLeftVal + "px" });
-
-    if (drawFlag !== false) {
-      this.gridMain.getBody().dataDraw("hscroll");
-    }
   }
 
   // /**

@@ -23,16 +23,19 @@ export default class DaraElement {
     return this.element.querySelectorAll(selector);
   }
 
-  before(renderElements: HTMLElement) {
+  before(renderElements: HTMLElement | string) {
     this.insertAdjacentHTML("beforebegin", renderElements);
   }
-  after(renderElements: HTMLElement) {
+
+  after(renderElements: HTMLElement | string) {
     this.insertAdjacentHTML("afterend", renderElements);
   }
-  prepend(renderElements: HTMLElement) {
+
+  prepend(renderElements: HTMLElement | string) {
     this.insertAdjacentHTML("afterbegin", renderElements);
   }
-  append(renderElements: HTMLElement) {
+
+  append(renderElements: HTMLElement | string) {
     this.insertAdjacentHTML("beforeend", renderElements);
   }
 
@@ -252,12 +255,4 @@ export default class DaraElement {
 
     return this;
   }
-}
-
-const EVENT_HANDLER_MAP = new Map();
-function addEventInfo(el: any, eventType: string, listener: any) {
-  if (!EVENT_HANDLER_MAP.has(el)) {
-    EVENT_HANDLER_MAP.set(el, {});
-  }
-  EVENT_HANDLER_MAP.get(el)[eventType] = listener;
 }
