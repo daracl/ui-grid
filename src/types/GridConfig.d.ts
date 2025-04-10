@@ -163,6 +163,7 @@ export interface ScrollInfo {
     viewRow: number;
     startCol: number;
     endCol: number;
+    hideLastRow: boolean;
   };
   top: number;
   left: number;

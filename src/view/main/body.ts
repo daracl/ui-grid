@@ -110,8 +110,10 @@ export default class Body {
         if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
         if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
       }
-    } else if (currentViewRow > viewRow) {
-      for (let i = viewRow - 2; i < viewRow; i++) {
+      cfg.scroll.before.hideLastRow = true;
+    } else if (cfg.scroll.before.hideLastRow || currentViewRow > viewRow) {
+      cfg.scroll.before.hideLastRow = false;
+      for (let i = viewRow - 1; i < viewRow; i++) {
         if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
         if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
         if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");

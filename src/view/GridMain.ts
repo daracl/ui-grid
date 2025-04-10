@@ -277,6 +277,8 @@ export default class GridMain {
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
+    console.log("cfg.scroll.viewRow : ", dimensions.mainHeight, dimensions.mainHeaderHeight, dimensions.mainSummaryHeight, dimensions.mainBodyHeight, Math.ceil(dimensions.mainBodyHeight / rowHeight), cfg.scroll.viewRow);
+
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
 
     //세로 스크롭 계산 end

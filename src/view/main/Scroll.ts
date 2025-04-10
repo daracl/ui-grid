@@ -10,6 +10,8 @@ import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import domUtils from "src/util/domUtils";
 
+const SCROLL_THUMB_MIN_SIZE = 18;
+
 export default class Scroll {
   private grid: DaraGrid;
   private gridMain: GridMain;
@@ -61,10 +63,10 @@ export default class Scroll {
       cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonSize;
 
       let barHeight = (cfg.scroll.vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-      if (verticalHeight < 25) {
+      if (verticalHeight < SCROLL_THUMB_MIN_SIZE) {
         barHeight = 1;
       } else {
-        barHeight = barHeight < 25 ? 25 : barHeight > verticalHeight ? verticalHeight : barHeight;
+        barHeight = barHeight < SCROLL_THUMB_MIN_SIZE ? SCROLL_THUMB_MIN_SIZE : barHeight > verticalHeight ? verticalHeight : barHeight;
       }
 
       cfg.scroll.vThumbHeight = barHeight;
@@ -75,8 +77,14 @@ export default class Scroll {
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
       this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
       this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
+
+      if (cfg.dataInfo.rowLength < cfg.scroll.startRow + cfg.scroll.viewRow) {
+        this.setVerticalPosition(cfg, (cfg.dataInfo.rowLength - cfg.scroll.viewRow) * cfg.scroll.oneRowMove);
+      } else if (cfg.scroll.top > 0) {
+        this.setVerticalPosition(cfg, cfg.scroll.startRow * cfg.scroll.oneRowMove);
+      }
     } else {
-      cfg.scroll.startRow = 0;
+      this.setVerticalPosition(cfg, 0);
     }
 
     if (cfg.scroll.enableHorizontal) {
@@ -88,7 +96,7 @@ export default class Scroll {
 
       let barWidth = (cfg.scroll.hTrackWidth * ((cfg.scroll.hTrackWidth / columnTotalWidth) * 100)) / 100;
 
-      barWidth = barWidth < 25 ? 25 : barWidth;
+      barWidth = barWidth < SCROLL_THUMB_MIN_SIZE ? SCROLL_THUMB_MIN_SIZE : barWidth;
 
       cfg.scroll.hThumbWidth = barWidth;
 
@@ -516,25 +524,11 @@ export default class Scroll {
       }
     }
 
-    cfg.scroll.top = topVal;
+    const beforeStartRow = cfg.scroll.startRow;
 
-    this.verticalThumbElement.css({ top: topVal + "px" });
+    this.setVerticalPosition(cfg, topVal);
 
-    let startRow = 0;
-
-    if (topVal > 0) {
-      startRow = topVal / cfg.scroll.oneRowMove;
-      startRow = Math.round(startRow);
-    }
-
-    if (drawFlag === false) {
-      cfg.scroll.startRow = startRow;
-      return;
-    }
-
-    if (cfg.scroll.startRow == startRow) return;
-
-    cfg.scroll.startRow = startRow;
+    if (drawFlag === false || cfg.scroll.startRow == beforeStartRow) return;
 
     this.gridMain.getBody().dataDraw("vscroll");
   }
@@ -610,6 +604,27 @@ export default class Scroll {
     if (drawFlag !== false) {
       this.gridMain.getBody().dataDraw("hscroll");
     }
+  }
+
+  /**
+   * 세로 스크롤 위치 설정
+   *
+   * @private
+   * @param {Config} cfg 설정값
+   * @param {number} topVal 스크롤 바 포지션
+   */
+  private setVerticalPosition(cfg: Config, topVal: number) {
+    cfg.scroll.top = topVal;
+
+    this.verticalThumbElement.css({ top: topVal + "px" });
+
+    let startRow = 0;
+
+    if (topVal > 0) {
+      startRow = Math.round(topVal / cfg.scroll.oneRowMove);
+    }
+
+    cfg.scroll.startRow = startRow;
   }
 
   /**
