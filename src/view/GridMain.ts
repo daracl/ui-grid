@@ -59,9 +59,9 @@ export default class GridMain {
     this.calculation();
     this.initTemplate();
 
-    this.setElementDimentions();
-
     this.initMainView();
+
+    this.setElementDimentions();
 
     this.initEvent();
   }
@@ -86,7 +86,6 @@ export default class GridMain {
    * @private
    */
   private initResizeEvent() {
-    let beforeResizeTime = -1;
     const opts = this.grid.getOptions();
     const threshold = opts.autoResize.threshold;
 
@@ -95,27 +94,20 @@ export default class GridMain {
     this.GRID_OFFSET = { width: el.width(), height: el.height() };
 
     if (typeof ResizeObserver !== "undefined") {
-      const resizeObserver = new ResizeObserver(() => {
-        if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
-          return;
-        }
-
-        beforeResizeTime = new Date().getTime();
-
-        this.resize(el);
-      });
+      const resizeObserver = new ResizeObserver(
+        utils.debounce(() => {
+          this.resize(el);
+        }, threshold)
+      );
 
       resizeObserver.observe(el.getElement());
     } else {
-      window.addEventListener("resize", () => {
-        if (beforeResizeTime != -1 && beforeResizeTime + threshold > new Date().getTime()) {
-          return;
-        }
-
-        beforeResizeTime = new Date().getTime();
-
-        this.resize(el);
-      });
+      window.addEventListener(
+        "resize",
+        utils.debounce(() => {
+          this.resize(el);
+        }, threshold)
+      );
     }
   }
 
@@ -126,6 +118,8 @@ export default class GridMain {
    */
   public resize(el: DaraElement) {
     requestAnimationFrame(() => {
+      if (!utils.isVisible(el.getElement())) return;
+
       let newOffset = { width: el.width(), height: el.height() };
       if (this.GRID_OFFSET.height != newOffset.height || this.GRID_OFFSET.width != newOffset.width) {
         this.GRID_OFFSET = newOffset;
@@ -141,7 +135,7 @@ export default class GridMain {
   public calculation() {
     this.calcGridDimention();
     this.calcHeader();
-    this.calcBody();
+    this.calcBody(true);
   }
 
   public mainElement() {
@@ -150,6 +144,14 @@ export default class GridMain {
 
   public getBody() {
     return this.body;
+  }
+
+  public getHeader() {
+    return this.header;
+  }
+
+  public getScroll() {
+    return this.scroll;
   }
 
   /**
@@ -190,23 +192,23 @@ export default class GridMain {
     for (let j = 0; j < leftFields.length; j++) {
       const field = leftFields[j];
       if (!field.$isAside) {
-        this.header.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
-        this.body.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+        this.header.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+        this.body.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
       }
     }
 
     // center panel
     for (let j = 0; j < centerFields.length; j++) {
       const field = centerFields[j];
-      this.header.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
-      this.body.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+      this.header.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.body.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
     }
 
     // right panel
     for (let j = 0; j < rightFields.length; j++) {
       const field = rightFields[j];
-      this.header.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
-      this.body.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.width + "px";
+      this.header.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.body.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
     }
   }
 
@@ -219,6 +221,18 @@ export default class GridMain {
       width: dimensions.width + "px",
       height: dimensions.height + "px",
     });
+
+    const mainLeftWidth = dimensions.mainLeftWidth;
+    const mainCenterWidth = dimensions.mainCenterWidth;
+    const mainRightWidth = dimensions.mainRightWidth;
+
+    this.header.leftElement.css({ width: mainLeftWidth + "px" });
+    this.header.centerElement.css({ "margin-left": mainLeftWidth - 1 + "px", width: mainCenterWidth + "px" });
+    this.header.rightElement.css({ width: mainRightWidth + "px" });
+
+    this.body.leftElement.css({ width: mainLeftWidth + "px" });
+    this.body.centerElement.css({ "margin-left": mainLeftWidth - 1 + "px", width: mainCenterWidth + "px" });
+    this.body.rightElement.css({ width: mainRightWidth + "px" });
 
     this.changeScrollMode();
   }
@@ -255,7 +269,7 @@ export default class GridMain {
    *
    * @public
    */
-  public calcBody() {
+  public calcBody(isInit?: boolean) {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
@@ -275,21 +289,30 @@ export default class GridMain {
     dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
     cfg.scroll.before.viewRow = cfg.scroll.viewRow;
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
+    cfg.scroll.viewRow = cfg.scroll.viewRow < 1 ? 1 : cfg.scroll.viewRow;
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
-    console.log("cfg.scroll.viewRow : ", dimensions.mainHeight, dimensions.mainHeaderHeight, dimensions.mainSummaryHeight, dimensions.mainBodyHeight, Math.ceil(dimensions.mainBodyHeight / rowHeight), cfg.scroll.viewRow);
-
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-
     //세로 스크롭 계산 end
 
-    const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 3); // 마지막 여백처리;
-    const overWidth = dimensions.width - viewGridWidth;
     let remainderWidth = 0,
       lastSpaceW = 0;
-    if (overWidth > 0) {
-      remainderWidth = Math.floor(overWidth / (fieldLength - cfg.dataInfo.asideLength));
-      lastSpaceW = overWidth - remainderWidth * (fieldLength - cfg.dataInfo.asideLength);
+
+    let isAddSpaceWidth;
+
+    if (!cfg.scroll.enableHorizontal) {
+      const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 1); // 마지막 여백처리;
+      const overWidth = dimensions.width - viewGridWidth;
+      isAddSpaceWidth = true;
+      let absOverWidth = overWidth < 0 ? Math.abs(overWidth) : overWidth;
+
+      remainderWidth = Math.floor(absOverWidth / (fieldLength - cfg.dataInfo.asideLength));
+      lastSpaceW = absOverWidth - remainderWidth * (fieldLength - cfg.dataInfo.asideLength);
+
+      if (overWidth < 0) {
+        isAddSpaceWidth = false;
+        remainderWidth = -remainderWidth;
+      }
     }
 
     let leftWidth = 0,
@@ -298,15 +321,22 @@ export default class GridMain {
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
-      field.$maxWidth = -1;
+      let fieldWidth = field.width;
 
-      this.setRendererInfo(field);
+      if (isInit === true) {
+        this.setRendererInfo(field);
+      }
 
       // 그리드 남는 영역을 계산 해서 컬럼에 추가.
       if (!field.$isAside && opts.enableWidthFixed !== true) {
-        field.width = field.width + remainderWidth + (lastSpaceW > 0 ? 1 : 0);
-        lastSpaceW = lastSpaceW - 1;
-        field.width = Math.max(field.width, this.cellMinWidth);
+        fieldWidth = fieldWidth + remainderWidth;
+
+        if (lastSpaceW > 0) {
+          fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1);
+          lastSpaceW = lastSpaceW - 1;
+        }
+
+        fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
       }
 
       field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
@@ -314,12 +344,14 @@ export default class GridMain {
       cfg.currentFields[j] = field;
 
       if (field.$panel == "left") {
-        leftWidth += field.width;
+        leftWidth += fieldWidth;
       } else if (field.$panel == "right") {
-        rightWidth += field.width;
+        rightWidth += fieldWidth;
       } else {
-        centerWidth += field.width;
+        centerWidth += fieldWidth;
       }
+
+      field.$width = fieldWidth;
     }
 
     dimensions.mainLeftWidth = leftWidth;
@@ -380,6 +412,11 @@ export default class GridMain {
     }
 
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
+    cfg.currentFields = cfg.fieldHeaderGroup.leaf;
+
+    if (opts.header.view === false) {
+      return;
+    }
 
     const height = opts.header.height;
     const heights = opts.header.heights;
@@ -400,8 +437,6 @@ export default class GridMain {
     }
 
     cfg.dimensions.mainHeaderHeight = mainHeaderHeight;
-
-    cfg.currentFields = cfg.fieldHeaderGroup.leaf;
   }
 
   /**

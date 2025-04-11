@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import { GridOptions } from "@t/GridOptions";
-import { FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "./constants";
+import { EDIT_RENDERER, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "./constants";
 
 /**
  * grid default option
@@ -27,7 +27,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   autoResize: {
     //리사이즈 설정
     enabled: true, // auto resize 활성화 여부
-    threshold: 150, // resize 반응 시간
+    threshold: 50, // resize 반응 시간
   },
   header: {
     view: true, //  보기 여부
@@ -145,7 +145,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     enableStopPropagation: false, // 이벤트 전파 여부.
     width: 14, // 세로 스크롤
     vertical: {
-      speed: 2, // 스크롤 스피드 row 1
+      speed: 3, // 스크롤 스피드 row 1
       onUpdate: (item) => {
         // 스크롤 업데이트.
         return true;
@@ -207,14 +207,14 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
     formatter: undefined,
   },
   $renderer: VIEW_RENDERER["text"],
-  $editRenderer: VIEW_RENDERER["text"],
+  $editRenderer: EDIT_RENDERER["text"],
   $colspan: 0,
   $rowspan: 0,
   $depth: 0,
   $isLeaf: false,
   $childLength: 0,
   $resizeIdx: 0,
-  $maxWidth: 0,
+  $width: 0,
   $alignStyle: "",
   $isAside: false,
   $panel: "center",

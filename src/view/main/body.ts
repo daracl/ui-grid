@@ -57,8 +57,6 @@ export default class Body {
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));
     this.rightElement.html(this.template("right"));
-
-    this.centerElement.css({ left: this.grid.config().dimensions.mainLeftWidth + "px" });
   }
 
   /**
@@ -81,21 +79,22 @@ export default class Body {
     const rightLength = rightFields.length;
 
     const beforeViewRow = cfg.scroll.before.viewRow;
-    if (beforeViewRow > viewRow) {
+
+    if (beforeViewRow > 1 && beforeViewRow > viewRow) {
       for (let i = viewRow; i < beforeViewRow; i++) {
-        console.log(i, "remove");
         if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').remove();
         if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').remove();
         if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').remove();
       }
       cfg.scroll.before.viewRow = viewRow;
-    } else if (beforeViewRow < viewRow && cfg.scroll.before.viewRow > 0) {
+    } else if (beforeViewRow < viewRow && beforeViewRow > 0) {
       const rowHeight = opts.body.row.height;
 
       const addViewRow = viewRow - beforeViewRow;
-      if (leftLength > 0) this.leftElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafLeft));
-      if (centerLength > 0) this.centerElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafCenter));
-      if (rightLength > 0) this.rightElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, cfg.fieldHeaderGroup.leafRight));
+
+      if (leftLength > 0) this.leftElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, leftFields));
+      if (centerLength > 0) this.centerElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, centerFields));
+      if (rightLength > 0) this.rightElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, rightFields));
 
       cfg.scroll.before.viewRow = viewRow;
     }
@@ -103,6 +102,7 @@ export default class Body {
     if (viewRow < 1) {
       return;
     }
+
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       for (let i = currentViewRow; i < viewRow; i++) {
@@ -174,12 +174,12 @@ export default class Body {
     let colGroupIdx = 0;
     let tableWidth = 0;
     for (let leafNode of leafFields) {
-      const nodeWidth = leafNode.width;
+      const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
       colGroupHtm.push(`<col data-col-idx="${colGroupIdx++}" style="width:${nodeWidth}px;">`);
     }
 
-    return `<table class="dg-body-table" style="width:${tableWidth}px;">
+    return `<table class="dg-body-table">
       <colgroup>${colGroupHtm.join("")}</colgroup>
       <tbody>
         ${this.rowTemplate(0, viewRow, this.grid.getOptions().body.row.height, leafFields)}
@@ -202,6 +202,8 @@ export default class Body {
 
     for (let i = 0; i < rowCount; i++) {
       let rowIdx = startRowIdx + i;
+
+      //if (!initFlag && this.centerElement.find('.dg-row[rowinfo="' + rowIdx + '"]') != null) continue;
 
       let cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {

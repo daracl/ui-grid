@@ -125,9 +125,9 @@ export interface FieldItem {
   $resizeIdx: number;
 
   /**
-   * grid max width
+   * view cell width
    */
-  $maxWidth: number;
+  $width: number;
 
   /**
    * align style

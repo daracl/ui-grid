@@ -48,6 +48,16 @@ export const isBlank = (value: any): boolean => {
   return false;
 };
 
+export const isVisible = (elm: HTMLElement): boolean => {
+  if (!elm.offsetHeight && !elm.offsetWidth) {
+    return false;
+  }
+  if (getComputedStyle(elm).visibility === "hidden") {
+    return false;
+  }
+  return true;
+};
+
 export const isUndefined = (value: any): value is undefined => {
   return typeof value === "undefined";
 };
@@ -88,6 +98,19 @@ export const copyStringToClipboard = (prefix: string, copyText: string) => {
     fallbackCopyToClipboard(prefix, copyText);
   }
 };
+
+export function debounce<T extends (...args: any[]) => void>(f: T, delay: number): (...args: Parameters<T>) => void {
+  let timer: number | undefined;
+
+  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+    timer = window.setTimeout(() => {
+      f.apply(this, args);
+    }, delay);
+  };
+}
 
 function fallbackCopyToClipboard(prefix: string, copyText: string) {
   try {

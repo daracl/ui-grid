@@ -19,9 +19,11 @@ export default class Scroll {
   private opts: GridOptions;
 
   private horizontalElement: DaraElement;
+  private horizontalTrackElement: DaraElement;
   private horizontalThumbElement: DaraElement;
 
   private verticalElement: DaraElement;
+  private verticalTrackElement: DaraElement;
   private verticalThumbElement: DaraElement;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
@@ -31,9 +33,11 @@ export default class Scroll {
     this.opts = this.grid.getOptions();
 
     this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.horizontal");
+    this.horizontalTrackElement = this.horizontalElement.findDaraElement(".dg-scroll-track");
     this.horizontalThumbElement = this.horizontalElement.findDaraElement(".dg-scroll-thumb");
 
     this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.vertical");
+    this.verticalTrackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
     this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
 
     this.calcScroll();
@@ -42,11 +46,6 @@ export default class Scroll {
   }
 
   public calcScroll() {
-    // 스크롤 처리 할것
-    //
-    //
-    //
-
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
@@ -63,8 +62,8 @@ export default class Scroll {
       cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonSize;
 
       let barHeight = (cfg.scroll.vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-      if (verticalHeight < SCROLL_THUMB_MIN_SIZE) {
-        barHeight = 1;
+      if (cfg.scroll.vTrackHeight < SCROLL_THUMB_MIN_SIZE) {
+        barHeight = 0;
       } else {
         barHeight = barHeight < SCROLL_THUMB_MIN_SIZE ? SCROLL_THUMB_MIN_SIZE : barHeight > verticalHeight ? verticalHeight : barHeight;
       }
@@ -75,12 +74,12 @@ export default class Scroll {
       cfg.scroll.oneRowMove = (cfg.scroll.vTrackHeight - barHeight) / (cfg.dataInfo.rowLength - Math.floor(dimensions.mainBodyHeight / rowHeight));
 
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
-      this.verticalElement.find(".dg-scroll-track").style.height = cfg.scroll.vTrackHeight + "px";
+      this.verticalTrackElement.css({ height: cfg.scroll.vTrackHeight + "px" });
       this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
 
       if (cfg.dataInfo.rowLength < cfg.scroll.startRow + cfg.scroll.viewRow) {
         this.setVerticalPosition(cfg, (cfg.dataInfo.rowLength - cfg.scroll.viewRow) * cfg.scroll.oneRowMove);
-      } else if (cfg.scroll.top > 0) {
+      } else if (cfg.scroll.startRow > 0) {
         this.setVerticalPosition(cfg, cfg.scroll.startRow * cfg.scroll.oneRowMove);
       }
     } else {
@@ -100,8 +99,8 @@ export default class Scroll {
 
       cfg.scroll.hThumbWidth = barWidth;
 
-      this.horizontalElement.find(".dg-scroll-track").style.width = cfg.scroll.hTrackWidth + "px";
-      this.horizontalElement.css({ width: dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) + "px" });
+      this.horizontalElement.css({ width: cfg.scroll.hWidth + "px" });
+      this.horizontalTrackElement.css({ width: cfg.scroll.hTrackWidth + "px" });
       this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
 
       if (cfg.scroll.left + cfg.scroll.hThumbWidth > cfg.scroll.hTrackWidth) {
@@ -142,7 +141,7 @@ export default class Scroll {
 
         //delta > 0--up
         if (cfg.scroll.enableVertical) {
-          this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: opts.scroll.vertical.speed });
+          this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: cfg.scroll.viewRow < 3 ? 1 : opts.scroll.vertical.speed });
 
           if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
             stopPreventCancel(evt);
@@ -175,9 +174,9 @@ export default class Scroll {
     let startEventY = 0;
     let bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
     let verticalScrollTimer: any;
-    const trackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
-    trackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
-    trackElement
+
+    this.verticalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    this.verticalTrackElement
       .eventOn(
         "mousedown touchstart",
         (e: MouseEvent) => {
@@ -334,9 +333,9 @@ export default class Scroll {
     let startEventX = 0;
     let bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
     let horizontalScrollTimer: any;
-    const trackElement = this.horizontalElement.findDaraElement(".dg-scroll-track");
-    trackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
-    trackElement
+
+    this.horizontalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    this.horizontalTrackElement
       .eventOn(
         "mousedown touchstart",
         (e: MouseEvent) => {
@@ -614,6 +613,8 @@ export default class Scroll {
    * @param {number} topVal 스크롤 바 포지션
    */
   private setVerticalPosition(cfg: Config, topVal: number) {
+    if (topVal < 0) return;
+
     cfg.scroll.top = topVal;
 
     this.verticalThumbElement.css({ top: topVal + "px" });
@@ -636,29 +637,12 @@ export default class Scroll {
    */
   private setHorizontalPosition(cfg: Config) {
     const leftVal = cfg.scroll.left;
-    const contLeftVal = calcViewCol(cfg, leftVal) + (cfg.scroll.enableVertical ? (cfg.fixedRightIndex > 0 ? 1 : 2) : 0);
+
+    const contLeftVal = calcViewCol(cfg, leftVal);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
-    this.gridMain
-      .mainElement()
-      .findDaraElement(".dg-header > .dg-center")
-      .css({ "margin-left": cfg.dimensions.mainLeftWidth - 1 + "px", left: "-" + contLeftVal + "px" });
-
-    this.gridMain
-      .mainElement()
-      .findDaraElement(".dg-body > .dg-center")
-      .css({ "margin-left": cfg.dimensions.mainLeftWidth - 1 + "px", left: "-" + contLeftVal + "px" });
+    this.gridMain.getHeader().centerElement.css({ left: "-" + contLeftVal + "px" });
+    this.gridMain.getBody().centerElement.css({ left: "-" + contLeftVal + "px" });
   }
-
-  // /**
-  //  * @method _getBodyContainerLeft
-  //  * @param leftVal {Integer} body left position
-  //  * @param drawFlag {Boolean} draw flag
-  //  * @param updateChkFlag {Boolean} 업데이트 여부.
-  //  * @description 가로 스크롤바 위치 이동
-  //  */
-  // public _getBodyContainerLeft(leftVal: number) {
-  //   return leftVal < 1 ? 0 : (this.config.gridWidth.mainOverWidth * ((leftVal / this.config.scroll.hTrackWidth) * 100)) / 100;
-  // }
 }

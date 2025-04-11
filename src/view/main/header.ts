@@ -42,9 +42,6 @@ export default class Header {
     this.createTemplate();
 
     this.setHeight(this.grid.config().dimensions.mainHeaderHeight);
-
-    // left 값 셋팅
-    this.centerElement.css({ left: this.grid.config().dimensions.mainLeftWidth + "px" });
   }
 
   /**
@@ -160,12 +157,12 @@ export default class Header {
     let colGroupIdx = 0;
     let tableWidth = 0;
     for (let leafNode of leafGroup) {
-      const nodeWidth = leafNode.width;
+      const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
       colGroupHtm.push(`<col data-col-idx="${colGroupIdx++}" style="width:${nodeWidth}px;">`);
     }
 
-    return `<table class="dg-header-table" style="width:${tableWidth}px;">
+    return `<table class="dg-header-table">
       <colgroup>${colGroupHtm.join("")}</colgroup>
       <thead>${strHtm.join("")}</thead>
     </table>${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
