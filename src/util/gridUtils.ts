@@ -1,21 +1,28 @@
 import { Config } from "@t/GridConfig";
+import { intValue, isEmpty } from "./utils";
+import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
-import { intValue } from "./utils";
 
 /**
- * 고정 컬럼 여부 체크.
+ * 왼쪽 고정 컬럼 여부 체크.
  *
  * @param {Config} cfg
  * @param {number} idx
- * @param {string} position
  * @returns {boolean}
  */
-export const isFixedLeftPostion = (fixedLeftIndex: number, idx: number): boolean => {
-  return idx < fixedLeftIndex;
+export const isFixedLeftPostion = (cfg: Config, idx: number): boolean => {
+  return idx < cfg.fixedLeftIndex;
 };
 
-export const isFixedRightPostion = (fixedRightIndex: number, idx: number): boolean => {
-  return idx > fixedRightIndex;
+/**
+ * 오른쪽 고정 컬럼 여부 체크.
+ *
+ * @param {Config} cfg
+ * @param {number} idx
+ * @returns {boolean}
+ */
+export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
+  return idx > cfg.fixedRightIndex;
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {
@@ -63,4 +70,31 @@ export const getCellPosition = (cellElement: HTMLElement) => {
     r: intValue(posInfo[0]),
     c: intValue(posInfo[1]),
   };
+};
+
+export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
+  const items = opts.items;
+  const maxWidth = opts.header.resize.maxWidth;
+  let returnMaxWidth = 0;
+
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+  context.font = "16px Arial";
+
+  for (let i = 0, len = cfg.dataInfo.rowLength < 100 ? cfg.dataInfo.rowLength : 100; i < len; i++) {
+    const tmpVal = field.$renderer.getValue(items[i]);
+
+    if (isEmpty(tmpVal)) continue;
+
+    let metrics = context.measureText(tmpVal);
+    checkWidth = Math.max(metrics.width, checkWidth);
+
+    if (maxWidth > 0 && checkWidth >= maxWidth) {
+      return maxWidth;
+    }
+
+    returnMaxWidth = Math.max(returnMaxWidth, checkWidth);
+  }
+
+  return returnMaxWidth;
 };

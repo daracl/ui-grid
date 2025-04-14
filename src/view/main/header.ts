@@ -9,6 +9,8 @@ import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
+import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { getMaxColumnSize, isFixedLeftPostion } from "src/util/gridUtils";
 
 /**
  * Header class
@@ -27,21 +29,172 @@ export default class Header {
   public centerElement: DaraElement;
   public rightElement: DaraElement;
 
+  public resizerHelperElement: DaraElement;
+
+  private drag: any;
+
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
     this.gridMain = gridMain;
+    this.drag = {};
 
     this.headerOpts = grid.getOptions().header;
 
-    // 헤더정보 계산할것.================================================
-
     this.initHeader();
+
+    this.initEvt();
   }
 
   initHeader() {
     this.createTemplate();
 
     this.setHeight(this.grid.config().dimensions.mainHeaderHeight);
+  }
+
+  initEvt() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+
+    if (opts.header.resize.enabled === false) return;
+
+    const resizerElements = this.headerElement.finds(".dg-header-resizer");
+
+    eventOff(resizerElements, "dblclick");
+
+    eventOn(resizerElements, "dblclick", (e: UIEvent) => {
+      const targetElement = e.currentTarget as HTMLElement;
+      this.calcColumnResize(targetElement);
+
+      const field = cfg.currentFields[this.drag.resizeIdx];
+
+      const resizeW = getMaxColumnSize(cfg, opts, field, 0);
+
+      this.setColumnWidth(this.drag.resizeIdx, resizeW);
+    });
+
+    eventOff(resizerElements, "touchstart mousedown");
+    eventOn(
+      resizerElements,
+      "touchstart mousedown",
+      (e: UIEvent) => {
+        stopPreventCancel(e);
+
+        let resizeMoveX = 0;
+
+        const targetElement = e.currentTarget as HTMLElement;
+        this.calcColumnResize(targetElement);
+        const data = {} as any;
+
+        const startX = eventPosition(e).x;
+        this.drag.pageX = startX;
+
+        data.left = cfg.scroll.left;
+        data.pageX = eventPosition(e).x;
+
+        this.resizerHelperElement.css({ left: this.drag.positionLeft + "px" });
+        this.resizerHelperElement.addClass("active");
+
+        let moveStart = false;
+
+        eventOn(document, "touchmove mousemove", (e1: Event) => {
+          document.documentElement.setAttribute("onselectstart", "return false");
+          let moveX = eventPosition(e1).x;
+          if (!moveStart) {
+            if (moveX > startX + 10 || moveX < startX - 10) {
+              moveStart = true;
+            }
+          }
+          resizeMoveX = moveX - startX;
+          let moveLeftPosition = this.drag.positionLeft + resizeMoveX;
+          this.resizerHelperElement.css({ left: moveLeftPosition + "px" });
+          //this.onGripDrag(e1, _this);
+        });
+
+        eventOn(document, "touchend mouseup", (e1: Event) => {
+          document.documentElement.removeAttribute("onselectstart");
+          eventOff(document, "touchmove mousemove touchend mouseup");
+
+          this.headerColumnResize(this.drag.resizeIdx, resizeMoveX);
+
+          this.resizerHelperElement.removeClass("active");
+        });
+
+        return true;
+      },
+      null,
+      { passive: false }
+    );
+  }
+
+  /**
+   * header column resize
+   *
+   * @public
+   * @param {number} resizeIdx resize index
+   * @param {number} resizeWidth resize width
+   */
+  public headerColumnResize(resizeIdx: number, resizeWidth: number) {
+    const cfg = this.grid.config();
+    cfg.isHeaderResize = true;
+
+    const currentFireld = cfg.currentFields[resizeIdx];
+
+    let w = currentFireld.$width + resizeWidth;
+
+    this.setColumnWidth(resizeIdx, w);
+    if (utils.isFunction(this.headerOpts.resize.update)) {
+      this.headerOpts.resize.update.call(null, { index: this.drag.resizeIdx, width: w });
+    }
+  }
+
+  /**
+   * set column width
+   *
+   * @public
+   * @param {number} idx column index
+   * @param {number} w  column width
+   */
+  public setColumnWidth(idx: number, w: number) {
+    const cfg = this.grid.config();
+
+    const minWidth = this.headerOpts.resize.minWidth,
+      maxWidth = this.headerOpts.resize.maxWidth;
+    if (minWidth != -1 && w < minWidth) {
+      w = minWidth;
+    } else if (maxWidth != -1 && w > maxWidth) {
+      w = maxWidth;
+    }
+    if (cfg.isHeaderResize) {
+      cfg.currentFields[idx].$width = w;
+    } else {
+      cfg.currentFields[idx].width = w;
+    }
+
+    this.gridMain.resizeDraw();
+  }
+
+  /**
+   *
+   * @param sEle
+   */
+  private calcColumnResize(sEle: HTMLElement) {
+    const cfg = this.grid.config();
+    this.drag = {};
+    this.drag.ele = sEle;
+    const colIdx = this.drag.ele.closest("[data-header-info]").getAttribute("data-col-idx");
+    this.drag.resizeIdx = parseInt(colIdx, 10);
+    this.drag.isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
+    // get absolute left position
+    let posLeft = 0;
+
+    for (let i = 0; i <= this.drag.resizeIdx; i++) {
+      posLeft += cfg.currentFields[i].$width;
+    }
+
+    this.drag.positionLeft = posLeft;
+    if (!this.drag.isLeftContent) {
+      this.drag.positionLeft -= cfg.scroll.centerLeftPosition;
+    }
   }
 
   /**
@@ -58,6 +211,7 @@ export default class Header {
     this.leftElement = this.headerElement.findDaraElement(".dg-header>.dg-left");
     this.centerElement = this.headerElement.findDaraElement(".dg-header>.dg-center");
     this.rightElement = this.headerElement.findDaraElement(".dg-header>.dg-right");
+    this.resizerHelperElement = this.grid.element().findDaraElement(".dg-resize-helper");
 
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));

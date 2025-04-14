@@ -114,6 +114,21 @@
     }
   }
 
+  .dg-resize-helper {
+    width: 0;
+    position: absolute;
+    display: none;
+    height: 100%;
+    top: 0px;
+    margin-left: -2px;
+    z-index: 1;
+    border-left: 3px dotted #bcbcbd;
+
+    &.active {
+      display: block;
+    }
+  }
+
   /* main scroll */
   .dg-scroll-container {
     @include _SCROLL.scroll;

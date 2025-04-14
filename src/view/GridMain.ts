@@ -193,10 +193,13 @@ export default class GridMain {
     cfg.dimensions.width = utils.isNumber(width) ? width : this.grid.element().width();
     cfg.dimensions.height = utils.isNumber(height) ? height : this.grid.element().height();
     cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
-
     if (!utils.isUndefined(width)) {
-      this.calcBody();
+      this.resizeDraw();
     }
+  }
+
+  resizeDraw() {
+    this.calcBody();
 
     if (!utils.isUndefined(this._mainElement)) {
       this.setElementDimentions();
@@ -303,9 +306,11 @@ export default class GridMain {
     const fields = cfg.currentFields;
     const fieldLength = fields.length;
 
+    const isHeaderResize = cfg.isHeaderResize;
+
     let mainTotalWidth = 0;
     for (const field of fields) {
-      mainTotalWidth += field.width;
+      mainTotalWidth += isHeaderResize ? field.$width : field.width;
     }
 
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - this.grid.getOptions().scroll.width;
@@ -348,25 +353,27 @@ export default class GridMain {
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
-      let fieldWidth = field.width;
+      let fieldWidth = isHeaderResize ? field.$width : field.width;
 
       if (isInit === true) {
         this.setRendererInfo(field);
       }
 
-      // 그리드 남는 영역을 계산 해서 컬럼에 추가.
-      if (!field.$isAside && opts.enableWidthFixed !== true) {
-        fieldWidth = fieldWidth + remainderWidth;
+      if (!isHeaderResize) {
+        // 그리드 남는 영역을 계산 해서 컬럼에 추가.
+        if (!field.$isAside && opts.enableWidthFixed !== true) {
+          fieldWidth = fieldWidth + remainderWidth;
 
-        if (lastSpaceW > 0) {
-          fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1);
-          lastSpaceW = lastSpaceW - 1;
+          if (lastSpaceW > 0) {
+            fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1);
+            lastSpaceW = lastSpaceW - 1;
+          }
+
+          fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
         }
 
-        fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
+        field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
       }
-
-      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
 
       cfg.currentFields[j] = field;
 
@@ -695,6 +702,7 @@ export default class GridMain {
                     <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
               </div>
+              <div class="dg-resize-helper"></div>
           </div>
           ${opts.footer.enabled ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;"></div>` : ""}
         </div>

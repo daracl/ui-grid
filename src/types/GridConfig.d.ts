@@ -69,14 +69,13 @@ export interface Config {
     startCell: AnyKeyMap;
   };
   searchOn: boolean;
-  isResize: boolean;
+  isHeaderResize: boolean;
   focus: boolean;
   isBodyDragging: boolean;
   mouseEnter: boolean;
   currentClickInfo: AnyKeyMap;
   allCheck: boolean;
   currentHeaderResizeFlag: boolean;
-  initHeaderResizer: boolean;
   settingConfig: {
     viewInitFlag: boolean;
     filterTemplate: string;

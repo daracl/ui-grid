@@ -368,7 +368,7 @@ export default class Scroll {
 
     const horizontalThumbElement = this.horizontalThumbElement;
 
-    horizontalThumbElement.eventOff("touchstart mousedown");
+    horizontalThumbElement.eventOff("touchstart mousedown touchend mouseup");
     horizontalThumbElement.eventOn(
       "touchstart mousedown",
       (e: MouseEvent) => {
