@@ -39,8 +39,6 @@ export default class Body {
     this.calcBodyDemention();
 
     this.createTemplate();
-
-    this.dataDraw();
   }
 
   public calcBodyDemention() {
@@ -122,6 +120,9 @@ export default class Body {
 
     this.bodyElement.attr({ "data-striped-type": startRow % 2 == 0 ? "odd" : "even" });
 
+    const startCol = cfg.scroll.startCol;
+    const endCol = cfg.scroll.endCol;
+
     for (let i = 0; i < currentViewRow; i++) {
       const startRowIdx = startRow + i;
       let item = items[startRowIdx];
@@ -133,7 +134,7 @@ export default class Body {
       }
 
       // center panel
-      for (let j = 0; j < centerLength; j++) {
+      for (let j = startCol; j <= endCol; j++) {
         const field = centerFields[j];
         field.$renderer.render(startRowIdx, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
       }
@@ -202,8 +203,6 @@ export default class Body {
 
     for (let i = 0; i < rowCount; i++) {
       let rowIdx = startRowIdx + i;
-
-      //if (!initFlag && this.centerElement.find('.dg-row[rowinfo="' + rowIdx + '"]') != null) continue;
 
       let cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {

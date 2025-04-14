@@ -28,9 +28,9 @@ let DARA_GRID_SEQ = 0;
  * @typedef {DaraGrid}
  */
 export default class GridMain {
-  private grid: DaraGrid;
+  private readonly grid: DaraGrid;
 
-  private _BODY_STYLE: string[] = ["default", "striped", "borderless"];
+  private readonly _BODY_STYLE: string[] = ["default", "striped", "borderless"];
 
   private header: Header;
 
@@ -70,6 +70,9 @@ export default class GridMain {
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
     this.scroll = new Scroll(this.grid, this);
+
+    // grid draw
+    this.body.dataDraw();
   }
 
   public initEvent() {
@@ -138,18 +141,42 @@ export default class GridMain {
     this.calcBody(true);
   }
 
+  /**
+   * main element
+   *
+   * @public
+   * @returns {DaraElement} main element
+   */
   public mainElement() {
     return this._mainElement;
   }
 
+  /**
+   * body object
+   *
+   * @public
+   * @returns {Body} body object
+   */
   public getBody() {
     return this.body;
   }
 
+  /**
+   * header object
+   *
+   * @public
+   * @returns {Header} header object
+   */
   public getHeader() {
     return this.header;
   }
 
+  /**
+   * scroll object
+   *
+   * @public
+   * @returns {Scroll} object
+   */
   public getScroll() {
     return this.scroll;
   }
@@ -410,7 +437,8 @@ export default class GridMain {
     for (let field of fields) {
       this.headerGroupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex, "" + fieldIndex++);
     }
-
+    cfg.fixedLeftIndex = fixedLeftIndex + 1;
+    cfg.fixedRightIndex = fixedRightIndex;
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
     cfg.currentFields = cfg.fieldHeaderGroup.leaf;
 

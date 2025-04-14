@@ -158,7 +158,7 @@ export interface ScrollInfo {
 
   enableVertical: boolean;
   enableHorizontal: boolean;
-  containerLeft: number;
+  centerLeftPosition: number;
   before: {
     viewRow: number;
     startCol: number;

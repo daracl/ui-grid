@@ -418,7 +418,7 @@
         let tmpItem = {};
 
         for (let j = 0; j < cellCount; j++) {
-          let colName = 'col' + itemIdx + '_' + j;
+          let colName = itemIdx + '_' + j;
           if (j == 0) {
             tmpItem[colName] = i + j;
           } else {
@@ -439,7 +439,8 @@
 
           let addColItem = {
             name: key
-            , label: '한글' + key
+            //, label: '한글' + key
+            , label: key
             , width: 45
             , type: (keyIdx == 0 ? 'number' : 'string')
             , editor: true

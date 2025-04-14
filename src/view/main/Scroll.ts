@@ -3,7 +3,7 @@ import { Config, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
-import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, calcViewCol } from "src/util/gridUtils";
+import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection } from "src/util/gridUtils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
@@ -41,6 +41,8 @@ export default class Scroll {
     this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
 
     this.calcScroll();
+
+    this.setHorizontalPosition(this.grid.config());
 
     this.initEvent();
   }
@@ -638,11 +640,70 @@ export default class Scroll {
   private setHorizontalPosition(cfg: Config) {
     const leftVal = cfg.scroll.left;
 
-    const contLeftVal = calcViewCol(cfg, leftVal);
+    let centerLeftPosition = 0;
+    if (leftVal > 0) {
+      centerLeftPosition = leftVal < 1 ? 0 : ((cfg.dimensions.mainTotalWidth - cfg.dimensions.mainInsideWidth) * ((leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
+    }
+
+    cfg.scroll.centerLeftPosition = centerLeftPosition;
+
+    calcViewCol(cfg, centerLeftPosition);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
-    this.gridMain.getHeader().centerElement.css({ left: "-" + contLeftVal + "px" });
-    this.gridMain.getBody().centerElement.css({ left: "-" + contLeftVal + "px" });
+    this.gridMain.getHeader().centerElement.css({ left: "-" + centerLeftPosition + "px" });
+    this.gridMain.getBody().centerElement.css({ left: "-" + centerLeftPosition + "px" });
   }
+}
+
+/**
+ * @method calcViewCol
+ * @param leftVal {Integer} body left position
+ * @description view col 위치 구하기.
+ */
+function calcViewCol(cfg: Config, centerLeftPosition: number) {
+  const dimensions = cfg.dimensions;
+
+  const mainInsideWidth = dimensions.mainInsideWidth;
+
+  const mainViewWidth = mainInsideWidth - (dimensions.mainLeftWidth + dimensions.mainRightWidth);
+
+  const fields = cfg.fieldHeaderGroup.leafCenter;
+
+  let itemLeftVal = 0;
+
+  let startCol = 0,
+    endCol = fields.length - 1;
+
+  let startFlag = true,
+    inSideStartFlag = true;
+
+  for (let i = 0; i < fields.length; i++) {
+    if (inSideStartFlag && itemLeftVal >= centerLeftPosition) {
+      cfg.scroll.insideStartCol = i;
+      inSideStartFlag = false;
+    }
+
+    itemLeftVal += fields[i].$width;
+
+    if (startFlag && itemLeftVal >= centerLeftPosition) {
+      startCol = i;
+      startFlag = false;
+      continue;
+    }
+
+    if (itemLeftVal - centerLeftPosition >= mainViewWidth) {
+      endCol = i;
+      break;
+    }
+  }
+
+  cfg.scroll.before.startCol = cfg.scroll.startCol; // 이전데이터
+  cfg.scroll.before.endCol = cfg.scroll.endCol;
+
+  cfg.scroll.startCol = startCol > 0 ? startCol : 0;
+  cfg.scroll.endCol = endCol >= fields.length ? fields.length : endCol;
+
+  // 화면에 다 보이는 col size
+  cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
 }
