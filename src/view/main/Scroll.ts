@@ -3,7 +3,7 @@ import { Config, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
-import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection } from "src/util/gridUtils";
+import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCenterContentLeft } from "src/util/gridUtils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
@@ -41,8 +41,6 @@ export default class Scroll {
     this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
 
     this.calcScroll();
-
-    this.setHorizontalPosition(this.grid.config());
 
     this.initEvent();
   }
@@ -108,6 +106,8 @@ export default class Scroll {
       if (cfg.scroll.left + cfg.scroll.hThumbWidth > cfg.scroll.hTrackWidth) {
         cfg.scroll.left = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
         this.setHorizontalPosition(cfg);
+      } else {
+        calcViewCol(cfg);
       }
     } else {
       cfg.scroll.left = 0;
@@ -638,16 +638,7 @@ export default class Scroll {
    * @param {number} contLeftVal scroll position
    */
   private setHorizontalPosition(cfg: Config) {
-    const leftVal = cfg.scroll.left;
-
-    let centerLeftPosition = 0;
-    if (leftVal > 0) {
-      centerLeftPosition = leftVal < 1 ? 0 : ((cfg.dimensions.mainTotalWidth - cfg.dimensions.mainInsideWidth) * ((leftVal / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
-    }
-
-    cfg.scroll.centerLeftPosition = centerLeftPosition;
-
-    calcViewCol(cfg, centerLeftPosition);
+    const centerLeftPosition = calcViewCol(cfg);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
@@ -657,14 +648,15 @@ export default class Scroll {
 }
 
 /**
- * @method calcViewCol
- * @param leftVal {Integer} body left position
- * @description view col 위치 구하기.
+ * view col 위치 구하기.
+ *
+ * @param {Config} cfg 설정 정보
  */
-function calcViewCol(cfg: Config, centerLeftPosition: number) {
+function calcViewCol(cfg: Config) {
   const dimensions = cfg.dimensions;
-
   const mainInsideWidth = dimensions.mainInsideWidth;
+
+  let centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
 
   const mainViewWidth = mainInsideWidth - (dimensions.mainLeftWidth + dimensions.mainRightWidth);
 
@@ -706,4 +698,6 @@ function calcViewCol(cfg: Config, centerLeftPosition: number) {
 
   // 화면에 다 보이는 col size
   cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
+
+  return centerLeftPosition;
 }

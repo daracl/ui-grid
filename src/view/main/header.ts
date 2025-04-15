@@ -10,7 +10,7 @@ import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
-import { getMaxColumnSize, isFixedLeftPostion } from "src/util/gridUtils";
+import { getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from "src/util/gridUtils";
 
 /**
  * Header class
@@ -59,67 +59,72 @@ export default class Header {
 
     const resizerElements = this.headerElement.finds(".dg-header-resizer");
 
-    eventOff(resizerElements, "dblclick");
+    let clicks = 0;
+    let clickTimer: any;
+    const threshold = 200;
 
-    eventOn(resizerElements, "dblclick", (e: UIEvent) => {
-      const targetElement = e.currentTarget as HTMLElement;
-      this.calcColumnResize(targetElement);
-
-      const field = cfg.currentFields[this.drag.resizeIdx];
-
-      const resizeW = getMaxColumnSize(cfg, opts, field, 0);
-
-      this.setColumnWidth(this.drag.resizeIdx, resizeW);
-    });
-
+    //header resize, dblclick or drag
     eventOff(resizerElements, "touchstart mousedown");
     eventOn(
       resizerElements,
       "touchstart mousedown",
       (e: UIEvent) => {
         stopPreventCancel(e);
+        const targetElement = e.currentTarget as HTMLElement;
+        this.calcColumnResize(targetElement);
+        clicks++;
+        // click drag
+        if (clicks === 1) {
+          clickTimer = setTimeout(() => {
+            clicks = 0;
+          }, threshold);
+        }
+
+        // dblclick
+        if (clicks === 2) {
+          const field = cfg.currentFields[this.drag.resizeIdx];
+
+          const resizeW = getMaxColumnSize(cfg, opts, field, 0);
+
+          this.setColumnWidth(this.drag.resizeIdx, resizeW);
+
+          clearTimeout(clickTimer);
+          clicks = 0;
+
+          return;
+        }
 
         let resizeMoveX = 0;
 
-        const targetElement = e.currentTarget as HTMLElement;
-        this.calcColumnResize(targetElement);
-        const data = {} as any;
-
         const startX = eventPosition(e).x;
-        this.drag.pageX = startX;
-
-        data.left = cfg.scroll.left;
-        data.pageX = eventPosition(e).x;
 
         this.resizerHelperElement.css({ left: this.drag.positionLeft + "px" });
         this.resizerHelperElement.addClass("active");
 
-        let moveStart = false;
+        let isMouseMove = false;
 
         eventOn(document, "touchmove mousemove", (e1: Event) => {
+          isMouseMove = true;
           document.documentElement.setAttribute("onselectstart", "return false");
+
           let moveX = eventPosition(e1).x;
-          if (!moveStart) {
-            if (moveX > startX + 10 || moveX < startX - 10) {
-              moveStart = true;
-            }
-          }
+
           resizeMoveX = moveX - startX;
           let moveLeftPosition = this.drag.positionLeft + resizeMoveX;
           this.resizerHelperElement.css({ left: moveLeftPosition + "px" });
-          //this.onGripDrag(e1, _this);
         });
 
         eventOn(document, "touchend mouseup", (e1: Event) => {
-          document.documentElement.removeAttribute("onselectstart");
+          console.log(22222);
           eventOff(document, "touchmove mousemove touchend mouseup");
-
-          this.headerColumnResize(this.drag.resizeIdx, resizeMoveX);
-
           this.resizerHelperElement.removeClass("active");
-        });
+          if (isMouseMove) {
+            console.log(33333);
+            document.documentElement.removeAttribute("onselectstart");
 
-        return true;
+            this.headerColumnResize(this.drag.resizeIdx, resizeMoveX);
+          }
+        });
       },
       null,
       { passive: false }
@@ -135,7 +140,6 @@ export default class Header {
    */
   public headerColumnResize(resizeIdx: number, resizeWidth: number) {
     const cfg = this.grid.config();
-    cfg.isHeaderResize = true;
 
     const currentFireld = cfg.currentFields[resizeIdx];
 
@@ -156,6 +160,8 @@ export default class Header {
    */
   public setColumnWidth(idx: number, w: number) {
     const cfg = this.grid.config();
+
+    cfg.isHeaderResize = true;
 
     const minWidth = this.headerOpts.resize.minWidth,
       maxWidth = this.headerOpts.resize.maxWidth;
@@ -180,21 +186,45 @@ export default class Header {
   private calcColumnResize(sEle: HTMLElement) {
     const cfg = this.grid.config();
     this.drag = {};
-    this.drag.ele = sEle;
-    const colIdx = this.drag.ele.closest("[data-header-info]").getAttribute("data-col-idx");
+    const colIdx = (sEle as HTMLElement).closest("[data-header-info]")?.getAttribute("data-col-idx") ?? "0";
+
     this.drag.resizeIdx = parseInt(colIdx, 10);
-    this.drag.isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
-    // get absolute left position
+
+    const isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
+    const isRightContent = isFixedRightPostion(cfg, this.drag.resizeIdx);
+
+    console.log("calcColumnResize", cfg.fixedRightIndex, cfg.fixedLeftIndex, this.drag.resizeIdx);
+    // right 컨텐츠도 체크 할것.
+    //
     let posLeft = 0;
+    if (isRightContent) {
+      for (let i = cfg.fixedRightIndex; i <= this.drag.resizeIdx; i++) {
+        posLeft += cfg.currentFields[i].$width;
+      }
+      this.drag.positionLeft = cfg.dimensions.mainInsideWidth - cfg.dimensions.mainRightWidth + posLeft;
+    } else if (isLeftContent) {
+      for (let i = 0; i <= this.drag.resizeIdx; i++) {
+        posLeft += cfg.currentFields[i].$width;
+      }
 
-    for (let i = 0; i <= this.drag.resizeIdx; i++) {
-      posLeft += cfg.currentFields[i].$width;
+      this.drag.positionLeft = posLeft;
+    } else {
+      for (let i = 0; i <= this.drag.resizeIdx; i++) {
+        posLeft += cfg.currentFields[i].$width;
+      }
+
+      console.log("@@@@@@ : ", cfg.scroll.centerLeftPosition, posLeft);
+
+      //
+      // header resize 시 resizeHelper 버그 수정 할것.
+      // 스크롤 옆으로 이동후 resize 시 버그
+      //
+      //
+
+      this.drag.positionLeft = posLeft - getCenterContentLeft(cfg, cfg.scroll.left);
     }
 
-    this.drag.positionLeft = posLeft;
-    if (!this.drag.isLeftContent) {
-      this.drag.positionLeft -= cfg.scroll.centerLeftPosition;
-    }
+    console.log("##########  ", this.drag.positionLeft);
   }
 
   /**

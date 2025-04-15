@@ -101,6 +101,8 @@ export default class Body {
       return;
     }
 
+    console.log(currentViewRow, viewRow, "leftLength : ", leftLength);
+
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       for (let i = currentViewRow; i < viewRow; i++) {

@@ -127,7 +127,6 @@ export default class GridMain {
       if (this.GRID_OFFSET.height != newOffset.height || this.GRID_OFFSET.width != newOffset.width) {
         this.GRID_OFFSET = newOffset;
         this.setSize(el.width(), el.height());
-        this.body.dataDraw("resize");
       }
     });
   }
@@ -199,12 +198,19 @@ export default class GridMain {
   }
 
   resizeDraw() {
+    const cfg = this.grid.config();
     this.calcBody();
 
     if (!utils.isUndefined(this._mainElement)) {
       this.setElementDimentions();
       this.scroll.calcScroll();
       this.fieldResize();
+
+      console.log(cfg.scroll.before.viewRow, cfg.scroll.viewRow, "startcol", cfg.scroll.before.startCol, cfg.scroll.startCol, "endcol", cfg.scroll.before.endCol, cfg.scroll.endCol);
+
+      if (cfg.scroll.before.viewRow != cfg.scroll.viewRow || cfg.scroll.before.startCol != cfg.scroll.startCol || cfg.scroll.before.endCol != cfg.scroll.endCol) {
+        this.body.dataDraw("resize");
+      }
     }
   }
 
@@ -688,6 +694,7 @@ export default class GridMain {
                       : ""
                   }
               </div>
+              <div class="dg-resize-helper"></div>
               <div class="dg-scroll-container">
                   <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
                     <div class="dg-scroll-track"></div>
@@ -702,7 +709,7 @@ export default class GridMain {
                     <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
               </div>
-              <div class="dg-resize-helper"></div>
+             
           </div>
           ${opts.footer.enabled ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;"></div>` : ""}
         </div>

@@ -22,7 +22,7 @@ export const isFixedLeftPostion = (cfg: Config, idx: number): boolean => {
  * @returns {boolean}
  */
 export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
-  return idx > cfg.fixedRightIndex;
+  return idx >= cfg.fixedRightIndex;
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {
@@ -98,3 +98,17 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
 
   return returnMaxWidth;
 };
+
+/**
+ * 스크롤 left postion -> 그리드 센터 포지션 값으로 변환.
+ *
+ * @param cfg 그리드 설정 정보
+ * @param scrollLeft scroll left 값
+ * @returns
+ */
+export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
+  if (scrollLeft < 1) {
+    return 0;
+  }
+  return scrollLeft < 1 ? 0 : ((cfg.dimensions.mainTotalWidth - cfg.dimensions.mainInsideWidth) * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
+}
