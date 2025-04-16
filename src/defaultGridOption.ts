@@ -44,7 +44,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       // resize 설정
       enabled: true, // 활성화여부
       update: false, // 변경시 콜랙 함수
-      minWidth: 50, // 컬럼 최소 넓이
+      minWidth: 2, // 컬럼 최소 넓이
       maxWidth: 1500, // 컬럼 최대 넓이
     },
     enableAllColumnSelection: true, // 전체 선택 여부.

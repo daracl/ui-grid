@@ -115,11 +115,9 @@ export default class Header {
         });
 
         eventOn(document, "touchend mouseup", (e1: Event) => {
-          console.log(22222);
           eventOff(document, "touchmove mousemove touchend mouseup");
           this.resizerHelperElement.removeClass("active");
           if (isMouseMove) {
-            console.log(33333);
             document.documentElement.removeAttribute("onselectstart");
 
             this.headerColumnResize(this.drag.resizeIdx, resizeMoveX);
@@ -193,7 +191,7 @@ export default class Header {
     const isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
     const isRightContent = isFixedRightPostion(cfg, this.drag.resizeIdx);
 
-    console.log("calcColumnResize", cfg.fixedRightIndex, cfg.fixedLeftIndex, this.drag.resizeIdx);
+    console.log("calcColumnResize", isLeftContent, isRightContent, cfg.fixedRightIndex, cfg.fixedLeftIndex, this.drag.resizeIdx);
     // right 컨텐츠도 체크 할것.
     //
     let posLeft = 0;
@@ -213,18 +211,9 @@ export default class Header {
         posLeft += cfg.currentFields[i].$width;
       }
 
-      console.log("@@@@@@ : ", cfg.scroll.centerLeftPosition, posLeft);
-
-      //
-      // header resize 시 resizeHelper 버그 수정 할것.
-      // 스크롤 옆으로 이동후 resize 시 버그
-      //
-      //
-
-      this.drag.positionLeft = posLeft - getCenterContentLeft(cfg, cfg.scroll.left);
+      console.log(posLeft, cfg.scroll.centerLeftPosition);
+      this.drag.positionLeft = posLeft - cfg.scroll.centerLeftPosition;
     }
-
-    console.log("##########  ", this.drag.positionLeft);
   }
 
   /**

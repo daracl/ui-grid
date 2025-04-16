@@ -19,7 +19,6 @@ export default class LinkRenderer extends ViewRenderer {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
 
-    console.log("refValue ", refValue);
     if (!isUndefined(refValue)) {
       element.innerHTML = `<a href="${refValue.href}" _blank="${refValue.target ?? ""}">${value}</a>`;
     } else {

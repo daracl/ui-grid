@@ -206,8 +206,6 @@ export default class GridMain {
       this.scroll.calcScroll();
       this.fieldResize();
 
-      console.log(cfg.scroll.before.viewRow, cfg.scroll.viewRow, "startcol", cfg.scroll.before.startCol, cfg.scroll.startCol, "endcol", cfg.scroll.before.endCol, cfg.scroll.endCol);
-
       if (cfg.scroll.before.viewRow != cfg.scroll.viewRow || cfg.scroll.before.startCol != cfg.scroll.startCol || cfg.scroll.before.endCol != cfg.scroll.endCol) {
         this.body.dataDraw("resize");
       }
@@ -321,6 +319,10 @@ export default class GridMain {
 
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - this.grid.getOptions().scroll.width;
 
+    // body 처리 할것ㅣ
+    //
+    //
+
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
 
@@ -357,6 +359,8 @@ export default class GridMain {
       centerWidth = 0,
       rightWidth = 0;
 
+    console.log("lastSpaceW : ", lastSpaceW);
+
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
       let fieldWidth = isHeaderResize ? field.$width : field.width;
@@ -371,7 +375,8 @@ export default class GridMain {
           fieldWidth = fieldWidth + remainderWidth;
 
           if (lastSpaceW > 0) {
-            fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1);
+            const addSpaceW = lastSpaceW > 1 ? 1 : lastSpaceW;
+            fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1) * addSpaceW;
             lastSpaceW = lastSpaceW - 1;
           }
 

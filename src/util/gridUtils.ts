@@ -22,7 +22,7 @@ export const isFixedLeftPostion = (cfg: Config, idx: number): boolean => {
  * @returns {boolean}
  */
 export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
-  return idx >= cfg.fixedRightIndex;
+  return cfg.fixedRightIndex > 0 && idx >= cfg.fixedRightIndex;
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {

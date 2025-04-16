@@ -62,6 +62,10 @@
   </div>
   <textarea id="dropTextArea" style="width:100%" rows="2"></textarea>
   <table style="width:95%;height:80vh">
+    <colgroup>
+      <col style="width:80%">
+      <col style="width:10%">
+    </colgroup>
     <tr>
       <td>
         <div class="asdfasdfWrapper">
@@ -69,13 +73,20 @@
             style="display:inline-block;white-space: pre;position: relative;padding:0px;margin:0px;">SORT_ORDER</pre>
           <div id="sample" style="height:calc(100vh - 200px);width:100%;"></div>
         </div>
+
+      </td>
+      <td>
+        <div style="height:20px;background-color: aqua;"></div>
       </td>
 
     </tr>
     <tr>
       <td>
+
+      </td>
+      <td>
         <div class="asdfasdfWrapper">
-          <div id="asdfasdf1" style="height:calc(100vh - 200px);width:1000px;"></div>
+          <div id="asdfasdf1" style="height:calc(100vh - 200px);"></div>
         </div>
       </td>
     </tr>
@@ -494,7 +505,7 @@
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 3
-      , fixedRightIndex: 17
+      , fixedRightIndex: 0
       //,height: 360
       , aside: {
         lineNumber: { enabled: true },

@@ -107,7 +107,7 @@ export default class Scroll {
         cfg.scroll.left = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
         this.setHorizontalPosition(cfg);
       } else {
-        calcViewCol(cfg);
+        calcViewCol(cfg, cfg.scroll.centerLeftPosition);
       }
     } else {
       cfg.scroll.left = 0;
@@ -172,9 +172,10 @@ export default class Scroll {
 
     let bgMoveMode = 0;
     let upFlag = false;
-    let oneRowMove = cfg.scroll.oneRowMove;
+    let oneRowMove = 0;
+    let bgMoveRow = 0;
     let startEventY = 0;
-    let bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
+
     let verticalScrollTimer: any;
 
     this.verticalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
@@ -184,6 +185,8 @@ export default class Scroll {
         (e: MouseEvent) => {
           bgMoveMode = 1;
           startEventY = e.offsetY;
+          oneRowMove = cfg.scroll.oneRowMove;
+          bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
 
           upFlag = startEventY < cfg.scroll.top;
 
@@ -331,9 +334,10 @@ export default class Scroll {
 
     let bgMoveMode = 0;
     let leftFlag = false;
-    let oneColMove = cfg.scroll.oneColMove;
+
     let startEventX = 0;
-    let bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
+    let oneColMove = 0;
+    let bgMoveCol = 0;
     let horizontalScrollTimer: any;
 
     this.horizontalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
@@ -343,6 +347,9 @@ export default class Scroll {
         (e: MouseEvent) => {
           bgMoveMode = 1;
           startEventX = e.offsetX;
+
+          oneColMove = cfg.scroll.oneColMove;
+          bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
 
           leftFlag = startEventX < cfg.scroll.left;
 
@@ -638,7 +645,9 @@ export default class Scroll {
    * @param {number} contLeftVal scroll position
    */
   private setHorizontalPosition(cfg: Config) {
-    const centerLeftPosition = calcViewCol(cfg);
+    let centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
+    cfg.scroll.centerLeftPosition = centerLeftPosition;
+    calcViewCol(cfg, centerLeftPosition);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
@@ -652,11 +661,9 @@ export default class Scroll {
  *
  * @param {Config} cfg 설정 정보
  */
-function calcViewCol(cfg: Config) {
+function calcViewCol(cfg: Config, centerLeftPosition: number) {
   const dimensions = cfg.dimensions;
   const mainInsideWidth = dimensions.mainInsideWidth;
-
-  let centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
 
   const mainViewWidth = mainInsideWidth - (dimensions.mainLeftWidth + dimensions.mainRightWidth);
 
@@ -698,6 +705,4 @@ function calcViewCol(cfg: Config) {
 
   // 화면에 다 보이는 col size
   cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
-
-  return centerLeftPosition;
 }

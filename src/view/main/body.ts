@@ -68,31 +68,36 @@ export default class Body {
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
     const rightFields = cfg.fieldHeaderGroup.leafRight;
 
+    const fieldGroups = [
+      { name: "left", fields: leftFields, element: this.leftElement },
+      { name: "center", fields: centerFields, element: this.centerElement },
+      { name: "right", fields: rightFields, element: this.rightElement },
+    ];
+
     let viewRow = cfg.scroll.viewRow;
     const startRow = cfg.scroll.startRow;
 
     const currentViewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
-    const leftLength = leftFields.length;
-    const centerLength = centerFields.length;
-    const rightLength = rightFields.length;
-
     const beforeViewRow = cfg.scroll.before.viewRow;
 
     if (beforeViewRow > 1 && beforeViewRow > viewRow) {
-      for (let i = viewRow; i < beforeViewRow; i++) {
-        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').remove();
-        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').remove();
-        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').remove();
-      }
+      fieldGroups.forEach(({ fields, element }) => {
+        if (fields.length === 0) return;
+        for (let i = viewRow; i < beforeViewRow; i++) {
+          element.find(`.dg-row[rowinfo="${i}"]`).remove();
+        }
+      });
+
       cfg.scroll.before.viewRow = viewRow;
     } else if (beforeViewRow < viewRow && beforeViewRow > 0) {
       const rowHeight = opts.body.row.height;
 
       const addViewRow = viewRow - beforeViewRow;
 
-      if (leftLength > 0) this.leftElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, leftFields));
-      if (centerLength > 0) this.centerElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, centerFields));
-      if (rightLength > 0) this.rightElement.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, rightFields));
+      fieldGroups.forEach(({ fields, element }) => {
+        if (fields.length === 0) return;
+        element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, fields));
+      });
 
       cfg.scroll.before.viewRow = viewRow;
     }
@@ -101,22 +106,27 @@ export default class Body {
       return;
     }
 
-    console.log(currentViewRow, viewRow, "leftLength : ", leftLength);
+    console.log("dataDraw", currentViewRow, viewRow);
 
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       for (let i = currentViewRow; i < viewRow; i++) {
-        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
-        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
-        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.display = "none";
+        fieldGroups.forEach(({ fields, element }) => {
+          if (fields.length > 0) {
+            element.find(`.dg-row[rowinfo="${i}"]`).style.display = "none";
+          }
+        });
       }
+
       cfg.scroll.before.hideLastRow = true;
     } else if (cfg.scroll.before.hideLastRow || currentViewRow > viewRow) {
       cfg.scroll.before.hideLastRow = false;
       for (let i = viewRow - 1; i < viewRow; i++) {
-        if (leftLength > 0) this.leftElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
-        if (centerLength > 0) this.centerElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
-        if (rightLength > 0) this.rightElement.find('.dg-row[rowinfo="' + i + '"]').style.removeProperty("display");
+        fieldGroups.forEach(({ fields, element }) => {
+          if (fields.length > 0) {
+            element.find(`.dg-row[rowinfo="${i}"]`).style.removeProperty("display");
+          }
+        });
       }
     }
 
@@ -130,10 +140,9 @@ export default class Body {
       let item = items[startRowIdx];
 
       // left panel
-      for (let j = 0; j < leftLength; j++) {
-        const field = leftFields[j];
-        field.$renderer.render(startRowIdx, j, item, this.leftElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-      }
+      leftFields.forEach((field, j) => {
+        field.$renderer.render(startRowIdx, j, item, this.leftElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
+      });
 
       // center panel
       for (let j = startCol; j <= endCol; j++) {
@@ -142,10 +151,9 @@ export default class Body {
       }
 
       // right panel
-      for (let j = 0; j < rightLength; j++) {
-        const field = rightFields[j];
-        field.$renderer.render(startRowIdx, j, item, this.rightElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
-      }
+      rightFields.forEach((field, j) => {
+        field.$renderer.render(startRowIdx, j, item, this.rightElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
+      });
     }
   }
 
