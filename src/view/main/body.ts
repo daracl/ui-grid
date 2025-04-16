@@ -187,11 +187,11 @@ export default class Body {
     for (let leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
-      colGroupHtm.push(`<col data-col-idx="${colGroupIdx++}" style="width:${nodeWidth}px;">`);
+      colGroupHtm.push(`<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`);
     }
 
     return `<table class="dg-body-table">
-      <colgroup>${colGroupHtm.join("")}</colgroup>
+      <thead><tr>${colGroupHtm.join("")}</tr></thead>
       <tbody>
         ${this.rowTemplate(0, viewRow, this.grid.getOptions().body.row.height, leafFields)}
       </tbody>

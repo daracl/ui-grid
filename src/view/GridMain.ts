@@ -226,23 +226,23 @@ export default class GridMain {
     for (let j = 0; j < leftFields.length; j++) {
       const field = leftFields[j];
       if (!field.$isAside) {
-        this.header.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-        this.body.leftElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+        this.header.leftElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+        this.body.leftElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
       }
     }
 
     // center panel
     for (let j = 0; j < centerFields.length; j++) {
       const field = centerFields[j];
-      this.header.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-      this.body.centerElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.header.centerElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.body.centerElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
     }
 
     // right panel
     for (let j = 0; j < rightFields.length; j++) {
       const field = rightFields[j];
-      this.header.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-      this.body.rightElement.find('col[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.header.rightElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      this.body.rightElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
     }
   }
 
@@ -319,10 +319,6 @@ export default class GridMain {
 
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - this.grid.getOptions().scroll.width;
 
-    // body 처리 할것ㅣ
-    //
-    //
-
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
 
@@ -333,7 +329,7 @@ export default class GridMain {
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-    //세로 스크롭 계산 end
+    const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 2 : 0; // +2 마지막 여백처리;
 
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -341,7 +337,7 @@ export default class GridMain {
     let isAddSpaceWidth;
 
     if (!cfg.scroll.enableHorizontal) {
-      const viewGridWidth = mainTotalWidth + (cfg.scroll.enableVertical ? opts.scroll.width : 0) + (cfg.fixedRightIndex > 0 ? 1 : 1); // 마지막 여백처리;
+      const viewGridWidth = mainTotalWidth + verticalScrollWidth;
       const overWidth = dimensions.width - viewGridWidth;
       isAddSpaceWidth = true;
       let absOverWidth = overWidth < 0 ? Math.abs(overWidth) : overWidth;
@@ -403,7 +399,7 @@ export default class GridMain {
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
-    dimensions.mainInsideWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) - (cfg.fixedRightIndex > 0 ? 0 : 1); // 마지막 여백처리;
+    dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
 
     cfg.dataInfo.colLength = fieldLength;
   }

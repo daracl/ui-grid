@@ -332,12 +332,12 @@ export default class Header {
     for (let leafNode of leafGroup) {
       const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
-      colGroupHtm.push(`<col data-col-idx="${colGroupIdx++}" style="width:${nodeWidth}px;">`);
+      colGroupHtm.push(`<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`);
     }
 
     return `<table class="dg-header-table">
-      <colgroup>${colGroupHtm.join("")}</colgroup>
-      <thead>${strHtm.join("")}</thead>
+      <thead><tr>${colGroupHtm.join("")}</tr></thead>
+      <tbody>${strHtm.join("")}</tbody>
     </table>${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
   }
 }
