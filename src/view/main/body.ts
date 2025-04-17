@@ -28,6 +28,8 @@ export default class Body {
   public centerElement: DaraElement;
   public rightElement: DaraElement;
 
+  public allCellMap: any;
+
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
     this.gridMain = gridMain;
@@ -89,7 +91,7 @@ export default class Body {
       });
 
       cfg.scroll.before.viewRow = viewRow;
-    } else if (beforeViewRow < viewRow && beforeViewRow > 0) {
+    } else if (beforeViewRow < viewRow) {
       const rowHeight = opts.body.row.height;
 
       const addViewRow = viewRow - beforeViewRow;
@@ -99,14 +101,28 @@ export default class Body {
         element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, fields));
       });
 
+      // 속도 향상 위해 cell을 cache
+      const allCellMap = {} as any;
+      fieldGroups.forEach(({ name, fields, element }) => {
+        if (fields.length > 0) {
+          allCellMap[name] = {} as any;
+          element.finds(".dg-cell").forEach((cellElement, idx) => {
+            let element = cellElement as HTMLElement;
+            const cellPosition = element.getAttribute("data-cell-position");
+            // this.leftElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
+            if (cellPosition) allCellMap[name][cellPosition] = element.children[0];
+          });
+        }
+      });
+
+      this.allCellMap = allCellMap;
+
       cfg.scroll.before.viewRow = viewRow;
     }
 
     if (viewRow < 1) {
       return;
     }
-
-    console.log("dataDraw", currentViewRow, viewRow);
 
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
@@ -119,12 +135,13 @@ export default class Body {
       }
 
       cfg.scroll.before.hideLastRow = true;
-    } else if (cfg.scroll.before.hideLastRow || currentViewRow > viewRow) {
+    } else if (cfg.scroll.before.hideLastRow) {
       cfg.scroll.before.hideLastRow = false;
-      for (let i = viewRow - 1; i < viewRow; i++) {
+      for (let i = 0; i < viewRow; i++) {
         fieldGroups.forEach(({ fields, element }) => {
           if (fields.length > 0) {
-            element.find(`.dg-row[rowinfo="${i}"]`).style.removeProperty("display");
+            const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
+            if (style.display) style.removeProperty("display");
           }
         });
       }
@@ -135,26 +152,36 @@ export default class Body {
     const startCol = cfg.scroll.startCol;
     const endCol = cfg.scroll.endCol;
 
+    //console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol);
+
+    //const start = performance.now();
+    if (opts.scroll.vertical.enable === false && !utils.isEmpty(mode)) {
+      return;
+    }
+
     for (let i = 0; i < currentViewRow; i++) {
       const startRowIdx = startRow + i;
       let item = items[startRowIdx];
 
       // left panel
       leftFields.forEach((field, j) => {
-        field.$renderer.render(startRowIdx, j, item, this.leftElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
+        field.$renderer.render(startRowIdx, j, item, this.allCellMap["left"][`${i},${j}`]);
       });
 
       // center panel
       for (let j = startCol; j <= endCol; j++) {
         const field = centerFields[j];
-        field.$renderer.render(startRowIdx, j, item, this.centerElement.find('[data-cell-position="' + i + "," + j + '"]>.dg-cell-content'));
+        field.$renderer.render(startRowIdx, j, item, this.allCellMap["center"][`${i},${j}`]);
       }
 
       // right panel
       rightFields.forEach((field, j) => {
-        field.$renderer.render(startRowIdx, j, item, this.rightElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
+        field.$renderer.render(startRowIdx, j, item, this.allCellMap["right"][`${i},${j}`]);
       });
     }
+
+    //const end = performance.now();
+    //console.log(`실행 시간: ${end - start} ms`);
   }
 
   /**
@@ -192,9 +219,7 @@ export default class Body {
 
     return `<table class="dg-body-table">
       <thead><tr>${colGroupHtm.join("")}</tr></thead>
-      <tbody>
-        ${this.rowTemplate(0, viewRow, this.grid.getOptions().body.row.height, leafFields)}
-      </tbody>
+      <tbody></tbody>
     </table> 
     ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
   }

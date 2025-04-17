@@ -322,6 +322,10 @@ export default class GridMain {
     //세로 스크롭 계산 start
     const rowHeight = this.grid.getOptions().body.row.height;
 
+    if (opts.scroll.vertical.enable === false) {
+      dimensions.mainHeight = rowHeight * cfg.dataInfo.rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
+    }
+
     dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
     cfg.scroll.before.viewRow = cfg.scroll.viewRow;
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
@@ -355,7 +359,7 @@ export default class GridMain {
       centerWidth = 0,
       rightWidth = 0;
 
-    console.log("lastSpaceW : ", lastSpaceW);
+    //console.log("lastSpaceW : ", lastSpaceW);
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
@@ -666,7 +670,7 @@ export default class GridMain {
 
     let templateHtml = `
       <div class="daracl-grid">
-        <div style="width:${dimensions.width}px;height:${dimensions.height}px;overflow: hidden;position:absolute;">
+        <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidde;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">

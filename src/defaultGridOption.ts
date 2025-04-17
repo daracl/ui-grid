@@ -145,6 +145,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     enableStopPropagation: false, // 이벤트 전파 여부.
     width: 14, // 세로 스크롤
     vertical: {
+      enable: true,
       speed: 3, // 스크롤 스피드 row 1
       onUpdate: (item) => {
         // 스크롤 업데이트.
@@ -153,6 +154,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       enableTooltip: false, // item count tooltip
     },
     horizontal: {
+      enable: true,
       speed: 1, // 스크롤 스피드
       enableWheel: true, //  wheel 로 스크롤 이동.
       onUpdate: false,

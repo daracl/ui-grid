@@ -191,9 +191,6 @@ export default class Header {
     const isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
     const isRightContent = isFixedRightPostion(cfg, this.drag.resizeIdx);
 
-    console.log("calcColumnResize", isLeftContent, isRightContent, cfg.fixedRightIndex, cfg.fixedLeftIndex, this.drag.resizeIdx);
-    // right 컨텐츠도 체크 할것.
-    //
     let posLeft = 0;
     if (isRightContent) {
       for (let i = cfg.fixedRightIndex; i <= this.drag.resizeIdx; i++) {

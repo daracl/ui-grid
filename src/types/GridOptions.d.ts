@@ -615,6 +615,7 @@ export interface ScrollOptions {
    * 세로 스크롤 옵션
    */
   vertical: {
+    enable: boolean;
     /**
      * 스크롤 스피드 row 1
      */
@@ -632,6 +633,7 @@ export interface ScrollOptions {
    * 가로 스크롤 옵션
    */
   horizontal: {
+    enable: boolean;
     /**
      * 스크롤 스피드
      */

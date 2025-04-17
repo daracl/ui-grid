@@ -107,7 +107,7 @@ export default class Scroll {
         cfg.scroll.left = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
         this.setHorizontalPosition(cfg);
       } else {
-        calcViewCol(cfg, cfg.scroll.centerLeftPosition);
+        this.calcViewCol(cfg, cfg.scroll.centerLeftPosition);
       }
     } else {
       cfg.scroll.left = 0;
@@ -167,8 +167,11 @@ export default class Scroll {
    * @private
    */
   private initVerticalEvent() {
-    const cfg = this.grid.config();
     const opts = this.opts;
+
+    if (opts.scroll.vertical.enable === false) return;
+
+    const cfg = this.grid.config();
 
     let bgMoveMode = 0;
     let upFlag = false;
@@ -609,9 +612,11 @@ export default class Scroll {
 
     this.setHorizontalPosition(cfg);
 
-    if (drawFlag !== false) {
-      this.gridMain.getBody().dataDraw("hscroll");
+    if (drawFlag === false) {
+      return;
     }
+
+    this.gridMain.getBody().dataDraw("hscroll");
   }
 
   /**
@@ -647,62 +652,69 @@ export default class Scroll {
   private setHorizontalPosition(cfg: Config) {
     let centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
     cfg.scroll.centerLeftPosition = centerLeftPosition;
-    calcViewCol(cfg, centerLeftPosition);
+    this.calcViewCol(cfg, centerLeftPosition);
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
     this.gridMain.getHeader().centerElement.css({ left: "-" + centerLeftPosition + "px" });
     this.gridMain.getBody().centerElement.css({ left: "-" + centerLeftPosition + "px" });
   }
-}
 
-/**
- * view col 위치 구하기.
- *
- * @param {Config} cfg 설정 정보
- */
-function calcViewCol(cfg: Config, centerLeftPosition: number) {
-  const dimensions = cfg.dimensions;
-  const mainInsideWidth = dimensions.mainInsideWidth;
-
-  const mainViewWidth = mainInsideWidth - (dimensions.mainLeftWidth + dimensions.mainRightWidth);
-
-  const fields = cfg.fieldHeaderGroup.leafCenter;
-
-  let itemLeftVal = 0;
-
-  let startCol = 0,
-    endCol = fields.length - 1;
-
-  let startFlag = true,
-    inSideStartFlag = true;
-
-  for (let i = 0; i < fields.length; i++) {
-    if (inSideStartFlag && itemLeftVal >= centerLeftPosition) {
-      cfg.scroll.insideStartCol = i;
-      inSideStartFlag = false;
+  /**
+   * view col 위치 구하기.
+   *
+   * @param {Config} cfg 설정 정보
+   */
+  private calcViewCol(cfg: Config, centerLeftPosition: number) {
+    if (this.opts.scroll.vertical.enable === false) {
+      cfg.scroll.startCol = 0;
+      cfg.scroll.endCol = cfg.fieldHeaderGroup.leafCenter.length - 1;
+      cfg.scroll.insideEndCol = cfg.scroll.endCol;
+      return;
     }
 
-    itemLeftVal += fields[i].$width;
+    const dimensions = cfg.dimensions;
+    const mainInsideWidth = dimensions.mainInsideWidth;
 
-    if (startFlag && itemLeftVal >= centerLeftPosition) {
-      startCol = i;
-      startFlag = false;
-      continue;
+    const mainViewWidth = mainInsideWidth - (dimensions.mainLeftWidth + dimensions.mainRightWidth);
+
+    const fields = cfg.fieldHeaderGroup.leafCenter;
+
+    let itemLeftVal = 0;
+
+    let startCol = 0,
+      endCol = fields.length - 1;
+
+    let startFlag = true,
+      inSideStartFlag = true;
+
+    for (let i = 0; i < fields.length; i++) {
+      if (inSideStartFlag && itemLeftVal >= centerLeftPosition) {
+        cfg.scroll.insideStartCol = i;
+        inSideStartFlag = false;
+      }
+
+      itemLeftVal += fields[i].$width;
+
+      if (startFlag && itemLeftVal >= centerLeftPosition) {
+        startCol = i;
+        startFlag = false;
+        continue;
+      }
+
+      if (itemLeftVal - centerLeftPosition >= mainViewWidth) {
+        endCol = i;
+        break;
+      }
     }
 
-    if (itemLeftVal - centerLeftPosition >= mainViewWidth) {
-      endCol = i;
-      break;
-    }
+    cfg.scroll.before.startCol = cfg.scroll.startCol; // 이전데이터
+    cfg.scroll.before.endCol = cfg.scroll.endCol;
+
+    cfg.scroll.startCol = startCol > 0 ? startCol : 0;
+    cfg.scroll.endCol = endCol >= fields.length ? fields.length : endCol;
+
+    // 화면에 다 보이는 col size
+    cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
   }
-
-  cfg.scroll.before.startCol = cfg.scroll.startCol; // 이전데이터
-  cfg.scroll.before.endCol = cfg.scroll.endCol;
-
-  cfg.scroll.startCol = startCol > 0 ? startCol : 0;
-  cfg.scroll.endCol = endCol >= fields.length ? fields.length : endCol;
-
-  // 화면에 다 보이는 col size
-  cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
 }
