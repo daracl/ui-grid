@@ -65,9 +65,7 @@ export interface Config {
     sortMap: Map;
   };
   pagingInfo: boolean;
-  selection: {
-    startCell: AnyKeyMap;
-  };
+  selection: Selection;
   searchOn: boolean;
   isHeaderResize: boolean;
   focus: boolean;

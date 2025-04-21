@@ -2,13 +2,14 @@ import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
-import { isFixedLeftPostion } from "../../util/gridUtils";
+import { isFixedLeftPostion, isInputField } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
+import { eventKeyCode, eventOff, eventOn, stopPreventCancel } from "src/util/eventUtils";
 
 /**
  * Body class
@@ -41,6 +42,96 @@ export default class Body {
     this.calcBodyDemention();
 
     this.createTemplate();
+
+    this.initEvent();
+  }
+  public initEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+
+    const copyMode = opts.copyMode;
+    const selectionMode = opts.selectionMode;
+    // window keydown 처리.  tabindex 처리 확인 해볼것.
+
+    eventOff(document, "keydown");
+    eventOn(document, "keydown", (e: KeyboardEvent) => {
+      if (!cfg.focus) return;
+
+      const targetElement = e.target as HTMLElement;
+
+      if (isInputField(targetElement.tagName)) {
+        return true;
+      }
+
+      // 설정 영역 keydown 처리
+      if (targetElement.closest(".pubGrid-setting-area")) return true;
+
+      const evtKey = eventKeyCode(e);
+
+      if (e.metaKey || e.ctrlKey) {
+        // copy
+
+        if (evtKey == 67) {
+          // ctrl+ c
+          if (copyMode == "none") {
+            return;
+          }
+
+          const copyData = "";
+
+          if (selectionMode == "row" && copyMode == "single" && cfg.selection.allSelect !== true) {
+            // const startCellInfo = cfg.selection.startCell;
+            // const selItem = cfg.currentClickInfo[startCellInfo.startIdx];
+            // if (utils.isUndefined(selItem)) {
+            //   return;
+            // }
+            // copyData = opts.tbodyItem[startCellInfo.startIdx][cfg.currentHeaderItems[startCellInfo.startCol].key];
+          } else {
+            // copyData = _this.selectionData();
+          }
+
+          try {
+            //utils.copyStringToClipboard(_this.prefix, copyData);
+          } catch (e) {
+            console.log("Unable to copy", e);
+          }
+          return;
+        } else if (evtKey == 65) {
+          // ctrl + a 처리 할것.
+          // if (targetElement.closest("#" + _this.prefix + "_pubGrid .pubGrid-setting-wrapper").length > 0) {
+          //   return true;
+          // }
+
+          //_this.allItemSelect();
+          return false;
+        } else if (evtKey == 86) {
+          // ctrl + v
+          //_this.element.pasteArea.focus();
+          return true;
+        } else if (evtKey == 70) {
+          // ctrl+f
+          stopPreventCancel(e);
+
+          //_$setting.settingBtnToggle(_this);
+          return true;
+        }
+      }
+
+      if (opts.editable === true) {
+        if ((65 <= evtKey && evtKey <= 90) || (48 <= evtKey && evtKey <= 57)) {
+          // const clickInfo = _this.getCurrentClickInfo();
+          // const cellInfo = _$util.getCellInfo(_this, _$util.getCellElement(_this, clickInfo.r, clickInfo.c));
+          // _$renderer.editCell(_this, cellInfo, e);
+          // return false;
+        }
+      }
+
+      if ((32 < evtKey && evtKey < 41) || evtKey == 13 || evtKey == 9) {
+        stopPreventCancel(e);
+
+        // _this.gridKeyCtrl(e, evtKey);
+      }
+    });
   }
 
   public calcBodyDemention() {
@@ -86,7 +177,9 @@ export default class Body {
       fieldGroups.forEach(({ fields, element }) => {
         if (fields.length === 0) return;
         for (let i = viewRow; i < beforeViewRow; i++) {
-          element.find(`.dg-row[rowinfo="${i}"]`).remove();
+          let trEle = element.find(`.dg-row[rowinfo="${i}"]`);
+          trEle.parentNode?.removeChild(trEle);
+          //element.find(`.dg-row[rowinfo="${i}"]`).remove();
         }
       });
 

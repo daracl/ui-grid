@@ -112,3 +112,12 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
   }
   return scrollLeft < 1 ? 0 : ((cfg.dimensions.mainTotalWidth - cfg.dimensions.mainInsideWidth) * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
 }
+
+/**
+ * input field check
+ * @param tagName html tag name
+ * @returns
+ */
+export function isInputField(tagName: string): boolean {
+  return tagName.search(/(input|select|textarea)/i) > -1;
+}

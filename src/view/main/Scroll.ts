@@ -133,11 +133,6 @@ export default class Scroll {
     const cfg = this.grid.config();
     const opts = this.opts;
 
-    let wheelTimer: any;
-    const wheelDelay = 70; //
-
-    let startTime: number = -1;
-
     this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
     this.gridMain.mainElement().eventOn(
       "wheel DOMMouseScroll",
@@ -146,31 +141,20 @@ export default class Scroll {
 
         if (utils.isEmpty(delta)) return;
 
-        if (startTime == -1) {
-          startTime = new Date().getTime();
-        }
-
-        if (new Date().getTime() - wheelDelay <= startTime) {
-          clearTimeout(wheelTimer);
-        }
-
         //delta > 0--up
         if (cfg.scroll.enableVertical) {
-          wheelTimer = setTimeout(() => {
+          requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(cfg.dataInfo.rowLength / cfg.scroll.viewRow);
-
-            startTime = -1;
             this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
-          }, wheelDelay);
+          });
           if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
             stopPreventCancel(evt);
           }
         } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
-          wheelTimer = setTimeout(() => {
-            startTime = -1;
+          requestAnimationFrame(() => {
             this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
-          }, wheelDelay);
+          });
 
           if (opts.scroll.enableStopPropagation === true || (cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) {
             stopPreventCancel(evt);

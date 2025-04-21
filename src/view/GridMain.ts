@@ -4,12 +4,13 @@ import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
-import Header from "./main/header";
-import Body from "./main/body";
+import Header from "./main/Header";
+import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
+import { eventOn } from "src/util/eventUtils";
 
 declare const APP_VERSION: string;
 
@@ -81,6 +82,40 @@ export default class GridMain {
     if (opts.autoResize.enabled === true) {
       this.initResizeEvent();
     }
+
+    const mainElement = this._mainElement.getElement();
+
+    eventOn(mainElement, "mouseup", () => {
+      //_this.element.body.removeClass('pubGrid-noselect');
+      //_$util.setSelectionRangeInfo(_this, { isMouseDown: false });
+    });
+
+    eventOn(mainElement, "mousedown", () => {
+      // focus in
+      //_this._setGridFocusIn(e);
+    });
+
+    //blur focus out
+    eventOn(mainElement, "blur", () => {
+      //_this._setGridFocusOut(e);
+    });
+  }
+
+  public setGridFocusIn(e: UIEvent) {
+    this.grid.config().focus = true;
+
+    if (!isInputField(e.target.tagName)) {
+      //_$renderer.editAreaClose(this);
+    }
+  }
+
+  // grid focus out
+  public setGridFocusOut(e: UIEvent) {
+    // 키 처리할것.
+    // if (e.which !== 2 && $(e.target).closest("#" + this.prefix + "_pubGrid").length < 1 && $(e.target).closest('[data-pubgrid-layer="' + this.prefix + '"]').length < 1) {
+    //   this.config.focus = false;
+    //   _$renderer.editAreaClose(this);
+    // }
   }
 
   /**
@@ -669,8 +704,8 @@ export default class GridMain {
     const opts = this.grid.getOptions();
 
     let templateHtml = `
-      <div class="daracl-grid">
-        <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidde;"}position:absolute;">
+      <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
+        <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
