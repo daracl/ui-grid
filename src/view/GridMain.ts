@@ -1,4 +1,4 @@
-import { FieldHeaderGroupInfo } from "@t/GridConfig";
+import { FieldHeaderGroupInfo, Selection } from "@t/GridConfig";
 
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
@@ -10,18 +10,11 @@ import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
-import { eventOn } from "src/util/eventUtils";
-
-declare const APP_VERSION: string;
-
-// all instance
-const allInstance: any = {};
+import { eventOff, eventOn } from "src/util/eventUtils";
+import { isInputField } from "src/util/gridUtils";
+import SelectionInfo from "src/selection/selection";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
-
-const SEQ_ATTR_KEY = "daracl-grid-uid";
-
-let DARA_GRID_SEQ = 0;
 /**
  * DaraGrid class
  *
@@ -47,6 +40,8 @@ export default class GridMain {
 
   private readonly cellMinWidth: number;
 
+  public selectionInfo: SelectionInfo;
+
   private GRID_OFFSET: any;
 
   constructor(grid: DaraGrid) {
@@ -68,6 +63,7 @@ export default class GridMain {
   }
 
   initMainView() {
+    this.selectionInfo = new SelectionInfo(this.grid, this.grid.getOptions(), this.grid.config());
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
     this.scroll = new Scroll(this.grid, this);
@@ -87,35 +83,49 @@ export default class GridMain {
 
     eventOn(mainElement, "mouseup", () => {
       //_this.element.body.removeClass('pubGrid-noselect');
-      //_$util.setSelectionRangeInfo(_this, { isMouseDown: false });
+      this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
 
-    eventOn(mainElement, "mousedown", () => {
-      // focus in
-      //_this._setGridFocusIn(e);
+    // focus in
+    eventOn(mainElement, "mousedown", (e: UIEvent) => {
+      this.setGridFocusIn(e);
     });
 
-    //blur focus out
-    eventOn(mainElement, "blur", () => {
-      //_this._setGridFocusOut(e);
+    // focus out
+    eventOff(document, "mousedown");
+    eventOn(document, "mousedown", (e: UIEvent) => {
+      if (!this.grid.config().focus) {
+        return true;
+      }
+
+      this.setGridFocusOut(e);
     });
   }
 
   public setGridFocusIn(e: UIEvent) {
     this.grid.config().focus = true;
 
-    if (!isInputField(e.target.tagName)) {
+    const targetElement = e.target as HTMLElement;
+
+    if (!isInputField(targetElement.tagName)) {
+      // TODO
       //_$renderer.editAreaClose(this);
     }
   }
 
   // grid focus out
   public setGridFocusOut(e: UIEvent) {
-    // 키 처리할것.
-    // if (e.which !== 2 && $(e.target).closest("#" + this.prefix + "_pubGrid").length < 1 && $(e.target).closest('[data-pubgrid-layer="' + this.prefix + '"]').length < 1) {
-    //   this.config.focus = false;
-    //   _$renderer.editAreaClose(this);
-    // }
+    const targetElement = e.target as HTMLElement;
+
+    console.log("targetElement : ", e.currentTarget, (e as MouseEvent).button, targetElement);
+
+    if ((e as MouseEvent).button !== 2 && targetElement.closest(this.grid.getUidAttrSelector()) == null && targetElement.closest('[data-dg-grid-layer="' + this.grid.instanceId() + '"]') == null) {
+      this.grid.config().focus = false;
+      console.log("focus out : ", this.grid.config().focus);
+      //처리할것.
+      // TODO
+      //_$renderer.editAreaClose(this);
+    }
   }
 
   /**
@@ -707,7 +717,7 @@ export default class GridMain {
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-          <div class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
+          <div tabindex="-1" class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
                   ${
                     opts.header.view

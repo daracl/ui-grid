@@ -51,6 +51,8 @@ export default class DaraGrid {
 
   private gridElement: DaraElement;
 
+  private uidAttrSelector;
+
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
@@ -63,6 +65,8 @@ export default class DaraGrid {
     this.$uid = `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
 
     gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
+
+    this.uidAttrSelector = `[${SEQ_ATTR_KEY}="${this.$uid}"]`;
 
     this.gridElement = new DaraElement(gridElement);
 
@@ -109,8 +113,8 @@ export default class DaraGrid {
     return this.options;
   }
 
-  public getIdAttribute() {
-    return `[${SEQ_ATTR_KEY}="${this.$uid}"]`;
+  public getUidAttrSelector() {
+    return this.uidAttrSelector;
   }
 
   public instanceId() {

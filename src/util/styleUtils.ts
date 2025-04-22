@@ -12,7 +12,7 @@ export const addStyleTag = (grid: DaraGrid) => {
 
   const rowOptHeight = options.body.row.height;
 
-  const uidAttribute = grid.getIdAttribute();
+  const uidAttribute = grid.getUidAttrSelector();
 
   if (!isNaN(rowOptHeight)) {
     cssStr.push(`${uidAttribute} .dg-cell, ${uidAttribute} .pub-body-aside-td{max-height:${rowOptHeight}px;height:${rowOptHeight}px;line-height:${rowOptHeight - 4}px;}`);

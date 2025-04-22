@@ -7,11 +7,10 @@ import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCe
 import DaraGrid from "src/DaraGrid";
 
 export default class SelectionInfo {
-  private grid: DaraGrid;
+  private readonly grid: DaraGrid;
 
-  private options: GridOptions;
-  private config: Config;
-  private selection: Selection;
+  private readonly options: GridOptions;
+  private readonly config: Config;
 
   /**
    * select id number
@@ -26,22 +25,23 @@ export default class SelectionInfo {
     this.options = options;
     this.config = config;
 
-    this.selection = initSelectionInfo();
+    this.config.selection = initSelectionInfo();
 
-    this.setSelectionRangeInfo({} as Selection, false, false);
+    //this.setSelectionRangeInfo({} as Selection, true, false);
   }
 
-  public setSelectionRangeInfo(changeInfo: Selection, initFlag: boolean, tdSelectFlag: boolean) {
+  public setSelectionRangeInfo(changeInfo: Selection, initFlag?: boolean, tdSelectFlag?: boolean) {
+    console.log("this.config.selection : ", this.config.selection);
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
 
     const changeRangeInfo = changeInfo.range;
-    let currSelectionInfo = this.selection;
+    let currSelectionInfo = this.config.selection;
     if (initFlag) {
-      currSelectionInfo = initSelectionInfo();
+      currSelectionInfo = this.config.selection = initSelectionInfo();
 
-      this.selection = currSelectionInfo;
+      currSelectionInfo = this.setSelectionInfo(currSelectionInfo, changeRangeInfo);
       currSelectionInfo.allRange[currSelectionInfo.id] = currSelectionInfo.range;
     } else {
       this.setSelectionInfo(changeInfo, changeRangeInfo);
@@ -106,10 +106,10 @@ export default class SelectionInfo {
    */
   public setSelectionInfo(changeInfo: any, rangeInfo: SelectionRange) {
     delete changeInfo.range;
-    this.selection = utils.merge(this.selection, changeInfo);
-    const selectionInfo = this.selection;
+    this.config.selection = utils.merge(this.config.selection, changeInfo);
+    const selectionInfo = this.config.selection;
 
-    const mode = rangeInfo.mode;
+    const mode = changeInfo.mode;
     if (mode == "add") {
       selectionInfo.id = this.getSelectionId();
       selectionInfo.range = rangeInfo;
@@ -127,6 +127,8 @@ export default class SelectionInfo {
       const rangeKey = rangeInfo._key ? rangeInfo._key : selectionInfo.id;
       delete selectionInfo.allRange[rangeKey];
     }
+
+    return changeInfo;
   }
 
   /**
@@ -134,7 +136,7 @@ export default class SelectionInfo {
    * @description header , col 선택 여부 확인
    */
   public isRangeKey(key: string): boolean {
-    return this.selection.allRange.hasOwnProperty(key);
+    return this.config.selection.allRange.hasOwnProperty(key);
   }
 
   /**
@@ -142,7 +144,7 @@ export default class SelectionInfo {
    * @description cell select
    */
   public isAllSelect() {
-    return this.selection.allSelect;
+    return this.config.selection.all;
   }
 
   /**
@@ -166,7 +168,7 @@ export default class SelectionInfo {
       sRow = 0;
       eRow = this.config.dataInfo.lastRow;
     } else {
-      const colInfo = this.selection;
+      const colInfo = this.config.selection;
       sCol = colInfo.minCol;
       eCol = colInfo.maxCol;
       sRow = colInfo.minRow;
@@ -250,13 +252,13 @@ export default class SelectionInfo {
   }
 
   public isSelectPosition(row: number, col: number, currFlag?: boolean): boolean {
-    if (this.selection.unSelectPosition.hasOwnProperty(row + "," + col)) {
+    if (this.config.selection.unSelectPosition.hasOwnProperty(row + "," + col)) {
       return false;
     }
     if (currFlag) {
-      return this.isSelRange(this.selection.range, "", row, col);
+      return this.isSelRange(this.config.selection.range, "", row, col);
     } else {
-      const allRange = this.selection.allRange;
+      const allRange = this.config.selection.allRange;
 
       for (const key in allRange) {
         if (this.isSelRange(allRange[key], "", row, col)) {
@@ -276,7 +278,7 @@ export default class SelectionInfo {
    * @returns {boolean} 여부
    */
   public isAllSelectUnSelectPosition(row: number, col: number): boolean {
-    return this.selection.unSelectPosition.hasOwnProperty(row + "," + col);
+    return this.config.selection.unSelectPosition.hasOwnProperty(row + "," + col);
   }
 
   /**
@@ -301,10 +303,10 @@ export default class SelectionInfo {
    * @public
    * @param {boolean} initFlag
    */
-  public setCellSelect(initFlag: boolean) {
-    const currentId = this.selection.id;
+  public setCellSelect(initFlag?: boolean) {
+    const currentId = this.config.selection.id;
     const colInfo = this.getSelectionRangeInfo();
-    const startCellInfo = this.selection.startCell; // start cell
+    const startCellInfo = this.config.selection.startCell; // start cell
 
     let sRow = colInfo.startRow,
       eRow = colInfo.endRow,
@@ -317,7 +319,7 @@ export default class SelectionInfo {
 
     eRow = eRow > this.config.scroll.viewRow ? this.config.scroll.viewRow : eRow;
 
-    // if (this.selection.range.mode == "remove") {
+    // if (this.config.selection.range.mode == "remove") {
     //   for (let i = sRow; i <= eRow; i++) {
     //     for (let j = sCol; j <= eCol; j++) {
     //       const cellPosition = i + "," + j;
@@ -332,7 +334,7 @@ export default class SelectionInfo {
     //       }
     //       if (addEle == null) continue;
 
-    //       this.selection.unSelectPosition[cellPosition] = "";
+    //       this.config.selection.unSelectPosition[cellPosition] = "";
 
     //       addEle.removeAttribute("data-select-idx");
     //       addEle.classList.remove("col-active");
@@ -358,12 +360,12 @@ export default class SelectionInfo {
     //   });
     // }
 
-    // const rangeKey = this.selection.range._key;
+    // const rangeKey = this.config.selection.range._key;
     // let isRowSelect = false,
     //   isColSelect = false;
     // if (!utils.isUndefined(rangeKey)) {
-    //   isRowSelect = this.selection.range._key.indexOf("row") == 0;
-    //   isColSelect = this.selection.range._key.indexOf("col") == 0;
+    //   isRowSelect = this.config.selection.range._key.indexOf("row") == 0;
+    //   isColSelect = this.config.selection.range._key.indexOf("col") == 0;
     // }
 
     // for (let i = sRow; i <= eRow; i++) {
@@ -372,7 +374,7 @@ export default class SelectionInfo {
     //     const currRow = currViewRow + i;
 
     //     if (isRowSelect || isColSelect) {
-    //       delete this.selection.unSelectPosition[cellPosition];
+    //       delete this.config.selection.unSelectPosition[cellPosition];
     //     }
 
     //     if (!this.isSelectPosition(currRow, j, true)) {
@@ -408,7 +410,7 @@ export default class SelectionInfo {
    * @returns 선택된 cell 영역 구하기.
    */
   public getSelectionRangeInfo() {
-    const selectionInfo = this.selection.range;
+    const selectionInfo = this.config.selection.range;
 
     let selectionStartRow = selectionInfo.startRow,
       selectionEndRow = selectionInfo.endRow,

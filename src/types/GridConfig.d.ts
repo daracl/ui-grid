@@ -120,7 +120,7 @@ export interface Selection {
   /**
    * 전체 선택 여부
    */
-  allSelect: boolean;
+  all: boolean;
 
   minRow: number;
   maxRow: number;
