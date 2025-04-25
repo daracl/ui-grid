@@ -85,6 +85,35 @@ export interface Config {
   fixedRightIndex: number;
   scroll: ScrollInfo;
   element: GridElement;
+  edit: EditInfo;
+}
+
+export interface CellInfo {
+  /**
+   * view row index
+   */
+  r: number;
+  /**
+   * view column index
+   */
+  c: number;
+  /**
+   * row index
+   */
+  rowIndex: number;
+  /**
+   * field info
+   */
+  field: FieldItem;
+  /**
+   * item
+   */
+  item: any;
+}
+
+export interface EditInfo {
+  enable: boolean;
+  current: CellInfo;
 }
 
 export interface Selection {

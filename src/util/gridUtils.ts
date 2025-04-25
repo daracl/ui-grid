@@ -1,4 +1,4 @@
-import { Config } from "@t/GridConfig";
+import { CellInfo, Config } from "@t/GridConfig";
 import { intValue, isEmpty } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
@@ -43,17 +43,25 @@ export const isMultipleSelection = (selectionMode: string): boolean => {
  *
  * @param {Config} cfg 설정 정보
  * @param {HTMLElement} cellElement cell element
- * @returns {{ r: any; c: any; rowItemIdx: any; rowItem: any; colInfo: any; }}
+ * @returns {{ r: any; c: any; rowItemIdx: any; rowItem: any; field: FieldItem; }}
  */
-export const getCellInfo = (cfg: Config, cellElement: HTMLElement) => {
+export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => {
   const posInfo = getCellPosition(cellElement);
-  const cellRow = cfg.scroll.viewRow + posInfo.r;
+  const rowIndex = cfg.scroll.viewRow + posInfo.r;
+
+  let cellStartIdx = cfg.fixedLeftIndex;
+  if (cellElement.closest(".dg-left")) {
+    cellStartIdx = 0;
+  } else if (cellElement.closest(".dg-right")) {
+    cellStartIdx = cfg.fixedRightIndex;
+  }
+
   return {
     r: posInfo.r,
-    c: posInfo.c,
-    rowItemIdx: cellRow,
-    rowItem: cfg.items[cellRow],
-    colInfo: cfg.currentFields[posInfo.c],
+    c: cellStartIdx + posInfo.c,
+    rowIndex: rowIndex,
+    item: cfg.items[rowIndex],
+    field: cfg.currentFields[cellStartIdx + posInfo.c],
   };
 };
 

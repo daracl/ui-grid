@@ -1,5 +1,6 @@
 import { GridOptions } from "@t/GridOptions";
-import { Config, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
+import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
+import { FieldItem } from "@t/GridField";
 
 /**
  * 
@@ -63,6 +64,7 @@ export const initConfig = (opts: GridOptions): Config => {
     fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex : 0,
     fixedRightIndex: opts.fixedRightIndex > 0 && opts.fields.length > opts.fixedRightIndex ? opts.fixedRightIndex : 0,
     scroll: initScrollInfo(),
+    edit: initEditInfo(),
     element: {
       grid: undefined,
       container: undefined,
@@ -177,7 +179,13 @@ export const initScrollInfo = (): ScrollInfo => {
   };
 };
 
-export const defaultFieldGroupInfo = (): FieldHeaderGroupInfo => {
+/**
+ * field group info
+ *
+ * @export
+ * @returns {FieldHeaderGroupInfo}
+ */
+export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
   return {
     left: [],
     center: [],
@@ -189,4 +197,22 @@ export const defaultFieldGroupInfo = (): FieldHeaderGroupInfo => {
     heights: [],
     depth: 1,
   };
-};
+}
+
+/**
+ * init edit info
+ *
+ * @export
+ * @returns {EditInfo} editinfo
+ */
+export function initEditInfo(): EditInfo {
+  return {
+    current: {
+      r: -1,
+      c: -1,
+      field: {} as FieldItem,
+      item: {},
+      rowIndex: -1,
+    },
+  };
+}

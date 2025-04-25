@@ -717,7 +717,7 @@ export default class GridMain {
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-          <div tabindex="-1" class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
+          <div tabindex="-1" style="outline:none !important;" class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
                   ${
                     opts.header.view

@@ -1,15 +1,15 @@
 import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
-import { Config, GridElement, ScrollInfo, Selection } from "@t/GridConfig";
+import { Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
-import { isFixedLeftPostion, isFixedRightPostion, isInputField } from "../../util/gridUtils";
+import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, stopPreventCancel } from "src/util/eventUtils";
+import { eventKeyCode, eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
 
 /**
@@ -47,6 +47,8 @@ export default class Body {
     this.createTemplate();
 
     this.initEvent();
+
+    this.selectionInfo = gridMain.selectionInfo;
   }
   public initEvent() {
     const cfg = this.grid.config();
@@ -62,15 +64,40 @@ export default class Body {
    * @private
    */
   private initCellEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+
     // body  selection 처리.
     // cell event 처리할것.
-    //
+    const selectionMode = opts.selectionMode;
+
+    let bodyDragTimer: any = -1;
+    let bodyDragDelay = 150;
+    let multipleFlag = isMultipleSelection(selectionMode);
+    let editable = opts.editable;
+
+    let clickCnt = 0,
+      clickDelay = 400;
+
+    let clickTimer: any;
+    let currentCellPosition: any;
+    const resetClick = function () {
+      clickCnt = 0;
+      currentCellPosition = null;
+    };
+
+    function conserveClick(cellPosition: any) {
+      currentCellPosition = cellPosition;
+      clearTimeout(clickTimer);
+      clickTimer = setTimeout(resetClick, clickDelay);
+    }
+
     const mainElement = this.gridMain.mainElement().getElement();
     eventOn(
       mainElement,
       "mousedown",
       (e: UIEvent) => {
-        if (e.which === 3) {
+        if ((e as MouseEvent).button === 3) {
           return true;
         }
         const currentElement = e.target as HTMLElement;
@@ -78,150 +105,197 @@ export default class Body {
           return true;
         }
 
-        const cfg = this.grid.config();
-        const opts = this.grid.getOptions();
+        console.log("cell click");
+
         // 처리 할것.
-        /*
-      const position = {left:0, top:0};
 
-      const _l = position.left,
-        _r = _l + cfg.dimensions..width - _this.options.scroll.vertical.width;
-      const _t = position.top,
-        _b = _t + _this.config.container.bodyHeight;
+        const position = { left: 0, top: 0 };
 
-      if (multipleFlag) {
-        // mouse darg scroll
-        $(document)
-          .on("touchmove.pubgrid.body.drag mousemove.pubgrid.body.drag", function (e1) {
-            _this.config.isBodyDragging = true;
+        const _l = position.left,
+          _r = _l + cfg.dimensions.width - opts.scroll.width;
+        const _t = position.top,
+          _b = _t + cfg.dimensions.mainBodyHeight;
 
-            const evtInfo1 = evtPos(e1);
+        if (multipleFlag) {
+          // mouse darg scroll
+          let mouseScrollDirectionX: string;
+          let mouseDragDirectionY: string;
+          eventOn(document, "touchmove mousemove", (e1: Event) => {
+            cfg.isBodyDragging = true;
+
+            const evtInfo1 = eventPosition(e1);
 
             const movePageX = evtInfo1.x,
               movePageY = evtInfo1.y;
 
-            _this.config.mouseScrollDirectionX = false;
+            mouseScrollDirectionX = "";
             if (movePageX < _l) {
-              _this.config.mouseScrollDirectionX = "L";
+              mouseScrollDirectionX = "L";
             } else if (movePageX > _r) {
-              _this.config.mouseScrollDirectionX = "R";
+              mouseScrollDirectionX = "R";
             }
 
-            _this.config.mouseDragDirectionY = false;
+            mouseDragDirectionY = "";
             if (movePageY < _t) {
-              _this.config.mouseDragDirectionY = "U";
+              mouseDragDirectionY = "U";
             } else if (movePageY > _b) {
-              _this.config.mouseDragDirectionY = "D";
+              mouseDragDirectionY = "D";
             }
 
-            if (!bodyDragTimer) dragScrollMove(_this);
-          })
-          .on("touchend.pubgrid.body.drag mouseup.pubgrid.body.drag mouseleave.pubgrid.body.drag", function (e1) {
-            _this.config.isBodyDragging = false;
-            $(document).off("touchmove.pubgrid.body.drag mousemove.pubgrid.body.drag").off("touchend.pubgrid.body.drag mouseup.pubgrid.body.drag mouseleave.pubgrid.body.drag");
-            clearInterval(bodyDragTimer);
-            bodyDragTimer = false;
+            if (!bodyDragTimer) {
+              let rangeInfo = cfg.selection.range;
+              bodyDragTimer = setInterval(() => {
+                if (mouseDragDirectionY !== "") {
+                  let endRow = -1;
+                  if (mouseDragDirectionY == "D") {
+                    endRow = rangeInfo.maxRow + 1;
+                  } else {
+                    endRow = rangeInfo.startRow > rangeInfo.minRow ? rangeInfo.minRow - 1 : rangeInfo.maxRow - 1;
+                  }
+
+                  this.selectionInfo.setSelectionRangeInfo(
+                    {
+                      range: { endRow: endRow } as SelectionRange,
+                    } as Selection,
+                    false,
+                    false
+                  );
+
+                  this.gridMain.getScroll().moveVerticalScroll({ pos: mouseDragDirectionY });
+                }
+
+                if (mouseScrollDirectionX !== "") {
+                  let endCol = -1;
+
+                  if (mouseScrollDirectionX == "R") {
+                    endCol = cfg.scroll.insideEndCol + 1;
+                  } else {
+                    endCol = cfg.scroll.insideStartCol - 1;
+                  }
+
+                  let reGridFlag = endCol < 0 || endCol >= cfg.dataInfo.colLength ? true : false;
+
+                  this.selectionInfo.setSelectionRangeInfo(
+                    {
+                      range: { endCol: endCol } as SelectionRange,
+                    } as Selection,
+                    false,
+                    reGridFlag
+                  );
+
+                  this.gridMain.getScroll().moveHorizontalScroll({ pos: mouseScrollDirectionX });
+                }
+              }, bodyDragDelay);
+            }
           });
-      }
 
-      const sEle = $(this);
+          eventOn(document, "touchend mouseup", (e1: Event) => {
+            cfg.isBodyDragging = false;
+            eventOff(document, "touchmove mousemove touchend mouseup");
+            clearInterval(bodyDragTimer);
+            bodyDragTimer = -1;
+          });
+        }
 
-      const cellInfo = _$util.getCellInfo(_this, sEle);
+        const cellElement = e.target as HTMLElement;
 
-      const currViewIdx = _this.config.scroll.viewIdx;
+        const cellInfo = getCellInfo(cfg, cellElement);
 
-      _this.setCellClick(e, cellInfo, multipleFlag, selectionMode);
+        const currViewIdx = cfg.scroll.startRow;
 
-      const newViewIdx = _this.config.scroll.viewIdx;
+        this.setCellClick(e, cellInfo, multipleFlag, selectionMode);
 
-      if (currViewIdx != newViewIdx) {
-        cellInfo.r = cellInfo.r - 1;
-      }
+        const newViewIdx = cfg.scroll.startRow;
 
-      const colIdx = cellInfo.c;
-      const rowItemIdx = cellInfo.rowItemIdx;
+        if (currViewIdx != newViewIdx) {
+          cellInfo.r = cellInfo.r - 1;
+        }
 
-      const positionInfo = {
-        position: sEle.attr("data-cell-position"),
-        rowItemIdx: rowItemIdx,
-      };
+        const colIdx = cellInfo.c;
+        const rowIndex = cellInfo.rowIndex;
 
-      if (editable === true) {
-        if (cellInfo.colInfo.renderer.type == "dropdown") {
+        const positionInfo = {
+          position: cellElement.getAttribute("data-cell-position"),
+          rowItemIdx: rowIndex,
+        };
+
+        if (editable === true) {
+          if (cellInfo.field.renderer.type == "dropdown") {
+            resetClick();
+            cfg.edit.enable = true;
+            cellInfo.field.$editRenderer.render(cellElement, cellInfo);
+            return false;
+          }
+
+          if (clickCnt == 0) {
+            cfg.edit.enable = false;
+            _$renderer.editAreaClose(_this); // 이전 에디트창 닫기
+          }
+        }
+
+        if (clickCnt > 0 && currentCellPosition.position == positionInfo.position && currentCellPosition.rowItemIdx == rowIndex) {
+          // double click 처리.
+          conserveClick(positionInfo);
           resetClick();
-          _$renderer.editCell(_this, cellInfo, e);
-          return false;
-        }
 
-        if (clickCnt == 0) {
-          _$renderer.editAreaClose(_this); // 이전 에디트창 닫기
-        }
-      }
+          if (dobleClickEventFlag) {
+            if (editable === true) {
+              _$renderer.editCell(_this, cellInfo, e);
+              return false;
+            }
 
-      if (clickCnt > 0 && currentCellPosition.position == positionInfo.position && currentCellPosition.rowItemIdx == positionInfo.rowItemIdx) {
-        // double click 처리.
-        conserveClick(positionInfo);
-        resetClick();
+            const clickRowItem = cellInfo.rowItem;
+            if (dblCheckFlag) {
+              _this.options.tbodyItem[rowIndex] = _this.getRowCheckValue(clickRowItem, clickRowItem["_pubcheckbox"] === true ? false : true);
 
-        if (dobleClickEventFlag) {
-          if (editable === true) {
-            _$renderer.editCell(_this, cellInfo, e);
-            return false;
+              const addEle = $pubSelector("#" + _this.prefix + "_bodyContainer .pubGrid-body-aside-cont").querySelector('[data-aside-position="' + cellInfo.r + ',checkbox"]>.aside-content');
+
+              _$util.setCheckBoxCheck(addEle, clickRowItem);
+            }
+
+            fnDblClick.call(cellElement, { item: clickRowItem, r: rowIndex, c: colIdx, keyItem: cellInfo.colInfo });
           }
-
-          const clickRowItem = cellInfo.rowItem;
-          if (dblCheckFlag) {
-            _this.options.tbodyItem[rowItemIdx] = _this.getRowCheckValue(clickRowItem, clickRowItem["_pubcheckbox"] === true ? false : true);
-
-            const addEle = $pubSelector("#" + _this.prefix + "_bodyContainer .pubGrid-body-aside-cont").querySelector('[data-aside-position="' + cellInfo.r + ',checkbox"]>.aside-content');
-
-            _$util.setCheckBoxCheck(addEle, clickRowItem);
-          }
-
-          fnDblClick.call(sEle, { item: clickRowItem, r: rowItemIdx, c: colIdx, keyItem: cellInfo.colInfo });
+        } else {
+          ++clickCnt;
+          conserveClick(positionInfo);
         }
-      } else {
-        ++clickCnt;
-        conserveClick(positionInfo);
-      }
 
-      if (!editable) {
-        const renderEle = $(e.target).closest(".pub-render-element");
+        if (!editable) {
+          const renderEle = cellElement.closest(".pub-render-element");
 
-        if (renderEle.length > 0) {
-          // render item click 처리.
-          if (isFunction(cellInfo.colInfo.renderer.click)) {
-            cellInfo.colInfo.renderer.click.call(null, {
-              r: rowItemIdx,
-              c: colIdx,
-              item: cellInfo.rowItem,
-            });
-            return false;
+          if (renderEle.length > 0) {
+            // render item click 처리.
+            if (utils.isFunction(cellInfo.colInfo.renderer.click)) {
+              cellInfo.colInfo.renderer.click.call(null, {
+                r: rowIndex,
+                c: colIdx,
+                item: cellInfo.rowItem,
+              });
+              return false;
+            }
           }
         }
-      }
 
-      if (isFunction(cellInfo.colInfo.colClick)) {
-        cellInfo.colInfo.colClick.call(this, colIdx, {
-          r: rowItemIdx,
-          c: colIdx,
-          item: cellInfo.rowItem,
-        });
-        return true;
-      }
-      // row click event
-      if (rowClickFlag) {
-        if (sEle.closest(".pubGrid-body-aside-cont").length > 0) {
+        if (utils.isFunction(cellInfo.colInfo.colClick)) {
+          cellInfo.colInfo.colClick.call(this, colIdx, {
+            r: rowIndex,
+            c: colIdx,
+            item: cellInfo.rowItem,
+          });
           return true;
         }
-        const clickInfo = _this.getCurrentClickInfo();
-        rowClickFn.call(null, { rowItemIdx: clickInfo.rowItemIdx, item: clickInfo.item });
-      }
+        // row click event
+        if (rowClickFlag) {
+          if (cellElement.closest(".pubGrid-body-aside-cont").length > 0) {
+            return true;
+          }
+          const clickInfo = _this.getCurrentClickInfo();
+          rowClickFn.call(null, { rowItemIdx: clickInfo.rowItemIdx, item: clickInfo.item });
+        }
 
-      return true;
-      */
+        return true;
       },
-      ".pub-body-td"
+      ".dg-cell"
     );
 
     eventOn(
@@ -229,7 +303,7 @@ export default class Body {
       "mouseover",
       (e: UIEvent) => {
         /*
-      if (!_this.config.isBodyDragging) return;
+      if (!cfg.isBodyDragging) return;
 
       if (!(selectionMode == "multiple-row" || selectionMode == "multiple-cell")) {
         return;
@@ -237,9 +311,9 @@ export default class Body {
 
       const cellInfo = _$util.getCellInfo(_this, $(this));
 
-      const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, cellInfo.c, _this.config.dataInfo);
+      const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo);
 
-      _$util.setSelectionRangeInfo(
+      this.selectionInfo.setSelectionRangeInfo(
         _this,
         {
           rangeInfo: {
@@ -253,8 +327,88 @@ export default class Body {
 
       */
       },
-      ".pub-body-td"
+      ".dg-cell"
     );
+  }
+
+  // cell click
+  private setCellClick(e: UIEvent, cellInfo: any, multipleFlag: boolean, selectionMode: string) {
+    this.gridMain.setGridFocusIn(e);
+
+    const rowItemIdx = cellInfo.rowItemIdx,
+      colIdx = cellInfo.c;
+
+    const selItem = cellInfo.rowItem;
+
+    if (!isFixedLeftPostion(colIdx)) {
+      if (colIdx < _this.config.scroll.insideStartCol) {
+        this.gridMain.getScroll().moveHorizontalScroll({ pos: "L", colIdx: colIdx });
+      } else if (colIdx > _this.config.scroll.insideEndCol) {
+        this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: colIdx });
+      }
+    }
+
+    const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, colIdx, this.config.dataInfo, this.config.selection.isMouseDown);
+
+    if (multipleFlag && e.shiftKey) {
+      // shift key
+      const rangeInfo = { endIdx: rowItemIdx, endCol: selectRangeInfo.endCol };
+
+      if (selectRangeInfo.startCol > -1) {
+        rangeInfo.srartCol = selectRangeInfo.startCol;
+      }
+
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          rangeInfo: rangeInfo,
+          isMouseDown: true,
+        },
+        false,
+        true
+      );
+    } else if (multipleFlag && e.ctrlKey) {
+      // ctrl key
+
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          rangeInfo: { startIdx: rowItemIdx, endIdx: rowItemIdx, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          isSelect: true,
+          curr: _this.config.selection.isSelect ? "add" : "",
+          isMouseDown: true,
+          startCell: { startIdx: rowItemIdx, startCol: selectRangeInfo.startCol },
+        },
+        false,
+        true
+      );
+    } else {
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          rangeInfo: { startIdx: rowItemIdx, endIdx: rowItemIdx, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          isSelect: true,
+          allSelect: false,
+          isMouseDown: true,
+          startCell: { startIdx: rowItemIdx, startCol: colIdx },
+        },
+        true,
+        true
+      );
+    }
+    const _r = cellInfo.r;
+    // hidden row up
+    if (cellInfo.r + 1 > _this.config.scroll.insideViewCount) {
+      _this.moveVerticalScroll({ pos: "D" });
+      _r = cellInfo.r - 1;
+    }
+
+    _this.config.currentClickInfo = {
+      column: cellInfo.colInfo,
+      item: selItem,
+      rowItemIdx: rowItemIdx,
+      c: colIdx,
+      r: _r,
+    };
+
+    window.getSelection().removeAllRanges();
   }
 
   /**
