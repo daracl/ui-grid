@@ -103,28 +103,29 @@ export default class GridMain {
   }
 
   public setGridFocusIn(e: UIEvent) {
+    if (this.grid.config().focus) return;
     this.grid.config().focus = true;
+
+    console.log("111111111");
 
     const targetElement = e.target as HTMLElement;
 
     if (!isInputField(targetElement.tagName)) {
       // TODO
-      //_$renderer.editAreaClose(this);
+      //this.body.editAreaClose();
     }
   }
 
   // grid focus out
   public setGridFocusOut(e: UIEvent) {
-    const targetElement = e.target as HTMLElement;
+    if (!this.grid.config().focus) return;
 
-    console.log("targetElement : ", e.currentTarget, (e as MouseEvent).button, targetElement);
+    const targetElement = e.target as HTMLElement;
 
     if ((e as MouseEvent).button !== 2 && targetElement.closest(this.grid.getUidAttrSelector()) == null && targetElement.closest('[data-dg-grid-layer="' + this.grid.instanceId() + '"]') == null) {
       this.grid.config().focus = false;
-      console.log("focus out : ", this.grid.config().focus);
-      //처리할것.
-      // TODO
-      //_$renderer.editAreaClose(this);
+
+      this.body.editAreaClose();
     }
   }
 
@@ -279,15 +280,17 @@ export default class GridMain {
     // center panel
     for (let j = 0; j < centerFields.length; j++) {
       const field = centerFields[j];
-      this.header.centerElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-      this.body.centerElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      const idx = cfg.fixedLeftIndex + j;
+      this.header.centerElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
+      this.body.centerElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
     }
 
     // right panel
     for (let j = 0; j < rightFields.length; j++) {
       const field = rightFields[j];
-      this.header.rightElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-      this.body.rightElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
+      const idx = cfg.fixedRightIndex + j;
+      this.header.rightElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
+      this.body.rightElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
     }
   }
 
@@ -518,13 +521,13 @@ export default class GridMain {
     let mainHeaderHeight = 0;
 
     for (let i = 0; i < groupDepth; i++) {
-      let trHeight = height;
+      let rowHeight = height;
       if (heights.length > i) {
-        trHeight = heights[i];
-        trHeight = trHeight > 0 ? trHeight : height;
+        rowHeight = heights[i];
+        rowHeight = rowHeight > 0 ? rowHeight : height;
       }
-      mainHeaderHeight += trHeight;
-      cfg.fieldHeaderGroup.heights[i] = trHeight;
+      mainHeaderHeight += rowHeight;
+      cfg.fieldHeaderGroup.heights[i] = rowHeight;
     }
 
     cfg.dimensions.mainHeaderHeight = mainHeaderHeight;

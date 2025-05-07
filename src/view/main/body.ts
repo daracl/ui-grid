@@ -1,5 +1,5 @@
 import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
-import { Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
+import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
 import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
@@ -11,6 +11,7 @@ import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
+import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 
 /**
  * Body class
@@ -74,7 +75,6 @@ export default class Body {
     let bodyDragTimer: any = -1;
     let bodyDragDelay = 150;
     let multipleFlag = isMultipleSelection(selectionMode);
-    let editable = opts.editable;
 
     let clickCnt = 0,
       clickDelay = 400;
@@ -90,6 +90,28 @@ export default class Body {
       currentCellPosition = cellPosition;
       clearTimeout(clickTimer);
       clickTimer = setTimeout(resetClick, clickDelay);
+    }
+
+    const rowOptions = opts.body.row;
+    // row cell double click event
+    const dblCheckFlag = rowOptions.dblClickCheck === true;
+    const editable = opts.editable;
+    const dblClickEventFlag = editable || dblCheckFlag || utils.isFunction(opts.body.cellDblClick);
+    const fnDblClick = opts.body.cellDblClick || function () {};
+
+    const rowClickFn = opts.body.row.click;
+    const rowClickFlag = utils.isFunction(rowClickFn);
+
+    let asideRowCheckRenderer: FieldItem;
+    if (dblCheckFlag) {
+      const leftFields = cfg.fieldHeaderGroup.leafLeft;
+
+      leftFields.forEach((field, j) => {
+        if (field instanceof AsideRowCheckRenderer) {
+          asideRowCheckRenderer = field;
+          return;
+        }
+      });
     }
 
     const mainElement = this.gridMain.mainElement().getElement();
@@ -197,7 +219,10 @@ export default class Body {
           });
         }
 
-        const cellElement = e.target as HTMLElement;
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement == null) return;
 
         const cellInfo = getCellInfo(cfg, cellElement);
 
@@ -211,7 +236,6 @@ export default class Body {
           cellInfo.r = cellInfo.r - 1;
         }
 
-        const colIdx = cellInfo.c;
         const rowIndex = cellInfo.rowIndex;
 
         const positionInfo = {
@@ -229,7 +253,7 @@ export default class Body {
 
           if (clickCnt == 0) {
             cfg.edit.enable = false;
-            _$renderer.editAreaClose(_this); // 이전 에디트창 닫기
+            this.editAreaClose(); // 이전 에디트창 닫기
           }
         }
 
@@ -238,22 +262,22 @@ export default class Body {
           conserveClick(positionInfo);
           resetClick();
 
-          if (dobleClickEventFlag) {
+          console.log("dblclick ---------- ");
+
+          if (dblClickEventFlag) {
             if (editable === true) {
-              _$renderer.editCell(_this, cellInfo, e);
+              cellInfo.field.$editRenderer.render(cellElement, cellInfo);
               return false;
             }
 
-            const clickRowItem = cellInfo.rowItem;
+            const clickRowItem = cellInfo.item;
             if (dblCheckFlag) {
-              _this.options.tbodyItem[rowIndex] = _this.getRowCheckValue(clickRowItem, clickRowItem["_pubcheckbox"] === true ? false : true);
+              //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
 
-              const addEle = $pubSelector("#" + _this.prefix + "_bodyContainer .pubGrid-body-aside-cont").querySelector('[data-aside-position="' + cellInfo.r + ',checkbox"]>.aside-content');
-
-              _$util.setCheckBoxCheck(addEle, clickRowItem);
+              asideRowCheckRenderer.$renderer.render(cellInfo.r, cellInfo.c, clickRowItem, this.allCellMap["left"][`${cellInfo.r},${cellInfo.c}`]);
             }
 
-            fnDblClick.call(cellElement, { item: clickRowItem, r: rowIndex, c: colIdx, keyItem: cellInfo.colInfo });
+            if (utils.isFunction(fnDblClick)) fnDblClick(cellInfo);
           }
         } else {
           ++clickCnt;
@@ -261,36 +285,19 @@ export default class Body {
         }
 
         if (!editable) {
-          const renderEle = cellElement.closest(".pub-render-element");
-
-          if (renderEle.length > 0) {
-            // render item click 처리.
-            if (utils.isFunction(cellInfo.colInfo.renderer.click)) {
-              cellInfo.colInfo.renderer.click.call(null, {
-                r: rowIndex,
-                c: colIdx,
-                item: cellInfo.rowItem,
-              });
-              return false;
-            }
+          if (utils.isFunction(cellInfo.field.click)) {
+            cellInfo.field.$renderer.click(cellInfo);
+            return false;
           }
         }
 
-        if (utils.isFunction(cellInfo.colInfo.colClick)) {
-          cellInfo.colInfo.colClick.call(this, colIdx, {
-            r: rowIndex,
-            c: colIdx,
-            item: cellInfo.rowItem,
-          });
-          return true;
-        }
         // row click event
         if (rowClickFlag) {
-          if (cellElement.closest(".pubGrid-body-aside-cont").length > 0) {
+          if (cellInfo.field.$isAside) {
             return true;
           }
-          const clickInfo = _this.getCurrentClickInfo();
-          rowClickFn.call(null, { rowItemIdx: clickInfo.rowItemIdx, item: clickInfo.item });
+
+          if (rowClickFn) rowClickFn(cellInfo);
         }
 
         return true;
@@ -331,28 +338,76 @@ export default class Body {
     );
   }
 
+  /**
+   * get rowitem check value
+   *
+   * @public
+   * @param {*} rowItem row item
+   * @param {boolean} checkFlag check 여부
+   * @returns {*}
+   */
+  public setRowCheck(rowItem: any, checkFlag: boolean) {
+    rowItem["_dgRowCheck"] = checkFlag;
+    return rowItem;
+  }
+
+  public editAreaClose() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+    if (cfg.isCellEdit === true) {
+      /*
+      const editRowInfo = cfg.editRowInfo;
+      const renderer = editRowInfo.colInfo.renderer;
+
+      const newValue = editRowInfo.rowItem[editRowInfo.colInfo.key];
+      if (renderer && renderer.type == "dropdown") {
+        const selectElements = $("#" + gridCtx.prefix + "_pubGridEditArea .pubGrid-select-item.selected");
+
+        if (selectElements.length > 0) {
+          newValue = selectElements.attr("data-val");
+        }
+
+        $("#" + gridCtx.prefix + "_pubGridEditArea").removeClass("open");
+      } else {
+        let beforeEditEle = gridCtx.element.body.find('.pub-body-td[data-cell-position="' + cfg.editRowInfo.r + "," + cfg.editRowInfo.c + '"] .pubGrid-edit-field');
+
+        if (beforeEditEle.length > 0) {
+          newValue = beforeEditEle.val();
+          beforeEditEle.remove();
+        }
+      }
+
+      if (newValue != editRowInfo.rowItem[editRowInfo.colInfo.key]) {
+        _$util.setChangeValue(gridCtx, "modify", editRowInfo.rowItem, editRowInfo.colInfo, newValue);
+      }
+      */
+    }
+  }
+
   // cell click
-  private setCellClick(e: UIEvent, cellInfo: any, multipleFlag: boolean, selectionMode: string) {
+  private setCellClick(e: UIEvent, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string) {
+    const cfg = this.grid.config();
+
     this.gridMain.setGridFocusIn(e);
 
-    const rowItemIdx = cellInfo.rowItemIdx,
+    const rowIndex = cellInfo.rowIndex,
       colIdx = cellInfo.c;
 
-    const selItem = cellInfo.rowItem;
+    const selItem = cellInfo.item;
 
-    if (!isFixedLeftPostion(colIdx)) {
-      if (colIdx < _this.config.scroll.insideStartCol) {
+    if (!isFixedLeftPostion(cfg, colIdx)) {
+      if (colIdx < cfg.scroll.insideStartCol) {
         this.gridMain.getScroll().moveHorizontalScroll({ pos: "L", colIdx: colIdx });
-      } else if (colIdx > _this.config.scroll.insideEndCol) {
+      } else if (colIdx > cfg.scroll.insideEndCol) {
         this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: colIdx });
       }
     }
-
-    const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, colIdx, this.config.dataInfo, this.config.selection.isMouseDown);
+    /*
+    const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, colIdx, cfg.dataInfo, cfg.selection.isMouseDown);
 
     if (multipleFlag && e.shiftKey) {
       // shift key
-      const rangeInfo = { endIdx: rowItemIdx, endCol: selectRangeInfo.endCol };
+      const rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol };
 
       if (selectRangeInfo.startCol > -1) {
         rangeInfo.srartCol = selectRangeInfo.startCol;
@@ -371,11 +426,11 @@ export default class Body {
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          rangeInfo: { startIdx: rowItemIdx, endIdx: rowItemIdx, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          rangeInfo: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
           isSelect: true,
           curr: _this.config.selection.isSelect ? "add" : "",
           isMouseDown: true,
-          startCell: { startIdx: rowItemIdx, startCol: selectRangeInfo.startCol },
+          startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
         },
         false,
         true
@@ -383,11 +438,11 @@ export default class Body {
     } else {
       this.selectionInfo.setSelectionRangeInfo(
         {
-          rangeInfo: { startIdx: rowItemIdx, endIdx: rowItemIdx, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
           isSelect: true,
           allSelect: false,
           isMouseDown: true,
-          startCell: { startIdx: rowItemIdx, startCol: colIdx },
+          startCell: { startRow: rowIndex, startCol: colIdx },
         },
         true,
         true
@@ -403,12 +458,13 @@ export default class Body {
     _this.config.currentClickInfo = {
       column: cellInfo.colInfo,
       item: selItem,
-      rowItemIdx: rowItemIdx,
+      rowItemIdx: rowIndex,
       c: colIdx,
       r: _r,
     };
+    */
 
-    window.getSelection().removeAllRanges();
+    window.getSelection()?.removeAllRanges();
   }
 
   /**
@@ -701,9 +757,9 @@ export default class Body {
     const rightFields = cfg.fieldHeaderGroup.leafRight;
 
     const fieldGroups = [
-      { name: "left", fields: leftFields, element: this.leftElement },
-      { name: "center", fields: centerFields, element: this.centerElement },
-      { name: "right", fields: rightFields, element: this.rightElement },
+      { name: "left", fields: leftFields, element: this.leftElement, startCol: 0 },
+      { name: "center", fields: centerFields, element: this.centerElement, startCol: cfg.fixedLeftIndex },
+      { name: "right", fields: rightFields, element: this.rightElement, startCol: cfg.fixedRightIndex },
     ];
 
     let viewRow = cfg.scroll.viewRow;
@@ -728,9 +784,9 @@ export default class Body {
 
       const addViewRow = viewRow - beforeViewRow;
 
-      fieldGroups.forEach(({ fields, element }) => {
+      fieldGroups.forEach(({ fields, element, startCol }) => {
         if (fields.length === 0) return;
-        element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, fields));
+        element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addViewRow, rowHeight, fields, startCol));
       });
 
       // 속도 향상 위해 cell을 cache
@@ -781,10 +837,12 @@ export default class Body {
 
     this.bodyElement.attr({ "data-striped-type": startRow % 2 == 0 ? "odd" : "even" });
 
-    const startCol = cfg.scroll.startCol;
-    const endCol = cfg.scroll.endCol;
+    const startCol = cfg.fixedLeftIndex + cfg.scroll.startCol;
+    const endCol = cfg.fixedLeftIndex + cfg.scroll.endCol;
 
-    //console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol);
+    console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol);
+
+    const leafAllFields = cfg.currentFields;
 
     //const start = performance.now();
     if (opts.scroll.vertical.enable === false && !utils.isEmpty(mode)) {
@@ -800,9 +858,8 @@ export default class Body {
         field.$renderer.render(startRowIdx, j, item, this.allCellMap["left"][`${i},${j}`]);
       });
 
-      // center panel
       for (let j = startCol; j <= endCol; j++) {
-        const field = centerFields[j];
+        const field = leafAllFields[j];
         field.$renderer.render(startRowIdx, j, item, this.allCellMap["center"][`${i},${j}`]);
       }
 
@@ -827,11 +884,14 @@ export default class Body {
     const cfg = this.grid.config();
 
     let leafFields;
+    let startGroupIdx = 0;
     if (type == "left") {
       leafFields = cfg.fieldHeaderGroup.leafLeft;
     } else if (type == "right") {
+      startGroupIdx = cfg.fixedRightIndex;
       leafFields = cfg.fieldHeaderGroup.leafRight;
     } else {
+      startGroupIdx = cfg.fixedLeftIndex;
       leafFields = cfg.fieldHeaderGroup.leafCenter;
     }
 
@@ -841,7 +901,7 @@ export default class Body {
     if (viewRow < 1 || leafLength < 1) return "";
 
     let colGroupHtm = [];
-    let colGroupIdx = 0;
+    let colGroupIdx = startGroupIdx;
     let tableWidth = 0;
     for (let leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
@@ -865,7 +925,7 @@ export default class Body {
    * @param {FieldItem[]} fields fields 정보
    * @returns {string} template
    */
-  private rowTemplate(startRowIdx: number, rowCount: number, rowHeight: number, fields: FieldItem[]): any {
+  private rowTemplate(startRowIdx: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
     const returnTemplate = [];
 
     for (let i = 0; i < rowCount; i++) {
@@ -877,11 +937,11 @@ export default class Body {
         let clickFlag = field.click;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + j}">
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}">
           <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
         </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + j}">
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}">
           <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
         </td>`);
         }

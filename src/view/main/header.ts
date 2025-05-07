@@ -182,9 +182,10 @@ export default class Header {
    * @param sEle
    */
   private calcColumnResize(sEle: HTMLElement) {
+    console.log("calcColumnResize", sEle);
     const cfg = this.grid.config();
     this.drag = {};
-    const colIdx = (sEle as HTMLElement).closest("[data-header-info]")?.getAttribute("data-col-idx") ?? "0";
+    const colIdx = (sEle as HTMLElement)?.getAttribute("data-resize-idx") ?? "0";
 
     this.drag.resizeIdx = parseInt(colIdx, 10);
 
@@ -247,13 +248,17 @@ export default class Header {
 
     let headerGroup;
     let leafGroup;
+    let startGroupIdx = 0;
+
     if (type == "left") {
       headerGroup = cfg.fieldHeaderGroup.left;
       leafGroup = cfg.fieldHeaderGroup.leafLeft;
     } else if (type == "right") {
+      startGroupIdx = cfg.fixedRightIndex;
       headerGroup = cfg.fieldHeaderGroup.right;
       leafGroup = cfg.fieldHeaderGroup.leafRight;
     } else {
+      startGroupIdx = cfg.fixedLeftIndex;
       headerGroup = cfg.fieldHeaderGroup.center;
       leafGroup = cfg.fieldHeaderGroup.leafCenter;
     }
@@ -273,9 +278,7 @@ export default class Header {
       let trHeight = cfg.fieldHeaderGroup.heights[i];
 
       strHtm.push(`<tr class="dg-header-row" style="height:${trHeight}px">`);
-      for (let j = 0; j < ghArr.length; j++) {
-        let ghItem = ghArr[j];
-
+      for (let ghItem of ghArr) {
         if (ghItem.$isLeaf && ghItem.$depth < headerGroupLength) {
           ghItem.$rowspan = headerGroupLength - ghItem.$depth + 1;
         }
@@ -283,10 +286,8 @@ export default class Header {
         let thHtm = [];
         thHtm.push(`<th class="dg-header-col ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
               ${ghItem.$colspan > 1 ? ` scope="colgroup" colspan="${ghItem.$colspan}" ` : ""}
-              ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""}
-              data-header-info="${i + "," + j}" 
-              data-col-idx="${ghItem.$resizeIdx}"
-        ">`);
+              ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""} 
+        >`);
 
         if (ghItem.$isAside) {
           thHtm.push(`
@@ -312,7 +313,7 @@ export default class Header {
                 ${ghItem.sort === true ? '<div class="dg-sort-icon sort-up">u</div><div class="dg-sort-icon sort-down">d</div>' : ""}
               </div>
             </div>
-            <div class="dg-header-resizer"></div>
+            <div class="dg-header-resizer" data-resize-idx="${ghItem.$resizeIdx}"></div>
             `);
         }
 
@@ -324,7 +325,7 @@ export default class Header {
     }
 
     let colGroupHtm = [];
-    let colGroupIdx = 0;
+    let colGroupIdx = startGroupIdx;
     let tableWidth = 0;
     for (let leafNode of leafGroup) {
       const nodeWidth = leafNode.$width;

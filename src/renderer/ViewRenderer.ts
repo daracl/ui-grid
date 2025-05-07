@@ -2,6 +2,7 @@ import { FieldItem } from "@t/GridField";
 
 import Renderer from "./Renderer";
 import { isFunction } from "src/util/utils";
+import { CellInfo } from "@t/GridConfig";
 
 export default abstract class ViewRenderer extends Renderer {
   private refValue: any;
@@ -34,5 +35,11 @@ export default abstract class ViewRenderer extends Renderer {
 
   public getValue(rowItem: any): any {
     return rowItem[this.field.name];
+  }
+
+  public click(cellInfo: CellInfo) {
+    if (this.field.click) {
+      this.field.click(cellInfo);
+    }
   }
 }

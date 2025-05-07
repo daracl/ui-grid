@@ -30,6 +30,7 @@ export const initConfig = (opts: GridOptions): Config => {
       mainTotalWidth: 0,
       mainOverWidth: 0,
     },
+    isCellEdit: false,
     allColumnMap: {},
     searchEnable: false,
     fieldHeaderGroup: defaultFieldGroupInfo(),
@@ -207,6 +208,7 @@ export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
  */
 export function initEditInfo(): EditInfo {
   return {
+    enable: false,
     current: {
       r: -1,
       c: -1,

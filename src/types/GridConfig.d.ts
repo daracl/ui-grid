@@ -42,6 +42,8 @@ export interface Config {
 
   currentFields: FieldItem[];
 
+  isCellEdit: boolean;
+
   searchEnable: boolean;
   fieldHeaderGroup: FieldHeaderGroupInfo;
   footer: { height: number; width: number };
