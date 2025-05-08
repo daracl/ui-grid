@@ -47,21 +47,14 @@ export const isMultipleSelection = (selectionMode: string): boolean => {
  */
 export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => {
   const posInfo = getCellPosition(cellElement);
-  const rowIndex = cfg.scroll.viewRow + posInfo.r;
-
-  let cellStartIdx = cfg.fixedLeftIndex;
-  if (cellElement.closest(".dg-left")) {
-    cellStartIdx = 0;
-  } else if (cellElement.closest(".dg-right")) {
-    cellStartIdx = cfg.fixedRightIndex;
-  }
+  const rowIndex = cfg.scroll.startRow + posInfo.r;
 
   return {
     r: posInfo.r,
-    c: cellStartIdx + posInfo.c,
+    c: posInfo.c,
     rowIndex: rowIndex,
     item: cfg.items[rowIndex],
-    field: cfg.currentFields[cellStartIdx + posInfo.c],
+    field: cfg.currentFields[posInfo.c],
   };
 };
 
@@ -128,4 +121,8 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
  */
 export function isInputField(tagName: string): boolean {
   return tagName.search(/(input|select|textarea)/i) > -1;
+}
+
+export function getOverCellPosition(cellInfo: CellInfo): string {
+  return `${cellInfo.r}_${cellInfo.c}_${cellInfo.rowIndex}`;
 }

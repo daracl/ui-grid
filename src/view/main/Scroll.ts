@@ -8,7 +8,7 @@ import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/ev
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import domUtils from "src/util/domUtils";
+import { hasClass } from "src/util/domUtils";
 
 const SCROLL_THUMB_MIN_SIZE = 18;
 
@@ -288,7 +288,7 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
-        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "up");
+        const mode = hasClass(e.currentTarget as HTMLElement, "up");
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
@@ -301,7 +301,7 @@ export default class Scroll {
     );
     eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "up");
+        const mode = hasClass(e.currentTarget as HTMLElement, "up");
         this.moveVerticalScroll({ direction: mode ? "U" : "D" });
       }
       clearInterval(scrollBtnTimer);
@@ -439,7 +439,7 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
-        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "left");
+        const mode = hasClass(e.currentTarget as HTMLElement, "left");
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
@@ -452,7 +452,7 @@ export default class Scroll {
     );
     eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = domUtils.hasClass(e.currentTarget as HTMLElement, "left");
+        const mode = hasClass(e.currentTarget as HTMLElement, "left");
         this.moveHorizontalScroll({ direction: mode ? "L" : "R" });
       }
       clearInterval(scrollBtnTimer);

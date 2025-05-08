@@ -2,7 +2,7 @@ import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag } from "../../util/styleUtils";
-import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
+import { getCellInfo, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
@@ -12,6 +12,7 @@ import DaraElement from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
+import { getOffset } from "src/util/domUtils";
 
 /**
  * Body class
@@ -114,9 +115,11 @@ export default class Body {
       });
     }
 
-    const mainElement = this.gridMain.mainElement().getElement();
+    let beforeOverCell: any = {};
+
+    const bodyElement = this.bodyElement.getElement();
     eventOn(
-      mainElement,
+      bodyElement,
       "mousedown",
       (e: UIEvent) => {
         if ((e as MouseEvent).button === 3) {
@@ -127,16 +130,14 @@ export default class Body {
           return true;
         }
 
-        console.log("cell click");
-
-        // 처리 할것.
-
-        const position = { left: 0, top: 0 };
+        const position = getOffset(bodyElement);
 
         const _l = position.left,
           _r = _l + cfg.dimensions.width - opts.scroll.width;
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
+
+        console.log("cell click  multipleFlag: ", multipleFlag, _l, _r, _t, _b);
 
         if (multipleFlag) {
           // mouse darg scroll
@@ -145,10 +146,10 @@ export default class Body {
           eventOn(document, "touchmove mousemove", (e1: Event) => {
             cfg.isBodyDragging = true;
 
-            const evtInfo1 = eventPosition(e1);
+            const e1Position = eventPosition(e1);
 
-            const movePageX = evtInfo1.x,
-              movePageY = evtInfo1.y;
+            const movePageX = e1Position.x,
+              movePageY = e1Position.y;
 
             mouseScrollDirectionX = "";
             if (movePageX < _l) {
@@ -164,10 +165,13 @@ export default class Body {
               mouseDragDirectionY = "D";
             }
 
-            if (!bodyDragTimer) {
+            if (bodyDragTimer < 1) {
               let rangeInfo = cfg.selection.range;
+
               bodyDragTimer = setInterval(() => {
                 if (mouseDragDirectionY !== "") {
+                  console.log(" mouseDragDirectionY: ", mouseDragDirectionY, rangeInfo);
+
                   let endRow = -1;
                   if (mouseDragDirectionY == "D") {
                     endRow = rangeInfo.maxRow + 1;
@@ -195,14 +199,12 @@ export default class Body {
                     endCol = cfg.scroll.insideStartCol - 1;
                   }
 
-                  let reGridFlag = endCol < 0 || endCol >= cfg.dataInfo.colLength ? true : false;
-
                   this.selectionInfo.setSelectionRangeInfo(
                     {
                       range: { endCol: endCol } as SelectionRange,
                     } as Selection,
                     false,
-                    reGridFlag
+                    endCol < 0 || endCol >= cfg.dataInfo.colLength
                   );
 
                   this.gridMain.getScroll().moveHorizontalScroll({ pos: mouseScrollDirectionX });
@@ -225,6 +227,8 @@ export default class Body {
         if (cellElement == null) return;
 
         const cellInfo = getCellInfo(cfg, cellElement);
+
+        beforeOverCell = getOverCellPosition(cellInfo);
 
         const currViewIdx = cfg.scroll.startRow;
 
@@ -306,33 +310,40 @@ export default class Body {
     );
 
     eventOn(
-      mainElement,
+      bodyElement,
       "mouseover",
       (e: UIEvent) => {
-        /*
-      if (!cfg.isBodyDragging) return;
+        if (!cfg.isBodyDragging) return;
 
-      if (!(selectionMode == "multiple-row" || selectionMode == "multiple-cell")) {
-        return;
-      }
+        if (!multipleFlag) {
+          return;
+        }
 
-      const cellInfo = _$util.getCellInfo(_this, $(this));
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
 
-      const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo);
+        if (cellElement == null) return;
 
-      this.selectionInfo.setSelectionRangeInfo(
-        _this,
-        {
-          rangeInfo: {
-            endIdx: cellInfo.rowItemIdx,
-            endCol: selectRangeInfo.endCol,
-          },
-        },
-        false,
-        true
-      );
+        const cellInfo = getCellInfo(cfg, cellElement);
 
-      */
+        const currentOverCell = getOverCellPosition(cellInfo);
+
+        if (beforeOverCell == currentOverCell) return;
+
+        beforeOverCell = currentOverCell;
+
+        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo);
+
+        this.selectionInfo.setSelectionRangeInfo(
+          {
+            range: {
+              endRow: cellInfo.rowIndex,
+              endCol: selectRangeInfo.endCol,
+            } as SelectionRange,
+          } as Selection,
+          false,
+          true
+        );
       },
       ".dg-cell"
     );
@@ -385,7 +396,7 @@ export default class Body {
   }
 
   // cell click
-  private setCellClick(e: UIEvent, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string) {
+  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string) {
     const cfg = this.grid.config();
 
     this.gridMain.setGridFocusIn(e);
@@ -402,63 +413,65 @@ export default class Body {
         this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: colIdx });
       }
     }
-    /*
-    const selectRangeInfo = _$util.getSelectionModeColInfo(selectionMode, colIdx, cfg.dataInfo, cfg.selection.isMouseDown);
 
-    if (multipleFlag && e.shiftKey) {
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, colIdx, cfg.dataInfo, cfg.selection.isMouseDown);
+
+    if (multipleFlag && (e as KeyboardEvent).shiftKey) {
       // shift key
-      const rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol };
+      let rangeInfo = { endRow: rowIndex, endCol: selectRangeInfo.endCol } as SelectionRange;
 
       if (selectRangeInfo.startCol > -1) {
-        rangeInfo.srartCol = selectRangeInfo.startCol;
+        rangeInfo.startCol = selectRangeInfo.startCol;
       }
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          rangeInfo: rangeInfo,
+          range: rangeInfo,
           isMouseDown: true,
-        },
+        } as Selection,
         false,
         true
       );
-    } else if (multipleFlag && e.ctrlKey) {
+    } else if (multipleFlag && (e as KeyboardEvent).ctrlKey) {
       // ctrl key
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          rangeInfo: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
-          curr: _this.config.selection.isSelect ? "add" : "",
+          id: cfg.selection.isSelect ? "add" : "",
           isMouseDown: true,
-          startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
-        },
+          startCell: { startRow: rowIndex, startCol: selectRangeInfo.startCol },
+        } as Selection,
         false,
         true
       );
     } else {
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol },
+          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
-          allSelect: false,
+          all: false,
           isMouseDown: true,
           startCell: { startRow: rowIndex, startCol: colIdx },
-        },
+        } as Selection,
         true,
         true
       );
     }
-    const _r = cellInfo.r;
+
+    /*
+    let _r = cellInfo.r;
     // hidden row up
-    if (cellInfo.r + 1 > _this.config.scroll.insideViewCount) {
-      _this.moveVerticalScroll({ pos: "D" });
+    if (cellInfo.r + 1 > cfg.scroll.viewRow) {
+      this.gridMain.getScroll().moveVerticalScroll({ pos: "D" });
       _r = cellInfo.r - 1;
     }
 
-    _this.config.currentClickInfo = {
-      column: cellInfo.colInfo,
+    cfg.currentClickInfo = {
+      field: cellInfo.field,
       item: selItem,
-      rowItemIdx: rowIndex,
+      rowIndex: rowIndex,
       c: colIdx,
       r: _r,
     };
@@ -756,10 +769,15 @@ export default class Body {
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
     const rightFields = cfg.fieldHeaderGroup.leafRight;
 
+    const fixedLeftIndex = cfg.fixedLeftIndex;
+    const fixedRightIndex = cfg.fixedRightIndex;
+    const enableLeftField = rightFields.length > 0;
+    const enableRightField = rightFields.length > 0;
+
     const fieldGroups = [
       { name: "left", fields: leftFields, element: this.leftElement, startCol: 0 },
-      { name: "center", fields: centerFields, element: this.centerElement, startCol: cfg.fixedLeftIndex },
-      { name: "right", fields: rightFields, element: this.rightElement, startCol: cfg.fixedRightIndex },
+      { name: "center", fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
+      { name: "right", fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
     let viewRow = cfg.scroll.viewRow;
@@ -840,7 +858,7 @@ export default class Body {
     const startCol = cfg.fixedLeftIndex + cfg.scroll.startCol;
     const endCol = cfg.fixedLeftIndex + cfg.scroll.endCol;
 
-    console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol);
+    //console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol, fieldGroups);
 
     const leafAllFields = cfg.currentFields;
 
@@ -854,9 +872,11 @@ export default class Body {
       let item = items[startRowIdx];
 
       // left panel
-      leftFields.forEach((field, j) => {
-        field.$renderer.render(startRowIdx, j, item, this.allCellMap["left"][`${i},${j}`]);
-      });
+      if (enableLeftField) {
+        leftFields.forEach((field, j) => {
+          field.$renderer.render(startRowIdx, j, item, this.allCellMap["left"][`${i},${j}`]);
+        });
+      }
 
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
@@ -864,9 +884,11 @@ export default class Body {
       }
 
       // right panel
-      rightFields.forEach((field, j) => {
-        field.$renderer.render(startRowIdx, j, item, this.allCellMap["right"][`${i},${j}`]);
-      });
+      if (enableRightField) {
+        rightFields.forEach((field, j) => {
+          field.$renderer.render(startRowIdx, j, item, this.allCellMap["right"][`${i},${fixedRightIndex + j}`]);
+        });
+      }
     }
 
     //const end = performance.now();

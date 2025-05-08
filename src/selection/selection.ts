@@ -30,40 +30,39 @@ export default class SelectionInfo {
     //this.setSelectionRangeInfo({} as Selection, true, false);
   }
 
-  public setSelectionRangeInfo(changeInfo: Selection, initFlag?: boolean, tdSelectFlag?: boolean) {
-    console.log("this.config.selection : ", this.config.selection);
+  public setSelectionRangeInfo(changeSelection: Selection, initFlag?: boolean, tdSelectFlag?: boolean) {
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
 
-    const changeRangeInfo = changeInfo.range;
-    let currSelectionInfo = this.config.selection;
+    const changeRangeInfo = changeSelection.range;
+    let currentSelection = this.config.selection;
     if (initFlag) {
-      currSelectionInfo = this.config.selection = initSelectionInfo();
+      currentSelection = initSelectionInfo();
 
-      currSelectionInfo = this.setSelectionInfo(currSelectionInfo, changeRangeInfo);
-      currSelectionInfo.allRange[currSelectionInfo.id] = currSelectionInfo.range;
+      currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
+      currentSelection.allRange[currentSelection.id] = currentSelection.range;
     } else {
-      this.setSelectionInfo(changeInfo, changeRangeInfo);
+      currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
     }
+
+    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, currentSelection.range, changeSelection);
 
     let isRangeInfo = utils.isUndefined(changeRangeInfo);
 
-    let rangeInfo = currSelectionInfo.range;
+    let rangeInfo = currentSelection.range;
 
-    rangeInfo = utils.merge(rangeInfo, changeInfo);
+    currentSelection.minRow = currentSelection.minRow == -1 ? Math.min(rangeInfo.startRow, rangeInfo.endRow) : Math.min(currentSelection.minRow, rangeInfo.startRow, rangeInfo.endRow);
+    currentSelection.maxRow = Math.max(currentSelection.maxRow, rangeInfo.endRow, rangeInfo.startRow);
+    currentSelection.minRow = currentSelection.minRow < -1 ? 0 : currentSelection.minRow;
+    currentSelection.maxRow = currentSelection.maxRow >= this.config.dataInfo.lastRow ? this.config.dataInfo.lastRow : currentSelection.maxRow;
 
-    currSelectionInfo.minRow = currSelectionInfo.minRow == -1 ? Math.min(rangeInfo.startRow, rangeInfo.endRow) : Math.min(currSelectionInfo.minRow, rangeInfo.startRow, rangeInfo.endRow);
-    currSelectionInfo.maxRow = Math.max(currSelectionInfo.maxRow, rangeInfo.endRow, rangeInfo.startRow);
-    currSelectionInfo.minRow = currSelectionInfo.minRow < -1 ? 0 : currSelectionInfo.minRow;
-    currSelectionInfo.maxRow = currSelectionInfo.maxRow >= this.config.dataInfo.lastRow ? this.config.dataInfo.lastRow : currSelectionInfo.maxRow;
+    if (initFlag !== true || (isRangeInfo && currentSelection.minCol == -1)) {
+      currentSelection.minCol = currentSelection.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
+      currentSelection.maxCol = Math.max(currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
 
-    if (initFlag !== true || (isRangeInfo && currSelectionInfo.minCol == -1)) {
-      currSelectionInfo.minCol = currSelectionInfo.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currSelectionInfo.minCol, rangeInfo.endCol, rangeInfo.startCol);
-      currSelectionInfo.maxCol = Math.max(currSelectionInfo.maxCol, rangeInfo.endCol, rangeInfo.startCol);
-
-      currSelectionInfo.minCol = currSelectionInfo.minCol < -1 ? 0 : currSelectionInfo.minCol;
-      currSelectionInfo.maxCol = currSelectionInfo.maxCol >= this.config.currentFields.length ? this.config.currentFields.length - 1 : currSelectionInfo.maxCol;
+      currentSelection.minCol = currentSelection.minCol < -1 ? 0 : currentSelection.minCol;
+      currentSelection.maxCol = currentSelection.maxCol >= this.config.currentFields.length ? this.config.currentFields.length - 1 : currentSelection.maxCol;
     }
 
     if (isRangeInfo) return;
@@ -85,6 +84,8 @@ export default class SelectionInfo {
       this.setCellSelect(initFlag);
     }
 
+    console.log("rangeInfo : ", JSON.stringify(rangeInfo));
+
     if (this.options.footer.enableSelectionInfo) {
       const dataInfo = this.selectionData("json");
 
@@ -100,35 +101,37 @@ export default class SelectionInfo {
    * set selection info
    *
    * @public
-   * @param {Selection} changeInfo change selection info
-   * @param {SelectionRange} rangeInfo changeRangeInfo
+   * @param {Selection} currentSelection change selection info
+   * @param {SelectionRange} changeSelection changeRangeInfo
    * @returns {*}
    */
-  public setSelectionInfo(changeInfo: any, rangeInfo: SelectionRange) {
-    delete changeInfo.range;
-    this.config.selection = utils.merge(this.config.selection, changeInfo);
-    const selectionInfo = this.config.selection;
+  public setSelectionInfo(currentSelection: any, changeSelection: any) {
+    //delete currentSelection.range;
 
-    const mode = changeInfo.mode;
+    const selectionInfo = utils.merge(currentSelection, changeSelection);
+
+    const mode = currentSelection.mode;
     if (mode == "add") {
       selectionInfo.id = this.getSelectionId();
-      selectionInfo.range = rangeInfo;
-      const rangeKey = rangeInfo._key ? rangeInfo._key : selectionInfo.id;
+      selectionInfo.range = changeSelection.range;
+      const rangeKey = changeSelection._key ?? selectionInfo.id;
 
       if (this.isRangeKey(rangeKey)) {
-        rangeInfo.mode = "remove";
+        changeSelection.mode = "remove";
         delete selectionInfo.allRange[rangeKey];
       } else {
-        selectionInfo.allRange[rangeKey] = rangeInfo;
+        selectionInfo.allRange[rangeKey] = changeSelection;
       }
     } else if (mode == "remove") {
       selectionInfo.id = this.getSelectionId();
-      selectionInfo.range = rangeInfo;
-      const rangeKey = rangeInfo._key ? rangeInfo._key : selectionInfo.id;
+      selectionInfo.range = changeSelection;
+      const rangeKey = changeSelection._key ?? selectionInfo.id;
       delete selectionInfo.allRange[rangeKey];
     }
 
-    return changeInfo;
+    this.config.selection = selectionInfo;
+
+    return selectionInfo;
   }
 
   /**
@@ -463,7 +466,7 @@ export default class SelectionInfo {
    * @param {boolean} isMouseDown
    * @returns {{ startCol: number; endCol: number; }}
    */
-  public getSelectionModeColInfo(selectionMode: string, col: number, dataInfo: any, isMouseDown: boolean) {
+  public getSelectionModeColInfo(selectionMode: string, col: number, dataInfo: any, isMouseDown?: boolean) {
     let startCol, endCol;
 
     if (selectionMode == "multiple-row" || selectionMode == "row") {

@@ -102,11 +102,9 @@ export default class GridMain {
     });
   }
 
-  public setGridFocusIn(e: UIEvent) {
+  public setGridFocusIn(e: Event) {
     if (this.grid.config().focus) return;
     this.grid.config().focus = true;
-
-    console.log("111111111");
 
     const targetElement = e.target as HTMLElement;
 
@@ -117,7 +115,7 @@ export default class GridMain {
   }
 
   // grid focus out
-  public setGridFocusOut(e: UIEvent) {
+  public setGridFocusOut(e: Event) {
     if (!this.grid.config().focus) return;
 
     const targetElement = e.target as HTMLElement;
@@ -407,8 +405,6 @@ export default class GridMain {
       centerWidth = 0,
       rightWidth = 0;
 
-    //console.log("lastSpaceW : ", lastSpaceW);
-
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
       let fieldWidth = isHeaderResize ? field.$width : field.width;
@@ -503,10 +499,11 @@ export default class GridMain {
     for (let field of fields) {
       this.headerGroupInfo(field, 0, cfg.fieldHeaderGroup, fixedLeftIndex, fixedRightIndex, "" + fieldIndex++);
     }
-    cfg.fixedLeftIndex = fixedLeftIndex + 1;
-    cfg.fixedRightIndex = fixedRightIndex;
+
     cfg.fieldHeaderGroup.depth = cfg.fieldHeaderGroup.center.length;
     cfg.currentFields = cfg.fieldHeaderGroup.leaf;
+    cfg.fixedLeftIndex = fixedLeftIndex + 1;
+    cfg.fixedRightIndex = fixedRightIndex > cfg.currentFields.length ? 0 : fixedRightIndex;
 
     if (opts.header.view === false) {
       return;
