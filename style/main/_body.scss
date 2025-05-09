@@ -37,7 +37,7 @@
         min-width: auto !important;
         border-collapse: separate !important;
 
-        tr > td {
+        .dg-row > .dg-cell {
           border: 1px solid #ddd;
           border-top: none !important;
           border-left: none !important;

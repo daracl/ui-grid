@@ -28,7 +28,7 @@ export default class Body {
 
   private selectionInfo: SelectionInfo;
 
-  private bodyElement: DaraElement;
+  public bodyElement: DaraElement;
 
   public leftElement: DaraElement;
   public centerElement: DaraElement;
@@ -309,6 +309,11 @@ export default class Body {
       ".dg-cell"
     );
 
+    eventOn(bodyElement, "mouseup", (e: UIEvent) => {
+      cfg.selection.isMouseDown = false;
+      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
+    });
+
     eventOn(
       bodyElement,
       "mouseover",
@@ -332,7 +337,7 @@ export default class Body {
 
         beforeOverCell = currentOverCell;
 
-        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo);
+        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo, cfg.selection.isMouseDown);
 
         this.selectionInfo.setSelectionRangeInfo(
           {
@@ -399,24 +404,28 @@ export default class Body {
   private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string) {
     const cfg = this.grid.config();
 
-    this.gridMain.setGridFocusIn(e);
+    //this.gridMain.setGridFocusIn(e);
 
     const rowIndex = cellInfo.rowIndex,
-      colIdx = cellInfo.c;
+      cellIdx = cellInfo.c;
 
-    const selItem = cellInfo.item;
-
-    if (!isFixedLeftPostion(cfg, colIdx)) {
-      if (colIdx < cfg.scroll.insideStartCol) {
-        this.gridMain.getScroll().moveHorizontalScroll({ pos: "L", colIdx: colIdx });
-      } else if (colIdx > cfg.scroll.insideEndCol) {
-        this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: colIdx });
+    if (!isFixedLeftPostion(cfg, cellIdx)) {
+      if (cellIdx < cfg.scroll.insideStartCol) {
+        this.gridMain.getScroll().moveHorizontalScroll({ pos: "L", colIdx: cellIdx });
+      } else if (cellIdx > cfg.scroll.insideEndCol) {
+        this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: cellIdx });
       }
     }
 
-    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, colIdx, cfg.dataInfo, cfg.selection.isMouseDown);
+    let isMouseDown = false;
 
-    if (multipleFlag && (e as KeyboardEvent).shiftKey) {
+    let keyMode = ((e as KeyboardEvent).shiftKey ? 2 : 0) + ((e as KeyboardEvent).ctrlKey ? 1 : 0);
+
+    console.log("setCellClick  :: ", keyMode, cfg.selection.isMouseDown, cfg.scroll.insideStartCol, cfg.scroll.insideEndCol, cellIdx);
+
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg.dataInfo, multipleFlag && keyMode > 0);
+
+    if (multipleFlag && keyMode >= 2) {
       // shift key
       let rangeInfo = { endRow: rowIndex, endCol: selectRangeInfo.endCol } as SelectionRange;
 
@@ -432,7 +441,7 @@ export default class Body {
         false,
         true
       );
-    } else if (multipleFlag && (e as KeyboardEvent).ctrlKey) {
+    } else if (multipleFlag && keyMode == 1) {
       // ctrl key
 
       this.selectionInfo.setSelectionRangeInfo(
@@ -453,7 +462,7 @@ export default class Body {
           isSelect: true,
           all: false,
           isMouseDown: true,
-          startCell: { startRow: rowIndex, startCol: colIdx },
+          startCell: { startRow: rowIndex, startCol: cellIdx },
         } as Selection,
         true,
         true
@@ -725,7 +734,7 @@ export default class Body {
       return false;
     }
 
-    //this.setRangeInfo(ctx, evtKey, evt, moveRowIdx, moveColIdx);
+    this.selectionInfo.setRangeInfo(evtKey, evt, moveRowIdx, moveColIdx);
 
     let reFlag = false;
     if (endIdx < scrollInfo.startRow || endIdx > scrollInfo.startRow + scrollInfo.viewRow) {
@@ -855,6 +864,7 @@ export default class Body {
 
     this.bodyElement.attr({ "data-striped-type": startRow % 2 == 0 ? "odd" : "even" });
 
+    const startCell = cfg.selection.startCell;
     const startCol = cfg.fixedLeftIndex + cfg.scroll.startCol;
     const endCol = cfg.fixedLeftIndex + cfg.scroll.endCol;
 
@@ -874,19 +884,29 @@ export default class Body {
       // left panel
       if (enableLeftField) {
         leftFields.forEach((field, j) => {
-          field.$renderer.render(startRowIdx, j, item, this.allCellMap["left"][`${i},${j}`]);
+          const cellIdx = j;
+          const cellElement = this.allCellMap["left"][`${i},${cellIdx}`];
+          this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
+          field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
         });
       }
 
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
-        field.$renderer.render(startRowIdx, j, item, this.allCellMap["center"][`${i},${j}`]);
+
+        const cellIdx = j;
+        const cellElement = this.allCellMap["center"][`${i},${cellIdx}`];
+        this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
+        field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
       }
 
       // right panel
       if (enableRightField) {
         rightFields.forEach((field, j) => {
-          field.$renderer.render(startRowIdx, j, item, this.allCellMap["right"][`${i},${fixedRightIndex + j}`]);
+          const cellIdx = fixedRightIndex + j;
+          const cellElement = this.allCellMap["right"][`${i},${cellIdx}`];
+          this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
+          field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
         });
       }
     }
@@ -975,5 +995,41 @@ export default class Body {
     }
 
     return returnTemplate.join("");
+  }
+
+  /**
+   * cell 선택
+   *
+   * @private
+   * @param {*} startCellInfo
+   * @param {number} row row index
+   * @param {number} col cell index
+   * @param {HTMLElement} addEle cell element
+   * @returns {boolean}
+   */
+  private setSelectCell(startCellInfo: any, row: number, col: number, contentEle: HTMLElement) {
+    const cellEle = contentEle.parentElement as HTMLElement;
+    //console.log("setSelectCell ", startCellInfo, row, col, this.selectionInfo.isSelectPosition(row, col));
+    if (startCellInfo.startRow == row && startCellInfo.startCol == col) {
+      cellEle.classList.add("selection");
+      cellEle.classList.add("selection-start-cell");
+      return;
+    }
+
+    if (this.selectionInfo.isAllSelect()) {
+      if (this.selectionInfo.isAllSelectUnSelectPosition(row, col)) {
+        cellEle.classList.remove("selection");
+      } else {
+        cellEle.classList.add("selection");
+      }
+    } else {
+      cellEle.classList.remove("selection");
+
+      if (this.selectionInfo.isSelectPosition(row, col)) {
+        cellEle.classList.add("selection");
+      }
+    }
+
+    return false;
   }
 }

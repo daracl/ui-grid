@@ -26,7 +26,7 @@ export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {
-  element.classList.remove("col-active");
+  element.classList.remove("selection");
 };
 
 /**

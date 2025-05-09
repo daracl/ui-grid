@@ -574,8 +574,8 @@ export default class Scroll {
 
     if (utils.isNumber(moveObj.position)) {
       leftVal = moveObj.position;
-    } else if (utils.isNumber(moveObj.rowIdx)) {
-      leftVal = moveObj.rowIdx * cfg.scroll.oneRowMove;
+    } else if (utils.isNumber(moveObj.colIdx)) {
+      leftVal = moveObj.colIdx * cfg.scroll.oneRowMove;
     } else if (utils.isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
       leftVal = cfg.scroll.left + (moveObj.direction == "L" ? -1 : 1) * speed * cfg.scroll.oneColMove;

@@ -63,7 +63,7 @@ export default class GridMain {
   }
 
   initMainView() {
-    this.selectionInfo = new SelectionInfo(this.grid, this.grid.getOptions(), this.grid.config());
+    this.selectionInfo = new SelectionInfo(this.grid, this, this.grid.getOptions(), this.grid.config());
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
     this.scroll = new Scroll(this.grid, this);
@@ -83,7 +83,7 @@ export default class GridMain {
 
     eventOn(mainElement, "mouseup", () => {
       //_this.element.body.removeClass('pubGrid-noselect');
-      this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
+      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
 
     // focus in

@@ -5,9 +5,12 @@ import { initSelectionInfo } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition } from "src/util/gridUtils";
 import DaraGrid from "src/DaraGrid";
+import GridMain from "src/view/GridMain";
 
 export default class SelectionInfo {
   private readonly grid: DaraGrid;
+
+  private gridMain: GridMain;
 
   private readonly options: GridOptions;
   private readonly config: Config;
@@ -20,14 +23,13 @@ export default class SelectionInfo {
    */
   private serialNumber = 0;
 
-  constructor(grid: DaraGrid, options: GridOptions, config: Config) {
+  constructor(grid: DaraGrid, gridMain: GridMain, options: GridOptions, config: Config) {
     this.grid = grid;
+    this.gridMain = gridMain;
     this.options = options;
     this.config = config;
 
     this.config.selection = initSelectionInfo();
-
-    //this.setSelectionRangeInfo({} as Selection, true, false);
   }
 
   public setSelectionRangeInfo(changeSelection: Selection, initFlag?: boolean, tdSelectFlag?: boolean) {
@@ -46,7 +48,13 @@ export default class SelectionInfo {
       currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
     }
 
-    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, currentSelection.range, changeSelection);
+    // const stack = new Error().stack;
+
+    // if (stack) {
+    //   console.log("호출한 함수:", stack);
+    // }
+
+    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, currentSelection.range, changeSelection.range);
 
     let isRangeInfo = utils.isUndefined(changeRangeInfo);
 
@@ -259,12 +267,12 @@ export default class SelectionInfo {
       return false;
     }
     if (currFlag) {
-      return this.isSelRange(this.config.selection.range, "", row, col);
+      return this.isSelRange(this.config.selection.range, row, col);
     } else {
       const allRange = this.config.selection.allRange;
 
       for (const key in allRange) {
-        if (this.isSelRange(allRange[key], "", row, col)) {
+        if (this.isSelRange(allRange[key], row, col)) {
           return true;
         }
       }
@@ -292,12 +300,8 @@ export default class SelectionInfo {
    * @param {number} col col number
    * @returns {boolean} 여부
    */
-  public isSelRange(range: SelectionRange, mode: string, row: number, col: number): boolean {
-    if (mode == "row") {
-      return range.minRow <= row && row <= range.maxRow;
-    } else {
-      return range.minRow <= row && row <= range.maxRow && range.minCol <= col && col <= range.maxCol;
-    }
+  public isSelRange(range: SelectionRange, row: number, col: number): boolean {
+    return range.minRow <= row && row <= range.maxRow && range.minCol <= col && col <= range.maxCol;
   }
 
   /**
@@ -307,104 +311,97 @@ export default class SelectionInfo {
    * @param {boolean} initFlag
    */
   public setCellSelect(initFlag?: boolean) {
-    const currentId = this.config.selection.id;
+    const cfg = this.config;
+    const currentId = cfg.selection.id;
     const colInfo = this.getSelectionRangeInfo();
-    const startCellInfo = this.config.selection.startCell; // start cell
+    const startCellInfo = cfg.selection.startCell; // start cell
 
     let sRow = colInfo.startRow,
       eRow = colInfo.endRow,
       sCol = colInfo.startCol,
       eCol = colInfo.endCol,
-      currViewRow = this.config.scroll.viewRow;
+      startRow = cfg.scroll.startRow;
 
-    sRow = sRow < currViewRow ? 0 : sRow - currViewRow;
-    eRow = eRow - currViewRow;
+    sRow = sRow < startRow ? 0 : sRow - startRow;
+    eRow = eRow - startRow;
 
-    eRow = eRow > this.config.scroll.viewRow ? this.config.scroll.viewRow : eRow;
+    eRow = eRow > cfg.scroll.viewRow ? cfg.scroll.viewRow : eRow;
 
-    // if (this.config.selection.range.mode == "remove") {
-    //   for (let i = sRow; i <= eRow; i++) {
-    //     for (let j = sCol; j <= eCol; j++) {
-    //       const cellPosition = i + "," + j;
-    //       const currRow = currViewRow + i;
+    const bodyElement = this.gridMain.getBody().bodyElement;
 
-    //       let addEle;
+    if (cfg.selection.range.mode == "remove") {
+      for (let i = sRow; i <= eRow; i++) {
+        for (let j = sCol; j <= eCol; j++) {
+          const cellPosition = i + "," + j;
 
-    //       if (isFixedPostion(this.config, j)) {
-    //         addEle = this.grid.elementMap.mainBodyLeft.querySelector('[data-cell-position="' + cellPosition + '"]');
-    //       } else {
-    //         addEle = this.grid.elementMap.mainBodyCenter.querySelector('[data-cell-position="' + cellPosition + '"]');
-    //       }
-    //       if (addEle == null) continue;
+          let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
 
-    //       this.config.selection.unSelectPosition[cellPosition] = "";
+          if (addEle == null) continue;
 
-    //       addEle.removeAttribute("data-select-idx");
-    //       addEle.classList.remove("col-active");
+          cfg.selection.unSelectPosition[cellPosition] = "";
 
-    //       addEle = null;
-    //     }
-    //   }
-    //   return;
-    // }
+          addEle.removeAttribute("data-selection-id");
+          addEle.classList.remove("selection");
+        }
+      }
+      return;
+    }
 
-    // this.grid.elementMap.main.find(".dg-cell.selection-start-col").removeClass("selection-start-col");
+    const startCellElement = bodyElement.find(".dg-cell.selection-start-cell");
+    if (startCellElement) {
+      startCellElement.classList.remove("selection-start-cell");
+    }
 
-    // if (initFlag) {
-    //   removeActiveColumnStyle(this.grid.element);
-    // } else {
-    //   this.grid.elementMap.main.find('.dg-cell[data-select-idx="' + currentId + '"].col-active').each(() => {
-    //     const sEle = $(this);
-    //     const posInfo = getCellPosition(sEle);
-    //     if (this.isSelectPosition(currViewRow + posInfo.r, posInfo.c)) {
-    //     } else {
-    //       sEle.removeClass("col-active");
-    //     }
-    //   });
-    // }
+    if (initFlag) {
+      bodyElement.finds(".selection[data-cell-position]").forEach((cellNode, idx) => {
+        (cellNode as HTMLElement).classList.remove("selection");
+      });
+    } else {
+      bodyElement.finds('.dg-cell[data-selection-id="' + currentId + '"].selection').forEach((cellNode, idx) => {
+        const cellElement = cellNode as HTMLElement;
+        const posInfo = getCellPosition(cellElement);
+        if (this.isSelectPosition(startRow + posInfo.r, posInfo.c)) {
+        } else {
+          cellElement.classList.remove("selection");
+        }
+      });
+    }
 
-    // const rangeKey = this.config.selection.range._key;
-    // let isRowSelect = false,
-    //   isColSelect = false;
-    // if (!utils.isUndefined(rangeKey)) {
-    //   isRowSelect = this.config.selection.range._key.indexOf("row") == 0;
-    //   isColSelect = this.config.selection.range._key.indexOf("col") == 0;
-    // }
+    const rangeKey = cfg.selection.range._key;
+    let isRowSelect = false,
+      isColSelect = false;
+    if (!utils.isUndefined(rangeKey)) {
+      isRowSelect = cfg.selection.range._key.indexOf("row") == 0;
+      isColSelect = cfg.selection.range._key.indexOf("col") == 0;
+    }
 
-    // for (let i = sRow; i <= eRow; i++) {
-    //   for (let j = sCol; j <= eCol; j++) {
-    //     const cellPosition = i + "," + j;
-    //     const currRow = currViewRow + i;
+    for (let i = sRow; i <= eRow; i++) {
+      for (let j = sCol; j <= eCol; j++) {
+        const cellPosition = i + "," + j;
+        const currRow = startRow + i;
 
-    //     if (isRowSelect || isColSelect) {
-    //       delete this.config.selection.unSelectPosition[cellPosition];
-    //     }
+        if (isRowSelect || isColSelect) {
+          delete cfg.selection.unSelectPosition[cellPosition];
+        }
 
-    //     if (!this.isSelectPosition(currRow, j, true)) {
-    //       continue;
-    //     }
+        if (!this.isSelectPosition(currRow, j, true)) {
+          continue;
+        }
 
-    //     let addEle;
+        let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
 
-    //     if (isFixedPostion(this.config, j)) {
-    //       addEle = this.element.leftContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-    //     } else {
-    //       addEle = this.element.bodyContent.querySelector('[data-cell-position="' + cellPosition + '"]');
-    //     }
-    //     if (addEle == null) continue;
+        if (addEle == null) continue;
 
-    //     addEle.setAttribute("data-select-idx", currentId);
+        addEle.setAttribute("data-selection-id", currentId);
 
-    //     if (startCellInfo.startRow == currRow && startCellInfo.startCol == j) {
-    //       addEle.classList.add("col-active");
-    //       addEle.classList.add("selection-start-col");
-    //     } else {
-    //       addEle.classList.add("col-active");
-    //     }
-
-    //     addEle = null;
-    //   }
-    // }
+        if (startCellInfo.startRow == currRow && startCellInfo.startCol == j) {
+          addEle.classList.add("selection");
+          addEle.classList.add("selection-start-cell");
+        } else {
+          addEle.classList.add("selection");
+        }
+      }
+    }
   }
 
   /**
@@ -499,12 +496,7 @@ export default class SelectionInfo {
 
     let multipleFlag = isMultipleSelection(this.options.selectionMode);
 
-    let shiftKeyFlag = false;
-    if (evt instanceof KeyboardEvent) {
-      shiftKeyFlag = (evt as KeyboardEvent).shiftKey;
-    }
-
-    if (multipleFlag && evtKey != 9 && shiftKeyFlag) {
+    if (multipleFlag && evtKey != 9 && (evt as KeyboardEvent).shiftKey) {
       this.setSelectionRangeInfo(
         {
           range: { endRow: endRow, endCol: endCol },
