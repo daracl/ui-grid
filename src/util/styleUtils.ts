@@ -59,3 +59,54 @@ export const addStyleTag = (grid: DaraGrid) => {
 export const styleClassSplit = (styleClass: string) => {
   return styleClass.split(/\s+/);
 };
+
+/**
+ * add element css class
+ *
+ * @param {string} styleClasss css class
+ */
+export function addClass(element: HTMLElement | NodeList, styleClass: string) {
+  let elements;
+  if (element instanceof HTMLElement) {
+    elements = [element];
+  } else {
+    elements = element;
+  }
+
+  const addStyles = styleClassSplit(styleClass);
+
+  elements.forEach((ele) => {
+    let classList = (ele as HTMLElement).classList;
+    for (let className of addStyles) {
+      if (!classList.contains(className)) {
+        classList.add(className);
+      }
+    }
+  });
+}
+
+/**
+ * remove element css class
+ *
+ * @param {string} styleClasss css class
+ */
+export function removeClass(element: HTMLElement | NodeList, styleClass: string) {
+  let elements;
+  if (element instanceof HTMLElement) {
+    elements = [element];
+  } else {
+    elements = element;
+  }
+
+  const styleClasses = styleClassSplit(styleClass);
+
+  elements.forEach((ele) => {
+    let classList = (ele as HTMLElement).classList;
+
+    for (let className of styleClasses) {
+      if (classList.contains(className)) {
+        classList.remove(className);
+      }
+    }
+  });
+}

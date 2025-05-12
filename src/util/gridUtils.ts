@@ -39,6 +39,16 @@ export const isMultipleSelection = (selectionMode: string): boolean => {
 };
 
 /**
+ * row selection check
+ *
+ * @param {string} selectionMode mode
+ * @returns {boolean}
+ */
+export const isRowSelection = (selectionMode: string): boolean => {
+  return selectionMode == "multiple-row" || selectionMode == "row";
+};
+
+/**
  * cell 정보 얻기
  *
  * @param {Config} cfg 설정 정보
@@ -47,7 +57,7 @@ export const isMultipleSelection = (selectionMode: string): boolean => {
  */
 export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => {
   const posInfo = getCellPosition(cellElement);
-  const rowIndex = cfg.scroll.startRow + posInfo.r;
+  const rowIndex = cfg.scroll.startIdx + posInfo.r;
 
   return {
     r: posInfo.r,

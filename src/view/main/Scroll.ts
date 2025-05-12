@@ -77,10 +77,10 @@ export default class Scroll {
       this.verticalTrackElement.css({ height: cfg.scroll.vTrackHeight + "px" });
       this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
 
-      if (cfg.dataInfo.rowLength < cfg.scroll.startRow + cfg.scroll.viewRow) {
+      if (cfg.dataInfo.rowLength < cfg.scroll.startIdx + cfg.scroll.viewRow) {
         this.setVerticalPosition(cfg, (cfg.dataInfo.rowLength - cfg.scroll.viewRow) * cfg.scroll.oneRowMove);
-      } else if (cfg.scroll.startRow > 0) {
-        this.setVerticalPosition(cfg, cfg.scroll.startRow * cfg.scroll.oneRowMove);
+      } else if (cfg.scroll.startIdx > 0) {
+        this.setVerticalPosition(cfg, cfg.scroll.startIdx * cfg.scroll.oneRowMove);
       }
     } else {
       this.setVerticalPosition(cfg, 0);
@@ -497,7 +497,7 @@ export default class Scroll {
     const cfg = this.grid.config();
 
     if (!cfg.scroll.enableVertical && moveObj.resizeFlag !== true) {
-      cfg.scroll.startRow = 0;
+      cfg.scroll.startIdx = 0;
       return;
     }
 
@@ -540,11 +540,11 @@ export default class Scroll {
       }
     }
 
-    const beforeStartRow = cfg.scroll.startRow;
+    const beforeStartIdx = cfg.scroll.startIdx;
 
     this.setVerticalPosition(cfg, topVal);
 
-    if (drawFlag === false || cfg.scroll.startRow == beforeStartRow) return;
+    if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
     this.gridMain.getBody().dataDraw("vscroll");
   }
@@ -638,13 +638,13 @@ export default class Scroll {
 
     this.verticalThumbElement.css({ top: topVal + "px" });
 
-    let startRow = 0;
+    let startIdx = 0;
 
     if (topVal > 0) {
-      startRow = Math.round(topVal / cfg.scroll.oneRowMove);
+      startIdx = Math.round(topVal / cfg.scroll.oneRowMove);
     }
 
-    cfg.scroll.startRow = startRow;
+    cfg.scroll.startIdx = startIdx;
   }
 
   /**

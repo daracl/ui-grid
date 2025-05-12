@@ -112,16 +112,17 @@ export const initConfig = (opts: GridOptions): Config => {
  */
 export const initSelectionInfo = (): Selection => {
   return {
-    id: "0",
+    id: "",
+    mode: "0",
     range: {
       _key: "",
       mode: "",
-      startRow: -1,
-      endRow: -1,
+      startIdx: -1,
+      endIdx: -1,
       startCol: -1,
       endCol: -1,
-      minRow: -1,
-      maxRow: -1,
+      minIdx: -1,
+      maxIdx: -1,
       minCol: -1,
       maxCol: -1,
     },
@@ -130,11 +131,11 @@ export const initSelectionInfo = (): Selection => {
     isMouseDown: false,
     unSelectPosition: {},
     all: false,
-    minRow: -1,
-    maxRow: -1,
+    minIdx: -1,
+    maxIdx: -1,
     minCol: -1,
     maxCol: -1,
-    startCell: { startRow: -1, startCol: -1 },
+    startCell: { startIdx: -1, startCol: -1 },
   };
 };
 
@@ -159,7 +160,7 @@ export const initScrollInfo = (): ScrollInfo => {
     insideStartCol: 0,
     insideEndCol: 0,
     viewRow: 0,
-    startRow: 0,
+    startIdx: 0,
 
     oneColMove: 0,
     oneRowMove: 0,

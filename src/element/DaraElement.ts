@@ -156,12 +156,12 @@ export default class DaraElement {
   /**
    * add element css class
    *
-   * @param {string} styleClasss css class
+   * @param {string} styleClass css class
    */
-  addClass(styleClasss: string) {
+  addClass(styleClass: string) {
     const classList = this.element.classList;
 
-    for (let className of styleClassSplit(styleClasss)) {
+    for (let className of styleClassSplit(styleClass)) {
       if (!classList.contains(className)) {
         classList.add(className);
       }
@@ -171,12 +171,12 @@ export default class DaraElement {
   /**
    * remove element css class
    *
-   * @param {string} styleClasss css class
+   * @param {string} styleClass css class
    */
-  removeClass(styleClasss: string) {
+  removeClass(styleClass: string) {
     const classList = this.element.classList;
 
-    for (let className of styleClassSplit(styleClasss)) {
+    for (let className of styleClassSplit(styleClass)) {
       if (classList.contains(className)) {
         classList.remove(className);
       }

@@ -120,9 +120,13 @@ export interface EditInfo {
 
 export interface Selection {
   /**
-   * 현재 위치
+   * selection id
    */
   id: string;
+  /**
+   * mode
+   */
+  mode: string;
 
   /**
    * 현재 설정 range
@@ -153,14 +157,14 @@ export interface Selection {
    */
   all: boolean;
 
-  minRow: number;
-  maxRow: number;
+  minIdx: number;
+  maxIdx: number;
   minCol: number;
   maxCol: number;
   /**
    * 시작 위치 값
    */
-  startCell: { startRow: number; startCol: number };
+  startCell: { startIdx: number; startCol: number };
 }
 
 export interface SelectionRange {
@@ -169,12 +173,12 @@ export interface SelectionRange {
    *
    */
   mode?: "" | "add" | "remove";
-  startRow: number;
-  endRow: number;
+  startIdx: number;
+  endIdx: number;
   startCol: number;
   endCol: number;
-  minRow: number;
-  maxRow: number;
+  minIdx: number;
+  maxIdx: number;
   minCol: number;
   maxCol: number;
 }
@@ -203,7 +207,7 @@ export interface ScrollInfo {
   // grid 보여지는 row 수
   viewRow: number;
   // 시작 start row
-  startRow: number;
+  startIdx: number;
 
   vHeight: number;
   vBarPosition: number;

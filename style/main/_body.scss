@@ -1,4 +1,4 @@
-@use "../common/common";
+@use "../common/common" as comm;
 
 @mixin body {
   .dg-body {
@@ -50,7 +50,11 @@
           }
 
           &.selection {
-            background-color: var(--cell-bg-selection);
+            background-color: var(--cell-bg-selection) !important;
+          }
+
+          &.start-cell {
+            @include comm.boxShadow(--cell-selection-border);
           }
 
           .dg-cell-btn {

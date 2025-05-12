@@ -51,7 +51,8 @@
   --header-help-bg-hover: #c4d0f5;
 
   --cell-bg-hover: #efefef;
-  --cell-bg-selection: #aaeaff;
+  --cell-bg-selection: #e9faff;
+  --cell-selection-border: #4762fa;
   --row-bg: #f3f6fa;
 }
 
@@ -91,6 +92,7 @@ body.dark .daracl-grid.dark {
 
   --cell-bg-hover: #efefef;
   --cell-bg-selection: #aaeaff;
+  --cell-selection-border: #47dcfa;
   --row-bg: #f3f6fa;
 }
 

@@ -1,7 +1,7 @@
 import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
-import { addStyleTag } from "../../util/styleUtils";
+import { addStyleTag, removeClass } from "../../util/styleUtils";
 import { getCellInfo, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
@@ -172,16 +172,16 @@ export default class Body {
                 if (mouseDragDirectionY !== "") {
                   console.log(" mouseDragDirectionY: ", mouseDragDirectionY, rangeInfo);
 
-                  let endRow = -1;
+                  let endIdx = -1;
                   if (mouseDragDirectionY == "D") {
-                    endRow = rangeInfo.maxRow + 1;
+                    endIdx = rangeInfo.maxIdx + 1;
                   } else {
-                    endRow = rangeInfo.startRow > rangeInfo.minRow ? rangeInfo.minRow - 1 : rangeInfo.maxRow - 1;
+                    endIdx = rangeInfo.startIdx > rangeInfo.minIdx ? rangeInfo.minIdx - 1 : rangeInfo.maxIdx - 1;
                   }
 
                   this.selectionInfo.setSelectionRangeInfo(
                     {
-                      range: { endRow: endRow } as SelectionRange,
+                      range: { endIdx: endIdx } as SelectionRange,
                     } as Selection,
                     false,
                     false
@@ -230,11 +230,11 @@ export default class Body {
 
         beforeOverCell = getOverCellPosition(cellInfo);
 
-        const currViewIdx = cfg.scroll.startRow;
+        const currViewIdx = cfg.scroll.startIdx;
 
         this.setCellClick(e, cellInfo, multipleFlag, selectionMode);
 
-        const newViewIdx = cfg.scroll.startRow;
+        const newViewIdx = cfg.scroll.startIdx;
 
         if (currViewIdx != newViewIdx) {
           cellInfo.r = cellInfo.r - 1;
@@ -342,7 +342,7 @@ export default class Body {
         this.selectionInfo.setSelectionRangeInfo(
           {
             range: {
-              endRow: cellInfo.rowIndex,
+              endIdx: cellInfo.rowIndex,
               endCol: selectRangeInfo.endCol,
             } as SelectionRange,
           } as Selection,
@@ -417,17 +417,19 @@ export default class Body {
       }
     }
 
-    let isMouseDown = false;
-
     let keyMode = ((e as KeyboardEvent).shiftKey ? 2 : 0) + ((e as KeyboardEvent).ctrlKey ? 1 : 0);
 
-    console.log("setCellClick  :: ", keyMode, cfg.selection.isMouseDown, cfg.scroll.insideStartCol, cfg.scroll.insideEndCol, cellIdx);
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg.dataInfo, multipleFlag && keyMode == 2);
 
-    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg.dataInfo, multipleFlag && keyMode > 0);
+    console.log("    setCellClick  :: ", keyMode, selectRangeInfo);
+
+    if ((multipleFlag && keyMode != 2) || !multipleFlag) {
+      this.removeStartCellClass();
+    }
 
     if (multipleFlag && keyMode >= 2) {
       // shift key
-      let rangeInfo = { endRow: rowIndex, endCol: selectRangeInfo.endCol } as SelectionRange;
+      let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol } as SelectionRange;
 
       if (selectRangeInfo.startCol > -1) {
         rangeInfo.startCol = selectRangeInfo.startCol;
@@ -444,13 +446,15 @@ export default class Body {
     } else if (multipleFlag && keyMode == 1) {
       // ctrl key
 
+      console.log("ctrl key , ctrl key ctrl key ::  ", cfg.selection.isSelect);
+
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
-          id: cfg.selection.isSelect ? "add" : "",
+          mode: cfg.selection.isSelect ? "add" : "",
           isMouseDown: true,
-          startCell: { startRow: rowIndex, startCol: selectRangeInfo.startCol },
+          startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
         } as Selection,
         false,
         true
@@ -458,11 +462,11 @@ export default class Body {
     } else {
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startRow: rowIndex, endRow: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
           all: false,
           isMouseDown: true,
-          startCell: { startRow: rowIndex, startCol: cellIdx },
+          startCell: { startIdx: rowIndex, startCol: cellIdx },
         } as Selection,
         true,
         true
@@ -487,6 +491,18 @@ export default class Body {
     */
 
     window.getSelection()?.removeAllRanges();
+  }
+
+  /**
+   * remove start cell style class
+   *
+   */
+  private removeStartCellClass() {
+    const startCellElement = this.bodyElement.finds(".dg-cell.start-cell");
+
+    if (startCellElement) {
+      removeClass(startCellElement, "start-cell");
+    }
   }
 
   /**
@@ -599,7 +615,7 @@ export default class Body {
 
     console.log(cfg.selection, startCell);
 
-    const endIdx = startCell.startRow,
+    const endIdx = startCell.startIdx,
       endCol = startCell.startCol;
 
     switch (evtKey) {
@@ -611,7 +627,7 @@ export default class Body {
         console.log("enter");
 
         if (endIdx + 1 >= dataInfo.rowLength) {
-          if (endIdx > scrollInfo.startRow + scrollInfo.viewRow) {
+          if (endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
             scrollCtrl.moveVerticalScroll({ pos: "M", rowIdx: endIdx });
           }
           return;
@@ -627,7 +643,7 @@ export default class Body {
           return;
         }
 
-        if (moveRowIdx - scrollInfo.startRow >= scrollInfo.viewRow) {
+        if (moveRowIdx - scrollInfo.startIdx >= scrollInfo.viewRow) {
           scrollCtrl.moveVerticalScroll({ pos: "D", speed: moveRow });
         }
 
@@ -638,7 +654,7 @@ export default class Body {
         //up
 
         if (endIdx <= 0) {
-          if (endIdx < scrollInfo.startRow) {
+          if (endIdx < scrollInfo.startIdx) {
             scrollCtrl.moveVerticalScroll({ pos: "M", rowIdx: endIdx });
           }
           return;
@@ -654,7 +670,7 @@ export default class Body {
           return;
         }
 
-        if (moveRowIdx < scrollInfo.startRow) {
+        if (moveRowIdx < scrollInfo.startIdx) {
           scrollCtrl.moveVerticalScroll({ pos: "U", speed: moveRow });
         }
 
@@ -737,7 +753,7 @@ export default class Body {
     this.selectionInfo.setRangeInfo(evtKey, evt, moveRowIdx, moveColIdx);
 
     let reFlag = false;
-    if (endIdx < scrollInfo.startRow || endIdx > scrollInfo.startRow + scrollInfo.viewRow) {
+    if (endIdx < scrollInfo.startIdx || endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
       reFlag = true;
     }
 
@@ -790,9 +806,9 @@ export default class Body {
     ];
 
     let viewRow = cfg.scroll.viewRow;
-    const startRow = cfg.scroll.startRow;
+    const startIdx = cfg.scroll.startIdx;
 
-    const currentViewRow = viewRow < cfg.dataInfo.rowLength - startRow ? viewRow : cfg.dataInfo.rowLength - startRow;
+    const currentViewRow = viewRow < cfg.dataInfo.rowLength - startIdx ? viewRow : cfg.dataInfo.rowLength - startIdx;
     const beforeViewRow = cfg.scroll.before.viewRow;
 
     if (beforeViewRow > 1 && beforeViewRow > viewRow) {
@@ -862,7 +878,7 @@ export default class Body {
       }
     }
 
-    this.bodyElement.attr({ "data-striped-type": startRow % 2 == 0 ? "odd" : "even" });
+    this.bodyElement.attr({ "data-striped-type": startIdx % 2 == 0 ? "odd" : "even" });
 
     const startCell = cfg.selection.startCell;
     const startCol = cfg.fixedLeftIndex + cfg.scroll.startCol;
@@ -877,17 +893,19 @@ export default class Body {
       return;
     }
 
+    this.removeStartCellClass();
+
     for (let i = 0; i < currentViewRow; i++) {
-      const startRowIdx = startRow + i;
-      let item = items[startRowIdx];
+      const viewRowIdx = startIdx + i;
+      let item = items[viewRowIdx];
 
       // left panel
       if (enableLeftField) {
         leftFields.forEach((field, j) => {
           const cellIdx = j;
           const cellElement = this.allCellMap["left"][`${i},${cellIdx}`];
-          this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
-          field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
+          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+          field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
         });
       }
 
@@ -896,8 +914,8 @@ export default class Body {
 
         const cellIdx = j;
         const cellElement = this.allCellMap["center"][`${i},${cellIdx}`];
-        this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
-        field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
+        this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+        field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
       }
 
       // right panel
@@ -905,8 +923,8 @@ export default class Body {
         rightFields.forEach((field, j) => {
           const cellIdx = fixedRightIndex + j;
           const cellElement = this.allCellMap["right"][`${i},${cellIdx}`];
-          this.setSelectCell(startCell, startRowIdx, cellIdx, cellElement);
-          field.$renderer.render(startRowIdx, cellIdx, item, cellElement);
+          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+          field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
         });
       }
     }
@@ -967,11 +985,11 @@ export default class Body {
    * @param {FieldItem[]} fields fields 정보
    * @returns {string} template
    */
-  private rowTemplate(startRowIdx: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
+  private rowTemplate(viewRow: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
     const returnTemplate = [];
 
     for (let i = 0; i < rowCount; i++) {
-      let rowIdx = startRowIdx + i;
+      let rowIdx = viewRow + i;
 
       let cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
@@ -1002,22 +1020,22 @@ export default class Body {
    *
    * @private
    * @param {*} startCellInfo
-   * @param {number} row row index
+   * @param {number} rowIdx row index
    * @param {number} col cell index
    * @param {HTMLElement} addEle cell element
    * @returns {boolean}
    */
-  private setSelectCell(startCellInfo: any, row: number, col: number, contentEle: HTMLElement) {
+  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement) {
     const cellEle = contentEle.parentElement as HTMLElement;
-    //console.log("setSelectCell ", startCellInfo, row, col, this.selectionInfo.isSelectPosition(row, col));
-    if (startCellInfo.startRow == row && startCellInfo.startCol == col) {
+
+    if (startCellInfo.startIdx == rowIdx && startCellInfo.startCol == col) {
       cellEle.classList.add("selection");
-      cellEle.classList.add("selection-start-cell");
+      cellEle.classList.add("start-cell");
       return;
     }
 
     if (this.selectionInfo.isAllSelect()) {
-      if (this.selectionInfo.isAllSelectUnSelectPosition(row, col)) {
+      if (this.selectionInfo.isAllSelectUnSelectPosition(rowIdx, col)) {
         cellEle.classList.remove("selection");
       } else {
         cellEle.classList.add("selection");
@@ -1025,7 +1043,7 @@ export default class Body {
     } else {
       cellEle.classList.remove("selection");
 
-      if (this.selectionInfo.isSelectPosition(row, col)) {
+      if (this.selectionInfo.isSelectPosition(rowIdx, col)) {
         cellEle.classList.add("selection");
       }
     }
