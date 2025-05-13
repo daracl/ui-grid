@@ -206,6 +206,8 @@ export interface ScrollInfo {
 
   // grid 보여지는 row 수
   viewRow: number;
+  // 화면에 완전하게 보여지는 row 수
+  insideViewRow: number;
   // 시작 start row
   startIdx: number;
 

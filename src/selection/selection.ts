@@ -62,7 +62,7 @@ export default class SelectionInfo {
     const lastRowIdx = this.config.dataInfo.rowLength;
     const lastCol = this.config.dataInfo.colLength;
 
-    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, rangeInfo.startIdx, rangeInfo.startIdx, rangeInfo.endIdx);
+    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, rangeInfo.startIdx, rangeInfo.startIdx, rangeInfo.endIdx, currentSelection);
 
     currentSelection.minIdx = currentSelection.minIdx == -1 ? Math.min(rangeInfo.startIdx, rangeInfo.endIdx) : Math.min(currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
     currentSelection.minIdx = currentSelection.minIdx < -1 ? 0 : currentSelection.minIdx;
@@ -170,9 +170,9 @@ export default class SelectionInfo {
    * @description select data 구하기.
    */
   public selectionData(dataType: string): any {
-    const items = this.options.items;
+    const items = this.config.items;
 
-    if (items.length < 1) return;
+    if (this.config.dataInfo.rowLength < 1) return;
 
     dataType = dataType || "text";
 

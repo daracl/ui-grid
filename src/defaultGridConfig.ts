@@ -160,6 +160,7 @@ export const initScrollInfo = (): ScrollInfo => {
     insideStartCol: 0,
     insideEndCol: 0,
     viewRow: 0,
+    insideViewRow: 0,
     startIdx: 0,
 
     oneColMove: 0,

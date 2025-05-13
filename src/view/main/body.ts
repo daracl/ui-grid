@@ -593,7 +593,7 @@ export default class Body {
       if ((32 < evtKey && evtKey < 41) || evtKey == 13 || evtKey == 9) {
         stopPreventCancel(e);
 
-        this.gridKeyCtrl(e, evtKey);
+        this.arrowKeydownEvent(e, evtKey);
       }
     });
   }
@@ -605,7 +605,7 @@ export default class Body {
    * @param {UIEvent} evt key event
    * @param {number} evtKey key code
    */
-  private gridKeyCtrl(evt: UIEvent, evtKey: number) {
+  private arrowKeydownEvent(evt: UIEvent, evtKey: number) {
     const cfg = this.grid.config();
     const scrollCtrl = this.gridMain.getScroll();
 
@@ -613,10 +613,14 @@ export default class Body {
       dataInfo = cfg.dataInfo,
       startCell = cfg.selection.startCell;
 
-    console.log(cfg.selection, startCell);
+    this.removeStartCellClass();
 
     const endIdx = startCell.startIdx,
       endCol = startCell.startCol;
+
+    let insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
+
+    console.log("arrowKeydownEvent  :   ", cfg.selection, endIdx, endCol);
 
     switch (evtKey) {
       case 34: // PageDown
@@ -624,27 +628,18 @@ export default class Body {
       case 40: {
         //down
 
-        console.log("enter");
-
-        if (endIdx + 1 >= dataInfo.rowLength) {
-          if (endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
-            scrollCtrl.moveVerticalScroll({ pos: "M", rowIdx: endIdx });
-          }
-          return;
-        }
-
-        const moveRow = evtKey == 34 ? scrollInfo.viewRow : 1;
-        let moveRowIdx = endIdx + moveRow;
+        let moveRowIdx = endIdx + (evtKey == 34 ? insideViewRow : 1);
 
         moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
 
+        // 스크롤 밖에 있을때
         if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, endCol)) {
-          // 스크롤 밖에 있을때
+          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx - 1 });
           return;
         }
 
-        if (moveRowIdx - scrollInfo.startIdx >= scrollInfo.viewRow) {
-          scrollCtrl.moveVerticalScroll({ pos: "D", speed: moveRow });
+        if (moveRowIdx >= scrollInfo.startIdx + insideViewRow) {
+          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx - insideViewRow });
         }
 
         break;
@@ -653,25 +648,17 @@ export default class Body {
       case 38: {
         //up
 
-        if (endIdx <= 0) {
-          if (endIdx < scrollInfo.startIdx) {
-            scrollCtrl.moveVerticalScroll({ pos: "M", rowIdx: endIdx });
-          }
-          return;
-        }
-
-        const moveRow = evtKey == 33 ? scrollInfo.viewRow : 1;
-        let moveRowIdx = endIdx - moveRow;
+        let moveRowIdx = endIdx - (evtKey == 33 ? insideViewRow : 1);
 
         moveRowIdx = moveRowIdx > 0 ? moveRowIdx : 0;
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, endCol)) {
-          // 스크롤 밖에 있을때
+          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx });
           return;
         }
 
         if (moveRowIdx < scrollInfo.startIdx) {
-          scrollCtrl.moveVerticalScroll({ pos: "U", speed: moveRow });
+          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx });
         }
 
         break;
@@ -679,13 +666,6 @@ export default class Body {
       case 36: // Home
       case 37: {
         //left
-
-        if (endCol <= 0) {
-          if (endCol < scrollInfo.startCol) {
-            scrollCtrl.moveHorizontalScroll({ pos: "L", colIdx: endCol });
-          }
-          return;
-        }
 
         let moveColIdx = evtKey == 36 ? 0 : endCol - 1;
 
@@ -697,7 +677,7 @@ export default class Body {
         }
 
         if (!isFixedLeftPostion(cfg, moveColIdx) && moveColIdx <= scrollInfo.startCol) {
-          scrollCtrl.moveHorizontalScroll({ pos: "L", colIdx: moveColIdx });
+          scrollCtrl.moveHorizontalScroll({ colIdx: moveColIdx });
         }
 
         break;
@@ -705,16 +685,9 @@ export default class Body {
       case 35: // End
       case 9: // tab
       case 39: {
-        //right
-        if (endCol + 1 >= dataInfo.colLength) {
-          if (endCol > scrollInfo.endCol) {
-            scrollCtrl.moveHorizontalScroll({ pos: "R", colIdx: endCol });
-          }
+        let moveColIdx = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
 
-          return;
-        }
-
-        const moveColIdx = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
+        moveColIdx = moveColIdx >= dataInfo.colLength ? dataInfo.colLength - 1 : moveColIdx;
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, endIdx, moveColIdx)) {
           // 스크롤 밖에 있을때
@@ -722,7 +695,7 @@ export default class Body {
         }
 
         if (!isFixedRightPostion(cfg, moveColIdx) && moveColIdx >= scrollInfo.insideEndCol) {
-          scrollCtrl.moveHorizontalScroll({ pos: "R", colIdx: moveColIdx });
+          scrollCtrl.moveHorizontalScroll({ colIdx: moveColIdx });
         }
 
         break;
@@ -744,27 +717,25 @@ export default class Body {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
-    if (utils.isFunction(opts.body.keyNavHandler) && opts.body.keyNavHandler(evt, { key: evtKey, moveCol: moveColIdx, moveRow: moveRowIdx, item: null }) === false) {
-      // item 부분 처리 할것. TODO
-      //item: cfg.getItems(moveRowIdx) }) === false) {
+    if (utils.isFunction(opts.body.keyNavHandler) && opts.body.keyNavHandler(evt, { key: evtKey, moveCol: moveColIdx, moveRow: moveRowIdx, item: cfg.items[moveRowIdx] }) === false) {
       return false;
     }
 
     this.selectionInfo.setRangeInfo(evtKey, evt, moveRowIdx, moveColIdx);
 
-    let reFlag = false;
     if (endIdx < scrollInfo.startIdx || endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
-      reFlag = true;
+      return true;
     }
 
-    if (!isFixedLeftPostion(cfg, moveColIdx)) {
-      if (endCol < scrollInfo.startCol) {
-        reFlag = true;
-      } else if (endCol > scrollInfo.endCol) {
-        reFlag = true;
-      }
+    if (isFixedLeftPostion(cfg, moveColIdx) || isFixedRightPostion(cfg, moveColIdx)) {
+      return false;
     }
-    return reFlag;
+
+    if (endCol < scrollInfo.startCol || endCol > scrollInfo.endCol) {
+      return true;
+    }
+
+    return false;
   }
 
   public calcBodyDemention() {
@@ -788,8 +759,10 @@ export default class Body {
    */
   public dataDraw(mode?: string) {
     const opts = this.grid.getOptions();
-    const items = opts.items;
     const cfg = this.grid.config();
+
+    const items = cfg.items;
+
     const leftFields = cfg.fieldHeaderGroup.leafLeft;
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
     const rightFields = cfg.fieldHeaderGroup.leafRight;

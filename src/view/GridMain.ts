@@ -326,7 +326,8 @@ export default class GridMain {
 
     const opts = this.grid.getOptions();
 
-    cfg.dataInfo.rowLength = this.grid.getOptions().items.length;
+    cfg.items = Array.from(this.grid.getOptions().items);
+    cfg.dataInfo.rowLength = cfg.items.length;
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
@@ -377,6 +378,7 @@ export default class GridMain {
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = cfg.scroll.viewRow < 1 ? 1 : cfg.scroll.viewRow;
     cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
+    cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 2 : 0; // +2 마지막 여백처리;
