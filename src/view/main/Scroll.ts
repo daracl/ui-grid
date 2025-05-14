@@ -3,7 +3,7 @@ import { Config, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
-import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCenterContentLeft } from "src/util/gridUtils";
+import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
@@ -575,7 +575,15 @@ export default class Scroll {
     if (utils.isNumber(moveObj.position)) {
       leftVal = moveObj.position;
     } else if (utils.isNumber(moveObj.colIdx)) {
-      leftVal = moveObj.colIdx * cfg.scroll.oneRowMove;
+      for (let i = cfg.fixedLeftIndex; i < moveObj.colIdx; i++) {
+        leftVal += cfg.currentFields[i].$width;
+      }
+
+      if (moveObj.direction == "R") {
+        leftVal = leftVal + cfg.currentFields[moveObj.colIdx].$width;
+      }
+
+      leftVal = getHorizontalScrollPosition(cfg, leftVal, moveObj.direction);
     } else if (utils.isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
       leftVal = cfg.scroll.left + (moveObj.direction == "L" ? -1 : 1) * speed * cfg.scroll.oneColMove;
@@ -716,8 +724,9 @@ export default class Scroll {
     cfg.scroll.before.startCol = cfg.scroll.startCol; // 이전데이터
     cfg.scroll.before.endCol = cfg.scroll.endCol;
 
-    cfg.scroll.startCol = startCol > 0 ? startCol : 0;
-    cfg.scroll.endCol = endCol >= fields.length ? fields.length : endCol;
+    cfg.scroll.insideStartCol = cfg.fixedLeftIndex + cfg.scroll.insideStartCol;
+    cfg.scroll.startCol = cfg.fixedLeftIndex + (startCol > 0 ? startCol : 0);
+    cfg.scroll.endCol = cfg.fixedLeftIndex + (endCol >= fields.length ? fields.length : endCol);
 
     // 화면에 다 보이는 col size
     cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);

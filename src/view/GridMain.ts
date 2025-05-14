@@ -450,6 +450,8 @@ export default class GridMain {
     dimensions.mainRightWidth = rightWidth;
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
     dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
+    dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
+    dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
 
     cfg.dataInfo.colLength = fieldLength;
   }

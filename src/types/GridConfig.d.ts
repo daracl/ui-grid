@@ -34,7 +34,11 @@ export interface Config {
     // grid total width
     mainTotalWidth: number;
 
-    mainOverWidth: number;
+    // center over width;
+    mainCenterOverWidth: number;
+
+    // center view width;
+    mainCenterViewWidth: number;
   };
   allColumnMap: {
     [key: string]: FieldItem;

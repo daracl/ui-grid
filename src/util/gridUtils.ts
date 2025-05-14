@@ -115,13 +115,35 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
  *
  * @param cfg 그리드 설정 정보
  * @param scrollLeft scroll left 값
- * @returns
+ * @returns {number}
  */
 export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
   if (scrollLeft < 1) {
     return 0;
   }
-  return scrollLeft < 1 ? 0 : ((cfg.dimensions.mainTotalWidth - cfg.dimensions.mainInsideWidth) * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
+  return (cfg.dimensions.mainCenterOverWidth * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
+}
+
+/**
+ * 센터 포지션 값 - > 스크롤 left postion
+ *
+ * @export
+ * @param {Config} cfg 그리드 설정 정보
+ * @param {number} contentLeft center content left 값
+ * @returns {number}
+ */
+export function getHorizontalScrollPosition(cfg: Config, contentLeft: number, direction: string): number {
+  if (contentLeft < 1) {
+    return 0;
+  }
+
+  if (direction == "R") {
+    contentLeft = contentLeft - cfg.dimensions.mainCenterViewWidth;
+  } else {
+    contentLeft = contentLeft - 2;
+  }
+
+  return ((contentLeft / cfg.dimensions.mainCenterOverWidth) * 100 * (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) / 100;
 }
 
 /**
