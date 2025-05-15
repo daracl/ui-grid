@@ -52,6 +52,14 @@ export default class Header {
   }
 
   initEvt() {
+    //
+    //
+    //
+    // header click event 처리 할것.
+    this.initResizeEvent();
+  }
+
+  initResizeEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
@@ -182,7 +190,6 @@ export default class Header {
    * @param sEle
    */
   private calcColumnResize(sEle: HTMLElement) {
-    console.log("calcColumnResize", sEle);
     const cfg = this.grid.config();
     this.drag = {};
     const colIdx = (sEle as HTMLElement)?.getAttribute("data-resize-idx") ?? "0";
@@ -209,7 +216,6 @@ export default class Header {
         posLeft += cfg.currentFields[i].$width;
       }
 
-      console.log(posLeft, cfg.scroll.centerLeftPosition);
       this.drag.positionLeft = posLeft - cfg.scroll.centerLeftPosition;
     }
   }
@@ -284,7 +290,7 @@ export default class Header {
         }
 
         let thHtm = [];
-        thHtm.push(`<th class="dg-header-col ${ghItem.styleClass ? ghItem.styleClass(ghItem) : ""}"
+        thHtm.push(`<th class="dg-header-col"
               ${ghItem.$colspan > 1 ? ` scope="colgroup" colspan="${ghItem.$colspan}" ` : ""}
               ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""} 
         >`);

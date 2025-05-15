@@ -381,7 +381,7 @@ export default class GridMain {
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
     cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
-    const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 2 : 0; // +2 마지막 여백처리;
+    const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 1 : 0; // +2 마지막 여백처리;
 
     let remainderWidth = 0,
       lastSpaceW = 0;
@@ -477,7 +477,7 @@ export default class GridMain {
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "rowCheckbox", renderer: { type: "rowCheckbox" }, $isAside: true });
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "rowCheck", renderer: { type: "rowCheckbox" }, $isAside: true });
       asideOrder[opts.aside.rowCheckbox.order ?? 1] = fieldItem;
     }
 

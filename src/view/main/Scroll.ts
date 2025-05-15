@@ -729,7 +729,7 @@ export default class Scroll {
     cfg.scroll.endCol = cfg.fixedLeftIndex + (endCol >= fields.length ? fields.length : endCol);
 
     // 화면에 다 보이는 col size
-    cfg.scroll.insideEndCol = cfg.scroll.endCol + (itemLeftVal != mainInsideWidth ? -1 : 0);
+    cfg.scroll.insideEndCol = cfg.scroll.endCol + (getHorizontalScrollPosition(cfg, itemLeftVal, "R") != cfg.scroll.left ? -1 : 0);
   }
 }
 

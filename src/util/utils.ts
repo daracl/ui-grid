@@ -201,6 +201,28 @@ export function isPlainObject(obj: any) {
   return Object.getPrototypeOf(obj) === proto;
 }
 
+/**
+ * camel-> underscore
+ *
+ * @export
+ * @param {string} str
+ * @returns {*}
+ */
+export function camelToUnderscore(str: string) {
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase(); // 전체를 소문자로
+}
+
+/**
+ * camel-> Kebab
+ *
+ * @export
+ * @param {string} str
+ * @returns {*}
+ */
+export function camelToKebab(str: string) {
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+}
+
 function isObject(value: any) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

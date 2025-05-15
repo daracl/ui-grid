@@ -45,6 +45,16 @@
           padding: 0px 5px 0px 5px !important;
           margin: 0 !important;
 
+          &.line-number {
+            background-color: var(--cell-bg-linenumber) !important;
+          }
+          /*
+          &.row-check {
+          }
+
+          &.modifi-info {
+          }
+          */
           &:hover {
             background-color: var(--cell-bg-hover) !important;
           }

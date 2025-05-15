@@ -713,6 +713,8 @@ export default class Body {
       }
     }
 
+    console.log("insideScrollCheck :: ", checkCode, moveColIdx, scrollInfo.insideEndCol, scrollInfo.endCol);
+
     if (checkCode > 0) {
       const horizontal = Math.floor(checkCode / 10);
       const vertical = checkCode % 10;
@@ -872,7 +874,7 @@ export default class Body {
         leftFields.forEach((field, j) => {
           const cellIdx = j;
           const cellElement = this.allCellMap["left"][`${i},${cellIdx}`];
-          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
           field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
         });
       }
@@ -882,7 +884,7 @@ export default class Body {
 
         const cellIdx = j;
         const cellElement = this.allCellMap["center"][`${i},${cellIdx}`];
-        this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+        this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
         field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
       }
 
@@ -891,7 +893,7 @@ export default class Body {
         rightFields.forEach((field, j) => {
           const cellIdx = fixedRightIndex + j;
           const cellElement = this.allCellMap["right"][`${i},${cellIdx}`];
-          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement);
+          this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
           field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
         });
       }
@@ -965,7 +967,7 @@ export default class Body {
         let clickFlag = field.click;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}">
+          cellTemplate.push(`<td scope="col" class="dg-cell ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
           <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
         </td>`);
         } else {
@@ -993,8 +995,39 @@ export default class Body {
    * @param {HTMLElement} addEle cell element
    * @returns {boolean}
    */
-  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement) {
+  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
     const cellEle = contentEle.parentElement as HTMLElement;
+
+    // field add class
+    if (field.styleClass) {
+      let addClass = "";
+      if (utils.isFunction(field.styleClass)) {
+        addClass = field.styleClass({ rowIdx: rowIdx, col: col, field: field, item: item });
+      } else if (utils.isString(field.styleClass)) {
+        addClass = field.styleClass;
+      }
+
+      console.log(" setSelectCell styleClass :: ", addClass);
+
+      const cellClassList = cellEle.classList;
+
+      const removeClass: string[] = [];
+      cellClassList.forEach((cellClass, idx) => {
+        if (cellClass != "dg-cell" && cellClass != "start-cell" && cellClass != "selection" && cellClass != addClass) {
+          removeClass.push(cellClass);
+        }
+      });
+
+      if (removeClass.length > 0) {
+        removeClass.forEach((cls) => {
+          cellClassList.remove(cls);
+        });
+      }
+
+      if (addClass != "" && !cellClassList.contains(addClass)) {
+        cellClassList.add(addClass);
+      }
+    }
 
     if (startCellInfo.startIdx == rowIdx && startCellInfo.startCol == col) {
       cellEle.classList.add("selection");
