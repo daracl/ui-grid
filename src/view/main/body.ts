@@ -132,12 +132,12 @@ export default class Body {
 
         const position = getOffset(bodyElement);
 
-        const _l = position.left,
-          _r = _l + cfg.dimensions.width - opts.scroll.width;
+        const _l = position.left + cfg.dimensions.mainLeftWidth,
+          _r = position.left + cfg.dimensions.mainInsideWidth - cfg.dimensions.mainRightWidth;
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
 
-        console.log("cell click  multipleFlag: ", multipleFlag, _l, _r, _t, _b);
+        console.log("cell click  multipleFlag: ", position, multipleFlag, cfg.dimensions.mainRightWidth, cfg.dimensions.mainInsideWidth, _l, _r, _t, _b);
 
         if (multipleFlag) {
           // mouse darg scroll
@@ -170,13 +170,11 @@ export default class Body {
 
               bodyDragTimer = setInterval(() => {
                 if (mouseDragDirectionY !== "") {
-                  console.log(" mouseDragDirectionY: ", mouseDragDirectionY, rangeInfo);
-
                   let endIdx = -1;
                   if (mouseDragDirectionY == "D") {
-                    endIdx = rangeInfo.maxIdx + 1;
+                    endIdx = cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1;
                   } else {
-                    endIdx = rangeInfo.startIdx > rangeInfo.minIdx ? rangeInfo.minIdx - 1 : rangeInfo.maxIdx - 1;
+                    endIdx = cfg.scroll.startIdx - 1;
                   }
 
                   this.selectionInfo.setSelectionRangeInfo(
@@ -184,10 +182,10 @@ export default class Body {
                       range: { endIdx: endIdx } as SelectionRange,
                     } as Selection,
                     false,
-                    false
+                    true
                   );
 
-                  this.gridMain.getScroll().moveVerticalScroll({ pos: mouseDragDirectionY });
+                  this.gridMain.getScroll().moveVerticalScroll({ direction: mouseDragDirectionY });
                 }
 
                 if (mouseScrollDirectionX !== "") {
@@ -207,7 +205,7 @@ export default class Body {
                     endCol < 0 || endCol >= cfg.dataInfo.colLength
                   );
 
-                  this.gridMain.getScroll().moveHorizontalScroll({ pos: mouseScrollDirectionX });
+                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX });
                 }
               }, bodyDragDelay);
             }
@@ -409,19 +407,17 @@ export default class Body {
     const rowIndex = cellInfo.rowIndex,
       cellIdx = cellInfo.c;
 
-    if (!isFixedLeftPostion(cfg, cellIdx)) {
+    if (!isFixedLeftPostion(cfg, cellIdx) && !isFixedRightPostion(cfg, cellIdx)) {
       if (cellIdx < cfg.scroll.insideStartCol) {
-        this.gridMain.getScroll().moveHorizontalScroll({ pos: "L", colIdx: cellIdx });
+        this.gridMain.getScroll().moveHorizontalScroll({ direction: "L", colIdx: cellIdx });
       } else if (cellIdx > cfg.scroll.insideEndCol) {
-        this.gridMain.getScroll().moveHorizontalScroll({ pos: "R", colIdx: cellIdx });
+        this.gridMain.getScroll().moveHorizontalScroll({ direction: "R", colIdx: cellIdx });
       }
     }
 
     let keyMode = ((e as KeyboardEvent).shiftKey ? 2 : 0) + ((e as KeyboardEvent).ctrlKey ? 1 : 0);
 
     const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg.dataInfo, multipleFlag && keyMode == 2);
-
-    console.log("    setCellClick  :: ", keyMode, selectRangeInfo);
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
       this.removeStartCellClass();
@@ -445,8 +441,6 @@ export default class Body {
       );
     } else if (multipleFlag && keyMode == 1) {
       // ctrl key
-
-      console.log("ctrl key , ctrl key ctrl key ::  ", cfg.selection.isSelect);
 
       this.selectionInfo.setSelectionRangeInfo(
         {
@@ -472,23 +466,6 @@ export default class Body {
         true
       );
     }
-
-    /*
-    let _r = cellInfo.r;
-    // hidden row up
-    if (cellInfo.r + 1 > cfg.scroll.viewRow) {
-      this.gridMain.getScroll().moveVerticalScroll({ pos: "D" });
-      _r = cellInfo.r - 1;
-    }
-
-    cfg.currentClickInfo = {
-      field: cellInfo.field,
-      item: selItem,
-      rowIndex: rowIndex,
-      c: colIdx,
-      r: _r,
-    };
-    */
 
     window.getSelection()?.removeAllRanges();
   }
@@ -620,8 +597,6 @@ export default class Body {
 
     let insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
 
-    console.log("arrowKeydownEvent  :   ", cfg.selection, endIdx, endCol);
-
     switch (evtKey) {
       case 34: // PageDown
       case 13: // enter
@@ -632,9 +607,7 @@ export default class Body {
         moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
 
         // 스크롤 밖에 있을때
-        if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, endCol, "D")) {
-          scrollCtrl.moveHorizontalScroll({ direction: "L", colIdx: endCol, drawFlag: false });
-          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx - 1 });
+        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
 
@@ -652,9 +625,7 @@ export default class Body {
 
         moveRowIdx = moveRowIdx > 0 ? moveRowIdx : 0;
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, endCol, "U")) {
-          scrollCtrl.moveHorizontalScroll({ direction: "L", colIdx: endCol, drawFlag: false });
-          scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx });
+        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
 
@@ -672,9 +643,7 @@ export default class Body {
 
         moveCol = moveCol > 0 ? moveCol : 0;
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, endIdx, moveCol, "L")) {
-          scrollCtrl.moveVerticalScroll({ rowIdx: endIdx - 3, drawFlag: false });
-          scrollCtrl.moveHorizontalScroll({ direction: "L", colIdx: moveCol });
+        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -691,9 +660,7 @@ export default class Body {
 
         moveCol = moveCol >= dataInfo.colLength ? dataInfo.colLength - 1 : moveCol;
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, endCol, scrollInfo, endIdx, moveCol, "R")) {
-          scrollCtrl.moveVerticalScroll({ rowIdx: endIdx - 3, drawFlag: false });
-          scrollCtrl.moveHorizontalScroll({ direction: "R", colIdx: moveCol });
+        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -716,7 +683,7 @@ export default class Body {
    * @private
    * @type {function (ctx, evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, moveColIdx)}
    */
-  private insideScrollCheck(evtKey: number, evt: UIEvent, endIdx: number, endCol: number, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number, checkMode: string) {
+  private insideScrollCheck(evtKey: number, evt: UIEvent, endIdx: number, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
@@ -736,50 +703,34 @@ export default class Body {
       checkCode = 2;
     }
 
-    if (endCol < scrollInfo.startCol) {
-      // 'L'
-      checkCode = (checkCode > 0 ? checkCode : 0) + 10;
-    } else if (endCol > scrollInfo.endCol) {
-      // 'R'
-      checkCode = (checkCode > 0 ? checkCode : 0) + 20;
+    if (!isFixedLeftPostion(cfg, moveColIdx) && !isFixedRightPostion(cfg, moveColIdx)) {
+      if (moveColIdx < scrollInfo.insideStartCol) {
+        // 'L'
+        checkCode = (checkCode > 0 ? checkCode : 0) + 10;
+      } else if (moveColIdx > scrollInfo.insideEndCol) {
+        // 'R'
+        checkCode = (checkCode > 0 ? checkCode : 0) + 20;
+      }
     }
 
     if (checkCode > 0) {
       const horizontal = Math.floor(checkCode / 10);
       const vertical = checkCode % 10;
 
-      // 스크롤 밖으로 나갔을때 처리 할것.
-      //
-      //
-      //
-
       const scrollCtrl = this.gridMain.getScroll();
 
-      scrollCtrl.moveHorizontalScroll({ direction: horizontal == 1 ? "L" : "R", colIdx: endCol, drawFlag: false });
-      scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx - 1 });
+      if (horizontal > 0) {
+        scrollCtrl.moveHorizontalScroll({ direction: horizontal == 1 ? "L" : "R", colIdx: moveColIdx, drawFlag: vertical > 0 ? false : true });
+      }
 
-      return false;
-    }
+      if (vertical > 0) {
+        scrollCtrl.moveVerticalScroll({ rowIdx: moveRowIdx - (vertical == 1 ? 0 : scrollInfo.insideViewRow - 1) });
+      }
 
-    return true;
-
-    /*
-    if (endIdx < scrollInfo.startIdx || endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
-      return true;
-    }
-
-    if (isFixedLeftPostion(cfg, moveColIdx) || isFixedRightPostion(cfg, moveColIdx)) {
-      return false;
-    }
-
-    //console.log("############## insideScrollCheck endCol : ", endCol, scrollInfo.startCol, scrollInfo.endCol);
-
-    if (endCol < scrollInfo.startCol && endCol > scrollInfo.endCol) {
       return true;
     }
 
     return false;
-    */
   }
 
   public calcBodyDemention() {
