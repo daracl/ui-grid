@@ -12,7 +12,7 @@ import DaraElement from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
-import { getOffset } from "src/util/domUtils";
+import { getOffset, hasClass } from "src/util/domUtils";
 
 /**
  * Body class
@@ -71,7 +71,8 @@ export default class Body {
 
     // body  selection 처리.
     // cell event 처리할것.
-    const selectionMode = opts.selectionMode;
+    const orginSelectionMode = opts.selectionMode;
+    let selectionMode = orginSelectionMode;
 
     let bodyDragTimer: any = -1;
     let bodyDragDelay = 150;
@@ -131,9 +132,9 @@ export default class Body {
         }
 
         const position = getOffset(bodyElement);
-
+        const mainRightWidth = cfg.dimensions.mainRightWidth;
         const _l = position.left + cfg.dimensions.mainLeftWidth,
-          _r = position.left + cfg.dimensions.mainInsideWidth - cfg.dimensions.mainRightWidth;
+          _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
 
@@ -166,8 +167,11 @@ export default class Body {
             }
 
             if (bodyDragTimer < 1) {
-              let rangeInfo = cfg.selection.range;
-
+              // 마우스 이동시 cell width 계산해서 처리.
+              // mouseover는 불필요시 제거 할것.
+              //
+              //
+              //
               bodyDragTimer = setInterval(() => {
                 if (mouseDragDirectionY !== "") {
                   let endIdx = -1;
@@ -192,20 +196,12 @@ export default class Body {
                   let endCol = -1;
 
                   if (mouseScrollDirectionX == "R") {
-                    endCol = cfg.scroll.insideEndCol + 1;
+                    endCol = cfg.scroll.insideEndCol + 3;
                   } else {
-                    endCol = cfg.scroll.insideStartCol - 1;
+                    endCol = cfg.scroll.insideStartCol - 3;
                   }
 
-                  this.selectionInfo.setSelectionRangeInfo(
-                    {
-                      range: { endCol: endCol } as SelectionRange,
-                    } as Selection,
-                    false,
-                    endCol < 0 || endCol >= cfg.dataInfo.colLength
-                  );
-
-                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX });
+                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol });
                 }
               }, bodyDragDelay);
             }
@@ -224,13 +220,18 @@ export default class Body {
 
         if (cellElement == null) return;
 
+        if (multipleFlag && hasClass(cellElement, "line-number")) {
+          selectionMode = "multiple-row";
+        }
+        selectionMode;
+
         const cellInfo = getCellInfo(cfg, cellElement);
 
         beforeOverCell = getOverCellPosition(cellInfo);
 
         const currViewIdx = cfg.scroll.startIdx;
 
-        this.setCellClick(e, cellInfo, multipleFlag, selectionMode);
+        this.setCellClick(e, cellInfo, multipleFlag, selectionMode, cellElement);
 
         const newViewIdx = cfg.scroll.startIdx;
 
@@ -309,6 +310,7 @@ export default class Body {
 
     eventOn(bodyElement, "mouseup", (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
+      selectionMode = orginSelectionMode;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
 
@@ -335,7 +337,7 @@ export default class Body {
 
         beforeOverCell = currentOverCell;
 
-        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg.dataInfo, cfg.selection.isMouseDown);
+        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg, cellElement, cfg.selection.isMouseDown);
 
         this.selectionInfo.setSelectionRangeInfo(
           {
@@ -399,7 +401,7 @@ export default class Body {
   }
 
   // cell click
-  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string) {
+  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
     const cfg = this.grid.config();
 
     //this.gridMain.setGridFocusIn(e);
@@ -417,7 +419,7 @@ export default class Body {
 
     let keyMode = ((e as KeyboardEvent).shiftKey ? 2 : 0) + ((e as KeyboardEvent).ctrlKey ? 1 : 0);
 
-    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg.dataInfo, multipleFlag && keyMode == 2);
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
       this.removeStartCellClass();
@@ -454,6 +456,7 @@ export default class Body {
         true
       );
     } else {
+      console.log("selectRangeInfo : ", selectRangeInfo);
       this.selectionInfo.setSelectionRangeInfo(
         {
           range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
@@ -602,9 +605,13 @@ export default class Body {
       case 13: // enter
       case 40: {
         //down
-        let moveRowIdx = endIdx + (evtKey == 34 ? insideViewRow : 1);
-
-        moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
+        let moveRowIdx = 0;
+        if (evtKey == 40 && (evt as KeyboardEvent).ctrlKey) {
+          moveRowIdx = dataInfo.rowLength - 1;
+        } else {
+          moveRowIdx = endIdx + (evtKey == 34 ? insideViewRow : 1);
+          moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
+        }
 
         // 스크롤 밖에 있을때
         if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
@@ -620,10 +627,13 @@ export default class Body {
       case 33: //PageUp
       case 38: {
         //up
-
-        let moveRowIdx = endIdx - (evtKey == 33 ? insideViewRow : 1);
-
-        moveRowIdx = moveRowIdx > 0 ? moveRowIdx : 0;
+        let moveRowIdx = 0;
+        if (evtKey == 38 && (evt as KeyboardEvent).ctrlKey) {
+          moveRowIdx = 0;
+        } else {
+          moveRowIdx = endIdx - (evtKey == 33 ? insideViewRow : 1);
+          moveRowIdx = moveRowIdx > 0 ? moveRowIdx : 0;
+        }
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
           return;
@@ -639,9 +649,13 @@ export default class Body {
       case 37: {
         //left
 
-        let moveCol = evtKey == 36 ? 0 : endCol - 1;
-
-        moveCol = moveCol > 0 ? moveCol : 0;
+        let moveCol = 0;
+        if (evtKey == 37 && (evt as KeyboardEvent).ctrlKey) {
+          moveCol = 0;
+        } else {
+          moveCol = evtKey == 36 ? 0 : endCol - 1;
+          moveCol = moveCol > 0 ? moveCol : 0;
+        }
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
           return;
@@ -656,9 +670,13 @@ export default class Body {
       case 35: // End
       case 9: // tab
       case 39: {
-        let moveCol = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
-
-        moveCol = moveCol >= dataInfo.colLength ? dataInfo.colLength - 1 : moveCol;
+        let moveCol = 0;
+        if (evtKey == 39 && (evt as KeyboardEvent).ctrlKey) {
+          moveCol = dataInfo.colLength - 1;
+        } else {
+          moveCol = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
+          moveCol = moveCol >= dataInfo.colLength ? dataInfo.colLength - 1 : moveCol;
+        }
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
           return;

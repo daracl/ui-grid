@@ -575,12 +575,20 @@ export default class Scroll {
     if (utils.isNumber(moveObj.position)) {
       leftVal = moveObj.position;
     } else if (utils.isNumber(moveObj.colIdx)) {
-      for (let i = cfg.fixedLeftIndex; i < moveObj.colIdx; i++) {
+      let colIdx = moveObj.colIdx;
+
+      if (colIdx > 0) {
+        colIdx = colIdx < cfg.dataInfo.colLength - 1 ? colIdx : cfg.dataInfo.colLength - 1;
+      } else {
+        colIdx = 0;
+      }
+
+      for (let i = cfg.fixedLeftIndex; i < colIdx; i++) {
         leftVal += cfg.currentFields[i].$width;
       }
 
       if (moveObj.direction == "R") {
-        leftVal = leftVal + cfg.currentFields[moveObj.colIdx].$width;
+        leftVal = leftVal + cfg.currentFields[colIdx].$width;
       }
 
       leftVal = getHorizontalScrollPosition(cfg, leftVal, moveObj.direction);

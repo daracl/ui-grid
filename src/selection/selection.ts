@@ -7,6 +7,7 @@ import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCe
 import DaraGrid from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
 import { removeClass } from "src/util/styleUtils";
+import { hasClass } from "src/util/domUtils";
 
 export default class SelectionInfo {
   private readonly grid: DaraGrid;
@@ -448,23 +449,23 @@ export default class SelectionInfo {
    * @param {boolean} isMouseDown
    * @returns {{ startCol: number; endCol: number; }}
    */
-  public getSelectionModeColInfo(selectionMode: string, col: number, dataInfo: any, isMouseDown?: boolean) {
-    let startCol, endCol;
+  public getSelectionModeColInfo(selectionMode: string, col: number, cfg: Config, cellElement: HTMLElement, isMouseDown?: boolean) {
+    let startCol = col,
+      endCol = col;
 
     if (isRowSelection(selectionMode)) {
       startCol = 0;
-      endCol = dataInfo.colLen - 1;
+      endCol = cfg.dataInfo.colLength - 1;
     } else if (selectionMode == "multiple-cell") {
+      console.log('hasClass(cellElement,"line-number") : ', isMouseDown);
       if (isMouseDown) {
         startCol = -1;
+      } else if (hasClass(cellElement, "line-number")) {
+        startCol = 0;
+        endCol = cfg.dataInfo.colLength - 1;
       } else {
         startCol = col;
       }
-
-      endCol = col;
-    } else {
-      startCol = col;
-      endCol = col;
     }
 
     return { startCol: startCol, endCol: endCol };
