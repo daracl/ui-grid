@@ -156,7 +156,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     horizontal: {
       enable: true,
       speed: 1, // 스크롤 스피드
-      enableWheel: true, //  wheel 로 스크롤 이동.
+      enableWheel: false, //  wheel 로 스크롤 이동.
       onUpdate: false,
     },
   },

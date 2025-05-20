@@ -1,6 +1,12 @@
+import { styleClassSplit } from "./styleUtils";
+
 export function hasClass(element: HTMLElement, styleClass: string) {
-  if (element.classList.contains(styleClass)) {
-    return true;
+  const styleClassArr = styleClassSplit(styleClass);
+
+  for (let styleClassItem of styleClassArr) {
+    if (element.classList.contains(styleClassItem)) {
+      return true;
+    }
   }
 
   return false;

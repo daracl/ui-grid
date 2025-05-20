@@ -22,6 +22,28 @@ function addEventInfo(el: any, eventType: string, listener: any) {
 }
 
 /**
+ * shift key check
+ *
+ * @export
+ * @param {Event} evt event
+ * @returns {boolean}
+ */
+export function isShiftKey(evt: Event): boolean {
+  return (evt as KeyboardEvent).shiftKey;
+}
+
+/**
+ * ctrl key check
+ *
+ * @export
+ * @param {Event} evt event
+ * @returns {boolean}
+ */
+export function isCtrlKey(evt: Event): boolean {
+  return (evt as KeyboardEvent).ctrlKey;
+}
+
+/**
  * html element event 등록
  *
  * @param {(Element | string | NodeList | null | Document)} el html element

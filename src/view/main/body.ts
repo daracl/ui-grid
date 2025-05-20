@@ -2,14 +2,14 @@ import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag, removeClass } from "../../util/styleUtils";
-import { getCellInfo, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
+import { getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 import { getOffset, hasClass } from "src/util/domUtils";
@@ -95,6 +95,7 @@ export default class Body {
     }
 
     const rowOptions = opts.body.row;
+    const rowHeight = opts.body.row.height;
     // row cell double click event
     const dblCheckFlag = rowOptions.dblClickCheck === true;
     const editable = opts.editable;
@@ -131,6 +132,8 @@ export default class Body {
           return true;
         }
 
+        const startEvtPosition = eventPosition(e);
+
         const position = getOffset(bodyElement);
         const mainRightWidth = cfg.dimensions.mainRightWidth;
         const _l = position.left + cfg.dimensions.mainLeftWidth,
@@ -138,42 +141,68 @@ export default class Body {
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
 
-        console.log("cell click  multipleFlag: ", position, multipleFlag, cfg.dimensions.mainRightWidth, cfg.dimensions.mainInsideWidth, _l, _r, _t, _b);
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement == null || hasClass(cellElement, "row-check modify-info")) return;
+
+        if (multipleFlag && hasClass(cellElement, "line-number")) {
+          selectionMode = "multiple-row";
+        }
+
+        const startCellInfo = getCellInfo(cfg, cellElement);
 
         if (multipleFlag) {
           // mouse darg scroll
           let mouseScrollDirectionX: string;
           let mouseDragDirectionY: string;
-          eventOn(document, "touchmove mousemove", (e1: Event) => {
+          eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
             cfg.isBodyDragging = true;
 
-            const e1Position = eventPosition(e1);
+            const e1Position = eventPosition(moveEvt);
 
-            const movePageX = e1Position.x,
-              movePageY = e1Position.y;
+            const moveXInfo = this.getHorizontalMovePosition(cfg, e1Position.x, startCellInfo, position.left, _l, _r);
+            mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
-            mouseScrollDirectionX = "";
-            if (movePageX < _l) {
-              mouseScrollDirectionX = "L";
-            } else if (movePageX > _r) {
-              mouseScrollDirectionX = "R";
+            const moveRange: any = {};
+            if (moveXInfo.overCell > 0) {
+              const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, cellElement, cfg.selection.isMouseDown);
+              moveRange.endCol = selectRangeInfo.endCol;
             }
 
-            mouseDragDirectionY = "";
-            if (movePageY < _t) {
-              mouseDragDirectionY = "U";
-            } else if (movePageY > _b) {
-              mouseDragDirectionY = "D";
+            const moveYInfo = this.getVerticalMovePosition(cfg, e1Position.y, rowHeight, startCellInfo, _t, _b);
+            mouseDragDirectionY = moveYInfo.mouseDragDirectionY;
+            if (moveYInfo.rowIdx > 0) {
+              moveRange.endIdx = moveYInfo.rowIdx;
+            }
+
+            if (Object.keys(moveRange).length > 0) {
+              this.selectionInfo.setSelectionRangeInfo(
+                {
+                  range: moveRange as SelectionRange,
+                } as Selection,
+                false,
+                true
+              );
             }
 
             if (bodyDragTimer < 1) {
-              // 마우스 이동시 cell width 계산해서 처리.
-              // mouseover는 불필요시 제거 할것.
-              //
-              //
-              //
               bodyDragTimer = setInterval(() => {
-                if (mouseDragDirectionY !== "") {
+                let isVerticalDraw = mouseDragDirectionY !== "";
+
+                if (mouseScrollDirectionX !== "") {
+                  let endCol = -1;
+
+                  if (mouseScrollDirectionX == "R") {
+                    endCol = cfg.scroll.insideEndCol + 3;
+                  } else {
+                    endCol = cfg.scroll.insideStartCol - 3;
+                  }
+                  isVerticalDraw = true;
+                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: !isVerticalDraw });
+                }
+
+                if (isVerticalDraw) {
                   let endIdx = -1;
                   if (mouseDragDirectionY == "D") {
                     endIdx = cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1;
@@ -191,18 +220,6 @@ export default class Body {
 
                   this.gridMain.getScroll().moveVerticalScroll({ direction: mouseDragDirectionY });
                 }
-
-                if (mouseScrollDirectionX !== "") {
-                  let endCol = -1;
-
-                  if (mouseScrollDirectionX == "R") {
-                    endCol = cfg.scroll.insideEndCol + 3;
-                  } else {
-                    endCol = cfg.scroll.insideStartCol - 3;
-                  }
-
-                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol });
-                }
               }, bodyDragDelay);
             }
           });
@@ -215,31 +232,19 @@ export default class Body {
           });
         }
 
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-
-        if (cellElement == null) return;
-
-        if (multipleFlag && hasClass(cellElement, "line-number")) {
-          selectionMode = "multiple-row";
-        }
-        selectionMode;
-
-        const cellInfo = getCellInfo(cfg, cellElement);
-
-        beforeOverCell = getOverCellPosition(cellInfo);
+        beforeOverCell = getOverCellPosition(startCellInfo);
 
         const currViewIdx = cfg.scroll.startIdx;
 
-        this.setCellClick(e, cellInfo, multipleFlag, selectionMode, cellElement);
+        this.setCellClick(e, startCellInfo, multipleFlag, selectionMode, cellElement);
 
         const newViewIdx = cfg.scroll.startIdx;
 
         if (currViewIdx != newViewIdx) {
-          cellInfo.r = cellInfo.r - 1;
+          startCellInfo.r = startCellInfo.r - 1;
         }
 
-        const rowIndex = cellInfo.rowIndex;
+        const rowIndex = startCellInfo.rowIndex;
 
         const positionInfo = {
           position: cellElement.getAttribute("data-cell-position"),
@@ -247,10 +252,10 @@ export default class Body {
         };
 
         if (editable === true) {
-          if (cellInfo.field.renderer.type == "dropdown") {
+          if (startCellInfo.field.renderer.type == "dropdown") {
             resetClick();
             cfg.edit.enable = true;
-            cellInfo.field.$editRenderer.render(cellElement, cellInfo);
+            startCellInfo.field.$editRenderer.render(cellElement, startCellInfo);
             return false;
           }
 
@@ -268,19 +273,19 @@ export default class Body {
           console.log("dblclick ---------- ");
 
           if (dblClickEventFlag) {
-            if (editable === true) {
-              cellInfo.field.$editRenderer.render(cellElement, cellInfo);
+            if (editable === true && !startCellInfo.field.$isAside) {
+              startCellInfo.field.$editRenderer.render(cellElement, startCellInfo);
               return false;
             }
 
-            const clickRowItem = cellInfo.item;
+            const clickRowItem = startCellInfo.item;
             if (dblCheckFlag) {
               //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
 
-              asideRowCheckRenderer.$renderer.render(cellInfo.r, cellInfo.c, clickRowItem, this.allCellMap["left"][`${cellInfo.r},${cellInfo.c}`]);
+              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellMap["left"][`${startCellInfo.r},${startCellInfo.c}`]);
             }
 
-            if (utils.isFunction(fnDblClick)) fnDblClick(cellInfo);
+            if (utils.isFunction(fnDblClick)) fnDblClick(startCellInfo);
           }
         } else {
           ++clickCnt;
@@ -288,19 +293,19 @@ export default class Body {
         }
 
         if (!editable) {
-          if (utils.isFunction(cellInfo.field.click)) {
-            cellInfo.field.$renderer.click(cellInfo);
+          if (utils.isFunction(startCellInfo.field.click)) {
+            startCellInfo.field.$renderer.click(startCellInfo);
             return false;
           }
         }
 
         // row click event
         if (rowClickFlag) {
-          if (cellInfo.field.$isAside) {
+          if (startCellInfo.field.$isAside) {
             return true;
           }
 
-          if (rowClickFn) rowClickFn(cellInfo);
+          if (rowClickFn) rowClickFn(startCellInfo);
         }
 
         return true;
@@ -314,9 +319,10 @@ export default class Body {
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
 
+    // TODO 불필요시 제거 할것. 05.20
     eventOn(
       bodyElement,
-      "mouseover",
+      "mouseover1",
       (e: UIEvent) => {
         if (!cfg.isBodyDragging) return;
 
@@ -352,6 +358,101 @@ export default class Body {
       },
       ".dg-cell"
     );
+  }
+
+  private getVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
+    let mouseDragDirectionY = "";
+    let rowIdx = 0;
+
+    if (moveY < _t) {
+      mouseDragDirectionY = "U";
+    } else if (moveY > _b) {
+      mouseDragDirectionY = "D";
+    } else {
+      let topVal = 0;
+      const contentTop = moveY - _t;
+      for (let i = 0; i < cfg.scroll.viewRow; i++) {
+        topVal += rowHeight;
+
+        if (topVal > contentTop) {
+          rowIdx = i;
+          break;
+        }
+      }
+
+      if (rowIdx > 0) {
+        rowIdx = cfg.scroll.startIdx + rowIdx;
+      }
+    }
+
+    return { mouseDragDirectionY, rowIdx };
+  }
+
+  /**
+   * 마우스 drag 시 좌우 스크롤 이동 처리
+   *
+   * @private
+   * @param {Config} cfg config
+   * @param {number} moveX drag move x
+   * @param {number} startEvtPositionX mousedown event position
+   * @param {number} positionX grid left position
+   * @param {number} _l  left end position
+   * @param {number} _r right start position
+   * @param {HTMLElement} cellElement start element
+   * @param {string} selectionMode selection mode
+   * @returns {{ mouseScrollDirectionX: string; overCell: number; }}
+   */
+  private getHorizontalMovePosition(cfg: Config, moveX: number, startCellInfo: CellInfo, positionX: number, _l: number, _r: number) {
+    let mouseScrollDirectionX = "";
+    let overCell = 0;
+    let contentLeftVal = 0;
+    let centerMovePageX = 0;
+    let startCellIdx = 0,
+      endCellIdx = cfg.currentFields.length;
+    if (moveX < _l) {
+      centerMovePageX = moveX - positionX;
+      endCellIdx = cfg.fixedLeftIndex;
+      mouseScrollDirectionX = "L";
+    } else if (moveX > _r) {
+      startCellIdx = cfg.fixedRightIndex;
+
+      if (startCellIdx > 0) {
+        centerMovePageX = moveX - _r;
+      } else {
+        overCell = endCellIdx - 1;
+      }
+
+      mouseScrollDirectionX = "R";
+    } else {
+      centerMovePageX = moveX - _l;
+      startCellIdx = cfg.fixedLeftIndex;
+      contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
+    }
+
+    if (overCell == 0) {
+      let leftVal = 0;
+      let startFlag = false;
+
+      for (let i = startCellIdx; i < endCellIdx; i++) {
+        const itemWidth = cfg.currentFields[i].$width;
+
+        leftVal += itemWidth;
+
+        if ((contentLeftVal <= 0 || startFlag) && leftVal > centerMovePageX) {
+          overCell = i;
+          break;
+        } else if (!startFlag && leftVal >= contentLeftVal) {
+          startFlag = true;
+          leftVal = contentLeftVal > 0 && leftVal > contentLeftVal ? leftVal - contentLeftVal : leftVal;
+        }
+      }
+    }
+
+    if (isFixedLeftPostion(cfg, startCellInfo.c) || isFixedRightPostion(cfg, startCellInfo.c)) {
+      mouseScrollDirectionX = "";
+    }
+
+    return { mouseScrollDirectionX, overCell };
   }
 
   /**
@@ -417,7 +518,7 @@ export default class Body {
       }
     }
 
-    let keyMode = ((e as KeyboardEvent).shiftKey ? 2 : 0) + ((e as KeyboardEvent).ctrlKey ? 1 : 0);
+    let keyMode = (isShiftKey(e) ? 2 : 0) + (isCtrlKey(e) ? 1 : 0);
 
     const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
 
@@ -456,7 +557,6 @@ export default class Body {
         true
       );
     } else {
-      console.log("selectRangeInfo : ", selectRangeInfo);
       this.selectionInfo.setSelectionRangeInfo(
         {
           range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
@@ -512,7 +612,7 @@ export default class Body {
 
       const evtKey = eventKeyCode(e);
 
-      if (e.metaKey || e.ctrlKey) {
+      if (e.metaKey || isCtrlKey(e)) {
         // copy
 
         if (evtKey == 67) {
@@ -600,13 +700,14 @@ export default class Body {
 
     let insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
 
+    const isCtrl = isCtrlKey(evt);
     switch (evtKey) {
       case 34: // PageDown
       case 13: // enter
       case 40: {
         //down
         let moveRowIdx = 0;
-        if (evtKey == 40 && (evt as KeyboardEvent).ctrlKey) {
+        if (evtKey == 40 && isCtrl) {
           moveRowIdx = dataInfo.rowLength - 1;
         } else {
           moveRowIdx = endIdx + (evtKey == 34 ? insideViewRow : 1);
@@ -628,7 +729,7 @@ export default class Body {
       case 38: {
         //up
         let moveRowIdx = 0;
-        if (evtKey == 38 && (evt as KeyboardEvent).ctrlKey) {
+        if (evtKey == 38 && isCtrl) {
           moveRowIdx = 0;
         } else {
           moveRowIdx = endIdx - (evtKey == 33 ? insideViewRow : 1);
@@ -650,7 +751,7 @@ export default class Body {
         //left
 
         let moveCol = 0;
-        if (evtKey == 37 && (evt as KeyboardEvent).ctrlKey) {
+        if (evtKey == 37 && isCtrl) {
           moveCol = 0;
         } else {
           moveCol = evtKey == 36 ? 0 : endCol - 1;
@@ -671,7 +772,7 @@ export default class Body {
       case 9: // tab
       case 39: {
         let moveCol = 0;
-        if (evtKey == 39 && (evt as KeyboardEvent).ctrlKey) {
+        if (evtKey == 39 && isCtrl) {
           moveCol = dataInfo.colLength - 1;
         } else {
           moveCol = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
@@ -731,8 +832,6 @@ export default class Body {
       }
     }
 
-    console.log("insideScrollCheck :: ", checkCode, moveColIdx, scrollInfo.insideEndCol, scrollInfo.endCol);
-
     if (checkCode > 0) {
       const horizontal = Math.floor(checkCode / 10);
       const vertical = checkCode % 10;
@@ -773,6 +872,7 @@ export default class Body {
    * body 데이터 그리기
    */
   public dataDraw(mode?: string) {
+    //console.log("111111111111111111 dataDraw ", mode);
     const opts = this.grid.getOptions();
     const cfg = this.grid.config();
 
@@ -1024,8 +1124,6 @@ export default class Body {
       } else if (utils.isString(field.styleClass)) {
         addClass = field.styleClass;
       }
-
-      console.log(" setSelectCell styleClass :: ", addClass);
 
       const cellClassList = cellEle.classList;
 

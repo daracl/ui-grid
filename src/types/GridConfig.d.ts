@@ -65,7 +65,8 @@ export interface Config {
     orginLeafHeaderKeyMap: AnyKeyMap;
     asideLength: number;
   };
-  rowOpt: AnyKeyMap;
+  cellWidths: Array;
+  rowHeights: Array;
   sort: {
     orginData: Array;
     sortMap: Map;

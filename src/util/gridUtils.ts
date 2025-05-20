@@ -132,7 +132,7 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
  * @param {number} contentLeft center content left 값
  * @returns {number}
  */
-export function getHorizontalScrollPosition(cfg: Config, contentLeft: number, direction: string): number {
+export function getHorizontalScrollPosition(cfg: Config, contentLeft: number, direction?: string): number {
   if (contentLeft < 1) {
     return 0;
   }

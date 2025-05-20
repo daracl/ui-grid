@@ -4,11 +4,12 @@ import * as utils from "src/util/utils";
 import { initSelectionInfo } from "../../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
-import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { eventOff, eventOn, eventPosition, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import { hasClass } from "src/util/domUtils";
+import { SCROLL_ARROW_BUTTON_SIZE } from "src/constants";
 
 const SCROLL_THUMB_MIN_SIZE = 18;
 
@@ -52,7 +53,7 @@ export default class Scroll {
 
     const rowHeight = opts.body.row.height;
 
-    const arrowButtonSize = 14 * 2;
+    const arrowButtonSize = SCROLL_ARROW_BUTTON_SIZE * 2;
 
     if (cfg.scroll.enableVertical) {
       const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
@@ -74,7 +75,6 @@ export default class Scroll {
       cfg.scroll.oneRowMove = (cfg.scroll.vTrackHeight - barHeight) / (cfg.dataInfo.rowLength - Math.floor(dimensions.mainBodyHeight / rowHeight));
 
       this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
-      this.verticalTrackElement.css({ height: cfg.scroll.vTrackHeight + "px" });
       this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
 
       if (cfg.dataInfo.rowLength < cfg.scroll.startIdx + cfg.scroll.viewRow) {
@@ -100,7 +100,6 @@ export default class Scroll {
       cfg.scroll.hThumbWidth = barWidth;
 
       this.horizontalElement.css({ width: cfg.scroll.hWidth + "px" });
-      this.horizontalTrackElement.css({ width: cfg.scroll.hTrackWidth + "px" });
       this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
 
       if (cfg.scroll.left + cfg.scroll.hThumbWidth > cfg.scroll.hTrackWidth) {
@@ -141,8 +140,10 @@ export default class Scroll {
 
         if (utils.isEmpty(delta)) return;
 
+        const isShift = isShiftKey(evt);
+
         //delta > 0--up
-        if (cfg.scroll.enableVertical) {
+        if (cfg.scroll.enableVertical && !isShift) {
           requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(cfg.dataInfo.rowLength / cfg.scroll.viewRow);
@@ -151,7 +152,7 @@ export default class Scroll {
           if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
             stopPreventCancel(evt);
           }
-        } else if (cfg.scroll.enableHorizontal && opts.scroll.horizontal.enableWheel === true) {
+        } else if (cfg.scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
           requestAnimationFrame(() => {
             this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
           });
@@ -319,16 +320,19 @@ export default class Scroll {
    * @returns
    */
   public getVerticalBgMovePostion(cfg: Config, startEventY: number, oneRowMove: number, upFlag: boolean, bgMoveRow: number) {
-    let pTop = cfg.scroll.top + (upFlag ? -1 : 1) * bgMoveRow;
+    let scrollTop = cfg.scroll.top + (upFlag ? -1 : 1) * bgMoveRow;
 
     if (upFlag) {
-      if (startEventY >= pTop) {
-        pTop = startEventY - oneRowMove * 2;
+      if (scrollTop < 0) {
+        scrollTop = startEventY - cfg.scroll.vThumbHeight;
+      } else if (startEventY >= scrollTop) {
+        scrollTop = startEventY - oneRowMove * 2;
       }
-    } else if (startEventY <= pTop + cfg.scroll.vThumbHeight) {
-      pTop = startEventY - cfg.scroll.vThumbHeight + oneRowMove * 2;
+    } else if (startEventY <= scrollTop + cfg.scroll.vThumbHeight) {
+      scrollTop = startEventY - cfg.scroll.vThumbHeight + oneRowMove * 2;
     }
-    return pTop;
+
+    return scrollTop;
   }
 
   /**

@@ -8,6 +8,7 @@ import DaraGrid from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
 import { removeClass } from "src/util/styleUtils";
 import { hasClass } from "src/util/domUtils";
+import { isShiftKey } from "src/util/eventUtils";
 
 export default class SelectionInfo {
   private readonly grid: DaraGrid;
@@ -457,7 +458,6 @@ export default class SelectionInfo {
       startCol = 0;
       endCol = cfg.dataInfo.colLength - 1;
     } else if (selectionMode == "multiple-cell") {
-      console.log('hasClass(cellElement,"line-number") : ', isMouseDown);
       if (isMouseDown) {
         startCol = -1;
       } else if (hasClass(cellElement, "line-number")) {
@@ -482,7 +482,7 @@ export default class SelectionInfo {
 
     let multipleFlag = isMultipleSelection(this.options.selectionMode);
 
-    if (multipleFlag && evtKey != 9 && (evt as KeyboardEvent).shiftKey) {
+    if (multipleFlag && evtKey != 9 && isShiftKey(evt)) {
       this.setSelectionRangeInfo(
         {
           range: { endIdx: endIdx, endCol: endCol },

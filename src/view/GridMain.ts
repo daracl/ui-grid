@@ -3,7 +3,7 @@ import { FieldHeaderGroupInfo, Selection } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ALIGN_STYLE, FOOTER_HEIGHT, SCROLL_ARROW_BUTTON_SIZE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
