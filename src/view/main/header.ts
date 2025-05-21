@@ -1,5 +1,5 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
-import { Config, FieldHeaderGroupInfo, GridElement, Selection } from "@t/GridConfig";
+import { Config, FieldHeaderGroupInfo, GridElement, Selection, SelectionRange } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
@@ -9,7 +9,7 @@ import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
-import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { eventOff, eventOn, eventPosition, isCtrlKey, stopPreventCancel } from "src/util/eventUtils";
 import { getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from "src/util/gridUtils";
 
 /**
@@ -52,11 +52,57 @@ export default class Header {
   }
 
   initEvt() {
-    //
-    //
-    //
-    // header click event 처리 할것.
+    this.initHeaderClick();
+
     this.initResizeEvent();
+  }
+
+  initHeaderClick() {
+    const cfg = this.grid.config();
+    const headerCellElements = this.headerElement.finds(".dg-header-cell");
+
+    let clicks = 0;
+    let clickTimer: any;
+    const threshold = 200;
+
+    if (this.headerOpts.enableAllColumnSelection) {
+      //header resize, dblclick or drag
+      eventOff(headerCellElements, "touchstart mousedown");
+      eventOn(
+        headerCellElements,
+        "touchstart mousedown",
+        (e: UIEvent) => {
+          const currentElement = e.currentTarget as HTMLElement;
+
+          const cellIdx = currentElement.getAttribute("data-header-cell-idx") ?? "0";
+
+          const colIdx = parseInt(cellIdx, 10);
+
+          //console.log(currentElement, cfg.dataInfo, ` cellIdx : ${cellIdx}, colIdx: ${colIdx}`);
+
+          let mode = "",
+            initFlag = true;
+          if (isCtrlKey(e)) {
+            mode = "add";
+            initFlag = false;
+          } else {
+            this.gridMain.selectionInfo.clearSelectionCell();
+          }
+
+          this.gridMain.selectionInfo.setSelectionRangeInfo(
+            {
+              range: { _key: "col" + colIdx, startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx } as SelectionRange,
+              isSelect: true,
+              mode: mode,
+            } as Selection,
+            initFlag,
+            true
+          );
+        },
+        null,
+        { passive: false }
+      );
+    }
   }
 
   initResizeEvent() {
@@ -249,11 +295,10 @@ export default class Header {
    * @returns {string} template string
    */
   public template(type: string) {
-    const cfg = this.grid.config(),
-      opts = this.grid.getOptions();
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
 
-    let headerGroup;
-    let leafGroup;
+    let headerGroup, leafGroup;
     let startGroupIdx = 0;
 
     if (type == "left") {
@@ -269,79 +314,81 @@ export default class Header {
       leafGroup = cfg.fieldHeaderGroup.leafCenter;
     }
 
-    let headerGroupLength = headerGroup.length;
+    if (!headerGroup?.length || !headerGroup[0]?.length) return "";
 
-    if (headerGroupLength < 1 || headerGroup[0].length < 1) return "";
-
-    let strHtm = [];
-
+    const rowsHtml: string[] = [];
     const helpEnabled = opts.header.help.enabled;
     const helpTitle = opts.header.help.title;
+    const headerGroupLength = headerGroup.length;
 
-    for (let i = 0; i < headerGroupLength; i++) {
-      let ghArr = headerGroup[i];
+    headerGroup.forEach((rowGroup, rowIndex) => {
+      const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
+      const rowHtml: string[] = [`<tr class="dg-header-row" style="height:${trHeight}px">`];
 
-      let trHeight = cfg.fieldHeaderGroup.heights[i];
-
-      strHtm.push(`<tr class="dg-header-row" style="height:${trHeight}px">`);
-      for (let ghItem of ghArr) {
+      rowGroup.forEach((ghItem) => {
         if (ghItem.$isLeaf && ghItem.$depth < headerGroupLength) {
           ghItem.$rowspan = headerGroupLength - ghItem.$depth + 1;
         }
-
-        let thHtm = [];
-        thHtm.push(`<th class="dg-header-col"
-              ${ghItem.$colspan > 1 ? ` scope="colgroup" colspan="${ghItem.$colspan}" ` : ""}
-              ${ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}" ` : ""} 
-        >`);
-
-        if (ghItem.$isAside) {
-          thHtm.push(`
-           <div class="label-wrapper">
-             <div class="dg-header-cont ${ghItem.sort === true ? "sort-header" : ""} ">
-               <div class="dg-inner"><div class="centered">${ghItem.label}</div></div>
-             </div>
-           </div>
-           `);
+        let classes = "";
+        let cellIdx = "";
+        if (ghItem.$isLeaf) {
+          classes = "dg-header-cell";
+          cellIdx = ` data-header-cell-idx="${ghItem.$resizeIdx}"`;
         } else {
-          thHtm.push(`
-             ${
-               helpEnabled
-                 ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
-              <svg class="dg-header-help" viewBox="0 0 100 100"><g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g></svg> 
-            </div>`
-                 : ""
-             }
-              
-            <div class="label-wrapper">
-              <div class="dg-header-cont ${ghItem.sort === true ? "sort-header" : ""} ">
-                <div class="dg-inner"><div class="centered">${ghItem.label}</div></div>
-                ${ghItem.sort === true ? '<div class="dg-sort-icon sort-up">u</div><div class="dg-sort-icon sort-down">d</div>' : ""}
-              </div>
-            </div>
-            <div class="dg-header-resizer" data-resize-idx="${ghItem.$resizeIdx}"></div>
-            `);
+          classes = "dg-header-group-cell";
         }
 
-        thHtm.push(`  </th> `);
+        const colspan = ghItem.$colspan > 1 ? ` colspan="${ghItem.$colspan}" scope="colgroup"` : "";
+        const rowspan = ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}"` : "";
 
-        strHtm.push(thHtm.join(""));
-      }
-      strHtm.push("</tr>");
-    }
+        const sortIcons = ghItem.sort === true ? '<div class="dg-sort-icon sort-up">u</div><div class="dg-sort-icon sort-down">d</div>' : "";
 
-    let colGroupHtm = [];
+        const helpIcon =
+          helpEnabled && !ghItem.$isAside
+            ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
+               <svg class="dg-header-help" viewBox="0 0 100 100">
+                 <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
+               </svg>
+             </div>`
+            : "";
+
+        const labelHtml = `
+          ${helpIcon}
+          <div class="label-wrapper">
+            <div class="dg-header-label ${ghItem.sort ? "sort-header" : ""}">
+              <div class="dg-inner"><div class="centered">${ghItem.label}</div></div>
+              ${sortIcons}
+            </div>
+          </div>`;
+
+        const resizerHtml = ghItem.$isAside ? "" : `<div class="dg-header-resizer" data-resize-idx="${ghItem.$resizeIdx}"></div>`;
+
+        rowHtml.push(`
+          <th class="${classes}"${colspan}${rowspan}${cellIdx}>
+            ${labelHtml}
+            ${resizerHtml}
+          </th>`);
+      });
+
+      rowHtml.push("</tr>");
+      rowsHtml.push(rowHtml.join(""));
+    });
+
+    let colGroupHtml = [];
     let colGroupIdx = startGroupIdx;
     let tableWidth = 0;
+
     for (let leafNode of leafGroup) {
       const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
-      colGroupHtm.push(`<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`);
+      colGroupHtml.push(`<th data-col-idx="${colGroupIdx++}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${nodeWidth}px;"></th>`);
     }
 
-    return `<table class="dg-header-table">
-      <thead><tr>${colGroupHtm.join("")}</tr></thead>
-      <tbody>${strHtm.join("")}</tbody>
-    </table>${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+    return `
+      <table class="dg-header-table">
+        <thead><tr>${colGroupHtml.join("")}</tr></thead>
+        <tbody>${rowsHtml.join("")}</tbody>
+      </table>
+      ${type !== "center" ? '<div class="fixed-column-line"></div>' : ""}`;
   }
 }

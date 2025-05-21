@@ -328,6 +328,7 @@ export default class GridMain {
 
     cfg.items = Array.from(this.grid.getOptions().items);
     cfg.dataInfo.rowLength = cfg.items.length;
+    cfg.dataInfo.lastRow = cfg.items.length > 0 ? cfg.dataInfo.rowLength - 1 : 0;
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;

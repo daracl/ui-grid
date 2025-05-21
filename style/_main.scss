@@ -63,8 +63,11 @@
         border: 1px solid transparent !important;
 
         .dg-header-table {
-          tr > .dg-header-col {
-            border: 1px solid transparent !important;
+          tr > {
+            .dg-header-cell,
+            .dg-header-group-cell {
+              border: 1px solid transparent !important;
+            }
           }
         }
         .dg-body-table {

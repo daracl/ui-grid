@@ -122,7 +122,7 @@ export default class Body {
     const bodyElement = this.bodyElement.getElement();
     eventOn(
       bodyElement,
-      "mousedown",
+      "mousedown touchstart",
       (e: UIEvent) => {
         if ((e as MouseEvent).button === 3) {
           return true;
@@ -313,7 +313,7 @@ export default class Body {
       ".dg-cell"
     );
 
-    eventOn(bodyElement, "mouseup", (e: UIEvent) => {
+    eventOn(bodyElement, "mouseup touchend", (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
       selectionMode = orginSelectionMode;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);

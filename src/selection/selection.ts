@@ -358,7 +358,8 @@ export default class SelectionInfo {
     }
 
     if (initFlag) {
-      removeClass(bodyElement.finds(".dg-cell.selection"), "selection");
+      this.clearSelectionCell();
+      //removeClass(bodyElement.finds(".dg-cell.selection"), "selection");
     } else {
       bodyElement.finds(".dg-cell.selection").forEach((cellNode, idx) => {
         const cellElement = cellNode as HTMLElement;
@@ -405,6 +406,15 @@ export default class SelectionInfo {
         }
       }
     }
+  }
+
+  /**
+   * clear selection cell
+   *
+   * @public
+   */
+  public clearSelectionCell() {
+    removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.selection"), "selection");
   }
 
   /**
