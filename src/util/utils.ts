@@ -223,6 +223,43 @@ export function camelToKebab(str: string) {
   return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
+/**
+ * 멀티 정렬
+ *
+ * @param data arrays
+ * @param sortKeys sort keys
+ * @param emptyValueLast empt value last
+ * @returns
+ */
+export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) {
+  const sortArr = Array.from(sortKeys);
+
+  return data.sort((a, b) => {
+    for (let { key, ascOrder = true } of sortArr) {
+      let valA = a[key];
+      let valB = b[key];
+      const direction = ascOrder ? 1 : -1;
+
+      if (isEmpty(valA)) {
+        valA = emptyValueLast ? 1 : direction * -1;
+      }
+
+      if (isEmpty(valB)) {
+        valB = emptyValueLast ? -1 : direction * 1;
+      }
+
+      if (valA < valB) return ascOrder ? -1 : 1;
+      if (valA > valB) return ascOrder ? 1 : -1;
+      // 같으면 다음 키로 비교 계속
+    }
+    return 0; // 모든 키가 동일하면 0
+  });
+}
+
+export function arrayCopy(orginArray: any[]) {
+  return isArray(orginArray) ? Array.from(orginArray) : [];
+}
+
 function isObject(value: any) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -282,7 +319,7 @@ export const merge = (...value: any[]): any => {
   return reval;
 };
 
-function trim(s: string): string {
+export function trim(s: string): string {
   return s.replace(/^\s+|\s+$/g, "");
 }
 

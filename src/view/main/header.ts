@@ -1,5 +1,5 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
-import { Config, FieldHeaderGroupInfo, GridElement, Selection, SelectionRange } from "@t/GridConfig";
+import { CellInfo, Config, FieldHeaderGroupInfo, GridElement, Selection, SelectionRange } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
@@ -9,8 +9,10 @@ import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
-import { eventOff, eventOn, eventPosition, isCtrlKey, stopPreventCancel } from "src/util/eventUtils";
-import { getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from "src/util/gridUtils";
+import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
+import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection } from "src/util/gridUtils";
+import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
+import { addClass, removeClass } from "src/util/styleUtils";
 
 /**
  * Header class
@@ -52,18 +54,84 @@ export default class Header {
   }
 
   initEvt() {
-    this.initHeaderClick();
+    this.initHeaderSelectionEvent();
+    this.initSortEvent();
 
     this.initResizeEvent();
   }
-
-  initHeaderClick() {
+  initSortEvent() {
     const cfg = this.grid.config();
-    const headerCellElements = this.headerElement.finds(".dg-header-cell");
+    const opts = this.grid.getOptions();
+    const sortElements = this.headerElement.finds(".dg-sort-icon");
 
-    let clicks = 0;
-    let clickTimer: any;
-    const threshold = 200;
+    const nullsLast = this.headerOpts.sort.nullsLast;
+
+    eventOff(sortElements, "touchstart mousedown");
+    eventOn(
+      sortElements,
+      "touchstart mousedown",
+      (e: UIEvent) => {
+        stopPreventCancel(e);
+
+        const currentElement = e.currentTarget as HTMLElement;
+
+        const sortCell = parseInt(currentElement.closest(".dg-header-cell")?.getAttribute("data-header-cell-idx") ?? "0", 10);
+
+        const sortField = cfg.currentFields[sortCell];
+
+        const sortName = sortField.name;
+
+        let sortItems;
+        if (isShiftKey(e)) {
+          sortItems = cfg.items;
+        } else {
+          if (cfg.sort.sortMap.size > 1 || !cfg.sort.sortMap.has(sortName)) {
+            cfg.sort.sortMap.clear();
+          }
+          sortItems = utils.arrayCopy(cfg.sort.orginData);
+        }
+
+        if (cfg.sort.sortMap.has(sortName)) {
+          if (cfg.sort.sortMap.get(sortName).ascOrder) {
+            addAttr(currentElement, { "data-dg-sort": "desc" });
+            cfg.sort.sortMap.get(sortName).ascOrder = !cfg.sort.sortMap.get(sortName).ascOrder;
+          } else {
+            removeAttr(currentElement, "data-dg-sort");
+            cfg.sort.sortMap.delete(sortName);
+          }
+        } else {
+          removeAttr(this.headerElement.finds("[data-dg-sort]"), "data-dg-sort");
+
+          addAttr(currentElement, { "data-dg-sort": "asc" });
+          cfg.sort.sortMap.set(sortName, { key: sortName, ascOrder: true });
+        }
+
+        if (cfg.sort.sortMap.size > 0) {
+          cfg.items = utils.multiSort(sortItems, cfg.sort.sortMap.values(), nullsLast);
+        } else {
+          cfg.items = cfg.sort.orginData;
+        }
+
+        this.gridMain.getBody().dataDraw("sort");
+      },
+      null,
+      { passive: false }
+    );
+    //dg-sort-icon
+  }
+
+  initHeaderSelectionEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+    const headerElement = this.headerElement;
+
+    const selectionMode = opts.selectionMode;
+
+    let headDragTimer: any = -1;
+    let headDragDelay = 150;
+    let multipleFlag = isMultipleSelection(selectionMode);
+
+    const headerCellElements = this.headerElement.finds(".dg-header-cell");
 
     if (this.headerOpts.enableAllColumnSelection) {
       //header resize, dblclick or drag
@@ -72,13 +140,67 @@ export default class Header {
         headerCellElements,
         "touchstart mousedown",
         (e: UIEvent) => {
+          const position = getOffset(headerElement.getElement());
+          const mainRightWidth = cfg.dimensions.mainRightWidth;
+          const _l = position.left + cfg.dimensions.mainLeftWidth,
+            _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;
+
           const currentElement = e.currentTarget as HTMLElement;
 
-          const cellIdx = currentElement.getAttribute("data-header-cell-idx") ?? "0";
+          const colIdx = parseInt(currentElement.getAttribute("data-header-cell-idx") ?? "0", 10);
 
-          const colIdx = parseInt(cellIdx, 10);
+          const startCellInfo = { c: colIdx } as CellInfo;
 
-          //console.log(currentElement, cfg.dataInfo, ` cellIdx : ${cellIdx}, colIdx: ${colIdx}`);
+          if (multipleFlag) {
+            // mouse darg scroll
+            let mouseScrollDirectionX: string;
+            eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
+              cfg.isHeaderDragging = true;
+
+              const e1Position = eventPosition(moveEvt);
+
+              const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, startCellInfo, position.left, _l, _r);
+              mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
+
+              const moveRange: any = {};
+              if (moveXInfo.overCell > 0) {
+                const selectRangeInfo = this.gridMain.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, currentElement, cfg.selection.isMouseDown);
+                moveRange.endCol = selectRangeInfo.endCol;
+              }
+
+              if (Object.keys(moveRange).length > 0) {
+                this.gridMain.selectionInfo.setSelectionRangeInfo(
+                  {
+                    range: moveRange as SelectionRange,
+                  } as Selection,
+                  false,
+                  true
+                );
+              }
+
+              if (headDragTimer < 1) {
+                headDragTimer = setInterval(() => {
+                  if (mouseScrollDirectionX !== "") {
+                    let endCol = -1;
+
+                    if (mouseScrollDirectionX == "R") {
+                      endCol = cfg.scroll.insideEndCol + 1;
+                    } else {
+                      endCol = cfg.scroll.insideStartCol - 1;
+                    }
+                    this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol });
+                  }
+                }, headDragDelay);
+              }
+            });
+
+            eventOn(document, "touchend mouseup", () => {
+              cfg.isHeaderDragging = false;
+              eventOff(document, "touchmove mousemove touchend mouseup");
+              clearInterval(headDragTimer);
+              headDragTimer = -1;
+            });
+          }
 
           let mode = "",
             initFlag = true;
@@ -102,6 +224,11 @@ export default class Header {
         null,
         { passive: false }
       );
+
+      eventOn(this.headerElement.getElement(), "mouseup touchend", (e: UIEvent) => {
+        cfg.selection.isMouseDown = false;
+        cfg.isHeaderDragging = false;
+      });
     }
   }
 
@@ -212,7 +339,6 @@ export default class Header {
    */
   public setColumnWidth(idx: number, w: number) {
     const cfg = this.grid.config();
-
     cfg.isHeaderResize = true;
 
     const minWidth = this.headerOpts.resize.minWidth,
@@ -298,53 +424,63 @@ export default class Header {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
-    let headerGroup, leafGroup;
+    let headerGroups, leafGroup;
     let startGroupIdx = 0;
 
     if (type == "left") {
-      headerGroup = cfg.fieldHeaderGroup.left;
+      headerGroups = cfg.fieldHeaderGroup.left;
       leafGroup = cfg.fieldHeaderGroup.leafLeft;
     } else if (type == "right") {
       startGroupIdx = cfg.fixedRightIndex;
-      headerGroup = cfg.fieldHeaderGroup.right;
+      headerGroups = cfg.fieldHeaderGroup.right;
       leafGroup = cfg.fieldHeaderGroup.leafRight;
     } else {
       startGroupIdx = cfg.fixedLeftIndex;
-      headerGroup = cfg.fieldHeaderGroup.center;
+      headerGroups = cfg.fieldHeaderGroup.center;
       leafGroup = cfg.fieldHeaderGroup.leafCenter;
     }
 
-    if (!headerGroup?.length || !headerGroup[0]?.length) return "";
+    if (!headerGroups?.length || !headerGroups[0]?.length) return "";
 
     const rowsHtml: string[] = [];
     const helpEnabled = opts.header.help.enabled;
     const helpTitle = opts.header.help.title;
-    const headerGroupLength = headerGroup.length;
+    const headerGroupLength = headerGroups.length;
 
-    headerGroup.forEach((rowGroup, rowIndex) => {
+    const resizeEnabled = this.headerOpts.resize.enabled;
+
+    const sortEnabled = opts.header.sort.enabled;
+
+    headerGroups.forEach((headerGroup, rowIndex) => {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
       const rowHtml: string[] = [`<tr class="dg-header-row" style="height:${trHeight}px">`];
 
-      rowGroup.forEach((ghItem) => {
-        if (ghItem.$isLeaf && ghItem.$depth < headerGroupLength) {
-          ghItem.$rowspan = headerGroupLength - ghItem.$depth + 1;
+      headerGroup.forEach((headerItem) => {
+        if (headerItem.$isLeaf && headerItem.$depth < headerGroupLength) {
+          headerItem.$rowspan = headerGroupLength - headerItem.$depth + 1;
         }
         let classes = "";
         let cellIdx = "";
-        if (ghItem.$isLeaf) {
+        if (headerItem.$isLeaf) {
           classes = "dg-header-cell";
-          cellIdx = ` data-header-cell-idx="${ghItem.$resizeIdx}"`;
+          cellIdx = ` data-header-cell-idx="${headerItem.$resizeIdx}"`;
         } else {
           classes = "dg-header-group-cell";
         }
 
-        const colspan = ghItem.$colspan > 1 ? ` colspan="${ghItem.$colspan}" scope="colgroup"` : "";
-        const rowspan = ghItem.$rowspan > 1 ? ` rowspan="${ghItem.$rowspan}"` : "";
+        const colspan = headerItem.$colspan > 1 ? ` colspan="${headerItem.$colspan}" scope="colgroup"` : "";
+        const rowspan = headerItem.$rowspan > 1 ? ` rowspan="${headerItem.$rowspan}"` : "";
 
-        const sortIcons = ghItem.sort === true ? '<div class="dg-sort-icon sort-up">u</div><div class="dg-sort-icon sort-down">d</div>' : "";
+        const sortIcons =
+          headerItem.$isLeaf && !headerItem.$isAside && (sortEnabled || headerItem.sort === true)
+            ? `<div class="dg-sort-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+                <path class="dg-asc" d="M10 5H2a.5.5 0 01-.46-.31.47.47 0 01.11-.54L5.29.5A1 1 0 016.7.5l3.65 3.65a.49.49 0 01.11.54A.51.51 0 0110 5z"/>
+                <path class="dg-desc" d="M2 7a.5.5 0 00-.46.31.47.47 0 00.11.54L5.3 11.5a1 1 0 001.41 0l3.65-3.65a.49.49 0 00.11-.54A.53.53 0 0010 7z"/>
+              </svg></div>`
+            : "";
 
         const helpIcon =
-          helpEnabled && !ghItem.$isAside
+          helpEnabled && !headerItem.$isAside
             ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
                <svg class="dg-header-help" viewBox="0 0 100 100">
                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
@@ -355,13 +491,13 @@ export default class Header {
         const labelHtml = `
           ${helpIcon}
           <div class="label-wrapper">
-            <div class="dg-header-label ${ghItem.sort ? "sort-header" : ""}">
-              <div class="dg-inner"><div class="centered">${ghItem.label}</div></div>
+            <div class="dg-header-label ${headerItem.sort ? "sort-header" : ""}">
+              <div class="dg-inner"><div class="centered">${headerItem.label}</div></div>
               ${sortIcons}
             </div>
           </div>`;
 
-        const resizerHtml = ghItem.$isAside ? "" : `<div class="dg-header-resizer" data-resize-idx="${ghItem.$resizeIdx}"></div>`;
+        const resizerHtml = !resizeEnabled || headerItem.$isAside ? "" : `<div class="dg-header-resizer" data-resize-idx="${headerItem.$resizeIdx}"></div>`;
 
         rowHtml.push(`
           <th class="${classes}"${colspan}${rowspan}${cellIdx}>

@@ -42,6 +42,7 @@ export const initConfig = (opts: GridOptions): Config => {
     select: {},
     template: {},
     items: [],
+    isHeaderResize: false,
     currentFields: [],
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     cellWidths: [],
@@ -50,13 +51,12 @@ export const initConfig = (opts: GridOptions): Config => {
     pagingInfo: false,
     selection: {} as Selection,
     searchOn: false,
-    isHeaderResize: false,
     focus: false,
     isBodyDragging: false,
+    isHeaderDragging: false,
     mouseEnter: false,
     currentClickInfo: {},
     allCheck: false,
-    currentHeaderResizeFlag: true,
     settingConfig: {
       viewInitFlag: true,
       filterTemplate: "",
@@ -97,6 +97,7 @@ export const initConfig = (opts: GridOptions): Config => {
       vScrollBar: undefined,
 
       hScrollEdge: undefined,
+
       resizeHelper: undefined,
 
       pasteArea: undefined,

@@ -158,3 +158,110 @@ export function isInputField(tagName: string): boolean {
 export function getOverCellPosition(cellInfo: CellInfo): string {
   return `${cellInfo.r}_${cellInfo.c}_${cellInfo.rowIndex}`;
 }
+
+/**
+ * get mouse darg vertical postion
+ *
+ * @export
+ * @param {Config} cfg 설정
+ * @param {number} moveY 마우스 move position
+ * @param {number} rowHeight row height
+ * @param {CellInfo} startCellInfo start cell 정보
+ * @param {number} _t grid top position
+ * @param {number} _b grid bottom position
+ * @returns {{ mouseDragDirectionY: string; rowIdx: number; }}
+ */
+export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
+  let mouseDragDirectionY = "";
+  let rowIdx = 0;
+
+  if (moveY < _t) {
+    mouseDragDirectionY = "U";
+  } else if (moveY > _b) {
+    mouseDragDirectionY = "D";
+  } else {
+    let topVal = 0;
+    const contentTop = moveY - _t;
+    for (let i = 0; i < cfg.scroll.viewRow; i++) {
+      topVal += rowHeight;
+
+      if (topVal > contentTop) {
+        rowIdx = i;
+        break;
+      }
+    }
+
+    if (rowIdx > 0) {
+      rowIdx = cfg.scroll.startIdx + rowIdx;
+    }
+  }
+
+  return { mouseDragDirectionY, rowIdx };
+}
+
+/**
+ * 마우스 drag 시 좌우 스크롤 이동 처리
+ *
+ * @private
+ * @param {Config} cfg config
+ * @param {number} moveX drag move x
+ * @param {number} startEvtPositionX mousedown event position
+ * @param {number} positionX grid left position
+ * @param {number} _l  left end position
+ * @param {number} _r right start position
+ * @param {HTMLElement} cellElement start element
+ * @param {string} selectionMode selection mode
+ * @returns {{ mouseScrollDirectionX: string; overCell: number; }}
+ */
+export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCellInfo: CellInfo, positionX: number, _l: number, _r: number) {
+  let mouseScrollDirectionX = "";
+  let overCell = 0;
+  let contentLeftVal = 0;
+  let centerMovePageX = 0;
+  let startCellIdx = 0,
+    endCellIdx = cfg.currentFields.length;
+  if (moveX < _l) {
+    centerMovePageX = moveX - positionX;
+    endCellIdx = cfg.fixedLeftIndex;
+    mouseScrollDirectionX = "L";
+  } else if (moveX > _r) {
+    startCellIdx = cfg.fixedRightIndex;
+
+    if (startCellIdx > 0) {
+      centerMovePageX = moveX - _r;
+    } else {
+      overCell = endCellIdx - 1;
+    }
+
+    mouseScrollDirectionX = "R";
+  } else {
+    centerMovePageX = moveX - _l;
+    startCellIdx = cfg.fixedLeftIndex;
+    contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
+  }
+
+  if (overCell == 0) {
+    let leftVal = 0;
+    let startFlag = false;
+
+    for (let i = startCellIdx; i < endCellIdx; i++) {
+      const itemWidth = cfg.currentFields[i].$width;
+
+      leftVal += itemWidth;
+
+      if ((contentLeftVal <= 0 || startFlag) && leftVal > centerMovePageX) {
+        overCell = i;
+        break;
+      } else if (!startFlag && leftVal >= contentLeftVal) {
+        startFlag = true;
+        leftVal = contentLeftVal > 0 && leftVal > contentLeftVal ? leftVal - contentLeftVal : leftVal;
+      }
+    }
+  }
+
+  if (isFixedLeftPostion(cfg, startCellInfo.c) || isFixedRightPostion(cfg, startCellInfo.c)) {
+    mouseScrollDirectionX = "";
+  }
+
+  return { mouseScrollDirectionX, overCell };
+}

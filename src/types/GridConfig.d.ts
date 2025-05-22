@@ -77,10 +77,10 @@ export interface Config {
   isHeaderResize: boolean;
   focus: boolean;
   isBodyDragging: boolean;
+  isHeaderDragging: boolean;
   mouseEnter: boolean;
   currentClickInfo: AnyKeyMap;
   allCheck: boolean;
-  currentHeaderResizeFlag: boolean;
   settingConfig: {
     viewInitFlag: boolean;
     filterTemplate: string;

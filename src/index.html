@@ -302,7 +302,7 @@
           label: "1분기",
           children: [{
             name: "a1",
-            label: "1월",
+            label: "1월월월월월월",
             dataType: "numeric"
           }, {
             name: "a2",
@@ -452,7 +452,7 @@
             name: key
             //, label: '한글' + key
             , label: key
-            , width: 45
+            , width: 50
             , type: (keyIdx == 0 ? 'number' : 'string')
             , editor: true
           }
@@ -490,6 +490,8 @@
       }
     }
 
+    //console.log(JSON.stringify(aaa));
+
     return {
       "aaa": aaa
       , "colItem": colItem
@@ -504,7 +506,7 @@
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
-      , fixedLeftIndex: 3
+      , fixedLeftIndex: 1
       , fixedRightIndex: 22
       //,height: 360
       , aside: {
@@ -538,7 +540,7 @@
           , update: function (item) {
             //console.log(item);
           }
-          , minWidth: 50
+          , minWidth: 60
           , maxWidth: 1000
         }
         , contextMenu: {

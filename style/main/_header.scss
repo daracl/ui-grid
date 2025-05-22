@@ -52,13 +52,46 @@
           position: relative;
           padding: 0;
           width: 100%;
+
+          &:hover {
+            .dg-sort-icon {
+              display: block;
+            }
+          }
+
           .dg-sort-icon {
             position: absolute;
-            width: 8px;
-            height: 8px;
-            top: 0px;
-            right: 2px;
+            width: 10px;
+            height: 20px;
+            top: 1px;
+            right: 3px;
             display: none;
+            z-index: 3;
+            cursor: pointer;
+
+            path {
+              fill: #a5a5a5;
+            }
+
+            &[data-dg-sort] {
+              path {
+                fill: #8a8a8a;
+              }
+              display: block;
+            }
+
+            &[data-dg-sort="asc"] {
+              top: 4px;
+              .dg-desc {
+                display: none;
+              }
+            }
+            &[data-dg-sort="desc"] {
+              top: -3px;
+              .dg-asc {
+                display: none;
+              }
+            }
           }
 
           &.sortasc {

@@ -326,7 +326,8 @@ export default class GridMain {
 
     const opts = this.grid.getOptions();
 
-    cfg.items = Array.from(this.grid.getOptions().items);
+    cfg.items = utils.arrayCopy(this.grid.getOptions().items);
+    cfg.sort.orginData = utils.arrayCopy(this.grid.getOptions().items);
     cfg.dataInfo.rowLength = cfg.items.length;
     cfg.dataInfo.lastRow = cfg.items.length > 0 ? cfg.dataInfo.rowLength - 1 : 0;
 
@@ -359,6 +360,8 @@ export default class GridMain {
     const fieldLength = fields.length;
 
     const isHeaderResize = cfg.isHeaderResize;
+
+    console.log("cfg.enableHeaderResize :  ", cfg.isHeaderResize);
 
     let mainTotalWidth = 0;
     for (const field of fields) {
@@ -416,22 +419,20 @@ export default class GridMain {
         this.setRendererInfo(field);
       }
 
-      if (!isHeaderResize) {
-        // 그리드 남는 영역을 계산 해서 컬럼에 추가.
-        if (!field.$isAside && opts.enableWidthFixed !== true) {
-          fieldWidth = fieldWidth + remainderWidth;
+      // 그리드 남는 영역을 계산 해서 컬럼에 추가.
+      if (!isHeaderResize && !field.$isAside && opts.enableWidthFixed !== true) {
+        fieldWidth = fieldWidth + remainderWidth;
 
-          if (lastSpaceW > 0) {
-            const addSpaceW = lastSpaceW > 1 ? 1 : lastSpaceW;
-            fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1) * addSpaceW;
-            lastSpaceW = lastSpaceW - 1;
-          }
-
-          fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
+        if (lastSpaceW > 0) {
+          const addSpaceW = lastSpaceW > 1 ? 1 : lastSpaceW;
+          fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1) * addSpaceW;
+          lastSpaceW = lastSpaceW - 1;
         }
 
-        field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
+        fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
       }
+
+      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
 
       cfg.currentFields[j] = field;
 
@@ -620,9 +621,12 @@ export default class GridMain {
         fieldGroupInfo.right[depth].push(field);
       } else {
         let rightColspan = field.$colspan;
-        if (fixedRightIndex <= field.$resizeIdx) {
+
+        let bodyFieldColspan = field.$colspan - (field.$resizeIdx - fixedRightIndex) - 1;
+
+        if (fixedRightIndex <= field.$resizeIdx && bodyFieldColspan > 0) {
           const bodyNode = utils.merge({}, field) as FieldItem;
-          bodyNode.$colspan = field.$colspan - (field.$resizeIdx - fixedRightIndex) - 1;
+          bodyNode.$colspan = bodyFieldColspan;
           bodyNode.$resizeIdx = fixedRightIndex - 1;
           rightColspan = rightColspan - bodyNode.$colspan;
 
@@ -664,6 +668,8 @@ export default class GridMain {
       if (!field.$isAside) {
         field.width = Math.max(field.width, this.cellMinWidth);
       }
+
+      field.$width = field.width;
 
       fieldGroupInfo.leaf.push(field);
     }
