@@ -285,8 +285,9 @@
         item["sample"] = i + " samplesample"
 
         for (let j = 1; j <= 12; j++) {
-          item['a' + j] = i + "_" + j + " a --- 222222222";
-          item['b' + j] = i + "_" + j + " b --- 222222222";
+          var aRandomVal = getRandomFloatFromInput(1, 10);
+          item['a' + j] = aRandomVal % 3 == 0 ? null : aRandomVal + " a --- 222222222";
+          item['b' + j] = getRandomFloatFromInput(1, 20) + " b --- 222222222";
         }
 
         aaa.push(item);
@@ -754,9 +755,13 @@
 
 
     });
+  }
 
 
-
+  function getRandomFloatFromInput(a, b) {
+    const min = Math.min(a, b);
+    const max = Math.max(a, b);
+    return Math.floor(Math.random() * (max - min) + min);
   }
 
 

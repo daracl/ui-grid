@@ -62,32 +62,48 @@
           .dg-sort-icon {
             position: absolute;
             width: 10px;
-            height: 20px;
-            top: 1px;
+            top: 0px;
             right: 3px;
             display: none;
             z-index: 3;
+            font-size: 0pt;
             cursor: pointer;
 
             path {
               fill: #a5a5a5;
             }
 
+            .dg-sort-num {
+              font-size: 0.6rem;
+              font-family: monospace;
+              text-align: center;
+              line-height: 0px;
+              font-weight: bold;
+              position: relative;
+              top: 4px;
+              padding-right: 0px;
+            }
+
             &[data-dg-sort] {
               path {
                 fill: #8a8a8a;
               }
+              svg {
+                position: relative;
+                top: 3px;
+                line-height: 0px;
+              }
               display: block;
             }
 
-            &[data-dg-sort="asc"] {
-              top: 4px;
+            &[data-dg-sort="asc"] > svg {
+              top: 7px;
               .dg-desc {
                 display: none;
               }
             }
-            &[data-dg-sort="desc"] {
-              top: -3px;
+            &[data-dg-sort="desc"] > svg {
+              top: 0px;
               .dg-asc {
                 display: none;
               }

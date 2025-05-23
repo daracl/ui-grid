@@ -173,7 +173,7 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
  */
 export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
   let mouseDragDirectionY = "";
-  let rowIdx = 0;
+  let rowIdx = -1;
 
   if (moveY < _t) {
     mouseDragDirectionY = "U";
@@ -215,7 +215,7 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
  */
 export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCellInfo: CellInfo, positionX: number, _l: number, _r: number) {
   let mouseScrollDirectionX = "";
-  let overCell = 0;
+  let overCell = -1;
   let contentLeftVal = 0;
   let centerMovePageX = 0;
   let startCellIdx = 0,
@@ -240,7 +240,9 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCell
     contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
   }
 
-  if (overCell == 0) {
+  if (centerMovePageX <= 0) {
+    overCell = 0;
+  } else if (overCell == -1) {
     let leftVal = 0;
     let startFlag = false;
 
@@ -257,7 +259,13 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCell
         leftVal = contentLeftVal > 0 && leftVal > contentLeftVal ? leftVal - contentLeftVal : leftVal;
       }
     }
+
+    if (overCell == -1 && leftVal < centerMovePageX) {
+      overCell = endCellIdx;
+    }
   }
+
+  //console.log(`mouseScrollDirectionX : ${mouseScrollDirectionX}, moveX : ${moveX}, centerMovePageX : ${centerMovePageX}, overCell : ${overCell} _r : ${_r}, _l: ${_l}`);
 
   if (isFixedLeftPostion(cfg, startCellInfo.c) || isFixedRightPostion(cfg, startCellInfo.c)) {
     mouseScrollDirectionX = "";

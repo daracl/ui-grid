@@ -224,35 +224,39 @@ export function camelToKebab(str: string) {
 }
 
 /**
- * 멀티 정렬
- *
- * @param data arrays
- * @param sortKeys sort keys
- * @param emptyValueLast empt value last
- * @returns
+ * 다중 키 기준으로 JSON 배열 정렬 (null/undefined 처리 포함)
+ * @param {Array<Object>} data - 정렬할 JSON 배열
+ * @param {Array<{ key: string, ascOrder?: boolean }>} sortKeys - 정렬 기준 키 배열
+ * @returns {Array<Object>} 정렬된 JSON 배열
  */
 export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) {
   const sortArr = Array.from(sortKeys);
 
-  return data.sort((a, b) => {
+  return data.slice().sort((a, b) => {
     for (let { key, ascOrder = true } of sortArr) {
-      let valA = a[key];
-      let valB = b[key];
-      const direction = ascOrder ? 1 : -1;
+      const valA = a[key];
+      const valB = b[key];
 
-      if (isEmpty(valA)) {
-        valA = emptyValueLast ? 1 : direction * -1;
+      const isNullishA = valA === null || valA === undefined;
+      const isNullishB = valB === null || valB === undefined;
+
+      // null/undefined 우선 정렬 처리
+      if (isNullishA && !isNullishB) return ascOrder ? 1 : -1;
+      if (!isNullishA && isNullishB) return ascOrder ? -1 : 1;
+      if (isNullishA && isNullishB) continue;
+
+      let comparison;
+      if (typeof valA === "number" && typeof valB === "number") {
+        comparison = valA - valB;
+      } else {
+        comparison = String(valA).localeCompare(String(valB));
       }
 
-      if (isEmpty(valB)) {
-        valB = emptyValueLast ? -1 : direction * 1;
+      if (comparison !== 0) {
+        return ascOrder ? comparison : -comparison;
       }
-
-      if (valA < valB) return ascOrder ? -1 : 1;
-      if (valA > valB) return ascOrder ? 1 : -1;
-      // 같으면 다음 키로 비교 계속
     }
-    return 0; // 모든 키가 동일하면 0
+    return 0;
   });
 }
 

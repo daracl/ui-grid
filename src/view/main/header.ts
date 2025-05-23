@@ -85,6 +85,7 @@ export default class Header {
         if (isShiftKey(e)) {
           sortItems = cfg.items;
         } else {
+          removeAttr(this.headerElement.finds("[data-dg-sort]"), "data-dg-sort");
           if (cfg.sort.sortMap.size > 1 || !cfg.sort.sortMap.has(sortName)) {
             cfg.sort.sortMap.clear();
           }
@@ -100,8 +101,6 @@ export default class Header {
             cfg.sort.sortMap.delete(sortName);
           }
         } else {
-          removeAttr(this.headerElement.finds("[data-dg-sort]"), "data-dg-sort");
-
           addAttr(currentElement, { "data-dg-sort": "asc" });
           cfg.sort.sortMap.set(sortName, { key: sortName, ascOrder: true });
         }
@@ -473,7 +472,7 @@ export default class Header {
 
         const sortIcons =
           headerItem.$isLeaf && !headerItem.$isAside && (sortEnabled || headerItem.sort === true)
-            ? `<div class="dg-sort-icon"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+            ? `<div class="dg-sort-icon"><span class="dg-sort-num">1</span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
                 <path class="dg-asc" d="M10 5H2a.5.5 0 01-.46-.31.47.47 0 01.11-.54L5.29.5A1 1 0 016.7.5l3.65 3.65a.49.49 0 01.11.54A.51.51 0 0110 5z"/>
                 <path class="dg-desc" d="M2 7a.5.5 0 00-.46.31.47.47 0 00.11.54L5.3 11.5a1 1 0 001.41 0l3.65-3.65a.49.49 0 00.11-.54A.53.53 0 0010 7z"/>
               </svg></div>`

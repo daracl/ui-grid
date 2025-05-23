@@ -165,14 +165,14 @@ export default class Body {
             mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
             const moveRange: any = {};
-            if (moveXInfo.overCell > 0) {
+            if (moveXInfo.overCell > -1) {
               const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, cellElement, cfg.selection.isMouseDown);
               moveRange.endCol = selectRangeInfo.endCol;
             }
 
             const moveYInfo = dragVerticalMovePosition(cfg, e1Position.y, rowHeight, startCellInfo, _t, _b);
             mouseDragDirectionY = moveYInfo.mouseDragDirectionY;
-            if (moveYInfo.rowIdx > 0) {
+            if (moveYInfo.rowIdx > -1) {
               moveRange.endIdx = moveYInfo.rowIdx;
             }
 
@@ -188,7 +188,7 @@ export default class Body {
 
             if (bodyDragTimer < 1) {
               bodyDragTimer = setInterval(() => {
-                let isVerticalDraw = mouseDragDirectionY !== "";
+                let isVerticalDraw = mouseDragDirectionY != "";
 
                 if (mouseScrollDirectionX !== "") {
                   let endCol = -1;
@@ -198,7 +198,7 @@ export default class Body {
                   } else {
                     endCol = cfg.scroll.insideStartCol - 3;
                   }
-                  isVerticalDraw = true;
+
                   this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: !isVerticalDraw });
                 }
 
@@ -318,46 +318,6 @@ export default class Body {
       selectionMode = orginSelectionMode;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
-
-    // TODO 불필요시 제거 할것. 05.20
-    eventOn(
-      bodyElement,
-      "mouseover1",
-      (e: UIEvent) => {
-        if (!cfg.isBodyDragging) return;
-
-        if (!multipleFlag) {
-          return;
-        }
-
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-
-        if (cellElement == null) return;
-
-        const cellInfo = getCellInfo(cfg, cellElement);
-
-        const currentOverCell = getOverCellPosition(cellInfo);
-
-        if (beforeOverCell == currentOverCell) return;
-
-        beforeOverCell = currentOverCell;
-
-        const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellInfo.c, cfg, cellElement, cfg.selection.isMouseDown);
-
-        this.selectionInfo.setSelectionRangeInfo(
-          {
-            range: {
-              endIdx: cellInfo.rowIndex,
-              endCol: selectRangeInfo.endCol,
-            } as SelectionRange,
-          } as Selection,
-          false,
-          true
-        );
-      },
-      ".dg-cell"
-    );
   }
 
   /**
@@ -777,7 +737,6 @@ export default class Body {
    * body 데이터 그리기
    */
   public dataDraw(mode?: string) {
-    //console.log("111111111111111111 dataDraw ", mode);
     const opts = this.grid.getOptions();
     const cfg = this.grid.config();
 
