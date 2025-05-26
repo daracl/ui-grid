@@ -47,7 +47,7 @@ export const initConfig = (opts: GridOptions): Config => {
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     cellWidths: [],
     rowHeights: [],
-    sort: { orginData: [], sortMap: new Map() },
+    sort: { orginData: [], orders: [] },
     pagingInfo: false,
     selection: {} as Selection,
     searchOn: false,

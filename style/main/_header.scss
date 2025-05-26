@@ -56,12 +56,18 @@
           &:hover {
             .dg-sort-icon {
               display: block;
+
+              svg {
+                position: relative;
+                top: 2px;
+              }
             }
           }
 
           .dg-sort-icon {
             position: absolute;
             width: 10px;
+            height: 100%;
             top: 0px;
             right: 3px;
             display: none;
@@ -79,9 +85,9 @@
               text-align: center;
               line-height: 0px;
               font-weight: bold;
+              opacity: 0.7;
               position: relative;
               top: 4px;
-              padding-right: 0px;
             }
 
             &[data-dg-sort] {
@@ -97,28 +103,16 @@
             }
 
             &[data-dg-sort="asc"] > svg {
-              top: 7px;
+              top: 6px;
               .dg-desc {
                 display: none;
               }
             }
             &[data-dg-sort="desc"] > svg {
-              top: 0px;
+              top: -1px;
               .dg-asc {
                 display: none;
               }
-            }
-          }
-
-          &.sortasc {
-            .sort-up {
-              display: block;
-            }
-          }
-
-          &.sortdesc {
-            .sort-down {
-              display: block;
             }
           }
         }

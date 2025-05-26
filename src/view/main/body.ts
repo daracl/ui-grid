@@ -24,8 +24,6 @@ export default class Body {
   private grid: DaraGrid;
   private gridMain: GridMain;
 
-  private bodyOpts: BodyOptions;
-
   private selectionInfo: SelectionInfo;
 
   public bodyElement: DaraElement;
@@ -40,8 +38,6 @@ export default class Body {
     this.grid = grid;
     this.gridMain = gridMain;
 
-    this.bodyOpts = this.grid.getOptions().body;
-
     this.grid = grid;
 
     this.calcBodyDemention();
@@ -53,9 +49,6 @@ export default class Body {
     this.selectionInfo = gridMain.selectionInfo;
   }
   public initEvent() {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
-
     this.initKeydownEvent();
     this.initCellEvent();
   }
@@ -387,6 +380,8 @@ export default class Body {
 
     const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
 
+    console.log(`multipleFlag : ${multipleFlag}, keymode : ${keyMode}, multipleFlag:${multipleFlag}`);
+
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
       this.removeStartCellClass();
     }
@@ -506,12 +501,8 @@ export default class Body {
           }
           return;
         } else if (evtKey == 65) {
-          // ctrl + a 처리 할것.
-          // if (targetElement.closest("#" + _this.prefix + "_pubGrid .pubGrid-setting-wrapper").length > 0) {
-          //   return true;
-          // }
-
-          //_this.allItemSelect();
+          // ctrl + a
+          this.selectionInfo.setAllSelection(true);
           return false;
         } else if (evtKey == 86) {
           // ctrl + v
@@ -537,7 +528,7 @@ export default class Body {
 
       if ((32 < evtKey && evtKey < 41) || evtKey == 13 || evtKey == 9) {
         stopPreventCancel(e);
-
+        this.selectionInfo.setAllSelection(false);
         this.arrowKeydownEvent(e, evtKey);
       }
     });

@@ -11,9 +11,7 @@ import { hasClass } from "src/util/domUtils";
 import { isShiftKey } from "src/util/eventUtils";
 
 export default class SelectionInfo {
-  private readonly grid: DaraGrid;
-
-  private gridMain: GridMain;
+  private readonly gridMain: GridMain;
 
   private readonly options: GridOptions;
   private readonly config: Config;
@@ -26,8 +24,7 @@ export default class SelectionInfo {
    */
   private serialNumber = 0;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, options: GridOptions, config: Config) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, options: GridOptions, config: Config) {
     this.gridMain = gridMain;
     this.options = options;
     this.config = config;
@@ -131,8 +128,6 @@ export default class SelectionInfo {
 
       const rangeKey = changeSelection.range._key ?? selectionInfo.id;
 
-      console.log("~~~~~~~~~ setSelectionInfo : ", selectionInfo, this.isRangeKey(rangeKey), selectionInfo.allRange[rangeKey], " ;; ", selectionInfo.range.mode, " || ", changeSelection.range._key);
-
       if (this.isRangeKey(rangeKey)) {
         selectionInfo.range.mode = "remove";
         delete selectionInfo.allRange[rangeKey];
@@ -167,6 +162,11 @@ export default class SelectionInfo {
     return this.config.selection.all;
   }
 
+  public setAllSelection(flag: boolean) {
+    this.config.selection.all = flag;
+    this.setCellSelect(false);
+  }
+
   /**
    * @method selectionData
    * @description select data 구하기.
@@ -184,7 +184,7 @@ export default class SelectionInfo {
 
     if (allSelectFlag) {
       sCol = 0;
-      eCol = this.config.currentFields.length - 1;
+      eCol = this.config.dataInfo.colLength - 1;
       sRow = 0;
       eRow = this.config.dataInfo.lastRow;
     } else {
@@ -326,22 +326,34 @@ export default class SelectionInfo {
   public setCellSelect(initFlag?: boolean) {
     const cfg = this.config;
     const currentId = cfg.selection.mode;
-    const colInfo = this.getSelectionRangeInfo();
     const startCellInfo = cfg.selection.startCell; // start cell
+    const isAllSelection = this.isAllSelect();
 
     //console.log("setCellSelect : ", colInfo);
-
-    let startRow = colInfo.startRow,
-      endRow = colInfo.endRow,
-      sCol = colInfo.startCol,
-      eCol = colInfo.endCol,
+    let startRow = 0,
+      endRow = 0,
+      startCol = 0,
+      endCol = 0,
       scrollStartIdx = cfg.scroll.startIdx;
+
+    if (isAllSelection) {
+      endRow = cfg.scroll.viewRow;
+      endCol = cfg.dataInfo.colLength - 1;
+    } else {
+      const colInfo = this.getSelectionRangeInfo();
+      startRow = colInfo.startRow;
+      endRow = colInfo.endRow;
+      startCol = colInfo.startCol;
+      endCol = colInfo.endCol;
+    }
+
+    console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
 
     const bodyElement = this.gridMain.getBody().bodyElement;
 
     if (cfg.selection.range.mode == "remove") {
       for (let i = startRow; i <= endRow; i++) {
-        for (let j = sCol; j <= eCol; j++) {
+        for (let j = startCol; j <= endCol; j++) {
           const cellPosition = i + "," + j;
 
           let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
@@ -359,7 +371,6 @@ export default class SelectionInfo {
 
     if (initFlag) {
       this.clearSelectionCell();
-      //removeClass(bodyElement.finds(".dg-cell.selection"), "selection");
     } else {
       bodyElement.finds(".dg-cell.selection").forEach((cellNode, idx) => {
         const cellElement = cellNode as HTMLElement;
@@ -375,23 +386,24 @@ export default class SelectionInfo {
     let isRowSelect = false,
       isColSelect = false;
     if (!utils.isUndefined(rangeKey)) {
-      isRowSelect = cfg.selection.range._key.indexOf("row") == 0;
-      isColSelect = cfg.selection.range._key.indexOf("col") == 0;
+      isRowSelect = rangeKey.startsWith("row");
+      isColSelect = rangeKey.startsWith("col");
     }
 
     for (let i = startRow; i <= endRow; i++) {
-      for (let j = sCol; j <= eCol; j++) {
+      for (let j = startCol; j <= endCol; j++) {
         const cellPosition = i + "," + j;
         const currRow = scrollStartIdx + i;
 
-        if (isRowSelect || isColSelect) {
-          delete cfg.selection.unSelectPosition[cellPosition];
-        }
+        if (!isAllSelection) {
+          if (isRowSelect || isColSelect) {
+            delete cfg.selection.unSelectPosition[cellPosition];
+          }
 
-        if (!this.isSelectPosition(currRow, j, true)) {
-          continue;
+          if (!this.isSelectPosition(currRow, j, true)) {
+            continue;
+          }
         }
-
         let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
 
         if (addEle == null) continue;
@@ -399,6 +411,7 @@ export default class SelectionInfo {
         addEle.setAttribute("data-selection-id", currentId);
 
         if (startCellInfo.startIdx == currRow && startCellInfo.startCol == j) {
+          console.log("startcell check ");
           addEle.classList.add("selection");
           addEle.classList.add("start-cell");
         } else {

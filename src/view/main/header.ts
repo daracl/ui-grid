@@ -86,27 +86,51 @@ export default class Header {
           sortItems = cfg.items;
         } else {
           removeAttr(this.headerElement.finds("[data-dg-sort]"), "data-dg-sort");
-          if (cfg.sort.sortMap.size > 1 || !cfg.sort.sortMap.has(sortName)) {
-            cfg.sort.sortMap.clear();
+
+          if (cfg.sort.orders.length > 1 || !cfg.sort.orders.some((item: any) => item.key === sortName)) {
+            cfg.sort.orders.forEach((item: any, index: number) => {
+              this.headerElement.find('.dg-header-cell[data-header-cell-idx="' + item.sortCell + '"] .dg-sort-num').textContent = "";
+            });
+            cfg.sort.orders = [];
           }
           sortItems = utils.arrayCopy(cfg.sort.orginData);
         }
 
-        if (cfg.sort.sortMap.has(sortName)) {
-          if (cfg.sort.sortMap.get(sortName).ascOrder) {
+        const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);
+
+        let isNumModify = false;
+        if (currentSortItem) {
+          if (currentSortItem.ascOrder) {
             addAttr(currentElement, { "data-dg-sort": "desc" });
-            cfg.sort.sortMap.get(sortName).ascOrder = !cfg.sort.sortMap.get(sortName).ascOrder;
+            currentSortItem.ascOrder = !currentSortItem.ascOrder;
           } else {
+            const index = cfg.sort.orders.findIndex((item: any) => item.key === sortName);
+
+            if (index !== -1) {
+              cfg.sort.orders.splice(index, 1);
+            }
+
+            isNumModify = true;
+
+            (currentElement.querySelector(".dg-sort-num") as HTMLElement).textContent = "";
+
             removeAttr(currentElement, "data-dg-sort");
-            cfg.sort.sortMap.delete(sortName);
           }
         } else {
+          isNumModify = true;
           addAttr(currentElement, { "data-dg-sort": "asc" });
-          cfg.sort.sortMap.set(sortName, { key: sortName, ascOrder: true });
+          cfg.sort.orders.push({ key: sortName, ascOrder: true, sortCell: sortCell });
         }
 
-        if (cfg.sort.sortMap.size > 0) {
-          cfg.items = utils.multiSort(sortItems, cfg.sort.sortMap.values(), nullsLast);
+        //.dg-header-cell[data-header-cell-idx="8"] .dg-sort-icon;
+
+        if (cfg.sort.orders.length > 0) {
+          if (cfg.sort.orders.length > 1 && isNumModify) {
+            cfg.sort.orders.forEach((item: any, index: number) => {
+              this.headerElement.find('.dg-header-cell[data-header-cell-idx="' + item.sortCell + '"] .dg-sort-num').textContent = index + 1 + "";
+            });
+          }
+          cfg.items = utils.multiSort(sortItems, cfg.sort.orders, nullsLast);
         } else {
           cfg.items = cfg.sort.orginData;
         }
@@ -472,7 +496,7 @@ export default class Header {
 
         const sortIcons =
           headerItem.$isLeaf && !headerItem.$isAside && (sortEnabled || headerItem.sort === true)
-            ? `<div class="dg-sort-icon"><span class="dg-sort-num">1</span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+            ? `<div class="dg-sort-icon"><span class="dg-sort-num"></span><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
                 <path class="dg-asc" d="M10 5H2a.5.5 0 01-.46-.31.47.47 0 01.11-.54L5.29.5A1 1 0 016.7.5l3.65 3.65a.49.49 0 01.11.54A.51.51 0 0110 5z"/>
                 <path class="dg-desc" d="M2 7a.5.5 0 00-.46.31.47.47 0 00.11.54L5.3 11.5a1 1 0 001.41 0l3.65-3.65a.49.49 0 00.11-.54A.53.53 0 0010 7z"/>
               </svg></div>`

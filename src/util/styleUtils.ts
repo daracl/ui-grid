@@ -103,10 +103,15 @@ export function removeClass(element: HTMLElement | NodeList, styleClass: string)
   elements.forEach((ele) => {
     let classList = (ele as HTMLElement).classList;
 
+    console.log("111111111removeClass 111111111 ", ele, JSON.stringify(classList), styleClasses);
+
     for (let className of styleClasses) {
       if (classList.contains(className)) {
+        console.log("remove , remove, remove");
         classList.remove(className);
       }
     }
+
+    console.log("111111111removeClass 22222 ", ele, JSON.stringify(classList));
   });
 }

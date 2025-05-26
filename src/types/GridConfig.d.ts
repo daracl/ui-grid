@@ -69,7 +69,7 @@ export interface Config {
   rowHeights: Array;
   sort: {
     orginData: Array;
-    sortMap: Map;
+    orders: Array;
   };
   pagingInfo: boolean;
   selection: Selection;
