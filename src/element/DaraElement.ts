@@ -19,8 +19,8 @@ export default class DaraElement {
     return this.element.querySelector(selector) as HTMLElement;
   }
 
-  finds(selector: string): NodeList {
-    return this.element.querySelectorAll(selector);
+  finds(selector: string) {
+    return this.element.querySelectorAll(selector) as NodeListOf<HTMLElement>;
   }
 
   before(renderElements: HTMLElement | string) {

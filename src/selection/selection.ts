@@ -171,104 +171,86 @@ export default class SelectionInfo {
    * @method selectionData
    * @description select data 구하기.
    */
-  public selectionData(dataType: string): any {
-    const items = this.config.items;
+  public selectionData(dataType: "text" | "json" = "text"): any {
+    const { items, currentFields, selection, dataInfo } = this.config;
 
-    if (this.config.dataInfo.rowLength < 1) return;
+    if (dataInfo.rowLength < 1) return dataType === "json" ? {} : "";
 
-    dataType = dataType || "text";
+    const isAll = this.isAllSelect();
 
-    let sCol, eCol, sRow, eRow;
+    const startCol = isAll ? 0 : selection.minCol;
+    const endCol = isAll ? dataInfo.colLength - 1 : selection.maxCol;
+    const startIdx = isAll ? 0 : selection.minIdx;
+    const endIdx = isAll ? dataInfo.lastRow : selection.maxIdx;
 
-    const allSelectFlag = this.isAllSelect();
+    if (startIdx < 0 || endIdx < 0) return dataType == "json" ? {} : "";
 
-    if (allSelectFlag) {
-      sCol = 0;
-      eCol = this.config.dataInfo.colLength - 1;
-      sRow = 0;
-      eRow = this.config.dataInfo.lastRow;
-    } else {
-      const colInfo = this.config.selection;
-      sCol = colInfo.minCol;
-      eCol = colInfo.maxCol;
-      sRow = colInfo.minIdx;
-      eRow = colInfo.maxIdx;
-    }
+    const result = [];
+    const keyInfoMap = {} as any;
+    const summary = { count: 0, numbers: [] as number[] };
 
-    if (sRow < 0 || eRow < 0) return dataType == "json" ? {} : "";
+    for (let i = startIdx; i <= endIdx; i++) {
+      const item = items[i];
 
-    const returnVal = [];
-    let addRowFlag;
+      const rowText: string[] = [];
+      const rowJson: any = { _dgIdx: i };
+      let hasSelected = false;
 
-    const headerItems = this.config.currentFields;
+      for (let j = startCol; j <= endCol; j++) {
+        const col = currentFields[j];
 
-    let keyInfo = {} as any;
-    let tmpVal: any;
-    const summaryInfo: { count: number; numbers: number[] } = { count: 0, numbers: [] };
-    for (let i = sRow; i <= eRow; i++) {
-      let item = items[i];
+        if (col.hidden) continue;
 
-      let rowText = [],
-        rowItem = { _pubIdx: i } as any;
-      addRowFlag = false;
+        const colName = col.name;
 
-      for (let j = sCol; j <= eCol; j++) {
-        const colItem = headerItems[j];
+        const selected = isAll ? !this.isAllSelectUnSelectPosition(i, j) : this.isSelectPosition(i, j);
 
-        if (colItem.hidden) continue;
+        const val = selected ? col.$renderer.getValue(item) : "";
 
-        const colName = colItem.name;
-
-        if ((allSelectFlag && !this.isAllSelectUnSelectPosition(i, j)) || this.isSelectPosition(i, j)) {
-          addRowFlag = true;
-
-          tmpVal = colItem.$renderer.getValue(item);
+        if (selected) {
+          hasSelected = true;
 
           if (dataType == "json") {
-            keyInfo[j] = colItem;
-            rowItem[colName] = tmpVal;
-            summaryInfo.count += utils.isBlank(tmpVal) ? 0 : 1;
-            if (utils.isNumber(tmpVal)) {
-              const numval = Number(tmpVal);
-              summaryInfo.numbers.push(numval);
+            keyInfoMap[j] = col;
+            rowJson[colName] = val;
+
+            if (!utils.isBlank(val)) {
+              summary.count++;
+              if (utils.isNumber(val)) {
+                summary.numbers.push(Number(val));
+              }
             }
           } else {
-            rowText.push(tmpVal);
+            rowText.push(val);
           }
         } else {
-          rowText.push("");
-          rowItem[colName] = "";
+          if (dataType === "text") rowText.push("");
+          else rowJson[colName] = "";
         }
       }
 
-      if (addRowFlag) {
-        if (dataType == "json") {
-          returnVal.push(rowItem);
-        } else {
-          returnVal.push(rowText.join("\t"));
-        }
+      if (hasSelected) {
+        result.push(dataType === "json" ? rowJson : rowText.join("\t"));
       }
     }
 
     if (dataType == "json") {
-      const reKeyInfo = [];
+      const headers = Object.values(keyInfoMap);
+      const sum = summary.numbers.reduce((a, b) => a + b, 0);
+      const avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
 
-      for (const key in keyInfo) {
-        reKeyInfo.push(keyInfo[key]);
-      }
-      let sum = summaryInfo.numbers.reduce((a, b) => a + b, 0);
       return {
-        header: reKeyInfo,
-        data: returnVal,
+        header: headers,
+        data: result,
         summaryInfo: {
-          count: summaryInfo.count,
-          sum: sum,
-          avg: sum == 0 ? 0 : (sum / summaryInfo.numbers.length).toFixed(1),
+          count: summary.count,
+          sum,
+          avg,
         },
       };
-    } else {
-      return returnVal.join("\n");
     }
+
+    return result.join("\n");
   }
 
   public isSelectPosition(rowIdx: number, col: number, currFlag?: boolean): boolean {

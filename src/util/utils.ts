@@ -85,17 +85,17 @@ export const isArray = (value: any): value is Array<any> => {
   return Array.isArray(value);
 };
 
-export const copyStringToClipboard = (prefix: string, copyText: string) => {
+export const copyStringToClipboard = (copyText: string) => {
   if (navigator.clipboard) {
     navigator.clipboard
       .writeText(copyText)
       .then(() => {})
       .catch((err) => {
         console.log(err);
-        fallbackCopyToClipboard(prefix, copyText);
+        fallbackCopyToClipboard(copyText);
       });
   } else {
-    fallbackCopyToClipboard(prefix, copyText);
+    fallbackCopyToClipboard(copyText);
   }
 };
 
@@ -112,27 +112,21 @@ export function debounce<T extends (...args: any[]) => void>(f: T, delay: number
   };
 }
 
-function fallbackCopyToClipboard(prefix: string, copyText: string) {
+function fallbackCopyToClipboard(copyText: string) {
+  const copyAreaElement = document.createElement("textarea") as HTMLTextAreaElement;
+  copyAreaElement.setAttribute("style", "top:-9999px;left:-9999px;position:fixed;z-index:9999;");
+  document.body.appendChild(copyAreaElement);
+
+  copyAreaElement.value = copyText;
+  copyAreaElement.select();
+
   try {
-    const _id = prefix + "_pubGridCopyArea";
-    let copyArea = document.getElementById(_id) as HTMLTextAreaElement;
-
-    if (copyArea != null) {
-      copyArea.value = copyText;
-      copyArea.select();
-
-      function handler(event: any) {
-        document.removeEventListener("copy", handler);
-      }
-      document.addEventListener("copy", handler);
-
-      document.execCommand("copy");
-
-      copyArea.value = "";
-    }
-  } catch (e) {
-    console.log(e);
+    document.execCommand("copy");
+  } catch (err) {
+    console.error("Fallback copy failed:", err);
   }
+
+  document.body.removeChild(copyAreaElement);
 }
 
 /**

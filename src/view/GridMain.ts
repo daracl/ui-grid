@@ -770,9 +770,8 @@ export default class GridMain {
                     <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
               </div>
-              <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
+              <div style="">
                 <textarea class="dg-paste-area"></textarea>
-                <textarea class="dg-copy-area"></textarea>
               </div>
           </div>
           ${opts.footer.enabled ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;"></div>` : ""}

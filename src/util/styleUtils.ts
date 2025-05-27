@@ -57,7 +57,7 @@ export const addStyleTag = (grid: DaraGrid) => {
  * @returns {*}
  */
 export const styleClassSplit = (styleClass: string) => {
-  return styleClass.split(/\s+/);
+  return styleClass.trim().split(/\s+/);
 };
 
 /**
@@ -65,53 +65,31 @@ export const styleClassSplit = (styleClass: string) => {
  *
  * @param {string} styleClasss css class
  */
-export function addClass(element: HTMLElement | NodeList, styleClass: string) {
-  let elements;
-  if (element instanceof HTMLElement) {
-    elements = [element];
-  } else {
-    elements = element;
-  }
+export function addClass(element: HTMLElement | NodeListOf<HTMLElement> | null, styleClass: string): void {
+  if (!element) return;
+
+  const elements: HTMLElement[] = element instanceof HTMLElement ? [element] : Array.from(element);
 
   const addStyles = styleClassSplit(styleClass);
 
-  elements.forEach((ele) => {
-    let classList = (ele as HTMLElement).classList;
-    for (let className of addStyles) {
-      if (!classList.contains(className)) {
-        classList.add(className);
-      }
-    }
+  elements.forEach((el) => {
+    el.classList.add(...addStyles); // 중복 자동 처리
   });
 }
 
 /**
  * remove element css class
  *
- * @param {string} styleClasss css class
+ * @export
+ * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
+ * @param {string} styleClass style css class
  */
-export function removeClass(element: HTMLElement | NodeList, styleClass: string) {
-  let elements;
-  if (element instanceof HTMLElement) {
-    elements = [element];
-  } else {
-    elements = element;
-  }
+export function removeClass(element: HTMLElement | NodeListOf<Element>, styleClass: string): void {
+  const elements: Element[] = element instanceof HTMLElement ? [element] : Array.from(element);
 
   const styleClasses = styleClassSplit(styleClass);
 
-  elements.forEach((ele) => {
-    let classList = (ele as HTMLElement).classList;
-
-    console.log("111111111removeClass 111111111 ", ele, JSON.stringify(classList), styleClasses);
-
-    for (let className of styleClasses) {
-      if (classList.contains(className)) {
-        console.log("remove , remove, remove");
-        classList.remove(className);
-      }
-    }
-
-    console.log("111111111removeClass 22222 ", ele, JSON.stringify(classList));
+  elements.forEach((el) => {
+    el.classList.remove(...styleClasses); // contains 체크 불필요
   });
 }

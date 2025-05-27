@@ -421,7 +421,6 @@ export default class Body {
         {
           range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
-          all: false,
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: cellIdx },
         } as Selection,
@@ -481,7 +480,7 @@ export default class Body {
             return;
           }
 
-          const copyData = "";
+          let copyData = "asdfasfd";
 
           if (selectionMode == "row" && copyMode == "single" && cfg.selection.all !== true) {
             // const startCellInfo = cfg.selection.startCell;
@@ -491,11 +490,11 @@ export default class Body {
             // }
             // copyData = opts.tbodyItem[startCellInfo.startIdx][cfg.currentHeaderItems[startCellInfo.startCol].key];
           } else {
-            // copyData = _this.selectionData();
+            copyData = this.selectionInfo.selectionData();
           }
 
           try {
-            //utils.copyStringToClipboard(_this.prefix, copyData);
+            utils.copyStringToClipboard(copyData);
           } catch (e) {
             console.log("Unable to copy", e);
           }
