@@ -557,6 +557,15 @@ export interface BodyOptions {
   keyNavHandler: boolean | OptionCallback;
 
   /**
+   * 붙여 넣기 전 호출 메소드
+   */
+  pasteBefore: boolean | OptionCallback;
+  /**
+   * 붙여 넣기 후 호출 메소드
+   */
+  pasteAfter: boolean | OptionCallback;
+
+  /**
    * 로우 옵션.
    */
   row: {
@@ -584,14 +593,6 @@ export interface BodyOptions {
      * double click row checkbox checked true 여부.
      */
     dblClickCheck: boolean;
-    /**
-     * 붙여 넣기 전 호출 메소드
-     */
-    pasteBefore: boolean | OptionCallback;
-    /**
-     * 붙여 넣기 후 호출 메소드
-     */
-    pasteAfter: boolean | OptionCallback;
   };
 }
 
@@ -688,7 +689,7 @@ export interface FooterOptions {
   /**
    * cell 선택 정보 표시 포켓
    */
-  selectionInfoFormat: string;
+  selectionFormat: string | OptionCallback;
 }
 
 /**

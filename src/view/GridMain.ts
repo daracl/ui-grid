@@ -1,9 +1,9 @@
-import { FieldHeaderGroupInfo, Selection } from "@t/GridConfig";
+import { FieldHeaderGroupInfo } from "@t/GridConfig";
 
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ALIGN_STYLE, FOOTER_HEIGHT, SCROLL_ARROW_BUTTON_SIZE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -35,6 +35,12 @@ export default class GridMain {
   private _mainElement: DaraElement;
 
   private containerElement: DaraElement;
+
+  public pasteElement: DaraElement;
+
+  private selectionStatusElement: DaraElement;
+
+  private scrollStatusElement: DaraElement;
 
   private readonly enableViewAllLabel: boolean;
 
@@ -80,11 +86,6 @@ export default class GridMain {
     }
 
     const mainElement = this._mainElement.getElement();
-
-    eventOn(mainElement, "mouseup", () => {
-      //_this.element.body.removeClass('pubGrid-noselect');
-      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
-    });
 
     // focus in
     eventOn(mainElement, "mousedown", (e: UIEvent) => {
@@ -360,8 +361,6 @@ export default class GridMain {
     const fieldLength = fields.length;
 
     const isHeaderResize = cfg.isHeaderResize;
-
-    console.log("cfg.enableHeaderResize :  ", cfg.isHeaderResize);
 
     let mainTotalWidth = 0;
     for (const field of fields) {
@@ -719,6 +718,61 @@ export default class GridMain {
     }
   }
 
+  /**
+   * selection status info
+   *
+   * @public
+   * @param {string} info selection info
+   */
+  public setSelectionStatus(dataInfo?: any) {
+    const footerOpts = this.grid.getOptions().footer;
+
+    if (footerOpts.enableSelectionInfo) {
+      const dataInfo = this.selectionInfo.selectionData("json");
+
+      if (!utils.isUndefined(dataInfo) && dataInfo.summaryInfo.count > 1) {
+        const selectionFormat = this.grid.getOptions().footer.selectionFormat;
+        let statusText = "";
+        if (utils.isString(selectionFormat)) {
+          statusText = utils.replaceMesasgeFormat(selectionFormat, dataInfo.summaryInfo);
+        } else if (utils.isFunction(selectionFormat)) {
+          statusText = selectionFormat(dataInfo);
+        }
+
+        this.selectionStatusElement.text(statusText);
+      } else {
+        this.selectionStatusElement.text("");
+      }
+    }
+  }
+
+  public setScrollStatus() {
+    const footerOpts = this.grid.getOptions().footer;
+
+    if (footerOpts.enableStatus) {
+      const cfg = this.grid.config();
+      let statusInfo: any = {
+        currStart: cfg.scroll.startIdx,
+        currEnd: cfg.scroll.startIdx + cfg.scroll.viewRow,
+        total: cfg.dataInfo.rowLength,
+      };
+
+      if (!utils.isUndefined(statusInfo)) {
+        const statusFormat = this.grid.getOptions().footer.statusFormat;
+        let statusText = "";
+        if (utils.isString(statusFormat)) {
+          statusText = utils.replaceMesasgeFormat(statusFormat, statusInfo);
+        } else if (utils.isFunction(statusFormat)) {
+          statusText = statusFormat(statusInfo);
+        }
+
+        this.scrollStatusElement.text(statusText);
+      } else {
+        this.scrollStatusElement.text("");
+      }
+    }
+  }
+
   public initTemplate() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
@@ -770,11 +824,21 @@ export default class GridMain {
                     <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
               </div>
-              <div style="">
+              <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
                 <textarea class="dg-paste-area"></textarea>
               </div>
           </div>
-          ${opts.footer.enabled ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;"></div>` : ""}
+          ${
+            opts.footer.enabled
+              ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;">
+            <span class="dg-paging"></span>
+            <span class="dg-status">
+              <span class="dg-selection-status"></span>
+              <span class="dg-scroll-status"></span>
+            </span>
+          </div>`
+              : ""
+          }
         </div>
     </div>
     `;
@@ -783,5 +847,11 @@ export default class GridMain {
 
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
+    this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
+
+    if (opts.footer.enabled) {
+      this.selectionStatusElement = new DaraElement(this.grid.element().find(".dg-footer .dg-selection-status"));
+      this.scrollStatusElement = new DaraElement(this.grid.element().find(".dg-footer .dg-scroll-status"));
+    }
   }
 }

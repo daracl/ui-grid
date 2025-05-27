@@ -273,3 +273,28 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCell
 
   return { mouseScrollDirectionX, overCell };
 }
+
+/**
+ * create new item
+ *
+ * @export
+ * @param {FieldItem[]} headerItems field items
+ * @param {number} [createCount=1] create count
+ * @returns {any[]} result
+ */
+export function createNewItems(headerItems: FieldItem[], createCount: number = 1): any[] {
+  const len = headerItems.length;
+
+  const result = [];
+  for (let i = 0; i < createCount; i++) {
+    let newItem: any = { _pubCUD: "_C" };
+    for (let j = 0; j < len; j++) {
+      const headerItem = headerItems[j];
+      newItem[headerItem.name] = headerItem.defaultValue ?? "";
+    }
+
+    result.push(newItem);
+  }
+
+  return result;
+}

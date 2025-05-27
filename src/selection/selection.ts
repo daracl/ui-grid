@@ -61,7 +61,7 @@ export default class SelectionInfo {
     const lastRowIdx = this.config.dataInfo.rowLength;
     const lastCol = this.config.dataInfo.colLength;
 
-    console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, rangeInfo.startIdx, rangeInfo.startIdx, rangeInfo.endIdx, currentSelection);
+    //console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, rangeInfo.startIdx, rangeInfo.startIdx, rangeInfo.endIdx, currentSelection);
 
     currentSelection.minIdx = currentSelection.minIdx == -1 ? Math.min(rangeInfo.startIdx, rangeInfo.endIdx) : Math.min(currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
     currentSelection.minIdx = currentSelection.minIdx < -1 ? 0 : currentSelection.minIdx;
@@ -69,7 +69,7 @@ export default class SelectionInfo {
     currentSelection.maxIdx = Math.max(currentSelection.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
     currentSelection.maxIdx = currentSelection.maxIdx >= lastRowIdx ? lastRowIdx : currentSelection.maxIdx;
 
-    if (initFlag !== true || (isRangeInfo && currentSelection.minCol == -1)) {
+    if (initFlag !== true || currentSelection.minCol == -1) {
       currentSelection.minCol = currentSelection.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
       currentSelection.maxCol = Math.max(currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
 
@@ -98,15 +98,9 @@ export default class SelectionInfo {
       this.setCellSelect(initFlag);
     }
 
-    if (this.options.footer.enableSelectionInfo) {
-      const dataInfo = this.selectionData("json");
+    console.log(rangeInfo, currentSelection.minCol, currentSelection.maxCol);
 
-      if (!utils.isUndefined(dataInfo) && dataInfo.summaryInfo.count > 1) {
-        //this.grid.elementMap.navSelectionInfo.empty().html(utils.replaceMesasgeFormat(this.options.navigation.selectionInfoFormat || "", dataInfo.summaryInfo));
-      } else {
-        //this.grid.elementMap.navSelectionInfo.innerHTML = "";
-      }
-    }
+    this.gridMain.setSelectionStatus();
   }
 
   /**
@@ -188,6 +182,7 @@ export default class SelectionInfo {
     const result = [];
     const keyInfoMap = {} as any;
     const summary = { count: 0, numbers: [] as number[] };
+    const isJson = dataType === "json";
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];
@@ -210,7 +205,7 @@ export default class SelectionInfo {
         if (selected) {
           hasSelected = true;
 
-          if (dataType == "json") {
+          if (isJson) {
             keyInfoMap[j] = col;
             rowJson[colName] = val;
 
@@ -224,17 +219,18 @@ export default class SelectionInfo {
             rowText.push(val);
           }
         } else {
-          if (dataType === "text") rowText.push("");
-          else rowJson[colName] = "";
+          if (isJson) {
+            rowJson[colName] = "";
+          } else rowText.push("");
         }
       }
 
       if (hasSelected) {
-        result.push(dataType === "json" ? rowJson : rowText.join("\t"));
+        result.push(isJson ? rowJson : rowText.join("\t"));
       }
     }
 
-    if (dataType == "json") {
+    if (isJson) {
       const headers = Object.values(keyInfoMap);
       const sum = summary.numbers.reduce((a, b) => a + b, 0);
       const avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
@@ -329,7 +325,7 @@ export default class SelectionInfo {
       endCol = colInfo.endCol;
     }
 
-    console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
+    //console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
 
     const bodyElement = this.gridMain.getBody().bodyElement;
 
@@ -357,8 +353,7 @@ export default class SelectionInfo {
       bodyElement.finds(".dg-cell.selection").forEach((cellNode, idx) => {
         const cellElement = cellNode as HTMLElement;
         const posInfo = getCellPosition(cellElement);
-        if (this.isSelectPosition(scrollStartIdx + posInfo.r, posInfo.c)) {
-        } else {
+        if (!this.isSelectPosition(scrollStartIdx + posInfo.r, posInfo.c)) {
           cellElement.classList.remove("selection");
         }
       });
@@ -393,7 +388,6 @@ export default class SelectionInfo {
         addEle.setAttribute("data-selection-id", currentId);
 
         if (startCellInfo.startIdx == currRow && startCellInfo.startCol == j) {
-          console.log("startcell check ");
           addEle.classList.add("selection");
           addEle.classList.add("start-cell");
         } else {

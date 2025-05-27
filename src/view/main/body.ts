@@ -2,7 +2,7 @@ import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag, removeClass } from "../../util/styleUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection } from "../../util/gridUtils";
+import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
@@ -51,6 +51,125 @@ export default class Body {
   public initEvent() {
     this.initKeydownEvent();
     this.initCellEvent();
+    this.initBodyEvent();
+  }
+
+  private initBodyEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+    const pasteBeforeFn = opts.body.pasteBefore;
+    const pasteBeforeFnFlag = utils.isFunction(pasteBeforeFn);
+
+    const pasteAfterFn = opts.body.pasteAfter;
+    const pasteAfterFnFlag = utils.isFunction(pasteAfterFn);
+
+    eventOn(this.gridMain.pasteElement.getElement(), "paste", (event: ClipboardEvent) => {
+      const clipboardData = event.clipboardData; // ClipboardEvent에서 clipboardData 가져오기
+
+      if (!clipboardData) {
+        throw new Error("paste clipboard not found");
+      }
+
+      let pastedText = clipboardData.getData("text");
+
+      if (pasteBeforeFnFlag) {
+        pastedText = pasteBeforeFn(pastedText);
+      }
+
+      if (pastedText != "") {
+        const contentArr = pastedText.split(/\r\n|\r|\n/);
+
+        const startCellInfo = cfg.selection.startCell;
+
+        const { currentFields, items } = cfg;
+
+        const startIdx = startCellInfo.startIdx,
+          startCol = startCellInfo.startCol,
+          headerItemsLength = currentFields.length;
+
+        let itemLength = items.length;
+
+        let maxCol = 0,
+          iLen = contentArr.length;
+        let addItems = [];
+        if (startCellInfo.startIdx + iLen > itemLength) {
+          // 붙여 넣기 데이터가 더 많으면 추가 row 생성.
+          addItems = items.concat(createNewItems(currentFields, startCellInfo.startIdx + iLen - itemLength));
+          itemLength = addItems.length;
+        }
+
+        for (let i = 0; i < iLen; i++) {
+          const addCont = contentArr[i];
+
+          const addRowIdx = startIdx + i;
+
+          if (addRowIdx >= itemLength) {
+            break;
+          }
+
+          const rowItem = items[addRowIdx];
+
+          const addContArr = addCont.split(/\t/);
+          const jLen = addContArr.length;
+
+          this.setChangeValue("new", rowItem);
+
+          for (let j = 0; j < jLen; j++) {
+            const addColIdx = startCol + j;
+
+            if (addColIdx < headerItemsLength) {
+              maxCol = Math.max(maxCol, addColIdx);
+              rowItem[currentFields[addColIdx].name] = addContArr[j];
+            }
+          }
+        }
+
+        this.gridMain.selectionInfo.setSelectionRangeInfo(
+          {
+            range: { startIdx: startCellInfo.startIdx, endIdx: startCellInfo.startIdx + iLen - 1, startCol: startCellInfo.startCol, endCol: maxCol },
+            startCell: startCellInfo,
+          } as Selection,
+          true,
+          false
+        );
+
+        // add, set data 부분 처리 할것.
+        //
+        //
+
+        // _this.setData(items, "reDraw_paste", { focus: true, index: _this.config.scroll.viewIdx });
+
+        if (pasteAfterFnFlag) {
+          pasteAfterFn(pastedText);
+        }
+      }
+    });
+  }
+
+  /**
+   * @method setChangeValue
+   * @description CUD모드 변경. (c = create , u = update , d =delete)
+   */
+  private setChangeValue(mode: string, rowItem: any, colInfo?: FieldItem, newValue?: any) {
+    if (mode == "new" || mode == "remove") {
+      rowItem["_dgCUD"] = mode == "new" ? "C" : "D";
+      return rowItem;
+    }
+
+    if (mode == "modify" && colInfo) {
+      rowItem["_dgCUD"] = rowItem["_dgCUD"] == "_C" ? "C" : rowItem["_dgCUD"] == "C" ? "CU" : "U";
+
+      rowItem[colInfo.name] = newValue;
+
+      const cell = this.grid.config().edit.cell;
+
+      const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + "," + cell.c + '"]');
+
+      this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
+      cell.field.$renderer.render(cell.rowIndex, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement);
+
+      return rowItem;
+    }
   }
 
   /**
@@ -109,8 +228,6 @@ export default class Body {
         }
       });
     }
-
-    let beforeOverCell: any = {};
 
     const bodyElement = this.bodyElement.getElement();
     eventOn(
@@ -224,8 +341,6 @@ export default class Body {
             bodyDragTimer = -1;
           });
         }
-
-        beforeOverCell = getOverCellPosition(startCellInfo);
 
         const currViewIdx = cfg.scroll.startIdx;
 
@@ -505,7 +620,7 @@ export default class Body {
           return false;
         } else if (evtKey == 86) {
           // ctrl + v
-          //_this.element.pasteArea.focus();
+          this.gridMain.pasteElement.getElement().focus();
           return true;
         } else if (evtKey == 70) {
           // ctrl+f
@@ -971,33 +1086,7 @@ export default class Body {
     const cellEle = contentEle.parentElement as HTMLElement;
 
     // field add class
-    if (field.styleClass) {
-      let addClass = "";
-      if (utils.isFunction(field.styleClass)) {
-        addClass = field.styleClass({ rowIdx: rowIdx, col: col, field: field, item: item });
-      } else if (utils.isString(field.styleClass)) {
-        addClass = field.styleClass;
-      }
-
-      const cellClassList = cellEle.classList;
-
-      const removeClass: string[] = [];
-      cellClassList.forEach((cellClass, idx) => {
-        if (cellClass != "dg-cell" && cellClass != "start-cell" && cellClass != "selection" && cellClass != addClass) {
-          removeClass.push(cellClass);
-        }
-      });
-
-      if (removeClass.length > 0) {
-        removeClass.forEach((cls) => {
-          cellClassList.remove(cls);
-        });
-      }
-
-      if (addClass != "" && !cellClassList.contains(addClass)) {
-        cellClassList.add(addClass);
-      }
-    }
+    this.setCellStyleClass(cellEle, rowIdx, col, field, item);
 
     if (startCellInfo.startIdx == rowIdx && startCellInfo.startCol == col) {
       cellEle.classList.add("selection");
@@ -1020,5 +1109,43 @@ export default class Body {
     }
 
     return false;
+  }
+
+  /**
+   * cell style 추가
+   *
+   * @private
+   * @param {HTMLElement} cellEle cell element
+   * @param {number} rowIdx row index
+   * @param {number} col column index
+   * @param {FieldItem} field field info
+   * @param {*} item item
+   */
+  private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
+    if (field.styleClass) {
+      let addClass = "";
+      if (utils.isFunction(field.styleClass)) {
+        addClass = field.styleClass({ rowIdx: rowIdx, col: col, field: field, item: item });
+      } else if (utils.isString(field.styleClass)) {
+        addClass = field.styleClass;
+      }
+
+      const cellClassList = cellEle.classList;
+
+      const removeClass: string[] = [];
+      cellClassList.forEach((cellClass, idx) => {
+        if (cellClass != "dg-cell" && cellClass != "start-cell" && cellClass != "selection" && cellClass != addClass) {
+          removeClass.push(cellClass);
+        }
+      });
+
+      if (removeClass.length > 0) {
+        cellClassList.remove(...removeClass);
+      }
+
+      if (addClass != "") {
+        cellClassList.add(addClass);
+      }
+    }
   }
 }

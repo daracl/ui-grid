@@ -11,5 +11,33 @@
     position: relative;
     vertical-align: top;
     height: 40px;
+
+    .dg-paging {
+      > div {
+        position: absolute;
+        left: 5px;
+        &.center {
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
+
+        &.right {
+          right: 5px;
+        }
+      }
+    }
+
+    .dg-status {
+      position: absolute;
+      right: 5px;
+      height: 100%;
+      display: table;
+
+      > span {
+        display: table-cell;
+        vertical-align: middle;
+      }
+    }
   }
 }

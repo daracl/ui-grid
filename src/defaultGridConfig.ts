@@ -214,7 +214,7 @@ export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
 export function initEditInfo(): EditInfo {
   return {
     enable: false,
-    current: {
+    cell: {
       r: -1,
       c: -1,
       field: {} as FieldItem,

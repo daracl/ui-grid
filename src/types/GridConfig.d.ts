@@ -120,7 +120,7 @@ export interface CellInfo {
 
 export interface EditInfo {
   enable: boolean;
-  current: CellInfo;
+  cell: CellInfo;
 }
 
 export interface Selection {

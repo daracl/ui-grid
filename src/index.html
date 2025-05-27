@@ -286,7 +286,12 @@
 
         for (let j = 1; j <= 12; j++) {
           var aRandomVal = getRandomFloatFromInput(1, 10);
-          item['a' + j] = aRandomVal % 3 == 0 ? null : aRandomVal + " a --- 222222222";
+          if (aRandomVal % 4 == 0) {
+            item['a' + j] = aRandomVal;
+          } else {
+            item['a' + j] = aRandomVal % 3 == 0 ? null : aRandomVal + " a --- 222222222";
+          }
+
           item['b' + j] = getRandomFloatFromInput(1, 20) + " b --- 222222222";
         }
 
@@ -659,16 +664,14 @@
       , footer: {
         enabled: true
         , enableStatus: true
-        , enableSelectionInfo: false
-        , height: 32
+        , enableSelectionInfo: true
+        , height: 20
         , position: 'center'
         , callback: function (arg) {
           console.log(arg);
           //gridObj.setData(aaa);
         }
-        , statusFormat: function (arg) {
-          console.log(arg);
-        }
+
 
       }
       , paging: {
@@ -687,6 +690,13 @@
         , keyNavHandler: function (moveInfo) {
           console.log(moveInfo);
         }
+        , pasteBefore: function (a) {
+          console.log('pasteBefore', a);
+          return a;
+        }
+        , pasteAfter: function (a) {
+          console.log('pasteAfter', a)
+        }
         , row: {
           dblClickCheck: false
           , click: function (itemInfo) {
@@ -697,13 +707,7 @@
             console.log('dblclick')
           }
 
-          , pasteBefore: function (a) {
-            console.log('pasteBefore', a);
-            return a;
-          }
-          , pasteAfter: function (a) {
-            console.log('pasteAfter', a)
-          }
+
           , contextMenu: {
             beforeSelect: function (info) {
 

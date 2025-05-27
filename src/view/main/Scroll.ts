@@ -548,6 +548,8 @@ export default class Scroll {
 
     this.setVerticalPosition(cfg, topVal);
 
+    this.gridMain.setScrollStatus();
+
     if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
     this.gridMain.getBody().dataDraw("vscroll");
