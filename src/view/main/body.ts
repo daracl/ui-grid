@@ -418,7 +418,8 @@ export default class Body {
 
         return true;
       },
-      ".dg-cell"
+      ".dg-cell",
+      { passive: false }
     );
 
     eventOn(bodyElement, "mouseup touchend", (e: UIEvent) => {

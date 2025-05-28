@@ -108,6 +108,8 @@ export type PASSWORD_TYPE = "number" | "upper" | "upper-special" | "upper-specia
 
 export type ORIENTATION_TYPE = "horizontal" | "vertical";
 
+export type ADD_ROW_POSITION = "before" | "after";
+
 /**
  * default toolbar height
  *

@@ -93,7 +93,7 @@ export default class Header {
             });
             cfg.sort.orders = [];
           }
-          sortItems = utils.arrayCopy(cfg.sort.orginData);
+          sortItems = utils.arrayCopy(cfg.orginItems);
         }
 
         const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);
@@ -132,7 +132,7 @@ export default class Header {
           }
           cfg.items = utils.multiSort(sortItems, cfg.sort.orders, nullsLast);
         } else {
-          cfg.items = cfg.sort.orginData;
+          cfg.items = cfg.orginItems;
         }
 
         this.gridMain.getBody().dataDraw("sort");

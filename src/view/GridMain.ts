@@ -3,7 +3,7 @@ import { FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -328,7 +328,7 @@ export default class GridMain {
     const opts = this.grid.getOptions();
 
     cfg.items = utils.arrayCopy(this.grid.getOptions().items);
-    cfg.sort.orginData = utils.arrayCopy(this.grid.getOptions().items);
+    cfg.orginItems = utils.arrayCopy(this.grid.getOptions().items);
     cfg.dataInfo.rowLength = cfg.items.length;
     cfg.dataInfo.lastRow = cfg.items.length > 0 ? cfg.dataInfo.rowLength - 1 : 0;
 
@@ -728,13 +728,13 @@ export default class GridMain {
     const footerOpts = this.grid.getOptions().footer;
 
     if (footerOpts.enableSelectionInfo) {
-      const dataInfo = this.selectionInfo.selectionData("json");
+      const dataInfo = this.selectionInfo.selectionData("json", true);
 
-      if (!utils.isUndefined(dataInfo) && dataInfo.summaryInfo.count > 1) {
+      if (!utils.isUndefined(dataInfo) && dataInfo.summary.count > 1) {
         const selectionFormat = this.grid.getOptions().footer.selectionFormat;
         let statusText = "";
         if (utils.isString(selectionFormat)) {
-          statusText = utils.replaceMesasgeFormat(selectionFormat, dataInfo.summaryInfo);
+          statusText = utils.replaceMesasgeFormat(selectionFormat, dataInfo.summary);
         } else if (utils.isFunction(selectionFormat)) {
           statusText = selectionFormat(dataInfo);
         }
@@ -751,9 +751,10 @@ export default class GridMain {
 
     if (footerOpts.enableStatus) {
       const cfg = this.grid.config();
+
       let statusInfo: any = {
-        currStart: cfg.scroll.startIdx,
-        currEnd: cfg.scroll.startIdx + cfg.scroll.viewRow,
+        currStart: 1,
+        currEnd: 10,
         total: cfg.dataInfo.rowLength,
       };
 
@@ -771,6 +772,70 @@ export default class GridMain {
         this.scrollStatusElement.text("");
       }
     }
+  }
+
+  /**
+   * set data
+   *
+   * @param {any[]} items
+   */
+  public setData = (items: any[]) => {
+    this.grid.getOptions().items = items;
+    this.calcGridDimention();
+    this.calcBody();
+
+    this.setElementDimentions();
+    this.scroll.calcScroll();
+    this.fieldResize();
+
+    this.body.dataDraw("setdata");
+  };
+
+  /**
+   * add row
+   *
+   * @param {any[]} items items
+   * @param {ADD_ROW_POSITION} position before , after
+   * @param {?number} [rowIndex] row index
+   */
+  public addRow = (items: any | any[], position: ADD_ROW_POSITION, rowIndex?: number) => {
+    const cfg = this.grid.config();
+    const currentItems = cfg.orginItems;
+    const isBefore = position === "before";
+
+    const addItems = Array.isArray(items) ? items : [items];
+
+    utils.insertToArray(currentItems, items, isBefore, rowIndex);
+
+    this.setData(currentItems);
+
+    if (utils.isUndefined(rowIndex)) {
+      if (isBefore) {
+        this.scroll.moveVerticalScroll({ rowIdx: 0 });
+      } else {
+        this.scroll.moveVerticalScroll({ rowIdx: cfg.dataInfo.rowLength });
+      }
+    } else {
+      this.scroll.moveVerticalScroll({ rowIdx: rowIndex + (isBefore ? -addItems.length : -1) });
+    }
+  };
+
+  public removeRow = (ids: any[]) => {
+    const cfg = this.grid.config();
+    const currentItems = cfg.orginItems;
+
+    const sortedPositions = [...new Set(ids)].sort((a, b) => b - a);
+
+    for (const pos of sortedPositions) {
+      if (pos >= 0 && pos < currentItems.length) {
+        currentItems.splice(pos, 1);
+      }
+    }
+    this.setData(currentItems);
+  };
+
+  public clearData() {
+    this.setData([]);
   }
 
   public initTemplate() {

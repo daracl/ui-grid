@@ -36,9 +36,9 @@ export default class SelectionInfo {
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
-
+    const cfg = this.config;
     const changeRangeInfo = changeSelection.range;
-    let currentSelection = this.config.selection;
+    let currentSelection = cfg.selection;
     if (initFlag) {
       currentSelection = initSelectionInfo();
 
@@ -58,24 +58,29 @@ export default class SelectionInfo {
 
     let rangeInfo = currentSelection.range;
 
-    const lastRowIdx = this.config.dataInfo.rowLength;
-    const lastCol = this.config.dataInfo.colLength;
+    const lastRowIdx = cfg.dataInfo.lastRow;
+    const lastCol = cfg.dataInfo.colLength - 1;
 
-    //console.log("------setSelectionRangeInfo------initFlag---- ", initFlag, rangeInfo.startIdx, rangeInfo.startIdx, rangeInfo.endIdx, currentSelection);
+    rangeInfo.startIdx = Math.min(Math.max(rangeInfo.startIdx, 0), lastRowIdx);
+    rangeInfo.endIdx = Math.min(Math.max(rangeInfo.endIdx, 0), lastRowIdx);
 
-    currentSelection.minIdx = currentSelection.minIdx == -1 ? Math.min(rangeInfo.startIdx, rangeInfo.endIdx) : Math.min(currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
-    currentSelection.minIdx = currentSelection.minIdx < -1 ? 0 : currentSelection.minIdx;
+    rangeInfo.startCol = Math.min(Math.max(rangeInfo.startCol, 0), lastCol);
+    rangeInfo.endCol = Math.min(Math.max(rangeInfo.endCol, 0), lastCol);
 
+    console.log("JSON.stringify(rangeInfo) : ", JSON.stringify(rangeInfo));
+
+    currentSelection.minIdx = Math.min(currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
     currentSelection.maxIdx = Math.max(currentSelection.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
-    currentSelection.maxIdx = currentSelection.maxIdx >= lastRowIdx ? lastRowIdx : currentSelection.maxIdx;
 
-    if (initFlag !== true || currentSelection.minCol == -1) {
+    if (initFlag !== true) {
       currentSelection.minCol = currentSelection.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
-      currentSelection.maxCol = Math.max(currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
-
-      currentSelection.minCol = currentSelection.minCol < -1 ? 0 : currentSelection.minCol;
-      currentSelection.maxCol = currentSelection.maxCol >= lastCol ? lastCol - 1 : currentSelection.maxCol;
+      currentSelection.maxCol = currentSelection.maxCol == -1 ? Math.max(rangeInfo.endCol, rangeInfo.startCol) : Math.max(currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
     }
+
+    // header 클릭 처리 할것.
+    //
+    //
+    //
 
     if (isRangeInfo) return;
 
@@ -84,21 +89,11 @@ export default class SelectionInfo {
     rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
     rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
 
-    if (initFlag !== true) {
-      rangeInfo.minCol = rangeInfo.minCol < -1 ? 0 : rangeInfo.minCol;
-      rangeInfo.maxCol = rangeInfo.maxCol >= lastCol ? lastCol : rangeInfo.maxCol;
-
-      rangeInfo.minIdx = rangeInfo.minIdx < -1 ? 0 : rangeInfo.minIdx;
-      rangeInfo.maxIdx = rangeInfo.maxIdx >= lastRowIdx ? lastRowIdx : rangeInfo.maxIdx;
-    }
-
     currentSelection.allRange[currentSelection.id] = rangeInfo;
 
     if (cellSelectFlag) {
       this.setCellSelect(initFlag);
     }
-
-    console.log(rangeInfo, currentSelection.minCol, currentSelection.maxCol);
 
     this.gridMain.setSelectionStatus();
   }
@@ -149,23 +144,32 @@ export default class SelectionInfo {
   }
 
   /**
-   * @method _isAllSelect
-   * @description cell select
+   * is all cell selection
+   *
+   * @public
+   * @returns {*} boolean
    */
   public isAllSelect() {
     return this.config.selection.all;
   }
 
+  /**
+   * cell all selection
+   *
+   * @public
+   * @param {boolean} flag all selection true|false
+   */
   public setAllSelection(flag: boolean) {
     this.config.selection.all = flag;
     this.setCellSelect(false);
+    this.gridMain.setSelectionStatus();
   }
 
   /**
    * @method selectionData
    * @description select data 구하기.
    */
-  public selectionData(dataType: "text" | "json" = "text"): any {
+  public selectionData(dataType: "text" | "json" = "text", isSummary: boolean = false): any {
     const { items, currentFields, selection, dataInfo } = this.config;
 
     if (dataInfo.rowLength < 1) return dataType === "json" ? {} : "";
@@ -183,6 +187,8 @@ export default class SelectionInfo {
     const keyInfoMap = {} as any;
     const summary = { count: 0, numbers: [] as number[] };
     const isJson = dataType === "json";
+
+    console.log("startIdx, endIdx, startCol, endCol", startIdx, endIdx, startCol, endCol);
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];
@@ -232,17 +238,25 @@ export default class SelectionInfo {
 
     if (isJson) {
       const headers = Object.values(keyInfoMap);
-      const sum = summary.numbers.reduce((a, b) => a + b, 0);
-      const avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
+      let summaryInfo = {};
+
+      if (isSummary) {
+        const sum = summary.numbers.reduce((a, b) => a + b, 0);
+        const avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
+
+        summaryInfo = {
+          count: summary.count,
+          min: Math.min(...summary.numbers),
+          max: Math.max(...summary.numbers),
+          sum,
+          avg,
+        };
+      }
 
       return {
         header: headers,
         data: result,
-        summaryInfo: {
-          count: summary.count,
-          sum,
-          avg,
-        },
+        summary: summaryInfo,
       };
     }
 

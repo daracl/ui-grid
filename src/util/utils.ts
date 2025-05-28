@@ -1,4 +1,5 @@
 import { FieldItem } from "@t/GridField";
+import { ADD_ROW_POSITION } from "src/constants";
 
 const xssFilter = {
   "&": "&amp;",
@@ -264,6 +265,38 @@ function isObject(value: any) {
 
 function isDate(value: any) {
   return value instanceof Date && !isNaN(value.valueOf());
+}
+
+/**
+ * 배열에 값을 삽입하고, 지정된 길이를 초과할 경우 오래된 항목을 제거합니다.
+ *
+ * @template T 배열 요소 타입
+ * @param targetArray 수정할 대상 배열
+ * @param values 삽입할 값 또는 값들의 배열
+ * @param options 삽입 위치, 인덱스, 최대 길이 등 옵션
+ * @returns 수정된 원본 배열 (targetArray)
+ */
+export function insertToArray<T>(targetArray: T[], values: T | T[], isBefore: boolean = false, rowIndex?: number, limit: number = Infinity): T[] {
+  const items: T[] = Array.isArray(values) ? values : [values];
+
+  if (isUndefined(rowIndex)) {
+    if (isBefore) {
+      targetArray.unshift(...items);
+    } else {
+      targetArray.push(...items);
+    }
+  } else {
+    const insertIndex = isBefore ? rowIndex - 1 : rowIndex;
+    targetArray.splice(insertIndex, 0, ...items);
+  }
+
+  // limit 초과 시 오래된 값 제거 (FIFO)
+  const overflow = targetArray.length - limit;
+  if (limit < Infinity && overflow > 0) {
+    targetArray.splice(0, overflow);
+  }
+
+  return targetArray;
 }
 
 /**

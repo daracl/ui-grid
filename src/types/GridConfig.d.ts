@@ -56,6 +56,7 @@ export interface Config {
   initSettingFlag: boolean;
   select: AnyKeyMap;
   template: AnyKeyMap;
+  orginItems: Array;
   items: Array;
   dataInfo: {
     colLength: number;
@@ -68,7 +69,6 @@ export interface Config {
   cellWidths: Array;
   rowHeights: Array;
   sort: {
-    orginData: Array;
     orders: Array;
   };
   pagingInfo: boolean;

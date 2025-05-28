@@ -3,7 +3,7 @@ import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { DEFAULT_OPTIONS } from "./defaultGridOption";
 import { initConfig } from "./defaultGridConfig";
-import { FIELD_PREFIX } from "./constants";
+import { ADD_ROW_POSITION, FIELD_PREFIX } from "./constants";
 
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
@@ -11,6 +11,7 @@ import Lanauage from "./util/Lanauage";
 import { addStyleTag } from "./util/styleUtils";
 import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
+import { FieldItem } from "@t/GridField";
 
 declare const APP_VERSION: string;
 
@@ -51,7 +52,9 @@ export default class DaraGrid {
 
   private gridElement: DaraElement;
 
-  private uidAttrSelector;
+  private readonly uidAttrSelector;
+
+  private gridMain: GridMain;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
@@ -106,7 +109,7 @@ export default class DaraGrid {
 
     addStyleTag(this);
 
-    const main = new GridMain(this);
+    this.gridMain = new GridMain(this);
   }
 
   public getOptions(): GridOptions {
@@ -146,8 +149,37 @@ export default class DaraGrid {
   /**
    * 모든 field 얻기
    */
-  public getFields = (): any[] => {
-    return this.options.fields;
+  public getFields = (): FieldItem[] => {
+    return this.mainConfig.currentFields;
+  };
+
+  public getData = () => {
+    return this.mainConfig.items;
+  };
+
+  /**
+   * set data
+   *
+   * @param {any[]} items
+   */
+  public setData = (items: any[]) => {
+    this.gridMain.setData(items);
+  };
+
+  public clearData = () => {
+    this.gridMain.clearData();
+  };
+
+  public addRow = (items: any[], position: ADD_ROW_POSITION, addRowIndex?: number) => {
+    this.gridMain.addRow(items, position, addRowIndex);
+  };
+
+  public removeRow = (ids: any[]) => {
+    this.gridMain.removeRow(ids);
+  };
+
+  public setSize = (width?: number, height?: number) => {
+    this.gridMain.setSize(width, height);
   };
 
   /**

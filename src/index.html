@@ -138,7 +138,7 @@
     }
   }
 
-  function fn_init() {
+  function fn_init(initFlag) {
     // theme
     const toggler = document.querySelectorAll('[name="theme-toggle"]');
     const theme = localStorage.getItem(THEME_KEY);
@@ -155,30 +155,49 @@
       })
     }
 
-    let aaa, colItem;
+    if (initFlag) {
+      const dgGridSampleConfig = localStorage.getItem("dgGridSampleConfig");
+
+      if (dgGridSampleConfig) {
+        try {
+          const cfg = JSON.parse(dgGridSampleConfig);
+
+          document.getElementById('dataType').value = cfg.itemType;
+          document.getElementById('itemCount').value = cfg.itemCount;
+          document.getElementById('cellCount').value = cfg.cellCount;
+        } catch (e) {
+          console.log('dgGridSampleConfig : ', dgGridSampleConfig, e);
+        }
+      }
+
+    }
+
+
+
     const itemType = document.getElementById('dataType').value;
+    const itemCount = parseInt(document.getElementById("itemCount").value, 10);
+    const cellCount = parseInt(document.getElementById("cellCount").value, 10);
 
-    let item = getItem(itemType);
+    localStorage.setItem("dgGridSampleConfig", JSON.stringify({ itemType, itemCount, cellCount }));
 
-    aaa = item.aaa;
-    colItem = item.colItem;
 
-    gridDraw(document.getElementById('sample'), aaa, colItem);
+
+    const item = getItem(itemType, itemCount, cellCount);
+
+    gridDraw(document.getElementById('sample'), item.aaa, item.colItem);
 
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    fn_init();
+    fn_init(true);
   });
 
 
   var itemIdx = 0;
-  function getItem(type) {
+  function getItem(type, itemCount, cellCount) {
     itemIdx++;
     let aaa = [];
     let colItem = [];
-    let itemCount = parseInt(document.getElementById("itemCount").value, 10);
-    let cellCount = parseInt(document.getElementById("cellCount").value, 10);
 
     if (type == 1) {
       for (let i = 0; i < itemCount; i++) {
@@ -663,7 +682,7 @@
       }
       , footer: {
         enabled: true
-        , enableStatus: true
+        , enableStatus: false
         , enableSelectionInfo: true
         , height: 20
         , position: 'center'

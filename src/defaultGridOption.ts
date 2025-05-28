@@ -170,7 +170,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     position: "center", // 위치 값
     callback: false, // 페이지 콜백
     enableSelectionInfo: false,
-    selectionFormat: "Count : {{count}} Avg : {{avg}} Sum : {{sum}}",
+    selectionFormat: "Count : {{count}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}",
   },
   paging: false, // paging info
   i18n: {

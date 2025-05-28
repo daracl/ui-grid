@@ -1,9 +1,7 @@
 import { GridOptions } from "@t/GridOptions";
-import { Config, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
+import { Config } from "@t/GridConfig";
 import * as utils from "src/util/utils";
-import { initSelectionInfo } from "../../defaultGridConfig";
-import { FieldItem } from "@t/GridField";
-import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
+import { getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
 import { eventOff, eventOn, eventPosition, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
@@ -547,8 +545,6 @@ export default class Scroll {
     const beforeStartIdx = cfg.scroll.startIdx;
 
     this.setVerticalPosition(cfg, topVal);
-
-    this.gridMain.setScrollStatus();
 
     if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
