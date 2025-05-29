@@ -69,11 +69,6 @@ export interface GridOptions {
   };
 
   /**
-   * 복사 모드
-   */
-  copyMode: COPY_MODE;
-
-  /**
    * 수정 모드 활성화
    */
   editable: boolean;

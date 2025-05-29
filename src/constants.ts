@@ -31,7 +31,7 @@ export type COPY_MODE = "single" | "multiple" | "none";
 export type ALIGN_TYPE = "left" | "center" | "right";
 
 // 선택 타입
-export type SELECTION_MODE = "row" | "cell" | "multiple-row" | "multiple-cell";
+export type SELECTION_MODE = "row" | "cell" | "multiple-row" | "multiple-cell" | "none";
 
 // theme type
 export type THEME_TYPE = "light" | "dark";

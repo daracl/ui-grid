@@ -1,8 +1,8 @@
 import { ValidResult } from "@t/ValidResult";
-import Lanauage from "./Lanauage";
+import Language from "./Language";
 import { FieldItem } from "@t/GridField";
 
-export const invalidMessage = (field: FieldItem, rowElement: Element, validResult: ValidResult | boolean) => {
+export const invalidMessage = (language: Language, field: FieldItem, rowElement: Element, validResult: ValidResult | boolean) => {
   if (validResult === true) {
     rowElement.classList.remove("invalid");
 
@@ -25,7 +25,7 @@ export const invalidMessage = (field: FieldItem, rowElement: Element, validResul
   }
 
   if (validResult !== false) {
-    const message: string[] = Lanauage.validMessage(field, validResult);
+    const message: string[] = language.validMessage(field, validResult);
 
     if (validResult.message) {
       message.push(validResult.message);

@@ -38,14 +38,14 @@ export default class SelectionInfo {
     }
     const cfg = this.config;
     const changeRangeInfo = changeSelection.range;
-    let currentSelection = cfg.selection;
-    if (initFlag) {
-      currentSelection = initSelectionInfo();
+    let currentSelection = initFlag ? initSelectionInfo() : cfg.selection;
+    currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
 
-      currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
+    const lastRowIdx = cfg.dataInfo.lastRow;
+    const lastCol = cfg.dataInfo.colLength - 1;
+
+    if (initFlag) {
       currentSelection.allRange[currentSelection.id] = currentSelection.range;
-    } else {
-      currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
     }
 
     // const stack = new Error().stack;
@@ -58,29 +58,17 @@ export default class SelectionInfo {
 
     let rangeInfo = currentSelection.range;
 
-    const lastRowIdx = cfg.dataInfo.lastRow;
-    const lastCol = cfg.dataInfo.colLength - 1;
-
     rangeInfo.startIdx = Math.min(Math.max(rangeInfo.startIdx, 0), lastRowIdx);
     rangeInfo.endIdx = Math.min(Math.max(rangeInfo.endIdx, 0), lastRowIdx);
 
     rangeInfo.startCol = Math.min(Math.max(rangeInfo.startCol, 0), lastCol);
     rangeInfo.endCol = Math.min(Math.max(rangeInfo.endCol, 0), lastCol);
 
-    console.log("JSON.stringify(rangeInfo) : ", JSON.stringify(rangeInfo));
+    currentSelection.minIdx = Math.min(currentSelection.minIdx == -1 ? rangeInfo.startIdx : currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
+    currentSelection.maxIdx = Math.max(currentSelection.maxIdx == -1 ? rangeInfo.endIdx : currentSelection.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
 
-    currentSelection.minIdx = Math.min(currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
-    currentSelection.maxIdx = Math.max(currentSelection.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
-
-    if (initFlag !== true) {
-      currentSelection.minCol = currentSelection.minCol == -1 ? Math.min(rangeInfo.endCol, rangeInfo.startCol) : Math.min(currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
-      currentSelection.maxCol = currentSelection.maxCol == -1 ? Math.max(rangeInfo.endCol, rangeInfo.startCol) : Math.max(currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
-    }
-
-    // header 클릭 처리 할것.
-    //
-    //
-    //
+    currentSelection.minCol = Math.min(currentSelection.minCol == -1 ? rangeInfo.startCol : currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
+    currentSelection.maxCol = Math.max(currentSelection.maxCol == -1 ? rangeInfo.endCol : currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
 
     if (isRangeInfo) return;
 
@@ -88,6 +76,8 @@ export default class SelectionInfo {
     rangeInfo.maxIdx = Math.max(rangeInfo.endIdx, rangeInfo.startIdx);
     rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
     rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
+
+    //console.log("JSON.stringify(rangeInfo) : ", JSON.stringify(currentSelection));
 
     currentSelection.allRange[currentSelection.id] = rangeInfo;
 
@@ -187,8 +177,6 @@ export default class SelectionInfo {
     const keyInfoMap = {} as any;
     const summary = { count: 0, numbers: [] as number[] };
     const isJson = dataType === "json";
-
-    console.log("startIdx, endIdx, startCol, endCol", startIdx, endIdx, startCol, endCol);
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];

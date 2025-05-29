@@ -2,6 +2,7 @@ import { Message } from "@t/Message";
 import { FieldItem } from "../types/GridField";
 import { ValidResult } from "@t/ValidResult";
 import { RULES } from "src/constants";
+import { merge } from "./utils";
 
 let localeMessage: Message = {
   required: "{label} 필수 입력사항입니다.",
@@ -37,6 +38,7 @@ let localeMessage: Message = {
   },
   "search.label": "찾기",
   "search.button": "검색",
+  "no.data": "No Data",
 };
 
 /**
@@ -45,17 +47,20 @@ let localeMessage: Message = {
  * @class Language
  * @typedef {Language}
  */
-class Language {
+export default class Language {
   private lang: Message = localeMessage;
 
+  public static setGlobalMessage(lang?: Message) {
+    localeMessage = merge(localeMessage, lang);
+  }
   /**
    * 다국어 메시지 등록
    *
    * @public
    * @param {?Message} [lang] 둥록할 메시지
    */
-  public set(lang?: Message) {
-    this.lang = Object.assign({}, localeMessage, lang);
+  public setMessage(lang?: Message) {
+    this.lang = merge(this.lang, lang);
   }
 
   /**
@@ -126,5 +131,3 @@ function message(msgFormat: string, msgParam: any): string {
     return typeof msgParam[key] !== "undefined" ? msgParam[key] : match;
   });
 }
-
-export default new Language();

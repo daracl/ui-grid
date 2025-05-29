@@ -10,7 +10,7 @@ import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection } from "src/util/gridUtils";
+import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection, isRowSelection } from "src/util/gridUtils";
 import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
 import { addClass, removeClass } from "src/util/styleUtils";
 
@@ -156,7 +156,7 @@ export default class Header {
 
     const headerCellElements = this.headerElement.finds(".dg-header-cell");
 
-    if (this.headerOpts.enableAllColumnSelection) {
+    if (this.headerOpts.enableAllColumnSelection && !isRowSelection(selectionMode)) {
       //header resize, dblclick or drag
       eventOff(headerCellElements, "touchstart mousedown");
       eventOn(

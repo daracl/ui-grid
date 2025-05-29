@@ -16,7 +16,7 @@
     </div>
     row
     <select id="itemCount">
-      <option value="1">0</option>
+      <option value="0">0</option>
       <option value="5">5</option>
       <option value="10">10</option>
       <option value="20">20</option>
@@ -63,8 +63,8 @@
   <textarea id="dropTextArea" style="width:100%" rows="2"></textarea>
   <table style="width:95%;height:80vh">
     <colgroup>
-      <col style="width:80%">
-      <col style="width:10%">
+      <col style="width:60%">
+      <col style="width:40%">
     </colgroup>
     <tr>
       <td>
@@ -76,7 +76,7 @@
 
       </td>
       <td>
-        <div style="height:20px;background-color: aqua;"></div>
+        <div id="sample2" style="height:calc(100vh - 200px);width:100%;"></div>
       </td>
 
     </tr>
@@ -120,6 +120,8 @@
   }
 </style>
 <script>
+
+  Daracl.grid.message({ "no.data": "데이터가 없습니다." })
 
   const THEME_KEY = "grid-theme";
   const theme = localStorage.getItem(THEME_KEY);
@@ -185,6 +187,14 @@
     const item = getItem(itemType, itemCount, cellCount);
 
     gridDraw(document.getElementById('sample'), item.aaa, item.colItem);
+
+
+    gridDraw(document.getElementById('sample2'), item.aaa, item.colItem, {
+      'asdf': ''
+      , "no.data": '데이타 없음'
+      //,empty: function (){ return '데이타 없음'}
+
+    });
 
   }
 
@@ -523,7 +533,7 @@
     };
   }//test
 
-  function gridDraw(element, aaa, colItem) {
+  function gridDraw(element, aaa, colItem, message) {
     let gridObj = Daracl.grid.create(element, {
       editable: true
       , styleClass: "striped"
@@ -674,12 +684,6 @@
           enableWheel: true
         }
       }
-      , message: {
-        'asdf': ''
-        , empty: '데이타 없음'
-        //,empty: function (){ return '데이타 없음'}
-
-      }
       , footer: {
         enabled: true
         , enableStatus: false
@@ -778,7 +782,7 @@
       }
 
 
-    });
+    }, message);
   }
 
 

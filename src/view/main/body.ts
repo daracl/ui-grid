@@ -568,12 +568,11 @@ export default class Body {
   private initKeydownEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
-    const copyMode = opts.copyMode;
     const selectionMode = opts.selectionMode;
     // window keydown 처리.  tabindex 처리 확인 해볼것.
 
-    eventOff(document, "keydown");
-    eventOn(document, "keydown", (e: KeyboardEvent) => {
+    eventOff(this.gridMain.mainElement().getElement(), "keydown");
+    eventOn(this.gridMain.mainElement().getElement(), "keydown", (e: KeyboardEvent) => {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;
@@ -592,22 +591,11 @@ export default class Body {
 
         if (evtKey == 67) {
           // ctrl+ c
-          if (copyMode == "none") {
+          if (selectionMode == "none") {
             return;
           }
 
-          let copyData = "asdfasfd";
-
-          if (selectionMode == "row" && copyMode == "single" && cfg.selection.all !== true) {
-            // const startCellInfo = cfg.selection.startCell;
-            // const selItem = cfg.currentClickInfo[startCellInfo.startIdx];
-            // if (utils.isUndefined(selItem)) {
-            //   return;
-            // }
-            // copyData = opts.tbodyItem[startCellInfo.startIdx][cfg.currentHeaderItems[startCellInfo.startCol].key];
-          } else {
-            copyData = this.selectionInfo.selectionData();
-          }
+          let copyData = this.selectionInfo.selectionData();
 
           try {
             utils.copyStringToClipboard(copyData);
@@ -908,6 +896,8 @@ export default class Body {
 
       cfg.scroll.before.viewRow = viewRow;
     }
+
+    this.bodyElement.attr({ "data-view-mode": items.length < 1 ? "empty" : "grid" });
 
     if (viewRow < 1) {
       return;

@@ -13,6 +13,7 @@ import Scroll from "./main/Scroll";
 import { eventOff, eventOn } from "src/util/eventUtils";
 import { isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
+import Language from "src/util/Language";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 /**
@@ -87,19 +88,23 @@ export default class GridMain {
 
     const mainElement = this._mainElement.getElement();
 
-    // focus in
+    // focus in, mousedown
     eventOn(mainElement, "mousedown", (e: UIEvent) => {
       this.setGridFocusIn(e);
     });
 
-    // focus out
-    eventOff(document, "mousedown");
-    eventOn(document, "mousedown", (e: UIEvent) => {
-      if (!this.grid.config().focus) {
-        return true;
-      }
+    // focus out // blur, focusout
+    eventOn(mainElement, "blur", (e: FocusEvent) => {
+      const nextFocused = e.relatedTarget as HTMLElement | null;
 
-      this.setGridFocusOut(e);
+      // container 바깥으로 포커스가 나간 경우에만 실행
+      if (!nextFocused || !mainElement?.contains(nextFocused)) {
+        if (!this.grid.config().focus) {
+          return true;
+        }
+
+        this.setGridFocusOut(e);
+      }
     });
   }
 
@@ -847,7 +852,7 @@ export default class GridMain {
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
-          <div tabindex="-1" style="outline:none !important;" class="dg-main daracl-noselect dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
+          <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
                   ${
                     opts.header.view
@@ -858,11 +863,13 @@ export default class GridMain {
                     </div>`
                       : ""
                   }
+                 
                   
                   <div class="dg-panel dg-body">
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
+                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid.language.getMessage("no.data")}</span></span></div>
                   </div>
                   ${
                     dimensions.mainSummaryHeight > 0

@@ -38,4 +38,5 @@ export interface Message {
   };
   "search.label": string;
   "search.button": string;
+  "no.data": string;
 }

@@ -7,7 +7,7 @@ import { ADD_ROW_POSITION, FIELD_PREFIX } from "./constants";
 
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
-import Lanauage from "./util/Lanauage";
+import Language from "./util/Language";
 import { addStyleTag } from "./util/styleUtils";
 import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
@@ -34,6 +34,8 @@ export default class DaraGrid {
 
   private readonly options;
 
+  public language: Language;
+
   /**
    * grid element
    *
@@ -59,7 +61,14 @@ export default class DaraGrid {
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
-    Lanauage.set(message);
+    this.language = new Language();
+
+    if (message) this.language.setMessage(message);
+
+    //
+    //----------------------------
+    // grid 생성시 들어오면 지역 처리 , setMessage로 들어오면 전역 처리 할것.
+    // message 전체 처리 지역 처리 추가 할것.
 
     if (gridElement == null || typeof gridElement === "undefined") {
       throw new Error(`${gridElement} grid element not found`);
@@ -98,8 +107,8 @@ export default class DaraGrid {
     return new DaraGrid(gridElement, options, message);
   }
 
-  public static setMessage(message: Message): void {
-    Lanauage.set(message);
+  public static message(message: Message): void {
+    Language.setGlobalMessage(message);
   }
 
   private createGrid() {
