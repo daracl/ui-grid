@@ -13,9 +13,18 @@
     height: 40px;
 
     .dg-paging {
-      > div {
+      display: table;
+      text-align: center;
+      margin: 0px auto;
+      > ul {
         position: absolute;
-        left: 5px;
+
+        &.left {
+          left: 5px;
+          top: 50%;
+          transform: translate(-50%, -50%);
+        }
+
         &.center {
           left: 50%;
           top: 50%;
@@ -25,6 +34,61 @@
         &.right {
           right: 5px;
         }
+        display: table-cell;
+        vertical-align: middle;
+        padding: 0;
+        margin: 0px;
+        text-align: center;
+
+        > li {
+          display: inline;
+
+          a,
+          span {
+            padding: 3px 7px;
+            margin: 0px 1px;
+            text-decoration: none;
+            border-radius: 5px;
+            vertical-align: middle;
+          }
+
+          &:first-child > a,
+          &:first-child > span {
+            margin-left: 0;
+          }
+
+          > a:hover,
+          > span:hover,
+          > a:focus,
+          > span:focus {
+            background-color: #d1e4f5;
+          }
+        }
+
+        .active > a,
+        > .active > span,
+        > .active > a:hover,
+        > .active > span:hover,
+        > .active > a:focus,
+        > .active > span:focus {
+          z-index: 3;
+          color: #fff;
+          cursor: default;
+          background-color: #4e9ffa;
+          border-color: #4e9ffa;
+        }
+
+        > .disabled > span,
+        > .disabled > span:hover,
+        > .disabled > span:focus,
+        > .disabled > a,
+        > .disabled > a:hover,
+        > .disabled > a:focus {
+          opacity: 0.6;
+          cursor: default;
+          border-color: var(--disabled-bg);
+          background-color: transparent;
+        }
       }
     }
 
@@ -33,6 +97,8 @@
       right: 5px;
       height: 100%;
       display: table;
+      top: 0px;
+      vertical-align: middle;
 
       > span {
         padding-left: 15px;

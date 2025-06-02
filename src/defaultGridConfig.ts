@@ -1,6 +1,8 @@
-import { GridOptions } from "@t/GridOptions";
+import { GridOptions, PagingOptions } from "@t/GridOptions";
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
 import { FieldItem } from "@t/GridField";
+import { PagingInfo } from "@t/PagingInfo";
+import { isPlainObject } from "./util/utils";
 
 /**
  * 
@@ -13,6 +15,8 @@ import { FieldItem } from "@t/GridField";
  * grid default config
  */
 export const initConfig = (opts: GridOptions): Config => {
+  const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingOptions;
+
   return {
     dimensions: {
       width: 0,
@@ -49,7 +53,7 @@ export const initConfig = (opts: GridOptions): Config => {
     cellWidths: [],
     rowHeights: [],
     sort: { orders: [] },
-    pagingInfo: false,
+    paging: pagingInfo,
     selection: {} as Selection,
     searchOn: false,
     focus: false,

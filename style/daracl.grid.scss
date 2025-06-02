@@ -41,9 +41,9 @@
   --field-margin-top: 10px;
   --input-bg: #fff;
   --input-color: #212529;
-  --input-disabled-bg: #ebebeb;
   --header-bg: #f1f1f1;
   --body-bg: #ffffff;
+  --disabled-bg: #ebebeb;
 
   --fixed-column-bg: #9b9a9a;
 
@@ -84,9 +84,9 @@ body.dark .daracl-grid.dark {
   --field-margin-top: 10px;
   --input-bg: transparent;
   --input-color: #c6cddb;
-  --input-disabled-bg: #878787;
   --header-bg: #878787;
   --body-bg: #000000;
+  --disabled-bg: #878787;
 
   --fixed-column-bg: #b0b0b0;
 

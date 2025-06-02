@@ -85,7 +85,7 @@ export default class SelectionInfo {
       this.setCellSelect(initFlag);
     }
 
-    this.gridMain.setSelectionStatus();
+    this.gridMain.getFooter().setSelectionStatus();
   }
 
   /**
@@ -152,7 +152,7 @@ export default class SelectionInfo {
   public setAllSelection(flag: boolean) {
     this.config.selection.all = flag;
     this.setCellSelect(false);
-    this.gridMain.setSelectionStatus();
+    this.gridMain.getFooter().setSelectionStatus();
   }
 
   /**
@@ -229,15 +229,24 @@ export default class SelectionInfo {
       let summaryInfo = {};
 
       if (isSummary) {
-        const sum = summary.numbers.reduce((a, b) => a + b, 0);
-        const avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
+        let sum = -1;
+        let avg: any = -1;
+        let min = -1;
+        let max = -1;
+        if (summary.numbers.length > 0) {
+          sum = summary.numbers.reduce((a, b) => a + b, 0);
+          avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
+          min = Math.min(...summary.numbers);
+          max = Math.max(...summary.numbers);
+        }
 
         summaryInfo = {
           count: summary.count,
-          min: Math.min(...summary.numbers),
-          max: Math.max(...summary.numbers),
+          min: min,
+          max: max,
           sum,
           avg,
+          numFieldCount: summary.numbers.length,
         };
       }
 

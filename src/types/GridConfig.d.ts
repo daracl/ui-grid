@@ -2,6 +2,8 @@ import { OptionCallback, AnyKeyMap, StringKeyMap, Map } from "./Common";
 import FieldInfoMap from "../FieldInfoMap";
 import { FieldItem } from "./GridField";
 import DaraElement from "src/element/DaraElement";
+import { PagingInfo } from "./PagingInfo";
+import { PagingOptions } from "./GridOptions";
 
 /**
  * grid config info
@@ -71,7 +73,7 @@ export interface Config {
   sort: {
     orders: Array;
   };
-  pagingInfo: boolean;
+  paging: PagingOptions;
   selection: Selection;
   searchOn: boolean;
   isHeaderResize: boolean;

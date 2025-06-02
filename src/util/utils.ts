@@ -167,11 +167,53 @@ export const getHashCode = (str: string) => {
  * @param {*} param replace parameter
  * @returns {*}
  */
-export const replaceMesasgeFormat = (logicCode: string, param: any) => {
-  return logicCode.replace(/{{(.+?)}}/gi, function (word) {
-    const key = word.replace(/[\{\}]/g, "");
-    return param[key];
+export const replaceMesasgeFormat = (template: string, data: any) => {
+  // 1. 조건부 블록 처리
+  template = template.replace(/{{if\(([^)]+)\)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
+    const booleanConditionRegex = /^\s*(\w+)\s*$/;
+    const comparisonConditionRegex = /^\s*(\w+)\s*(==|!=|>|>=|<|<=)\s*(\d+)\s*$/;
+
+    let result = false;
+
+    if (booleanConditionRegex.test(condition)) {
+      const [, key] = condition.match(booleanConditionRegex);
+      result = Boolean(data[key]);
+    } else if (comparisonConditionRegex.test(condition)) {
+      const [, key, operator, numberStr] = condition.match(comparisonConditionRegex);
+      const left = data[key];
+      const right = Number(numberStr);
+
+      switch (operator) {
+        case "==":
+          result = left == right;
+          break;
+        case "!=":
+          result = left != right;
+          break;
+        case ">":
+          result = left > right;
+          break;
+        case ">=":
+          result = left >= right;
+          break;
+        case "<":
+          result = left < right;
+          break;
+        case "<=":
+          result = left <= right;
+          break;
+      }
+    }
+
+    return result ? content : "";
   });
+
+  // 2. 변수 치환
+  template = template.replace(/{{\s*(\w+)\s*}}/g, (match, key) => {
+    return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : "";
+  });
+
+  return template;
 };
 
 export const templateToElement = (htmlTemplate: string): Element | null => {

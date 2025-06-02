@@ -14,6 +14,7 @@ import { eventOff, eventOn } from "src/util/eventUtils";
 import { isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Language from "src/util/Language";
+import Footer from "./Footer";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 /**
@@ -31,6 +32,8 @@ export default class GridMain {
 
   private body: Body;
 
+  private footer: Footer;
+
   private scroll: Scroll;
 
   private _mainElement: DaraElement;
@@ -38,10 +41,6 @@ export default class GridMain {
   private containerElement: DaraElement;
 
   public pasteElement: DaraElement;
-
-  private selectionStatusElement: DaraElement;
-
-  private scrollStatusElement: DaraElement;
 
   private readonly enableViewAllLabel: boolean;
 
@@ -74,6 +73,7 @@ export default class GridMain {
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
     this.scroll = new Scroll(this.grid, this);
+    this.footer = new Footer(this.grid, this);
 
     // grid draw
     this.body.dataDraw();
@@ -208,6 +208,10 @@ export default class GridMain {
    */
   public getBody() {
     return this.body;
+  }
+
+  public getFooter() {
+    return this.footer;
   }
 
   /**
@@ -372,23 +376,24 @@ export default class GridMain {
       mainTotalWidth += isHeaderResize ? field.$width : field.width;
     }
 
-    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - this.grid.getOptions().scroll.width;
+    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
 
     //세로 스크롭 계산 start
-    const rowHeight = this.grid.getOptions().body.row.height;
+    const rowHeight = opts.body.row.height;
 
     if (opts.scroll.vertical.enable === false) {
-      dimensions.mainHeight = rowHeight * cfg.dataInfo.rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
+      dimensions.mainHeight = rowHeight * cfg.dataInfo.rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
     }
 
-    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? this.grid.getOptions().scroll.width : 0));
+    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
+    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
+    cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+
     cfg.scroll.before.viewRow = cfg.scroll.viewRow;
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = cfg.scroll.viewRow < 1 ? 1 : cfg.scroll.viewRow;
-    cfg.scroll.viewRow = cfg.scroll.viewRow > cfg.dataInfo.rowLength ? cfg.dataInfo.rowLength : cfg.scroll.viewRow;
+    cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), cfg.dataInfo.rowLength);
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
-    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 1 : 0; // +2 마지막 여백처리;
 
     let remainderWidth = 0,
@@ -724,62 +729,6 @@ export default class GridMain {
   }
 
   /**
-   * selection status info
-   *
-   * @public
-   * @param {string} info selection info
-   */
-  public setSelectionStatus(dataInfo?: any) {
-    const footerOpts = this.grid.getOptions().footer;
-
-    if (footerOpts.enableSelectionInfo) {
-      const dataInfo = this.selectionInfo.selectionData("json", true);
-
-      if (!utils.isUndefined(dataInfo) && dataInfo.summary.count > 1) {
-        const selectionFormat = this.grid.getOptions().footer.selectionFormat;
-        let statusText = "";
-        if (utils.isString(selectionFormat)) {
-          statusText = utils.replaceMesasgeFormat(selectionFormat, dataInfo.summary);
-        } else if (utils.isFunction(selectionFormat)) {
-          statusText = selectionFormat(dataInfo);
-        }
-
-        this.selectionStatusElement.text(statusText);
-      } else {
-        this.selectionStatusElement.text("");
-      }
-    }
-  }
-
-  public setScrollStatus() {
-    const footerOpts = this.grid.getOptions().footer;
-
-    if (footerOpts.enableStatus) {
-      const cfg = this.grid.config();
-
-      let statusInfo: any = {
-        currStart: 1,
-        currEnd: 10,
-        total: cfg.dataInfo.rowLength,
-      };
-
-      if (!utils.isUndefined(statusInfo)) {
-        const statusFormat = this.grid.getOptions().footer.statusFormat;
-        let statusText = "";
-        if (utils.isString(statusFormat)) {
-          statusText = utils.replaceMesasgeFormat(statusFormat, statusInfo);
-        } else if (utils.isFunction(statusFormat)) {
-          statusText = statusFormat(statusInfo);
-        }
-
-        this.scrollStatusElement.text(statusText);
-      } else {
-        this.scrollStatusElement.text("");
-      }
-    }
-  }
-
-  /**
    * set data
    *
    * @param {any[]} items
@@ -847,6 +796,11 @@ export default class GridMain {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
+
+    // const align = ALIGN[this.grid.getOptions().footer.position ?? "center"];
+    // class="${align}"
+    //
+    // paging , status , selection 위치 처리 할것.
 
     let templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
@@ -920,10 +874,5 @@ export default class GridMain {
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
     this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
-
-    if (opts.footer.enabled) {
-      this.selectionStatusElement = new DaraElement(this.grid.element().find(".dg-footer .dg-selection-status"));
-      this.scrollStatusElement = new DaraElement(this.grid.element().find(".dg-footer .dg-scroll-status"));
-    }
   }
 }

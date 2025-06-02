@@ -12,6 +12,7 @@ import { addStyleTag } from "./util/styleUtils";
 import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
 import { FieldItem } from "@t/GridField";
+import { PagingInfo } from "@t/PagingInfo";
 
 declare const APP_VERSION: string;
 
@@ -164,6 +165,12 @@ export default class DaraGrid {
 
   public getData = () => {
     return this.mainConfig.items;
+  };
+
+  public setPaging = (paging: PagingInfo) => {
+    this.getOptions().paging = paging;
+    this.config().paging = paging;
+    this.gridMain.getFooter().setPaging(paging);
   };
 
   /**

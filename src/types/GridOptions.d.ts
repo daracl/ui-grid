@@ -657,14 +657,7 @@ export interface FooterOptions {
    * navigation page 사용여부
    */
   enabled?: boolean;
-  /**
-   * 상태 보이기 여부
-   */
-  enableStatus?: boolean;
-  /**
-   * 상태 메시지 포멧
-   */
-  statusFormat?: string | OptionCallback;
+
   /**
    * 높이
    */
@@ -672,7 +665,15 @@ export interface FooterOptions {
   /**
    * 위치 값
    */
-  position?: POSITION_TYPE; // 위치 값
+  position?: array; // 위치 값
+  /**
+   * 페이지 보이기 여부
+   */
+  enablePaging?: boolean;
+  /**
+   * 페이지 메시지 포멧
+   */
+  pagingFormat?: string | OptionCallback;
   /**
    * page num callback
    */

@@ -977,6 +977,8 @@ export default class Body {
       }
     }
 
+    this.gridMain.getFooter().setPaging(cfg.paging);
+
     //const end = performance.now();
     //console.log(`실행 시간: ${end - start} ms`);
   }

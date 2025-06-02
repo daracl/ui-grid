@@ -163,13 +163,13 @@ export const DEFAULT_OPTIONS: GridOptions = {
   items: [], // body item
   footer: {
     enabled: false, // 페이지 사용여부
-    enableStatus: false,
-    statusFormat: "{{currStart}} - {{currEnd}} of {{total}}",
+    enablePaging: false,
+    pagingFormat: "{{currStart}} - {{currEnd}} of {{total}}",
     height: FOOTER_HEIGHT, // 높이 값
-    position: "center", // 위치 값
+    position: ["selection", "paing", "status"], // 위치 값
     callback: false, // 페이지 콜백
     enableSelectionInfo: false,
-    selectionFormat: "Count : {{count}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}",
+    selectionFormat: "Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}",
   },
   paging: false, // paging info
   i18n: {

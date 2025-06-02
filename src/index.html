@@ -188,13 +188,14 @@
 
     gridDraw(document.getElementById('sample'), item.aaa, item.colItem);
 
-
+    /*
     gridDraw(document.getElementById('sample2'), item.aaa, item.colItem, {
       'asdf': ''
       , "no.data": '데이타 없음'
       //,empty: function (){ return '데이타 없음'}
 
     });
+    */
 
   }
 
@@ -686,9 +687,9 @@
       }
       , footer: {
         enabled: true
-        , enableStatus: false
+        , enablePaging: true
         , enableSelectionInfo: true
-        , height: 20
+        , height: 35
         , position: 'center'
         , callback: function (arg) {
           console.log(arg);
@@ -698,10 +699,10 @@
 
       }
       , paging: {
-        totalCount: 155
-        , currPage: 9
+        totalCount: 121
+        , currPage: 1
         , countPerPage: 10
-        , unitPage: 10
+        , unitPage: 5
       }
       , fields: colItem
       , items: aaa
