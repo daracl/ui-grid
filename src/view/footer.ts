@@ -1,4 +1,4 @@
-import { FooterOptions, GridOptions, HeaderOptions, PagingOptions } from "@t/GridOptions";
+import { FooterOptions, GridOptions, HeaderOptions, PagingParam } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
@@ -10,6 +10,7 @@ import GridMain from "./GridMain";
 import SelectionInfo from "src/selection/selection";
 import { getPagingInfo } from "src/util/pagingUtil";
 import { PagingInfo } from "@t/PagingInfo";
+import { eventOn } from "src/util/eventUtils";
 
 /**
  * Summary class
@@ -20,17 +21,23 @@ import { PagingInfo } from "@t/PagingInfo";
 export default class Footer {
   private grid: DaraGrid;
 
+  private gridMain: GridMain;
+
   private footerOpts: FooterOptions;
 
   private selectionStatusElement: DaraElement;
 
-  private scrollStatusElement: DaraElement;
+  private pagingInfoElement: DaraElement;
 
   private paingElement: DaraElement;
+
+  private footerElement: DaraElement;
 
   private selectionInfo: SelectionInfo;
 
   private config: Config;
+
+  private isSelectionInfo: boolean;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.footerOpts = grid.getOptions().footer;
@@ -38,19 +45,74 @@ export default class Footer {
     if (!this.footerOpts.enabled) return;
 
     this.grid = grid;
+    this.gridMain = gridMain;
     this.selectionInfo = gridMain.selectionInfo;
     this.config = this.grid.config();
 
-    this.selectionStatusElement = new DaraElement(grid.element().find(".dg-footer .dg-selection-status"));
-    this.scrollStatusElement = new DaraElement(grid.element().find(".dg-footer .dg-scroll-status"));
+    this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
 
-    this.paingElement = new DaraElement(grid.element().find(".dg-footer .dg-paging"));
+    const footerElement = grid.element().findDaraElement(".dg-footer");
+    this.footerElement = footerElement;
+    this.selectionStatusElement = footerElement.findDaraElement(".dg-selection-status");
 
-    // paging 처리 할것.
-    //
-    //
-    //
-    //
+    this.initPaging();
+  }
+
+  /**
+   * init footer event
+   */
+  initPaging() {
+    if (this.footerOpts.paging?.enabled) {
+      this.paingElement = this.footerElement.findDaraElement(".dg-paging");
+      this.pagingInfoElement = this.footerElement.findDaraElement(".dg-paging-info");
+      this.initPagingEvent();
+
+      this.goPage(this.grid.config().paging.currPage);
+    }
+  }
+
+  /**
+   * init paging event
+   */
+  initPagingEvent() {
+    const pagingCallback = this.footerOpts.paging?.callback;
+    const pagingElement = this.paingElement.getElement();
+    eventOn(
+      pagingElement,
+      "click",
+      (e: UIEvent) => {
+        const pageNumElement = (e.target as HTMLElement).closest(".dg-page-num");
+
+        const pageNum = parseInt(pageNumElement?.getAttribute("pageno") ?? "1", 10);
+
+        if (pagingCallback) {
+          pagingCallback(pageNum);
+        } else {
+          this.goPage(pageNum);
+        }
+
+        return true;
+      },
+      ".dg-page-num",
+      { passive: false }
+    );
+  }
+
+  public goPage(pageNum: number) {
+    const pagingInfo = this.config.paging;
+    pagingInfo.currPage = pageNum;
+    pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.config.items.length;
+
+    const pagingViewInfo = this.setPaging(pagingInfo);
+
+    if (pagingViewInfo) {
+      const countPerPage = pagingViewInfo?.countPerPage;
+      const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
+
+      this.gridMain.setViewDataInfo(utils.arrayCopy(this.config.orginItems, startIdx, startIdx + countPerPage));
+      this.gridMain.getBody().dataDraw("paging");
+      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
+    }
   }
 
   /**
@@ -60,11 +122,11 @@ export default class Footer {
    * @param {string} info selection info
    */
   public setSelectionStatus(dataInfo?: any) {
-    if (this.footerOpts.enableSelectionInfo) {
+    if (this.isSelectionInfo) {
       const dataInfo = this.selectionInfo.selectionData("json", true);
 
       if (!utils.isUndefined(dataInfo) && dataInfo.summary.count > 1) {
-        const selectionFormat = this.footerOpts.selectionFormat;
+        const selectionFormat = this.footerOpts.selection?.format;
         let statusText = "";
         if (utils.isString(selectionFormat)) {
           dataInfo.summary.enableSummary = dataInfo.summary.numFieldCount > 0;
@@ -80,18 +142,22 @@ export default class Footer {
     }
   }
 
-  public setScrollStatus() {
-    if (this.footerOpts.enablePaging) {
-      const cfg = this.grid.config();
+  public setPagingInfo(pagingInfo: PagingInfo) {
+    if (this.footerOpts.paging?.enabled) {
+      const countPerPage = pagingInfo.countPerPage;
+
+      const start = (pagingInfo.currPage - 1) * countPerPage;
 
       let statusInfo: any = {
-        currStart: 1,
-        currEnd: 10,
-        total: cfg.dataInfo.rowLength,
+        start: start + 1,
+        end: start + countPerPage,
+        total: pagingInfo.totalCount,
       };
 
-      if (!utils.isUndefined(statusInfo)) {
-        const statusFormat = this.footerOpts.pagingFormat;
+      statusInfo.end = statusInfo.end > pagingInfo.totalCount ? pagingInfo.totalCount : statusInfo.end;
+
+      if (pagingInfo.totalCount > 0) {
+        const statusFormat = this.footerOpts.paging?.format;
         let statusText = "";
         if (utils.isString(statusFormat)) {
           statusText = utils.replaceMesasgeFormat(statusFormat, statusInfo);
@@ -99,9 +165,9 @@ export default class Footer {
           statusText = statusFormat(statusInfo);
         }
 
-        this.scrollStatusElement.text(statusText);
+        this.pagingInfoElement.text(statusText);
       } else {
-        this.scrollStatusElement.text("");
+        this.pagingInfoElement.text("");
       }
     }
   }
@@ -110,20 +176,23 @@ export default class Footer {
    * paging
    *
    * @public
-   * @param {PagingOptions} info
+   * @param {PagingParam} info
    * @returns {this}
    */
-  public setPaging(info: PagingOptions) {
-    if (this.footerOpts.enablePaging !== true) {
+  public setPaging(info: PagingParam) {
+    if (utils.isUndefined(this.footerOpts.paging)) {
       throw new Error("enablePaging not enabled");
     }
 
     if (info.totalCount < 1) {
+      this.setPagingInfo({ totalCount: 0 } as PagingInfo);
       this.paingElement.empty();
       return;
     }
 
     const pagingInfo = getPagingInfo(info.totalCount ?? 0, info.currPage, info.countPerPage, info.unitPage);
+
+    this.setPagingInfo(pagingInfo);
 
     this.config.paging = pagingInfo;
 
@@ -142,11 +211,11 @@ export default class Footer {
     if (currP <= 1) {
       strHTML.push(' <li class="disabled page-icon"><a href="javascript:">&laquo;</a></li>');
     } else {
-      strHTML.push(' <li><a href="javascript:" class="page-num page-icon" pageno="' + preO + '">&laquo;</a></li>');
+      strHTML.push(' <li><a href="javascript:" class="dg-page-num page-icon" pageno="' + preO + '">&laquo;</a></li>');
     }
 
     if (preP_is && currE - pagingInfo.unitPage >= 0) {
-      strHTML.push(' <li class="page-num" pageno="1"><a href="javascript:" >1...</a></li>');
+      strHTML.push(' <li class="dg-page-num" pageno="1"><a href="javascript:" >1...</a></li>');
     }
 
     let no = 0;
@@ -154,24 +223,24 @@ export default class Footer {
       if (no == currP) {
         strHTML.push(' <li class="active"><a href="javascript:">' + no + "</a></li>");
       } else {
-        strHTML.push(' <li class="page-num" pageno="' + no + '"><a href="javascript:" >' + no + "</a></li>");
+        strHTML.push(' <li class="dg-page-num" pageno="' + no + '"><a href="javascript:" >' + no + "</a></li>");
       }
     }
 
     if (currS + pagingInfo.unitPage < pagingInfo.totalPage) {
-      strHTML.push(' <li class="page-num" pageno="' + pagingInfo.totalPage + '"><a href="javascript:" >...' + pagingInfo.totalPage + "</a></li>");
+      strHTML.push(' <li class="dg-page-num" pageno="' + pagingInfo.totalPage + '">...<a href="javascript:" >' + pagingInfo.totalPage + "</a></li>");
     }
 
     if (currP == currE) {
       strHTML.push(' <li class="disabled"><a href="javascript:">&raquo;</a></li>');
     } else {
-      strHTML.push(' <li><a href="javascript:" class="page-num page-icon" pageno="' + nextO + '">&raquo;</a></li>');
+      strHTML.push(' <li><a href="javascript:" class="dg-page-num page-icon" pageno="' + nextO + '">&raquo;</a></li>');
     }
 
     strHTML.push("</ul>");
 
     this.paingElement.html(strHTML.join(""));
 
-    return this;
+    return pagingInfo;
   }
 }

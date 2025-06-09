@@ -3,7 +3,7 @@ import { FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -17,6 +17,10 @@ import Language from "src/util/Language";
 import Footer from "./Footer";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
+
+// main-body  margin = border top + border bottom+ 공백1
+const MAIN_MARGIN_BOTTOM = 3;
+
 /**
  * DaraGrid class
  *
@@ -50,6 +54,8 @@ export default class GridMain {
 
   private GRID_OFFSET: any;
 
+  private readonly initGridSize: any;
+
   constructor(grid: DaraGrid) {
     this.grid = grid;
 
@@ -58,6 +64,7 @@ export default class GridMain {
 
     this.cellMinWidth = headerOpts.resize.minWidth;
 
+    this.setDataInfo(grid.getOptions().items);
     this.calculation();
     this.initTemplate();
 
@@ -66,6 +73,11 @@ export default class GridMain {
     this.setElementDimentions();
 
     this.initEvent();
+
+    this.initGridSize = {
+      height: grid.getOptions().height == "auto" ? -1 : grid.getOptions().height,
+      width: grid.getOptions().width == "auto" ? -1 : grid.getOptions().width,
+    };
   }
 
   initMainView() {
@@ -75,14 +87,15 @@ export default class GridMain {
     this.scroll = new Scroll(this.grid, this);
     this.footer = new Footer(this.grid, this);
 
-    // grid draw
-    this.body.dataDraw();
+    if (!this.grid.getOptions().footer.enabled || !this.grid.getOptions().footer.paging?.enabled) {
+      this.body.dataDraw();
+    }
   }
 
   public initEvent() {
     const opts = this.grid.getOptions();
 
-    if (opts.autoResize.enabled === true) {
+    if (opts.width === "auto" || opts.height === "auto") {
       this.initResizeEvent();
     }
 
@@ -140,7 +153,7 @@ export default class GridMain {
    */
   private initResizeEvent() {
     const opts = this.grid.getOptions();
-    const threshold = opts.autoResize.threshold;
+    const threshold = opts.windowResizeDelay ?? 50;
 
     const el = this.grid.element();
 
@@ -173,10 +186,12 @@ export default class GridMain {
     requestAnimationFrame(() => {
       if (!utils.isVisible(el.getElement())) return;
 
-      let newOffset = { width: el.width(), height: el.height() };
+      const initGridSize = this.initGridSize;
+
+      let newOffset = { width: initGridSize.width == -1 ? el.width() : initGridSize.width, height: initGridSize.height == -1 ? el.height() : initGridSize.height };
       if (this.GRID_OFFSET.height != newOffset.height || this.GRID_OFFSET.width != newOffset.width) {
         this.GRID_OFFSET = newOffset;
-        this.setSize(el.width(), el.height());
+        this.setSize(newOffset.width, newOffset.height, true);
       }
     });
   }
@@ -241,12 +256,22 @@ export default class GridMain {
    * @param {?number} [width] 넓이
    * @param {?number} [height] 높이
    */
-  public setSize(width?: number, height?: number) {
+  public setSize(width?: number | "auto", height?: number | "auto", drawFlag: boolean = false) {
     const cfg = this.grid.config();
+
+    if (!utils.isNumber(width) && utils.isNumber(this.grid.getOptions().width)) {
+      width = this.grid.getOptions().width;
+    }
+
+    if (!utils.isNumber(height) && utils.isNumber(this.grid.getOptions().height)) {
+      height = this.grid.getOptions().height;
+    }
+
     cfg.dimensions.width = utils.isNumber(width) ? width : this.grid.element().width();
     cfg.dimensions.height = utils.isNumber(height) ? height : this.grid.element().height();
     cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
-    if (!utils.isUndefined(width)) {
+
+    if (drawFlag) {
       this.resizeDraw();
     }
   }
@@ -336,11 +361,6 @@ export default class GridMain {
 
     const opts = this.grid.getOptions();
 
-    cfg.items = utils.arrayCopy(this.grid.getOptions().items);
-    cfg.orginItems = utils.arrayCopy(this.grid.getOptions().items);
-    cfg.dataInfo.rowLength = cfg.items.length;
-    cfg.dataInfo.lastRow = cfg.items.length > 0 ? cfg.dataInfo.rowLength - 1 : 0;
-
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
     }
@@ -354,7 +374,7 @@ export default class GridMain {
       dimensions.mainSummaryHeight = summaryItemLength * opts.body.row.height;
     }
 
-    this.setSize();
+    this.setSize(this.grid.getOptions().width, this.grid.getOptions().height, false);
   }
 
   /**
@@ -380,16 +400,18 @@ export default class GridMain {
 
     //세로 스크롭 계산 start
     const rowHeight = opts.body.row.height;
+    const verticalEnable = opts.scroll.vertical.enable;
 
-    if (opts.scroll.vertical.enable === false) {
+    if (verticalEnable === false) {
       dimensions.mainHeight = rowHeight * cfg.dataInfo.rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
+      dimensions.mainHeight = dimensions.mainHeight + MAIN_MARGIN_BOTTOM;
     }
 
     dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
-    cfg.scroll.enableVertical = rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight;
+
+    cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight - MAIN_MARGIN_BOTTOM;
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
-    cfg.scroll.before.viewRow = cfg.scroll.viewRow;
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
     cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), cfg.dataInfo.rowLength);
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
@@ -734,16 +756,31 @@ export default class GridMain {
    * @param {any[]} items
    */
   public setData = (items: any[]) => {
-    this.grid.getOptions().items = items;
-    this.calcGridDimention();
-    this.calcBody();
-
-    this.setElementDimentions();
-    this.scroll.calcScroll();
-    this.fieldResize();
+    this.setDataInfo(items);
 
     this.body.dataDraw("setdata");
   };
+
+  private setDataInfo(items: any[]) {
+    const cfg = this.grid.config();
+    cfg.orginItems = utils.arrayCopy(items);
+
+    this.setViewDataInfo(items);
+  }
+
+  public setViewDataInfo(items: any[]) {
+    const cfg = this.grid.config();
+    cfg.items = utils.arrayCopy(items);
+    cfg.dataInfo.rowLength = cfg.items.length;
+    cfg.dataInfo.lastRow = cfg.dataInfo.rowLength > 0 ? cfg.dataInfo.rowLength - 1 : 0;
+
+    this.calcBody();
+    if (this.scroll) {
+      this.scroll.calcScroll();
+      this.setElementDimentions();
+      this.fieldResize();
+    }
+  }
 
   /**
    * add row
@@ -797,7 +834,9 @@ export default class GridMain {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    // const align = ALIGN[this.grid.getOptions().footer.position ?? "center"];
+    const pagingAlign = ALIGN[opts.footer.paging?.position ?? "center"];
+    const selectionAlign = ALIGN[opts.footer.selection?.position ?? "center"];
+    const pagingInfoAlign = ALIGN[opts.footer.paging?.formatPosition ?? "center"];
     // class="${align}"
     //
     // paging , status , selection 위치 처리 할것.
@@ -857,11 +896,11 @@ export default class GridMain {
           ${
             opts.footer.enabled
               ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;">
-            <span class="dg-paging"></span>
-            <span class="dg-status">
+            <span class="dg-status ${selectionAlign}">
               <span class="dg-selection-status"></span>
-              <span class="dg-scroll-status"></span>
             </span>
+            <span class="dg-paging ${pagingAlign}"></span>
+            <span class="dg-paging-info ${pagingInfoAlign}"></span>
           </div>`
               : ""
           }

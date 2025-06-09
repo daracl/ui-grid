@@ -1,4 +1,4 @@
-import { GridOptions, PagingOptions } from "@t/GridOptions";
+import { GridOptions, PagingParam } from "@t/GridOptions";
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
 import { FieldItem } from "@t/GridField";
 import { PagingInfo } from "@t/PagingInfo";
@@ -15,7 +15,7 @@ import { isPlainObject } from "./util/utils";
  * grid default config
  */
 export const initConfig = (opts: GridOptions): Config => {
-  const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingOptions;
+  const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
   return {
     dimensions: {

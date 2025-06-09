@@ -13,5 +13,5 @@ export default class HiddenRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {}
+  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {}
 }

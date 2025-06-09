@@ -689,13 +689,6 @@ export default class Scroll {
    * @param {Config} cfg 설정 정보
    */
   private calcViewCol(cfg: Config, centerLeftPosition: number) {
-    if (this.opts.scroll.vertical.enable === false) {
-      cfg.scroll.startCol = 0;
-      cfg.scroll.endCol = cfg.fieldHeaderGroup.leafCenter.length - 1;
-      cfg.scroll.insideEndCol = cfg.scroll.endCol;
-      return;
-    }
-
     const dimensions = cfg.dimensions;
     const mainInsideWidth = dimensions.mainInsideWidth;
 

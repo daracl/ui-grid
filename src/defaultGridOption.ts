@@ -9,6 +9,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   theme: "light", // 테마 값
   height: "auto", // 높이 값
   width: "auto", // 넓이값
+  windowResizeDelay: 50,
   fixedLeftIndex: -1,
   fixedRightIndex: -1,
   styleClass: "default",
@@ -22,11 +23,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
   dataTypeFormatter: {
     money: { prefix: "$", suffix: "원", fixed: 0 }, // money 설정 prefix : 앞에 붙일 문구 , suffix : 마지막에 붙일 문구 , fixed : 소수점
     number: { prefix: "", suffix: "", fixed: 0 }, // number 값 설정
-  },
-  autoResize: {
-    //리사이즈 설정
-    enabled: true, // auto resize 활성화 여부
-    threshold: 50, // resize 반응 시간
   },
   header: {
     view: true, //  보기 여부
@@ -162,16 +158,39 @@ export const DEFAULT_OPTIONS: GridOptions = {
   fields: [], //head item
   items: [], // body item
   footer: {
-    enabled: false, // 페이지 사용여부
-    enablePaging: false,
-    pagingFormat: "{{currStart}} - {{currEnd}} of {{total}}",
+    enabled: false, // footer 사용여부
     height: FOOTER_HEIGHT, // 높이 값
-    position: ["selection", "paing", "status"], // 위치 값
-    callback: false, // 페이지 콜백
-    enableSelectionInfo: false,
-    selectionFormat: "Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}",
+    paging: {
+      enabled: false, // 페이지 사용여부
+      /**
+       * 위치 값
+       */
+      position: "center",
+
+      /**
+       * 페이지 상태값 포지션션
+       */
+      formatPosition: "right",
+      /**
+       * 페이지 상태값
+       */
+      format: "{{start}} - {{end}} of {{total}}",
+
+      // 페이지 콜백
+      //callback: (no)=>{},
+    },
+
+    selection: {
+      position: "left",
+      format: "Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}",
+    },
   },
-  paging: false, // paging info
+  paging: {
+    totalCount: -1,
+    currPage: 1,
+    countPerPage: 10,
+    unitPage: 5,
+  }, // paging info
   i18n: {
     empty: "no data",
     "search.label": "설정",

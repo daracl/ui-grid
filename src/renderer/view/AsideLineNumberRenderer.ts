@@ -13,7 +13,7 @@ export default class AsideLineNumberRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
-    element.innerText = rowNumber + 1 + "";
+  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+    element.innerText = rowIdx + 1 + "";
   }
 }

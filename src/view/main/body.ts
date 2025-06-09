@@ -862,7 +862,9 @@ export default class Body {
         if (fields.length === 0) return;
         for (let i = viewRow; i < beforeViewRow; i++) {
           let trEle = element.find(`.dg-row[rowinfo="${i}"]`);
-          trEle.parentNode?.removeChild(trEle);
+          if (trEle) {
+            trEle.parentNode?.removeChild(trEle);
+          }
           //element.find(`.dg-row[rowinfo="${i}"]`).remove();
         }
       });
@@ -932,28 +934,30 @@ export default class Body {
     const startCol = cfg.scroll.startCol;
     const endCol = cfg.scroll.endCol;
 
-    //console.log(mode, "dataDraw", currentViewRow, viewRow, startCol, endCol, fieldGroups);
+    console.log(mode, startCol, endCol, "dataDraw", currentViewRow, viewRow, fieldGroups);
 
     const leafAllFields = cfg.currentFields;
 
     //const start = performance.now();
-    if (opts.scroll.vertical.enable === false && !utils.isEmpty(mode)) {
-      return;
-    }
 
     this.removeStartCellClass();
+
+    const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.currPage - 1) * cfg.paging.countPerPage : 0;
 
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       let item = items[viewRowIdx];
+
+      const rowIdx = pagingStartIdx + viewRowIdx;
 
       // left panel
       if (enableLeftField) {
         leftFields.forEach((field, j) => {
           const cellIdx = j;
           const cellElement = this.allCellMap["left"][`${i},${cellIdx}`];
+
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-          field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
         });
       }
 
@@ -962,8 +966,14 @@ export default class Body {
 
         const cellIdx = j;
         const cellElement = this.allCellMap["center"][`${i},${cellIdx}`];
+
+        //console.log(cellElement, viewRowIdx, cellIdx, startCol);
+        //
+        //
+        //
+
         this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-        field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
+        field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
       }
 
       // right panel
@@ -972,12 +982,10 @@ export default class Body {
           const cellIdx = fixedRightIndex + j;
           const cellElement = this.allCellMap["right"][`${i},${cellIdx}`];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-          field.$renderer.render(viewRowIdx, cellIdx, item, cellElement);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
         });
       }
     }
-
-    this.gridMain.getFooter().setPaging(cfg.paging);
 
     //const end = performance.now();
     //console.log(`실행 시간: ${end - start} ms`);

@@ -297,8 +297,16 @@ export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) 
   });
 }
 
-export function arrayCopy(orginArray: any[]) {
-  return isArray(orginArray) ? Array.from(orginArray) : [];
+export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
+  if (!Array.isArray(array)) return [];
+
+  if (start === undefined && end === undefined) {
+    // 시작과 끝이 모두 없는 경우: 전체 복사
+    return Array.from(array);
+  }
+
+  // slice는 start, end가 undefined인 경우 자동으로 처리함
+  return array.slice(start, end);
 }
 
 function isObject(value: any) {

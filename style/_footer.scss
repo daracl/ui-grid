@@ -12,33 +12,32 @@
     vertical-align: top;
     height: 40px;
 
+    > span {
+      position: absolute;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      vertical-align: middle;
+
+      &.left {
+        left: 5px;
+      }
+
+      &.center {
+        left: 50%;
+        transform: translate(-50%, 0%);
+      }
+
+      &.right {
+        right: 5px;
+      }
+    }
+
     .dg-paging {
-      display: table;
-      text-align: center;
-      margin: 0px auto;
       > ul {
-        position: absolute;
-
-        &.left {
-          left: 5px;
-          top: 50%;
-          transform: translate(-50%, -50%);
-        }
-
-        &.center {
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-        }
-
-        &.right {
-          right: 5px;
-        }
         display: table-cell;
         vertical-align: middle;
-        padding: 0;
-        margin: 0px;
-        text-align: center;
+        padding: 0px;
 
         > li {
           display: inline;
@@ -93,15 +92,9 @@
     }
 
     .dg-status {
-      position: absolute;
-      right: 5px;
-      height: 100%;
-      display: table;
-      top: 0px;
-      vertical-align: middle;
+      left: 10px;
 
       > span {
-        padding-left: 15px;
         display: table-cell;
         vertical-align: middle;
       }

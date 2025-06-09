@@ -24,7 +24,7 @@ export default abstract class ViewRenderer extends Renderer {
    * @param {HTMLElement} element
    * @param {*} value
    */
-  public abstract render(rowNumber: number, colNumber: number, value: any, element?: HTMLElement): void;
+  public abstract render(rowIdx: number, rowNumber: number, colNumber: number, value: any, element?: HTMLElement): void;
 
   public getRefValue(value: any, rowItem?: any): any {
     if (this.isRefFunction) {

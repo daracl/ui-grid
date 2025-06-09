@@ -20,6 +20,9 @@
       <option value="5">5</option>
       <option value="10">10</option>
       <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="32">32</option>
+      <option value="38">38</option>
       <option value="100" selected>100</option>
       <option value="500">500</option>
       <option value="1000">1000</option>
@@ -33,7 +36,6 @@
       <option value="5">5</option>
       <option value="10">10</option>
       <option value="20" selected>20</option>
-      <option value="30">30</option>
       <option value="50">50</option>
       <option value="100">100</option>
     </select>
@@ -182,11 +184,10 @@
 
     localStorage.setItem("dgGridSampleConfig", JSON.stringify({ itemType, itemCount, cellCount }));
 
+    const jsonInfo = getItem(itemType, itemCount, cellCount);
 
 
-    const item = getItem(itemType, itemCount, cellCount);
-
-    gridDraw(document.getElementById('sample'), item.aaa, item.colItem);
+    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
 
     /*
     gridDraw(document.getElementById('sample2'), item.aaa, item.colItem, {
@@ -207,12 +208,16 @@
   var itemIdx = 0;
   function getItem(type, itemCount, cellCount) {
     itemIdx++;
-    let aaa = [];
-    let colItem = [];
+    let items = [];
+    let fields = [];
+
+    const orginItemCount = itemCount;
+
+    itemCount = orginItemCount == 0 ? 1 : itemCount;
 
     if (type == 1) {
       for (let i = 0; i < itemCount; i++) {
-        aaa.push({
+        items.push({
           a: 'aaasdfasdfasdfasdfasdfasdfa' + i
           , b: 'ddd_' + i + 'asdf'
           , c: (i * 10000)
@@ -227,7 +232,7 @@
           , idx: i
         });
       }
-      colItem = [
+      fields = [
         {
           label: 'a+b',
           children: [
@@ -325,10 +330,10 @@
           item['b' + j] = getRandomFloatFromInput(1, 20) + " b --- 222222222";
         }
 
-        aaa.push(item);
+        items.push(item);
       }
 
-      colItem = [{
+      fields = [{
         name: "sample",
         label: "지역",
         width: 120
@@ -475,11 +480,11 @@
           //tmpItem[colName] = j< 30 ? ('cont'+i+" _ "+j) :'';
         }
 
-        aaa.push(tmpItem)
+        items.push(tmpItem)
       }
       let colFirstItem;
-      if (aaa.length > 0) {
-        colFirstItem = aaa[0];
+      if (items.length > 0) {
+        colFirstItem = items[0];
 
         let keyIdx = 0;
         for (let key in colFirstItem) {
@@ -519,18 +524,21 @@
               type: 'number'
             }
           }
-          colItem.push(addColItem);
+          fields.push(addColItem);
 
           keyIdx++;
         }
       }
     }
 
+    items = orginItemCount == 0 ? [] : items;
+
+
     //console.log(JSON.stringify(aaa));
 
     return {
-      "aaa": aaa
-      , "colItem": colItem
+      "items": items
+      , "fields": fields
     };
   }//test
 
@@ -544,7 +552,8 @@
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 1
       , fixedRightIndex: 22
-      //,height: 360
+      // ,height:250
+      // , width: 1024
       , aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
@@ -675,7 +684,7 @@
       , scroll: {
         enableStopPropagation: true,
         vertical: {
-          enable1: false,
+          enable: false,
           onUpdate: function (item) {	// 스크롤 업데이트. 
             //console.log(item);
             //return true; 
@@ -687,26 +696,45 @@
       }
       , footer: {
         enabled: true
-        , enablePaging: true
-        , enableSelectionInfo: true
+
         , height: 35
-        , position: 'center'
-        , callback: function (arg) {
-          console.log(arg);
-          //gridObj.setData(aaa);
+        , paging: {
+          enabled: true,
+          /**
+           * 위치 값
+           */
+          position: "center",
+          formatPosition: "right",
+          /**
+           * 페이지 메시지 포멧
+           */
+          format: "{{start}} - {{end}} of {{total}}",
+
+          // 페이지 콜백
+          callback1: function (arg) {
+            console.log(arg);
+            //gridObj.setData(aaa);
+          }
+        },
+
+        selection: {
+          position: "left",
+          format: "Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}",
         }
 
 
+
       }
-      , paging: {
-        totalCount: 121
-        , currPage: 1
-        , countPerPage: 10
-        , unitPage: 5
-      }
+      // , paging: {
+      //   totalCount: 10000
+      //   , currPage: 500
+      //   , countPerPage: 10
+      //   , unitPage: 10
+      // }
       , fields: colItem
       , items: aaa
       , body: {
+
         cellDblClick: function (itemInfo) {
           //console.log('cellDblClick', itemInfo)
         }
@@ -722,7 +750,8 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          dblClickCheck: false
+          height: 25
+          , dblClickCheck: false
           , click: function (itemInfo) {
             //console.log('rowOptions click' ,itemInfo)
             return;

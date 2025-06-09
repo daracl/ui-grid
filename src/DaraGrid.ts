@@ -66,11 +66,6 @@ export default class DaraGrid {
 
     if (message) this.language.setMessage(message);
 
-    //
-    //----------------------------
-    // grid 생성시 들어오면 지역 처리 , setMessage로 들어오면 전역 처리 할것.
-    // message 전체 처리 지역 처리 추가 할것.
-
     if (gridElement == null || typeof gridElement === "undefined") {
       throw new Error(`${gridElement} grid element not found`);
     }
@@ -195,7 +190,7 @@ export default class DaraGrid {
   };
 
   public setSize = (width?: number, height?: number) => {
-    this.gridMain.setSize(width, height);
+    this.gridMain.setSize(width, height, true);
   };
 
   /**

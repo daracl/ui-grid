@@ -24,6 +24,11 @@ export interface GridOptions {
   width: "auto" | number;
 
   /**
+   * window resize delay
+   */
+  windowResizeDelay: number;
+
+  /**
    *  왼쪽 고정 컬럼
    */
   fixedLeftIndex: number;
@@ -101,7 +106,7 @@ export interface GridOptions {
   /**
    * paging option
    */
-  paging: boolean | PagingOptions;
+  paging?: PagingParam;
   /**
    * footer option
    */
@@ -122,19 +127,6 @@ export interface GridOptions {
    */
   operators: any;
 
-  /**
-   *리사이즈 설정
-   */
-  autoResize: {
-    /**
-     * 리사이즈시 그리드 리사이즈 여부.
-     */
-    enabled: boolean;
-    /**
-     * resize 반응 시간
-     */
-    threshold: number;
-  };
   /**
    * column info
    */
@@ -321,6 +313,7 @@ export interface FindOptions {
    * 검색어 local storage에 저장 여부
    */
   useRememberValue?: boolean;
+
   /**
    * 넓이
    */
@@ -662,40 +655,45 @@ export interface FooterOptions {
    * 높이
    */
   height?: number; // 높이 값
-  /**
-   * 위치 값
-   */
-  position?: array; // 위치 값
-  /**
-   * 페이지 보이기 여부
-   */
-  enablePaging?: boolean;
-  /**
-   * 페이지 메시지 포멧
-   */
-  pagingFormat?: string | OptionCallback;
-  /**
-   * page num callback
-   */
-  callback: boolean | OptionCallback; // 페이지 콜백
-  /**
-   * cell 선택 정보 표시 여부
-   */
-  enableSelectionInfo: boolean;
-  /**
-   * cell 선택 정보 표시 포켓
-   */
-  selectionFormat: string | OptionCallback;
+
+  paging?: {
+    enabled?: boolean;
+    /**
+     * 위치 값
+     */
+    position?: POSITION_TYPE;
+    /**
+     * 페이지 포켓 위치
+     */
+    formatPosition?: POSITION_TYPE;
+    /**
+     * 페이지 메시지 포멧
+     */
+    format?: string | OptionCallback;
+
+    /**
+     * page num callback
+     */
+    callback?: OptionCallback; // 페이지 콜백
+  };
+
+  selection?: {
+    /**
+     * 위치 값
+     */
+    position?: POSITION_TYPE;
+    format: string | OptionCallback;
+  };
 }
 
 /**
- * paging option
+ * paging param
  *
  * @export
- * @interface PagingOptions
- * @typedef {PagingOptions}
+ * @interface PagingParam
+ * @typedef {PagingParam}
  */
-export interface PagingOptions {
+export interface PagingParam {
   /**
    * 전체 카운트
    */

@@ -15,7 +15,7 @@ export default class LinkRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
 
