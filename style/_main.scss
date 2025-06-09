@@ -78,13 +78,13 @@
       }
       &striped {
         .dg-body {
-          &[data-striped-type="odd"] {
+          &.dg-body-odd {
             .dg-row:nth-child(odd) {
               background-color: var(--row-bg);
             }
           }
 
-          &[data-striped-type="even"] {
+          &.dg-body-even {
             .dg-row:nth-child(even) {
               background-color: var(--row-bg);
             }

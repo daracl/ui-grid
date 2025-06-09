@@ -59,12 +59,13 @@ export default class GridMain {
   constructor(grid: DaraGrid) {
     this.grid = grid;
 
-    const headerOpts = grid.getOptions().header;
+    const opts = grid.getOptions();
+    const headerOpts = opts.header;
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
 
     this.cellMinWidth = headerOpts.resize.minWidth;
 
-    this.setDataInfo(grid.getOptions().items);
+    this.setDataInfo(opts.items);
     this.calculation();
     this.initTemplate();
 
@@ -75,8 +76,8 @@ export default class GridMain {
     this.initEvent();
 
     this.initGridSize = {
-      height: grid.getOptions().height == "auto" ? -1 : grid.getOptions().height,
-      width: grid.getOptions().width == "auto" ? -1 : grid.getOptions().width,
+      height: opts.height == "auto" ? -1 : opts.height,
+      width: opts.width == "auto" ? -1 : opts.width,
     };
   }
 

@@ -928,7 +928,15 @@ export default class Body {
       }
     }
 
-    this.bodyElement.attr({ "data-striped-type": startIdx % 2 == 0 ? "odd" : "even" });
+    const bodyClassList = this.bodyElement.getElement().classList;
+
+    if (startIdx % 2 == 0) {
+      bodyClassList.remove("dg-body-even");
+      bodyClassList.add("dg-body-odd");
+    } else {
+      bodyClassList.remove("dg-body-odd");
+      bodyClassList.add("dg-body-even");
+    }
 
     const startCell = cfg.selection.startCell;
     const startCol = cfg.scroll.startCol;
@@ -963,17 +971,10 @@ export default class Body {
 
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
+        const cellElement = this.allCellMap["center"][`${i},${j}`];
 
-        const cellIdx = j;
-        const cellElement = this.allCellMap["center"][`${i},${cellIdx}`];
-
-        //console.log(cellElement, viewRowIdx, cellIdx, startCol);
-        //
-        //
-        //
-
-        this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-        field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
+        this.setSelectCell(startCell, viewRowIdx, j, cellElement, field, item);
+        field.$renderer.render(rowIdx, viewRowIdx, j, item, cellElement);
       }
 
       // right panel
@@ -1089,27 +1090,28 @@ export default class Body {
     // field add class
     this.setCellStyleClass(cellEle, rowIdx, col, field, item);
 
+    const classList = cellEle.classList;
+
     if (startCellInfo.startIdx == rowIdx && startCellInfo.startCol == col) {
-      cellEle.classList.add("selection");
-      cellEle.classList.add("start-cell");
+      classList.add("selection", "start-cell");
       return;
     }
 
     if (this.selectionInfo.isAllSelect()) {
       if (this.selectionInfo.isAllSelectUnSelectPosition(rowIdx, col)) {
-        cellEle.classList.remove("selection");
+        classList.remove("selection");
       } else {
-        cellEle.classList.add("selection");
+        classList.add("selection");
       }
-    } else {
-      cellEle.classList.remove("selection");
-
-      if (this.selectionInfo.isSelectPosition(rowIdx, col)) {
-        cellEle.classList.add("selection");
-      }
+      return;
     }
 
-    return false;
+    if (this.selectionInfo.isSelectPosition(rowIdx, col) && !classList.contains("selection")) {
+      classList.add("selection");
+      return;
+    }
+
+    classList.remove("selection");
   }
 
   /**
@@ -1123,30 +1125,28 @@ export default class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    if (field.styleClass) {
-      let addClass = "";
-      if (utils.isFunction(field.styleClass)) {
-        addClass = field.styleClass({ rowIdx: rowIdx, col: col, field: field, item: item });
-      } else if (utils.isString(field.styleClass)) {
-        addClass = field.styleClass;
+    if (!field.styleClass) return;
+
+    const { classList } = cellEle;
+
+    // Determine new class to add
+    const newClass = utils.isFunction(field.styleClass) ? field.styleClass({ rowIdx, col, field, item }) : utils.isString(field.styleClass) ? field.styleClass : "";
+
+    // Define base classes that should not be removed
+    const baseClasses = new Set(["dg-cell", "start-cell", "selection"]);
+
+    if (newClass) {
+      if (!classList.contains(newClass)) {
+        classList.add(newClass);
       }
 
-      const cellClassList = cellEle.classList;
-
-      const removeClass: string[] = [];
-      cellClassList.forEach((cellClass, idx) => {
-        if (cellClass != "dg-cell" && cellClass != "start-cell" && cellClass != "selection" && cellClass != addClass) {
-          removeClass.push(cellClass);
-        }
-      });
-
-      if (removeClass.length > 0) {
-        cellClassList.remove(...removeClass);
-      }
-
-      if (addClass != "") {
-        cellClassList.add(addClass);
-      }
+      baseClasses.add(newClass);
     }
+
+    classList.forEach((cls) => {
+      if (!baseClasses.has(cls)) {
+        classList.remove(cls);
+      }
+    });
   }
 }
