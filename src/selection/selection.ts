@@ -161,8 +161,9 @@ export default class SelectionInfo {
    */
   public selectionData(dataType: "text" | "json" = "text", isSummary: boolean = false): any {
     const { items, currentFields, selection, dataInfo } = this.config;
+    const isJson = dataType === "json";
 
-    if (dataInfo.rowLength < 1) return dataType === "json" ? {} : "";
+    if (dataInfo.rowLength < 1) return isJson ? {} : "";
 
     const isAll = this.isAllSelect();
 
@@ -171,19 +172,18 @@ export default class SelectionInfo {
     const startIdx = isAll ? 0 : selection.minIdx;
     const endIdx = isAll ? dataInfo.lastRow : selection.maxIdx;
 
-    if (startIdx < 0 || endIdx < 0) return dataType == "json" ? {} : "";
+    if (startIdx < 0 || endIdx < 0) return isJson ? {} : "";
 
     const result = [];
     const keyInfoMap = {} as any;
     const summary = { count: 0, numbers: [] as number[] };
-    const isJson = dataType === "json";
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];
 
       const rowText: string[] = [];
       const rowJson: any = { _dgIdx: i };
-      let hasSelected = false;
+      let hasSelection = false;
 
       for (let j = startCol; j <= endCol; j++) {
         const col = currentFields[j];
@@ -194,70 +194,59 @@ export default class SelectionInfo {
 
         const selected = isAll ? !this.isAllSelectUnSelectPosition(i, j) : this.isSelectPosition(i, j);
 
-        const val = selected ? col.$renderer.getValue(item) : "";
+        const cellValue = selected ? col.$renderer.getValue(item) : "";
+
+        if (isJson) {
+          rowJson[colName] = cellValue;
+        } else {
+          rowText.push(cellValue);
+        }
 
         if (selected) {
-          hasSelected = true;
+          hasSelection = true;
 
-          if (isJson) {
-            keyInfoMap[j] = col;
-            rowJson[colName] = val;
+          keyInfoMap[j] = col;
 
-            if (!utils.isBlank(val)) {
-              summary.count++;
-              if (utils.isNumber(val)) {
-                summary.numbers.push(Number(val));
-              }
+          if (!utils.isBlank(cellValue)) {
+            summary.count++;
+            if (utils.isNumber(cellValue)) {
+              summary.numbers.push(Number(cellValue));
             }
-          } else {
-            rowText.push(val);
           }
-        } else {
-          if (isJson) {
-            rowJson[colName] = "";
-          } else rowText.push("");
         }
       }
 
-      if (hasSelected) {
+      if (hasSelection) {
         result.push(isJson ? rowJson : rowText.join("\t"));
       }
     }
 
-    if (isJson) {
-      const headers = Object.values(keyInfoMap);
-      let summaryInfo = {};
-
-      if (isSummary) {
-        let sum = -1;
-        let avg: any = -1;
-        let min = -1;
-        let max = -1;
-        if (summary.numbers.length > 0) {
-          sum = summary.numbers.reduce((a, b) => a + b, 0);
-          avg = summary.numbers.length ? (sum / summary.numbers.length).toFixed(1) : 0;
-          min = Math.min(...summary.numbers);
-          max = Math.max(...summary.numbers);
-        }
-
-        summaryInfo = {
-          count: summary.count,
-          min: min,
-          max: max,
-          sum,
-          avg,
-          numFieldCount: summary.numbers.length,
-        };
-      }
-
-      return {
-        header: headers,
-        data: result,
-        summary: summaryInfo,
-      };
+    if (!isJson) {
+      return result.join("\n");
     }
 
-    return result.join("\n");
+    const headers = Object.values(keyInfoMap);
+    let summaryInfo = {
+      count: summary.count,
+      numFieldCount: summary.numbers.length,
+      min: -1,
+      max: -1,
+      avg: "",
+      sum: -1,
+    };
+
+    if (isSummary && summary.numbers.length > 0) {
+      summaryInfo.min = Math.min(...summary.numbers);
+      summaryInfo.max = Math.max(...summary.numbers);
+      summaryInfo.sum = summary.numbers.reduce((a, b) => a + b, 0);
+      summaryInfo.avg = summary.numbers.length ? (summaryInfo.sum / summary.numbers.length).toFixed(1) : "0";
+    }
+
+    return {
+      header: headers,
+      data: result,
+      summary: summaryInfo,
+    };
   }
 
   public isSelectPosition(rowIdx: number, col: number, currFlag?: boolean): boolean {

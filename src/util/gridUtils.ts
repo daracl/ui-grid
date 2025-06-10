@@ -213,62 +213,68 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
  * @param {string} selectionMode selection mode
  * @returns {{ mouseScrollDirectionX: string; overCell: number; }}
  */
-export function dragHorizontalMovePosition(cfg: Config, moveX: number, startCellInfo: CellInfo, positionX: number, _l: number, _r: number) {
+export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX: number, _l: number, _r: number, startCellInfo?: CellInfo) {
   let mouseScrollDirectionX = "";
   let overCell = -1;
-  let contentLeftVal = 0;
+
+  const currentFields = cfg.currentFields;
+  const totalCells = currentFields.length;
+
+  let startCellIdx = 0;
+  let endCellIdx = totalCells;
+
   let centerMovePageX = 0;
-  let startCellIdx = 0,
-    endCellIdx = cfg.currentFields.length;
+  let contentLeftVal = 0;
+
   if (moveX < _l) {
+    // 왼쪽으로 드래그
     centerMovePageX = moveX - positionX;
     endCellIdx = cfg.fixedLeftIndex;
     mouseScrollDirectionX = "L";
   } else if (moveX > _r) {
+    // 오른쪽으로 드래그
     startCellIdx = cfg.fixedRightIndex;
 
     if (startCellIdx > 0) {
       centerMovePageX = moveX - _r;
     } else {
-      overCell = endCellIdx - 1;
+      overCell = totalCells - 1;
     }
 
     mouseScrollDirectionX = "R";
   } else {
+    // 중앙 영역
     centerMovePageX = moveX - _l;
     startCellIdx = cfg.fixedLeftIndex;
     contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
   }
 
-  if (!(startCellIdx < 1 && mouseScrollDirectionX == "R")) {
+  if (!(startCellIdx < 1 && mouseScrollDirectionX === "R")) {
     if (centerMovePageX <= 0) {
       overCell = 0;
-    } else if (overCell == -1) {
+    } else if (overCell === -1) {
       let leftSum = 0;
-      let startFlag = false;
+      let passedContentLeft = false;
 
       for (let i = startCellIdx; i < endCellIdx; i++) {
-        const itemWidth = cfg.currentFields[i].$width;
+        const colWidth = currentFields[i].$width;
+        leftSum += colWidth;
 
-        leftSum += itemWidth;
-
-        if ((contentLeftVal <= 0 || startFlag) && leftSum > centerMovePageX) {
+        if ((contentLeftVal <= 0 || passedContentLeft) && leftSum > centerMovePageX) {
           overCell = i;
           break;
-        } else if (!startFlag && leftSum >= contentLeftVal) {
-          startFlag = true;
+        }
+
+        if (!passedContentLeft && leftSum >= contentLeftVal) {
+          passedContentLeft = true;
           leftSum = contentLeftVal > 0 && leftSum > contentLeftVal ? leftSum - contentLeftVal : leftSum;
         }
       }
 
-      if (overCell == -1 && leftSum < centerMovePageX) {
+      if (overCell === -1 && leftSum < centerMovePageX) {
         overCell = endCellIdx;
       }
     }
-  }
-
-  if (isFixedLeftPostion(cfg, startCellInfo.c) || isFixedRightPostion(cfg, startCellInfo.c)) {
-    mouseScrollDirectionX = "";
   }
 
   return { mouseScrollDirectionX, overCell };

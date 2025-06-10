@@ -38,6 +38,8 @@
       <option value="20" selected>20</option>
       <option value="50">50</option>
       <option value="100">100</option>
+      <option value="300">300</option>
+      <option value="500">500</option>
     </select>
     theme
     <select id="theme">
@@ -544,14 +546,14 @@
 
   function gridDraw(element, aaa, colItem, message) {
     let gridObj = Daracl.grid.create(element, {
-      editable: true
+      editable: false
       , styleClass: "striped"
       , selectionMode: 'multiple-cell'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 1
-      , fixedRightIndex: 22
+      , fixedRightIndex: 0
       // ,height:250
       // , width: 1024
       , aside: {

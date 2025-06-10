@@ -262,6 +262,8 @@ export default class Body {
 
         const startCellInfo = getCellInfo(cfg, cellElement);
 
+        let beforeMoveRange = { endIdx: -1, endCol: -1 };
+
         if (multipleFlag) {
           // mouse darg scroll
           let mouseScrollDirectionX: string;
@@ -271,7 +273,7 @@ export default class Body {
 
             const e1Position = eventPosition(moveEvt);
 
-            const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, startCellInfo, position.left, _l, _r);
+            const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r);
             mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
             const moveRange: any = {};
@@ -286,6 +288,8 @@ export default class Body {
               moveRange.endIdx = moveYInfo.rowIdx;
             }
 
+            if (beforeMoveRange.endIdx == moveRange.endIdx && beforeMoveRange.endCol == moveRange.endCol) return;
+
             if (Object.keys(moveRange).length > 0) {
               this.selectionInfo.setSelectionRangeInfo(
                 {
@@ -296,29 +300,27 @@ export default class Body {
               );
             }
 
+            beforeMoveRange = moveRange;
+
             if (bodyDragTimer < 1) {
+              let beforeMovePosition = { col: -1, rowIdx: -1 };
               bodyDragTimer = setInterval(() => {
-                let isVerticalDraw = mouseDragDirectionY != "";
+                let isDraw = false;
 
                 if (mouseScrollDirectionX !== "") {
-                  let endCol = -1;
+                  let endCol = mouseScrollDirectionX == "R" ? cfg.scroll.insideEndCol + 3 : cfg.scroll.insideStartCol - 3;
 
-                  if (mouseScrollDirectionX == "R") {
-                    endCol = cfg.scroll.insideEndCol + 3;
-                  } else {
-                    endCol = cfg.scroll.insideStartCol - 3;
+                  if (beforeMovePosition.col != endCol) {
+                    isDraw = true;
                   }
 
-                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: !isVerticalDraw });
+                  beforeMovePosition.col = endCol;
+
+                  this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: false });
                 }
 
-                if (isVerticalDraw) {
-                  let endIdx = -1;
-                  if (mouseDragDirectionY == "D") {
-                    endIdx = cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1;
-                  } else {
-                    endIdx = cfg.scroll.startIdx - 1;
-                  }
+                if (mouseDragDirectionY != "") {
+                  let endIdx = mouseDragDirectionY == "D" ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1 : cfg.scroll.startIdx - 1;
 
                   this.selectionInfo.setSelectionRangeInfo(
                     {
@@ -328,7 +330,19 @@ export default class Body {
                     true
                   );
 
-                  this.gridMain.getScroll().moveVerticalScroll({ direction: mouseDragDirectionY });
+                  if (beforeMovePosition.rowIdx != endIdx) {
+                    isDraw = true;
+                  }
+
+                  beforeMovePosition.rowIdx = endIdx;
+
+                  this.gridMain.getScroll().moveVerticalScroll({ direction: mouseDragDirectionY, drawFlag: false });
+                }
+
+                console.log("isDraw : ", isDraw);
+
+                if (isDraw) {
+                  this.dataDraw("dragscroll");
                 }
               }, bodyDragDelay);
             }
@@ -1106,8 +1120,8 @@ export default class Body {
       return;
     }
 
-    if (this.selectionInfo.isSelectPosition(rowIdx, col) && !classList.contains("selection")) {
-      classList.add("selection");
+    if (this.selectionInfo.isSelectPosition(rowIdx, col)) {
+      if (!classList.contains("selection")) classList.add("selection");
       return;
     }
 

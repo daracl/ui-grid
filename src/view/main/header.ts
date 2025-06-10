@@ -182,7 +182,7 @@ export default class Header {
 
               const e1Position = eventPosition(moveEvt);
 
-              const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, startCellInfo, position.left, _l, _r);
+              const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r);
               mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
               const moveRange: any = {};

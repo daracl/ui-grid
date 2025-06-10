@@ -343,11 +343,11 @@ export default class GridMain {
     const mainRightWidth = dimensions.mainRightWidth;
 
     this.header.leftElement.css({ width: mainLeftWidth + "px" });
-    this.header.centerElement.css({ "margin-left": mainLeftWidth - 1 + "px", width: mainCenterWidth + "px" });
+    this.header.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
     this.header.rightElement.css({ width: mainRightWidth + "px" });
 
     this.body.leftElement.css({ width: mainLeftWidth + "px" });
-    this.body.centerElement.css({ "margin-left": mainLeftWidth - 1 + "px", width: mainCenterWidth + "px" });
+    this.body.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
     this.body.rightElement.css({ width: mainRightWidth + "px" });
 
     this.changeScrollMode();

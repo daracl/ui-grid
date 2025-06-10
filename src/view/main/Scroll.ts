@@ -49,34 +49,36 @@ export default class Scroll {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    const rowHeight = opts.body.row.height;
-
     const arrowButtonSize = SCROLL_ARROW_BUTTON_SIZE * 2;
 
     if (cfg.scroll.enableVertical) {
-      const totalRowHeight = rowHeight * cfg.dataInfo.rowLength;
+      const rowHeight = opts.body.row.height;
+      const totalRows = cfg.dataInfo.rowLength;
+      const totalRowHeight = rowHeight * totalRows;
       const verticalHeight = dimensions.mainHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
 
-      cfg.scroll.vHeight = verticalHeight;
-      cfg.scroll.vTrackHeight = cfg.scroll.vHeight - arrowButtonSize;
+      const vHeight = verticalHeight;
+      const vTrackHeight = vHeight - arrowButtonSize;
 
-      let barHeight = (cfg.scroll.vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-      if (cfg.scroll.vTrackHeight < SCROLL_THUMB_MIN_SIZE) {
-        barHeight = 0;
+      let thumbHeight = (vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
+      if (vTrackHeight < SCROLL_THUMB_MIN_SIZE) {
+        thumbHeight = 0;
       } else {
-        barHeight = barHeight < SCROLL_THUMB_MIN_SIZE ? SCROLL_THUMB_MIN_SIZE : barHeight > verticalHeight ? verticalHeight : barHeight;
+        thumbHeight = Math.max(SCROLL_THUMB_MIN_SIZE, Math.min(thumbHeight, verticalHeight));
       }
 
-      cfg.scroll.vThumbHeight = barHeight;
-
       // row 보이기 기준으로 계산
-      cfg.scroll.oneRowMove = (cfg.scroll.vTrackHeight - barHeight) / (cfg.dataInfo.rowLength - Math.floor(dimensions.mainBodyHeight / rowHeight));
+      cfg.scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - Math.floor(dimensions.mainBodyHeight / rowHeight));
 
-      this.verticalElement.css({ height: cfg.scroll.vHeight + "px" });
-      this.verticalThumbElement.css({ height: cfg.scroll.vThumbHeight + "px" });
+      this.verticalElement.css({ height: vHeight + "px" });
+      this.verticalThumbElement.css({ height: thumbHeight + "px" });
 
-      if (cfg.dataInfo.rowLength < cfg.scroll.startIdx + cfg.scroll.viewRow) {
-        this.setVerticalPosition(cfg, (cfg.dataInfo.rowLength - cfg.scroll.viewRow) * cfg.scroll.oneRowMove);
+      cfg.scroll.vHeight = vHeight;
+      cfg.scroll.vTrackHeight = vTrackHeight;
+      cfg.scroll.vThumbHeight = thumbHeight;
+
+      if (totalRows < cfg.scroll.startIdx + cfg.scroll.viewRow) {
+        this.setVerticalPosition(cfg, (totalRows - cfg.scroll.viewRow) * cfg.scroll.oneRowMove);
       } else if (cfg.scroll.startIdx > 0) {
         this.setVerticalPosition(cfg, cfg.scroll.startIdx * cfg.scroll.oneRowMove);
       }
@@ -85,23 +87,23 @@ export default class Scroll {
     }
 
     if (cfg.scroll.enableHorizontal) {
-      const columnTotalWidth = dimensions.mainTotalWidth;
+      const totalColWidth = dimensions.mainTotalWidth;
 
-      cfg.scroll.hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
-      cfg.scroll.hTrackWidth = cfg.scroll.hWidth - arrowButtonSize;
-      cfg.scroll.oneColMove = columnTotalWidth / cfg.dataInfo.colLength;
+      const hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+      const hTrackWidth = hWidth - arrowButtonSize;
+      let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
+      thumbWidth = Math.max(thumbWidth, SCROLL_THUMB_MIN_SIZE);
 
-      let barWidth = (cfg.scroll.hTrackWidth * ((cfg.scroll.hTrackWidth / columnTotalWidth) * 100)) / 100;
+      this.horizontalElement.css({ width: hWidth + "px" });
+      this.horizontalThumbElement.css({ width: thumbWidth + "px" });
 
-      barWidth = barWidth < SCROLL_THUMB_MIN_SIZE ? SCROLL_THUMB_MIN_SIZE : barWidth;
+      cfg.scroll.oneColMove = totalColWidth / cfg.dataInfo.colLength;
+      cfg.scroll.hWidth = hWidth;
+      cfg.scroll.hTrackWidth = hTrackWidth;
+      cfg.scroll.hThumbWidth = thumbWidth;
 
-      cfg.scroll.hThumbWidth = barWidth;
-
-      this.horizontalElement.css({ width: cfg.scroll.hWidth + "px" });
-      this.horizontalThumbElement.css({ width: cfg.scroll.hThumbWidth + "px" });
-
-      if (cfg.scroll.left + cfg.scroll.hThumbWidth > cfg.scroll.hTrackWidth) {
-        cfg.scroll.left = cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth;
+      if (cfg.scroll.left + thumbWidth > hTrackWidth) {
+        cfg.scroll.left = hTrackWidth - thumbWidth;
         this.setHorizontalPosition(cfg);
       } else {
         this.calcViewCol(cfg, cfg.scroll.centerLeftPosition);
