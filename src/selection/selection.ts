@@ -1,7 +1,7 @@
 import { GridOptions } from "@t/GridOptions";
 import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
-import { initSelectionInfo } from "../defaultGridConfig";
+import { initSelectionInfo, initSelectionRange } from "../defaultGridConfig";
 import { FieldItem } from "@t/GridField";
 import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition, isRowSelection } from "src/util/gridUtils";
 import DaraGrid from "src/DaraGrid";
@@ -42,9 +42,6 @@ export default class SelectionInfo {
     let currentSelection = initFlag ? initSelectionInfo() : cfg.selection;
     currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
 
-    const lastRowIdx = cfg.dataInfo.lastRow;
-    const lastCol = cfg.dataInfo.colLength - 1;
-
     if (initFlag) {
       currentSelection.allRange[currentSelection.id] = currentSelection.range;
     }
@@ -55,22 +52,29 @@ export default class SelectionInfo {
     //   console.log("호출한 함수:", stack);
     // }
 
-    if (utils.isUndefined(changeRangeInfo)) return;
+    if (currentSelection.range.mode == "remove") {
+      currentSelection.range = initSelectionRange();
+    } else {
+      if (utils.isUndefined(changeRangeInfo)) return;
 
-    let rangeInfo = currentSelection.range;
+      const lastRowIdx = cfg.dataInfo.lastRow;
+      const lastCol = cfg.dataInfo.colLength - 1;
 
-    rangeInfo.startIdx = Math.min(Math.max(rangeInfo.startIdx, 0), lastRowIdx);
-    rangeInfo.endIdx = Math.min(Math.max(rangeInfo.endIdx, 0), lastRowIdx);
+      let rangeInfo = currentSelection.range;
 
-    rangeInfo.startCol = Math.min(Math.max(rangeInfo.startCol, 0), lastCol);
-    rangeInfo.endCol = Math.min(Math.max(rangeInfo.endCol, 0), lastCol);
+      rangeInfo.startIdx = Math.min(Math.max(rangeInfo.startIdx, 0), lastRowIdx);
+      rangeInfo.endIdx = Math.min(Math.max(rangeInfo.endIdx, 0), lastRowIdx);
 
-    rangeInfo.minIdx = Math.min(rangeInfo.startIdx, rangeInfo.endIdx);
-    rangeInfo.maxIdx = Math.max(rangeInfo.endIdx, rangeInfo.startIdx);
-    rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
-    rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
+      rangeInfo.startCol = Math.min(Math.max(rangeInfo.startCol, 0), lastCol);
+      rangeInfo.endCol = Math.min(Math.max(rangeInfo.endCol, 0), lastCol);
 
-    currentSelection.allRange[currentSelection.id] = rangeInfo;
+      rangeInfo.minIdx = Math.min(rangeInfo.startIdx, rangeInfo.endIdx);
+      rangeInfo.maxIdx = Math.max(rangeInfo.endIdx, rangeInfo.startIdx);
+      rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
+      rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
+
+      currentSelection.allRange[currentSelection.id] = rangeInfo;
+    }
 
     let selectionMinIdx = Infinity,
       selectionMaxIdx = -1;
@@ -109,25 +113,35 @@ export default class SelectionInfo {
 
     const mode = changeSelection.mode;
 
+    console.log("mode : ", mode, selectionInfo.id, changeSelection.range);
+
     if (mode == "add") {
       selectionInfo.id = changeSelection.id ?? this.getSelectionId("add");
       selectionInfo.range.mode = "add";
 
-      const rangeKey = selectionInfo.id;
+      const selectionId = selectionInfo.id;
 
-      console.log(`mode : ${mode} , rangeKey : ${rangeKey}`);
+      if (selectionId.startsWith("col-")) {
+        const deleteRange = selectionInfo.allRange[selectionId];
 
-      if (this.isRangeKey(rangeKey)) {
-        selectionInfo.range.mode = "remove";
-        delete selectionInfo.allRange[rangeKey];
+        // drag 부분 ctrl + 헤더 클릭시 unselection 처리
+        // drag 한부분  drag 해서 다시 unselection 처리
+
+        if (this.isRangeKey(selectionId) && deleteRange.mode != "drag") {
+          console.log("deleteRange.mode : ", deleteRange.mode);
+
+          selectionInfo.range.mode = "remove";
+          delete selectionInfo.allRange[selectionId];
+        }
       } else {
-        selectionInfo.allRange[rangeKey] = changeSelection;
+        selectionInfo.allRange[selectionId] = changeSelection;
+        delete selectionInfo.unSelectPosition[selectionId];
       }
     } else if (mode == "remove") {
-      selectionInfo.id = this.getSelectionId("remove");
       selectionInfo.range.mode = "remove";
-      const rangeKey = changeSelection.range._key ?? selectionInfo.id;
-      delete selectionInfo.allRange[rangeKey];
+      delete selectionInfo.allRange[selectionInfo.id];
+    } else if (mode == "drag") {
+      selectionInfo.range.mode = "drag";
     }
 
     this.config.selection = selectionInfo;
@@ -340,42 +354,15 @@ export default class SelectionInfo {
 
     const bodyElement = this.gridMain.getBody().bodyElement;
 
-    if (cfg.selection.range.mode == "remove") {
-      for (let i = startRow; i <= endRow; i++) {
-        for (let j = startCol; j <= endCol; j++) {
-          const cellPosition = i + "," + j;
-
-          let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
-
-          if (addEle == null) continue;
-
-          cfg.selection.unSelectPosition[cellPosition] = "";
-
-          addEle.removeAttribute("data-selection-id");
-          addEle.classList.remove("selection");
-        }
-      }
-      return;
-    }
-
     if (initFlag) {
       this.clearSelectionCell();
     } else {
       bodyElement.finds(".dg-cell.selection").forEach((cellNode, idx) => {
-        const cellElement = cellNode as HTMLElement;
-        const posInfo = getCellPosition(cellElement);
+        const posInfo = getCellPosition(cellNode);
         if (!this.isSelectPosition(scrollStartIdx + posInfo.r, posInfo.c)) {
-          cellElement.classList.remove("selection");
+          cellNode.classList.remove("selection");
         }
       });
-    }
-
-    const rangeKey = cfg.selection.range._key;
-    let isRowSelect = false,
-      isColSelect = false;
-    if (!utils.isUndefined(rangeKey)) {
-      isRowSelect = rangeKey.startsWith("row");
-      isColSelect = rangeKey.startsWith("col");
     }
 
     const fixedLeftIndex = cfg.fixedLeftIndex;
@@ -387,29 +374,25 @@ export default class SelectionInfo {
       const currRow = scrollStartIdx + i;
       if (fixedLeftIndex > 0 && fixedLeftIndex > startCol) {
         for (let j = 0; j <= Math.min(fixedLeftIndex, endCol); j++) {
-          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
+          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, startCellInfo, bodyElement);
         }
       }
       for (let j = scrollStartCol; j <= Math.min(scrollEndCol, endCol); j++) {
-        this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
+        this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, startCellInfo, bodyElement);
       }
 
       if (fixedRightIndex > 0 && fixedRightIndex < endCol) {
         for (let j = fixedRightIndex; j <= endCol; j++) {
-          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
+          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, startCellInfo, bodyElement);
         }
       }
     }
   }
 
-  public setCellSelectionEnable(cfg: Config, currentId: string, i: number, j: number, currRow: number, isAllSelection: boolean, isRowSelect: boolean, isColSelect: boolean, startCellInfo: any, bodyElement: DaraElement) {
+  public setCellSelectionEnable(cfg: Config, currentId: string, i: number, j: number, currRow: number, isAllSelection: boolean, startCellInfo: any, bodyElement: DaraElement) {
     const cellPosition = i + "," + j;
 
     if (!isAllSelection) {
-      if (isRowSelect || isColSelect) {
-        delete cfg.selection.unSelectPosition[cellPosition];
-      }
-
       if (!this.isSelectPosition(currRow, j, true)) {
         return;
       }
@@ -418,7 +401,10 @@ export default class SelectionInfo {
 
     if (addEle == null) return;
 
-    addEle.setAttribute("data-selection-id", currentId);
+    if (this.isAllSelectUnSelectPosition(i, j)) {
+      addEle.classList.remove("selection", "start-cell");
+      return;
+    }
 
     if (startCellInfo.startIdx == currRow && startCellInfo.startCol == j) {
       addEle.classList.add("selection", "start-cell");

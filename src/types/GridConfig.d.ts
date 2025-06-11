@@ -175,7 +175,6 @@ export interface Selection {
 }
 
 export interface SelectionRange {
-  _key: string;
   /**
    *
    */

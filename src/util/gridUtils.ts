@@ -38,6 +38,10 @@ export const isMultipleSelection = (selectionMode: string): boolean => {
   return selectionMode == "multiple-row" || selectionMode == "multiple-cell";
 };
 
+export const isMultipleCellSelection = (selectionMode: string): boolean => {
+  return selectionMode == "multiple-cell";
+};
+
 /**
  * row selection check
  *

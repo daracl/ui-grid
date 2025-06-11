@@ -10,7 +10,7 @@ import GridMain from "../GridMain";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection, isRowSelection } from "src/util/gridUtils";
+import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isMultipleSelection, isRowSelection } from "src/util/gridUtils";
 import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
 import { addClass, removeClass } from "src/util/styleUtils";
 
@@ -152,7 +152,7 @@ export default class Header {
 
     let headDragTimer: any = -1;
     let headDragDelay = 150;
-    let multipleFlag = isMultipleSelection(selectionMode);
+    let multipleFlag = isMultipleCellSelection(selectionMode);
 
     const headerCellElements = this.headerElement.finds(".dg-header-cell");
 
@@ -189,6 +189,8 @@ export default class Header {
 
                 this.gridMain.selectionInfo.setSelectionRangeInfo(
                   {
+                    id: cfg.selection.id,
+                    mode: "drag",
                     range: moveRange as SelectionRange,
                   } as Selection,
                   false,
@@ -242,8 +244,8 @@ export default class Header {
 
           this.gridMain.selectionInfo.setSelectionRangeInfo(
             {
-              id: "col" + colIdx,
-              range: { _key: "col" + colIdx, startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx } as SelectionRange,
+              id: "col-" + colIdx,
+              range: { startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx } as SelectionRange,
               isSelect: true,
               mode: mode,
             } as Selection,

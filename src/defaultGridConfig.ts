@@ -1,5 +1,5 @@
 import { GridOptions, PagingParam } from "@t/GridOptions";
-import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection } from "./types/GridConfig";
+import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from "./types/GridConfig";
 import { FieldItem } from "@t/GridField";
 import { PagingInfo } from "@t/PagingInfo";
 import { isPlainObject } from "./util/utils";
@@ -14,7 +14,7 @@ import { isPlainObject } from "./util/utils";
 
  * grid default config
  */
-export const initConfig = (opts: GridOptions): Config => {
+export function initConfig(opts: GridOptions): Config {
   const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
   return {
@@ -111,29 +111,18 @@ export const initConfig = (opts: GridOptions): Config => {
       measureEl: undefined,
     },
   };
-};
+}
 
 /**
  * 선택영역 설정 정보
  *
  * @returns {Selection} 선택 영역 정보
  */
-export const initSelectionInfo = (): Selection => {
+export function initSelectionInfo(): Selection {
   return {
     id: "",
     mode: "0",
-    range: {
-      _key: "",
-      mode: "",
-      startIdx: -1,
-      endIdx: -1,
-      startCol: -1,
-      endCol: -1,
-      minIdx: -1,
-      maxIdx: -1,
-      minCol: -1,
-      maxCol: -1,
-    },
+    range: initSelectionRange(),
     allRange: {},
     isSelect: false,
     isMouseDown: false,
@@ -145,14 +134,28 @@ export const initSelectionInfo = (): Selection => {
     maxCol: -1,
     startCell: { startIdx: -1, startCol: -1 },
   };
-};
+}
+
+export function initSelectionRange(): SelectionRange {
+  return {
+    mode: "",
+    startIdx: -1,
+    endIdx: -1,
+    startCol: -1,
+    endCol: -1,
+    minIdx: -1,
+    maxIdx: -1,
+    minCol: -1,
+    maxCol: -1,
+  };
+}
 
 /**
  * scroll info
  *
  * @returns {ScrollInfo} scroll init info
  */
-export const initScrollInfo = (): ScrollInfo => {
+export function initScrollInfo(): ScrollInfo {
   return {
     centerLeftPosition: 0,
     before: {
@@ -188,7 +191,7 @@ export const initScrollInfo = (): ScrollInfo => {
     horizontalScrollTimer: -1,
     mouseDown: false,
   };
-};
+}
 
 /**
  * field group info
