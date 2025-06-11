@@ -9,6 +9,7 @@ import GridMain from "src/view/GridMain";
 import { removeClass } from "src/util/styleUtils";
 import { hasClass } from "src/util/domUtils";
 import { isShiftKey } from "src/util/eventUtils";
+import DaraElement from "src/element/DaraElement";
 
 export default class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -54,7 +55,7 @@ export default class SelectionInfo {
     //   console.log("호출한 함수:", stack);
     // }
 
-    let isRangeInfo = utils.isUndefined(changeRangeInfo);
+    if (utils.isUndefined(changeRangeInfo)) return;
 
     let rangeInfo = currentSelection.range;
 
@@ -64,22 +65,29 @@ export default class SelectionInfo {
     rangeInfo.startCol = Math.min(Math.max(rangeInfo.startCol, 0), lastCol);
     rangeInfo.endCol = Math.min(Math.max(rangeInfo.endCol, 0), lastCol);
 
-    currentSelection.minIdx = Math.min(currentSelection.minIdx == -1 ? rangeInfo.startIdx : currentSelection.minIdx, rangeInfo.startIdx, rangeInfo.endIdx);
-    currentSelection.maxIdx = Math.max(currentSelection.maxIdx == -1 ? rangeInfo.endIdx : currentSelection.maxIdx, rangeInfo.endIdx, rangeInfo.startIdx);
-
-    currentSelection.minCol = Math.min(currentSelection.minCol == -1 ? rangeInfo.startCol : currentSelection.minCol, rangeInfo.endCol, rangeInfo.startCol);
-    currentSelection.maxCol = Math.max(currentSelection.maxCol == -1 ? rangeInfo.endCol : currentSelection.maxCol, rangeInfo.endCol, rangeInfo.startCol);
-
-    if (isRangeInfo) return;
-
     rangeInfo.minIdx = Math.min(rangeInfo.startIdx, rangeInfo.endIdx);
     rangeInfo.maxIdx = Math.max(rangeInfo.endIdx, rangeInfo.startIdx);
     rangeInfo.minCol = Math.min(rangeInfo.endCol, rangeInfo.startCol);
     rangeInfo.maxCol = Math.max(rangeInfo.endCol, rangeInfo.startCol);
 
-    //console.log("JSON.stringify(rangeInfo) : ", JSON.stringify(currentSelection));
-
     currentSelection.allRange[currentSelection.id] = rangeInfo;
+
+    let selectionMinIdx = Infinity,
+      selectionMaxIdx = -1;
+    let selectionMinCol = Infinity,
+      selectionMaxCol = -1;
+
+    for (const sel of Object.values(currentSelection.allRange)) {
+      selectionMinIdx = Math.min(selectionMinIdx, sel.minIdx);
+      selectionMaxIdx = Math.max(selectionMaxIdx, sel.maxIdx);
+      selectionMinCol = Math.min(selectionMinCol, sel.minCol);
+      selectionMaxCol = Math.max(selectionMaxCol, sel.maxCol);
+    }
+
+    currentSelection.minIdx = selectionMinIdx;
+    currentSelection.maxIdx = selectionMaxIdx;
+    currentSelection.minCol = selectionMinCol;
+    currentSelection.maxCol = selectionMaxCol;
 
     if (cellSelectFlag) {
       this.setCellSelect(initFlag);
@@ -102,10 +110,12 @@ export default class SelectionInfo {
     const mode = changeSelection.mode;
 
     if (mode == "add") {
-      selectionInfo.id = this.getSelectionId("add");
+      selectionInfo.id = changeSelection.id ?? this.getSelectionId("add");
       selectionInfo.range.mode = "add";
 
-      const rangeKey = changeSelection.range._key ?? selectionInfo.id;
+      const rangeKey = selectionInfo.id;
+
+      console.log(`mode : ${mode} , rangeKey : ${rangeKey}`);
 
       if (this.isRangeKey(rangeKey)) {
         selectionInfo.range.mode = "remove";
@@ -160,6 +170,7 @@ export default class SelectionInfo {
    * @description select data 구하기.
    */
   public selectionData(dataType: "text" | "json" = "text", isSummary: boolean = false): any {
+    console.log("selectionData : ");
     const { items, currentFields, selection, dataInfo } = this.config;
     const isJson = dataType === "json";
 
@@ -325,7 +336,7 @@ export default class SelectionInfo {
       endCol = colInfo.endCol;
     }
 
-    //console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
+    console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
 
     const bodyElement = this.gridMain.getBody().bodyElement;
 
@@ -367,33 +378,52 @@ export default class SelectionInfo {
       isColSelect = rangeKey.startsWith("col");
     }
 
+    const fixedLeftIndex = cfg.fixedLeftIndex;
+    const fixedRightIndex = cfg.fixedRightIndex;
+    const scrollEndCol = cfg.scroll.endCol;
+    const scrollStartCol = cfg.scroll.startCol;
+
     for (let i = startRow; i <= endRow; i++) {
-      for (let j = startCol; j <= endCol; j++) {
-        const cellPosition = i + "," + j;
-        const currRow = scrollStartIdx + i;
-
-        if (!isAllSelection) {
-          if (isRowSelect || isColSelect) {
-            delete cfg.selection.unSelectPosition[cellPosition];
-          }
-
-          if (!this.isSelectPosition(currRow, j, true)) {
-            continue;
-          }
-        }
-        let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
-
-        if (addEle == null) continue;
-
-        addEle.setAttribute("data-selection-id", currentId);
-
-        if (startCellInfo.startIdx == currRow && startCellInfo.startCol == j) {
-          addEle.classList.add("selection");
-          addEle.classList.add("start-cell");
-        } else {
-          addEle.classList.add("selection");
+      const currRow = scrollStartIdx + i;
+      if (fixedLeftIndex > 0 && fixedLeftIndex > startCol) {
+        for (let j = 0; j <= Math.min(fixedLeftIndex, endCol); j++) {
+          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
         }
       }
+      for (let j = scrollStartCol; j <= Math.min(scrollEndCol, endCol); j++) {
+        this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
+      }
+
+      if (fixedRightIndex > 0 && fixedRightIndex < endCol) {
+        for (let j = fixedRightIndex; j <= endCol; j++) {
+          this.setCellSelectionEnable(cfg, currentId, i, j, currRow, isAllSelection, isRowSelect, isColSelect, startCellInfo, bodyElement);
+        }
+      }
+    }
+  }
+
+  public setCellSelectionEnable(cfg: Config, currentId: string, i: number, j: number, currRow: number, isAllSelection: boolean, isRowSelect: boolean, isColSelect: boolean, startCellInfo: any, bodyElement: DaraElement) {
+    const cellPosition = i + "," + j;
+
+    if (!isAllSelection) {
+      if (isRowSelect || isColSelect) {
+        delete cfg.selection.unSelectPosition[cellPosition];
+      }
+
+      if (!this.isSelectPosition(currRow, j, true)) {
+        return;
+      }
+    }
+    let addEle = bodyElement.find('[data-cell-position="' + cellPosition + '"]');
+
+    if (addEle == null) return;
+
+    addEle.setAttribute("data-selection-id", currentId);
+
+    if (startCellInfo.startIdx == currRow && startCellInfo.startCol == j) {
+      addEle.classList.add("selection", "start-cell");
+    } else {
+      addEle.classList.add("selection");
     }
   }
 

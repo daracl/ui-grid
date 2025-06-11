@@ -172,8 +172,6 @@ export default class Header {
 
           const colIdx = parseInt(currentElement.getAttribute("data-header-cell-idx") ?? "0", 10);
 
-          const startCellInfo = { c: colIdx } as CellInfo;
-
           if (multipleFlag) {
             // mouse darg scroll
             let mouseScrollDirectionX: string;
@@ -187,31 +185,39 @@ export default class Header {
 
               const moveRange: any = {};
               if (moveXInfo.overCell > 0) {
-                const selectRangeInfo = this.gridMain.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, currentElement, cfg.selection.isMouseDown);
-                moveRange.endCol = selectRangeInfo.endCol;
-              }
+                moveRange.endCol = this.gridMain.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, currentElement, cfg.selection.isMouseDown).endCol;
 
-              if (Object.keys(moveRange).length > 0) {
                 this.gridMain.selectionInfo.setSelectionRangeInfo(
                   {
                     range: moveRange as SelectionRange,
                   } as Selection,
                   false,
-                  true
+                  mouseScrollDirectionX == ""
                 );
               }
 
               if (headDragTimer < 1) {
+                let beforeMovePosition = { col: -1 };
                 headDragTimer = setInterval(() => {
                   if (mouseScrollDirectionX !== "") {
-                    let endCol = -1;
+                    const isRight = mouseScrollDirectionX === "R";
+                    let endCol = isRight ? cfg.scroll.insideEndCol + 1 : cfg.scroll.insideStartCol - 1;
 
-                    if (mouseScrollDirectionX == "R") {
-                      endCol = cfg.scroll.insideEndCol + 1;
-                    } else {
-                      endCol = cfg.scroll.insideStartCol - 1;
+                    if (beforeMovePosition.col != endCol) {
+                      if ((isRight && cfg.fixedRightIndex == 0) || (!isRight && cfg.fixedLeftIndex == 0)) {
+                        this.gridMain.selectionInfo.setSelectionRangeInfo(
+                          {
+                            range: { endCol: endCol } as SelectionRange,
+                          } as Selection,
+                          false,
+                          false
+                        );
+                      }
+
+                      this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: false });
+                      beforeMovePosition.col = endCol;
+                      this.gridMain.getBody().dataDraw("drageHeadScroll");
                     }
-                    this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol });
                   }
                 }, headDragDelay);
               }
@@ -236,6 +242,7 @@ export default class Header {
 
           this.gridMain.selectionInfo.setSelectionRangeInfo(
             {
+              id: "col" + colIdx,
               range: { _key: "col" + colIdx, startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx } as SelectionRange,
               isSelect: true,
               mode: mode,
