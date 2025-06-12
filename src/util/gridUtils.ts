@@ -224,6 +224,8 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
   const currentFields = cfg.currentFields;
   const totalCells = currentFields.length;
 
+  const startCol = cfg.selection.startCell.startCol;
+
   let startCellIdx = 0;
   let endCellIdx = totalCells;
 
@@ -234,6 +236,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
     // 왼쪽으로 드래그
     centerMovePageX = moveX - positionX;
     endCellIdx = cfg.fixedLeftIndex;
+
     mouseScrollDirectionX = "L";
   } else if (moveX > _r) {
     // 오른쪽으로 드래그
@@ -279,6 +282,10 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
         overCell = endCellIdx;
       }
     }
+  }
+
+  if ((isFixedLeftPostion(cfg, startCol) && mouseScrollDirectionX == "L") || (isFixedRightPostion(cfg, startCol) && mouseScrollDirectionX == "R")) {
+    mouseScrollDirectionX = "";
   }
 
   return { mouseScrollDirectionX, overCell };

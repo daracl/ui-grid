@@ -32,7 +32,7 @@ export default class Body {
   public centerElement: DaraElement;
   public rightElement: DaraElement;
 
-  public allCellMap: any;
+  public allCellElements: any;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
@@ -290,6 +290,7 @@ export default class Body {
             if (beforeMoveRange.endIdx == moveRange.endIdx && beforeMoveRange.endCol == moveRange.endCol) return;
 
             if (Object.keys(moveRange).length > 0) {
+              console.log("222222moveRangemoveRangemoveRangemoveRangemoveRangemoveRangemoveRangemoveRange22222222222222");
               this.selectionInfo.setSelectionRangeInfo(
                 {
                   range: moveRange as SelectionRange,
@@ -298,6 +299,8 @@ export default class Body {
                 mouseScrollDirectionX == "" && mouseDragDirectionY == ""
               );
             }
+
+            console.log("moveRange 11111111 : ", mouseScrollDirectionX == "" && mouseDragDirectionY == "", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
 
             beforeMoveRange = moveRange;
 
@@ -406,7 +409,7 @@ export default class Body {
             if (dblCheckFlag) {
               //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
 
-              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellMap["left"][`${startCellInfo.r},${startCellInfo.c}`]);
+              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][`${startCellInfo.r},${startCellInfo.c}`]);
             }
 
             if (utils.isFunction(fnDblClick)) fnDblClick(startCellInfo);
@@ -904,13 +907,13 @@ export default class Body {
           element.finds(".dg-cell").forEach((cellElement, idx) => {
             let element = cellElement as HTMLElement;
             const cellPosition = element.getAttribute("data-cell-position");
-            // this.leftElement.find(`[data-cell-position="${i},${j}"]>.dg-cell-content`));
-            if (cellPosition) allCellMap[name][cellPosition] = element.children[0];
+
+            if (cellPosition) allCellMap[name][cellPosition] = element;
           });
         }
       });
 
-      this.allCellMap = allCellMap;
+      this.allCellElements = allCellMap;
 
       cfg.scroll.before.viewRow = viewRow;
     }
@@ -978,28 +981,28 @@ export default class Body {
       if (enableLeftField) {
         leftFields.forEach((field, j) => {
           const cellIdx = j;
-          const cellElement = this.allCellMap["left"][`${i},${cellIdx}`];
+          const cellElement = this.allCellElements["left"][`${i},${cellIdx}`];
 
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement.children[0]);
         });
       }
 
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
-        const cellElement = this.allCellMap["center"][`${i},${j}`];
+        const cellElement = this.allCellElements["center"][`${i},${j}`];
 
         this.setSelectCell(startCell, viewRowIdx, j, cellElement, field, item);
-        field.$renderer.render(rowIdx, viewRowIdx, j, item, cellElement);
+        field.$renderer.render(rowIdx, viewRowIdx, j, item, cellElement.children[0]);
       }
 
       // right panel
       if (enableRightField) {
         rightFields.forEach((field, j) => {
           const cellIdx = fixedRightIndex + j;
-          const cellElement = this.allCellMap["right"][`${i},${cellIdx}`];
+          const cellElement = this.allCellElements["right"][`${i},${cellIdx}`];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement.children[0]);
         });
       }
     }
@@ -1101,33 +1104,9 @@ export default class Body {
    * @returns {boolean}
    */
   private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
-    const cellEle = contentEle.parentElement as HTMLElement;
-
     // field add class
-    this.setCellStyleClass(cellEle, rowIdx, col, field, item);
-
-    const classList = cellEle.classList;
-
-    if (startCellInfo.startIdx == rowIdx && startCellInfo.startCol == col) {
-      classList.add("selection", "start-cell");
-      return;
-    }
-
-    if (this.selectionInfo.isAllSelect()) {
-      if (this.selectionInfo.isAllSelectUnSelectPosition(rowIdx, col)) {
-        classList.remove("selection");
-      } else {
-        classList.add("selection");
-      }
-      return;
-    }
-
-    if (this.selectionInfo.isSelectPosition(rowIdx, col)) {
-      if (!classList.contains("selection")) classList.add("selection");
-      return;
-    }
-
-    classList.remove("selection");
+    this.setCellStyleClass(contentEle, rowIdx, col, field, item);
+    this.selectionInfo.setCellSelectionStyleClass(contentEle, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
   }
 
   /**
