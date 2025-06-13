@@ -2,14 +2,11 @@ import { GridOptions } from "@t/GridOptions";
 import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo, initSelectionRange } from "../defaultGridConfig";
-import { FieldItem } from "@t/GridField";
-import { isFixedLeftPostion, removeActiveColumnStyle, isMultipleSelection, getCellPosition, isRowSelection } from "src/util/gridUtils";
-import DaraGrid from "src/DaraGrid";
+import { isMultipleSelection, isRowSelection } from "src/util/gridUtils";
 import GridMain from "src/view/GridMain";
 import { removeClass } from "src/util/styleUtils";
 import { hasClass } from "src/util/domUtils";
 import { isShiftKey } from "src/util/eventUtils";
-import DaraElement from "src/element/DaraElement";
 
 export default class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -37,14 +34,15 @@ export default class SelectionInfo {
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
+
+    if (initFlag) {
+      this.serialNumber = 0;
+    }
+
     const cfg = this.config;
     const changeRangeInfo = changeSelection.range;
     let currentSelection = initFlag ? initSelectionInfo() : cfg.selection;
     currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
-
-    if (initFlag) {
-      currentSelection.allRange[currentSelection.id] = currentSelection.range;
-    }
 
     // const stack = new Error().stack;
 
@@ -96,7 +94,7 @@ export default class SelectionInfo {
     currentSelection.maxCol = selectionMaxCol;
 
     if (cellSelectFlag) {
-      this.setCellSelection(initFlag);
+      this.setCellSelection();
     }
 
     this.gridMain.getFooter().setSelectionStatus();
@@ -112,22 +110,30 @@ export default class SelectionInfo {
    */
   public setSelectionInfo(currentSelection: Selection, changeSelection: Selection) {
     const currentRange = currentSelection.range;
+    const beforeSelectionId = currentSelection.id;
     const selectionInfo = utils.merge(currentSelection, changeSelection);
 
     const mode = changeSelection.mode;
 
-    console.log("mode : ", mode, selectionInfo.id, changeSelection.range);
-
     if (mode == "add") {
-      selectionInfo.id = changeSelection.id ?? this.getSelectionId("add");
+      if (changeSelection.id) {
+        if (beforeSelectionId != changeSelection.id) {
+          ++this.serialNumber;
+        }
+        selectionInfo.id = changeSelection.id;
+      } else {
+        selectionInfo.id = this.getSelectionId("add");
+      }
+
       selectionInfo.range.mode = "add";
 
       const selectionId = selectionInfo.id;
+      // shift 누르고 header 클릭시 버그 수정할것.
+      //
 
       if (selectionId.startsWith("col-")) {
-        // drag 부분 ctrl + 헤더 클릭시 unselection 처리
-        // drag 한부분  drag 해서 다시 unselection 처리
-        // header drag 후 처음 영역 클릭했을때 데이터 전체 사라지는 것 처리 할것.
+        // range 에 우선순위 적용해서 selection 처리 할것.
+        // current 에서 drag 시 나 shift일때 unselection position 이 있으면 정보 삭제.
 
         // 1 번 startCol == endCol 같고
 
@@ -147,28 +153,29 @@ export default class SelectionInfo {
                 delete selectionInfo.allRange[key];
                 delete selectionInfo.unSelectPosition[key];
                 break;
-              } else if (rangeInfo.startCol <= startCol && startCol <= rangeInfo.endCol) {
+              } else if (rangeInfo.minCol <= startCol && startCol <= rangeInfo.maxCol) {
                 selectionInfo.range = currentRange;
 
-                if (this.isUnSelectPosition(0, startCol)) {
+                if (this.isUnSelection(0, startCol)) {
                   delete selectionInfo.unSelectPosition["col-" + startCol];
                 } else {
-                  selectionInfo.unSelectPosition["col-" + startCol] = "";
+                  selectionInfo.unSelectPosition["col-" + startCol] = rangeInfo.index;
                 }
               }
             }
           }
         }
       } else {
-        selectionInfo.allRange[selectionId] = changeSelection;
         delete selectionInfo.unSelectPosition[selectionId];
       }
     } else if (mode == "remove") {
       selectionInfo.range.mode = "remove";
       delete selectionInfo.allRange[selectionInfo.id];
-    } else if (mode == "drag") {
-      selectionInfo.range.mode = "drag";
     }
+
+    console.log("selectionInfo.range : ", selectionInfo.id, selectionInfo.range.index, this.serialNumber, selectionInfo.range.index != this.serialNumber ? this.serialNumber : selectionInfo.range.index);
+
+    selectionInfo.range.index = selectionInfo.range.index != this.serialNumber ? this.serialNumber : selectionInfo.range.index;
 
     this.config.selection = selectionInfo;
 
@@ -201,7 +208,7 @@ export default class SelectionInfo {
    */
   public setAllSelection(flag: boolean) {
     this.config.selection.all = flag;
-    this.setCellSelection(false);
+    this.setCellSelection();
     this.gridMain.getFooter().setSelectionStatus();
   }
 
@@ -244,7 +251,7 @@ export default class SelectionInfo {
 
         const colName = col.name;
 
-        const selected = !this.isUnSelectPosition(i, j) && (isAll || this.isSelectPosition(i, j));
+        const selected = !this.isUnSelection(i, j) && (isAll || this.isSelection(i, j));
 
         const cellValue = selected ? col.$renderer.getValue(item) : "";
 
@@ -301,23 +308,24 @@ export default class SelectionInfo {
     };
   }
 
-  public isSelectPosition(rowIdx: number, col: number, currFlag?: boolean): boolean {
-    //console.log("$$$ isSelectPosition : ", rowIdx, col, currFlag, this.config.selection.unSelectPosition);
+  /**
+   * selection check
+   *
+   * @public
+   * @param {number} rowIdx row index
+   * @param {number} col cell index
+   * @returns {boolean} selection return
+   */
+  public isSelection(rowIdx: number, col: number): boolean {
+    const allRange = this.config.selection.allRange;
 
-    if (this.config.selection.unSelectPosition.hasOwnProperty(rowIdx + "," + col)) {
+    if (this.isUnSelection(rowIdx, col)) {
       return false;
     }
-    if (currFlag) {
-      return this.isSelRange(this.config.selection.range, rowIdx, col);
-    } else {
-      const allRange = this.config.selection.allRange;
 
-      for (const key in allRange) {
-        //console.log("allRange : ", rowIdx, col, key, allRange[key]);
-
-        if (this.isSelRange(allRange[key], rowIdx, col)) {
-          return true;
-        }
+    for (const key in allRange) {
+      if (this.isSelRange(allRange[key], rowIdx, col)) {
+        return true;
       }
     }
 
@@ -331,7 +339,7 @@ export default class SelectionInfo {
    * @param {number} col col number
    * @returns {boolean} 여부
    */
-  public isUnSelectPosition(rowIdx: number, col: number): boolean {
+  public isUnSelection(rowIdx: number, col: number): boolean {
     if (this.config.selection.unSelectPosition.hasOwnProperty("col-" + col)) {
       return true;
     }
@@ -361,53 +369,49 @@ export default class SelectionInfo {
    * @public
    * @param {boolean} initFlag
    */
-  public setCellSelection(initFlag?: boolean) {
+  public setCellSelection() {
     const cfg = this.config;
-    const startCellInfo = cfg.selection.startCell; // start cell
+    const { selection, scroll, dataInfo, fixedLeftIndex, fixedRightIndex } = cfg;
+    const { startCell } = selection;
     const isAllSelection = this.isAllSelect();
 
-    let startRow = 0,
-      endRow = cfg.scroll.viewRow,
-      startCol = isAllSelection ? 0 : cfg.selection.minCol,
-      endCol = isAllSelection ? cfg.dataInfo.colLength : cfg.selection.maxCol,
-      scrollStartIdx = cfg.scroll.startIdx;
+    const startRow = 0;
+    const endRow = scroll.viewRow;
+    const startCol = isAllSelection ? 0 : selection.minCol;
+    const endCol = isAllSelection ? dataInfo.colLength : selection.maxCol;
+    const scrollStartIdx = scroll.startIdx;
 
-    console.log(`11111111 ::initFlag .: ${initFlag} `, scrollStartIdx, startCellInfo.startIdx, isAllSelection, startRow, endRow, startCol, endCol);
+    const allCellElements = this.gridMain.getBody().allCellElements;
+    const { left: leftElements, center: centerElements, right: rightElements } = allCellElements;
 
-    const bodyObj = this.gridMain.getBody();
+    const enableLeftField = fixedLeftIndex > 0 && fixedLeftIndex > startCol;
+    const enableRightField = fixedRightIndex > 0 && fixedRightIndex < endCol;
+
+    const { startIdx: startCellIdx, startCol: startCellCol } = startCell;
+    const minFixedLeftCol = Math.min(fixedLeftIndex - 1, endCol);
+    const minScrollEndCol = Math.min(scroll.endCol, endCol);
 
     this.clearSelectionCell();
 
-    const fixedLeftIndex = cfg.fixedLeftIndex;
-    const fixedRightIndex = cfg.fixedRightIndex;
-    const scrollEndCol = cfg.scroll.endCol;
-    const scrollStartCol = cfg.scroll.startCol;
-
-    const enableLeftField = fixedLeftIndex > 0;
-    const enableRightField = fixedRightIndex > 0;
-
-    const { startIdx: startCellIdx, startCol: startCellCol } = cfg.selection.startCell;
-
-    console.log(`fixedLeftIndex : ${fixedLeftIndex} , startCol: ${startCol} , startRow : ${startRow}, endRow : ${endRow}, scrollStartCol : ${scrollStartCol}, endCol : ${endCol}`);
-
     for (let i = startRow; i < endRow; i++) {
       const currRow = scrollStartIdx + i;
-      if (enableLeftField && fixedLeftIndex > startCol) {
-        for (let j = 0; j <= Math.min(fixedLeftIndex - 1, endCol); j++) {
-          const cellElement = bodyObj.allCellElements["left"][`${i},${j}`];
 
-          this.setCellSelectionStyleClass(cellElement, currRow, j, startCellIdx, startCellCol);
+      // 왼쪽 고정 영역
+      if (enableLeftField) {
+        for (let j = 0; j <= minFixedLeftCol; j++) {
+          this.setCellSelectionStyleClass(leftElements[`${i},${j}`], currRow, j, startCellIdx, startCellCol);
         }
       }
-      for (let j = scrollStartCol; j <= Math.min(scrollEndCol, endCol); j++) {
-        const cellElement = bodyObj.allCellElements["center"][`${i},${j}`];
-        this.setCellSelectionStyleClass(cellElement, currRow, j, startCellIdx, startCellCol);
+
+      // 중앙 스크롤 영역
+      for (let j = scroll.startCol; j <= minScrollEndCol; j++) {
+        this.setCellSelectionStyleClass(centerElements[`${i},${j}`], currRow, j, startCellIdx, startCellCol);
       }
 
-      if (enableRightField && fixedRightIndex < endCol) {
+      // 오른쪽 고정 영역
+      if (enableRightField) {
         for (let j = fixedRightIndex; j <= endCol; j++) {
-          const cellElement = bodyObj.allCellElements["right"][`${i},${j}`];
-          this.setCellSelectionStyleClass(cellElement, currRow, j, startCellIdx, startCellCol);
+          this.setCellSelectionStyleClass(rightElements[`${i},${j}`], currRow, j, startCellIdx, startCellCol);
         }
       }
     }
@@ -423,7 +427,6 @@ export default class SelectionInfo {
    * @returns
    */
   public setCellSelectionStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, startIdx: number, startCol: number) {
-    //console.log("setCellSelectionStyleClass", cellEle, rowIdx, col, startIdx, startCol);
     const classList = cellEle.classList;
 
     if (startIdx == rowIdx && startCol == col) {
@@ -431,12 +434,7 @@ export default class SelectionInfo {
       return;
     }
 
-    if (this.isUnSelectPosition(rowIdx, col)) {
-      classList.remove("selection");
-      return;
-    }
-
-    if (this.isAllSelect() || this.isSelectPosition(rowIdx, col)) {
+    if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
       if (!classList.contains("selection")) classList.add("selection");
       return;
     }
@@ -447,7 +445,6 @@ export default class SelectionInfo {
   /**
    * clear selection cell
    *
-   * @public
    */
   public clearSelectionCell() {
     removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.selection"), "selection");
@@ -517,6 +514,15 @@ export default class SelectionInfo {
     return { startCol: startCol, endCol: endCol };
   }
 
+  /**
+   * set range info
+   *
+   * @public
+   * @param {number} evtKey event key
+   * @param {Event} evt event
+   * @param {number} endIdx end row index
+   * @param {number} moveCol  move cell position
+   */
   public setRangeInfo(evtKey: number, evt: Event, endIdx: number, moveCol: number) {
     let startCol = moveCol,
       endCol = moveCol;
@@ -549,6 +555,13 @@ export default class SelectionInfo {
     }
   }
 
+  /**
+   * selection id
+   *
+   * @public
+   * @param {?string} [type] selection type
+   * @returns {string} selection id
+   */
   public getSelectionId(type?: string): string {
     if (type) {
       return type + ++this.serialNumber;

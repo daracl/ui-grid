@@ -178,6 +178,7 @@ export interface SelectionRange {
   /**
    *
    */
+  index: number;
   mode?: "" | "add" | "remove" | "drag";
   startIdx: number;
   endIdx: number;

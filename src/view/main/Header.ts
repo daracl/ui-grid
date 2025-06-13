@@ -1,18 +1,13 @@
-import { GridOptions, HeaderOptions } from "@t/GridOptions";
-import { CellInfo, Config, FieldHeaderGroupInfo, GridElement, Selection, SelectionRange } from "@t/GridConfig";
+import { HeaderOptions } from "@t/GridOptions";
+import { Selection, SelectionRange } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
-import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ALIGN_STYLE, VIEW_RENDERER } from "src/constants";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
-import { defaultFieldGroupInfo } from "src/defaultGridConfig";
-import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getCenterContentLeft, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isMultipleSelection, isRowSelection } from "src/util/gridUtils";
+import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
 import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
-import { addClass, removeClass } from "src/util/styleUtils";
 
 /**
  * Header class
@@ -173,6 +168,7 @@ export default class Header {
           const colIdx = parseInt(currentElement.getAttribute("data-header-cell-idx") ?? "0", 10);
 
           if (multipleFlag) {
+            let beforeMoveRange = { endCol: -1 };
             // mouse darg scroll
             let mouseScrollDirectionX: string;
             eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
@@ -180,22 +176,26 @@ export default class Header {
 
               const e1Position = eventPosition(moveEvt);
 
-              const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r);
+              const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r, beforeMoveRange.endCol);
               mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
               const moveRange: any = {};
               if (moveXInfo.overCell > 0) {
                 moveRange.endCol = this.gridMain.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, currentElement, cfg.selection.isMouseDown).endCol;
 
+                if (beforeMoveRange.endCol == moveRange.endCol) return;
+
                 this.gridMain.selectionInfo.setSelectionRangeInfo(
                   {
                     id: cfg.selection.id,
-                    mode: "drag",
+                    mode: "add",
                     range: moveRange as SelectionRange,
                   } as Selection,
                   false,
                   mouseScrollDirectionX == ""
                 );
+
+                beforeMoveRange = moveRange;
               }
 
               if (headDragTimer < 1) {
@@ -232,20 +232,25 @@ export default class Header {
               headDragTimer = -1;
             });
           }
-
+          let selectionId = "col-" + colIdx;
           let mode = "",
-            initFlag = true;
+            initFlag = cfg.selection.id == "";
+          let range: any = { startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx };
           if (isCtrlKey(e)) {
             mode = "add";
-            initFlag = false;
+          } else if (isShiftKey(e)) {
+            selectionId = cfg.selection.id == "" ? selectionId : cfg.selection.id;
+            mode = "add";
+            range.startCol = initFlag ? colIdx : cfg.selection.range.startCol;
+            range.endCol = colIdx;
           } else {
-            this.gridMain.selectionInfo.clearSelectionCell();
+            initFlag = true;
           }
 
           this.gridMain.selectionInfo.setSelectionRangeInfo(
             {
-              id: "col-" + colIdx,
-              range: { startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx } as SelectionRange,
+              id: selectionId,
+              range: range as SelectionRange,
               isSelect: true,
               mode: mode,
             } as Selection,

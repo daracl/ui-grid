@@ -273,7 +273,7 @@ export default class Body {
 
             const e1Position = eventPosition(moveEvt);
 
-            const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r);
+            const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r, beforeMoveRange.endCol);
             mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
 
             const moveRange: any = {};
@@ -289,8 +289,9 @@ export default class Body {
 
             if (beforeMoveRange.endIdx == moveRange.endIdx && beforeMoveRange.endCol == moveRange.endCol) return;
 
+            console.log("moveXInfo ", moveXInfo, moveYInfo);
+
             if (Object.keys(moveRange).length > 0) {
-              console.log("222222moveRangemoveRangemoveRangemoveRangemoveRangemoveRangemoveRangemoveRange22222222222222");
               this.selectionInfo.setSelectionRangeInfo(
                 {
                   range: moveRange as SelectionRange,
@@ -300,7 +301,7 @@ export default class Body {
               );
             }
 
-            console.log("moveRange 11111111 : ", mouseScrollDirectionX == "" && mouseDragDirectionY == "", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
+            console.log("moveRange 11111111 : ", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
 
             beforeMoveRange = moveRange;
 
@@ -963,13 +964,16 @@ export default class Body {
 
     console.log(mode, startCol, endCol, "dataDraw", currentViewRow, viewRow, fieldGroups);
 
-    const leafAllFields = cfg.currentFields;
-
     //const start = performance.now();
 
     this.removeStartCellClass();
 
     const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.currPage - 1) * cfg.paging.countPerPage : 0;
+
+    const leafAllFields = cfg.currentFields;
+    const leftElements = this.allCellElements["left"];
+    const centerElements = this.allCellElements["center"];
+    const rightElements = this.allCellElements["right"];
 
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
@@ -981,7 +985,7 @@ export default class Body {
       if (enableLeftField) {
         leftFields.forEach((field, j) => {
           const cellIdx = j;
-          const cellElement = this.allCellElements["left"][`${i},${cellIdx}`];
+          const cellElement = leftElements[`${i},${cellIdx}`];
 
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
           field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement.children[0]);
@@ -990,7 +994,7 @@ export default class Body {
 
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
-        const cellElement = this.allCellElements["center"][`${i},${j}`];
+        const cellElement = centerElements[`${i},${j}`];
 
         this.setSelectCell(startCell, viewRowIdx, j, cellElement, field, item);
         field.$renderer.render(rowIdx, viewRowIdx, j, item, cellElement.children[0]);
@@ -1000,7 +1004,7 @@ export default class Body {
       if (enableRightField) {
         rightFields.forEach((field, j) => {
           const cellIdx = fixedRightIndex + j;
-          const cellElement = this.allCellElements["right"][`${i},${cellIdx}`];
+          const cellElement = rightElements[`${i},${cellIdx}`];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cellElement, field, item);
           field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cellElement.children[0]);
         });

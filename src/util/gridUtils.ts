@@ -217,7 +217,7 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
  * @param {string} selectionMode selection mode
  * @returns {{ mouseScrollDirectionX: string; overCell: number; }}
  */
-export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX: number, _l: number, _r: number, startCellInfo?: CellInfo) {
+export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX: number, _l: number, _r: number, beforeEndCol: number) {
   let mouseScrollDirectionX = "";
   let overCell = -1;
 
@@ -284,7 +284,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
     }
   }
 
-  if ((isFixedLeftPostion(cfg, startCol) && mouseScrollDirectionX == "L") || (isFixedRightPostion(cfg, startCol) && mouseScrollDirectionX == "R")) {
+  if ((mouseScrollDirectionX == "L" && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) || (mouseScrollDirectionX == "R" && (isFixedRightPostion(cfg, startCol) || totalCells - 1 == cfg.scroll.insideEndCol))) {
     mouseScrollDirectionX = "";
   }
 
