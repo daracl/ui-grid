@@ -1,4 +1,4 @@
-import { OptionCallback, AnyKeyMap, StringKeyMap, Map } from "./Common";
+import { OptionCallback, AnyKeyMap, StringKeyMap } from "./Common";
 import FieldInfoMap from "../FieldInfoMap";
 import { FieldItem } from "./GridField";
 import DaraElement from "src/element/DaraElement";
@@ -142,9 +142,7 @@ export interface Selection {
   /**
    * 모든 선택 영역 정보
    */
-  allRange: {
-    [key: string]: SelectionRange;
-  };
+  allRange: Map<string, SelectionRange>;
   /**
    * 선택여부
    */
@@ -157,7 +155,7 @@ export interface Selection {
    * 취소 영역
    */
   unSelectPosition: {
-    [key: string]: string;
+    [key: string]: any;
   };
   /**
    * 전체 선택 여부
@@ -178,7 +176,6 @@ export interface SelectionRange {
   /**
    *
    */
-  index: number;
   mode?: "" | "add" | "remove" | "drag";
   startIdx: number;
   endIdx: number;

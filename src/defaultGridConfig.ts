@@ -123,7 +123,7 @@ export function initSelectionInfo(): Selection {
     id: "",
     mode: "0",
     range: initSelectionRange(),
-    allRange: {},
+    allRange: new Map<string, SelectionRange>(),
     isSelect: false,
     isMouseDown: false,
     unSelectPosition: {},
@@ -138,7 +138,6 @@ export function initSelectionInfo(): Selection {
 
 export function initSelectionRange(): SelectionRange {
   return {
-    index: -1,
     mode: "",
     startIdx: -1,
     endIdx: -1,

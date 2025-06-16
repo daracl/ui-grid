@@ -166,7 +166,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
        * 위치 값
        */
       position: "center",
-
       /**
        * 페이지 상태값 포지션션
        */

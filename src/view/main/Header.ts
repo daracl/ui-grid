@@ -237,10 +237,14 @@ export default class Header {
             initFlag = cfg.selection.id == "";
           let range: any = { startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx };
           if (isCtrlKey(e)) {
-            mode = "add";
+            // selection 되어있는지 체크 해서 selection 이면 해제 아니면 selection 처리 할것.
+            //
+            //
+            //
+            mode = this.gridMain.selectionInfo.isAllColumnSelection(range);
           } else if (isShiftKey(e)) {
             selectionId = cfg.selection.id == "" ? selectionId : cfg.selection.id;
-            mode = "add";
+            mode = this.gridMain.selectionInfo.isAllColumnSelection(range);
             range.startCol = initFlag ? colIdx : cfg.selection.range.startCol;
             range.endCol = colIdx;
           } else {
