@@ -14,6 +14,8 @@ export default class SelectionInfo {
   private readonly options: GridOptions;
   private readonly config: Config;
 
+  private reversedAllRanges: SelectionRange[] = [];
+
   /**
    * select id number
    *
@@ -26,11 +28,15 @@ export default class SelectionInfo {
     this.gridMain = gridMain;
     this.options = options;
     this.config = config;
-
-    this.config.selection = initSelectionInfo();
+    this.clearSelection();
   }
 
-  public setSelectionRangeInfo(changeSelection: Selection, initFlag?: boolean, cellSelectFlag?: boolean) {
+  public clearSelection() {
+    this.config.selection = initSelectionInfo();
+    this.setReverseAllRange();
+  }
+
+  public setSelectionRangeInfo(changeSelection: Selection, initFlag: boolean = false, cellSelectFlag?: boolean) {
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
@@ -42,9 +48,7 @@ export default class SelectionInfo {
     const cfg = this.config;
     const changeRangeInfo = changeSelection.range;
     let currentSelection = initFlag ? initSelectionInfo() : cfg.selection;
-    currentSelection = this.setSelectionInfo(currentSelection, changeSelection);
-
-    console.log("selectionInfo.range : ", currentSelection.range.mode, JSON.stringify(changeRangeInfo));
+    currentSelection = this.setSelectionInfo(initFlag, currentSelection, changeSelection);
 
     // const stack = new Error().stack;
 
@@ -82,12 +86,35 @@ export default class SelectionInfo {
     let selectionMinCol = Infinity,
       selectionMaxCol = -1;
 
-    for (const sel of currentSelection.allRange.values()) {
-      if (sel.mode == "remove") continue;
-      selectionMinIdx = Math.min(selectionMinIdx, sel.minIdx);
-      selectionMaxIdx = Math.max(selectionMaxIdx, sel.maxIdx);
-      selectionMinCol = Math.min(selectionMinCol, sel.minCol);
-      selectionMaxCol = Math.max(selectionMaxCol, sel.maxCol);
+    this.setReverseAllRange();
+    const reversedRanges = this.reversedAllRanges;
+
+    let removeRange: SelectionRange[] = [];
+    for (const rangeItem of reversedRanges) {
+      if (rangeItem.mode == "remove") {
+        removeRange.push(rangeItem);
+        continue;
+      }
+
+      let minIdx = rangeItem.minIdx;
+      let maxIdx = rangeItem.maxIdx;
+      let minCol = rangeItem.minCol;
+      let maxCol = rangeItem.maxCol;
+
+      for (const removeItem of removeRange) {
+        minIdx = isRowCellRange(removeItem, minIdx, minCol, maxCol) ? removeItem.maxIdx : minIdx;
+
+        maxIdx = isRowCellRange(removeItem, maxIdx, minCol, maxCol) ? removeItem.minIdx : maxIdx;
+
+        minCol = isCellRange(removeItem, minCol, minIdx, maxIdx) ? removeItem.maxCol + 1 : minCol;
+
+        maxCol = isCellRange(removeItem, maxCol, minIdx, maxIdx) ? removeItem.minCol : maxCol;
+      }
+
+      selectionMinIdx = Math.min(selectionMinIdx, minIdx);
+      selectionMaxIdx = Math.max(selectionMaxIdx, maxIdx);
+      selectionMinCol = Math.min(selectionMinCol, minCol);
+      selectionMaxCol = Math.max(selectionMaxCol, maxCol);
     }
 
     currentSelection.minIdx = selectionMinIdx;
@@ -100,6 +127,10 @@ export default class SelectionInfo {
     }
 
     this.gridMain.getFooter().setSelectionStatus();
+  }
+
+  public setReverseAllRange() {
+    this.reversedAllRanges = Array.from(this.config.selection.allRange.values()).reverse();
   }
 
   setRangeMinMaxInfo(rangeInfo: SelectionRange): SelectionRange {
@@ -119,62 +150,27 @@ export default class SelectionInfo {
    * @param {SelectionRange} changeSelection changeRangeInfo
    * @returns {*}
    */
-  public setSelectionInfo(currentSelection: Selection, changeSelection: Selection) {
-    const currentRange = currentSelection.range;
-
+  public setSelectionInfo(initFlag: boolean, currentSelection: Selection, changeSelection: Selection) {
     const allRange = currentSelection.allRange;
-    const beforeSelectionId = currentSelection.id;
     const selectionInfo = utils.merge(currentSelection, changeSelection);
     selectionInfo.allRange = allRange;
 
-    const mode = changeSelection.mode;
-
-    if (changeSelection.id) {
-      if (beforeSelectionId != changeSelection.id) {
-        ++this.serialNumber;
+    const newRange = changeSelection.range;
+    let mode = "";
+    if (!utils.isEmpty(newRange.startCol) && newRange.modifierKey != 2) {
+      let selectionFlag = false;
+      if (newRange.type == "column") {
+        selectionFlag = this.isColumnSelection(newRange);
+      } else {
+        selectionFlag = this.isSelection(newRange.startIdx, newRange.startCol);
       }
-      selectionInfo.id = changeSelection.id;
-    } else {
-      selectionInfo.id = this.getSelectionId("add");
+      newRange.mode = initFlag || !selectionFlag ? "add" : "remove";
+      mode = newRange.mode;
+      selectionInfo.id = this.getSelectionId(mode);
+      selectionInfo.range = utils.merge(selectionInfo.range, newRange);
     }
 
-    console.log("mode11111111111 , ", mode, this.serialNumber, JSON.stringify(changeSelection.range));
-
-    if (mode == "add") {
-      selectionInfo.range.mode = "add";
-
-      const selectionId = selectionInfo.id;
-
-      if (selectionId.startsWith("col-")) {
-        const newRange = changeSelection.range;
-
-        const startCol = newRange.startCol;
-
-        if (startCol == newRange.endCol) {
-          for (const [key, range] of Array.from(allRange.entries()).reverse()) {
-            if (key.startsWith("col-")) {
-              if (range.startCol == range.endCol && range.startCol == startCol) {
-                selectionInfo.range.mode = "remove";
-                selectionInfo.allRange.delete(key);
-
-                break;
-              } else if (range.minCol <= startCol && startCol <= range.maxCol) {
-                selectionInfo.range.mode = "remove";
-                selectionInfo.allRange.set("col-" + startCol + "-remove", this.setRangeMinMaxInfo(utils.merge(newRange, { mode: "remove" })));
-
-                //changeSelection.range = currentRange;
-                //selectionInfo.range = currentRange;
-                //selectionInfo.id = beforeSelectionId;
-                break;
-              }
-            }
-          }
-        }
-      }
-    } else if (mode == "remove") {
-      selectionInfo.range.mode = "remove";
-      selectionInfo.allRange.delete(selectionInfo.id);
-    }
+    console.log("setSelectionInfosetSelectionInfosetSelectionInfo mode", newRange);
 
     this.config.selection = selectionInfo;
 
@@ -246,7 +242,7 @@ export default class SelectionInfo {
       for (let j = startCol; j <= endCol; j++) {
         const col = currentFields[j];
 
-        if (col.hidden) continue;
+        if (col.hidden || col.$isAside) continue;
 
         const colName = col.name;
 
@@ -316,14 +312,9 @@ export default class SelectionInfo {
    * @returns {boolean} selection return
    */
   public isSelection(rowIdx: number, col: number): boolean {
-    const allRange = this.config.selection.allRange;
-
-    // console.log("isSelectionisSelectionisSelection");
-
-    const reversedRanges = Array.from(allRange.values()).reverse();
-
+    const reversedRanges = this.reversedAllRanges;
     for (const range of reversedRanges) {
-      if (this.isSelRange(range, rowIdx, col)) {
+      if (this.isCellSelectionRange(range, rowIdx, col)) {
         return range.mode != "remove";
       }
     }
@@ -331,33 +322,22 @@ export default class SelectionInfo {
     return false;
   }
 
-  public isAllColumnSelection(range: any): string {
-    const reversedRanges = Array.from(this.config.selection.allRange.values()).reverse();
+  /**
+   * column selection check
+   *
+   * @public
+   * @param {*} chackRange check column range info
+   * @returns {boolean} true = selection, false = not selection
+   */
+  public isColumnSelection(chackRange: any): boolean {
+    const reversedRanges = this.reversedAllRanges;
+    const { startIdx, startCol, endIdx, endCol } = chackRange;
     for (const range of reversedRanges) {
-      if (this.isSelRange(range, range.startIdx, range.startCol) && this.isSelRange(range, range.endIdx, range.endCol)) {
-        return "remove";
+      if (this.isCellSelectionRange(range, startIdx, startCol) && this.isCellSelectionRange(range, endIdx, endCol)) {
+        return range.mode != "remove";
       }
     }
-    return "add";
-  }
-
-  /**
-   * cell all 선택시 선택 여부
-   *
-   * @param {number} rowIdx row number
-   * @param {number} col col number
-   * @returns {boolean} 여부
-   */
-  public isUnSelection(rowIdx: number, col: number): number {
-    if (this.config.selection.unSelectPosition.hasOwnProperty("col-" + col)) {
-      return this.config.selection.unSelectPosition["col-" + col];
-    }
-
-    if (this.config.selection.unSelectPosition.hasOwnProperty(rowIdx + "," + col)) {
-      return this.config.selection.unSelectPosition[rowIdx + "," + col];
-    }
-
-    return -1;
+    return false;
   }
 
   /**
@@ -368,8 +348,16 @@ export default class SelectionInfo {
    * @param {number} col col number
    * @returns {boolean} 여부
    */
-  public isSelRange(range: SelectionRange, rowIdx: number, col: number): boolean {
+  public isCellSelectionRange(range: SelectionRange, rowIdx: number, col: number): boolean {
     return range.minIdx <= rowIdx && rowIdx <= range.maxIdx && range.minCol <= col && col <= range.maxCol;
+  }
+
+  public isRowRange(range: SelectionRange, rowIdx: number): boolean {
+    return range.minIdx <= rowIdx && rowIdx <= range.maxIdx;
+  }
+
+  public isCellRange(range: SelectionRange, col: number): boolean {
+    return range.minCol <= col && col <= range.maxCol;
   }
 
   /**
@@ -402,7 +390,7 @@ export default class SelectionInfo {
 
     this.clearSelectionCell();
 
-    console.log("setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
+    //console.log("setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
 
     for (let i = startRow; i < endRow; i++) {
       const currRow = scrollStartIdx + i;
@@ -426,6 +414,12 @@ export default class SelectionInfo {
         }
       }
     }
+
+    this.setRowCellStartSelection();
+  }
+
+  setRowCellStartSelection() {
+    //TODO
   }
 
   /**
@@ -441,11 +435,8 @@ export default class SelectionInfo {
     const classList = cellEle.classList;
 
     if (startIdx == rowIdx && startCol == col) {
-      classList.add("selection", "start-cell");
-      return;
+      classList.add("start-cell");
     }
-
-    //console.log("setCellSelectionStyleClass : ", rowIdx, col);
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
       if (!classList.contains("selection")) classList.add("selection");
@@ -582,4 +573,11 @@ export default class SelectionInfo {
 
     return "auto" + ++this.serialNumber;
   }
+}
+function isRowCellRange(range: SelectionRange, rowIdx: number, minCol: number, maxCol: number): boolean {
+  return range.minIdx <= rowIdx && rowIdx <= range.maxIdx && range.minCol <= minCol && range.maxCol >= maxCol;
+}
+
+function isCellRange(range: SelectionRange, col: number, minIdx: number, maxIdx: number): boolean {
+  return range.minCol <= col && col <= range.maxCol && range.minIdx <= minIdx && range.maxIdx >= maxIdx;
 }

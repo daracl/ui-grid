@@ -121,7 +121,6 @@ export function initConfig(opts: GridOptions): Config {
 export function initSelectionInfo(): Selection {
   return {
     id: "",
-    mode: "0",
     range: initSelectionRange(),
     allRange: new Map<string, SelectionRange>(),
     isSelect: false,
@@ -138,6 +137,8 @@ export function initSelectionInfo(): Selection {
 
 export function initSelectionRange(): SelectionRange {
   return {
+    modifierKey: -1,
+    type: "cell",
     mode: "",
     startIdx: -1,
     endIdx: -1,

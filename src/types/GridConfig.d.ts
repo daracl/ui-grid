@@ -131,11 +131,6 @@ export interface Selection {
    */
   id: string;
   /**
-   * mode
-   */
-  mode: string;
-
-  /**
    * 현재 설정 range
    */
   range: SelectionRange;
@@ -176,6 +171,8 @@ export interface SelectionRange {
   /**
    *
    */
+  modifierKey: -1 | 1 | 2; // 1 = ctrl, 2 = shift
+  type?: "column" | "row" | "cell";
   mode?: "" | "add" | "remove" | "drag";
   startIdx: number;
   endIdx: number;

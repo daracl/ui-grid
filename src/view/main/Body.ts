@@ -301,7 +301,7 @@ export default class Body {
               );
             }
 
-            console.log("moveRange 11111111 : ", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
+            // console.log("moveRange 11111111 : ", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
 
             beforeMoveRange = moveRange;
 
@@ -524,7 +524,7 @@ export default class Body {
 
     if (multipleFlag && keyMode >= 2) {
       // shift key
-      let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol } as SelectionRange;
+      let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol, modifierKey: 2 } as SelectionRange;
 
       if (selectRangeInfo.startCol > -1) {
         rangeInfo.startCol = selectRangeInfo.startCol;
@@ -543,9 +543,8 @@ export default class Body {
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol, modifierKey: 1 } as SelectionRange,
           isSelect: true,
-          mode: cfg.selection.isSelect ? "add" : "",
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
         } as Selection,

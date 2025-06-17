@@ -130,6 +130,7 @@ export default class Header {
           cfg.items = cfg.orginItems;
         }
 
+        this.gridMain.selectionInfo.clearSelection();
         this.gridMain.getBody().dataDraw("sort");
       },
       null,
@@ -188,7 +189,6 @@ export default class Header {
                 this.gridMain.selectionInfo.setSelectionRangeInfo(
                   {
                     id: cfg.selection.id,
-                    mode: "add",
                     range: moveRange as SelectionRange,
                   } as Selection,
                   false,
@@ -232,19 +232,13 @@ export default class Header {
               headDragTimer = -1;
             });
           }
-          let selectionId = "col-" + colIdx;
-          let mode = "",
-            initFlag = cfg.selection.id == "";
-          let range: any = { startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx };
+
+          let initFlag = cfg.selection.id == "";
+          let range: any = { type: "column", startIdx: 0, endIdx: cfg.dataInfo.lastRow, startCol: colIdx, endCol: colIdx };
           if (isCtrlKey(e)) {
-            // selection 되어있는지 체크 해서 selection 이면 해제 아니면 selection 처리 할것.
-            //
-            //
-            //
-            mode = this.gridMain.selectionInfo.isAllColumnSelection(range);
+            range.modifierKey = 1;
           } else if (isShiftKey(e)) {
-            selectionId = cfg.selection.id == "" ? selectionId : cfg.selection.id;
-            mode = this.gridMain.selectionInfo.isAllColumnSelection(range);
+            range.modifierKey = 2;
             range.startCol = initFlag ? colIdx : cfg.selection.range.startCol;
             range.endCol = colIdx;
           } else {
@@ -253,10 +247,8 @@ export default class Header {
 
           this.gridMain.selectionInfo.setSelectionRangeInfo(
             {
-              id: selectionId,
               range: range as SelectionRange,
               isSelect: true,
-              mode: mode,
             } as Selection,
             initFlag,
             true

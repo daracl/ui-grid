@@ -195,7 +195,7 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
       }
     }
 
-    if (rowIdx > 0) {
+    if (rowIdx >= 0) {
       rowIdx = cfg.scroll.startIdx + rowIdx;
     }
   }
