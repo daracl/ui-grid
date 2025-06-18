@@ -178,6 +178,8 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
 export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
   let mouseDragDirectionY = "";
   let rowIdx = -1;
+  const { scroll, dataInfo } = cfg;
+  const startIdx = scroll.startIdx;
 
   if (moveY < _t) {
     mouseDragDirectionY = "U";
@@ -186,7 +188,7 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
   } else {
     let topVal = 0;
     const contentTop = moveY - _t;
-    for (let i = 0; i < cfg.scroll.viewRow; i++) {
+    for (let i = 0; i < scroll.viewRow; i++) {
       topVal += rowHeight;
 
       if (topVal > contentTop) {
@@ -196,8 +198,12 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
     }
 
     if (rowIdx >= 0) {
-      rowIdx = cfg.scroll.startIdx + rowIdx;
+      rowIdx = startIdx + rowIdx;
     }
+  }
+
+  if ((mouseDragDirectionY == "U" && startIdx == 0) || (mouseDragDirectionY == "D" && dataInfo.rowLength == startIdx + scroll.insideViewRow)) {
+    mouseDragDirectionY = "";
   }
 
   return { mouseDragDirectionY, rowIdx };
@@ -232,15 +238,16 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
   let centerMovePageX = 0;
   let contentLeftVal = 0;
 
+  const { fixedLeftIndex, fixedRightIndex } = cfg;
   if (moveX < _l) {
     // 왼쪽으로 드래그
     centerMovePageX = moveX - positionX;
-    endCellIdx = cfg.fixedLeftIndex;
+    endCellIdx = fixedLeftIndex;
 
     mouseScrollDirectionX = "L";
   } else if (moveX > _r) {
     // 오른쪽으로 드래그
-    startCellIdx = cfg.fixedRightIndex;
+    startCellIdx = fixedRightIndex;
 
     if (startCellIdx > 0) {
       centerMovePageX = moveX - _r;
@@ -252,7 +259,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
   } else {
     // 중앙 영역
     centerMovePageX = moveX - _l;
-    startCellIdx = cfg.fixedLeftIndex;
+    startCellIdx = fixedLeftIndex;
     contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
   }
 
@@ -284,7 +291,10 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
     }
   }
 
-  if ((mouseScrollDirectionX == "L" && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) || (mouseScrollDirectionX == "R" && (isFixedRightPostion(cfg, startCol) || totalCells - 1 == cfg.scroll.insideEndCol))) {
+  if (
+    (mouseScrollDirectionX == "L" && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
+    (mouseScrollDirectionX == "R" && (isFixedRightPostion(cfg, startCol) || totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
+  ) {
     mouseScrollDirectionX = "";
   }
 

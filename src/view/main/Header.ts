@@ -130,7 +130,7 @@ export default class Header {
           cfg.items = cfg.orginItems;
         }
 
-        this.gridMain.selectionInfo.clearSelection();
+        this.gridMain.selectionInfo.initSelection();
         this.gridMain.getBody().dataDraw("sort");
       },
       null,

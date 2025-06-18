@@ -298,33 +298,34 @@ export default class GridMain {
   fieldResize() {
     const cfg = this.grid.config();
 
-    const leftFields = cfg.fieldHeaderGroup.leafLeft;
-    const centerFields = cfg.fieldHeaderGroup.leafCenter;
-    const rightFields = cfg.fieldHeaderGroup.leafRight;
+    const { leafLeft, leafCenter, leafRight } = cfg.fieldHeaderGroup;
 
-    // left panel
-    for (let j = 0; j < leftFields.length; j++) {
-      const field = leftFields[j];
-      if (!field.$isAside) {
-        this.header.leftElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-        this.body.leftElement.find('th[data-col-idx="' + j + '"]').style.width = field.$width + "px";
-      }
-    }
+    this.updateFieldWidth(leafLeft, 0, this.header.leftElement, this.body.leftElement, true);
+    this.updateFieldWidth(leafCenter, cfg.fixedLeftIndex, this.header.centerElement, this.body.centerElement);
+    this.updateFieldWidth(leafRight, cfg.fixedRightIndex, this.header.rightElement, this.body.rightElement);
+  }
 
-    // center panel
-    for (let j = 0; j < centerFields.length; j++) {
-      const field = centerFields[j];
-      const idx = cfg.fixedLeftIndex + j;
-      this.header.centerElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
-      this.body.centerElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
-    }
+  /**
+   * update field width
+   *
+   * @param fields field resize
+   * @param offset start position
+   * @param headerElement header html element
+   * @param bodyElement body html element
+   * @param skipAside aside skip
+   */
+  private updateFieldWidth(fields: any[], offset: number, headerElement: any, bodyElement: any, skipAside = false) {
+    for (let j = 0; j < fields.length; j++) {
+      const field = fields[j];
+      const colIdx = offset + j;
 
-    // right panel
-    for (let j = 0; j < rightFields.length; j++) {
-      const field = rightFields[j];
-      const idx = cfg.fixedRightIndex + j;
-      this.header.rightElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
-      this.body.rightElement.find('th[data-col-idx="' + idx + '"]').style.width = field.$width + "px";
+      if (skipAside && field.$isAside) continue;
+
+      const selector = `th[data-col-idx="${colIdx}"]`;
+      const width = `${field.$width}px`;
+
+      headerElement.find(selector).style.width = width;
+      bodyElement.find(selector).style.width = width;
     }
   }
 
@@ -417,7 +418,7 @@ export default class GridMain {
     cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), cfg.dataInfo.rowLength);
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
-    const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + 1 : 0; // +2 마지막 여백처리;
+    const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
 
     let remainderWidth = 0,
       lastSpaceW = 0;
