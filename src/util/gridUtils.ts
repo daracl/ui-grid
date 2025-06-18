@@ -62,10 +62,10 @@ export const isRowSelection = (selectionMode: string): boolean => {
 export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => {
   const posInfo = getCellPosition(cellElement);
   const rowIndex = cfg.scroll.startIdx + posInfo.r;
-
+  const col = posInfo.c;
   return {
     r: posInfo.r,
-    c: posInfo.c,
+    c: col < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : col,
     rowIndex: rowIndex,
     item: cfg.items[rowIndex],
     field: cfg.currentFields[posInfo.c],
@@ -297,6 +297,8 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
   ) {
     mouseScrollDirectionX = "";
   }
+
+  overCell = overCell < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : overCell;
 
   return { mouseScrollDirectionX, overCell };
 }

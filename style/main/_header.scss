@@ -49,6 +49,10 @@
           }
         }
 
+        .dg-header-cell.selection {
+          background-color: var(--cell-bg-selection) !important;
+        }
+
         .label-wrapper {
           position: relative;
           padding: 0;

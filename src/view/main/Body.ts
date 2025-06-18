@@ -237,10 +237,14 @@ export default class Body {
         if ((e as MouseEvent).button === 3) {
           return true;
         }
-        const currentElement = e.target as HTMLElement;
-        if (isInputField(currentElement.tagName)) {
+        const eventElement = e.target as HTMLElement;
+        if (isInputField(eventElement.tagName)) {
           return true;
         }
+
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement == null || hasClass(cellElement, "row-check modify-info")) return;
 
         //const startEvtPosition = eventPosition(e);
 
@@ -250,11 +254,6 @@ export default class Body {
           _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
-
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-
-        if (cellElement == null || hasClass(cellElement, "row-check modify-info")) return;
 
         if (multipleFlag && hasClass(cellElement, "line-number")) {
           selectionMode = "multiple-row";
@@ -288,19 +287,6 @@ export default class Body {
             }
 
             if (beforeMoveRange.endIdx == moveRange.endIdx && beforeMoveRange.endCol == moveRange.endCol) return;
-
-            console.log(
-              beforeMoveRange.endIdx,
-              "sssssss || ",
-              beforeMoveRange.endCol,
-              " moveRange.endCol : ",
-              moveRange.endIdx,
-              " || ",
-              moveRange.endCol,
-              mouseScrollDirectionX,
-              mouseDragDirectionY,
-              mouseScrollDirectionX == "" && mouseDragDirectionY == ""
-            );
 
             if (Object.keys(moveRange).length > 0) {
               this.selectionInfo.setSelectionRangeInfo(
@@ -527,7 +513,7 @@ export default class Body {
 
     const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
 
-    console.log(`multipleFlag : ${multipleFlag}, keymode : ${keyMode}, multipleFlag:${multipleFlag}`);
+    //console.log(`multipleFlag : ${multipleFlag}, keymode : ${keyMode}, multipleFlag:${multipleFlag}`);
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
       this.removeStartCellClass();
@@ -689,6 +675,8 @@ export default class Body {
 
     let insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
 
+    let gridStartCol = cfg.dataInfo.startCol;
+
     const isCtrl = isCtrlKey(evt);
     switch (evtKey) {
       case 34: // PageDown
@@ -739,12 +727,12 @@ export default class Body {
       case 37: {
         //left
 
-        let moveCol = 0;
+        let moveCol = gridStartCol;
         if (evtKey == 37 && isCtrl) {
-          moveCol = 0;
+          moveCol = gridStartCol;
         } else {
-          moveCol = evtKey == 36 ? 0 : endCol - 1;
-          moveCol = moveCol > 0 ? moveCol : 0;
+          moveCol = evtKey == 36 ? gridStartCol : endCol - 1;
+          moveCol = moveCol > gridStartCol ? moveCol : gridStartCol;
         }
 
         if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
@@ -760,7 +748,7 @@ export default class Body {
       case 35: // End
       case 9: // tab
       case 39: {
-        let moveCol = 0;
+        let moveCol = gridStartCol;
         if (evtKey == 39 && isCtrl) {
           moveCol = dataInfo.colLength - 1;
         } else {

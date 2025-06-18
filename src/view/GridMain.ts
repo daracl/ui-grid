@@ -525,6 +525,7 @@ export default class GridMain {
     asideOrder = asideOrder.filter((item) => item !== null && item !== undefined);
 
     cfg.dataInfo.asideLength = asideOrder.length;
+    cfg.dataInfo.startCol = cfg.dataInfo.asideLength;
 
     const fixedLeftIndex = cfg.dataInfo.asideLength + cfg.fixedLeftIndex - 1;
     let fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : cfg.dataInfo.asideLength + cfg.fixedRightIndex;

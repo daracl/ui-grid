@@ -16,6 +16,9 @@ export default class SelectionInfo {
 
   private reversedAllRanges: SelectionRange[] = [];
 
+  private rowLine: Set<number> = new Set();
+  private columnLine: Set<number> = new Set();
+
   /**
    * select id number
    *
@@ -216,14 +219,6 @@ export default class SelectionInfo {
   }
 
   /**
-   * @method isRangeKey
-   * @description header , col 선택 여부 확인
-   */
-  public isRangeKey(key: string): boolean {
-    return this.config.selection.allRange.hasOwnProperty(key);
-  }
-
-  /**
    * is all cell selection
    *
    * @public
@@ -419,7 +414,9 @@ export default class SelectionInfo {
 
     this.clearSelectionCell();
 
-    console.log(fixedRightIndex, endCol, dataInfo.colLength, "  setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
+    this.clearLineSelection();
+
+    //console.log(fixedRightIndex, endCol, dataInfo.colLength, "  setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
 
     for (let i = startRow; i < endRow; i++) {
       const currRow = scrollStartIdx + i;
@@ -443,12 +440,14 @@ export default class SelectionInfo {
         }
       }
     }
-
-    this.setRowCellStartSelection();
   }
 
-  setRowCellStartSelection() {
-    //TODO
+  /**
+   * clearn line selection
+   */
+  clearLineSelection() {
+    this.rowLine.clear();
+    this.columnLine.clear();
   }
 
   /**
@@ -469,10 +468,29 @@ export default class SelectionInfo {
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
       if (!classList.contains("selection")) classList.add("selection");
-      return;
+
+      if (!this.rowLine.has(rowIdx)) {
+        this.rowLine.add(rowIdx);
+      }
+
+      if (!this.columnLine.has(col)) {
+        this.columnLine.add(col);
+        this.setHeaderSelecton(col);
+      }
+
+      return true;
     }
 
     if (classList.contains("selection")) classList.remove("selection");
+
+    return false;
+  }
+
+  public setHeaderSelecton(col: number) {
+    const cellElement = this.gridMain.getHeader().headerElement.find(`.dg-header-cell[data-header-cell-idx="${col}"]`);
+
+    const classList = cellElement.classList;
+    if (!classList.contains("selection")) classList.add("selection");
   }
 
   /**
@@ -482,6 +500,9 @@ export default class SelectionInfo {
   public clearSelectionCell() {
     removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.start-cell"), "start-cell");
     removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.selection"), "selection");
+
+    // remove header selection
+    removeClass(this.gridMain.getHeader().headerElement.finds(".dg-header-cell.selection"), "selection");
   }
 
   /**
@@ -532,13 +553,13 @@ export default class SelectionInfo {
       endCol = col;
 
     if (isRowSelection(selectionMode)) {
-      startCol = 0;
+      startCol = cfg.dataInfo.startCol;
       endCol = cfg.dataInfo.colLength - 1;
     } else if (selectionMode == "multiple-cell") {
       if (isMouseDown) {
         startCol = -1;
       } else if (hasClass(cellElement, "line-number")) {
-        startCol = 0;
+        startCol = cfg.dataInfo.startCol;
         endCol = cfg.dataInfo.colLength - 1;
       } else {
         startCol = col;

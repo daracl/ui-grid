@@ -54,6 +54,10 @@ export default class Header {
 
     this.initResizeEvent();
   }
+
+  /**
+   * init header sort event
+   */
   initSortEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
@@ -139,10 +143,14 @@ export default class Header {
     //dg-sort-icon
   }
 
-  initHeaderSelectionEvent() {
+  /**
+   * init  header selection event
+   */
+  private initHeaderSelectionEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     const headerElement = this.headerElement;
+    const leafAllFields = cfg.currentFields;
 
     const selectionMode = opts.selectionMode;
 
@@ -167,6 +175,10 @@ export default class Header {
           const currentElement = e.currentTarget as HTMLElement;
 
           const colIdx = parseInt(currentElement.getAttribute("data-header-cell-idx") ?? "0", 10);
+          const field = leafAllFields[colIdx];
+          if (field.$isAside) {
+            return;
+          }
 
           if (multipleFlag) {
             let beforeMoveRange = { endCol: -1 };
@@ -265,7 +277,12 @@ export default class Header {
     }
   }
 
-  initResizeEvent() {
+  /**
+   * resize event
+   *
+   * @private
+   */
+  private initResizeEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
@@ -391,6 +408,7 @@ export default class Header {
   }
 
   /**
+   *column resize calculate
    *
    * @param sEle
    */

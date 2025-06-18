@@ -63,6 +63,7 @@ export interface Config {
   dataInfo: {
     colLength: number;
     rowLength: number;
+    startCol: number;
     lastRow: number;
     orginLeafHeaders: Array;
     orginLeafHeaderKeyMap: AnyKeyMap;
@@ -146,12 +147,7 @@ export interface Selection {
    * 마우스 다운여부
    */
   isMouseDown: boolean;
-  /**
-   * 취소 영역
-   */
-  unSelectPosition: {
-    [key: string]: any;
-  };
+
   /**
    * 전체 선택 여부
    */
