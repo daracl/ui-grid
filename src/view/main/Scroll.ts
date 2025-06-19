@@ -177,6 +177,18 @@ export default class Scroll {
 
     if (opts.scroll.vertical.enable === false) return;
 
+    this.initVerticalTrack();
+    this.initVerticalThumb();
+    this.initVerticalButton();
+  }
+
+  /**
+   * init vertical track event
+   *
+   * @private
+   */
+  private initVerticalTrack() {
+    const opts = this.opts;
     const cfg = this.grid.config();
 
     let bgMoveMode = 0;
@@ -215,79 +227,9 @@ export default class Scroll {
         clearTimeout(verticalScrollTimer);
         bgMoveMode = 0;
       });
+  }
 
-    let dragging = false;
-    let lastY = 0;
-    let animationFrameId: number | null = null;
-
-    const tooltipFlag = opts.scroll.vertical.enableTooltip;
-    const tooltipEle = this.verticalElement.findDaraElement(".dg-vscroll-bar-tip");
-    const verticalThumbElement = this.verticalThumbElement;
-
-    verticalThumbElement.eventOff("touchstart mousedown");
-
-    verticalThumbElement.eventOn(
-      "touchstart mousedown",
-      (e: MouseEvent | TouchEvent) => {
-        stopPreventCancel(e);
-
-        const data = {
-          top: cfg.scroll.top,
-          pageY: eventPosition(e).y,
-        };
-
-        dragging = true;
-        lastY = data.pageY;
-
-        verticalThumbElement.addClass("active");
-
-        const onMove = (e1: MouseEvent | TouchEvent) => {
-          if (!dragging) return;
-          lastY = eventPosition(e1).y;
-        };
-
-        const onEnd = (e1: MouseEvent | TouchEvent) => {
-          if (!dragging) return;
-          dragging = false;
-
-          verticalThumbElement.removeClass("active");
-          cancelAnimationFrame(animationFrameId!);
-          this.moveVerticalScroll({ position: data.top + (eventPosition(e1).y - data.pageY) });
-
-          eventOff(document, "touchmove mousemove touchend mouseup");
-
-          if (tooltipFlag) {
-            tooltipEle.hide();
-          }
-        };
-
-        // 애니메이션 루프
-        const loop = () => {
-          if (!dragging) return;
-          const delta = lastY - data.pageY;
-
-          this.moveVerticalScroll({ position: data.top + delta });
-
-          if (tooltipFlag) {
-            tooltipEle.text(cfg.scroll.viewRow + 1);
-            tooltipEle.show();
-          }
-
-          animationFrameId = requestAnimationFrame(loop);
-        };
-
-        // 이벤트 바인딩
-        eventOn(document, "touchmove mousemove", onMove);
-        eventOn(document, "touchend mouseup", onEnd);
-
-        animationFrameId = requestAnimationFrame(loop);
-
-        return true;
-      },
-      null,
-      { passive: false }
-    );
-
+  private initVerticalButton() {
     let scrollBtnTimer: any;
     let vBtnDelay = 100;
     const scrollButtonElements = this.verticalElement.finds(".dg-scroll-button");
@@ -317,6 +259,93 @@ export default class Scroll {
       clearInterval(scrollBtnTimer);
       buttonMoveMode = 0;
     });
+  }
+
+  private initVerticalThumb() {
+    const opts = this.opts;
+    const cfg = this.grid.config();
+    /* 스크롤 바 button drag */
+    const tooltipFlag = opts.scroll.vertical.enableTooltip;
+    const tooltipEle = this.verticalElement.findDaraElement(".dg-vscroll-bar-tip");
+    const verticalThumbElement = this.verticalThumbElement;
+
+    let dragging = false;
+    let lastY = 0;
+    let animationFrameId: number | null = null;
+    let initialTop = 0;
+    let startY = 0;
+
+    // move 핸들러
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!dragging) return;
+      lastY = eventPosition(e).y;
+    };
+
+    // end 핸들러
+    const onEnd = (e: MouseEvent | TouchEvent) => {
+      if (!dragging) return;
+
+      dragging = false;
+      verticalThumbElement.removeClass("active");
+
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
+      const endY = eventPosition(e).y;
+      this.moveVerticalScroll({ position: initialTop + (endY - startY) });
+
+      eventOff(document, "touchmove mousemove");
+      eventOff(document, "touchend mouseup");
+
+      if (tooltipFlag) {
+        tooltipEle.hide();
+      }
+    };
+
+    // 루프 함수 (매 프레임마다 스크롤 이동)
+    const loop = () => {
+      if (!dragging) return;
+
+      const delta = lastY - startY;
+      this.moveVerticalScroll({ position: initialTop + delta });
+
+      if (tooltipFlag) {
+        tooltipEle.text(cfg.scroll.viewRow + 1);
+        tooltipEle.show();
+      }
+
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    verticalThumbElement.eventOff("touchstart mousedown");
+    verticalThumbElement.eventOn(
+      "touchstart mousedown",
+      (e: MouseEvent | TouchEvent) => {
+        stopPreventCancel(e);
+
+        dragging = true;
+        initialTop = cfg.scroll.top;
+        startY = eventPosition(e).y;
+        lastY = startY;
+
+        verticalThumbElement.addClass("active");
+
+        // 이벤트 바인딩
+        eventOn(document, "touchmove mousemove", onMove);
+        eventOn(document, "touchend mouseup", onEnd);
+
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId); // 중복 방지
+        }
+        animationFrameId = requestAnimationFrame(loop);
+
+        return true;
+      },
+      null,
+      { passive: false }
+    );
   }
 
   /**
@@ -350,6 +379,101 @@ export default class Scroll {
    * @private
    */
   private initHorizontalEvent() {
+    this.initHorizontalTrack();
+    this.initHorizontalThumb();
+    this.initHorizontalButton();
+  }
+
+  /**
+   * init horizontal thumb drag event
+   *
+   * @private
+   */
+  private initHorizontalThumb() {
+    const cfg = this.grid.config();
+
+    let dragging = false;
+    let lastX = 0;
+    let startX = 0;
+    let initialLeft = 0;
+    let animationFrameId: number | null = null;
+
+    const horizontalThumbElement = this.horizontalThumbElement;
+    const moveHorizontalScroll = this.moveHorizontalScroll.bind(this);
+
+    const cleanup = () => {
+      eventOff(document, "touchmove mousemove");
+      eventOff(document, "touchend mouseup");
+    };
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      if (!dragging) return;
+      lastX = eventPosition(e).x;
+    };
+
+    const onEnd = (e: MouseEvent | TouchEvent) => {
+      if (!dragging) return;
+      dragging = false;
+
+      horizontalThumbElement.removeClass("active");
+
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
+      const endX = eventPosition(e).x;
+      moveHorizontalScroll({ position: initialLeft + (endX - startX) });
+
+      cleanup();
+    };
+
+    const loop = () => {
+      if (!dragging) return;
+
+      const delta = lastX - startX;
+      moveHorizontalScroll({ position: initialLeft + delta });
+
+      animationFrameId = requestAnimationFrame(loop);
+    };
+
+    // 먼저 기존 이벤트 제거
+    horizontalThumbElement.eventOff("touchstart mousedown touchend mouseup");
+
+    // 이벤트 등록
+    horizontalThumbElement.eventOn(
+      "touchstart mousedown",
+      (e: MouseEvent | TouchEvent) => {
+        stopPreventCancel(e);
+
+        dragging = true;
+        startX = eventPosition(e).x;
+        lastX = startX;
+        initialLeft = cfg.scroll.left;
+
+        horizontalThumbElement.addClass("active");
+
+        eventOn(document, "touchmove mousemove", onMove);
+        eventOn(document, "touchend mouseup", onEnd);
+
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        animationFrameId = requestAnimationFrame(loop);
+
+        return true;
+      },
+      null,
+      { passive: false }
+    );
+  }
+
+  /**
+   * init horizontal track event
+   *
+   * @private
+   */
+  private initHorizontalTrack() {
     const cfg = this.grid.config();
     const opts = this.opts;
 
@@ -390,68 +514,20 @@ export default class Scroll {
         clearTimeout(horizontalScrollTimer);
         bgMoveMode = 0;
       });
+  }
 
-    let dragging = false;
-    let lastX = 0;
-    let animationFrameId: number | null = null;
-
-    const horizontalThumbElement = this.horizontalThumbElement;
-    horizontalThumbElement.eventOff("touchstart mousedown touchend mouseup");
-
-    horizontalThumbElement.eventOn(
-      "touchstart mousedown",
-      (e: MouseEvent | TouchEvent) => {
-        stopPreventCancel(e);
-
-        const data = {
-          left: cfg.scroll.left,
-          pageX: eventPosition(e).x,
-        };
-
-        dragging = true;
-        lastX = data.pageX;
-
-        horizontalThumbElement.addClass("active");
-
-        const onMove = (e1: MouseEvent | TouchEvent) => {
-          if (!dragging) return;
-          lastX = eventPosition(e1).x;
-        };
-
-        const onEnd = (e1: MouseEvent | TouchEvent) => {
-          if (!dragging) return;
-          dragging = false;
-
-          horizontalThumbElement.removeClass("active");
-          cancelAnimationFrame(animationFrameId!);
-          this.moveHorizontalScroll({ position: data.left + (eventPosition(e1).x - data.pageX) });
-
-          eventOff(document, "touchmove mousemove touchend mouseup");
-        };
-
-        const loop = () => {
-          if (!dragging) return;
-          const delta = lastX - data.pageX;
-          this.moveHorizontalScroll({ position: data.left + delta });
-
-          animationFrameId = requestAnimationFrame(loop);
-        };
-
-        eventOn(document, "touchmove mousemove", onMove);
-        eventOn(document, "touchend mouseup", onEnd);
-
-        animationFrameId = requestAnimationFrame(loop);
-
-        return true;
-      },
-      null,
-      { passive: false }
-    );
-
+  /**
+   * init horizontal button event
+   *
+   * @private
+   */
+  private initHorizontalButton() {
     let scrollBtnTimer: any;
     let vBtnDelay = 100;
-    const scrollButtonElements = this.horizontalElement.finds(".dg-scroll-button");
     let buttonMoveMode = 0;
+
+    const scrollButtonElements = this.horizontalElement.finds(".dg-scroll-button");
+
     //세로 방향키
     eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
     eventOn(
