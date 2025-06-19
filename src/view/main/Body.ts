@@ -964,7 +964,7 @@ export default class Body {
     const startCol = cfg.scroll.startCol;
     const endCol = cfg.scroll.endCol;
 
-    console.log(mode, startCol, endCol, "dataDraw", currentViewRow, viewRow, fieldGroups);
+    console.log(mode, startCol, endCol, "dataDraw", currentViewRow, viewRow);
 
     //const start = performance.now();
 

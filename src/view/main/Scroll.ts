@@ -216,62 +216,71 @@ export default class Scroll {
         bgMoveMode = 0;
       });
 
-    let scrollbarDragTimer: any;
+    let dragging = false;
+    let lastY = 0;
+    let animationFrameId: number | null = null;
+
     const tooltipFlag = opts.scroll.vertical.enableTooltip;
-    const vDragDelay = 7; //opts.scroll.vertical.dragDelay;
-
     const tooltipEle = this.verticalElement.findDaraElement(".dg-vscroll-bar-tip");
-
     const verticalThumbElement = this.verticalThumbElement;
-    // 세로 스크롤 바 .
+
     verticalThumbElement.eventOff("touchstart mousedown");
+
     verticalThumbElement.eventOn(
       "touchstart mousedown",
-      (e: MouseEvent) => {
+      (e: MouseEvent | TouchEvent) => {
         stopPreventCancel(e);
 
-        const data = {} as any;
-        data.top = cfg.scroll.top;
-        data.pageY = eventPosition(e).y;
+        const data = {
+          top: cfg.scroll.top,
+          pageY: eventPosition(e).y,
+        };
+
+        dragging = true;
+        lastY = data.pageY;
 
         verticalThumbElement.addClass("active");
 
-        let startTime: number = -1;
+        const onMove = (e1: MouseEvent | TouchEvent) => {
+          if (!dragging) return;
+          lastY = eventPosition(e1).y;
+        };
 
-        eventOn(document, "touchmove mousemove", (e1: Event) => {
-          if (startTime == -1) {
-            startTime = new Date().getTime();
-          }
+        const onEnd = (e1: MouseEvent | TouchEvent) => {
+          if (!dragging) return;
+          dragging = false;
 
-          if (new Date().getTime() - vDragDelay <= startTime) {
-            clearTimeout(scrollbarDragTimer);
-          }
-
-          scrollbarDragTimer = setTimeout(() => {
-            startTime = -1;
-
-            this.moveVerticalScroll({ position: data.top + (eventPosition(e1).y - data.pageY) });
-
-            if (tooltipFlag) {
-              tooltipEle.text(cfg.scroll.viewRow + 1);
-              tooltipEle.show();
-            }
-          }, vDragDelay);
-        });
-
-        eventOn(document, "touchend mouseup", (e1: Event) => {
           verticalThumbElement.removeClass("active");
-          clearTimeout(scrollbarDragTimer);
-
+          cancelAnimationFrame(animationFrameId!);
           this.moveVerticalScroll({ position: data.top + (eventPosition(e1).y - data.pageY) });
-          eventOff(document, "touchmove mousemove touchend mouseup");
 
-          startTime = -1;
+          eventOff(document, "touchmove mousemove touchend mouseup");
 
           if (tooltipFlag) {
             tooltipEle.hide();
           }
-        });
+        };
+
+        // 애니메이션 루프
+        const loop = () => {
+          if (!dragging) return;
+          const delta = lastY - data.pageY;
+
+          this.moveVerticalScroll({ position: data.top + delta });
+
+          if (tooltipFlag) {
+            tooltipEle.text(cfg.scroll.viewRow + 1);
+            tooltipEle.show();
+          }
+
+          animationFrameId = requestAnimationFrame(loop);
+        };
+
+        // 이벤트 바인딩
+        eventOn(document, "touchmove mousemove", onMove);
+        eventOn(document, "touchend mouseup", onEnd);
+
+        animationFrameId = requestAnimationFrame(loop);
 
         return true;
       },
@@ -382,50 +391,56 @@ export default class Scroll {
         bgMoveMode = 0;
       });
 
-    let scrollbarDragTimer: any;
-    const hDragDelay = 7; //opts.scroll.horizontal.dragDelay;
+    let dragging = false;
+    let lastX = 0;
+    let animationFrameId: number | null = null;
 
     const horizontalThumbElement = this.horizontalThumbElement;
-
     horizontalThumbElement.eventOff("touchstart mousedown touchend mouseup");
+
     horizontalThumbElement.eventOn(
       "touchstart mousedown",
-      (e: MouseEvent) => {
+      (e: MouseEvent | TouchEvent) => {
         stopPreventCancel(e);
 
-        const data = {} as any;
+        const data = {
+          left: cfg.scroll.left,
+          pageX: eventPosition(e).x,
+        };
 
-        data.left = cfg.scroll.left;
-        data.pageX = eventPosition(e).x;
+        dragging = true;
+        lastX = data.pageX;
 
         horizontalThumbElement.addClass("active");
-        let startTime: number = -1;
 
-        eventOn(document, "touchmove mousemove", (e1: Event) => {
-          if (startTime == -1) {
-            startTime = new Date().getTime();
-          }
+        const onMove = (e1: MouseEvent | TouchEvent) => {
+          if (!dragging) return;
+          lastX = eventPosition(e1).x;
+        };
 
-          if (new Date().getTime() - hDragDelay <= startTime) {
-            clearTimeout(scrollbarDragTimer);
-          }
+        const onEnd = (e1: MouseEvent | TouchEvent) => {
+          if (!dragging) return;
+          dragging = false;
 
-          scrollbarDragTimer = setTimeout(() => {
-            startTime = -1;
-
-            this.moveHorizontalScroll({ position: data.left + (eventPosition(e1).x - data.pageX) });
-          }, hDragDelay);
-        });
-
-        eventOn(document, "touchend mouseup", (e1: Event) => {
           horizontalThumbElement.removeClass("active");
-          clearTimeout(scrollbarDragTimer);
-
+          cancelAnimationFrame(animationFrameId!);
           this.moveHorizontalScroll({ position: data.left + (eventPosition(e1).x - data.pageX) });
-          eventOff(document, "touchmove mousemove touchend mouseup");
 
-          startTime = -1;
-        });
+          eventOff(document, "touchmove mousemove touchend mouseup");
+        };
+
+        const loop = () => {
+          if (!dragging) return;
+          const delta = lastX - data.pageX;
+          this.moveHorizontalScroll({ position: data.left + delta });
+
+          animationFrameId = requestAnimationFrame(loop);
+        };
+
+        eventOn(document, "touchmove mousemove", onMove);
+        eventOn(document, "touchend mouseup", onEnd);
+
+        animationFrameId = requestAnimationFrame(loop);
 
         return true;
       },

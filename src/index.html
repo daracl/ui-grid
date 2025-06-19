@@ -554,9 +554,9 @@
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 1
-      , fixedRightIndex: 22
+      , fixedRightIndex: 0
       // ,height:250
-      // , width: 1024
+      , width: 1280
       , aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
@@ -743,7 +743,7 @@
         }
         // 방향키 컨트롤 . 
         , keyNavHandler: function (moveInfo) {
-          console.log(moveInfo);
+          //console.log(moveInfo);
         }
         , pasteBefore: function (a) {
           console.log('pasteBefore', a);
