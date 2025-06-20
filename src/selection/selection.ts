@@ -72,12 +72,9 @@ export default class SelectionInfo {
 
     this.setReverseAllRange();
 
-    const resultRange = this.computeEffectiveSelectionRange(this.reversedAllRanges);
+    this.computeEffectiveSelectionRange(this.reversedAllRanges, currentSelection);
 
-    currentSelection.minIdx = resultRange.minIdx;
-    currentSelection.maxIdx = resultRange.maxIdx;
-    currentSelection.minCol = resultRange.minCol;
-    currentSelection.maxCol = resultRange.maxCol;
+    this.setColumnLineSelection();
 
     if (cellSelectFlag) {
       this.setCellSelection();
@@ -111,12 +108,7 @@ export default class SelectionInfo {
    * @param ranges - 정렬된 SelectionRange 목록 (보통 역순으로 되어 있음)
    * @returns 실제 선택된 셀의 최소/최대 행, 열 인덱스 정보
    */
-  private computeEffectiveSelectionRange(ranges: SelectionRange[]): {
-    minIdx: number;
-    maxIdx: number;
-    minCol: number;
-    maxCol: number;
-  } {
+  private computeEffectiveSelectionRange(ranges: SelectionRange[], currentSelection: Selection) {
     let minIdx = Infinity,
       maxIdx = -1;
     let minCol = Infinity,
@@ -169,7 +161,73 @@ export default class SelectionInfo {
       }
     }
 
-    return { minIdx, maxIdx, minCol, maxCol };
+    currentSelection.minIdx = minIdx;
+    currentSelection.maxIdx = maxIdx;
+    currentSelection.minCol = minCol;
+    currentSelection.maxCol = maxCol;
+
+    this.getSelectedRowsAndCols(ranges);
+  }
+
+  /**
+   * selection row col
+   *
+   * @private
+   * @param {SelectionRange[]} ranges info
+   * @returns {{
+   *     rows: number[];
+   *     cols: number[];
+   *   }}
+   */
+  private getSelectedRowsAndCols(ranges: readonly SelectionRange[]) {
+    /* 0) 어떤 전략을 쓸지 미리 판단 */
+    const NEED_WIDE = ranges.some((r) => r.maxIdx >= 1_000_000);
+
+    /* 공통 자료구조 */
+    const add = new Set<number>();
+    const del = new Set<number>();
+
+    /* 1) 전략별 인코더 정의 */
+    const COL_BITS = 12 as const; // 열 0-4095
+    const COL_MASK = (1 << COL_BITS) - 1;
+    const ROW_OFFSET = 100_000; // wide 모드용
+
+    const encode = NEED_WIDE
+      ? (row: number, col: number) => row * ROW_OFFSET + col // ≤ 9,007,199,254,740,991 (JS 안전 정수)
+      : (row: number, col: number) => (row << COL_BITS) | col; // fast bit-pack
+
+    const decodeRow = NEED_WIDE
+      ? (v: number) => (v / ROW_OFFSET) | 0 // 정수 나눗셈
+      : (v: number) => v >>> COL_BITS; // zero-fill right shift
+
+    const decodeCol = NEED_WIDE ? (v: number) => v % ROW_OFFSET : (v: number) => v & COL_MASK;
+
+    /* 2) add / remove 1차 집합 채우기 */
+    for (const r of ranges) {
+      if (r.type !== "cell" && r.type !== "column") continue;
+
+      for (let row = r.minIdx; row <= r.maxIdx; row++) {
+        for (let col = r.minCol; col <= r.maxCol; col++) {
+          const key = encode(row, col);
+          (r.mode === "add" ? add : del).add(key);
+        }
+      }
+    }
+
+    /* 3) 차집합 연산 */
+    del.forEach((k) => add.delete(k)); // Set 연산 O(n)[6]
+
+    /* 4) 행·열 집합 완성 */
+    const rows = new Set<number>();
+    const cols = new Set<number>();
+
+    add.forEach((v) => {
+      rows.add(decodeRow(v));
+      cols.add(decodeCol(v));
+    });
+
+    this.rowLine = rows;
+    this.columnLine = cols;
   }
 
   private setReverseAllRange() {
@@ -245,15 +303,12 @@ export default class SelectionInfo {
    * @description select data 구하기.
    */
   public selectionData(dataType: "text" | "json" = "text", isSummary: boolean = false): any {
-    console.log("selectionData : ");
-
     const { items, currentFields, selection, dataInfo } = this.config;
     const isJson = dataType === "json";
 
     if (dataInfo.rowLength < 1) return isJson ? {} : "";
 
     const isAll = this.isAllSelect();
-
     const startCol = isAll ? 0 : selection.minCol;
     const endCol = isAll ? dataInfo.colLength - 1 : selection.maxCol;
     const startIdx = isAll ? 0 : selection.minIdx;
@@ -261,38 +316,28 @@ export default class SelectionInfo {
 
     if (startIdx < 0 || endIdx < 0) return isJson ? {} : "";
 
-    const result = [];
-    const keyInfoMap = {} as any;
+    const result: any[] = [];
+    const keyInfoMap = new Map<number, any>();
     const summary = { count: 0, numbers: [] as number[] };
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];
-
-      const rowText: string[] = [];
-      const rowJson: any = { _dgIdx: i };
+      let rowOutput: any = isJson ? { _dgIdx: i } : [];
       let hasSelection = false;
 
       for (let j = startCol; j <= endCol; j++) {
         const col = currentFields[j];
-
         if (col.hidden || col.$isAside) continue;
 
         const colName = col.name;
-
         const selected = isAll || this.isSelection(i, j);
 
-        const cellValue = selected ? col.$renderer.getValue(item) : "";
-
-        if (isJson) {
-          rowJson[colName] = cellValue;
-        } else {
-          rowText.push(cellValue);
-        }
-
+        let cellValue: any = "";
         if (selected) {
+          cellValue = col.$renderer.getValue(item);
           hasSelection = true;
 
-          keyInfoMap[j] = col;
+          if (!keyInfoMap.has(j)) keyInfoMap.set(j, col);
 
           if (!utils.isBlank(cellValue)) {
             summary.count++;
@@ -301,19 +346,23 @@ export default class SelectionInfo {
             }
           }
         }
+
+        if (isJson) {
+          rowOutput[colName] = cellValue;
+        } else {
+          rowOutput.push(cellValue);
+        }
       }
 
       if (hasSelection) {
-        result.push(isJson ? rowJson : rowText.join("\t"));
+        result.push(isJson ? rowOutput : rowOutput.join("\t"));
       }
     }
 
-    if (!isJson) {
-      return result.join("\n");
-    }
+    if (!isJson) return result.join("\n");
 
-    const headers = Object.values(keyInfoMap);
-    let summaryInfo = {
+    const headers = Array.from(keyInfoMap.values());
+    const summaryInfo = {
       count: summary.count,
       numFieldCount: summary.numbers.length,
       min: -1,
@@ -323,10 +372,12 @@ export default class SelectionInfo {
     };
 
     if (isSummary && summary.numbers.length > 0) {
-      summaryInfo.min = Math.min(...summary.numbers);
-      summaryInfo.max = Math.max(...summary.numbers);
-      summaryInfo.sum = summary.numbers.reduce((a, b) => a + b, 0);
-      summaryInfo.avg = summary.numbers.length ? (summaryInfo.sum / summary.numbers.length).toFixed(1) : "0";
+      const nums = summary.numbers;
+      const total = nums.reduce((a, b) => a + b, 0);
+      summaryInfo.min = Math.min(...nums);
+      summaryInfo.max = Math.max(...nums);
+      summaryInfo.sum = total;
+      summaryInfo.avg = (total / nums.length).toFixed(1);
     }
 
     return {
@@ -414,8 +465,6 @@ export default class SelectionInfo {
 
     this.clearSelectionCell();
 
-    this.clearLineSelection();
-
     //console.log(fixedRightIndex, endCol, dataInfo.colLength, "  setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
 
     for (let i = startRow; i < endRow; i++) {
@@ -441,13 +490,23 @@ export default class SelectionInfo {
       }
     }
   }
+  private setColumnLineSelection() {
+    const dataInfo = this.config.dataInfo;
+    const headerCellElements = this.gridMain.getHeader().getHeaderCellElements();
 
-  /**
-   * clearn line selection
-   */
-  clearLineSelection() {
-    this.rowLine.clear();
-    this.columnLine.clear();
+    const isAll = this.isAllSelect();
+    for (let col = dataInfo.startCol; col < dataInfo.colLength; col++) {
+      const headerEle = headerCellElements[col];
+      const headerClassList = headerEle.classList;
+
+      if (isAll || this.columnLine.has(col)) {
+        if (!headerClassList.contains("selection")) {
+          headerClassList.add("selection");
+        }
+      } else if (headerClassList.contains("selection")) {
+        headerClassList.remove("selection");
+      }
+    }
   }
 
   /**
@@ -468,15 +527,6 @@ export default class SelectionInfo {
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
       if (!classList.contains("selection")) classList.add("selection");
-
-      if (!this.rowLine.has(rowIdx)) {
-        this.rowLine.add(rowIdx);
-      }
-
-      if (!this.columnLine.has(col)) {
-        this.columnLine.add(col);
-        this.setHeaderSelecton(col);
-      }
 
       return true;
     }
@@ -500,9 +550,6 @@ export default class SelectionInfo {
   public clearSelectionCell() {
     removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.start-cell"), "start-cell");
     removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.selection"), "selection");
-
-    // remove header selection
-    removeClass(this.gridMain.getHeader().headerElement.finds(".dg-header-cell.selection"), "selection");
   }
 
   /**

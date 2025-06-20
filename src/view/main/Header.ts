@@ -26,6 +26,8 @@ export default class Header {
   public centerElement: DaraElement;
   public rightElement: DaraElement;
 
+  public headerCellElements: NodeListOf<HTMLElement>;
+
   public resizerHelperElement: DaraElement;
 
   private drag: any;
@@ -60,7 +62,6 @@ export default class Header {
    */
   initSortEvent() {
     const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
     const sortElements = this.headerElement.finds(".dg-sort-icon");
 
     const nullsLast = this.headerOpts.sort.nullsLast;
@@ -88,7 +89,7 @@ export default class Header {
 
           if (cfg.sort.orders.length > 1 || !cfg.sort.orders.some((item: any) => item.key === sortName)) {
             cfg.sort.orders.forEach((item: any, index: number) => {
-              this.headerElement.find('.dg-header-cell[data-header-cell-idx="' + item.sortCell + '"] .dg-sort-num').textContent = "";
+              (this.headerCellElements[item.sortCell].querySelector(".dg-sort-num") as HTMLElement).textContent = "";
             });
             cfg.sort.orders = [];
           }
@@ -126,7 +127,7 @@ export default class Header {
         if (cfg.sort.orders.length > 0) {
           if (cfg.sort.orders.length > 1 && isNumModify) {
             cfg.sort.orders.forEach((item: any, index: number) => {
-              this.headerElement.find('.dg-header-cell[data-header-cell-idx="' + item.sortCell + '"] .dg-sort-num').textContent = index + 1 + "";
+              (this.headerCellElements[item.sortCell].querySelector(".dg-sort-num") as HTMLElement).textContent = index + 1 + "";
             });
           }
           cfg.items = utils.multiSort(sortItems, cfg.sort.orders, nullsLast);
@@ -141,6 +142,10 @@ export default class Header {
       { passive: false }
     );
     //dg-sort-icon
+  }
+
+  public getHeaderCellElements() {
+    return this.headerCellElements;
   }
 
   /**
@@ -158,7 +163,7 @@ export default class Header {
     let headDragDelay = 150;
     let multipleFlag = isMultipleCellSelection(selectionMode);
 
-    const headerCellElements = this.headerElement.finds(".dg-header-cell");
+    const headerCellElements = this.headerCellElements;
 
     if (this.headerOpts.enableAllColumnSelection && !isRowSelection(selectionMode)) {
       //header resize, dblclick or drag
@@ -462,6 +467,8 @@ export default class Header {
     this.leftElement.html(this.template("left"));
     this.centerElement.html(this.template("center"));
     this.rightElement.html(this.template("right"));
+
+    this.headerCellElements = this.headerElement.finds(".dg-header-cell");
   }
 
   /**
