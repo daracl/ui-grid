@@ -361,28 +361,33 @@ export default class SelectionInfo {
     if (!isJson) return result.join("\n");
 
     const headers = Array.from(keyInfoMap.values());
-    const summaryInfo = {
-      count: summary.count,
-      numFieldCount: summary.numbers.length,
-      min: -1,
-      max: -1,
-      avg: "",
-      sum: -1,
-    };
 
     if (isSummary && summary.numbers.length > 0) {
+      const summaryInfo = {
+        count: summary.count,
+        numFieldCount: summary.numbers.length,
+        min: -1,
+        max: -1,
+        avg: "",
+        sum: -1,
+      };
       const nums = summary.numbers;
       const total = nums.reduce((a, b) => a + b, 0);
       summaryInfo.min = Math.min(...nums);
       summaryInfo.max = Math.max(...nums);
       summaryInfo.sum = total;
       summaryInfo.avg = (total / nums.length).toFixed(1);
+
+      return {
+        header: headers,
+        data: result,
+        summary: summaryInfo,
+      };
     }
 
     return {
       header: headers,
       data: result,
-      summary: summaryInfo,
     };
   }
 

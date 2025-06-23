@@ -38,8 +38,6 @@ export default class Body {
     this.grid = grid;
     this.gridMain = gridMain;
 
-    this.grid = grid;
-
     this.calcBodyDemention();
 
     this.createTemplate();
@@ -244,7 +242,10 @@ export default class Body {
 
         const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
 
-        if (cellElement == null || hasClass(cellElement, "row-check modify-info")) return;
+        if (cellElement == null || hasClass(cellElement, "row-check modify-info")) {
+          console.log("cellElement : ", cellElement);
+          return;
+        }
 
         //const startEvtPosition = eventPosition(e);
 
@@ -1026,6 +1027,60 @@ export default class Body {
   }
 
   /**
+   * cell 선택
+   *
+   * @private
+   * @param {*} startCellInfo
+   * @param {number} rowIdx row index
+   * @param {number} col cell index
+   * @param {HTMLElement} addEle cell element
+   * @returns {boolean}
+   */
+  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
+    // field add class
+    this.setCellStyleClass(contentEle, rowIdx, col, field, item);
+    if (field.$isAside) return;
+
+    this.selectionInfo.setCellSelectionStyleClass(contentEle, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
+  }
+
+  /**
+   * cell style 추가
+   *
+   * @private
+   * @param {HTMLElement} cellEle cell element
+   * @param {number} rowIdx row index
+   * @param {number} col column index
+   * @param {FieldItem} field field info
+   * @param {*} item item
+   */
+  private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
+    if (!field.styleClass) return;
+
+    const { classList } = cellEle;
+
+    // Determine new class to add
+    const newClass = utils.isFunction(field.styleClass) ? field.styleClass({ rowIdx, col, field, item }) : utils.isString(field.styleClass) ? field.styleClass : "";
+
+    // Define base classes that should not be removed
+    const baseClasses = new Set(["dg-cell", "start-cell", "selection"]);
+
+    if (newClass) {
+      if (!classList.contains(newClass)) {
+        classList.add(newClass);
+      }
+
+      baseClasses.add(newClass);
+    }
+
+    classList.forEach((cls) => {
+      if (!baseClasses.has(cls)) {
+        classList.remove(cls);
+      }
+    });
+  }
+
+  /**
    * header html template
    *
    * @public
@@ -1105,59 +1160,5 @@ export default class Body {
     }
 
     return returnTemplate.join("");
-  }
-
-  /**
-   * cell 선택
-   *
-   * @private
-   * @param {*} startCellInfo
-   * @param {number} rowIdx row index
-   * @param {number} col cell index
-   * @param {HTMLElement} addEle cell element
-   * @returns {boolean}
-   */
-  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
-    // field add class
-    this.setCellStyleClass(contentEle, rowIdx, col, field, item);
-    if (field.$isAside) return;
-
-    this.selectionInfo.setCellSelectionStyleClass(contentEle, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
-  }
-
-  /**
-   * cell style 추가
-   *
-   * @private
-   * @param {HTMLElement} cellEle cell element
-   * @param {number} rowIdx row index
-   * @param {number} col column index
-   * @param {FieldItem} field field info
-   * @param {*} item item
-   */
-  private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    if (!field.styleClass) return;
-
-    const { classList } = cellEle;
-
-    // Determine new class to add
-    const newClass = utils.isFunction(field.styleClass) ? field.styleClass({ rowIdx, col, field, item }) : utils.isString(field.styleClass) ? field.styleClass : "";
-
-    // Define base classes that should not be removed
-    const baseClasses = new Set(["dg-cell", "start-cell", "selection"]);
-
-    if (newClass) {
-      if (!classList.contains(newClass)) {
-        classList.add(newClass);
-      }
-
-      baseClasses.add(newClass);
-    }
-
-    classList.forEach((cls) => {
-      if (!baseClasses.has(cls)) {
-        classList.remove(cls);
-      }
-    });
   }
 }

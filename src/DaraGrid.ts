@@ -194,6 +194,15 @@ export default class DaraGrid {
   };
 
   /**
+   * 선택된 item 얻기
+   *
+   * @returns {*}
+   */
+  public getSelectedItems = () => {
+    return this.gridMain.selectionInfo.selectionData("json", false);
+  };
+
+  /**
    * grid height
    *
    * @public
