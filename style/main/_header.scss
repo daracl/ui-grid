@@ -40,7 +40,7 @@
         tr > {
           .dg-header-cell,
           .dg-header-group-cell {
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color);
             border-top: none !important;
             border-left: none !important;
             position: relative;
@@ -50,7 +50,7 @@
         }
 
         .dg-header-cell.selection {
-          background-color: var(--cell-bg-selection) !important;
+          background-color: var(--header-bg-selection) !important;
         }
 
         .label-wrapper {

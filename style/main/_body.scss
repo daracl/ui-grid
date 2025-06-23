@@ -75,6 +75,10 @@
         .fixed-column-line {
           right: 0px;
         }
+
+        .dg-row > .dg-cell.dg-aside.selection:first-child {
+          background: var(--header-bg-selection) !important;
+        }
       }
 
       &.dg-center {
@@ -97,7 +101,7 @@
         border-collapse: separate !important;
 
         .dg-row > .dg-cell {
-          border: 1px solid #ddd;
+          border: 1px solid var(--border-color);
           border-top: none !important;
           border-left: none !important;
           position: relative;

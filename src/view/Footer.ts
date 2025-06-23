@@ -126,7 +126,7 @@ export default class Footer {
     if (this.isSelectionInfo) {
       const dataInfo = this.selectionInfo.selectionData("json", true);
 
-      if (!utils.isUndefined(dataInfo) && dataInfo.summary.count > 1) {
+      if (!utils.isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
         const selectionFormat = this.footerOpts.selection?.format;
         let statusText = "";
         if (utils.isString(selectionFormat)) {

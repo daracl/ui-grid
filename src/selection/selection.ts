@@ -37,6 +37,7 @@ export default class SelectionInfo {
   public initSelection() {
     this.config.selection = initSelectionInfo();
     this.setReverseAllRange();
+    this.clearHeaderSelection();
   }
 
   public setSelectionRangeInfo(changeSelection: Selection, initFlag: boolean = false, cellSelectFlag?: boolean) {
@@ -74,11 +75,12 @@ export default class SelectionInfo {
 
     this.computeEffectiveSelectionRange(this.reversedAllRanges, currentSelection);
 
-    this.setColumnLineSelection();
-
     if (cellSelectFlag) {
       this.setCellSelection();
     }
+
+    this.setColumnLineSelection();
+    this.setRowLineSelection();
 
     this.gridMain.getFooter().setSelectionStatus();
   }
@@ -174,58 +176,53 @@ export default class SelectionInfo {
    *
    * @private
    * @param {SelectionRange[]} ranges info
-   * @returns {{
-   *     rows: number[];
-   *     cols: number[];
-   *   }}
    */
-  private getSelectedRowsAndCols(ranges: readonly SelectionRange[]) {
-    /* 0) 어떤 전략을 쓸지 미리 판단 */
+  public getSelectedRowsAndCols(ranges: SelectionRange[]) {
+    /* 0) 행 개수에 따라 인코딩 전략 선택 */
     const NEED_WIDE = ranges.some((r) => r.maxIdx >= 1_000_000);
 
-    /* 공통 자료구조 */
-    const add = new Set<number>();
-    const del = new Set<number>();
-
-    /* 1) 전략별 인코더 정의 */
-    const COL_BITS = 12 as const; // 열 0-4095
+    /* 1) 인코더 / 디코더 */
+    const COL_BITS = 12 as const; // fast-path: 열 0-4095
     const COL_MASK = (1 << COL_BITS) - 1;
-    const ROW_OFFSET = 100_000; // wide 모드용
+    const ROW_OFFSET = 100_000; // wide-path: 열 0-99 999
 
-    const encode = NEED_WIDE
-      ? (row: number, col: number) => row * ROW_OFFSET + col // ≤ 9,007,199,254,740,991 (JS 안전 정수)
-      : (row: number, col: number) => (row << COL_BITS) | col; // fast bit-pack
+    const encode = NEED_WIDE ? (row: number, col: number) => row * ROW_OFFSET + col : (row: number, col: number) => (row << COL_BITS) | col;
 
-    const decodeRow = NEED_WIDE
-      ? (v: number) => (v / ROW_OFFSET) | 0 // 정수 나눗셈
-      : (v: number) => v >>> COL_BITS; // zero-fill right shift
+    const decodeRow = NEED_WIDE ? (v: number) => (v / ROW_OFFSET) | 0 : (v: number) => v >>> COL_BITS;
 
     const decodeCol = NEED_WIDE ? (v: number) => v % ROW_OFFSET : (v: number) => v & COL_MASK;
 
-    /* 2) add / remove 1차 집합 채우기 */
-    for (const r of ranges) {
-      if (r.type !== "cell" && r.type !== "column") continue;
+    /* 2) 집합 선언
+         processed : 이미 첫 등장한 셀 키 기록
+         selected  : 첫 등장이 add 인 셀만 저장                         */
+    const processed = new Set<number>();
+    const selected = new Set<number>();
 
+    /* 3) ranges *순서대로* 처리 → 첫 등장만 반영 */
+    for (const r of ranges) {
       for (let row = r.minIdx; row <= r.maxIdx; row++) {
         for (let col = r.minCol; col <= r.maxCol; col++) {
           const key = encode(row, col);
-          (r.mode === "add" ? add : del).add(key);
+
+          if (processed.has(key)) continue; // 이미 확정된 셀은 스킵
+          processed.add(key);
+
+          if (r.mode === "add") selected.add(key); // 첫 등장 = add ⇒ 선택 확정
+          /* r.mode === "remove" 이면 선택하지 않음 → 이후 add 도 무시 */
         }
       }
     }
 
-    /* 3) 차집합 연산 */
-    del.forEach((k) => add.delete(k)); // Set 연산 O(n)[6]
-
-    /* 4) 행·열 집합 완성 */
+    /* 4) 행·열 집합 생성 */
     const rows = new Set<number>();
     const cols = new Set<number>();
 
-    add.forEach((v) => {
+    selected.forEach((v) => {
       rows.add(decodeRow(v));
       cols.add(decodeCol(v));
     });
 
+    /* 5) 결과 저장 */
     this.rowLine = rows;
     this.columnLine = cols;
   }
@@ -296,6 +293,8 @@ export default class SelectionInfo {
     this.config.selection.all = flag;
     this.setCellSelection();
     this.gridMain.getFooter().setSelectionStatus();
+    this.setColumnLineSelection();
+    this.setRowLineSelection();
   }
 
   /**
@@ -446,10 +445,11 @@ export default class SelectionInfo {
     const cfg = this.config;
     const { selection, scroll, dataInfo, fixedLeftIndex, fixedRightIndex } = cfg;
 
+    const gridStartCol = cfg.dataInfo.startCol;
     const isAllSelection = this.isAllSelect();
     const startRow = 0;
     const endRow = scroll.viewRow;
-    const startCol = isAllSelection ? 0 : selection.minCol;
+    const startCol = isAllSelection ? gridStartCol : selection.minCol;
     const endCol = isAllSelection ? dataInfo.colLength : selection.maxCol;
     const scrollStartIdx = scroll.startIdx;
     const scrollStartCol = scroll.startCol;
@@ -472,7 +472,7 @@ export default class SelectionInfo {
 
       // 왼쪽 고정 영역
       if (enableLeftField) {
-        for (let j = 0; j <= minFixedLeftCol; j++) {
+        for (let j = gridStartCol; j <= minFixedLeftCol; j++) {
           this.setCellSelectionStyleClass(leftElements[i][j], currRow, j, startCellIdx, startCellCol);
         }
       }
@@ -490,6 +490,12 @@ export default class SelectionInfo {
       }
     }
   }
+
+  /**
+   * column line selection
+   *
+   * @private
+   */
   private setColumnLineSelection() {
     const dataInfo = this.config.dataInfo;
     const headerCellElements = this.gridMain.getHeader().getHeaderCellElements();
@@ -497,14 +503,41 @@ export default class SelectionInfo {
     const isAll = this.isAllSelect();
     for (let col = dataInfo.startCol; col < dataInfo.colLength; col++) {
       const headerEle = headerCellElements[col];
-      const headerClassList = headerEle.classList;
+      const classList = headerEle.classList;
 
       if (isAll || this.columnLine.has(col)) {
-        if (!headerClassList.contains("selection")) {
-          headerClassList.add("selection");
+        if (!classList.contains("selection")) {
+          classList.add("selection");
         }
-      } else if (headerClassList.contains("selection")) {
-        headerClassList.remove("selection");
+      } else if (classList.contains("selection")) {
+        classList.remove("selection");
+      }
+    }
+  }
+
+  public setRowLineSelection() {
+    const cfg = this.config;
+
+    const leafLeft = cfg.fieldHeaderGroup.leafLeft;
+
+    if (leafLeft && !leafLeft[0].$isAside) return;
+
+    const { left: leftElements } = this.gridMain.getBody().allCellElements;
+
+    const isAll = this.isAllSelect();
+
+    const startIdx = cfg.scroll.startIdx;
+
+    for (let i = 0; i < cfg.scroll.viewRow; i++) {
+      const lineNumberEle = leftElements[i][0];
+      const classList = lineNumberEle.classList;
+
+      if (isAll || this.rowLine.has(i + startIdx)) {
+        if (!classList.contains("selection")) {
+          classList.add("selection");
+        }
+      } else if (classList.contains("selection")) {
+        classList.remove("selection");
       }
     }
   }
@@ -536,11 +569,10 @@ export default class SelectionInfo {
     return false;
   }
 
-  public setHeaderSelecton(col: number) {
-    const cellElement = this.gridMain.getHeader().headerElement.find(`.dg-header-cell[data-header-cell-idx="${col}"]`);
-
-    const classList = cellElement.classList;
-    if (!classList.contains("selection")) classList.add("selection");
+  public clearHeaderSelection() {
+    if (this.gridMain.getHeader()) {
+      removeClass(this.gridMain.getHeader().getHeaderCellElements(), "selection");
+    }
   }
 
   /**

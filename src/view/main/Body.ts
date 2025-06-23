@@ -2,7 +2,7 @@ import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
 import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { addStyleTag, removeClass } from "../../util/styleUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems } from "../../util/gridUtils";
+import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
@@ -519,6 +519,8 @@ export default class Body {
       this.removeStartCellClass();
     }
 
+    const rangeType = isRowSelection(selectionMode) ? "row" : "cell";
+
     if (multipleFlag && keyMode >= 2) {
       // shift key
       let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol, modifierKey: 2 } as SelectionRange;
@@ -526,6 +528,8 @@ export default class Body {
       if (selectRangeInfo.startCol > -1) {
         rangeInfo.startCol = selectRangeInfo.startCol;
       }
+
+      rangeInfo.type = rangeType;
 
       this.selectionInfo.setSelectionRangeInfo(
         {
@@ -540,7 +544,7 @@ export default class Body {
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol, modifierKey: 1 } as SelectionRange,
+          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol, modifierKey: 1 } as SelectionRange,
           isSelect: true,
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
@@ -551,7 +555,7 @@ export default class Body {
     } else {
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
           isSelect: true,
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: cellIdx },
@@ -1016,6 +1020,7 @@ export default class Body {
       }
     }
 
+    this.selectionInfo.setRowLineSelection();
     //const end = performance.now();
     //console.log(`실행 시간: ${end - start} ms`);
   }
@@ -1084,7 +1089,7 @@ export default class Body {
         let clickFlag = field.click;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
           <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
         </td>`);
         } else {
@@ -1115,6 +1120,8 @@ export default class Body {
   private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
     // field add class
     this.setCellStyleClass(contentEle, rowIdx, col, field, item);
+    if (field.$isAside) return;
+
     this.selectionInfo.setCellSelectionStyleClass(contentEle, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
   }
 
