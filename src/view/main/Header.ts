@@ -8,6 +8,7 @@ import GridMain from "../GridMain";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
 import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
+import { ROW_CHECK_KEY } from "src/constants";
 
 /**
  * Header class
@@ -55,6 +56,28 @@ export default class Header {
     this.initSortEvent();
 
     this.initResizeEvent();
+
+    this.initHeaderCheckbox();
+  }
+
+  /**
+   * header all check
+   *
+   */
+  private initHeaderCheckbox() {
+    const cfg = this.grid.config();
+    const dgRowAllCheckElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]');
+
+    eventOn(
+      dgRowAllCheckElement,
+      "click",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLInputElement;
+
+        this.gridMain.getBody().setAllCheckItem(eventElement.checked);
+      },
+      { passive: false }
+    );
   }
 
   /**
@@ -546,11 +569,13 @@ export default class Header {
              </div>`
             : "";
 
+        const label = headerItem.$isAside && headerItem.name == "$rowCheck" ? '<label class="dg-checkbox"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>' : `<div class="centered">${headerItem.label}</div>`;
+
         const labelHtml = `
           ${helpIcon}
           <div class="label-wrapper">
             <div class="dg-header-label ${headerItem.sort ? "sort-header" : ""}">
-              <div class="dg-inner"><div class="centered">${headerItem.label}</div></div>
+             <div class="dg-inner"> ${label}</div>
               ${sortIcons}
             </div>
           </div>`;

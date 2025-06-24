@@ -18,6 +18,7 @@ export function initConfig(opts: GridOptions): Config {
   const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
   return {
+    rowIdSeq: 0,
     dimensions: {
       width: 0,
       height: 0,

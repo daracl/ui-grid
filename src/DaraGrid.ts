@@ -203,6 +203,19 @@ export default class DaraGrid {
   };
 
   /**
+   * get checked items
+   *
+   * @returns {*}
+   */
+  public getCheckedItems = () => {
+    return this.gridMain.getCheckedItems();
+  };
+
+  public setCheckedItems = () => {
+    return this.gridMain.getCheckedItems();
+  };
+
+  /**
    * grid height
    *
    * @public

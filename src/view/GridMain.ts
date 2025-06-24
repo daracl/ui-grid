@@ -1,19 +1,18 @@
-import { FieldHeaderGroupInfo } from "@t/GridConfig";
+import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, ROW_CHECK_KEY, ROW_ID_KEY, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
-import { eventOff, eventOn } from "src/util/eventUtils";
+import { eventOn } from "src/util/eventUtils";
 import { isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
-import Language from "src/util/Language";
 import Footer from "./Footer";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
@@ -506,19 +505,19 @@ export default class GridMain {
 
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: "lineNumber", renderer: { type: "lineNumber" }, $isAside: true });
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: "$lineNumber", renderer: { type: "lineNumber" }, $isAside: true });
       asideOrder[opts.aside.lineNumber.order ?? 0] = fieldItem;
     }
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "rowCheck", renderer: { type: "rowCheckbox" }, $isAside: true });
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "$rowCheck", renderer: { type: "rowCheckbox" }, $isAside: true });
       asideOrder[opts.aside.rowCheckbox.order ?? 1] = fieldItem;
     }
 
     // modifyInfo 추가.
     if (opts.aside.modifyInfo.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
       asideOrder[opts.aside.modifyInfo.order ?? 2] = fieldItem;
     }
 
@@ -766,9 +765,23 @@ export default class GridMain {
 
   private setDataInfo(items: any[]) {
     const cfg = this.grid.config();
+
     cfg.orginItems = utils.arrayCopy(items);
 
-    this.setViewDataInfo(items);
+    this.setRowId(cfg);
+
+    this.setViewDataInfo(cfg.orginItems);
+  }
+
+  public setRowId(cfg: Config) {
+    const items = cfg.orginItems;
+    const len = items.length;
+
+    for (let i = 0; i < len; i++) {
+      items[i][ROW_ID_KEY] = cfg.rowIdSeq++;
+    }
+
+    return;
   }
 
   public setViewDataInfo(items: any[]) {
@@ -830,6 +843,24 @@ export default class GridMain {
 
   public clearData() {
     this.setData([]);
+  }
+
+  /**
+   * get checked items
+   *
+   * @public
+   * @returns {{}}
+   */
+  public getCheckedItems() {
+    const items = this.grid.config().items;
+    const checkItems = [];
+    for (let item of items) {
+      if (item[ROW_CHECK_KEY]) {
+        checkItems.push(item);
+      }
+    }
+
+    return checkItems;
   }
 
   public initTemplate() {

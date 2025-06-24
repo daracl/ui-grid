@@ -103,7 +103,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
     rowCheckbox: {
       // 체크 박스
       enabled: false, // 활성화 여부
-      label: "V", // name
       width: 25, // 넓이값
       order: 1,
       click: (rowInfo: any) => {

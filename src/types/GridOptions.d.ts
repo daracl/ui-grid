@@ -488,10 +488,6 @@ export interface AsideOptions {
      */
     enabled: boolean;
     /**
-     * 컬럼명
-     */
-    label?: string;
-    /**
      * 넓이
      */
     width?: number;

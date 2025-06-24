@@ -1,5 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
+import { ROW_CHECK_KEY } from "src/constants";
 
 /**
  * Aside RowCheck Renderer
@@ -14,6 +15,12 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
-    element.innerHTML = `<input name="dgRowCheck" type="checkbox" class="dg-row-check"/>`;
+    let checkElement = element.querySelector('[name="dgRowCheck"]');
+    if (!checkElement) {
+      element.innerHTML = `<label class="dg-checkbox"><input type="checkbox" name="dgRowCheck"/><span class="checkmark"></span></label>`;
+      checkElement = element.querySelector('[name="dgRowCheck"]');
+    }
+
+    (checkElement as HTMLInputElement).checked = item[ROW_CHECK_KEY];
   }
 }

@@ -38,6 +38,8 @@ export default class SelectionInfo {
     this.config.selection = initSelectionInfo();
     this.setReverseAllRange();
     this.clearHeaderSelection();
+    this.rowLine.clear();
+    this.columnLine.clear();
   }
 
   public setSelectionRangeInfo(changeSelection: Selection, initFlag: boolean = false, cellSelectFlag?: boolean) {
@@ -214,17 +216,15 @@ export default class SelectionInfo {
     }
 
     /* 4) 행·열 집합 생성 */
-    const rows = new Set<number>();
-    const cols = new Set<number>();
+    this.rowLine.clear();
+    this.columnLine.clear();
+    const rows = this.rowLine;
+    const cols = this.columnLine;
 
     selected.forEach((v) => {
       rows.add(decodeRow(v));
       cols.add(decodeCol(v));
     });
-
-    /* 5) 결과 저장 */
-    this.rowLine = rows;
-    this.columnLine = cols;
   }
 
   private setReverseAllRange() {

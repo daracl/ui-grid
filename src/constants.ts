@@ -130,3 +130,17 @@ export const FOOTER_HEIGHT = 35;
  * @type {14}
  */
 export const SCROLL_ARROW_BUTTON_SIZE = 14;
+
+/**
+ * row check key
+ *
+ * @type {"_dg$rowCheck"}
+ */
+export const ROW_CHECK_KEY = "_dg$rowCheck";
+
+/**
+ * row id key
+ *
+ * @type {"_dg$rowid"}
+ */
+export const ROW_ID_KEY = "_dg$rowid";

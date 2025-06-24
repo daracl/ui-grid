@@ -9,6 +9,8 @@ import { PagingOptions } from "./GridOptions";
  * grid config info
  */
 export interface Config {
+  // row id seq
+  rowIdSeq: number;
   dimensions: {
     // grid total width
     width: number;
