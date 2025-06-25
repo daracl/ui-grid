@@ -3,7 +3,7 @@ import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, ROW_CHECK_KEY, ROW_ID_KEY, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, ROW_CHECK_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -14,6 +14,7 @@ import { eventOn } from "src/util/eventUtils";
 import { isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
+import { addClass } from "src/util/styleUtils";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -848,19 +849,95 @@ export default class GridMain {
   /**
    * get checked items
    *
-   * @public
-   * @returns {{}}
+   * @param names filed names
+   * @returns {array} checked item array
    */
-  public getCheckedItems() {
+  public getCheckedItems(names?: string | string[]) {
     const items = this.grid.config().items;
     const checkItems = [];
+
+    let exportNames: string[] = [];
+    let isAll = false;
+    if (utils.isUndefined(names)) {
+      isAll = true;
+    } else if (!utils.isArray(names)) {
+      exportNames = [names];
+    } else {
+      exportNames = names;
+    }
+
     for (let item of items) {
       if (item[ROW_CHECK_KEY]) {
-        checkItems.push(item);
+        let checkItem;
+        if (isAll) {
+          checkItem = item;
+        } else {
+          checkItem = {} as any;
+          for (let name of exportNames) {
+            checkItem[name] = item[name];
+          }
+        }
+
+        checkItems.push(checkItem);
       }
     }
 
     return checkItems;
+  }
+
+  public getCheckedItemByName(name: string) {
+    return this.getBody().getCheckedItemByName(name);
+  }
+
+  /**
+   * all check
+   *
+   * @public
+   * @param {boolean} checked
+   */
+  public setAllCheckedItems(checked: boolean) {
+    this.getHeader().setAllCheckItem(checked);
+  }
+
+  /**
+   * name value item check
+   *
+   * @public
+   * @param {string} name
+   * @param {*} values
+   */
+  public setCheckedItemByValue(name: string, values: any) {
+    this.getBody().setCheckedItemByValue(name, values);
+  }
+
+  public addCheckedItemByValue(name: string, values: any) {
+    this.getBody().addCheckedItemByValue(name, values);
+  }
+
+  public unCheckedItemByValue(name: string, values: any) {
+    this.getBody().unCheckedItemByValue(name, values);
+  }
+
+  public setTheme(themeName: THEME_TYPE) {
+    const dgElement = this.grid.element().find(".daracl-grid");
+
+    const theme = GRID_THEME[themeName];
+
+    const cfg = this.grid.config();
+
+    if (cfg.theme == theme) return;
+
+    //
+    // 테마 처리 할것.
+    //
+
+    const classList = dgElement.classList;
+
+    if (!classList.contains(cfg.theme)) classList.remove(cfg.theme);
+
+    cfg.theme = theme;
+
+    if (!classList.contains(theme)) classList.add(theme);
   }
 
   public initTemplate() {
@@ -872,11 +949,12 @@ export default class GridMain {
     const selectionAlign = ALIGN[opts.footer.selection?.position ?? "center"];
     const pagingInfoAlign = ALIGN[opts.footer.paging?.formatPosition ?? "center"];
     // class="${align}"
-    //
-    // paging , status , selection 위치 처리 할것.
+
+    const theme = GRID_THEME[opts.theme] ?? "";
+    cfg.theme = theme;
 
     let templateHtml = `
-      <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
+      <div class="daracl-grid ${theme}" tabindex="-1"  style="outline:none !important;">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">

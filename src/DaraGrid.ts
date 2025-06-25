@@ -3,7 +3,7 @@ import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { DEFAULT_OPTIONS } from "./defaultGridOption";
 import { initConfig } from "./defaultGridConfig";
-import { ADD_ROW_POSITION, FIELD_PREFIX } from "./constants";
+import { ADD_ROW_POSITION, FIELD_PREFIX, THEME_TYPE } from "./constants";
 
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
@@ -53,7 +53,7 @@ export default class DaraGrid {
   // grid 설정
   private mainConfig: Config;
 
-  private gridElement: DaraElement;
+  private readonly gridElement: DaraElement;
 
   private readonly uidAttrSelector;
 
@@ -207,12 +207,72 @@ export default class DaraGrid {
    *
    * @returns {*}
    */
-  public getCheckedItems = () => {
-    return this.gridMain.getCheckedItems();
+  public getCheckedItems = (names?: string | string[]) => {
+    return this.gridMain.getCheckedItems(names);
   };
 
-  public setCheckedItems = () => {
-    return this.gridMain.getCheckedItems();
+  /**
+   * 현재 체크된 항목들에서 지정한 필드(`name`)의 값을 배열로 반환합니다.
+   *
+   * @param name - 반환할 필드명 (예: 'id', 'code', 'name' 등)
+   * @returns 체크된 항목들의 해당 필드값 배열
+   *
+   * 예시:
+   * - name이 "id"인 경우 → 체크된 row들의 id만 추출하여 배열로 반환
+   */
+  public getCheckedItemByName = (name: string) => {
+    return this.gridMain.getCheckedItemByName(name);
+  };
+
+  /**
+   * set all check items
+   *
+   * @param {boolean} checked
+   */
+  public setAllCheckedItems = (checked: boolean) => {
+    this.gridMain.setAllCheckedItems(checked);
+  };
+
+  /**
+   * 특정 필드값(`name`)을 기준으로 주어진 값(`values`)과 일치하는 항목을 체크 상태로 설정합니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
+   *
+   */
+  public setCheckedItemByValue = (name: string, values: any) => {
+    this.gridMain.setCheckedItemByValue(name, values);
+  };
+
+  /**
+   * 주어진 값(`values`)과 일치하는 항목을 체크 상태로 **추가**합니다.
+   * 기존 체크 상태는 유지되고, 해당 값만 추가로 체크됩니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
+   */
+  public addCheckedItemByValue = (name: string, values: any) => {
+    this.gridMain.addCheckedItemByValue(name, values);
+  };
+
+  /**
+   * 주어진 값(`values`)과 일치하는 항목을 체크 해제합니다.
+   * 기존 체크 상태 중 해당 값들만 체크 해제되며, 나머지는 유지됩니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
+   */
+  public unCheckedItemByValue = (name: string, values: any) => {
+    this.gridMain.unCheckedItemByValue(name, values);
+  };
+
+  /**
+   * set theme
+   *
+   * @param {string} themeName theme name light, dark
+   */
+  public setTheme = (themeName: THEME_TYPE) => {
+    this.gridMain.setTheme(themeName);
   };
 
   /**

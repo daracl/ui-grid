@@ -19,6 +19,7 @@ export function initConfig(opts: GridOptions): Config {
 
   return {
     rowIdSeq: 0,
+    theme: "light",
     dimensions: {
       width: 0,
       height: 0,

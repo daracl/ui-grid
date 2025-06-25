@@ -11,6 +11,7 @@ import { PagingOptions } from "./GridOptions";
 export interface Config {
   // row id seq
   rowIdSeq: number;
+  theme: string;
   dimensions: {
     // grid total width
     width: number;
@@ -98,6 +99,18 @@ export interface Config {
   scroll: ScrollInfo;
   element: GridElement;
   edit: EditInfo;
+}
+
+export interface HeaderCellInfo {
+  /**
+   * view column index
+   */
+  c: number;
+
+  /**
+   * field info
+   */
+  field: FieldItem;
 }
 
 export interface CellInfo {

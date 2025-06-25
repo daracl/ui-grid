@@ -110,7 +110,7 @@
 
   }
 
-  body.dark {
+  body[data-dg-theme="dark"] {
     --bg: #070d19;
     --bg-color: #ffffff;
 
@@ -118,6 +118,7 @@
 
   body {
     background-color: var(--bg);
+    color: var(--bg-color);
   }
 
   .header {
@@ -134,33 +135,32 @@
   if (theme) setMainTheme(theme);
 
   function setMainTheme(theme, persist = false) {
-    const classList = document.body.classList;
+    const bodyElement = document.body;
 
-    classList.remove("light", "dark");
+    bodyElement.setAttribute("data-dg-theme", theme);
 
-    classList.add(theme);
 
     if (persist) {
       localStorage.setItem(THEME_KEY, theme);
     }
   }
 
-  function fn_init(initFlag) {
-    // theme
-    const toggler = document.querySelectorAll('[name="theme-toggle"]');
-    const theme = localStorage.getItem(THEME_KEY);
+  function fn_button() {
+    const themeElement = document.getElementById("theme");
 
-    if (toggler) {
-      if (theme === "dark") {
-        document.querySelector('[name="theme-toggle"][value="dark"]').checked = true;
+    themeElement.addEventListener("change", (e) => {
+      const value = themeElement.value;
+
+      if (value) {
+        setMainTheme(value, true);
       }
+    })
+  }
 
-      toggler.forEach((el) => {
-        el.addEventListener("click", (e) => {
-          setMainTheme(el.value, true);
-        });
-      })
-    }
+  function fn_init(initFlag) {
+    const themeElement = document.getElementById("theme");
+
+    if (themeElement) themeElement.value = theme;
 
     if (initFlag) {
       const dgGridSampleConfig = localStorage.getItem("dgGridSampleConfig");
@@ -205,6 +205,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     fn_init(true);
+    fn_button();
   });
 
 

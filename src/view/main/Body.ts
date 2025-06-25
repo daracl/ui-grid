@@ -1,18 +1,14 @@
-import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
-import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
+import { CellInfo, HeaderCellInfo } from "@t/GridConfig";
 
 import { addStyleTag, removeClass } from "../../util/styleUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
+import { getCheckboxMode } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALIGN_STYLE, ROW_CHECK_KEY, ROW_ID_KEY } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
-import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
-import { getOffset, hasClass } from "src/util/domUtils";
 import BodyEvent from "./BodyEvent";
 
 /**
@@ -83,7 +79,7 @@ export default class Body {
    * @public
    * @param {boolean} checked
    */
-  public setAllCheckItem(checked: boolean) {
+  public setAllCheckItem(cellInfo: HeaderCellInfo, checked: boolean) {
     this.rowCheckSet.clear();
     const items = this.grid.config().items;
     for (const item of items) {
@@ -100,7 +96,7 @@ export default class Body {
    * @param {boolean} checked check flag
    * @param {*} item row item
    */
-  public setCheckItem(checked: boolean, item: any) {
+  public setCheckItem(cellInfo: CellInfo, checked: boolean, item: any) {
     item[ROW_CHECK_KEY] = checked;
 
     if (checked) {
@@ -108,6 +104,105 @@ export default class Body {
     } else if (this.rowCheckSet.has(item[ROW_ID_KEY])) {
       this.rowCheckSet.delete(item[ROW_ID_KEY]);
     }
+
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, this.grid.config().items.length), cellInfo.c);
+  }
+
+  /**
+   * 현재 체크된 항목들에서 지정한 필드(`name`)의 값을 배열로 반환합니다.
+   *
+   * @param name - 반환할 필드명 (예: 'id', 'code', 'name' 등)
+   * @returns 체크된 항목들의 해당 필드값 배열
+   *
+   * 예시:
+   * - name이 "id"인 경우 → 체크된 row들의 id만 추출하여 배열로 반환
+   */
+  public getCheckedItemByName(name: string) {
+    const cfg = this.grid.config();
+
+    const result = [];
+
+    for (let item of cfg.items) {
+      if (item[ROW_CHECK_KEY]) {
+        result.push(item[name]);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 특정 필드값(`name`)을 기준으로 주어진 값(`values`)과 일치하는 항목을 체크 상태로 설정합니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
+   *
+   */
+  public setCheckedItemByValue(name: string, values: any) {
+    const cfg = this.grid.config();
+    this.rowCheckSet.clear();
+
+    let checkValue = utils.isArray(values) ? values : [values];
+
+    for (let item of cfg.items) {
+      item[ROW_CHECK_KEY] = false;
+      if (checkValue.includes(item[name])) {
+        item[ROW_CHECK_KEY] = true;
+        this.rowCheckSet.add(item[ROW_ID_KEY]);
+      }
+    }
+
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+
+    this.dataDraw("setCheckedItemByValue");
+  }
+
+  /**
+   * 주어진 값(`values`)과 일치하는 항목을 체크 상태로 **추가**합니다.
+   * 기존 체크 상태는 유지되고, 해당 값만 추가로 체크됩니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
+   */
+  public addCheckedItemByValue(name: string, values: any) {
+    const cfg = this.grid.config();
+
+    let checkValue = utils.isArray(values) ? values : [values];
+
+    for (let item of cfg.items) {
+      if (checkValue.includes(item[name])) {
+        item[ROW_CHECK_KEY] = true;
+        this.rowCheckSet.add(item[ROW_ID_KEY]);
+      }
+    }
+
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+
+    this.dataDraw("addCheckedItemByValue");
+  }
+
+  /**
+   * 주어진 값(`values`)과 일치하는 항목을 체크 해제합니다.
+   * 기존 체크 상태 중 해당 값들만 체크 해제되며, 나머지는 유지됩니다.
+   *
+   * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
+   * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
+   */
+  public unCheckedItemByValue(name: string, values: any) {
+    const cfg = this.grid.config();
+
+    let checkValue = utils.isArray(values) ? values : [values];
+
+    for (let item of cfg.items) {
+      if (checkValue.includes(item[name])) {
+        item[ROW_CHECK_KEY] = false;
+        this.rowCheckSet.delete(item[ROW_ID_KEY]);
+      }
+    }
+
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+
+    this.dataDraw("unCheckedItemByValue");
   }
 
   /**
@@ -292,11 +387,11 @@ export default class Body {
     const bodyClassList = this.bodyElement.getElement().classList;
 
     if (startIdx % 2 == 0) {
-      bodyClassList.remove("dg-body-even");
-      bodyClassList.add("dg-body-odd");
-    } else {
       bodyClassList.remove("dg-body-odd");
       bodyClassList.add("dg-body-even");
+    } else {
+      bodyClassList.remove("dg-body-even");
+      bodyClassList.add("dg-body-odd");
     }
 
     const startCell = cfg.selection.startCell;

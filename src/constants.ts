@@ -33,9 +33,6 @@ export type ALIGN_TYPE = "left" | "center" | "right";
 // 선택 타입
 export type SELECTION_MODE = "row" | "cell" | "multiple-row" | "multiple-cell" | "none";
 
-// theme type
-export type THEME_TYPE = "light" | "dark";
-
 export const RULES = {
   NAN: "nan",
   MIN: "minimum",
@@ -94,6 +91,14 @@ export const ALIGN_STYLE = {
   left: "text-al",
   center: "text-ac",
   right: "text-ar",
+} as const;
+
+// theme type
+export type THEME_TYPE = "light" | "dark";
+
+export const GRID_THEME = {
+  light: "dg-light",
+  dark: "dg-dark",
 } as const;
 
 export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];

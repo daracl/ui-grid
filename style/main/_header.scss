@@ -173,7 +173,7 @@
             z-index: 1;
 
             .dg-header-help-btn {
-              @include comm.opacityVal(0.4);
+              @include comm.opacityVal(0.6);
               fill: var(--header-help-bg);
             }
 

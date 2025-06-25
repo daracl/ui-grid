@@ -63,7 +63,7 @@ export default class BodyEvent {
 
         const item = cellInfo.item;
 
-        this.body.setCheckItem(checked, item);
+        this.body.setCheckItem(cellInfo, checked, item);
       },
       '[name="dgRowCheck"]',
       { passive: false }
@@ -247,11 +247,12 @@ export default class BodyEvent {
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
 
-        if (multipleFlag && hasClass(cellElement, "line-number")) {
+        if (multipleFlag && hasClass(cellElement, "$line-number")) {
           selectionMode = "multiple-row";
         }
 
         const startCellInfo = getCellInfo(cfg, cellElement);
+        startCellInfo.c = startCellInfo.c < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : startCellInfo.c;
 
         let beforeMoveRange = { endIdx: -1, endCol: -1 };
 

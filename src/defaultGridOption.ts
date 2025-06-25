@@ -26,7 +26,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   },
   header: {
     view: true, //  보기 여부
-    height: 25, //  높이
+    height: 28, //  높이
     heights: [], // 그룹일 경우 높이 배열
     sort: {
       enabled: true,

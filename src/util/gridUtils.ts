@@ -1,4 +1,4 @@
-import { CellInfo, Config } from "@t/GridConfig";
+import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
 import { intValue, isEmpty } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
@@ -65,7 +65,7 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
   const col = posInfo.c;
   return {
     r: posInfo.r,
-    c: col < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : col,
+    c: col,
     rowIndex: rowIndex,
     item: cfg.items[rowIndex],
     field: cfg.currentFields[posInfo.c],
@@ -85,6 +85,31 @@ export const getCellPosition = (cellElement: HTMLElement) => {
     r: intValue(posInfo[0]),
     c: intValue(posInfo[1]),
   };
+};
+
+/**
+ * header cell 정보 얻기
+ *
+ * @param {Config} cfg 설정 정보
+ * @param {HTMLElement} cellElement cell element
+ * @returns {c: number; field: FieldItem; }
+ */
+export const getHeaderCellInfo = (cfg: Config, cellElement: HTMLElement): HeaderCellInfo => {
+  const col = getHeaderCellPosition(cellElement);
+
+  return {
+    c: col,
+    field: cfg.currentFields[col],
+  };
+};
+
+/**
+ * cell element
+ * @param cellElement cell element
+ * @returns
+ */
+export const getHeaderCellPosition = (cellElement: HTMLElement) => {
+  return intValue(cellElement.getAttribute("data-header-cell-idx") ?? "-1");
 };
 
 export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
@@ -326,4 +351,16 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
   }
 
   return result;
+}
+/**
+ * 체크박스 상태(mode)를 반환합니다.
+ *
+ * @param checkLength - 체크된 항목의 수
+ * @param itemLength - 전체 항목 수
+ * @returns "all" (전체 선택), "partial" (일부 선택), "none" (선택 없음)
+ */
+export function getCheckboxMode(checkLeneth: number, itemLength: number) {
+  if (checkLeneth == 0) return "none";
+  if (checkLeneth == itemLength) return "all";
+  return "partial";
 }

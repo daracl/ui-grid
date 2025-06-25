@@ -84,7 +84,9 @@ export function addClass(element: HTMLElement | NodeListOf<HTMLElement> | null, 
  * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
  * @param {string} styleClass style css class
  */
-export function removeClass(element: HTMLElement | NodeListOf<Element>, styleClass: string): void {
+export function removeClass(element: HTMLElement | NodeListOf<Element> | null, styleClass: string): void {
+  if (!element) return;
+
   const elements: Element[] = element instanceof HTMLElement ? [element] : Array.from(element);
 
   const styleClasses = styleClassSplit(styleClass);

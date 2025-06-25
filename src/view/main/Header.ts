@@ -6,9 +6,10 @@ import * as utils from "src/util/utils";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
+import { dragHorizontalMovePosition, getHeaderCellInfo, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
 import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
 import { ROW_CHECK_KEY } from "src/constants";
+import { removeClass } from "src/util/styleUtils";
 
 /**
  * Header class
@@ -58,26 +59,6 @@ export default class Header {
     this.initResizeEvent();
 
     this.initHeaderCheckbox();
-  }
-
-  /**
-   * header all check
-   *
-   */
-  private initHeaderCheckbox() {
-    const cfg = this.grid.config();
-    const dgRowAllCheckElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]');
-
-    eventOn(
-      dgRowAllCheckElement,
-      "click",
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLInputElement;
-
-        this.gridMain.getBody().setAllCheckItem(eventElement.checked);
-      },
-      { passive: false }
-    );
   }
 
   /**
@@ -389,6 +370,80 @@ export default class Header {
   }
 
   /**
+   * header all check
+   *
+   */
+  private initHeaderCheckbox() {
+    const dgRowAllCheckElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]');
+
+    eventOn(
+      dgRowAllCheckElement,
+      "click",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLInputElement;
+
+        this.setAllCheckItem(eventElement.checked, eventElement);
+      },
+      { passive: false }
+    );
+  }
+
+  /**
+   * all item check
+   *
+   * @public
+   * @param {boolean} checked
+   * @param {?HTMLInputElement} [allCheckedElement]
+   */
+  public setAllCheckItem(checked: boolean, allCheckedElement?: HTMLInputElement) {
+    const cfg = this.grid.config();
+    if (!allCheckedElement) {
+      allCheckedElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement;
+    }
+
+    if (allCheckedElement.checked != checked) {
+      allCheckedElement.checked = checked;
+    }
+
+    const headerCellElement = allCheckedElement.closest(".dg-header-cell");
+
+    const cellInfo = getHeaderCellInfo(cfg, headerCellElement as HTMLElement);
+
+    const checkEle = headerCellElement?.querySelector(".dg-checkbox.dg-all");
+
+    removeClass(checkEle as HTMLElement, "indeterminate");
+
+    this.gridMain.getBody().setAllCheckItem(cellInfo, allCheckedElement.checked);
+  }
+
+  /**
+   * set check box style
+   *
+   * @public
+   * @param {number} idx
+   * @param {("all" | "none" | "partial")} mode
+   */
+  public setCheckboxStyle(mode: "all" | "none" | "partial", idx?: number) {
+    let headerCellElement;
+    if (!idx) {
+      headerCellElement = (this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).closest(".dg-header-cell");
+    } else {
+      headerCellElement = this.headerElement.getElement().querySelector(`[data-header-cell-idx="${idx}"]`);
+    }
+
+    const checkEle = headerCellElement?.querySelector(".dg-checkbox.dg-all");
+
+    const classList = checkEle?.classList;
+    if (mode == "partial") {
+      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = false;
+      if (!classList?.contains("indeterminate")) classList?.add("indeterminate");
+    } else {
+      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = mode == "all";
+      if (classList?.contains("indeterminate")) classList.remove("indeterminate");
+    }
+  }
+
+  /**
    * header column resize
    *
    * @public
@@ -569,7 +624,7 @@ export default class Header {
              </div>`
             : "";
 
-        const label = headerItem.$isAside && headerItem.name == "$rowCheck" ? '<label class="dg-checkbox"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>' : `<div class="centered">${headerItem.label}</div>`;
+        const label = headerItem.$isAside && headerItem.name == "$rowCheck" ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>' : `<div class="centered">${headerItem.label}</div>`;
 
         const labelHtml = `
           ${helpIcon}
