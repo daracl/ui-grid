@@ -204,8 +204,9 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    fn_init(true);
     fn_button();
+    fn_init(true);
+
   });
 
 
@@ -306,8 +307,11 @@
         }
         , {
           name: 'g', label: 'g', width: 100, align: 'center', visible: false, renderer: {
-            type: 'image1'
-            , src: './image/{{g}}'
+            type: 'image'
+            , refValue: (field, value, rowItem) => {
+              //console.log(field, value, rowItem);
+              return { src: '/flags/south_korea.png', label: value };
+            }
           }
         }
         , {
@@ -557,7 +561,7 @@
       , fixedLeftIndex: 2
       , fixedRightIndex: 0
       // ,height:250
-      , width: 1000
+      //, width: 1000
       , aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
@@ -589,7 +593,7 @@
           , update: function (item) {
             //console.log(item);
           }
-          , minWidth: 60
+          , minWidth: 10
           , maxWidth: 1000
         }
         , contextMenu: {

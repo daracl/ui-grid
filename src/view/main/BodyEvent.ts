@@ -1,12 +1,10 @@
-import { BodyOptions, GridOptions, HeaderOptions } from "@t/GridOptions";
-import { CellInfo, Config, GridElement, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
+import { CellInfo, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
-import { addStyleTag, removeClass } from "../../util/styleUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, getCenterContentLeft, getOverCellPosition, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
+import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ALIGN_STYLE, ROW_CHECK_KEY, ROW_ID_KEY } from "src/constants";
+
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
@@ -27,13 +25,20 @@ export default class BodyEvent {
   private readonly gridMain: GridMain;
   private readonly selectionInfo: SelectionInfo;
 
-  public allCellElements: any;
+  private readonly bodyElement: DaraElement;
+  private readonly pasteElement: DaraElement;
+
+  private readonly allCellElements: any;
 
   constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.grid = grid;
     this.gridMain = gridMain;
     this.body = body;
     this.selectionInfo = selectionInfo;
+
+    this.bodyElement = this.body.getBodyElement();
+    this.allCellElements = this.body.getBodyCellElements();
+    this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
 
     this.initEvent();
   }
@@ -48,8 +53,7 @@ export default class BodyEvent {
 
   private initRowCheckEvent() {
     const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
-    const bodyElement = this.body.bodyElement.getElement();
+    const bodyElement = this.bodyElement.getElement();
     eventOn(
       bodyElement,
       "click",
@@ -79,7 +83,9 @@ export default class BodyEvent {
     const pasteAfterFn = opts.body.pasteAfter;
     const pasteAfterFnFlag = utils.isFunction(pasteAfterFn);
 
-    eventOn(this.gridMain.pasteElement.getElement(), "paste", (event: ClipboardEvent) => {
+    const pasteElement = this.pasteElement.getElement();
+
+    eventOn(pasteElement, "paste", (event: ClipboardEvent) => {
       const clipboardData = event.clipboardData; // ClipboardEvent에서 clipboardData 가져오기
 
       if (!clipboardData) {
@@ -197,7 +203,7 @@ export default class BodyEvent {
     }
 
     const rowOptions = opts.body.row;
-    const rowHeight = opts.body.row.height;
+    const rowHeight = cfg.rowHeight;
     // row cell double click event
     const dblCheckFlag = rowOptions.dblClickCheck === true;
     const editable = opts.editable;
@@ -219,7 +225,7 @@ export default class BodyEvent {
       });
     }
 
-    const bodyElement = this.body.bodyElement.getElement();
+    const bodyElement = this.bodyElement.getElement();
     eventOn(
       bodyElement,
       "mousedown touchstart",
@@ -400,7 +406,7 @@ export default class BodyEvent {
             if (dblCheckFlag) {
               //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
 
-              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][`${startCellInfo.r},${startCellInfo.c}`]);
+              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][startCellInfo.r][startCellInfo.c], cfg);
             }
 
             if (utils.isFunction(fnDblClick)) fnDblClick(startCellInfo);
@@ -450,8 +456,11 @@ export default class BodyEvent {
     const selectionMode = opts.selectionMode;
     // window keydown 처리.  tabindex 처리 확인 해볼것.
 
-    eventOff(this.gridMain.mainElement().getElement(), "keydown");
-    eventOn(this.gridMain.mainElement().getElement(), "keydown", (e: KeyboardEvent) => {
+    const pasteElement = this.pasteElement.getElement();
+    const mainElement = this.gridMain.mainElement().getElement();
+
+    eventOff(mainElement, "keydown");
+    eventOn(mainElement, "keydown", (e: KeyboardEvent) => {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;
@@ -488,7 +497,7 @@ export default class BodyEvent {
           return false;
         } else if (evtKey == 86) {
           // ctrl + v
-          this.gridMain.pasteElement.getElement().focus();
+          pasteElement.focus();
           return true;
         } else if (evtKey == 70) {
           // ctrl+f

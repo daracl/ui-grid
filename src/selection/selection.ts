@@ -459,7 +459,7 @@ export default class SelectionInfo {
     const scrollStartIdx = scroll.startIdx;
     const scrollStartCol = scroll.startCol;
 
-    const { left: leftElements, center: centerElements, right: rightElements } = this.gridMain.getBody().allCellElements;
+    const { left: leftElements, center: centerElements, right: rightElements } = this.gridMain.getBody().getBodyCellElements();
 
     const enableLeftField = fixedLeftIndex > 0 && fixedLeftIndex > startCol;
     const enableRightField = fixedRightIndex > 0 && fixedRightIndex <= endCol;
@@ -527,7 +527,7 @@ export default class SelectionInfo {
 
     if (leafLeft && !leafLeft[0].$isAside) return;
 
-    const { left: leftElements } = this.gridMain.getBody().allCellElements;
+    const { left: leftElements } = this.gridMain.getBody().getBodyCellElements();
 
     const isAll = this.isAllSelect();
 
@@ -585,8 +585,9 @@ export default class SelectionInfo {
    *
    */
   public clearSelectionCell() {
-    removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.start-cell"), "start-cell");
-    removeClass(this.gridMain.getBody().bodyElement.finds(".dg-cell.selection"), "selection");
+    const bodyElement = this.gridMain.getBody().getBodyElement();
+    removeClass(bodyElement.finds(".dg-cell.start-cell"), "start-cell");
+    removeClass(bodyElement.finds(".dg-cell.selection"), "selection");
   }
 
   /**

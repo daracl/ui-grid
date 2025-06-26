@@ -31,6 +31,9 @@ module.exports = merge(common, {
     //mode: 'development',
     host: "0.0.0.0",
     port: 8889,
+    static: {
+      directory: path.resolve(__dirname, "asset"), // 정적 파일 제공 경로
+    },
     watchFiles: ["src/**/*"],
     open: {
       app: {

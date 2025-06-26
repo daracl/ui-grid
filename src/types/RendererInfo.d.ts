@@ -12,7 +12,6 @@ export interface ValuesInfo {
 /**
  * renderer info
  *
- * @export
  * @interface RendererInfo
  * @typedef {RendererInfo}
  */

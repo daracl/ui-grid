@@ -80,7 +80,6 @@ export function addClass(element: HTMLElement | NodeListOf<HTMLElement> | null, 
 /**
  * remove element css class
  *
- * @export
  * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
  * @param {string} styleClass style css class
  */

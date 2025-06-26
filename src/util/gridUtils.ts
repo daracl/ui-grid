@@ -156,7 +156,6 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
 /**
  * 센터 포지션 값 - > 스크롤 left postion
  *
- * @export
  * @param {Config} cfg 그리드 설정 정보
  * @param {number} contentLeft center content left 값
  * @returns {number}
@@ -191,7 +190,6 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
 /**
  * get mouse darg vertical postion
  *
- * @export
  * @param {Config} cfg 설정
  * @param {number} moveY 마우스 move position
  * @param {number} rowHeight row height
@@ -331,7 +329,6 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
 /**
  * create new item
  *
- * @export
  * @param {FieldItem[]} headerItems field items
  * @param {number} [createCount=1] create count
  * @returns {any[]} result
@@ -363,4 +360,8 @@ export function getCheckboxMode(checkLeneth: number, itemLength: number) {
   if (checkLeneth == 0) return "none";
   if (checkLeneth == itemLength) return "all";
   return "partial";
+}
+
+export function isImageType(renderType: string) {
+  return renderType == "image";
 }

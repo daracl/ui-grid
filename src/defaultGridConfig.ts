@@ -53,7 +53,7 @@ export function initConfig(opts: GridOptions): Config {
     currentFields: [],
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, startCol: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     cellWidths: [],
-    rowHeights: [],
+    rowHeight: opts.body.row.height ?? 28,
     sort: { orders: [] },
     paging: pagingInfo,
     selection: {} as Selection,
@@ -198,7 +198,6 @@ export function initScrollInfo(): ScrollInfo {
 /**
  * field group info
  *
- * @export
  * @returns {FieldHeaderGroupInfo}
  */
 export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
@@ -218,7 +217,6 @@ export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
 /**
  * init edit info
  *
- * @export
  * @returns {EditInfo} editinfo
  */
 export function initEditInfo(): EditInfo {

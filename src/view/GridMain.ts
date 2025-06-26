@@ -3,7 +3,7 @@ import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, ROW_CHECK_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, ROW_CHECK_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -43,8 +43,6 @@ export default class GridMain {
   private _mainElement: DaraElement;
 
   private containerElement: DaraElement;
-
-  public pasteElement: DaraElement;
 
   private readonly enableViewAllLabel: boolean;
 
@@ -295,33 +293,24 @@ export default class GridMain {
   /**
    * cell size 설정
    */
-  fieldResize() {
-    const cfg = this.grid.config();
-
-    const { leafLeft, leafCenter, leafRight } = cfg.fieldHeaderGroup;
-
-    this.updateFieldWidth(leafLeft, 0, this.header.leftElement, this.body.leftElement, true);
-    this.updateFieldWidth(leafCenter, cfg.fixedLeftIndex, this.header.centerElement, this.body.centerElement);
-    this.updateFieldWidth(leafRight, cfg.fixedRightIndex, this.header.rightElement, this.body.rightElement);
+  public fieldResize() {
+    this.updateFieldWidth(this.grid.config().currentFields, this.header.getHeaderElement(), this.body.getBodyElement());
   }
 
   /**
    * update field width
    *
    * @param fields field resize
-   * @param offset start position
    * @param headerElement header html element
    * @param bodyElement body html element
-   * @param skipAside aside skip
    */
-  private updateFieldWidth(fields: any[], offset: number, headerElement: any, bodyElement: any, skipAside = false) {
+  private updateFieldWidth(fields: FieldItem[], headerElement: DaraElement, bodyElement: DaraElement) {
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
-      const colIdx = offset + j;
 
-      if (skipAside && field.$isAside) continue;
+      if (field.$isAside) continue;
 
-      const selector = `th[data-col-idx="${colIdx}"]`;
+      const selector = `th[data-col-idx="${j}"]`;
       const width = `${field.$width}px`;
 
       headerElement.find(selector).style.width = width;
@@ -343,13 +332,8 @@ export default class GridMain {
     const mainCenterWidth = dimensions.mainCenterWidth;
     const mainRightWidth = dimensions.mainRightWidth;
 
-    this.header.leftElement.css({ width: mainLeftWidth + "px" });
-    this.header.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
-    this.header.rightElement.css({ width: mainRightWidth + "px" });
-
-    this.body.leftElement.css({ width: mainLeftWidth + "px" });
-    this.body.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
-    this.body.rightElement.css({ width: mainRightWidth + "px" });
+    this.header.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
+    this.body.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
 
     this.changeScrollMode();
   }
@@ -362,6 +346,8 @@ export default class GridMain {
     const dimensions = cfg.dimensions;
 
     const opts = this.grid.getOptions();
+
+    cfg.rowHeight = opts.body.row.height;
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
@@ -401,7 +387,7 @@ export default class GridMain {
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
 
     //세로 스크롭 계산 start
-    const rowHeight = opts.body.row.height;
+    const rowHeight = cfg.rowHeight;
     const verticalEnable = opts.scroll.vertical.enable;
 
     if (verticalEnable === false) {
@@ -558,13 +544,13 @@ export default class GridMain {
     let mainHeaderHeight = 0;
 
     for (let i = 0; i < groupDepth; i++) {
-      let rowHeight = height;
+      let headerHeight = height;
       if (heights.length > i) {
-        rowHeight = heights[i];
-        rowHeight = rowHeight > 0 ? rowHeight : height;
+        headerHeight = heights[i];
+        headerHeight = headerHeight > 0 ? headerHeight : height;
       }
-      mainHeaderHeight += rowHeight;
-      cfg.fieldHeaderGroup.heights[i] = rowHeight;
+      mainHeaderHeight += headerHeight;
+      cfg.fieldHeaderGroup.heights[i] = headerHeight;
     }
 
     cfg.dimensions.mainHeaderHeight = mainHeaderHeight;
@@ -778,8 +764,12 @@ export default class GridMain {
     const items = cfg.orginItems;
     const len = items.length;
 
+    const rowHeight = cfg.rowHeight;
+
     for (let i = 0; i < len; i++) {
-      items[i][ROW_ID_KEY] = cfg.rowIdSeq++;
+      const item = items[i];
+      item[ROW_ID_KEY] = cfg.rowIdSeq++;
+      item[ROW_HEIGHT_KEY] = rowHeight;
     }
 
     return;
@@ -918,22 +908,25 @@ export default class GridMain {
     this.getBody().unCheckedItemByValue(name, values);
   }
 
+  /**
+   * 그리드 테마를 변경합니다.
+   *
+   * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
+   */
   public setTheme(themeName: THEME_TYPE) {
-    const dgElement = this.grid.element().find(".daracl-grid");
+    const dgElement = this.grid.element().find(".daracl-grid > div");
 
     const theme = GRID_THEME[themeName];
+
+    if (!theme) return;
 
     const cfg = this.grid.config();
 
     if (cfg.theme == theme) return;
 
-    //
-    // 테마 처리 할것.
-    //
-
     const classList = dgElement.classList;
 
-    if (!classList.contains(cfg.theme)) classList.remove(cfg.theme);
+    if (classList.contains(cfg.theme)) classList.remove(cfg.theme);
 
     cfg.theme = theme;
 
@@ -950,11 +943,8 @@ export default class GridMain {
     const pagingInfoAlign = ALIGN[opts.footer.paging?.formatPosition ?? "center"];
     // class="${align}"
 
-    const theme = GRID_THEME[opts.theme] ?? "";
-    cfg.theme = theme;
-
     let templateHtml = `
-      <div class="daracl-grid ${theme}" tabindex="-1"  style="outline:none !important;">
+      <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
         <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
@@ -1024,6 +1014,7 @@ export default class GridMain {
 
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
-    this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
+
+    this.setTheme(opts.theme);
   }
 }

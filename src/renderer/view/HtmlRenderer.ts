@@ -4,7 +4,6 @@ import ViewRenderer from "../ViewRenderer";
 /**
  * html renderer
  *
- * @export
  * @class HtmlRenderer
  * @typedef {HtmlRenderer}
  * @extends {ViewRenderer}

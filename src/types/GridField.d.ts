@@ -8,7 +8,6 @@ import EditRenderer from "src/renderer/EditRenderer";
 /**
  * Field info
  *
- * @export
  * @interface FieldItem
  * @typedef {FieldItem}
  */

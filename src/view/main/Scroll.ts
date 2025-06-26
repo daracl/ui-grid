@@ -52,7 +52,7 @@ export default class Scroll {
     const arrowButtonSize = SCROLL_ARROW_BUTTON_SIZE * 2;
 
     if (cfg.scroll.enableVertical) {
-      const rowHeight = opts.body.row.height;
+      const rowHeight = cfg.rowHeight;
       const totalRows = cfg.dataInfo.rowLength;
       const totalRowHeight = rowHeight * totalRows;
       const verticalHeight = dimensions.mainHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
@@ -772,8 +772,8 @@ export default class Scroll {
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
-    this.gridMain.getHeader().centerElement.css({ left: "-" + centerLeftPosition + "px" });
-    this.gridMain.getBody().centerElement.css({ left: "-" + centerLeftPosition + "px" });
+    this.gridMain.getHeader().setCenterElementStyle({ left: "-" + centerLeftPosition + "px" });
+    this.gridMain.getBody().setCenterElementStyle({ left: "-" + centerLeftPosition + "px" });
   }
 
   /**

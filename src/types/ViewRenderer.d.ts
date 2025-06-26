@@ -13,7 +13,6 @@ export interface ValuesInfo {
 /**
  * form field
  *
- * @export
  * @interface EditRenderer
  * @typedef {EditRenderer}
  */

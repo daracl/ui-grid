@@ -7,6 +7,7 @@
 @mixin footer {
   .dg-footer {
     border: 1px solid var(--border-color);
+    background: var(--body-bg);
     border-top-width: 0px;
     position: relative;
     vertical-align: top;

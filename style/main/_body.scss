@@ -108,6 +108,21 @@
           padding: 0px 5px 0px 5px !important;
           margin: 0 !important;
 
+          .dg-cell-content {
+            &.dg-image {
+              display: flex;
+              align-items: center;
+              height: 100%;
+              gap: 8px;
+            }
+            img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              display: block;
+            }
+          }
+
           &.line-number {
             background-color: var(--cell-bg-linenumber) !important;
           }

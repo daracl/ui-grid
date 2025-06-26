@@ -71,6 +71,13 @@ module.exports = {
         exclude: /node_modules/u,
         use: [MiniCssExtractPlugin.loader, "css-loader"],
       },
+      {
+        test: /\.(png|jpe?g|gif|svg|webp)$/i,
+        type: "asset/resource", // or 'asset'
+        generator: {
+          filename: "images/[hash][ext][query]", // 빌드 후 이미지가 들어갈 경로
+        },
+      },
     ],
   },
   plugins: [

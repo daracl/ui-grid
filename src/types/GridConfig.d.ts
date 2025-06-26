@@ -73,7 +73,7 @@ export interface Config {
     asideLength: number;
   };
   cellWidths: Array;
-  rowHeights: Array;
+  rowHeight: number;
   sort: {
     orders: Array;
   };
@@ -281,7 +281,6 @@ export interface GridElement {
 /**
  * field header group
  *
- * @export
  * @interface FieldHeaderGroupInfo
  * @typedef {FieldHeaderGroupInfo}
  */

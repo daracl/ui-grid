@@ -1,11 +1,11 @@
 import { CellInfo, HeaderCellInfo } from "@t/GridConfig";
 
-import { addStyleTag, removeClass } from "../../util/styleUtils";
+import { removeClass } from "../../util/styleUtils";
 import { getCheckboxMode } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ALIGN_STYLE, ROW_CHECK_KEY, ROW_ID_KEY } from "src/constants";
+import { ROW_CHECK_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";
@@ -23,28 +23,33 @@ export default class Body {
 
   private selectionInfo: SelectionInfo;
 
-  public bodyElement: DaraElement;
+  private bodyElement: DaraElement;
 
-  public bodyEvent: BodyEvent;
+  private bodyEvent: BodyEvent;
 
-  public leftElement: DaraElement;
-  public centerElement: DaraElement;
-  public rightElement: DaraElement;
+  private leftElement: DaraElement;
+  private centerElement: DaraElement;
+  private rightElement: DaraElement;
 
-  public allCellElements: any;
+  private allCellElements: any;
 
   private rowCheckSet = new Set<number>();
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
     this.gridMain = gridMain;
-
-    this.calcBodyDemention();
-
     this.createTemplate();
     this.selectionInfo = gridMain.selectionInfo;
 
     this.bodyEvent = new BodyEvent(grid, gridMain, this, this.selectionInfo);
+  }
+
+  public getBodyElement() {
+    return this.bodyElement;
+  }
+
+  public getBodyCellElements() {
+    return this.allCellElements;
   }
 
   /**
@@ -62,12 +67,14 @@ export default class Body {
 
       rowItem[colInfo.name] = newValue;
 
-      const cell = this.grid.config().edit.cell;
+      const config = this.grid.config();
+
+      const cell = config.edit.cell;
 
       const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + "," + cell.c + '"]');
 
       this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
-      cell.field.$renderer.render(cell.rowIndex, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement);
+      cell.field.$renderer.render(cell.rowIndex, cell.r, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement, config);
 
       return rowItem;
     }
@@ -251,6 +258,10 @@ export default class Body {
     }
   }
 
+  public setCenterElementStyle(styleCss: any) {
+    this.centerElement.css(styleCss);
+  }
+
   /**
    * remove start cell style class
    *
@@ -263,8 +274,10 @@ export default class Body {
     }
   }
 
-  public calcBodyDemention() {
-    const cfg = this.grid.config();
+  public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
+    this.leftElement.css({ width: mainLeftWidth + "px" });
+    this.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
+    this.rightElement.css({ width: mainRightWidth + "px" });
   }
 
   public createTemplate() {
@@ -322,7 +335,7 @@ export default class Body {
 
       cfg.scroll.before.viewRow = viewRow;
     } else if (beforeViewRow < viewRow) {
-      const rowHeight = opts.body.row.height;
+      const rowHeight = cfg.rowHeight;
 
       const addRow = viewRow - beforeViewRow;
 
@@ -424,7 +437,7 @@ export default class Body {
           const field = leftFields[j];
           const cell = rowCells[j];
           this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
+          field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild, cfg);
         }
       }
 
@@ -434,7 +447,7 @@ export default class Body {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
         this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-        field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
+        field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild, cfg);
       }
 
       // right panel
@@ -445,7 +458,7 @@ export default class Body {
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cell.firstElementChild);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cell.firstElementChild, cfg);
         }
       }
     }
@@ -484,6 +497,13 @@ export default class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
+    if (field.renderer.type == "image") {
+      //
+      // 이미지 높이 처리 할것.
+      //
+      // (cellEle?.firstChild as HTMLElement).style.height = item[ROW_HEIGHT_KEY] + "px";
+    }
+
     if (!field.styleClass) return;
 
     const { classList } = cellEle;
@@ -571,6 +591,7 @@ export default class Body {
       for (let j = 0; j < fields.length; j++) {
         let field = fields[j];
         let clickFlag = field.click;
+        const renderType = field.renderer.type;
 
         if (field.$isAside) {
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
@@ -578,7 +599,7 @@ export default class Body {
         </td>`);
         } else {
           cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}">
-          <div role="presentation" class="dg-cell-content dg-cell-ellipsis ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
+          <div role="presentation" class="dg-cell-content dg-cell-ellipsis dg-${renderType} ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
         </td>`);
         }
       }

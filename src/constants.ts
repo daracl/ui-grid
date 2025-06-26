@@ -149,3 +149,10 @@ export const ROW_CHECK_KEY = "_dg$rowCheck";
  * @type {"_dg$rowid"}
  */
 export const ROW_ID_KEY = "_dg$rowid";
+
+/**
+ * row id key
+ *
+ * @type {"_dg$rowid"}
+ */
+export const ROW_HEIGHT_KEY = "_dg$rowHeight";

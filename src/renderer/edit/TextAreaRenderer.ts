@@ -4,7 +4,6 @@ import { FieldItem } from "@t/GridField";
 /**
  * textarea renderer
  *
- * @export
  * @class TextAreaRenderer
  * @typedef {TextAreaRenderer}
  * @extends {EditRenderer}

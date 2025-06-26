@@ -5,7 +5,6 @@ import { isUndefined } from "src/util/utils";
 /**
  * link renderer
  *
- * @export
  * @class LinkRenderer
  * @typedef {LinkRenderer}
  * @extends {ViewRenderer}

@@ -24,7 +24,6 @@ function addEventInfo(el: any, eventType: string, listener: any) {
 /**
  * shift key check
  *
- * @export
  * @param {Event} evt event
  * @returns {boolean}
  */
@@ -35,7 +34,6 @@ export function isShiftKey(evt: Event): boolean {
 /**
  * ctrl key check
  *
- * @export
  * @param {Event} evt event
  * @returns {boolean}
  */

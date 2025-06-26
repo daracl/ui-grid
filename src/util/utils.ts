@@ -133,7 +133,6 @@ function fallbackCopyToClipboard(copyText: string) {
 /**
  * hidden type check
  *
- * @export
  * @param {FieldItem} field field item
  * @returns {boolean} type hidden true , false
  */
@@ -241,7 +240,6 @@ export function isPlainObject(obj: any) {
 /**
  * camel-> underscore
  *
- * @export
  * @param {string} str
  * @returns {*}
  */
@@ -252,7 +250,6 @@ export function camelToUnderscore(str: string) {
 /**
  * camel-> Kebab
  *
- * @export
  * @param {string} str
  * @returns {*}
  */

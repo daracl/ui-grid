@@ -8,7 +8,6 @@ import { ADD_ROW_POSITION, FIELD_PREFIX, THEME_TYPE } from "./constants";
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
 import Language from "./util/Language";
-import { addStyleTag } from "./util/styleUtils";
 import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
 import { FieldItem } from "@t/GridField";
@@ -111,8 +110,6 @@ export default class DaraGrid {
     this.mainConfig = initConfig(this.options);
 
     this.createHiddenElement();
-
-    addStyleTag(this);
 
     this.gridMain = new GridMain(this);
   }
@@ -267,9 +264,9 @@ export default class DaraGrid {
   };
 
   /**
-   * set theme
+   * 그리드 테마를 변경합니다.
    *
-   * @param {string} themeName theme name light, dark
+   * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
    */
   public setTheme = (themeName: THEME_TYPE) => {
     this.gridMain.setTheme(themeName);

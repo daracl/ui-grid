@@ -5,7 +5,6 @@ import { ColumnItem } from "./GridField";
 /**
  * grid options
  *
- * @export
  * @interface GridOptions
  * @typedef {GridOptions}
  */
@@ -145,7 +144,6 @@ export interface GridOptions {
 /**
  * header options
  *
- * @export
  * @interface HeaderOptions
  * @typedef {HeaderOptions}
  */
@@ -277,7 +275,6 @@ export interface HeaderOptions {
 /**
  * find options
  *
- * @export
  * @interface FindOptions
  * @typedef {FindOptions}
  */
@@ -353,7 +350,6 @@ export interface FindOptions {
 /**
  * toolbar options
  *
- * @export
  * @interface ToolbarOptions
  * @typedef {ToolbarOptions}
  */
@@ -379,7 +375,6 @@ export interface ToolbarOptions {
 /**
  * toolbar item
  *
- * @export
  * @interface ToolbarItem
  * @typedef {ToolbarItem}
  */
@@ -431,7 +426,6 @@ export interface ToolbarItem {
 /**
  * Render item
  *
- * @export
  * @interface RenderItem
  * @typedef {RenderItem}
  */
@@ -449,7 +443,6 @@ export interface RenderItem {
 /**
  * aside option
  *
- * @export
  * @interface AsideOptions
  * @typedef {AsideOptions}
  */
@@ -526,7 +519,6 @@ export interface AsideOptions {
 /**
  * body option
  *
- * @export
  * @interface BodyOptions
  * @typedef {BodyOptions}
  */
@@ -583,7 +575,6 @@ export interface BodyOptions {
 /**
  * scroll option
  *
- * @export
  * @interface ScrollOptions
  * @typedef {ScrollOptions}
  */
@@ -637,7 +628,6 @@ export interface ScrollOptions {
 /**
  * Navigation option
  *
- * @export
  * @interface FooterOptions
  * @typedef {FooterOptions}
  */
@@ -685,7 +675,6 @@ export interface FooterOptions {
 /**
  * paging param
  *
- * @export
  * @interface PagingParam
  * @typedef {PagingParam}
  */
