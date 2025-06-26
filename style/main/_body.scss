@@ -113,13 +113,17 @@
               display: flex;
               align-items: center;
               height: 100%;
-              gap: 8px;
-            }
-            img {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-              display: block;
+
+              > .dg-img {
+                width: auto;
+                height: 100%;
+                object-fit: contain;
+                display: block;
+
+                & + .dg-img-label {
+                  margin-left: 8px;
+                }
+              }
             }
           }
 
@@ -127,9 +131,6 @@
             background-color: var(--cell-bg-linenumber) !important;
           }
           /*
-          &.row-check {
-          }
-
           &.modifi-info {
           }
           */

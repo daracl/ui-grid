@@ -478,12 +478,12 @@ export default class Body {
    * @param {HTMLElement} addEle cell element
    * @returns {boolean}
    */
-  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, contentEle: HTMLElement, field: FieldItem, item: any) {
+  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, cellElement: HTMLElement, field: FieldItem, item: any) {
     // field add class
-    this.setCellStyleClass(contentEle, rowIdx, col, field, item);
+    this.setCellStyleClass(cellElement, rowIdx, col, field, item);
     if (field.$isAside) return;
 
-    this.selectionInfo.setCellSelectionStyleClass(contentEle, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
+    this.selectionInfo.setCellSelectionStyleClass(cellElement, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
   }
 
   /**
@@ -498,10 +498,10 @@ export default class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     if (field.renderer.type == "image") {
-      //
-      // 이미지 높이 처리 할것.
-      //
-      // (cellEle?.firstChild as HTMLElement).style.height = item[ROW_HEIGHT_KEY] + "px";
+      const contentEleStyle = (cellEle?.firstChild as HTMLElement).style;
+      const height = item[ROW_HEIGHT_KEY] - 5;
+      contentEleStyle.maxHeight = height + "px";
+      contentEleStyle.height = height + "px";
     }
 
     if (!field.styleClass) return;
@@ -598,8 +598,9 @@ export default class Body {
           <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
         </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}">
-          <div role="presentation" class="dg-cell-content dg-cell-ellipsis dg-${renderType} ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
+            class="dg-cell-content dg-cell-ellipsis 
+            dg-${renderType} ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
         </td>`);
         }
       }

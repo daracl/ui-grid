@@ -306,7 +306,7 @@
           }
         }
         , {
-          name: 'g', label: 'g', width: 100, align: 'center', visible: false, renderer: {
+          name: 'g', label: 'g', width: 100, align: 'left', visible: false, renderer: {
             type: 'image'
             , refValue: (field, value, rowItem) => {
               //console.log(field, value, rowItem);
@@ -757,7 +757,7 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          height: 26
+          height: 50
           , dblClickCheck: false
           , click: function (itemInfo) {
             //console.log('rowOptions click' ,itemInfo)

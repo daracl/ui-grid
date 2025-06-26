@@ -549,15 +549,15 @@ export default class SelectionInfo {
 
   /**
    * add cell selection style class
-   * @param cellEle cell htmlelement
+   * @param cellElement cell htmlelement
    * @param rowIdx row index
    * @param col col
    * @param startIdx start row index
    * @param startCol start cell
    * @returns
    */
-  public setCellSelectionStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, startIdx: number, startCol: number) {
-    const classList = cellEle.classList;
+  public setCellSelectionStyleClass(cellElement: HTMLElement, rowIdx: number, col: number, startIdx: number, startCol: number) {
+    const classList = cellElement.classList;
 
     if (startIdx == rowIdx && startCol == col) {
       classList.add("start-cell");

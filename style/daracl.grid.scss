@@ -174,12 +174,15 @@ body {
   .text-a {
     &l {
       text-align: left;
+      justify-content: start;
     }
     &c {
       text-align: center;
+      justify-content: center;
     }
     &r {
       text-align: right;
+      justify-content: flex-end;
     }
   }
 

@@ -18,9 +18,16 @@ export default class ImageRenderer extends ViewRenderer {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
     if (refValue) {
-      element.innerHTML = `<img src="${refValue.src}" ${refValue.alt ? 'alt="' + refValue.alt + '"' : ""}/> ${refValue.label ? `<span>${refValue.label}</span>` : ""}`;
+      let labelHtml = "";
+      let styleClass = "dg-img";
+      if (refValue.label) {
+        styleClass = "dg-img-label";
+        labelHtml = `<span class="dg-img-label">${refValue.label}</span>`;
+      }
+
+      element.innerHTML = `<img class="dg-img" src="${refValue.src}" ${refValue.alt ? 'alt="' + refValue.alt + '"' : ""}/>${labelHtml}`;
     } else {
-      element.innerHTML = `<img src="${value}"/>`;
+      element.innerHTML = `<img class="dg-img" src="${value}"/>`;
     }
   }
 
