@@ -14,6 +14,19 @@ export default class ButtonRenderer extends ViewRenderer {
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
     const value = item[this.fieldName];
-    element.innerHTML = `<div class="dg-cell-btn">${value}</div>`;
+
+    let btnElement = element.firstElementChild as HTMLElement | null;
+
+    // 최초 렌더링 시만 생성
+    if (!btnElement) {
+      btnElement = document.createElement("div");
+      btnElement.className = "dg-btn";
+      element.appendChild(btnElement);
+    }
+
+    // 값이 바뀌었을 때만 갱신
+    if (btnElement.textContent !== value) {
+      btnElement.textContent = value;
+    }
   }
 }

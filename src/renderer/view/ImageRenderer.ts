@@ -17,17 +17,39 @@ export default class ImageRenderer extends ViewRenderer {
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement, config: Config): void {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
-    if (refValue) {
-      let labelHtml = "";
-      let styleClass = "dg-img";
-      if (refValue.label) {
-        styleClass = "dg-img-label";
-        labelHtml = `<span class="dg-img-label">${refValue.label}</span>`;
+    const labelText = refValue?.label ?? null;
+    const src = refValue?.src ?? value;
+    const alt = refValue?.alt ?? "";
+
+    // 캐싱된 요소 재사용
+    let img = element.querySelector("img.dg-img") as HTMLImageElement | null;
+    let label = element.querySelector("span.dg-img-label") as HTMLSpanElement | null;
+
+    // img 없으면 새로 생성
+    if (!img) {
+      img = document.createElement("img");
+      img.className = "dg-img";
+      element.appendChild(img);
+    }
+
+    // 이미지 속성 변경이 필요한 경우만 변경
+    if (img.src !== src) img.src = src;
+    if (alt && img.alt !== alt) img.alt = alt;
+
+    // label이 필요한 경우
+    if (labelText) {
+      if (!label) {
+        label = document.createElement("span");
+        label.className = "dg-img-label";
+        element.appendChild(label);
       }
 
-      element.innerHTML = `<img class="dg-img" src="${refValue.src}" ${refValue.alt ? 'alt="' + refValue.alt + '"' : ""}/>${labelHtml}`;
-    } else {
-      element.innerHTML = `<img class="dg-img" src="${value}"/>`;
+      if (label.textContent !== labelText) {
+        label.textContent = labelText;
+      }
+    } else if (label) {
+      // 필요 없는 label은 제거
+      label.remove();
     }
   }
 

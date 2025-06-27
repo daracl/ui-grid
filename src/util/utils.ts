@@ -306,7 +306,7 @@ export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
   return array.slice(start, end);
 }
 
-function isObject(value: any) {
+export function isObject(value: any) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 

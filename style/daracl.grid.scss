@@ -66,6 +66,9 @@ body {
     --checkbox-bg: #558797;
     --checkbox-color: #ffffff;
     --checkbox-indeterminate-bg: #686868;
+
+    --bar-positive-bg: #77c0fc;
+    --bar-negative-bg: #ff8989;
   }
 
   &[data-dg-theme="dark"] .daracl-grid,
@@ -126,6 +129,9 @@ body {
     --checkbox-bg: #00c1ff;
     --checkbox-color: #4e4e4e;
     --checkbox-indeterminate-bg: #fffbfb;
+
+    --bar-positive-bg: #77c0fc;
+    --bar-negative-bg: #ff8989;
   }
 }
 
@@ -210,6 +216,46 @@ body {
 
     &[type="checkbox"] {
       margin: auto;
+    }
+  }
+
+  .dg-radio {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 6px;
+    font-size: 14px;
+    margin-bottom: 10px;
+
+    input[type="radio"] {
+      display: none;
+
+      &:checked + .radiomark {
+        border-color: var(--radio-color);
+        background-color: var(--radio-color);
+
+        &::after {
+          content: "";
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          width: 6px;
+          height: 6px;
+          background-color: #fff;
+          border-radius: 50%;
+        }
+      }
+    }
+
+    .radiomark {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid #999;
+      border-radius: 50%;
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.1s ease-in-out;
     }
   }
 

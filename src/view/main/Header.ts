@@ -7,6 +7,8 @@ import GridMain from "../GridMain";
 import { getHeaderCellInfo } from "src/util/gridUtils";
 import { removeClass } from "src/util/styleUtils";
 import HeaderEvent from "./HeaderEvent";
+import CheckboxRenderer from "src/renderer/edit/CheckboxRenderer";
+import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 
 /**
  * Header class
@@ -251,6 +253,7 @@ export default class Header {
              </div>`
             : "";
 
+        console.log("22222222", headerItem.$isLeaf, headerItem.$renderer, headerItem);
         const label = headerItem.$isAside && headerItem.name == "$rowCheck" ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>' : `<div class="centered">${headerItem.label}</div>`;
 
         const labelHtml = `

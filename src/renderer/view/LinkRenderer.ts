@@ -18,10 +18,22 @@ export default class LinkRenderer extends ViewRenderer {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
 
-    if (!isUndefined(refValue)) {
-      element.innerHTML = `<a href="${refValue.href}" _blank="${refValue.target ?? ""}">${value}</a>`;
+    let aElement = element.firstElementChild as HTMLAnchorElement | null;
+
+    // 처음 생성 시
+    if (!aElement) {
+      aElement = document.createElement("a");
+      element.appendChild(aElement);
+    }
+
+    if (refValue) {
+      aElement.href = refValue.href;
+      aElement.target = refValue.target ?? "_blank";
+      aElement.textContent = refValue.label ?? value;
     } else {
-      element.innerHTML = `<a href="${value}">${value}</a>`;
+      aElement.href = value;
+      aElement.target = "_blank";
+      aElement.textContent = value;
     }
   }
 }

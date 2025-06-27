@@ -103,6 +103,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     rowCheckbox: {
       // 체크 박스
       enabled: false, // 활성화 여부
+      allowMultiSelect: true, // 다중 선택 허용 여부
       width: 25, // 넓이값
       order: 1,
       click: (rowInfo: any) => {
@@ -125,7 +126,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     pasteAfter: false, // 붙여 넣기 후 호출 메소드
     row: {
       // 로우 옵션.
-      height: 22, // cell 높이
+      height: 24, // cell 높이
       click: false, //row(tr) click event
       contextMenu: false, // row(tr) contextmenu event
       addStyle: false, // 추가할 style method

@@ -492,6 +492,12 @@ export interface AsideOptions {
      * click 콜백
      */
     click?: OptionCallback;
+
+    /**
+     * 다중 선택 허용 여부
+     *
+     */
+    allowMultiSelect: boolean;
   };
   /**
    * 수정 여부

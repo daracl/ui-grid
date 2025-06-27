@@ -227,13 +227,14 @@
           , b: 'ddd_' + i + 'asdf'
           , c: (i * 10000)
           , d: i == 0 ? 'KOREA' : 'ddd_' + i
-          , e: i % 3 == 0 ? null : 'null아님_' + i
+          , e: `<div style="width:100px;height:150px;"><a href="javascript:alert(1);"> testasdfawefawefawef awfeawefawef</a><br><span>23r23f23f</span></div>`
           , f: 'ffff' + i
           , g: 'ggggg' + i
           , h: i
           , i: 'iiii' + i
           , j: 'jjjj' + i
-          , z: 'zzzz[[]]' + i
+          , z: Math.floor(Math.random() * 201) - 100
+          //, z: -Math.floor(Math.random() * 101)
           , idx: i
         });
       }
@@ -253,7 +254,15 @@
                 }
               }
             }
-            , { name: 'z', label: 'ZZZZ', width: 50, sort: true, editable: false }
+            , {
+              name: 'z', label: 'ZZZZ', width: 50, sort: true, editable: false, renderer: {
+                type: 'bar'
+                , rule: {
+                  minimum: -100
+                  , maximum: 100
+                }
+              }
+            }
 
           ]
         }
@@ -261,7 +270,11 @@
           name: 'c', label: '씨', width: 100, align: 'center', type: 'money', renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
-            , click1: function (item) {
+            , refValue: (field, value, rowItem) => {
+              //console.log(field, value, rowItem);
+              return { href: '/flags/south_korea.png', label: value };
+            }
+            , click: function (item) {
               console.log('link ', item)
             }
           }
@@ -293,7 +306,7 @@
         }
         , {
           name: 'e', label: '이', width: 100, align: 'right', renderer: {
-            type: 'checkbox'
+            type: 'html'
           }
         }
         , {
@@ -568,6 +581,7 @@
           enabled: true
           , key: 'checkbox'
           , width: 27
+          , allowMultiSelect: false
         }
       }
       , colOptions: {
@@ -757,7 +771,7 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          height: 50
+          height: 30
           , dblClickCheck: false
           , click: function (itemInfo) {
             //console.log('rowOptions click' ,itemInfo)

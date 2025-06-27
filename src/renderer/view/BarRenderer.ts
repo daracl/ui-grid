@@ -9,12 +9,83 @@ import ViewRenderer from "../ViewRenderer";
  * @extends {ViewRenderer}
  */
 export default class BarRenderer extends ViewRenderer {
+  private min: number;
+  private max: number;
   constructor(field: FieldItem) {
     super(field);
+    this.min = field.renderer.rule?.minimum ?? 0;
+    this.max = field.renderer.rule?.maximum ?? 100;
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
-    const value = item[this.fieldName];
-    element.innerHTML = `<div>bar${value}</div>`;
+    const fieldValue = item[this.fieldName];
+    const refValue = this.getRefValue(fieldValue, item);
+
+    const min = this.min;
+    const max = this.max;
+
+    let percent = fieldValue;
+    let label = fieldValue;
+
+    if (refValue) {
+      percent = refValue?.percent ?? 0;
+      label = refValue?.label;
+    }
+
+    console.log(min, max, percent);
+
+    // 바, 라벨 DOM 가져오기 또는 생성
+    let bar = element.querySelector(".dg-bar-fill") as HTMLDivElement | null;
+    let text = element.querySelector(".dg-bar-label") as HTMLSpanElement | null;
+
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "dg-bar-fill";
+      element.appendChild(bar);
+    }
+
+    if (!text) {
+      text = document.createElement("span");
+      text.className = "dg-bar-label";
+      element.appendChild(text);
+    }
+
+    bar.classList.remove("positive", "negative");
+    if (percent > 0) {
+      bar.classList.add("positive");
+    } else if (percent < 0) {
+      bar.classList.add("negative");
+    }
+
+    // 위치 계산
+    let width = 0;
+    let left = 0;
+
+    if (min < 0 && max > 0) {
+      const total = Math.abs(min) + Math.abs(max);
+      const p = Math.max(min, Math.min(max, percent));
+      const zeroPoint = (Math.abs(min) / total) * 100;
+
+      width = (Math.abs(p) / total) * 100;
+      left = p >= 0 ? zeroPoint : zeroPoint - width;
+    } else if (min >= 0) {
+      const range = max - min;
+      const p = Math.max(min, Math.min(max, percent));
+      width = ((p - min) / range) * 100;
+      left = 0;
+    } else {
+      const range = Math.abs(min - max);
+      const p = Math.max(min, Math.min(max, percent));
+      width = (Math.abs(p - max) / range) * 100;
+      left = 100 - width;
+    }
+
+    // 스타일 속성만 적용
+    bar.style.left = `${left}%`;
+    bar.style.width = `${width}%`;
+
+    if (text.textContent !== label) {
+      text.textContent = label;
+    }
   }
 }

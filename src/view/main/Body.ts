@@ -497,8 +497,9 @@ export default class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    if (field.renderer.type == "image") {
-      const contentEleStyle = (cellEle?.firstChild as HTMLElement).style;
+    const renderType = field.renderer.type;
+    if (renderType == "image" || renderType == "html" || renderType == "bar") {
+      const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
       const height = item[ROW_HEIGHT_KEY] - 5;
       contentEleStyle.maxHeight = height + "px";
       contentEleStyle.height = height + "px";

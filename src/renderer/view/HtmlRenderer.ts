@@ -15,6 +15,6 @@ export default class HtmlRenderer extends ViewRenderer {
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
     const value = item[this.fieldName];
-    element.innerHTML = `<div>${value}</div>`;
+    element.innerHTML = value;
   }
 }

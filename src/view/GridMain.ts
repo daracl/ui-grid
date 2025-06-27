@@ -434,10 +434,6 @@ export default class GridMain {
       const field = fields[j];
       let fieldWidth = isHeaderResize ? field.$width : field.width;
 
-      if (isInit === true) {
-        this.setRendererInfo(field);
-      }
-
       // 그리드 남는 영역을 계산 해서 컬럼에 추가.
       if (!isHeaderResize && !field.$isAside && opts.enableWidthFixed !== true) {
         fieldWidth = fieldWidth + remainderWidth;
@@ -498,7 +494,7 @@ export default class GridMain {
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "$rowCheck", renderer: { type: "rowCheckbox" }, $isAside: true });
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "$rowCheck", renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
       asideOrder[opts.aside.rowCheckbox.order ?? 1] = fieldItem;
     }
 
@@ -617,7 +613,7 @@ export default class GridMain {
       if (field.$colspan == 1) {
         fieldGroupInfo.left[depth].push(field);
       } else {
-        const leftNode = utils.merge({}, field);
+        const leftNode = fieldCopy(field);
 
         if (leftNode.$resizeIdx > fixedLeftIndex) {
           leftNode.$colspan = fixedLeftIndex - (leftNode.$resizeIdx - leftNode.$colspan);
@@ -626,7 +622,7 @@ export default class GridMain {
 
         fieldGroupInfo.left[depth].push(leftNode);
         if (fixedLeftIndex < field.$resizeIdx) {
-          const bodyNode = utils.merge({}, field);
+          const bodyNode = fieldCopy(field);
           bodyNode.$colspan = field.$resizeIdx - fixedLeftIndex;
           fieldGroupInfo.center[depth].push(bodyNode);
         }
@@ -645,7 +641,7 @@ export default class GridMain {
         let bodyFieldColspan = field.$colspan - (field.$resizeIdx - fixedRightIndex) - 1;
 
         if (fixedRightIndex <= field.$resizeIdx && bodyFieldColspan > 0) {
-          const bodyNode = utils.merge({}, field) as FieldItem;
+          const bodyNode = fieldCopy(field) as FieldItem;
           bodyNode.$colspan = bodyFieldColspan;
           bodyNode.$resizeIdx = fixedRightIndex - 1;
           rightColspan = rightColspan - bodyNode.$colspan;
@@ -659,7 +655,7 @@ export default class GridMain {
           }
         }
 
-        const rightNode = utils.merge({}, field);
+        const rightNode = fieldCopy(field);
 
         rightNode.$colspan = rightColspan;
         rightNode.$resizeIdx = field.$resizeIdx;
@@ -691,6 +687,8 @@ export default class GridMain {
 
       field.$width = field.width;
 
+      field = this.setRendererInfo(field);
+
       fieldGroupInfo.leaf.push(field);
     }
 
@@ -713,12 +711,15 @@ export default class GridMain {
     }
 
     let render = VIEW_RENDERER[renderInfo.type];
+
     if (utils.isUndefined(render)) {
       renderInfo.type = "text";
     }
 
     field.renderer = renderInfo;
     field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
+
+    console.log("1111111", field.name, field.$renderer);
 
     return field;
   }
@@ -1017,4 +1018,17 @@ export default class GridMain {
 
     this.setTheme(opts.theme);
   }
+}
+function fieldCopy(field: any): any {
+  const result: any = {};
+
+  Object.entries(field).forEach(([key, value]) => {
+    if (!utils.isObject(value) || key == "renderer") {
+      result[key] = value;
+    }
+  });
+
+  // field copy처리할것.
+
+  return result;
 }
