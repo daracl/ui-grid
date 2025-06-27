@@ -35,6 +35,8 @@ export default class Body {
 
   private rowCheckSet = new Set<number>();
 
+  private beforeRowCheckItem: any;
+
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
     this.gridMain = gridMain;
@@ -74,7 +76,7 @@ export default class Body {
       const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + "," + cell.c + '"]');
 
       this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
-      cell.field.$renderer.render(cell.rowIndex, cell.r, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement, config);
+      cell.field.$renderer.render(cell.rowIndex, cell.r, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement);
 
       return rowItem;
     }
@@ -104,6 +106,21 @@ export default class Body {
    * @param {*} item row item
    */
   public setCheckItem(cellInfo: CellInfo, checked: boolean, item: any) {
+    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
+
+    if (!isRowAllowMultiSelect) {
+      if (this.beforeRowCheckItem) {
+        this.beforeRowCheckItem[ROW_CHECK_KEY] = false;
+      }
+      item[ROW_CHECK_KEY] = true;
+      this.rowCheckSet.clear();
+      this.rowCheckSet.add(item[ROW_ID_KEY]);
+
+      this.beforeRowCheckItem = item;
+
+      return;
+    }
+
     item[ROW_CHECK_KEY] = checked;
 
     if (checked) {
@@ -146,6 +163,7 @@ export default class Body {
    *
    */
   public setCheckedItemByValue(name: string, values: any) {
+    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
     const cfg = this.grid.config();
     this.rowCheckSet.clear();
 
@@ -156,6 +174,8 @@ export default class Body {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = true;
         this.rowCheckSet.add(item[ROW_ID_KEY]);
+
+        if (isRowAllowMultiSelect) break;
       }
     }
 
@@ -196,6 +216,7 @@ export default class Body {
    * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public unCheckedItemByValue(name: string, values: any) {
+    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
     const cfg = this.grid.config();
 
     let checkValue = utils.isArray(values) ? values : [values];
@@ -203,7 +224,14 @@ export default class Body {
     for (let item of cfg.items) {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = false;
-        this.rowCheckSet.delete(item[ROW_ID_KEY]);
+
+        if (isRowAllowMultiSelect) {
+          this.rowCheckSet.clear();
+          this.dataDraw("unCheckedItemByValue");
+          break;
+        } else {
+          this.rowCheckSet.delete(item[ROW_ID_KEY]);
+        }
       }
     }
 
@@ -437,7 +465,7 @@ export default class Body {
           const field = leftFields[j];
           const cell = rowCells[j];
           this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild, cfg);
+          field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
         }
       }
 
@@ -447,7 +475,7 @@ export default class Body {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
         this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-        field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild, cfg);
+        field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
       }
 
       // right panel
@@ -458,7 +486,7 @@ export default class Body {
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cell.firstElementChild, cfg);
+          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cell.firstElementChild);
         }
       }
     }

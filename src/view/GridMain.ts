@@ -608,9 +608,14 @@ export default class GridMain {
       fieldGroupInfo.right[depth] = [];
     }
 
+    if (field.$isLeaf) {
+      field = this.setRendererInfo(field);
+    }
+
     // left 고정 컬럼
     if ((field.$childLength > 0 && fixedLeftIndex > field.$resizeIdx - field.$colspan) || (field.$childLength < 1 && fixedLeftIndex >= field.$resizeIdx)) {
-      if (field.$colspan == 1) {
+      console.log("field.$colspan ", field.name, field);
+      if (field.$colspan <= 1) {
         fieldGroupInfo.left[depth].push(field);
       } else {
         const leftNode = fieldCopy(field);
@@ -687,8 +692,6 @@ export default class GridMain {
 
       field.$width = field.width;
 
-      field = this.setRendererInfo(field);
-
       fieldGroupInfo.leaf.push(field);
     }
 
@@ -719,7 +722,7 @@ export default class GridMain {
     field.renderer = renderInfo;
     field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
 
-    console.log("1111111", field.name, field.$renderer);
+    console.log("1111111", field.name, renderInfo.type, field.$renderer);
 
     return field;
   }
@@ -887,6 +890,7 @@ export default class GridMain {
    * @param {boolean} checked
    */
   public setAllCheckedItems(checked: boolean) {
+    if (!this.grid.config().isRowAllowMultiSelect) throw new Error("The allowMultiSelect option does not support methods.");
     this.getHeader().setAllCheckItem(checked);
   }
 
@@ -902,6 +906,7 @@ export default class GridMain {
   }
 
   public addCheckedItemByValue(name: string, values: any) {
+    if (!this.grid.config().isRowAllowMultiSelect) throw new Error("The allowMultiSelect option does not support methods.");
     this.getBody().addCheckedItemByValue(name, values);
   }
 
@@ -1027,6 +1032,8 @@ function fieldCopy(field: any): any {
       result[key] = value;
     }
   });
+
+  console.log("fieldCopy", field);
 
   // field copy처리할것.
 

@@ -53,6 +53,12 @@ export interface Config {
 
   isCellEdit: boolean;
 
+  /**
+   * row 다중 체크 여부
+   *
+   * @type {boolean}
+   */
+  isRowAllowMultiSelect: boolean;
   searchEnable: boolean;
   fieldHeaderGroup: FieldHeaderGroupInfo;
   footer: { height: number; width: number };

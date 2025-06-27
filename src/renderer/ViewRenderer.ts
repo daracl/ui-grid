@@ -24,7 +24,7 @@ export default abstract class ViewRenderer extends Renderer {
    * @param element cell element
    * @param config config
    */
-  public abstract render(rowIdx: number, rowNumber: number, colNumber: number, value: any, element: HTMLElement, config: Config): void;
+  public abstract render(rowIdx: number, rowNumber: number, colNumber: number, value: any, element: HTMLElement): void;
 
   public isWrapper(): boolean {
     return true;

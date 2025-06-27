@@ -38,6 +38,7 @@ export function initConfig(opts: GridOptions): Config {
       mainCenterViewWidth: 0,
     },
     isCellEdit: false,
+    isRowAllowMultiSelect: opts.aside?.rowCheckbox?.allowMultiSelect ?? true,
     allColumnMap: {},
     searchEnable: false,
     fieldHeaderGroup: defaultFieldGroupInfo(),

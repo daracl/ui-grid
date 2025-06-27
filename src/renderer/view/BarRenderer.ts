@@ -32,11 +32,9 @@ export default class BarRenderer extends ViewRenderer {
       label = refValue?.label;
     }
 
-    console.log(min, max, percent);
-
     // 바, 라벨 DOM 가져오기 또는 생성
-    let bar = element.querySelector(".dg-bar-fill") as HTMLDivElement | null;
-    let text = element.querySelector(".dg-bar-label") as HTMLSpanElement | null;
+    let bar = element.querySelector(".dg-bar-fill") as HTMLDivElement;
+    let text = element.querySelector(".dg-bar-label") as HTMLSpanElement;
 
     if (!bar) {
       bar = document.createElement("div");

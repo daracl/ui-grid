@@ -14,7 +14,7 @@ export default class ImageRenderer extends ViewRenderer {
     super(field);
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement, config: Config): void {
+  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
     const labelText = refValue?.label ?? null;
@@ -22,8 +22,8 @@ export default class ImageRenderer extends ViewRenderer {
     const alt = refValue?.alt ?? "";
 
     // 캐싱된 요소 재사용
-    let img = element.querySelector("img.dg-img") as HTMLImageElement | null;
-    let label = element.querySelector("span.dg-img-label") as HTMLSpanElement | null;
+    let img = element.querySelector("img.dg-img") as HTMLImageElement;
+    let label = element.querySelector("span.dg-img-label") as HTMLSpanElement;
 
     // img 없으면 새로 생성
     if (!img) {

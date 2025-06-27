@@ -92,6 +92,8 @@ export default class Header {
    * @param {("all" | "none" | "partial")} mode
    */
   public setCheckboxStyle(mode: "all" | "none" | "partial", idx?: number) {
+    if (!this.grid.config().isRowAllowMultiSelect) return;
+
     let headerCellElement;
     if (!idx) {
       headerCellElement = (this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).closest(".dg-header-cell");
@@ -253,8 +255,10 @@ export default class Header {
              </div>`
             : "";
 
-        console.log("22222222", headerItem.$isLeaf, headerItem.$renderer, headerItem);
-        const label = headerItem.$isAside && headerItem.name == "$rowCheck" ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>' : `<div class="centered">${headerItem.label}</div>`;
+        const label =
+          headerItem.$isAside && headerItem.name == "$rowCheck" && cfg.isRowAllowMultiSelect
+            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
+            : `<div class="centered">${headerItem.label}</div>`;
 
         const labelHtml = `
           ${helpIcon}

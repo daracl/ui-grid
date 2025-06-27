@@ -497,7 +497,7 @@ export interface AsideOptions {
      * 다중 선택 허용 여부
      *
      */
-    allowMultiSelect: boolean;
+    allowMultiSelect?: boolean;
   };
   /**
    * 수정 여부

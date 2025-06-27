@@ -54,6 +54,8 @@ export default class BodyEvent {
   private initRowCheckEvent() {
     const cfg = this.grid.config();
     const bodyElement = this.bodyElement.getElement();
+    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
+
     eventOn(
       bodyElement,
       "click",
@@ -406,7 +408,7 @@ export default class BodyEvent {
             if (dblCheckFlag) {
               //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
 
-              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][startCellInfo.r][startCellInfo.c], cfg);
+              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][startCellInfo.r][startCellInfo.c]);
             }
 
             if (utils.isFunction(fnDblClick)) fnDblClick(startCellInfo);

@@ -27,7 +27,7 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
     if (!input) {
       input = document.createElement("input");
       input.type = isMulti ? "checkbox" : "radio";
-      input.name = inputName;
+      input.name = "dgRowCheck";
       if (!isMulti) input.classList.add("childRadio");
 
       const mark = document.createElement("span");
