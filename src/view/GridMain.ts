@@ -614,7 +614,6 @@ export default class GridMain {
 
     // left 고정 컬럼
     if ((field.$childLength > 0 && fixedLeftIndex > field.$resizeIdx - field.$colspan) || (field.$childLength < 1 && fixedLeftIndex >= field.$resizeIdx)) {
-      console.log("field.$colspan ", field.name, field);
       if (field.$colspan <= 1) {
         fieldGroupInfo.left[depth].push(field);
       } else {
@@ -721,8 +720,6 @@ export default class GridMain {
 
     field.renderer = renderInfo;
     field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
-
-    console.log("1111111", field.name, renderInfo.type, field.$renderer);
 
     return field;
   }

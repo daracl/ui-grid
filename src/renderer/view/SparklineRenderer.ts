@@ -3,7 +3,7 @@ import ViewRenderer from "../ViewRenderer";
 import { isUndefined } from "src/util/utils";
 
 /**
- * SparkLine renderer
+ * Sparkline renderer
  *
  * @class SparklineRenderer
  * @typedef {SparklineRenderer}
@@ -19,16 +19,36 @@ export default class SparklineRenderer extends ViewRenderer {
     const refValue = this.getRefValue(value, item);
 
     const data = refValue.value;
-    const fields = refValue.fields;
 
-    const canvas = document.createElement("canvas");
-    const width = 100;
-    const height = 30;
+    if (!Array.isArray(data) || data.length === 0) {
+      // 데이터가 없으면 비워두기
+      element.innerHTML = "";
+      return;
+    }
 
-    canvas.width = width;
-    canvas.height = height;
+    const width = element.getBoundingClientRect().width;
+    const height = element.getBoundingClientRect().height;
 
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+    console.log(element, `width:${width}, height: ${height}`);
+
+    // 기존 canvas가 있으면 재사용, 없으면 생성
+    let canvas = element.querySelector("canvas") as HTMLCanvasElement | null;
+
+    console.log("canvas ", canvas);
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      element.appendChild(canvas);
+    } else {
+      // 크기 고정 시 다시 설정 필요없으면 생략 가능
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min || 1;
@@ -39,41 +59,45 @@ export default class SparklineRenderer extends ViewRenderer {
     const graphWidth = width - xPadding * 2;
     const step = graphWidth / (data.length - 1);
 
-    const points: any = [];
-
     ctx.clearRect(0, 0, width, height);
+
+    // 라인 그리기
     ctx.strokeStyle = "#007acc";
     ctx.lineWidth = 1;
-
     ctx.beginPath();
-    data.forEach((val: number, i: number) => {
+
+    for (let i = 0; i < data.length; i++) {
+      const val = data[i];
       const x = xPadding + i * step;
       const y = yPadding + (1 - (val - min) / range) * graphHeight;
-      points.push({ x, y, value: val });
+
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
         ctx.lineTo(x, y);
       }
-    });
+    }
     ctx.stroke();
 
-    // Draw circles
-    points.forEach((pt: any, i: number) => {
-      if (pt.value === max) {
+    // 점 그리기
+    for (let i = 0; i < data.length; i++) {
+      const val = data[i];
+      const x = xPadding + i * step;
+      const y = yPadding + (1 - (val - min) / range) * graphHeight;
+
+      if (val === max) {
         ctx.fillStyle = "#28a745"; // green
-      } else if (pt.value === min) {
+      } else if (val === min) {
         ctx.fillStyle = "#dc3545"; // red
       } else if (i === 0 || i === data.length - 1) {
         ctx.fillStyle = "#0000ff"; // blue
       } else {
         ctx.fillStyle = "#ff9900"; // orange
       }
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 2.5, 0, 2 * Math.PI);
-      ctx.fill();
-    });
 
-    element.appendChild(canvas);
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, 2 * Math.PI);
+      ctx.fill();
+    }
   }
 }

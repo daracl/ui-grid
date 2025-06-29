@@ -21,6 +21,7 @@ import ImageRenderer from "./renderer/view/ImageRenderer";
 import LinkRenderer from "./renderer/view/LinkRenderer";
 import TextRenderer from "./renderer/view/TextRenderer";
 import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
+import SparklineRenderer from "./renderer/view/SparklineRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -64,6 +65,7 @@ export const VIEW_RENDERER: any = {
   image: ImageRenderer,
   link: LinkRenderer,
   text: TextRenderer,
+  sparkline: SparklineRenderer,
   custom: ViewCustomRenderer,
 };
 

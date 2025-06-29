@@ -526,7 +526,7 @@ export default class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const renderType = field.renderer.type;
-    if (renderType == "image" || renderType == "html" || renderType == "bar") {
+    if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline") {
       const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
       const height = item[ROW_HEIGHT_KEY] - 5;
       contentEleStyle.maxHeight = height + "px";
