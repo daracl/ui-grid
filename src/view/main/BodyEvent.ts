@@ -565,10 +565,14 @@ export default class BodyEvent {
           moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
         }
 
+        console.log("moveRowIdx11 : ", moveRowIdx);
+
         // 스크롤 밖에 있을때
-        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
+        if (this.insideScrollCheck(evtKey, evt, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
+
+        console.log("moveRowIdx22 : ", moveRowIdx);
 
         if (moveRowIdx >= scrollInfo.startIdx + insideViewRow) {
           scrollCtrl.moveVerticalScroll({ direction: "D", rowIdx: moveRowIdx - insideViewRow });
@@ -587,7 +591,7 @@ export default class BodyEvent {
           moveRowIdx = moveRowIdx > 0 ? moveRowIdx : 0;
         }
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, moveRowIdx, endCol)) {
+        if (this.insideScrollCheck(evtKey, evt, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
 
@@ -609,7 +613,7 @@ export default class BodyEvent {
           moveCol = moveCol > gridStartCol ? moveCol : gridStartCol;
         }
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
+        if (this.insideScrollCheck(evtKey, evt, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -630,7 +634,7 @@ export default class BodyEvent {
           moveCol = moveCol >= dataInfo.colLength ? dataInfo.colLength - 1 : moveCol;
         }
 
-        if (this.insideScrollCheck(evtKey, evt, endIdx, scrollInfo, endIdx, moveCol)) {
+        if (this.insideScrollCheck(evtKey, evt, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -651,9 +655,9 @@ export default class BodyEvent {
    * cursor scroll inside check
    *
    * @private
-   * @type {function (ctx, evtKey, evt, endIdx, endCol, scrollInfo, moveRowIdx, moveColIdx)}
+   * @type {function (ctx, evtKey, evt, endCol, scrollInfo, moveRowIdx, moveColIdx)}
    */
-  private insideScrollCheck(evtKey: number, evt: UIEvent, endIdx: number, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) {
+  private insideScrollCheck(evtKey: number, evt: UIEvent, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
@@ -665,10 +669,10 @@ export default class BodyEvent {
 
     let checkCode = -1;
 
-    if (endIdx < scrollInfo.startIdx) {
+    if (moveRowIdx < scrollInfo.startIdx) {
       // 'U'
       checkCode = 1;
-    } else if (endIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
+    } else if (moveRowIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
       // 'D'
       checkCode = 2;
     }
