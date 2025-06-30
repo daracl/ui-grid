@@ -234,6 +234,7 @@
           , i: 'iiii' + i
           , j: 'jjjj' + i
           , s: generateRandomNumbers(1, 100, 6)
+          , t: i
           , z: Math.floor(Math.random() * 201) - 100
           //, z: -Math.floor(Math.random() * 101)
           , idx: i
@@ -269,6 +270,19 @@
         }
         , {
           name: 's', label: '씨', width: 100, align: 'center', renderer: {
+            type: 'sparklineBar'
+            //,url : 'http://localhost?aaa={{a}}'
+            , refValue: (field, value, rowItem) => {
+              //console.log(field, value, rowItem);
+              return { value: generateRandomNumbers(1, 100, 6) };
+            }
+            , click: function (item) {
+              console.log('link ', item)
+            }
+          }
+        }
+        , {
+          name: 't', label: 'T', width: 100, align: 'center', renderer: {
             type: 'sparkline'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
