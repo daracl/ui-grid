@@ -345,11 +345,20 @@ export default class Body {
     ];
 
     let viewRow = cfg.scroll.viewRow;
-    const startIdx = cfg.scroll.startIdx;
+    let startIdx = cfg.scroll.startIdx;
 
     const maxRow = cfg.dataInfo.rowLength - startIdx;
-    const currentViewRow = Math.min(viewRow, maxRow);
+
+    let currentViewRow = Math.min(viewRow, maxRow);
+    if (maxRow == 0 && cfg.dimensions.mainBodyHeight < cfg.rowHeight) {
+      startIdx = cfg.dataInfo.rowLength - 1;
+      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: startIdx, dragFlag: false });
+      currentViewRow = 1;
+    }
+
     const beforeViewRow = cfg.scroll.before.viewRow;
+
+    console.log(currentViewRow, beforeViewRow, maxRow);
 
     if (beforeViewRow > 1 && beforeViewRow > viewRow) {
       for (let i = viewRow; i < beforeViewRow; i++) {
@@ -398,12 +407,14 @@ export default class Body {
 
     this.bodyElement.attr({ "data-view-mode": items.length < 1 ? "empty" : "grid" });
 
-    if (viewRow < 1) {
+    if (currentViewRow < 1) {
       return;
     }
 
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
+      //console.log(currentViewRow, viewRow, cfg.scroll.startIdx, cfg.dataInfo.rowLength, cfg.dimensions.mainBodyHeight < cfg.rowHeight);
+
       for (let i = currentViewRow; i < viewRow; i++) {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
@@ -438,8 +449,6 @@ export default class Body {
     const startCell = cfg.selection.startCell;
     const startCol = cfg.scroll.startCol;
     const endCol = cfg.scroll.endCol;
-
-    console.log(mode, startCol, endCol, "dataDraw", currentViewRow, viewRow);
 
     //const start = performance.now();
 

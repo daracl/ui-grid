@@ -144,10 +144,16 @@ export default class Scroll {
 
         //delta > 0--up
         if (cfg.scroll.enableVertical && !isShift) {
+          const upDown = delta < 0 ? "U" : "D";
+          if ((upDown == "U" && cfg.scroll.startIdx == 0) || (upDown == "D" && cfg.scroll.startIdx + cfg.scroll.viewRow >= cfg.dataInfo.rowLength)) {
+            stopPreventCancel(evt);
+            return;
+          }
+
           requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(cfg.dataInfo.rowLength / cfg.scroll.viewRow);
-            this.moveVerticalScroll({ direction: delta < 0 ? "U" : "D", speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
+            this.moveVerticalScroll({ direction: upDown, speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
           });
           if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
             stopPreventCancel(evt);
