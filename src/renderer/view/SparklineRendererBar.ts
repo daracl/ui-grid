@@ -29,12 +29,9 @@ export default class SparklineRendererBar extends ViewRenderer {
     const width = element.getBoundingClientRect().width;
     const height = element.getBoundingClientRect().height;
 
-    console.log(element, `width:${width}, height: ${height}`);
-
     // 기존 canvas가 있으면 재사용, 없으면 생성
     let canvas = element.querySelector("canvas") as HTMLCanvasElement | null;
 
-    console.log("canvas ", canvas);
     if (!canvas) {
       canvas = document.createElement("canvas");
       canvas.width = width;

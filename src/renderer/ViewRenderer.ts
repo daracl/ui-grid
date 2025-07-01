@@ -42,8 +42,8 @@ export default abstract class ViewRenderer extends Renderer {
   }
 
   public click(cellInfo: CellInfo) {
-    if (this.field.click) {
-      this.field.click(cellInfo);
+    if (this.field.$renderer.click) {
+      this.field.$renderer.click(cellInfo);
     }
   }
 }

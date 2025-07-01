@@ -1,6 +1,6 @@
 import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
-import { ColumnItem } from "./GridField";
+import { FieldItem } from "./GridField";
 
 /**
  * grid options
@@ -129,7 +129,7 @@ export interface GridOptions {
   /**
    * column info
    */
-  fields: ColumnItem[];
+  fields: FieldItem[];
   /**
    * row info
    */
@@ -533,6 +533,11 @@ export interface BodyOptions {
    * body cell double click
    */
   cellDblClick: boolean | OptionCallback;
+
+  /**
+   * row(tr) click event
+   */
+  cellClick: boolean;
   /**
    * arrows key handler function
    */
@@ -555,10 +560,6 @@ export interface BodyOptions {
      *  cell 높이
      */
     height: number;
-    /**
-     * row(tr) click event
-     */
-    click: boolean;
     /**
      * row(tr) contextmenu event
      */

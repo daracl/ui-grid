@@ -57,10 +57,6 @@ export interface FieldItem {
    */
   defaultValue: string;
   /**
-   * cell click event
-   */
-  click?: OptionCallback;
-  /**
    * cell add class
    */
   styleClass?: OptionCallback | string;

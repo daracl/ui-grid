@@ -212,8 +212,8 @@ export default class BodyEvent {
     const dblClickEventFlag = editable || dblCheckFlag || utils.isFunction(opts.body.cellDblClick);
     const fnDblClick = opts.body.cellDblClick || function () {};
 
-    const rowClickFn = opts.body.row.click;
-    const rowClickFlag = utils.isFunction(rowClickFn);
+    const cellClickFn = opts.body.cellClick;
+    const isCellClick = utils.isFunction(cellClickFn);
 
     let asideRowCheckRenderer: FieldItem;
     if (dblCheckFlag) {
@@ -418,20 +418,17 @@ export default class BodyEvent {
           conserveClick(positionInfo);
         }
 
-        if (!editable) {
-          if (utils.isFunction(startCellInfo.field.click)) {
-            startCellInfo.field.$renderer.click(startCellInfo);
-            return false;
-          }
-        }
-
         // row click event
-        if (rowClickFlag) {
+        if (isCellClick) {
           if (startCellInfo.field.$isAside) {
             return true;
           }
 
-          if (rowClickFn) rowClickFn(startCellInfo);
+          if (cellClickFn) cellClickFn(startCellInfo);
+        }
+
+        if (!editable) {
+          return false;
         }
 
         return true;

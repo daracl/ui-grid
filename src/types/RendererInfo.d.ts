@@ -44,8 +44,8 @@ export interface RendererInfo {
   defaultValue?: string; // 기본값
   listItem?: ValuesInfo; // dropdown, radio, checkbox
   validator?: OptionCallback; // custom validator
-  onChange?: OptionCallback; //  입력값 변경시 체크 function
-  onClick?: OptionCallback; // button onclick function
+  change?: OptionCallback; //  입력값 변경시 체크 function
+  click?: OptionCallback; // button onclick function
   editRender?: EditRenderer;
   conditional?: ConditionInfo; // 보이기 여부
 }

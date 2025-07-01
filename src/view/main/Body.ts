@@ -619,7 +619,7 @@ export default class Body {
       let cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
         let field = fields[j];
-        let clickFlag = field.click;
+        let clickFlag = field.renderer.click;
         const renderType = field.renderer.type;
 
         if (field.$isAside) {

@@ -82,7 +82,7 @@ export default abstract class EditRenderer extends Renderer {
     const field = this.field;
     const fieldValue = field.$editRenderer.getValue(element);
 
-    if (field.renderer.onChange) {
+    if (field.renderer.change) {
       let changeInfo: any = {
         field: field,
         evt: e,
@@ -112,7 +112,7 @@ export default abstract class EditRenderer extends Renderer {
         changeInfo.valueItems = valuesItem;
       }
 
-      if (changeInfo.oldValue != changeInfo.value && field.renderer.onChange.call(null, changeInfo) === false) {
+      if (changeInfo.oldValue != changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
         field.$editRenderer.setValue(fieldValue, false);
         return false;
       }
