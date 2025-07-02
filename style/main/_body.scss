@@ -143,12 +143,13 @@
               bottom: 0;
               transition: all 0.1s ease;
               border-radius: 2px;
+              z-index: 1;
 
-              &.positive {
+              &.dg-positive {
                 background-color: var(--bar-positive-bg);
               }
 
-              &.negative {
+              &.dg-negative {
                 background-color: var(--bar-negative-bg);
               }
             }
@@ -160,7 +161,7 @@
               transform: translate(-50%, -50%);
               font-size: 12px;
               white-space: nowrap;
-              pointer-events: none;
+              z-index: 2;
             }
           }
 

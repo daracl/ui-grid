@@ -141,11 +141,25 @@ export const FOOTER_HEIGHT = 35;
 export const SCROLL_ARROW_BUTTON_SIZE = 14;
 
 /**
+ * line number name
+ *
+ * @type {"$lineNumber"}
+ */
+export const LINE_NUMBER_NAME = "$lineNumber";
+
+/**
+ * row check name
+ *
+ * @type {"$rowCheck"}
+ */
+export const ROW_CHECK_NAME = "$rowCheck";
+
+/**
  * row check key
  *
  * @type {"_dg$rowCheck"}
  */
-export const ROW_CHECK_KEY = "_dg$rowCheck";
+export const ROW_CHECK_KEY = "_dg" + ROW_CHECK_NAME;
 
 /**
  * row id key

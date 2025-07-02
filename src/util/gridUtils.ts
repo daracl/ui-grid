@@ -112,14 +112,33 @@ export const getHeaderCellPosition = (cellElement: HTMLElement) => {
   return intValue(cellElement.getAttribute("data-header-cell-idx") ?? "-1");
 };
 
+/**
+ * text width
+ *
+ * @param {Config} cfg Config
+ * @param {string} text text
+ * @returns {*}
+ */
+export const getTextWidth = (cfg: Config, text: string, padding: number = 10) => {
+  const metrics = cfg.canvasContext?.measureText(text);
+  return (metrics?.width ?? 0) + padding;
+};
+
+/**
+ * max column width
+ *
+ * @param {Config} cfg config
+ * @param {GridOptions} opts grid option
+ * @param {FieldItem} field field item
+ * @param {number} checkWidth check width
+ * @returns {number} max width size
+ */
 export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
-  const items = opts.items;
+  const items = cfg.items;
   const maxWidth = opts.header.resize.maxWidth;
   let returnMaxWidth = 0;
 
-  const canvas = document.createElement("canvas");
-  const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-  context.font = "16px Arial";
+  const context = cfg.canvasContext as CanvasRenderingContext2D;
 
   for (let i = 0, len = cfg.dataInfo.rowLength < 100 ? cfg.dataInfo.rowLength : 100; i < len; i++) {
     const tmpVal = field.$renderer.getValue(items[i]);
@@ -136,7 +155,7 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
     returnMaxWidth = Math.max(returnMaxWidth, checkWidth);
   }
 
-  return returnMaxWidth;
+  return returnMaxWidth + 16;
 };
 
 /**

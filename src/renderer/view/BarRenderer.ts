@@ -33,8 +33,14 @@ export default class BarRenderer extends ViewRenderer {
     }
 
     // 바, 라벨 DOM 가져오기 또는 생성
-    let bar = element.querySelector(".dg-bar-fill") as HTMLDivElement;
     let text = element.querySelector(".dg-bar-label") as HTMLSpanElement;
+    let bar = element.querySelector(".dg-bar-fill") as HTMLDivElement;
+
+    if (!text) {
+      text = document.createElement("span");
+      text.className = this.getRendererStyleClass("dg-bar-label");
+      element.appendChild(text);
+    }
 
     if (!bar) {
       bar = document.createElement("div");
@@ -42,17 +48,11 @@ export default class BarRenderer extends ViewRenderer {
       element.appendChild(bar);
     }
 
-    if (!text) {
-      text = document.createElement("span");
-      text.className = "dg-bar-label";
-      element.appendChild(text);
-    }
-
-    bar.classList.remove("positive", "negative");
+    bar.classList.remove("dg-positive", "dg-negative");
     if (percent > 0) {
-      bar.classList.add("positive");
+      bar.classList.add("dg-positive");
     } else if (percent < 0) {
-      bar.classList.add("negative");
+      bar.classList.add("dg-negative");
     }
 
     // 위치 계산

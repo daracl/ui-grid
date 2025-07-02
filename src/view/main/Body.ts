@@ -628,7 +628,6 @@ export default class Body {
       let cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
         let field = fields[j];
-        let clickFlag = field.renderer.click;
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
@@ -638,7 +637,7 @@ export default class Body {
         } else {
           cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
             class="dg-cell-content dg-cell-ellipsis 
-            dg-${renderType} ${field.$alignStyle}  ${clickFlag ? "dg-cell-click" : ""}"></div>
+            dg-${renderType} ${field.$alignStyle}"></div>
         </td>`);
         }
       }

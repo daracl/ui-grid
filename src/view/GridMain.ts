@@ -3,7 +3,7 @@ import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, ROW_CHECK_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -11,7 +11,7 @@ import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
 import { eventOn } from "src/util/eventUtils";
-import { isInputField } from "src/util/gridUtils";
+import { getTextWidth, isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
 import { addClass } from "src/util/styleUtils";
@@ -64,8 +64,10 @@ export default class GridMain {
     this.cellMinWidth = headerOpts.resize.minWidth;
 
     this.setDataInfo(opts.items);
-    this.calculation();
+    this.calcGridDimention();
+
     this.initTemplate();
+    this.calculation();
 
     this.initMainView();
 
@@ -199,7 +201,6 @@ export default class GridMain {
    * grid size 및 field 정보 계산
    */
   public calculation() {
-    this.calcGridDimention();
     this.calcHeader();
     this.calcBody(true);
   }
@@ -388,20 +389,21 @@ export default class GridMain {
 
     //세로 스크롭 계산 start
     const rowHeight = cfg.rowHeight;
+    const rowLength = cfg.dataInfo.rowLength;
     const verticalEnable = opts.scroll.vertical.enable;
 
     if (verticalEnable === false) {
-      dimensions.mainHeight = rowHeight * cfg.dataInfo.rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
+      dimensions.mainHeight = rowHeight * rowLength + (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
       dimensions.mainHeight = dimensions.mainHeight + MAIN_MARGIN_BOTTOM;
     }
 
     dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
 
-    cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * cfg.dataInfo.rowLength > dimensions.mainBodyHeight - MAIN_MARGIN_BOTTOM;
+    cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > dimensions.mainBodyHeight - MAIN_MARGIN_BOTTOM;
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
     cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), cfg.dataInfo.rowLength);
+    cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), rowLength);
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
@@ -423,6 +425,16 @@ export default class GridMain {
       if (overWidth < 0) {
         isAddSpaceWidth = false;
         remainderWidth = -remainderWidth;
+      }
+    }
+
+    if (rowLength >= 100000) {
+      const textWidth = getTextWidth(cfg, rowLength + "");
+      const lineNumberIdx = cfg.fieldIndex.get(LINE_NUMBER_NAME);
+
+      if (!utils.isUndefined(lineNumberIdx)) {
+        fields[lineNumberIdx].width = textWidth ?? fields[lineNumberIdx].width;
+        fields[lineNumberIdx].$width = textWidth ?? fields[lineNumberIdx].$width;
       }
     }
 
@@ -485,32 +497,49 @@ export default class GridMain {
     cfg.fieldHeaderGroup = defaultFieldGroupInfo();
 
     let asideOrder: any[] = [];
-
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: "$lineNumber", renderer: { type: "lineNumber" }, $isAside: true });
-      asideOrder[opts.aside.lineNumber.order ?? 0] = fieldItem;
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: LINE_NUMBER_NAME, renderer: { type: "lineNumber" }, $isAside: true });
+
+      opts.aside.lineNumber.order = opts.aside.lineNumber.order ?? 0;
+      asideOrder.push(fieldItem);
     }
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: "$rowCheck", renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
-      asideOrder[opts.aside.rowCheckbox.order ?? 1] = fieldItem;
+      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: ROW_CHECK_NAME, renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
+      opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
+      asideOrder.push(fieldItem);
     }
 
     // modifyInfo 추가.
     if (opts.aside.modifyInfo.enabled === true) {
       let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
-      asideOrder[opts.aside.modifyInfo.order ?? 2] = fieldItem;
+      opts.aside.modifyInfo.order = opts.aside.modifyInfo.order ?? 2;
+      asideOrder.push(fieldItem);
     }
 
-    asideOrder = asideOrder.filter((item) => item !== null && item !== undefined);
+    asideOrder.sort((a, b) => {
+      const orderA = a.order;
+      const orderB = b.order;
 
-    cfg.dataInfo.asideLength = asideOrder.length;
-    cfg.dataInfo.startCol = cfg.dataInfo.asideLength;
+      const aIsUndefined = orderA === undefined;
+      const bIsUndefined = orderB === undefined;
 
-    const fixedLeftIndex = cfg.dataInfo.asideLength + cfg.fixedLeftIndex - 1;
-    let fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : cfg.dataInfo.asideLength + cfg.fixedRightIndex;
+      if (aIsUndefined && bIsUndefined) return 0;
+      if (aIsUndefined) return 1; // a가 뒤로
+      if (bIsUndefined) return -1; // b가 뒤로
+
+      return orderA - orderB;
+    });
+
+    const asideLength = asideOrder.length;
+
+    cfg.dataInfo.asideLength = asideLength;
+    cfg.dataInfo.startCol = asideLength;
+
+    const fixedLeftIndex = asideLength + cfg.fixedLeftIndex - 1;
+    let fixedRightIndex = cfg.fixedRightIndex < 1 ? 0 : asideLength + cfg.fixedRightIndex;
 
     fixedRightIndex = fixedRightIndex > fixedLeftIndex + 1 ? fixedRightIndex : 0;
 
@@ -692,6 +721,8 @@ export default class GridMain {
       field.$width = field.width;
 
       fieldGroupInfo.leaf.push(field);
+
+      this.grid.config().fieldIndex.set(field.name, fieldGroupInfo.leaf.length - 1);
     }
 
     return field;
@@ -948,7 +979,7 @@ export default class GridMain {
 
     let templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
-        <div style="width:${dimensions.width}px;height:${dimensions.height}px;${opts.scroll.vertical.enable === false ? "" : "overflow:hidden;"}position:absolute;">
+        <div style="overflow:hidden;position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
@@ -1017,6 +1048,16 @@ export default class GridMain {
 
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
+
+    const style = window.getComputedStyle(this._mainElement.getElement());
+
+    cfg.fontFamily = style.fontFamily;
+    cfg.fontSize = style.fontSize;
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.font = style.fontSize + " " + style.fontFamily; // "16px Arial";
+    cfg.canvasContext = context;
 
     this.setTheme(opts.theme);
   }

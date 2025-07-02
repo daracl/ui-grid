@@ -12,6 +12,7 @@ import SelectionInfo from "src/selection/selection";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 import { getOffset, hasClass } from "src/util/domUtils";
 import Body from "./Body";
+import { ROW_CHECK_NAME } from "src/constants";
 
 /**
  * Body event class
@@ -49,12 +50,35 @@ export default class BodyEvent {
     this.initBodyEvent();
 
     this.initRowCheckEvent();
+    this.initFieldEvent();
+  }
+
+  /**
+   * field event
+   */
+  private initFieldEvent() {
+    const cfg = this.grid.config();
+    const bodyElement = this.bodyElement.getElement();
+
+    // click event
+    eventOn(
+      bodyElement,
+      "click",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLElement;
+        const cellInfo = getCellInfo(cfg, eventElement.closest(".dg-cell") as HTMLElement);
+
+        cellInfo.field.$renderer.click(cellInfo);
+        return false;
+      },
+      ".dg-cell-click",
+      { passive: false }
+    );
   }
 
   private initRowCheckEvent() {
     const cfg = this.grid.config();
     const bodyElement = this.bodyElement.getElement();
-    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
 
     eventOn(
       bodyElement,
@@ -74,6 +98,20 @@ export default class BodyEvent {
       '[name="dgRowCheck"]',
       { passive: false }
     );
+  }
+
+  /**
+   * row check item click event trigger
+   *
+   * @public
+   * @param {CellInfo} cellInfo
+   */
+  private setRowCheckItemClick(cellInfo: CellInfo) {
+    const cfg = this.grid.config();
+    const rowCheckIdx = cfg.fieldIndex.get(ROW_CHECK_NAME);
+    if (!utils.isEmpty(rowCheckIdx)) {
+      (this.bodyElement.getElement().querySelector(`[data-cell-position="${cellInfo.r},${rowCheckIdx}"] [name="dgRowCheck"]`) as HTMLElement).click();
+    }
   }
 
   private initBodyEvent() {
@@ -207,25 +245,14 @@ export default class BodyEvent {
     const rowOptions = opts.body.row;
     const rowHeight = cfg.rowHeight;
     // row cell double click event
-    const dblCheckFlag = rowOptions.dblClickCheck === true;
+    const enableDblClickRowCheck = rowOptions.enableDblClickRowCheck === true;
     const editable = opts.editable;
-    const dblClickEventFlag = editable || dblCheckFlag || utils.isFunction(opts.body.cellDblClick);
-    const fnDblClick = opts.body.cellDblClick || function () {};
+    const dblClickEventFlag = editable || enableDblClickRowCheck || utils.isFunction(opts.body.cellDblClick);
+    const isCellDblClick = utils.isFunction(opts.body.cellDblClick);
+    const cellDblClick = opts.body.cellDblClick ?? function () {};
 
     const cellClickFn = opts.body.cellClick;
     const isCellClick = utils.isFunction(cellClickFn);
-
-    let asideRowCheckRenderer: FieldItem;
-    if (dblCheckFlag) {
-      const leftFields = cfg.fieldHeaderGroup.leafLeft;
-
-      leftFields.forEach((field, j) => {
-        if (field instanceof AsideRowCheckRenderer) {
-          asideRowCheckRenderer = field;
-          return;
-        }
-      });
-    }
 
     const bodyElement = this.bodyElement.getElement();
     eventOn(
@@ -396,22 +423,19 @@ export default class BodyEvent {
           conserveClick(positionInfo);
           resetClick();
 
-          console.log("dblclick ---------- ");
-
           if (dblClickEventFlag) {
             if (editable === true && !startCellInfo.field.$isAside) {
               startCellInfo.field.$editRenderer.render(cellElement, startCellInfo);
-              return false;
+              return;
             }
 
-            const clickRowItem = startCellInfo.item;
-            if (dblCheckFlag) {
-              //cfg.tbodyItem[rowIndex] = this.getRowCheckValue(clickRowItem, !(clickRowItem["_dgRowCheck"] === true));
-
-              asideRowCheckRenderer.$renderer.render(startCellInfo.r, startCellInfo.r, startCellInfo.c, clickRowItem, this.allCellElements["left"][startCellInfo.r][startCellInfo.c]);
+            if (enableDblClickRowCheck) {
+              this.setRowCheckItemClick(startCellInfo);
             }
 
-            if (utils.isFunction(fnDblClick)) fnDblClick(startCellInfo);
+            if (isCellDblClick) cellDblClick(startCellInfo);
+
+            return;
           }
         } else {
           ++clickCnt;
@@ -421,17 +445,13 @@ export default class BodyEvent {
         // row click event
         if (isCellClick) {
           if (startCellInfo.field.$isAside) {
-            return true;
+            return;
           }
 
           if (cellClickFn) cellClickFn(startCellInfo);
         }
 
-        if (!editable) {
-          return false;
-        }
-
-        return true;
+        return;
       },
       ".dg-cell",
       { passive: false }

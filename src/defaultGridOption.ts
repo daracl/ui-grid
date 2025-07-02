@@ -120,18 +120,18 @@ export const DEFAULT_OPTIONS: GridOptions = {
   },
   body: {
     // body option
-    cellDblClick: false, // body td click
-    cellClick: false,
-    keyNavHandler: false, // arrows key handler function
-    pasteBefore: false, // 붙여 넣기 전 호출 메소드
-    pasteAfter: false, // 붙여 넣기 후 호출 메소드
+    cellDblClick: undefined, // body td click
+    cellClick: undefined,
+    keyNavHandler: undefined, // arrows key handler function
+    pasteBefore: undefined, // 붙여 넣기 전 호출 메소드
+    pasteAfter: undefined, // 붙여 넣기 후 호출 메소드
     row: {
       // 로우 옵션.
       height: 24, // cell 높이
       contextMenu: false, // row(tr) contextmenu event
       addStyle: false, // 추가할 style method
       dblClick: false, // row dblclick event
-      dblClickCheck: false, // double click row checkbox checked true 여부.
+      enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
     },
   },
   summary: { items: [] },

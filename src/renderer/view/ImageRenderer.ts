@@ -28,7 +28,7 @@ export default class ImageRenderer extends ViewRenderer {
     // img 없으면 새로 생성
     if (!img) {
       img = document.createElement("img");
-      img.className = "dg-img";
+      img.className = this.getRendererStyleClass("dg-img");
       element.appendChild(img);
     }
 

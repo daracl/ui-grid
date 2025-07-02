@@ -20,7 +20,7 @@ export default class ButtonRenderer extends ViewRenderer {
     // 최초 렌더링 시만 생성
     if (!btnElement) {
       btnElement = document.createElement("div");
-      btnElement.className = "dg-btn";
+      btnElement.className = this.getRendererStyleClass("dg-btn");
       element.appendChild(btnElement);
     }
 

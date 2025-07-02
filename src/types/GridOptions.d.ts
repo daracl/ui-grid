@@ -532,25 +532,25 @@ export interface BodyOptions {
   /**
    * body cell double click
    */
-  cellDblClick: boolean | OptionCallback;
+  cellDblClick?: OptionCallback;
 
   /**
    * row(tr) click event
    */
-  cellClick: boolean;
+  cellClick?: OptionCallback;
   /**
    * arrows key handler function
    */
-  keyNavHandler: boolean | OptionCallback;
+  keyNavHandler?: OptionCallback;
 
   /**
    * 붙여 넣기 전 호출 메소드
    */
-  pasteBefore: boolean | OptionCallback;
+  pasteBefore?: OptionCallback;
   /**
    * 붙여 넣기 후 호출 메소드
    */
-  pasteAfter: boolean | OptionCallback;
+  pasteAfter?: OptionCallback;
 
   /**
    * 로우 옵션.
@@ -575,7 +575,7 @@ export interface BodyOptions {
     /**
      * double click row checkbox checked true 여부.
      */
-    dblClickCheck: boolean;
+    enableDblClickRowCheck: boolean;
   };
 }
 

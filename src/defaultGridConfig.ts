@@ -37,6 +37,8 @@ export function initConfig(opts: GridOptions): Config {
       mainCenterOverWidth: 0,
       mainCenterViewWidth: 0,
     },
+    fontFamily: "Noto Sans KR",
+    fontSize: "12px",
     isCellEdit: false,
     isRowAllowMultiSelect: opts.aside?.rowCheckbox?.allowMultiSelect ?? true,
     allColumnMap: {},
@@ -52,6 +54,7 @@ export function initConfig(opts: GridOptions): Config {
     orginItems: [],
     isHeaderResize: false,
     currentFields: [],
+    fieldIndex: new Map(),
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, startCol: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     cellWidths: [],
     rowHeight: opts.body.row.height ?? 28,
@@ -76,6 +79,7 @@ export function initConfig(opts: GridOptions): Config {
     fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex : 0,
     scroll: initScrollInfo(),
     edit: initEditInfo(),
+    canvasContext: undefined,
     element: {
       grid: undefined,
       container: undefined,
@@ -109,9 +113,6 @@ export function initConfig(opts: GridOptions): Config {
       resizeHelper: undefined,
 
       pasteArea: undefined,
-
-      // measure element
-      measureEl: undefined,
     },
   };
 }

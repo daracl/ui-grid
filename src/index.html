@@ -247,17 +247,19 @@
             { name: 'a', label: '에이에이에이에이에이에이', width: 50, sort: true, editable: false }
             , {
               name: 'b', label: '비', width: 50, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
-                if (rowInfo.rowItemIdx % 3 == 0) {
-                  return 'pub-bg-primary';
-                } else if (rowInfo.rowItemIdx % 3 == 1) {
-                  return 'pub-bg-success';
-                } else if (rowInfo.rowItemIdx % 3 == 2) {
+                console.log(rowInfo)
+                const rowIdx = rowInfo.rowIdx;
+                if (rowIdx % 3 == 0) {
+                  return 'dg-primary';
+                } else if (rowIdx % 3 == 1) {
+                  return 'dg-success';
+                } else if (rowIdx % 3 == 2) {
                   return '';
                 }
               }
             }
             , {
-              name: 'z', label: 'ZZZZ', width: 50, sort: true, editable: false, renderer: {
+              name: 'z', label: 'bar', width: 50, sort: true, editable: false, renderer: {
                 type: 'bar'
                 , rule: {
                   minimum: -100
@@ -269,7 +271,7 @@
           ]
         }
         , {
-          name: 's', label: '에스', width: 100, align: 'center', renderer: {
+          name: 's', label: 'sparklineBar', width: 100, align: 'center', renderer: {
             type: 'sparklineBar'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -282,7 +284,7 @@
           }
         }
         , {
-          name: 't', label: 'T', width: 100, align: 'center', renderer: {
+          name: 't', label: 'sparkline', width: 100, align: 'center', renderer: {
             type: 'sparkline'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -290,12 +292,12 @@
               return { value: value };
             }
             , click: function (item) {
-              console.log('link ', item)
+              console.log('sparkline ', item)
             }
           }
         }
         , {
-          name: 'c', label: '씨', width: 100, align: 'center', type: 'money', renderer: {
+          name: 'c', label: 'link', width: 100, align: 'center', type: 'money', renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -333,21 +335,21 @@
           }
         }
         , {
-          name: 'e', label: '이', width: 100, align: 'right', renderer: {
+          name: 'e', label: 'html', width: 100, align: 'right', renderer: {
             type: 'html'
           }
         }
         , {
-          name: 'f', label: 'f', width: 100, align: 'center', renderer: {
+          name: 'f', label: 'button', width: 100, align: 'center', renderer: {
             type: 'button'
             , label: 'button click'
             , click: function (info) {
-              console.log(info);
+              console.log('button click', info);
             }
           }
         }
         , {
-          name: 'g', label: 'g', width: 100, align: 'left', visible: false, renderer: {
+          name: 'g', label: 'image', width: 100, align: 'left', visible: false, renderer: {
             type: 'image'
             , refValue: (field, value, rowItem) => {
               //console.log(field, value, rowItem);
@@ -356,7 +358,7 @@
           }
         }
         , {
-          name: 'h', label: 'h', width: 100, align: 'right', type: 'number', visible: true, renderer: {
+          name: 'h', label: 'number', width: 100, align: 'right', type: 'number', visible: true, renderer: {
             type: 'number'
           }
         }
@@ -595,7 +597,7 @@
     let gridObj = Daracl.grid.create(element, {
       editable: false
       , styleClass: "striped"
-      , selectionMode: 'multiple-cell'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
+      , selectionMode: 'row'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
@@ -609,7 +611,7 @@
           enabled: true
           , key: 'checkbox'
           , width: 27
-          , allowMultiSelect: false
+          //, allowMultiSelect: false
         }
       }
       , colOptions: {
@@ -785,7 +787,7 @@
       , body: {
 
         cellDblClick: function (itemInfo) {
-          console.log('cellDblClick', itemInfo)
+          //console.log('cellDblClick', itemInfo)
         }
         , cellClick: function (itemInfo) {
           //console.log('cellClick', itemInfo)
@@ -803,14 +805,7 @@
         }
         , row: {
           height: 30
-          , dblClickCheck: false
-          , click: function (itemInfo) {
-            //console.log('rowOptions click' ,itemInfo)
-            return;
-          }
-          , dblClick1: function () {
-            console.log('dblclick')
-          }
+          , enableDblClickRowCheck: true
 
 
           , contextMenu: {

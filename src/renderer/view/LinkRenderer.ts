@@ -23,16 +23,21 @@ export default class LinkRenderer extends ViewRenderer {
     // 처음 생성 시
     if (!aElement) {
       aElement = document.createElement("a");
+      aElement.className = this.getRendererStyleClass("");
       element.appendChild(aElement);
     }
 
     if (refValue) {
-      aElement.href = refValue.href;
-      aElement.target = refValue.target ?? "_blank";
+      aElement.href = this.isClick ? "#" : refValue.href;
+      if (!this.isClick) {
+        aElement.target = refValue.target ?? "_blank";
+      }
       aElement.textContent = refValue.label ?? value;
     } else {
-      aElement.href = value;
-      aElement.target = "_blank";
+      aElement.href = this.isClick ? "#" : value;
+      if (!this.isClick) {
+        aElement.target = "_blank";
+      }
       aElement.textContent = value;
     }
   }

@@ -51,6 +51,18 @@ export interface Config {
 
   currentFields: FieldItem[];
 
+  fieldIndex: Map<String, number>;
+
+  /**
+   * font Family
+   */
+  fontFamily: string;
+
+  /**
+   * font size
+   */
+  fontSize: string;
+
   isCellEdit: boolean;
 
   /**
@@ -105,6 +117,7 @@ export interface Config {
   scroll: ScrollInfo;
   element: GridElement;
   edit: EditInfo;
+  canvasContext?: CanvasRenderingContext2D;
 }
 
 export interface HeaderCellInfo {
@@ -279,9 +292,6 @@ export interface GridElement {
   resizeHelper?: DaraElement;
 
   pasteArea?: DaraElement;
-
-  // measure element
-  measureEl?: DaraElement;
 }
 
 /**

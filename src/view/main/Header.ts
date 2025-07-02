@@ -9,6 +9,7 @@ import { removeClass } from "src/util/styleUtils";
 import HeaderEvent from "./HeaderEvent";
 import CheckboxRenderer from "src/renderer/edit/CheckboxRenderer";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
+import { ROW_CHECK_NAME } from "src/constants";
 
 /**
  * Header class
@@ -193,6 +194,7 @@ export default class Header {
 
     let headerGroups, leafGroup;
     let startGroupIdx = 0;
+    const currentFields = cfg.currentFields;
 
     if (type == "left") {
       headerGroups = cfg.fieldHeaderGroup.left;
@@ -256,7 +258,7 @@ export default class Header {
             : "";
 
         const label =
-          headerItem.$isAside && headerItem.name == "$rowCheck" && cfg.isRowAllowMultiSelect
+          headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
             ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
             : `<div class="centered">${headerItem.label}</div>`;
 
@@ -284,12 +286,10 @@ export default class Header {
 
     let colGroupHtml = [];
     let colGroupIdx = startGroupIdx;
-    let tableWidth = 0;
 
-    for (let leafNode of leafGroup) {
-      const nodeWidth = leafNode.$width;
-      tableWidth += nodeWidth;
-      colGroupHtml.push(`<th data-col-idx="${colGroupIdx++}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${nodeWidth}px;"></th>`);
+    for (let i = 0; i < leafGroup.length; i++) {
+      const idx = colGroupIdx++;
+      colGroupHtml.push(`<th data-col-idx="${idx}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${currentFields[idx].$width}px;"></th>`);
     }
 
     return `

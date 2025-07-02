@@ -8,10 +8,34 @@ export default abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;
   private readonly isRefFunction: boolean;
 
+  protected isClick = false;
+  protected eventStyleClass = "";
+
   constructor(field: FieldItem) {
     super(field);
     this.refValue = this.field.renderer.refValue ?? {};
     this.isRefFunction = isFunction(this.refValue);
+    this.isClick = isFunction(this.field.renderer.click);
+    this.initEventClass();
+  }
+
+  initEventClass() {
+    let eventStyleClass = this.isClick ? "dg-cell-click" : "";
+
+    this.eventStyleClass = eventStyleClass;
+  }
+
+  /**
+   * event class
+   *
+   * @public
+   * @param {string} defaultStyleClass
+   * @returns {string}
+   */
+  public getRendererStyleClass(defaultStyleClass: string) {
+    if (!this.eventStyleClass) return defaultStyleClass;
+
+    return defaultStyleClass ? defaultStyleClass + " " + this.eventStyleClass : this.eventStyleClass;
   }
 
   /**
@@ -42,8 +66,8 @@ export default abstract class ViewRenderer extends Renderer {
   }
 
   public click(cellInfo: CellInfo) {
-    if (this.field.$renderer.click) {
-      this.field.$renderer.click(cellInfo);
+    if (this.isClick) {
+      this.field.renderer.click?.call(null, cellInfo);
     }
   }
 }
