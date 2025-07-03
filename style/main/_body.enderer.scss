@@ -1,0 +1,101 @@
+@use "../common/common" as comm;
+
+@mixin renderer {
+  /* image */
+  .dg-image {
+    display: flex;
+    align-items: center;
+    height: 100%;
+
+    > .dg-cell-content {
+      width: auto;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+
+      & + .dg-cell-content-label {
+        margin-left: 8px;
+      }
+    }
+  }
+
+  /* button */
+  .dg-button {
+    .dg-cell-content {
+      border-radius: 3px;
+      background-color: var(--button-bg);
+    }
+  }
+
+  /* bar */
+  .dg-bar {
+    .dg-bar-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      transition: all 0.1s ease;
+      border-radius: 2px;
+      z-index: 1;
+
+      &.dg-positive {
+        background-color: var(--bar-positive-bg);
+      }
+
+      &.dg-negative {
+        background-color: var(--bar-negative-bg);
+      }
+    }
+
+    .dg-bar-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 2;
+    }
+  }
+
+  /* dropdown */
+  .dg-dropdown {
+    display: flex;
+    justify-content: center;
+    .dg-cell-content {
+      position: relative;
+      display: inline-flex;
+      justify-content: space-between;
+      /* 양쪽 정렬 */
+      gap: 10px;
+      padding: 2px 2px;
+      width: 100%;
+      /* 고정 너비 필수 */
+      background-color: var(--button-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 2px;
+      cursor: pointer;
+
+      .dg-cell-content-label {
+        flex: 1;
+        white-space: nowrap;
+      }
+
+      .dg-cell-content-icon {
+        margin-left: 5px;
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        position: relative;
+        &::after {
+          content: "▼";
+          font-size: 0.8em;
+          margin-top: 2px;
+          position: absolute;
+          top: 50%;
+          left: 0;
+          transform: translateY(-50%);
+        }
+      }
+    }
+  }
+}

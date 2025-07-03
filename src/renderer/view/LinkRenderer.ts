@@ -23,7 +23,7 @@ export default class LinkRenderer extends ViewRenderer {
     // 처음 생성 시
     if (!aElement) {
       aElement = document.createElement("a");
-      aElement.className = this.getRendererStyleClass("");
+      aElement.className = this.getRendererStyleClass("dg-cell-content");
       element.appendChild(aElement);
     }
 

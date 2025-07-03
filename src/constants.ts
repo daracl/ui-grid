@@ -1,7 +1,7 @@
 import CheckboxRenderer from "./renderer/edit/CheckboxRenderer";
 import EditCustomRenderer from "./renderer/edit/EditCustomRenderer";
 import DateRenderer from "./renderer/edit/DateRenderer";
-import DropdownRenderer from "./renderer/edit/DropdownRenderer";
+
 import NumberRenderer from "./renderer/edit/NumberRenderer";
 import PasswordRenderer from "./renderer/edit/PasswordRenderer";
 import RadioRenderer from "./renderer/edit/RadioRenderer";
@@ -18,6 +18,7 @@ import ButtonRenderer from "./renderer/view/ButtonRenderer";
 import HiddenRenderer from "./renderer/view/HiddenRenderer";
 import HtmlRenderer from "./renderer/view/HtmlRenderer";
 import ImageRenderer from "./renderer/view/ImageRenderer";
+import DropdownRenderer from "./renderer/view/DropdownRenderer";
 import LinkRenderer from "./renderer/view/LinkRenderer";
 import TextRenderer from "./renderer/view/TextRenderer";
 import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
@@ -59,6 +60,7 @@ export const VIEW_RENDERER: any = {
   lineNumber: AsideLineNumberRenderer,
   modifyInfo: AsideModifyInfoRenderer,
   rowCheckbox: AsideRowCheckRenderer,
+  dropdown: DropdownRenderer,
   bar: BarRenderer,
   button: ButtonRenderer,
   hidden: HiddenRenderer,
@@ -75,7 +77,7 @@ export const VIEW_RENDERER: any = {
 export const EDIT_RENDERER: any = {
   checkbox: CheckboxRenderer,
   date: DateRenderer,
-  dropdown: DropdownRenderer,
+
   custom: EditCustomRenderer,
   text: EditTextRenderer,
   number: NumberRenderer,

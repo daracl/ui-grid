@@ -145,7 +145,7 @@ export default class Scroll {
         //delta > 0--up
         if (cfg.scroll.enableVertical && !isShift) {
           const upDown = delta < 0 ? "U" : "D";
-          if ((upDown == "U" && cfg.scroll.startIdx == 0) || (upDown == "D" && cfg.scroll.startIdx + cfg.scroll.viewRow >= cfg.dataInfo.rowLength)) {
+          if ((upDown == "U" && cfg.scroll.startIdx == 0) || (upDown == "D" && cfg.scroll.startIdx + cfg.scroll.viewRow > cfg.dataInfo.rowLength)) {
             stopPreventCancel(evt);
             return;
           }

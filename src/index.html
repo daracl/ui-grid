@@ -25,9 +25,10 @@
       <option value="38">38</option>
       <option value="100" selected>100</option>
       <option value="500">500</option>
-      <option value="1000">1000</option>
-      <option value="10000">10000</option>
-      <option value="100000">100000</option>
+      <option value="1000">1,000</option>
+      <option value="10000">10,000</option>
+      <option value="100000">100,000</option>
+      <option value="1000000">1,000,000</option>
     </select>
 
     cell
@@ -247,7 +248,6 @@
             { name: 'a', label: '에이에이에이에이에이에이', width: 50, sort: true, editable: false }
             , {
               name: 'b', label: '비', width: 50, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
-                console.log(rowInfo)
                 const rowIdx = rowInfo.rowIdx;
                 if (rowIdx % 3 == 0) {
                   return 'dg-primary';
@@ -597,7 +597,7 @@
     let gridObj = Daracl.grid.create(element, {
       editable: false
       , styleClass: "striped"
-      , selectionMode: 'row'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
+      , selectionMode: 'multiple-cell'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
       , enableWidthFixed: false
       , enableTooltip: true			// tooltip flag
       , theme: document.getElementById("theme").value
@@ -622,6 +622,7 @@
       }
       , header: {
         view: true
+        , enableViewAllLabel: true
         //, heights: [20, 50, 50]
         , sort: {
           //정렬 활성화 여부
@@ -804,10 +805,8 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          height: 30
-          , enableDblClickRowCheck: true
-
-
+          height: 50
+          , enableDblClickRowCheck_1: true
           , contextMenu: {
             beforeSelect: function (info) {
 

@@ -8,7 +8,7 @@ import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
-import { DEFAULT_FIELD_INFO } from "src/defaultGridOption";
+import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
 import { eventOn } from "src/util/eventUtils";
 import { getTextWidth, isInputField } from "src/util/gridUtils";
@@ -67,6 +67,7 @@ export default class GridMain {
     this.calcGridDimention();
 
     this.initTemplate();
+    this.initElement();
     this.calculation();
 
     this.initMainView();
@@ -81,7 +82,33 @@ export default class GridMain {
     };
   }
 
-  initMainView() {
+  /**
+   * init grid element
+   */
+  private initElement() {
+    const cfg = this.grid.config();
+    this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
+    this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
+
+    this.setTheme(this.grid.getOptions().theme);
+
+    const style = window.getComputedStyle(this._mainElement.getElement());
+
+    cfg.fontFamily = style.fontFamily;
+    cfg.fontSize = style.fontSize;
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.font = style.fontSize + " " + style.fontFamily; // "16px Arial";
+    cfg.canvasContext = context;
+  }
+
+  /**
+   * init main object viewer
+   *
+   * @private
+   */
+  private initMainView() {
     this.selectionInfo = new SelectionInfo(this, this.grid.getOptions(), this.grid.config());
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
@@ -93,6 +120,11 @@ export default class GridMain {
     }
   }
 
+  /**
+   * init event
+   *
+   * @public
+   */
   public initEvent() {
     const opts = this.grid.getOptions();
 
@@ -122,6 +154,12 @@ export default class GridMain {
     });
   }
 
+  /**
+   * set focus in
+   *
+   * @public
+   * @param {Event} e event
+   */
   public setGridFocusIn(e: Event) {
     if (this.grid.config().focus) return;
     this.grid.config().focus = true;
@@ -134,7 +172,12 @@ export default class GridMain {
     }
   }
 
-  // grid focus out
+  /**
+   * grid focus out
+   *
+   * @public
+   * @param {Event} e event
+   */
   public setGridFocusOut(e: Event) {
     if (!this.grid.config().focus) return;
 
@@ -309,8 +352,6 @@ export default class GridMain {
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
 
-      if (field.$isAside) continue;
-
       const selector = `th[data-col-idx="${j}"]`;
       const width = `${field.$width}px`;
 
@@ -373,23 +414,43 @@ export default class GridMain {
    */
   public calcBody(isInit?: boolean) {
     const cfg = this.grid.config();
-    const dimensions = cfg.dimensions;
+    const { dimensions, rowHeight, dataInfo, currentFields: fields } = cfg;
     const opts = this.grid.getOptions();
-    const fields = cfg.currentFields;
+
     const fieldLength = fields.length;
+
+    const rowLength = dataInfo.rowLength;
 
     const isHeaderResize = cfg.isHeaderResize;
 
+    const lineNumberIdx = cfg.fieldIndex.get(LINE_NUMBER_NAME);
+    if (!utils.isUndefined(lineNumberIdx)) {
+      const numberField = fields[lineNumberIdx];
+      if (rowLength >= 100000) {
+        const textWidth = getTextWidth(cfg, rowLength + "");
+        numberField.width = textWidth ?? numberField.width;
+        numberField.$width = textWidth ?? numberField.$width;
+      } else {
+        const defaultLineNumberWidth = opts.aside.lineNumber.width ?? DEFAULT_OPTIONS.aside.lineNumber.width ?? 40;
+        numberField.width = defaultLineNumberWidth;
+        numberField.$width = defaultLineNumberWidth;
+      }
+    }
+
     let mainTotalWidth = 0;
     for (const field of fields) {
+      if (!isHeaderResize && this.enableViewAllLabel) {
+        const labelWidth = getTextWidth(cfg, field.label, 20);
+        field.width = field.width > labelWidth ? field.width : labelWidth;
+      }
+
       mainTotalWidth += isHeaderResize ? field.$width : field.width;
     }
 
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
 
     //세로 스크롭 계산 start
-    const rowHeight = cfg.rowHeight;
-    const rowLength = cfg.dataInfo.rowLength;
+
     const verticalEnable = opts.scroll.vertical.enable;
 
     if (verticalEnable === false) {
@@ -419,22 +480,12 @@ export default class GridMain {
       isAddSpaceWidth = true;
       let absOverWidth = overWidth < 0 ? Math.abs(overWidth) : overWidth;
 
-      remainderWidth = Math.floor(absOverWidth / (fieldLength - cfg.dataInfo.asideLength));
-      lastSpaceW = absOverWidth - remainderWidth * (fieldLength - cfg.dataInfo.asideLength);
+      remainderWidth = Math.floor(absOverWidth / (fieldLength - dataInfo.asideLength));
+      lastSpaceW = absOverWidth - remainderWidth * (fieldLength - dataInfo.asideLength);
 
       if (overWidth < 0) {
         isAddSpaceWidth = false;
         remainderWidth = -remainderWidth;
-      }
-    }
-
-    if (rowLength >= 100000) {
-      const textWidth = getTextWidth(cfg, rowLength + "");
-      const lineNumberIdx = cfg.fieldIndex.get(LINE_NUMBER_NAME);
-
-      if (!utils.isUndefined(lineNumberIdx)) {
-        fields[lineNumberIdx].width = textWidth ?? fields[lineNumberIdx].width;
-        fields[lineNumberIdx].$width = textWidth ?? fields[lineNumberIdx].$width;
       }
     }
 
@@ -461,8 +512,6 @@ export default class GridMain {
 
       field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
 
-      cfg.currentFields[j] = field;
-
       if (field.$panel == "left") {
         leftWidth += fieldWidth;
       } else if (field.$panel == "right") {
@@ -482,7 +531,7 @@ export default class GridMain {
     dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
     dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
 
-    cfg.dataInfo.colLength = fieldLength;
+    dataInfo.colLength = fieldLength;
   }
 
   /**
@@ -707,12 +756,7 @@ export default class GridMain {
     }
 
     if (field.$isLeaf) {
-      if (this.enableViewAllLabel) {
-        const labelWidth = field.label.length * 5;
-        field.width = utils.isNumber(field.width) && field.width > labelWidth ? field.width : labelWidth;
-      } else {
-        field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
-      }
+      field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
 
       if (!field.$isAside) {
         field.width = Math.max(field.width, this.cellMinWidth);
@@ -792,6 +836,26 @@ export default class GridMain {
     this.setViewDataInfo(cfg.orginItems);
   }
 
+  public setViewDataInfo(items: any[]) {
+    const cfg = this.grid.config();
+    cfg.items = utils.arrayCopy(items);
+    cfg.dataInfo.rowLength = cfg.items.length;
+    cfg.dataInfo.lastRow = cfg.dataInfo.rowLength > 0 ? cfg.dataInfo.rowLength - 1 : 0;
+
+    this.calcBody();
+    if (this.scroll) {
+      this.scroll.calcScroll();
+      this.setElementDimentions();
+      this.fieldResize();
+    }
+  }
+
+  /**
+   * set item row id
+   *
+   * @public
+   * @param {Config} cfg
+   */
   public setRowId(cfg: Config) {
     const items = cfg.orginItems;
     const len = items.length;
@@ -805,20 +869,6 @@ export default class GridMain {
     }
 
     return;
-  }
-
-  public setViewDataInfo(items: any[]) {
-    const cfg = this.grid.config();
-    cfg.items = utils.arrayCopy(items);
-    cfg.dataInfo.rowLength = cfg.items.length;
-    cfg.dataInfo.lastRow = cfg.dataInfo.rowLength > 0 ? cfg.dataInfo.rowLength - 1 : 0;
-
-    this.calcBody();
-    if (this.scroll) {
-      this.scroll.calcScroll();
-      this.setElementDimentions();
-      this.fieldResize();
-    }
   }
 
   /**
@@ -850,6 +900,11 @@ export default class GridMain {
     }
   };
 
+  /**
+   * remove row data
+   *
+   * @param {any[]} ids row positions
+   */
   public removeRow = (ids: any[]) => {
     const cfg = this.grid.config();
     const currentItems = cfg.orginItems;
@@ -864,6 +919,11 @@ export default class GridMain {
     this.setData(currentItems);
   };
 
+  /**
+   * all data clear
+   *
+   * @public
+   */
   public clearData() {
     this.setData([]);
   }
@@ -907,6 +967,13 @@ export default class GridMain {
     return checkItems;
   }
 
+  /**
+   * get check items
+   *
+   * @public
+   * @param {string} name field name
+   * @returns {*} name 값만 리턴
+   */
   public getCheckedItemByName(name: string) {
     return this.getBody().getCheckedItemByName(name);
   }
@@ -926,18 +993,32 @@ export default class GridMain {
    * name value item check
    *
    * @public
-   * @param {string} name
-   * @param {*} values
+   * @param {string} name field name
+   * @param {*} values field value
    */
   public setCheckedItemByValue(name: string, values: any) {
     this.getBody().setCheckedItemByValue(name, values);
   }
 
+  /**
+   * add check item
+   *
+   * @public
+   * @param {string} name field name
+   * @param {*} values field value
+   */
   public addCheckedItemByValue(name: string, values: any) {
     if (!this.grid.config().isRowAllowMultiSelect) throw new Error("The allowMultiSelect option does not support methods.");
     this.getBody().addCheckedItemByValue(name, values);
   }
 
+  /**
+   * un checked
+   *
+   * @public
+   * @param {string} name field name
+   * @param {*} values field values
+   */
   public unCheckedItemByValue(name: string, values: any) {
     this.getBody().unCheckedItemByValue(name, values);
   }
@@ -967,7 +1048,12 @@ export default class GridMain {
     if (!classList.contains(theme)) classList.add(theme);
   }
 
-  public initTemplate() {
+  /**
+   * int grid html tempate
+   *
+   * @private
+   */
+  private initTemplate() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
@@ -993,7 +1079,6 @@ export default class GridMain {
                       : ""
                   }
                  
-                  
                   <div class="dg-panel dg-body">
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
@@ -1045,21 +1130,6 @@ export default class GridMain {
     `;
 
     this.grid.element().html(templateHtml);
-
-    this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
-    this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
-
-    const style = window.getComputedStyle(this._mainElement.getElement());
-
-    cfg.fontFamily = style.fontFamily;
-    cfg.fontSize = style.fontSize;
-
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-    context.font = style.fontSize + " " + style.fontFamily; // "16px Arial";
-    cfg.canvasContext = context;
-
-    this.setTheme(opts.theme);
   }
 }
 function fieldCopy(field: any): any {
@@ -1070,10 +1140,6 @@ function fieldCopy(field: any): any {
       result[key] = value;
     }
   });
-
-  console.log("fieldCopy", field);
-
-  // field copy처리할것.
 
   return result;
 }

@@ -44,8 +44,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     },
     enableAllColumnSelection: true, // 전체 선택 여부.
     enableScroll: true, // 마우스 휠로 가로 스크롤 이동할지 여부.
-    charWidth: 7, // char 의 넓이값
-    enableViewAllLabel: true,
+    enableViewAllLabel: false,
     contextMenu: false, // header contextmenu event
     help: {
       //	header help btn 설정

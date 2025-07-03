@@ -22,13 +22,13 @@ export default class ImageRenderer extends ViewRenderer {
     const alt = refValue?.alt ?? "";
 
     // 캐싱된 요소 재사용
-    let img = element.querySelector("img.dg-img") as HTMLImageElement;
-    let label = element.querySelector("span.dg-img-label") as HTMLSpanElement;
+    let img = element.querySelector("img.dg-cell-content") as HTMLImageElement;
+    let label = element.querySelector("span.dg-cell-content-label") as HTMLSpanElement;
 
     // img 없으면 새로 생성
     if (!img) {
       img = document.createElement("img");
-      img.className = this.getRendererStyleClass("dg-img");
+      img.className = this.getRendererStyleClass("dg-cell-content");
       element.appendChild(img);
     }
 
@@ -40,7 +40,7 @@ export default class ImageRenderer extends ViewRenderer {
     if (labelText) {
       if (!label) {
         label = document.createElement("span");
-        label.className = "dg-img-label";
+        label.className = "dg-cell-content-label";
         element.appendChild(label);
       }
 

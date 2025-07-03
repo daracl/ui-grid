@@ -218,10 +218,6 @@ export interface HeaderOptions {
    */
   enableScroll: boolean;
   /**
-   * char 의 넓이값
-   */
-  charWidth: number;
-  /**
    * 모든 header label 활성화 할지 여부
    */
   enableViewAllLabel: boolean;

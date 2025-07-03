@@ -350,6 +350,7 @@ export default class Body {
     const maxRow = cfg.dataInfo.rowLength - startIdx;
 
     let currentViewRow = Math.min(viewRow, maxRow);
+
     if (maxRow == 0 && cfg.dimensions.mainBodyHeight < cfg.rowHeight) {
       startIdx = cfg.dataInfo.rowLength - 1;
       this.gridMain.getScroll().moveVerticalScroll({ rowIdx: startIdx, dragFlag: false });
@@ -357,8 +358,6 @@ export default class Body {
     }
 
     const beforeViewRow = cfg.scroll.before.viewRow;
-
-    console.log(currentViewRow, beforeViewRow, maxRow);
 
     if (beforeViewRow > 1 && beforeViewRow > viewRow) {
       for (let i = viewRow; i < beforeViewRow; i++) {
