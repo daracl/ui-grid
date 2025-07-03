@@ -124,12 +124,10 @@ export default class Scroll {
     this.initVerticalEvent();
 
     this.initHorizontalEvent();
-
-    //this.config;
   }
 
   private initMouseWheel() {
-    const cfg = this.grid.config();
+    const { scroll, dataInfo } = this.grid.config();
     const opts = this.opts;
 
     this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
@@ -143,27 +141,27 @@ export default class Scroll {
         const isShift = isShiftKey(evt);
 
         //delta > 0--up
-        if (cfg.scroll.enableVertical && !isShift) {
+        if (scroll.enableVertical && !isShift) {
           const upDown = delta < 0 ? "U" : "D";
-          if ((upDown == "U" && cfg.scroll.startIdx == 0) || (upDown == "D" && cfg.scroll.startIdx + cfg.scroll.viewRow > cfg.dataInfo.rowLength)) {
+          if ((upDown == "U" && scroll.startIdx == 0) || (upDown == "D" && scroll.startIdx + scroll.viewRow > dataInfo.rowLength)) {
             stopPreventCancel(evt);
             return;
           }
 
           requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
-            const pageCount = Math.ceil(cfg.dataInfo.rowLength / cfg.scroll.viewRow);
+            const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
             this.moveVerticalScroll({ direction: upDown, speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
           });
-          if (opts.scroll.enableStopPropagation === true || (cfg.scroll.top != 0 && cfg.scroll.top != cfg.scroll.vTrackHeight - cfg.scroll.vThumbHeight)) {
+          if (opts.scroll.enableStopPropagation === true || (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)) {
             stopPreventCancel(evt);
           }
-        } else if (cfg.scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
+        } else if (scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
           requestAnimationFrame(() => {
             this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
           });
 
-          if (opts.scroll.enableStopPropagation === true || (cfg.scroll.left != 0 && cfg.scroll.left != cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) {
+          if (opts.scroll.enableStopPropagation === true || (scroll.left != 0 && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
             stopPreventCancel(evt);
           }
         }

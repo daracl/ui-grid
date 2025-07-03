@@ -42,6 +42,20 @@ export function isCtrlKey(evt: Event): boolean {
 }
 
 /**
+ * spacebar check
+ *
+ * @param {Event} evt event
+ * @returns {boolean}
+ */
+export function isSpacebar(evt: Event): boolean {
+  const event = evt as KeyboardEvent;
+
+  if (event.key === " " || event.code === "Space" || event.keyCode === 32) {
+    return true;
+  }
+  return false;
+}
+/**
  * html element event 등록
  *
  * @param {(Element | string | NodeList | null | Document)} el html element

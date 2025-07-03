@@ -7,7 +7,7 @@ import * as utils from "src/util/utils";
 
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
+import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, isSpacebar, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
 import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 import { getOffset, hasClass } from "src/util/domUtils";
@@ -492,6 +492,12 @@ export default class BodyEvent {
       if (targetElement.closest(".pubGrid-setting-area")) return true;
 
       const evtKey = eventKeyCode(e);
+
+      if (isSpacebar(e)) {
+        //TODO spacebar 처리 할것.
+        stopPreventCancel(e);
+        return false;
+      }
 
       if (e.metaKey || isCtrlKey(e)) {
         // copy
