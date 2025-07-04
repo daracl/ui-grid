@@ -820,7 +820,7 @@ export default class GridMain {
     }
 
     field.renderer = renderInfo;
-    field.$renderer = new VIEW_RENDERER[renderInfo.type](field, this.grid);
+    field.$renderer = new VIEW_RENDERER[renderInfo.type](field, this);
 
     return field;
   }
