@@ -3,6 +3,7 @@ import { FieldItem } from "@t/GridField";
 import { ValidResult } from "@t/ValidResult";
 import * as utils from "src/util/utils";
 import Renderer from "./Renderer";
+import GridMain from "src/view/GridMain";
 
 export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -11,8 +12,8 @@ export default abstract class EditRenderer extends Renderer {
 
   protected listLabelKey;
 
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
 
     this.listValueKey = field.renderer?.listItem?.valueField ? field.renderer?.listItem.valueField : "value";
 

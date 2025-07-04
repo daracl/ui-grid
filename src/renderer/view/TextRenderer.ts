@@ -1,6 +1,7 @@
 import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
+import GridMain from "src/view/GridMain";
 
 /**
  * text renderer
@@ -9,8 +10,8 @@ import ViewRenderer from "../ViewRenderer";
  * @extends {EditRenderer}
  */
 export default class TextRenderer extends ViewRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {

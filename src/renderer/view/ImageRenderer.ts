@@ -1,7 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
-import { Config } from "@t/GridConfig";
-
+import GridMain from "src/view/GridMain";
 /**
  * image renderer
  *
@@ -10,8 +9,8 @@ import { Config } from "@t/GridConfig";
  * @extends {ViewRenderer}
  */
 export default class ImageRenderer extends ViewRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {

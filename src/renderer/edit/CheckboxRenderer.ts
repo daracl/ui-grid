@@ -1,5 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import EditRenderer from "../EditRenderer";
+import GridMain from "src/view/GridMain";
 
 /**
  * checkbox renderer
@@ -9,8 +10,8 @@ import EditRenderer from "../EditRenderer";
  * @extends {EditRenderer}
  */
 export default class CheckboxRenderer extends EditRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public getValue(value: any) {

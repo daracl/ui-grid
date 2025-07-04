@@ -6,6 +6,7 @@
 @use "./toolbar" as _TOOLBAR;
 @use "./main" as _MAIN;
 @use "./footer" as _FOOTER;
+@use "./hidden.component" as _HIDDEN;
 
 .daracl-noselect {
   -webkit-touch-callout: none;
@@ -18,7 +19,9 @@
 
 body {
   &[data-dg-theme="light"] .daracl-grid,
-  .daracl-grid > .dg-light {
+  &[data-dg-theme="light"] .dg-hidden-container,
+  .daracl-grid > .dg-light,
+  .dg-hidden-container.dg-light {
     --border-color: #cdcdcd;
     --border_thick_color: #b9bdc1;
     --scroll-bg: #f7f7f7;
@@ -45,6 +48,7 @@ body {
     --input-color: #212529;
     --header-bg: #e6e6e6;
     --body-bg: #ffffff;
+    --body-bg-hover: #d2d2d2;
     --summary-bg: #e6e6e6;
     --disabled-bg: #ebebeb;
 
@@ -72,7 +76,9 @@ body {
   }
 
   &[data-dg-theme="dark"] .daracl-grid,
-  .daracl-grid > .dg-dark {
+  &[data-dg-theme="dark"] .dg-hidden-container,
+  .daracl-grid > .dg-dark,
+  .dg-hidden-container.dg-dark {
     --border-color: #3a3a3a;
     --border_thick_color: #4d4d4d;
 
@@ -107,6 +113,7 @@ body {
 
     --header-bg: #1a1717;
     --body-bg: #1a1a1a;
+    --body-bg-hover: #565555;
     --summary-bg: #2c2c2c;
     --disabled-bg: #555;
 
@@ -135,7 +142,8 @@ body {
   }
 }
 
-.daracl-grid {
+.daracl-grid,
+.dg-hidden-container {
   background: transparent;
   margin: 0px auto;
   width: 100%;
@@ -337,8 +345,19 @@ body {
     -ms-user-select: text !important;
     user-select: text !important;
   }
+}
 
+.daracl-grid {
   @include _TOOLBAR.toolbar;
   @include _MAIN.main;
   @include _FOOTER.footer;
+
+  .dg-renderer-container {
+    visibility: hidden;
+    width: 0;
+    height: 0px;
+    z-index: 10;
+  }
 }
+
+@include _HIDDEN.hiddenComponent;

@@ -1,5 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
+import GridMain from "src/view/GridMain";
 
 /**
  * bar renderer
@@ -11,8 +12,8 @@ import ViewRenderer from "../ViewRenderer";
 export default class BarRenderer extends ViewRenderer {
   private min: number;
   private max: number;
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
     this.min = field.renderer.rule?.minimum ?? 0;
     this.max = field.renderer.rule?.maximum ?? 100;
   }

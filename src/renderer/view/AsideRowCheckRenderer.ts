@@ -1,6 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import { ROW_CHECK_KEY } from "src/constants";
+import GridMain from "src/view/GridMain";
 
 /**
  * Aside RowCheck Renderer
@@ -11,8 +12,8 @@ import { ROW_CHECK_KEY } from "src/constants";
  */
 export default class AsideRowCheckRenderer extends ViewRenderer {
   private allowMultiSelect: boolean;
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
 
     this.allowMultiSelect = field.renderer.customOptions?.allowMultiSelect ?? true;
   }

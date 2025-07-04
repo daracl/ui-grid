@@ -20,7 +20,7 @@ const ALL_INSTANCE: any = {};
 
 const SEQ_ATTR_KEY = "daracl-grid-id";
 
-let HIDDEN_ELEMENT: HTMLElement | null = null;
+export let HIDDEN_ELEMENT: HTMLElement | null = null;
 
 let DARA_GRID_SEQ = 0;
 /**
@@ -81,10 +81,10 @@ export default class DaraGrid {
     this.createGrid();
   }
 
-  createHiddenElement() {
+  initGlobalConfig() {
     if (HIDDEN_ELEMENT === null) {
       const hiddenElement = document.createElement("div");
-      hiddenElement.classList.add("daracl-grid-hidden-container");
+      hiddenElement.className = "dg-hidden-container";
       document.body.appendChild(hiddenElement);
       HIDDEN_ELEMENT = hiddenElement;
     }
@@ -109,7 +109,7 @@ export default class DaraGrid {
   private createGrid() {
     this.mainConfig = initConfig(this.options);
 
-    this.createHiddenElement();
+    this.initGlobalConfig();
 
     this.gridMain = new GridMain(this);
   }

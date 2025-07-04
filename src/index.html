@@ -228,7 +228,7 @@
           , b: 'ddd_' + i + 'asdf'
           , c: (i * 10000)
           , d: i == 0 ? 'KOREA' : 'ddd_' + i
-          , e: `<div style="width:100px;height:150px;"><a href="javascript:alert(1);"> testasdfawefawefawef awfeawefawef</a><br><span>23r23f23f</span></div>`
+          , e: `<div style="width:100px;height:150px;"><a href="#"> testasdfawefawefawef awfeawefawef</a><br><span>23r23f23f</span></div>`
           , f: 'ffff' + i
           , g: 'ggggg' + i
           , h: i
@@ -271,7 +271,7 @@
           ]
         }
         , {
-          name: 's', label: 'sparklineBar', width: 100, align: 'center', renderer: {
+          name: 's', label: 'sparklineBar', width: 100, renderer: {
             type: 'sparklineBar'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -284,7 +284,7 @@
           }
         }
         , {
-          name: 't', label: 'sparkline', width: 100, align: 'center', renderer: {
+          name: 't', label: 'sparkline', width: 100, renderer: {
             type: 'sparkline'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -297,7 +297,7 @@
           }
         }
         , {
-          name: 'c', label: 'link', width: 100, align: 'center', type: 'money', renderer: {
+          name: 'c', label: 'link', width: 100, type: 'money', renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -312,35 +312,37 @@
         , {
           name: 'd', label: '디', width: 100, type: 'text', renderer: {
             type: 'dropdown'
-            , labelField: 'name'
-            , valueField: 'cd'
-            , list: [
-              { name: 'USA', 'cd': 'USA' }
-              , { name: 'KOREA', 'cd': 'KOREA' }
-              , { name: 'CHINA', 'cd': 'CHINA' }
-              , { name: 'KOREA1', 'cd': 'KOREA1' }
+            , listItem: {
+              labelField: 'name'
+              , valueField: 'cd'
+              , list: [
+                { name: 'USA', 'cd': 'USA' }
+                , { name: 'KOREA', 'cd': 'KOREA' }
+                , { name: 'CHINA', 'cd': 'CHINA' }
+                , { name: 'KOREA1', 'cd': 'KOREA1' }
 
-              /*	,'KOREA2'
-                ,'KOREA3'
-                ,'KOREA4'
-                ,'KOREA5'
-                ,'KOREA6'
-                ,'KOREA7'
-                ,'KOREA8'
-                ,'KOREA9'
-                ,'KOREA10'
-                ,'KOREA11'
-            */
-            ]
+                /*	,'KOREA2'
+                  ,'KOREA3'
+                  ,'KOREA4'
+                  ,'KOREA5'
+                  ,'KOREA6'
+                  ,'KOREA7'
+                  ,'KOREA8'
+                  ,'KOREA9'
+                  ,'KOREA10'
+                  ,'KOREA11'
+              */
+              ]
+            }
           }
         }
         , {
-          name: 'e', label: 'html', width: 100, align: 'right', renderer: {
+          name: 'e', label: 'html', width: 100, renderer: {
             type: 'html'
           }
         }
         , {
-          name: 'f', label: 'button', width: 100, align: 'center', renderer: {
+          name: 'f', label: 'button', width: 100, renderer: {
             type: 'button'
             , label: 'button click'
             , click: function (info) {
@@ -603,8 +605,8 @@
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 2
       , fixedRightIndex: 0
-      // ,height:250
-      //, width: 1000
+      , height: 250
+      , width: 1000
       , aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
@@ -805,7 +807,7 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          height: 30
+          height: 50
           , enableDblClickRowCheck_1: true
           , contextMenu: {
             beforeSelect: function (info) {

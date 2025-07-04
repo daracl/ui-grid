@@ -44,6 +44,8 @@ export default class GridMain {
 
   private containerElement: DaraElement;
 
+  private rendererContainer: HTMLElement;
+
   private readonly enableViewAllLabel: boolean;
 
   private readonly cellMinWidth: number;
@@ -53,6 +55,8 @@ export default class GridMain {
   private GRID_OFFSET: any;
 
   private readonly initGridSize: any;
+
+  private readonly layerSelector: string;
 
   constructor(grid: DaraGrid) {
     this.grid = grid;
@@ -80,6 +84,8 @@ export default class GridMain {
       height: opts.height == "auto" ? -1 : opts.height,
       width: opts.width == "auto" ? -1 : opts.width,
     };
+
+    this.layerSelector = '[data-dg-grid-layer="' + this.grid.instanceId() + '"]';
   }
 
   /**
@@ -89,6 +95,8 @@ export default class GridMain {
     const cfg = this.grid.config();
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
+
+    this.rendererContainer = this.grid.element().find(".dg-renderer-container");
 
     this.setTheme(this.grid.getOptions().theme);
 
@@ -120,6 +128,14 @@ export default class GridMain {
     }
   }
 
+  public getRendererContainer() {
+    return this.rendererContainer;
+  }
+
+  public getGrid() {
+    return this.grid;
+  }
+
   /**
    * init event
    *
@@ -141,7 +157,9 @@ export default class GridMain {
 
     // focus out // blur, focusout
     eventOn(mainElement, "blur", (e: FocusEvent) => {
-      const nextFocused = e.relatedTarget as HTMLElement | null;
+      const nextFocused = e.relatedTarget as HTMLElement;
+
+      console.log("nextFocused :  ", nextFocused);
 
       // container 바깥으로 포커스가 나간 경우에만 실행
       if (!nextFocused || !mainElement?.contains(nextFocused)) {
@@ -183,11 +201,19 @@ export default class GridMain {
 
     const targetElement = e.target as HTMLElement;
 
-    if ((e as MouseEvent).button !== 2 && targetElement.closest(this.grid.getUidAttrSelector()) == null && targetElement.closest('[data-dg-grid-layer="' + this.grid.instanceId() + '"]') == null) {
+    if ((e as MouseEvent).button !== 2) {
       this.grid.config().focus = false;
+
+      this.hideLayer();
 
       this.body.editAreaClose();
     }
+  }
+  public hideLayer() {
+    const layers = document.querySelectorAll(this.layerSelector);
+    layers.forEach((layer) => {
+      (layer as HTMLElement).style.display = "none";
+    });
   }
 
   /**
@@ -510,7 +536,7 @@ export default class GridMain {
         fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
       }
 
-      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.left;
+      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.center;
 
       if (field.$panel == "left") {
         leftWidth += fieldWidth;
@@ -794,7 +820,7 @@ export default class GridMain {
     }
 
     field.renderer = renderInfo;
-    field.$renderer = new VIEW_RENDERER[renderInfo.type](field);
+    field.$renderer = new VIEW_RENDERER[renderInfo.type](field, this.grid);
 
     return field;
   }
@@ -1126,6 +1152,7 @@ export default class GridMain {
               : ""
           }
         </div>
+        <div class="dg-renderer-container"></div>
     </div>
     `;
 

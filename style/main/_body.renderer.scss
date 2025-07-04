@@ -62,38 +62,41 @@
     display: flex;
     justify-content: center;
     .dg-cell-content {
-      position: relative;
-      display: inline-flex;
-      justify-content: space-between;
-      /* 양쪽 정렬 */
-      gap: 10px;
       padding: 2px 2px;
       width: 100%;
-      /* 고정 너비 필수 */
-      background-color: var(--button-bg);
+      //background-color: var(--button-bg);
       border: 1px solid var(--border-color);
-      border-radius: 2px;
       cursor: pointer;
 
       .dg-cell-content-label {
         flex: 1;
+        padding: 0px 15px 0px 5px;
+        text-align: center;
         white-space: nowrap;
+        z-index: 1;
+
+        &.text-a {
+          &l {
+            text-align: left;
+          }
+          &c {
+            text-align: center;
+          }
+          &r {
+            text-align: right;
+          }
+        }
       }
 
       .dg-cell-content-icon {
-        margin-left: 5px;
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        position: relative;
+        font-size: 0.8em;
+        position: absolute;
+        top: 48%;
+        right: 5px;
+        transform: translateY(-50%);
         &::after {
           content: "▼";
-          font-size: 0.8em;
-          margin-top: 2px;
-          position: absolute;
-          top: 50%;
-          left: 0;
-          transform: translateY(-50%);
+          font-size: 1em;
         }
       }
     }

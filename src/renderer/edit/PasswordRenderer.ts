@@ -1,5 +1,6 @@
 import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
+import GridMain from "src/view/GridMain";
 
 /**
  * password renderer
@@ -9,8 +10,8 @@ import { FieldItem } from "@t/GridField";
  * @extends {EditRenderer}
  */
 export default class PasswordRenderer extends EditRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public render(element: HTMLElement, value: any): void {

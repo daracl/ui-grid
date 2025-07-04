@@ -2,6 +2,7 @@ import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
 import { intValue, isEmpty } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
+import { RendererInfo } from "@t/RendererInfo";
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -383,4 +384,40 @@ export function getCheckboxMode(checkLeneth: number, itemLength: number) {
 
 export function isImageType(renderType: string) {
   return renderType == "image";
+}
+
+/**
+ * list item value key
+ *
+ * @export
+ * @param {RendererInfo} rendererInfo renderer info
+ * @returns {string} value key
+ */
+export function valuesValueKey(rendererInfo: RendererInfo): string {
+  return rendererInfo?.listItem?.valueField ?? "value";
+}
+
+/**
+ * list item label key
+ *
+ * @export
+ * @param {RendererInfo} rendererInfo renderer info
+ * @returns {string} label key
+ */
+export function valuesLabelKey(rendererInfo: RendererInfo): string {
+  return rendererInfo?.listItem?.labelField ?? "label";
+}
+
+export function valuesLabelValue(label: string, val: any) {
+  let replaceFlag = false;
+  const resultValue = label.replace(/\{\{([A-Za-z0-9_.]*)\}\}/g, (match, key) => {
+    replaceFlag = true;
+    return val[key] || "";
+  });
+
+  if (replaceFlag) {
+    return resultValue;
+  }
+
+  return val[label] || "";
 }

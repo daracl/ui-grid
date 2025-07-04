@@ -1,0 +1,34 @@
+/**
+* grid css
+*/
+
+@use "./common/common" as comm;
+
+@mixin hiddenComponent {
+  .dg-hidden-container {
+    position: initial;
+    visibility: visible;
+    width: 0px;
+    height: 0px;
+
+    .dg-dropdown-menu {
+      position: absolute;
+      margin-top: 1px;
+      border: 1px solid var(--border-color);
+      display: none;
+      background-color: var(--body-bg);
+      min-width: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+
+      .dg-dropdown-item {
+        cursor: pointer;
+        padding: 2px 5px;
+        text-align: center;
+        &:hover {
+          background-color: var(--body-bg-hover);
+        }
+      }
+    }
+  }
+}

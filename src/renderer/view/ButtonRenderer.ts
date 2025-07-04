@@ -1,5 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
+import GridMain from "src/view/GridMain";
 
 /**
  * button renderer
@@ -8,8 +9,8 @@ import ViewRenderer from "../ViewRenderer";
  * @extends {ViewRenderer}
  */
 export default class ButtonRenderer extends ViewRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {

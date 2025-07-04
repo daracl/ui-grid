@@ -57,18 +57,28 @@ export default class BodyEvent {
    * field event
    */
   private initFieldEvent() {
+    this.initFieldContentClickEvent();
+    this.initDropdownFieldEvent();
+  }
+
+  /**
+   * init field content click (button, link 등 클릭)
+   *
+   * @private
+   */
+  private initFieldContentClickEvent() {
     const cfg = this.grid.config();
     const bodyElement = this.bodyElement.getElement();
-
     // click event
     eventOn(
       bodyElement,
       "click",
       (e: UIEvent) => {
         const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
         const cellInfo = getCellInfo(cfg, eventElement.closest(".dg-cell") as HTMLElement);
 
-        cellInfo.field.$renderer.click(cellInfo);
+        cellInfo.field.$renderer.click(e, eventElement, cellInfo);
         return false;
       },
       ".dg-cell-click",
@@ -76,6 +86,34 @@ export default class BodyEvent {
     );
   }
 
+  /**
+   * init dropdown event
+   */
+  private initDropdownFieldEvent() {
+    const cfg = this.grid.config();
+    const bodyElement = this.bodyElement.getElement();
+    // click event
+    eventOn(
+      bodyElement,
+      "click",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellInfo = getCellInfo(cfg, cellElement);
+
+        cellInfo.field.$renderer.click(e, cellElement, cellInfo);
+        return false;
+      },
+      ".dg-dropdown>.dg-cell-content",
+      { passive: false }
+    );
+  }
+
+  /**
+   * init row check event
+   *
+   * @private
+   */
   private initRowCheckEvent() {
     const cfg = this.grid.config();
     const bodyElement = this.bodyElement.getElement();
@@ -735,6 +773,8 @@ export default class BodyEvent {
     const cfg = this.grid.config();
 
     //this.gridMain.setGridFocusIn(e);
+
+    this.gridMain.hideLayer();
 
     const rowIndex = cellInfo.rowIndex,
       cellIdx = cellInfo.c;

@@ -1,6 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import { isUndefined } from "src/util/utils";
+import GridMain from "src/view/GridMain";
 
 /**
  * Sparkline renderer
@@ -10,8 +11,8 @@ import { isUndefined } from "src/util/utils";
  * @extends {ViewRenderer}
  */
 export default class SparklineRenderer extends ViewRenderer {
-  constructor(field: FieldItem) {
-    super(field);
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {

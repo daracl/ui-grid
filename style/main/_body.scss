@@ -1,5 +1,5 @@
 @use "../common/common" as comm;
-@use "./body.enderer.scss" as _RENDERER;
+@use "./body.renderer.scss" as _RENDERER;
 
 @mixin body {
   .dg-body {
