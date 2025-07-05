@@ -323,9 +323,9 @@ export default class Scroll {
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    verticalThumbElement.eventOff("touchstart mousedown");
+    verticalThumbElement.eventOff("mousedown touchstart");
     verticalThumbElement.eventOn(
-      "touchstart mousedown",
+      "mousedown touchstart",
       (e: MouseEvent | TouchEvent) => {
         stopPreventCancel(e);
 
@@ -442,11 +442,11 @@ export default class Scroll {
     };
 
     // 먼저 기존 이벤트 제거
-    horizontalThumbElement.eventOff("touchstart mousedown touchend mouseup");
+    horizontalThumbElement.eventOff("mousedown touchstart touchend mouseup");
 
     // 이벤트 등록
     horizontalThumbElement.eventOn(
-      "touchstart mousedown",
+      "mousedown touchstart",
       (e: MouseEvent | TouchEvent) => {
         stopPreventCancel(e);
 

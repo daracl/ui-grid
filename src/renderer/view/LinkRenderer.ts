@@ -2,6 +2,8 @@ import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import { isUndefined } from "src/util/utils";
 import GridMain from "src/view/GridMain";
+import { eventOn, stopPreventCancel } from "src/util/eventUtils";
+import { getCellInfo } from "src/util/gridUtils";
 
 /**
  * link renderer
@@ -25,7 +27,9 @@ export default class LinkRenderer extends ViewRenderer {
     if (!aElement) {
       aElement = document.createElement("a");
       aElement.className = this.getRendererStyleClass("dg-cell-content");
+      aElement.setAttribute("tabindex", "-1");
       element.appendChild(aElement);
+      this.initEvent(aElement);
     }
 
     if (refValue) {
@@ -41,5 +45,22 @@ export default class LinkRenderer extends ViewRenderer {
       }
       aElement.textContent = value;
     }
+  }
+
+  initEvent(contentElement: HTMLElement) {
+    const cfg = this.gridMain.getGrid().config();
+    eventOn(
+      contentElement,
+      "pointerdown",
+      (e: UIEvent) => {
+        console.log("link click");
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellInfo = getCellInfo(cfg, cellElement);
+
+        this.click(e, cellElement, cellInfo);
+      },
+      { passive: false }
+    );
   }
 }

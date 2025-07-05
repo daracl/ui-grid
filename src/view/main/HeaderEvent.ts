@@ -64,10 +64,10 @@ export default class HeaderEvent {
 
     const nullsLast = this.headerOpts.sort.nullsLast;
 
-    eventOff(sortElements, "touchstart mousedown");
+    eventOff(sortElements, "mousedown touchstart");
     eventOn(
       sortElements,
-      "touchstart mousedown",
+      "mousedown touchstart",
       (e: UIEvent) => {
         stopPreventCancel(e);
 
@@ -161,10 +161,10 @@ export default class HeaderEvent {
 
     if (this.headerOpts.enableAllColumnSelection && !isRowSelection(selectionMode)) {
       //header resize, dblclick or drag
-      eventOff(headerCellElements, "touchstart mousedown");
+      eventOff(headerCellElements, "mousedown touchstart");
       eventOn(
         headerCellElements,
-        "touchstart mousedown",
+        "mousedown touchstart",
         (e: UIEvent) => {
           const position = getOffset(headerElement.getElement());
           const mainRightWidth = cfg.dimensions.mainRightWidth;
@@ -294,10 +294,10 @@ export default class HeaderEvent {
     const threshold = 200;
 
     //header resize, dblclick or drag
-    eventOff(resizerElements, "touchstart mousedown");
+    eventOff(resizerElements, "mousedown touchstart");
     eventOn(
       resizerElements,
-      "touchstart mousedown",
+      "mousedown touchstart",
       (e: UIEvent) => {
         stopPreventCancel(e);
         const targetElement = e.currentTarget as HTMLElement;

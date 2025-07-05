@@ -4,7 +4,7 @@ import { isString, isUndefined } from "src/util/utils";
 import { CellInfo } from "@t/GridConfig";
 import { eventOff, eventOn, stopPreventCancel } from "src/util/eventUtils";
 import { RendererInfo } from "@t/RendererInfo";
-import { valuesLabelKey, valuesLabelValue, valuesValueKey } from "src/util/gridUtils";
+import { getCellInfo, valuesLabelKey, valuesLabelValue, valuesValueKey } from "src/util/gridUtils";
 import Language from "src/util/Language";
 import { HIDDEN_ELEMENT } from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
@@ -45,6 +45,8 @@ export default class DropdownRenderer extends ViewRenderer {
       contentElement.appendChild(icon);
 
       element.appendChild(contentElement);
+
+      this.initEvent(contentElement);
     }
 
     const textElement = contentElement.querySelector(".dg-cell-content-label") as HTMLElement;
@@ -56,21 +58,37 @@ export default class DropdownRenderer extends ViewRenderer {
     }
   }
 
-  public click(e: Event, cellElement: HTMLElement, cellInfo: CellInfo) {
-    stopPreventCancel(e);
+  initEvent(contentElement: HTMLElement) {
+    eventOn(
+      contentElement,
+      "pointerdown",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellInfo = getCellInfo(this.cfg, cellElement);
 
-    if (this.currentEditRow == cellInfo.rowIndex && this.menuElement.style.display != "none") {
-      this.menuElement.style.display = "none";
-      return;
+        this.click(e, cellElement, cellInfo);
+      },
+      { passive: false }
+    );
+  }
+
+  public click(e: Event, cellElement: HTMLElement, cellInfo: CellInfo) {
+    if (this.currentEditRow == cellInfo.rowIndex) {
+      if (window.getComputedStyle(this.menuElement).display == "block") {
+        this.menuElement.style.display = "none";
+        return;
+      }
     }
 
-    console.log(this.currentEditRow, cellInfo.rowIndex, this.menuElement?.style.display);
+    this.cfg.activeComponent["dropdown"] = cellInfo;
 
     this.currentEditRow = cellInfo.rowIndex;
 
     const eventElement = cellElement.querySelector(".dg-cell-content") as HTMLElement;
 
-    const rect = eventElement.getBoundingClientRect();
+    const rendererContainer = this.gridMain.getRendererContainer().getBoundingClientRect();
+    const elementRect = eventElement.getBoundingClientRect();
 
     let menuElement = this.menuElement;
     if (!menuElement) {
@@ -79,42 +97,49 @@ export default class DropdownRenderer extends ViewRenderer {
       menuElement.setAttribute("data-dg-grid-layer", this.gridMain.getGrid().instanceId());
 
       this.gridMain.getRendererContainer().appendChild(menuElement);
-      this.menuElement = menuElement;
+      this.menuElement = this.gridMain.getRendererContainer().querySelector(".dg-dropdown-menu") as HTMLElement;
     }
 
     menuElement.innerHTML = this.dropdownMenuTemplate(this.field.renderer);
 
-    const menuHeight = menuElement.offsetHeight;
-    const windowBottom = window.innerHeight;
-
     menuElement.style.display = "block";
 
-    // 위로 띄울지 아래로 띄울지 결정
-    const shouldOpenUpward = rect.bottom + menuHeight > windowBottom;
+    const menuHeight = menuElement.offsetHeight || menuElement.getBoundingClientRect().height;
+    const windowBottom = window.innerHeight;
 
-    console.log(shouldOpenUpward, menuElement.offsetHeight, menuElement.clientHeight, rect.top, window.scrollY, windowBottom);
+    // 버튼 위치를 #grid 기준으로 변환
+    const relativeTop = elementRect.top - rendererContainer.top;
+    const relativeLeft = elementRect.left - rendererContainer.left;
+
+    // 위로 띄울지 아래로 띄울지 결정
+    const shouldOpenUpward = elementRect.bottom + menuHeight > windowBottom;
 
     if (shouldOpenUpward) {
-      menuElement.style.top = `${rect.top + window.scrollY - menuHeight}px`;
+      menuElement.style.top = `${relativeTop - menuHeight - 2}px`;
     } else {
-      menuElement.style.top = `${rect.bottom + window.scrollY}px`;
+      menuElement.style.top = `${relativeTop + eventElement.offsetHeight}px`;
     }
 
-    menuElement.style.left = `${rect.left + window.scrollX}px`;
-    menuElement.style.minWidth = `${rect.width}px`;
+    menuElement.style.left = `${relativeLeft}px`;
+    menuElement.style.minWidth = `${elementRect.width}px`;
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
 
-    eventOn(items, "mousedown touchstart", (e: UIEvent) => {
-      const target = e.target as HTMLElement;
-      const value = target.getAttribute("data-dg-value");
+    eventOn(
+      items,
+      "pointerdown",
+      (e: UIEvent) => {
+        const target = e.target as HTMLElement;
+        const value = target.getAttribute("data-dg-value");
 
-      cellInfo.item[this.fieldName] = value;
+        cellInfo.item[this.fieldName] = value;
 
-      this.render(cellInfo.rowIndex, cellInfo.r, cellInfo.c, cellInfo.item, cellElement);
-      menuElement.style.display = "none";
-      eventOff(items, "mousedown touchstart");
-    });
+        this.render(cellInfo.rowIndex, cellInfo.r, cellInfo.c, cellInfo.item, cellElement);
+        menuElement.style.display = "none";
+        eventOff(items, "click");
+      },
+      { passive: false }
+    );
   }
 
   private dropdownMenuTemplate(rendererInfo: RendererInfo) {

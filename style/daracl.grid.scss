@@ -353,11 +353,12 @@ body {
   @include _FOOTER.footer;
 
   .dg-renderer-container {
-    visibility: hidden;
+    visibility: visible;
     width: 0;
     height: 0px;
     z-index: 10;
+    position: relative;
+
+    @include _HIDDEN.hiddenComponent;
   }
 }
-
-@include _HIDDEN.hiddenComponent;

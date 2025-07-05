@@ -2,7 +2,7 @@ import { FieldItem } from "@t/GridField";
 
 import Renderer from "./Renderer";
 import { isFunction } from "src/util/utils";
-import { CellInfo } from "@t/GridConfig";
+import { CellInfo, Config } from "@t/GridConfig";
 import GridMain from "src/view/GridMain";
 
 export default abstract class ViewRenderer extends Renderer {
@@ -11,9 +11,11 @@ export default abstract class ViewRenderer extends Renderer {
 
   protected isClick = false;
   protected eventStyleClass = "";
+  protected readonly cfg: Config;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
+    this.cfg = this.gridMain.getGrid().config();
     this.refValue = this.field.renderer.refValue ?? {};
     this.isRefFunction = isFunction(this.refValue);
     this.isClick = isFunction(this.field.renderer.click);

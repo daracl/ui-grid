@@ -152,6 +152,7 @@ export default class GridMain {
 
     // focus in, mousedown
     eventOn(mainElement, "mousedown", (e: UIEvent) => {
+      console.log('mainElement, "mousedown');
       this.setGridFocusIn(e);
     });
 
@@ -168,6 +169,8 @@ export default class GridMain {
         }
 
         this.setGridFocusOut(e);
+      } else {
+        mainElement.focus();
       }
     });
   }
@@ -211,6 +214,13 @@ export default class GridMain {
   }
   public hideLayer() {
     const layers = document.querySelectorAll(this.layerSelector);
+
+    //  const stack = new Error().stack;
+
+    // if (stack) {
+    //   console.log("호출한 함수:", stack);
+    // }
+
     layers.forEach((layer) => {
       (layer as HTMLElement).style.display = "none";
     });
@@ -1091,7 +1101,7 @@ export default class GridMain {
 
     let templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
-        <div style="overflow:hidden;position:absolute;">
+        <div style="position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
               <div class="dg-main-container ">
@@ -1139,6 +1149,7 @@ export default class GridMain {
               <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
                 <textarea class="dg-paste-area"></textarea>
               </div>
+              <div class="dg-renderer-container"></div>
           </div>
           ${
             opts.footer.enabled
@@ -1152,7 +1163,6 @@ export default class GridMain {
               : ""
           }
         </div>
-        <div class="dg-renderer-container"></div>
     </div>
     `;
 

@@ -1,6 +1,8 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
+import { eventOn, stopPreventCancel } from "src/util/eventUtils";
+import { getCellInfo } from "src/util/gridUtils";
 
 /**
  * button renderer
@@ -23,11 +25,28 @@ export default class ButtonRenderer extends ViewRenderer {
       btnElement = document.createElement("div");
       btnElement.className = this.getRendererStyleClass("dg-cell-content");
       element.appendChild(btnElement);
+      this.initEvent(btnElement);
     }
 
     // 값이 바뀌었을 때만 갱신
     if (btnElement.textContent !== value) {
       btnElement.textContent = value;
     }
+  }
+
+  initEvent(contentElement: HTMLElement) {
+    const cfg = this.gridMain.getGrid().config();
+    eventOn(
+      contentElement,
+      "pointerdown",
+      (e: UIEvent) => {
+        const eventElement = e.target as HTMLElement;
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellInfo = getCellInfo(cfg, cellElement);
+
+        this.click(e, cellElement, cellInfo);
+      },
+      { passive: false }
+    );
   }
 }

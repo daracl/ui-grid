@@ -53,6 +53,8 @@ export interface Config {
 
   fieldIndex: Map<String, number>;
 
+  activeComponent: any;
+
   /**
    * font Family
    */
@@ -77,7 +79,6 @@ export interface Config {
   navi: { height: number; width: number };
   toolbar: { height: number; width: number };
   initSettingFlag: boolean;
-  select: AnyKeyMap;
   template: AnyKeyMap;
   orginItems: Array;
   items: Array;
@@ -115,7 +116,6 @@ export interface Config {
   fixedLeftIndex: number;
   fixedRightIndex: number;
   scroll: ScrollInfo;
-  element: GridElement;
   edit: EditInfo;
   canvasContext?: CanvasRenderingContext2D;
 }

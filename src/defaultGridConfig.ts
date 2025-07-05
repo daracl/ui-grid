@@ -48,7 +48,6 @@ export function initConfig(opts: GridOptions): Config {
     navi: { height: 0, width: 0 },
     toolbar: { height: 0, width: 0 },
     initSettingFlag: false,
-    select: {},
     template: {},
     items: [],
     orginItems: [],
@@ -80,40 +79,7 @@ export function initConfig(opts: GridOptions): Config {
     scroll: initScrollInfo(),
     edit: initEditInfo(),
     canvasContext: undefined,
-    element: {
-      grid: undefined,
-      container: undefined,
-      toolbar: undefined,
-      main: undefined,
-
-      // main header
-      mainHeaderLeft: undefined,
-      mainHeaderCenter: undefined,
-      mainHeaderRight: undefined,
-
-      // main body
-      mainBodyLeft: undefined,
-      mainBodyCenter: undefined,
-      mainBodyRight: undefined,
-
-      // main summary
-      mainSummaryLeft: undefined,
-      mainSummaryBody: undefined,
-      mainSummaryRight: undefined,
-
-      footer: undefined,
-
-      status: undefined,
-
-      hScrollBar: undefined,
-      vScrollBar: undefined,
-
-      hScrollEdge: undefined,
-
-      resizeHelper: undefined,
-
-      pasteArea: undefined,
-    },
+    activeComponent: {},
   };
 }
 

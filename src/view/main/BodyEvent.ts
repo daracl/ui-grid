@@ -50,63 +50,6 @@ export default class BodyEvent {
     this.initBodyEvent();
 
     this.initRowCheckEvent();
-    this.initFieldEvent();
-  }
-
-  /**
-   * field event
-   */
-  private initFieldEvent() {
-    this.initFieldContentClickEvent();
-    this.initDropdownFieldEvent();
-  }
-
-  /**
-   * init field content click (button, link 등 클릭)
-   *
-   * @private
-   */
-  private initFieldContentClickEvent() {
-    const cfg = this.grid.config();
-    const bodyElement = this.bodyElement.getElement();
-    // click event
-    eventOn(
-      bodyElement,
-      "click",
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-        const cellInfo = getCellInfo(cfg, eventElement.closest(".dg-cell") as HTMLElement);
-
-        cellInfo.field.$renderer.click(e, eventElement, cellInfo);
-        return false;
-      },
-      ".dg-cell-click",
-      { passive: false }
-    );
-  }
-
-  /**
-   * init dropdown event
-   */
-  private initDropdownFieldEvent() {
-    const cfg = this.grid.config();
-    const bodyElement = this.bodyElement.getElement();
-    // click event
-    eventOn(
-      bodyElement,
-      "click",
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-        const cellInfo = getCellInfo(cfg, cellElement);
-
-        cellInfo.field.$renderer.click(e, cellElement, cellInfo);
-        return false;
-      },
-      ".dg-dropdown>.dg-cell-content",
-      { passive: false }
-    );
   }
 
   /**
@@ -772,9 +715,14 @@ export default class BodyEvent {
   private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
     const cfg = this.grid.config();
 
-    //this.gridMain.setGridFocusIn(e);
+    this.gridMain.setGridFocusIn(e);
 
-    this.gridMain.hideLayer();
+    const activeDropdown = cfg.activeComponent["dropdown"];
+
+    if (cellInfo.field.renderer.type == "dropdown" && cellInfo.rowIndex == activeDropdown?.rowIndex && cellInfo.c == activeDropdown?.c) {
+    } else {
+      this.gridMain.hideLayer();
+    }
 
     const rowIndex = cellInfo.rowIndex,
       cellIdx = cellInfo.c;
