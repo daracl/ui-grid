@@ -342,24 +342,27 @@
             , listItem: {
               labelField: 'name'
               , valueField: 'cd'
-              , list: [
-                { name: 'AAAA', 'cd': 'AAA' }
-                , { name: 'BBBB', 'cd': 'BBB' }
-                , { name: 'CCCC', 'cd': 'CCC' }
-                , { name: 'DDDD', 'cd': 'DDD' }
+              , multiple: true
+              , list: (cellInfo, callback) => {
+                callback([
+                  { name: 'AAAA', 'cd': 'AAA' }
+                  , { name: 'BBBB', 'cd': 'BBB' }
+                  , { name: 'CCCC', 'cd': 'CCC' }
+                  , { name: 'DDDD', 'cd': 'DDD' }
 
-                /*	,'KOREA2'
-                  ,'KOREA3'
-                  ,'KOREA4'
-                  ,'KOREA5'
-                  ,'KOREA6'
-                  ,'KOREA7'
-                  ,'KOREA8'
-                  ,'KOREA9'
-                  ,'KOREA10'
-                  ,'KOREA11'
-              */
-              ]
+                  /*	,'KOREA2'
+                    ,'KOREA3'
+                    ,'KOREA4'
+                    ,'KOREA5'
+                    ,'KOREA6'
+                    ,'KOREA7'
+                    ,'KOREA8'
+                    ,'KOREA9'
+                    ,'KOREA10'
+                    ,'KOREA11'
+                */
+                ]);
+              }
             }
           }
         }

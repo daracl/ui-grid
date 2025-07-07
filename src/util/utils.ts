@@ -397,6 +397,43 @@ export const merge = (...value: any[]): any => {
   return reval;
 };
 
+/**
+ * 문자열을 delimiter로 분리하여 특정 값을 포함하지 않으면 추가하고,
+ * 필요 시 정렬 후 다시 문자열로 반환합니다.
+ *
+ * @param {string} value - 원본 문자열 (예: "a,b,c")
+ * @param {string} addValue - 추가할 값 (중복되면 추가하지 않음)
+ * @param {boolean} shouldSort - true일 경우 정렬함 (기본값: false)
+ * @param {string} delimiter - 분리 기준 문자 (기본값: ',')
+ * @returns {string} 결과 문자열
+ */
+export function addValueIfMissing(value: string, addValue: string | null, shouldSort = false, delimiter = ",") {
+  if (!addValue) return value;
+
+  value = (value || "") + "";
+
+  // 1. split + trim + filter out empty values
+  const items = (value || "")
+    .split(delimiter)
+    .map((item) => item.trim())
+    .filter((item) => item); // 빈 문자열 제거
+
+  const uniqueItems = new Set(items);
+
+  if (uniqueItems.has(addValue)) {
+    uniqueItems.delete(addValue);
+  } else {
+    uniqueItems.add(addValue);
+  }
+
+  let result = Array.from(uniqueItems);
+  if (shouldSort) {
+    result.sort();
+  }
+
+  return result.join(delimiter);
+}
+
 export function trim(s: string): string {
   return s.replace(/^\s+|\s+$/g, "");
 }

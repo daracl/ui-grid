@@ -176,3 +176,10 @@ export const ROW_ID_KEY = "_dg$rowid";
  * @type {"_dg$rowid"}
  */
 export const ROW_HEIGHT_KEY = "_dg$rowHeight";
+
+/**
+ * layer attribute name
+ *
+ * @type {"data-dg-grid-layer"}
+ */
+export const LAYER_ATTR_NAME = "data-dg-grid-layer";

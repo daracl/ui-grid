@@ -251,6 +251,7 @@ export default class BodyEvent {
         const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
 
         if (cellElement == null || hasClass(cellElement, "$row-check $modify-info")) {
+          this.gridMain.hideLayer();
           return;
         }
 
@@ -715,11 +716,10 @@ export default class BodyEvent {
   private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
     const cfg = this.grid.config();
 
-    this.gridMain.setGridFocusIn(e);
+    this.gridMain.setGridFocusIn(e, true);
 
-    const activeDropdown = cfg.activeComponent["dropdown"];
-
-    if (cellInfo.field.renderer.type == "dropdown" && cellInfo.rowIndex == activeDropdown?.rowIndex && cellInfo.c == activeDropdown?.c) {
+    if (cellInfo.field.renderer.type == "dropdown" && cellInfo.c == +cfg.activeComponent) {
+      //this.gridMain.hideLayer(cfg.activeComponent);
     } else {
       this.gridMain.hideLayer();
     }

@@ -51,9 +51,9 @@ export default class LinkRenderer extends ViewRenderer {
     const cfg = this.gridMain.getGrid().config();
     eventOn(
       contentElement,
-      "pointerdown",
+      "click",
       (e: UIEvent) => {
-        console.log("link click");
+        e.preventDefault();
         const eventElement = e.target as HTMLElement;
         const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
         const cellInfo = getCellInfo(cfg, cellElement);

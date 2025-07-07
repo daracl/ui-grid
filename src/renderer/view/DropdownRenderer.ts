@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
-import { isString, isUndefined } from "src/util/utils";
+import { addValueIfMissing, isArray, isFunction, isString, isUndefined } from "src/util/utils";
 import { CellInfo } from "@t/GridConfig";
 import { eventOff, eventOn, stopPreventCancel } from "src/util/eventUtils";
 import { RendererInfo } from "@t/RendererInfo";
@@ -8,6 +8,7 @@ import { getCellInfo, valuesLabelKey, valuesLabelValue, valuesValueKey } from "s
 import Language from "src/util/Language";
 import { HIDDEN_ELEMENT } from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
+import { LAYER_ATTR_NAME } from "src/constants";
 
 /**
  * dropdown renderer
@@ -19,9 +20,20 @@ import GridMain from "src/view/GridMain";
 export default class DropdownRenderer extends ViewRenderer {
   private menuElement: HTMLElement;
   private currentEditRow: number;
+  private labelKey: string;
+  private valueKey: string;
+  private rendererContainer: HTMLElement;
+  private isMultiple: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
+
+    const rendererInfo = this.field.renderer;
+    this.labelKey = valuesLabelKey(rendererInfo);
+    this.valueKey = valuesValueKey(rendererInfo);
+    this.isMultiple = this.field.renderer.listItem?.multiple ?? false;
+
+    this.rendererContainer = this.gridMain.getRendererContainer();
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
@@ -61,7 +73,7 @@ export default class DropdownRenderer extends ViewRenderer {
   initEvent(contentElement: HTMLElement) {
     eventOn(
       contentElement,
-      "pointerdown",
+      "click",
       (e: UIEvent) => {
         const eventElement = e.target as HTMLElement;
         const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
@@ -81,26 +93,44 @@ export default class DropdownRenderer extends ViewRenderer {
       }
     }
 
-    this.cfg.activeComponent["dropdown"] = cellInfo;
+    //console.log("activeComponent  : ", this.currentEditRow == cellInfo.rowIndex ? window.getComputedStyle(this.menuElement).display : "", cellInfo);
+
+    const cellPosition = cellInfo.c + "";
+
+    this.cfg.activeComponent = cellPosition;
 
     this.currentEditRow = cellInfo.rowIndex;
 
     const eventElement = cellElement.querySelector(".dg-cell-content") as HTMLElement;
 
-    const rendererContainer = this.gridMain.getRendererContainer().getBoundingClientRect();
-    const elementRect = eventElement.getBoundingClientRect();
-
     let menuElement = this.menuElement;
     if (!menuElement) {
       menuElement = document.createElement("div");
       menuElement.className = "dg-dropdown-menu";
-      menuElement.setAttribute("data-dg-grid-layer", this.gridMain.getGrid().instanceId());
+      menuElement.setAttribute(LAYER_ATTR_NAME, cellPosition);
 
-      this.gridMain.getRendererContainer().appendChild(menuElement);
-      this.menuElement = this.gridMain.getRendererContainer().querySelector(".dg-dropdown-menu") as HTMLElement;
+      this.rendererContainer.appendChild(menuElement);
+      this.menuElement = menuElement;
     }
 
-    menuElement.innerHTML = this.dropdownMenuTemplate(this.field.renderer);
+    const list = this.field.renderer.listItem?.list;
+
+    const value = cellInfo.item[this.fieldName];
+
+    if (isArray(list)) {
+      menuElement.innerHTML = this.dropdownMenuTemplate(list, value);
+      this.openMenu(cellElement, menuElement, eventElement, cellInfo);
+    } else if (isFunction(list)) {
+      list(cellInfo, (result: any[]) => {
+        menuElement.innerHTML = this.dropdownMenuTemplate(result, value);
+        this.openMenu(cellElement, menuElement, eventElement, cellInfo);
+      });
+    }
+  }
+
+  private openMenu(cellElement: HTMLElement, menuElement: HTMLElement, eventElement: HTMLElement, cellInfo: CellInfo) {
+    const rendererContainer = this.rendererContainer.getBoundingClientRect();
+    const elementRect = eventElement.getBoundingClientRect();
 
     menuElement.style.display = "block";
 
@@ -125,31 +155,40 @@ export default class DropdownRenderer extends ViewRenderer {
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
 
+    const isMultiple = this.isMultiple;
+
     eventOn(
       items,
       "pointerdown",
       (e: UIEvent) => {
         const target = e.target as HTMLElement;
-        const value = target.getAttribute("data-dg-value");
+        const addValue = target.getAttribute("data-dg-value");
 
-        cellInfo.item[this.fieldName] = value;
+        if (isMultiple) {
+          cellInfo.item[this.fieldName] = addValueIfMissing(cellInfo.item[this.fieldName], addValue);
+        } else {
+          cellInfo.item[this.fieldName] = addValue;
+        }
 
         this.render(cellInfo.rowIndex, cellInfo.r, cellInfo.c, cellInfo.item, cellElement);
-        menuElement.style.display = "none";
-        eventOff(items, "click");
+
+        if (!isMultiple) {
+          eventOff(items, "click");
+          menuElement.style.display = "none";
+        }
       },
       { passive: false }
     );
   }
 
-  private dropdownMenuTemplate(rendererInfo: RendererInfo) {
-    const labelKey = valuesLabelKey(rendererInfo);
-    const valueKey = valuesValueKey(rendererInfo);
+  private dropdownMenuTemplate(list: any[], value: string) {
     let template = "";
 
-    let isStringValue = isString(rendererInfo.listItem?.list[0]);
+    const valueSet = new Set(((value || "") + "").split(","));
 
-    rendererInfo.listItem?.list?.forEach((item) => {
+    let isStringValue = isString(list[0]);
+
+    list?.forEach((item) => {
       let val: any = "";
       let label: any = "";
       let addStyle: string = "";
@@ -157,10 +196,11 @@ export default class DropdownRenderer extends ViewRenderer {
         val = item;
         label = item;
       } else {
-        val = item[valueKey] ?? "";
-        label = item[labelKey];
-        addStyle = `${item.selected ? "selected" : ""} ${item.disabled ? "disabled" : ""}`;
+        val = item[this.valueKey] ?? "";
+        label = item[this.labelKey];
       }
+
+      addStyle = `${valueSet.has(val) ? "selected" : ""} ${item.disabled ? "disabled" : ""}`;
 
       template += `<div data-dg-value="${val}" class="dg-dropdown-item ${addStyle}">${label}</div>`;
     });

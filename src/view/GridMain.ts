@@ -3,7 +3,7 @@ import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, LAYER_ATTR_NAME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -85,7 +85,7 @@ export default class GridMain {
       width: opts.width == "auto" ? -1 : opts.width,
     };
 
-    this.layerSelector = '[data-dg-grid-layer="' + this.grid.instanceId() + '"]';
+    this.layerSelector = `[${LAYER_ATTR_NAME}]`;
   }
 
   /**
@@ -152,7 +152,6 @@ export default class GridMain {
 
     // focus in, mousedown
     eventOn(mainElement, "mousedown", (e: UIEvent) => {
-      console.log('mainElement, "mousedown');
       this.setGridFocusIn(e);
     });
 
@@ -170,7 +169,7 @@ export default class GridMain {
 
         this.setGridFocusOut(e);
       } else {
-        mainElement.focus();
+        mainElement.focus({ preventScroll: true });
       }
     });
   }
@@ -181,7 +180,14 @@ export default class GridMain {
    * @public
    * @param {Event} e event
    */
-  public setGridFocusIn(e: Event) {
+  public setGridFocusIn(e: Event, focunInFlag: boolean = false) {
+    if (!focunInFlag) {
+      const targetElement = e.target as HTMLElement;
+      if (targetElement.closest(".dg-body") == null && targetElement.closest(".dg-renderer-container") == null) {
+        this.hideLayer();
+      }
+    }
+
     if (this.grid.config().focus) return;
     this.grid.config().focus = true;
 
@@ -202,6 +208,8 @@ export default class GridMain {
   public setGridFocusOut(e: Event) {
     if (!this.grid.config().focus) return;
 
+    console.log("setGridFocusOut : ");
+
     const targetElement = e.target as HTMLElement;
 
     if ((e as MouseEvent).button !== 2) {
@@ -212,9 +220,14 @@ export default class GridMain {
       this.body.editAreaClose();
     }
   }
-  public hideLayer() {
-    const layers = document.querySelectorAll(this.layerSelector);
+  public hideLayer(activeComponent?: string) {
+    const layers = this._mainElement.getElement().querySelectorAll(this.layerSelector);
 
+    if (!activeComponent) {
+      this.grid.config().activeComponent = "";
+    }
+
+    console.log("hideLayer  ");
     //  const stack = new Error().stack;
 
     // if (stack) {
@@ -222,7 +235,16 @@ export default class GridMain {
     // }
 
     layers.forEach((layer) => {
-      (layer as HTMLElement).style.display = "none";
+      const layerElement = layer as HTMLElement;
+      if (activeComponent) {
+        const attrValue = layerElement.getAttribute(LAYER_ATTR_NAME) ?? "";
+
+        if (activeComponent != attrValue) {
+          layerElement.style.display = "none";
+        }
+      } else {
+        layerElement.style.display = "none";
+      }
     });
   }
 

@@ -91,8 +91,17 @@ export default abstract class EditRenderer extends Renderer {
         value: fieldValue,
       };
 
-      if (field.renderer?.listItem?.list) {
-        const listItems = field.renderer?.listItem?.list;
+      const list = this.field.renderer.listItem?.list;
+
+      if (list) {
+        let listItems = [];
+
+        if (utils.isArray(list)) {
+          listItems = list;
+        } else if (utils.isFunction(list)) {
+          listItems = list(changeInfo);
+        }
+
         let valuesItem = [];
         const valueKey = this.listValueKey;
 

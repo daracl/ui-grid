@@ -38,7 +38,7 @@ export default class ButtonRenderer extends ViewRenderer {
     const cfg = this.gridMain.getGrid().config();
     eventOn(
       contentElement,
-      "pointerdown",
+      "click",
       (e: UIEvent) => {
         const eventElement = e.target as HTMLElement;
         const cellElement = eventElement.closest(".dg-cell") as HTMLElement;

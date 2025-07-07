@@ -53,7 +53,7 @@ export interface Config {
 
   fieldIndex: Map<String, number>;
 
-  activeComponent: any;
+  activeComponent: string;
 
   /**
    * font Family

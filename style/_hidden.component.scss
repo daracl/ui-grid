@@ -23,6 +23,23 @@
       cursor: pointer;
       padding: 2px 5px;
       text-align: center;
+
+      &.selected {
+        background-color: #e6f0ff;
+        font-weight: bold;
+        position: relative;
+        padding-left: 24px;
+        /* 왼쪽 공간 확보 */
+
+        &::before {
+          content: "✔";
+          position: absolute;
+          left: 8px;
+          color: #1a73e8;
+          font-size: 0.9em;
+        }
+      }
+
       &:hover {
         background-color: var(--body-bg-hover);
       }

@@ -5,7 +5,8 @@ import { EditRenderer } from "../renderer/EditRenderer";
 export interface ValuesInfo {
   labelField: string;
   valueField: string;
-  list: any[];
+  multiple: boolean;
+  list: any[] | OptionCallback;
   orientation: ORIENTATION_TYPE;
 }
 

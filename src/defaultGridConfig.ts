@@ -79,7 +79,7 @@ export function initConfig(opts: GridOptions): Config {
     scroll: initScrollInfo(),
     edit: initEditInfo(),
     canvasContext: undefined,
-    activeComponent: {},
+    activeComponent: "",
   };
 }
 

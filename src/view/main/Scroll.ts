@@ -630,6 +630,8 @@ export default class Scroll {
       return;
     }
 
+    this.gridMain.hideLayer();
+
     if (updateChkFlag !== false) {
       const onUpdateFn = this.grid.getOptions().scroll.vertical.onUpdate;
       if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
@@ -718,6 +720,8 @@ export default class Scroll {
     if (cfg.scroll.left == leftVal) {
       return;
     }
+
+    this.gridMain.hideLayer();
 
     cfg.scroll.left = leftVal;
 
