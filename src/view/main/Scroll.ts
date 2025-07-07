@@ -136,6 +136,8 @@ export default class Scroll {
       (evt: WheelEvent) => {
         let delta = evt.deltaY;
 
+        console.log("gridMain.mainElement() wheel");
+
         if (utils.isEmpty(delta)) return;
 
         const isShift = isShiftKey(evt);

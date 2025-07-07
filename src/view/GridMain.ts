@@ -10,7 +10,7 @@ import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
-import { eventOn } from "src/util/eventUtils";
+import { eventOn, stopPreventCancel } from "src/util/eventUtils";
 import { getTextWidth, isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
@@ -172,6 +172,32 @@ export default class GridMain {
         mainElement.focus({ preventScroll: true });
       }
     });
+
+    const rendererElement = this.mainElement().findDaraElement(".dg-renderer-container");
+
+    rendererElement.eventOff("wheel DOMMouseScroll");
+    rendererElement.eventOn(
+      "wheel DOMMouseScroll",
+      (evt: WheelEvent) => {
+        console.log("rendererelement");
+        const targetElement = evt.target as HTMLElement;
+        const el = targetElement.closest("[data-dg-grid-layer]") as HTMLElement;
+        const delta = evt.deltaY;
+
+        const atTop = el.scrollTop === 0;
+        const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight;
+
+        evt.stopPropagation();
+
+        if ((delta < 0 && atTop) || (delta > 0 && atBottom)) {
+          evt.preventDefault();
+        }
+
+        return true;
+      },
+      null,
+      { passive: false }
+    );
   }
 
   /**

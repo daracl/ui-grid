@@ -9,6 +9,9 @@ import Language from "src/util/Language";
 import { HIDDEN_ELEMENT } from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
 import { LAYER_ATTR_NAME } from "src/constants";
+import { toggleClass } from "src/util/styleUtils";
+
+const SELECTED_STYLE_CLASS = "selected";
 
 /**
  * dropdown renderer
@@ -164,6 +167,8 @@ export default class DropdownRenderer extends ViewRenderer {
         const target = e.target as HTMLElement;
         const addValue = target.getAttribute("data-dg-value");
 
+        toggleClass(target, SELECTED_STYLE_CLASS);
+
         if (isMultiple) {
           cellInfo.item[this.fieldName] = addValueIfMissing(cellInfo.item[this.fieldName], addValue);
         } else {
@@ -200,7 +205,7 @@ export default class DropdownRenderer extends ViewRenderer {
         label = item[this.labelKey];
       }
 
-      addStyle = `${valueSet.has(val) ? "selected" : ""} ${item.disabled ? "disabled" : ""}`;
+      addStyle = `${valueSet.has(val) ? SELECTED_STYLE_CLASS : ""} ${item.disabled ? "disabled" : ""}`;
 
       template += `<div data-dg-value="${val}" class="dg-dropdown-item ${addStyle}">${label}</div>`;
     });

@@ -83,14 +83,35 @@ export function addClass(element: HTMLElement | NodeListOf<HTMLElement> | null, 
  * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
  * @param {string} styleClass style css class
  */
-export function removeClass(element: HTMLElement | NodeListOf<Element> | null, styleClass: string): void {
-  if (!element) return;
+export function removeClass(element: Element | NodeListOf<Element> | null, classNames: string): void {
+  if (!element || typeof classNames !== "string") return;
 
-  const elements: Element[] = element instanceof HTMLElement ? [element] : Array.from(element);
+  const elements = element instanceof Element ? [element] : Array.from(element);
 
-  const styleClasses = styleClassSplit(styleClass);
+  const styleClasses = styleClassSplit(classNames);
 
-  elements.forEach((el) => {
-    el.classList.remove(...styleClasses); // contains 체크 불필요
-  });
+  for (const el of elements) {
+    el.classList.remove(...styleClasses);
+  }
+}
+
+/**
+ * toggleClass
+ *
+ * 지정된 DOM 요소(또는 요소 리스트)에 하나 이상의 클래스를 토글(add/remove)합니다.
+ *
+ * @param element - 단일 Element 또는 NodeListOf<Element> 또는 null
+ * @param classNames - 공백으로 구분된 하나 이상의 클래스 이름
+ */
+export function toggleClass(element: Element | NodeListOf<Element> | null, classNames: string): void {
+  if (!element || typeof classNames !== "string") return;
+
+  const elements = element instanceof Element ? [element] : Array.from(element);
+  const styleClasses = styleClassSplit(classNames);
+
+  for (const el of elements) {
+    styleClasses.forEach((cls) => {
+      el.classList.toggle(cls);
+    });
+  }
 }
