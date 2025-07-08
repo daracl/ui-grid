@@ -1,4 +1,4 @@
-import CheckboxRenderer from "./renderer/edit/CheckboxRenderer";
+import CheckboxRenderer from "./renderer/view/CheckboxRenderer";
 import EditCustomRenderer from "./renderer/edit/EditCustomRenderer";
 import DateRenderer from "./renderer/edit/DateRenderer";
 
@@ -61,6 +61,7 @@ export const VIEW_RENDERER: any = {
   modifyInfo: AsideModifyInfoRenderer,
   rowCheckbox: AsideRowCheckRenderer,
   dropdown: DropdownRenderer,
+  checkbox: CheckboxRenderer,
   bar: BarRenderer,
   button: ButtonRenderer,
   hidden: HiddenRenderer,

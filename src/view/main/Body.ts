@@ -5,7 +5,7 @@ import { getCheckboxMode } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ROW_CHECK_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
+import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";
@@ -534,12 +534,14 @@ export default class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const renderType = field.renderer.type;
-    if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline" || renderType == "sparklineBar") {
-      const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
-      const height = item[ROW_HEIGHT_KEY] - 5;
-      contentEleStyle.maxHeight = height + "px";
-      contentEleStyle.height = height + "px";
-    }
+    //if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline" || renderType == "sparklineBar") {
+    const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
+    const height = item[ROW_HEIGHT_KEY] - 5;
+    contentEleStyle.maxHeight = height + "px";
+    contentEleStyle.height = height + "px";
+    contentEleStyle.lineHeight = height + "px";
+
+    //}
 
     if (!field.styleClass) return;
 
@@ -630,13 +632,17 @@ export default class Body {
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
+          const isCheck = field.name == ROW_CHECK_NAME;
+          const contentTag = isCheck ? "label" : "div";
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
-          <div role="presentation" class="dg-cell-content ${field.$alignStyle}"></div>
+          <${contentTag} role="presentation" class="dg-cell-content ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></${contentTag}>
         </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
+          const isCheck = field.renderer.type == "checkbox";
+          const contentTag = isCheck ? "label" : "div";
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><${contentTag} role="presentation"
             class="dg-cell-content dg-cell-ellipsis 
-            dg-${renderType} ${field.$alignStyle}"></div>
+            dg-${renderType} ${field.$alignStyle}"></${contentTag}>
         </td>`);
         }
       }

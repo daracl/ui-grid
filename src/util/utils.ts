@@ -408,7 +408,7 @@ export const merge = (...value: any[]): any => {
  * @returns {string} 결과 문자열
  */
 export function addValueIfMissing(value: string, addValue: string | null, shouldSort = false, delimiter = ",") {
-  if (!addValue) return value;
+  if (!addValue) return [];
 
   value = (value || "") + "";
 
@@ -431,7 +431,7 @@ export function addValueIfMissing(value: string, addValue: string | null, should
     result.sort();
   }
 
-  return result.join(delimiter);
+  return result;
 }
 
 export function trim(s: string): string {

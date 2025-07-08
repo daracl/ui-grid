@@ -6,6 +6,7 @@ export interface ValuesInfo {
   labelField: string;
   valueField: string;
   multiple: boolean;
+  delimiter: string;
   list: any[] | OptionCallback;
   orientation: ORIENTATION_TYPE;
 }
@@ -49,4 +50,7 @@ export interface RendererInfo {
   click?: OptionCallback; // button onclick function
   editRender?: EditRenderer;
   conditional?: ConditionInfo; // 보이기 여부
+  // checkbox, Switch true or false 값
+  trueValue?: string;
+  falseValue?: string;
 }

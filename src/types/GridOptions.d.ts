@@ -585,7 +585,7 @@ export interface ScrollOptions {
   /**
    * 이벤트 전파 여부.
    */
-  enableStopPropagation?: boolean;
+  enableWheelInContainer?: boolean;
   /**
    * size
    */

@@ -136,7 +136,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   summary: { items: [] },
   scroll: {
     // 스크롤 옵션
-    enableStopPropagation: false, // 이벤트 전파 여부.
+    enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용
     width: 14, // 세로 스크롤
     vertical: {
       enable: true,

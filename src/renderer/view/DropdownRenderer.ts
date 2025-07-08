@@ -9,7 +9,7 @@ import Language from "src/util/Language";
 import { HIDDEN_ELEMENT } from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
 import { LAYER_ATTR_NAME } from "src/constants";
-import { toggleClass } from "src/util/styleUtils";
+import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
 
 const SELECTED_STYLE_CLASS = "selected";
 
@@ -23,10 +23,13 @@ const SELECTED_STYLE_CLASS = "selected";
 export default class DropdownRenderer extends ViewRenderer {
   private menuElement: HTMLElement;
   private currentEditRow: number;
-  private labelKey: string;
-  private valueKey: string;
-  private rendererContainer: HTMLElement;
-  private isMultiple: boolean;
+  private readonly labelKey: string;
+  private readonly valueKey: string;
+  private readonly rendererContainer: HTMLElement;
+  private readonly isMultiple: boolean;
+  private readonly valueDelimiter: string;
+
+  private valueLabelMap: Map<string, any>;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -34,9 +37,39 @@ export default class DropdownRenderer extends ViewRenderer {
     const rendererInfo = this.field.renderer;
     this.labelKey = valuesLabelKey(rendererInfo);
     this.valueKey = valuesValueKey(rendererInfo);
-    this.isMultiple = this.field.renderer.listItem?.multiple ?? false;
+    this.isMultiple = rendererInfo.listItem?.multiple ?? false;
+
+    this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ",";
 
     this.rendererContainer = this.gridMain.getRendererContainer();
+
+    const list = rendererInfo.listItem?.list;
+    if (isArray(list)) {
+      this.initListItem(list);
+    } else if (isFunction(list)) {
+      list({ init: true }, (result: any[]) => {
+        this.initListItem(result);
+      });
+    }
+  }
+  private initListItem(list: any[]) {
+    const valueLabelMap = new Map<string, any>();
+    const isStringValue = isString(list[0]);
+    for (const item of list) {
+      let val: string;
+      let label: string;
+
+      if (isStringValue) {
+        val = item;
+        label = item;
+      } else {
+        val = item?.[this.valueKey] ?? "";
+        label = item?.[this.labelKey] ?? "";
+      }
+      valueLabelMap.set(val, label);
+    }
+
+    this.valueLabelMap = valueLabelMap;
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
@@ -69,7 +102,23 @@ export default class DropdownRenderer extends ViewRenderer {
     if (refValue) {
       textElement.textContent = refValue.label ?? value;
     } else {
-      textElement.textContent = value;
+      let viewLabel = value;
+      if (this.valueLabelMap.size > 0) {
+        const valueSet = new Set(this.valueSplit(value));
+        const values = Array.from(valueSet);
+
+        const labels: string[] = [];
+
+        const valueLabelMap = this.valueLabelMap;
+
+        for (let val of values) {
+          if (valueLabelMap.has(val)) {
+            labels.push(valueLabelMap.get(val));
+          }
+        }
+        viewLabel = labels.join(this.valueDelimiter);
+      }
+      textElement.textContent = viewLabel;
     }
   }
 
@@ -116,22 +165,49 @@ export default class DropdownRenderer extends ViewRenderer {
       this.menuElement = menuElement;
     }
 
-    const list = this.field.renderer.listItem?.list;
+    let list = this.field.renderer.listItem?.list;
 
     const value = cellInfo.item[this.fieldName];
 
     if (isArray(list)) {
+      list = this.uniqueListItem(list);
       menuElement.innerHTML = this.dropdownMenuTemplate(list, value);
-      this.openMenu(cellElement, menuElement, eventElement, cellInfo);
+      this.openMenu(cellElement, menuElement, eventElement, cellInfo, list);
     } else if (isFunction(list)) {
       list(cellInfo, (result: any[]) => {
+        result = this.uniqueListItem(result);
         menuElement.innerHTML = this.dropdownMenuTemplate(result, value);
-        this.openMenu(cellElement, menuElement, eventElement, cellInfo);
+        this.openMenu(cellElement, menuElement, eventElement, cellInfo, result);
       });
     }
   }
 
-  private openMenu(cellElement: HTMLElement, menuElement: HTMLElement, eventElement: HTMLElement, cellInfo: CellInfo) {
+  private uniqueListItem(list: any[]) {
+    const seen = new Set();
+    const valueKey = this.valueKey;
+    const uniqueArr = list.filter((item) => {
+      if (seen.has(item[valueKey])) return false;
+      seen.add(item[valueKey]);
+      return true;
+    });
+    return uniqueArr;
+  }
+
+  private valueSplit(val: string) {
+    return ((val || "") + "").split(this.valueDelimiter);
+  }
+
+  /**
+   * dropdown list open
+   *
+   * @private
+   * @param {HTMLElement} cellElement cell element
+   * @param {HTMLElement} menuElement dropdown element
+   * @param {HTMLElement} eventElement click element
+   * @param {CellInfo} cellInfo cell info
+   * @param {any[]} list list item
+   */
+  private openMenu(cellElement: HTMLElement, menuElement: HTMLElement, eventElement: HTMLElement, cellInfo: CellInfo, list: any[]) {
     const rendererContainer = this.rendererContainer.getBoundingClientRect();
     const elementRect = eventElement.getBoundingClientRect();
 
@@ -170,7 +246,35 @@ export default class DropdownRenderer extends ViewRenderer {
         toggleClass(target, SELECTED_STYLE_CLASS);
 
         if (isMultiple) {
-          cellInfo.item[this.fieldName] = addValueIfMissing(cellInfo.item[this.fieldName], addValue);
+          const allItemLength = list.length;
+          const currentValue = cellInfo.item[this.fieldName] ?? "";
+          if (addValue == "$all$") {
+            const allItemElement = menuElement.querySelectorAll(".dg-dropdown-item");
+            if (allItemLength == currentValue.split(this.valueDelimiter).length) {
+              cellInfo.item[this.fieldName] = "";
+
+              removeClass(allItemElement, SELECTED_STYLE_CLASS);
+            } else {
+              const valueKey = this.valueKey;
+              cellInfo.item[this.fieldName] = list
+                .map((item) => {
+                  return item[valueKey];
+                })
+                .join(this.valueDelimiter);
+
+              addClass(allItemElement, SELECTED_STYLE_CLASS);
+            }
+          } else {
+            const newValue = addValueIfMissing(cellInfo.item[this.fieldName], addValue, false, this.valueDelimiter);
+
+            cellInfo.item[this.fieldName] = newValue.join(this.valueDelimiter);
+
+            if (allItemLength == newValue.length) {
+              addClass(menuElement.querySelectorAll(".dg-dropdown-item"), SELECTED_STYLE_CLASS);
+            } else {
+              removeClass(menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="$all$"]'), SELECTED_STYLE_CLASS);
+            }
+          }
         } else {
           cellInfo.item[this.fieldName] = addValue;
         }
@@ -186,30 +290,41 @@ export default class DropdownRenderer extends ViewRenderer {
     );
   }
 
-  private dropdownMenuTemplate(list: any[], value: string) {
-    let template = "";
+  private dropdownMenuTemplate(list: any[], value: string): string {
+    if (!isArray(list) || list.length === 0) return "";
 
-    const valueSet = new Set(((value || "") + "").split(","));
+    const templateParts: string[] = [];
 
-    let isStringValue = isString(list[0]);
+    const valueSet = new Set(this.valueSplit(value));
 
-    list?.forEach((item) => {
-      let val: any = "";
-      let label: any = "";
-      let addStyle: string = "";
+    const isStringValue = isString(list[0]);
+    const isMultiple = this.isMultiple;
+
+    if (isMultiple) {
+      templateParts.push(`<div data-dg-value="$all$" class="dg-dropdown-item dg-all ${list.length == valueSet.size ? SELECTED_STYLE_CLASS : ""}">ALL</div>`);
+    }
+
+    for (const item of list) {
+      let val: string;
+      let label: string;
+
       if (isStringValue) {
         val = item;
         label = item;
       } else {
-        val = item[this.valueKey] ?? "";
-        label = item[this.labelKey];
+        val = item?.[this.valueKey] ?? "";
+        label = item?.[this.labelKey] ?? "";
       }
 
-      addStyle = `${valueSet.has(val) ? SELECTED_STYLE_CLASS : ""} ${item.disabled ? "disabled" : ""}`;
+      // 선택됨/비활성화 상태 클래스
+      const isSelected = valueSet.has(val);
+      const isDisabled = !!item?.disabled;
 
-      template += `<div data-dg-value="${val}" class="dg-dropdown-item ${addStyle}">${label}</div>`;
-    });
+      const classes = [isSelected ? SELECTED_STYLE_CLASS : "", isDisabled ? "disabled" : ""].join(" ");
 
-    return template;
+      templateParts.push(`<div data-dg-value="${val}" class="dg-dropdown-item ${classes}">${label}</div>`);
+    }
+
+    return templateParts.join("");
   }
 }

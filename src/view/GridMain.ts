@@ -179,9 +179,10 @@ export default class GridMain {
     rendererElement.eventOn(
       "wheel DOMMouseScroll",
       (evt: WheelEvent) => {
-        console.log("rendererelement");
         const targetElement = evt.target as HTMLElement;
         const el = targetElement.closest("[data-dg-grid-layer]") as HTMLElement;
+        if (el == null) return;
+
         const delta = evt.deltaY;
 
         const atTop = el.scrollTop === 0;

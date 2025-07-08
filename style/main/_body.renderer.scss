@@ -57,6 +57,12 @@
     }
   }
 
+  /*dg-checkbox */
+  .dg-checkbox {
+    display: flex;
+    justify-content: center;
+  }
+
   /* dropdown */
   .dg-dropdown {
     display: flex;
@@ -67,6 +73,8 @@
       //background-color: var(--button-bg);
       border: 1px solid var(--border-color);
       cursor: pointer;
+      display: flex;
+      align-items: center;
 
       .dg-cell-content-label {
         flex: 1;
@@ -92,8 +100,11 @@
         font-size: 0.8em;
         position: absolute;
         top: 48%;
-        right: 5px;
+        right: 0px;
+        padding: 0px 5px;
         transform: translateY(-50%);
+        background: var(--button-bg);
+        z-index: 1;
         &::after {
           content: "▼";
           font-size: 1em;

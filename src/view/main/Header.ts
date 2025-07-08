@@ -7,8 +7,6 @@ import GridMain from "../GridMain";
 import { getHeaderCellInfo } from "src/util/gridUtils";
 import { removeClass } from "src/util/styleUtils";
 import HeaderEvent from "./HeaderEvent";
-import CheckboxRenderer from "src/renderer/edit/CheckboxRenderer";
-import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
 import { ROW_CHECK_NAME } from "src/constants";
 
 /**

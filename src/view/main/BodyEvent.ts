@@ -48,37 +48,6 @@ export default class BodyEvent {
     this.initKeydownEvent();
     this.initCellEvent();
     this.initBodyEvent();
-
-    this.initRowCheckEvent();
-  }
-
-  /**
-   * init row check event
-   *
-   * @private
-   */
-  private initRowCheckEvent() {
-    const cfg = this.grid.config();
-    const bodyElement = this.bodyElement.getElement();
-
-    eventOn(
-      bodyElement,
-      "click",
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLInputElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-
-        const cellInfo = getCellInfo(cfg, cellElement);
-
-        const checked = eventElement.checked;
-
-        const item = cellInfo.item;
-
-        this.body.setCheckItem(cellInfo, checked, item);
-      },
-      '[name="dgRowCheck"]',
-      { passive: false }
-    );
   }
 
   /**

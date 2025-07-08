@@ -130,13 +130,13 @@ export default class Scroll {
     const { scroll, dataInfo } = this.grid.config();
     const opts = this.opts;
 
+    const enableWheelInContainer = opts.scroll.enableWheelInContainer;
+
     this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
     this.gridMain.mainElement().eventOn(
       "wheel DOMMouseScroll",
       (evt: WheelEvent) => {
         let delta = evt.deltaY;
-
-        console.log("gridMain.mainElement() wheel");
 
         if (utils.isEmpty(delta)) return;
 
@@ -146,7 +146,8 @@ export default class Scroll {
         if (scroll.enableVertical && !isShift) {
           const upDown = delta < 0 ? "U" : "D";
           if ((upDown == "U" && scroll.startIdx == 0) || (upDown == "D" && scroll.startIdx + scroll.viewRow > dataInfo.rowLength)) {
-            stopPreventCancel(evt);
+            if (enableWheelInContainer) stopPreventCancel(evt);
+
             return;
           }
 
@@ -155,7 +156,7 @@ export default class Scroll {
             const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
             this.moveVerticalScroll({ direction: upDown, speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
           });
-          if (opts.scroll.enableStopPropagation === true || (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)) {
+          if (opts.scroll.enableWheelInContainer === true || (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)) {
             stopPreventCancel(evt);
           }
         } else if (scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
@@ -163,9 +164,11 @@ export default class Scroll {
             this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
           });
 
-          if (opts.scroll.enableStopPropagation === true || (scroll.left != 0 && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
+          if (scroll.left != 0 && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth) {
             stopPreventCancel(evt);
           }
+
+          if (enableWheelInContainer) stopPreventCancel(evt);
         }
       },
       null,

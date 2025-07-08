@@ -1,54 +1,53 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
-import { ROW_CHECK_KEY } from "src/constants";
 import GridMain from "src/view/GridMain";
+import ViewRenderer from "../ViewRenderer";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 
 /**
- * Aside RowCheck Renderer
+ * checkbox renderer
  *
- * @class AsideRowCheckRenderer
- * @typedef {AsideRowCheckRenderer}
+ * @class CheckboxRenderer
+ * @typedef {CheckboxRenderer}
  * @extends {ViewRenderer}
  */
-export default class AsideRowCheckRenderer extends ViewRenderer {
-  private allowMultiSelect: boolean;
+export default class CheckboxRenderer extends ViewRenderer {
+  private trueValue: string | boolean;
+  private falseValue: string | boolean;
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    this.allowMultiSelect = field.renderer.customOptions?.allowMultiSelect ?? true;
+    const rendererInfo = this.field.renderer;
+    this.trueValue = rendererInfo.trueValue ?? true;
+    this.falseValue = rendererInfo.falseValue ?? false;
   }
 
   public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
-    const isMulti = this.allowMultiSelect;
-    const inputName = ROW_CHECK_KEY;
+    const inputName = this.fieldName;
 
-    let input = element.firstElementChild as HTMLInputElement | null;
+    const val = item[inputName];
+
+    let input = element.firstElementChild as HTMLInputElement;
 
     // 최초 렌더링 시 구조 생성
     if (!input) {
       input = document.createElement("input");
-      input.type = isMulti ? "checkbox" : "radio";
-      input.name = "dgRowCheck";
-      if (!isMulti) input.classList.add("childRadio");
+      input.type = "checkbox";
+      input.name = inputName;
 
       const mark = document.createElement("span");
-      mark.className = isMulti ? "checkmark" : "radiomark";
+      mark.className = "checkmark";
 
       element.appendChild(input);
       element.appendChild(mark);
       this.initClick(input);
     }
-    input.checked = item[inputName];
-  }
-
-  public isAllowMultiSelect(): boolean {
-    return this.allowMultiSelect;
+    input.checked = val === this.trueValue;
   }
 
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.getGrid().config();
+
     eventOn(
       contentElement,
       "click",
@@ -61,7 +60,7 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
 
         const item = cellInfo.item;
 
-        this.gridMain.getBody().setCheckItem(cellInfo, checked, item);
+        item[this.fieldName] = checked ? this.trueValue : this.falseValue;
       },
       { passive: false }
     );

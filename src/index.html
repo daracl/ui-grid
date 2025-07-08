@@ -234,6 +234,7 @@
           , h: i
           , i: 'iiii' + i
           , j: 'jjjj' + i
+          , k: i % 2 == 0 ? "Y" : "N"
           , s: generateRandomNumbers(1, 100, 6)
           , t: generateRandomNumbers(1, 100, 6)
           , z: Math.floor(Math.random() * 201) - 100
@@ -297,7 +298,7 @@
           }
         }
         , {
-          name: 'c', label: 'link', width: 100, type: 'money', renderer: {
+          name: 'c', label: 'link', width: 100, renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -307,6 +308,13 @@
             , click: function (item) {
               console.log('link ', item)
             }
+          }
+        }
+        , {
+          name: 'k', label: 'checkbox', width: 100, renderer: {
+            type: 'checkbox',
+            trueValue: "Y",
+            falseValue: "N"
           }
         }
         , {
@@ -337,7 +345,7 @@
           }
         }
         , {
-          name: 'z', label: 'dropdownz', width: 100, type: 'text', renderer: {
+          name: 'cc', label: 'dropdownz', width: 100, type: 'text', renderer: {
             type: 'dropdown'
             , listItem: {
               labelField: 'name'
@@ -770,7 +778,7 @@
         ]
       }
       , scroll: {
-        enableStopPropagation: true,
+        enableWheelInContainer: true,
         vertical: {
           enable1: false,
           onUpdate: function (item) {	// 스크롤 업데이트. 
@@ -842,7 +850,7 @@
         }
         , row: {
           height: 30
-          , enableDblClickRowCheck_1: true
+          , enableDblClickRowCheck: true
           , contextMenu: {
             beforeSelect: function (info) {
 

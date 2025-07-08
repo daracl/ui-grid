@@ -65,10 +65,10 @@ export const styleClassSplit = (styleClass: string) => {
  *
  * @param {string} styleClasss css class
  */
-export function addClass(element: HTMLElement | NodeListOf<HTMLElement> | null, styleClass: string): void {
+export function addClass(element: Element | NodeListOf<Element> | null, styleClass: string): void {
   if (!element) return;
 
-  const elements: HTMLElement[] = element instanceof HTMLElement ? [element] : Array.from(element);
+  const elements = element instanceof Element ? [element] : Array.from(element);
 
   const addStyles = styleClassSplit(styleClass);
 
