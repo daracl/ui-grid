@@ -56,7 +56,7 @@ export function initConfig(opts: GridOptions): Config {
     fieldIndex: new Map(),
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, startCol: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
     cellWidths: [],
-    rowHeight: opts.body.row.height ?? 28,
+    rowHeight: Math.max(opts.body.row.height ?? 30, 25),
     sort: { orders: [] },
     paging: pagingInfo,
     selection: {} as Selection,

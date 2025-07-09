@@ -39,6 +39,7 @@ let localeMessage: Message = {
   "search.label": "찾기",
   "search.button": "검색",
   "no.data": "No Data",
+  "select.all": "전체선택",
 };
 
 /**

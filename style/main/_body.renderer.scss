@@ -60,13 +60,25 @@
   /*dg-checkbox */
   .dg-checkbox {
     display: flex;
-    justify-content: center;
+
+    .dg-checkmark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  /*dg-switch */
+  .dg-switch {
+    display: flex;
   }
 
   /* dropdown */
   .dg-dropdown {
     display: flex;
     justify-content: center;
+    margin: 0px 2px 0px 2px !important;
+
     .dg-cell-content {
       padding: 2px 2px;
       width: 100%;
@@ -99,10 +111,9 @@
       .dg-cell-content-icon {
         font-size: 0.8em;
         position: absolute;
-        top: 48%;
-        right: 0px;
+        height: calc(100% - 2px);
+        right: 1px;
         padding: 0px 5px;
-        transform: translateY(-50%);
         background: var(--button-bg);
         z-index: 1;
         &::after {

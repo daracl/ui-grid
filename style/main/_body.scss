@@ -100,17 +100,25 @@
         width: 0px !important;
         min-width: auto !important;
         border-collapse: separate !important;
+        .dg-row {
+          background-color: var(--body-bg);
+        }
 
         .dg-row > .dg-cell {
           border: 1px solid var(--border-color);
           border-top: none !important;
           border-left: none !important;
           position: relative;
-          padding: 0px 5px 0px 5px !important;
+          padding: 0px !important;
           margin: 0 !important;
+          overflow: hidden;
 
-          .dg-cell-content {
+          .dg-cell-renderer {
             position: relative;
+            margin: 0px 3px 0px 3px !important;
+            min-height: 23px;
+            height: 23px;
+            line-height: 23px;
           }
 
           &.line-number {

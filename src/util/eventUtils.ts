@@ -171,20 +171,19 @@ export const eventKeyCode = (e: any) => {
  * @param e event
  * @returns
  */
-export const eventPosition = (e: any) => {
-  const oe = e.originalEvent;
-  let evt;
-  if (oe) {
-    if (oe.changedTouches) {
-      evt = oe.changedTouches[0];
-    } else if (oe.touches) {
-      evt = oe[0];
-    }
+export const eventPosition = (e: Event) => {
+  if (e instanceof TouchEvent && e.touches.length > 0) {
+    return {
+      x: e.touches[0].pageX,
+      y: e.touches[0].pageY,
+    };
+  } else if (e instanceof MouseEvent) {
+    return {
+      x: e.pageX,
+      y: e.pageY,
+    };
   }
-
-  evt = evt || e;
-
-  return { x: evt.pageX, y: evt.pageY };
+  return { x: 0, y: 0 }; // fallback
 };
 
 function $querySelector(el: Element | string | NodeList | Document): any[] {

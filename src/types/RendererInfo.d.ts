@@ -53,4 +53,6 @@ export interface RendererInfo {
   // checkbox, Switch true or false 값
   trueValue?: string;
   falseValue?: string;
+  //label 보이기 여부
+  showLabel?: boolean;
 }

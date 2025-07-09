@@ -24,6 +24,7 @@ import TextRenderer from "./renderer/view/TextRenderer";
 import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
 import SparklineRenderer from "./renderer/view/SparklineRenderer";
 import SparklineRendererBar from "./renderer/view/SparklineRendererBar";
+import SwitchRenderer from "./renderer/view/SwitchRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -62,6 +63,7 @@ export const VIEW_RENDERER: any = {
   rowCheckbox: AsideRowCheckRenderer,
   dropdown: DropdownRenderer,
   checkbox: CheckboxRenderer,
+  switch: SwitchRenderer,
   bar: BarRenderer,
   button: ButtonRenderer,
   hidden: HiddenRenderer,

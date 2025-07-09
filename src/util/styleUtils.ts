@@ -10,7 +10,7 @@ export const addStyleTag = (grid: DaraGrid) => {
 
   const cssStr = [];
 
-  const rowOptHeight = options.body.row.height;
+  const rowOptHeight = grid.config().rowHeight;
 
   const uidAttribute = grid.getUidAttrSelector();
 

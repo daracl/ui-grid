@@ -128,7 +128,7 @@
 </style>
 <script>
 
-  Daracl.grid.message({ "no.data": "데이터가 없습니다." })
+  Daracl.grid.message({ "no.data": "데이터가 없습니다.", "select.all": "ALL" })
 
   const THEME_KEY = "grid-theme";
   const theme = localStorage.getItem(THEME_KEY);
@@ -314,7 +314,16 @@
           name: 'k', label: 'checkbox', width: 100, renderer: {
             type: 'checkbox',
             trueValue: "Y",
-            falseValue: "N"
+            falseValue: "N",
+            showLabel: true
+          }
+        }
+        , {
+          name: 'k', label: 'switch', width: 37, renderer: {
+            type: 'switch',
+            trueValue: "Y",
+            falseValue: "N",
+            showLabel: true
           }
         }
         , {
@@ -666,7 +675,7 @@
       }
       , header: {
         view: true
-        , enableViewAllLabel: true
+        , enableViewAllLabel_1: true
         //, heights: [20, 50, 50]
         , sort: {
           //정렬 활성화 여부
@@ -849,7 +858,7 @@
           console.log('pasteAfter', a)
         }
         , row: {
-          height: 30
+          height: 50
           , enableDblClickRowCheck: true
           , contextMenu: {
             beforeSelect: function (info) {

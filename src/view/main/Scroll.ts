@@ -318,6 +318,9 @@ export default class Scroll {
       if (!dragging) return;
 
       const delta = lastY - startY;
+
+      console.log("111111 : ", lastY, startY);
+
       this.moveVerticalScroll({ position: initialTop + delta });
 
       if (tooltipFlag) {

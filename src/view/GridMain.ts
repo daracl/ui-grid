@@ -175,12 +175,14 @@ export default class GridMain {
 
     const rendererElement = this.mainElement().findDaraElement(".dg-renderer-container");
 
+    const layerSelector = `[${LAYER_ATTR_NAME}]`;
+
     rendererElement.eventOff("wheel DOMMouseScroll");
     rendererElement.eventOn(
       "wheel DOMMouseScroll",
       (evt: WheelEvent) => {
         const targetElement = evt.target as HTMLElement;
-        const el = targetElement.closest("[data-dg-grid-layer]") as HTMLElement;
+        const el = targetElement.closest(layerSelector) as HTMLElement;
         if (el == null) return;
 
         const delta = evt.deltaY;
@@ -473,8 +475,6 @@ export default class GridMain {
     const dimensions = cfg.dimensions;
 
     const opts = this.grid.getOptions();
-
-    cfg.rowHeight = opts.body.row.height;
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
@@ -1168,7 +1168,7 @@ export default class GridMain {
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
-                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid.language.getMessage("no.data")}</span></span></div>
+                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid.i18n().getMessage("no.data")}</span></span></div>
                   </div>
                   ${
                     dimensions.mainSummaryHeight > 0

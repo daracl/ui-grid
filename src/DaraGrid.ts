@@ -34,15 +34,7 @@ export default class DaraGrid {
 
   private readonly options;
 
-  public language: Language;
-
-  /**
-   * grid element
-   *
-   * @private
-   * @type {GridElement}
-   */
-  public elementMap: GridElement;
+  private language: Language;
 
   /**
    * unique id
@@ -96,6 +88,10 @@ export default class DaraGrid {
 
   public config() {
     return this.mainConfig;
+  }
+
+  public i18n() {
+    return this.language;
   }
 
   public static create(gridElement: HTMLElement, options: GridOptions, message?: Message): DaraGrid {

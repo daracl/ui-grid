@@ -534,14 +534,13 @@ export default class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const renderType = field.renderer.type;
-    //if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline" || renderType == "sparklineBar") {
-    const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
-    const height = item[ROW_HEIGHT_KEY] - 5;
-    contentEleStyle.maxHeight = height + "px";
-    contentEleStyle.height = height + "px";
-    contentEleStyle.lineHeight = height + "px";
-
-    //}
+    if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline" || renderType == "sparklineBar") {
+      const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
+      const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
+      contentEleStyle.maxHeight = heightPixel;
+      contentEleStyle.height = heightPixel;
+      //contentEleStyle.lineHeight = height + "px";
+    }
 
     if (!field.styleClass) return;
 
@@ -632,17 +631,13 @@ export default class Body {
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
-          const isCheck = field.name == ROW_CHECK_NAME;
-          const contentTag = isCheck ? "label" : "div";
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
-          <${contentTag} role="presentation" class="dg-cell-content ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></${contentTag}>
+          <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></div>
         </td>`);
         } else {
-          const isCheck = field.renderer.type == "checkbox";
-          const contentTag = isCheck ? "label" : "div";
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><${contentTag} role="presentation"
-            class="dg-cell-content dg-cell-ellipsis 
-            dg-${renderType} ${field.$alignStyle}"></${contentTag}>
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
+            class="dg-cell-renderer dg-cell-ellipsis 
+            dg-${renderType} ${field.$alignStyle}"></div>
         </td>`);
         }
       }

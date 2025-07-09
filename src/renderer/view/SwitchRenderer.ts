@@ -5,13 +5,13 @@ import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 
 /**
- * checkbox renderer
+ * Switch renderer
  *
- * @class CheckboxRenderer
- * @typedef {CheckboxRenderer}
+ * @class SwitchRenderer
+ * @typedef {SwitchRenderer}
  * @extends {ViewRenderer}
  */
-export default class CheckboxRenderer extends ViewRenderer {
+export default class SwitchRenderer extends ViewRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
   private showLabel: boolean;
@@ -41,16 +41,10 @@ export default class CheckboxRenderer extends ViewRenderer {
       input.name = inputName;
 
       const mark = document.createElement("span");
-      mark.className = "dg-checkmark";
+      mark.className = "dg-slider";
 
       label.appendChild(input);
       label.appendChild(mark);
-
-      if (this.showLabel) {
-        const textLabel = document.createElement("span");
-        textLabel.className = "dg-cell-content-label dg-cell-ellipsis";
-        label.appendChild(textLabel);
-      }
 
       element.appendChild(label);
 
@@ -61,8 +55,8 @@ export default class CheckboxRenderer extends ViewRenderer {
     input.checked = val === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = element.querySelector(".dg-cell-content-label");
-      if (labelElement) labelElement.textContent = val;
+      const labelElement = element.querySelector(".dg-slider");
+      if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
     }
   }
 

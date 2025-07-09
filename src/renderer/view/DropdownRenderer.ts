@@ -213,6 +213,11 @@ export default class DropdownRenderer extends ViewRenderer {
 
     menuElement.style.display = "block";
 
+    // renderer 위치 util 만들것.
+    //
+    //
+    //
+
     const menuHeight = menuElement.offsetHeight || menuElement.getBoundingClientRect().height;
     const windowBottom = window.innerHeight;
 
@@ -230,7 +235,7 @@ export default class DropdownRenderer extends ViewRenderer {
     }
 
     menuElement.style.left = `${relativeLeft}px`;
-    menuElement.style.minWidth = `${elementRect.width}px`;
+    menuElement.style.width = `${elementRect.width}px`;
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
 
@@ -238,7 +243,7 @@ export default class DropdownRenderer extends ViewRenderer {
 
     eventOn(
       items,
-      "pointerdown",
+      "click",
       (e: UIEvent) => {
         const target = e.target as HTMLElement;
         const addValue = target.getAttribute("data-dg-value");
@@ -301,7 +306,7 @@ export default class DropdownRenderer extends ViewRenderer {
     const isMultiple = this.isMultiple;
 
     if (isMultiple) {
-      templateParts.push(`<div data-dg-value="$all$" class="dg-dropdown-item dg-all ${list.length == valueSet.size ? SELECTED_STYLE_CLASS : ""}">ALL</div>`);
+      templateParts.push(`<div data-dg-value="$all$" class="dg-dropdown-item dg-all ${list.length == valueSet.size ? SELECTED_STYLE_CLASS : ""}">${this.language.getMessage("select.all")}</div>`);
     }
 
     for (const item of list) {
