@@ -257,7 +257,7 @@ export default class Header {
 
         const label =
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
-            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
+            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="dg-checkmark"></span></label>'
             : `<div class="centered">${headerItem.label}</div>`;
 
         const labelHtml = `

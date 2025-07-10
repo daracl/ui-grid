@@ -13,9 +13,11 @@ import { Config } from "@t/GridConfig";
  * @returns {(ValidResult | boolean)}
  */
 export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config, result: ValidResult): ValidResult | boolean => {
-  const fieldRender = field.renderer;
-  if (fieldRender.validator) {
-    result.validator = fieldRender.validator(field, rowItem);
+  const editRenderer = field.editRenderer;
+  if (!editRenderer) return false;
+
+  if (editRenderer.validator) {
+    result.validator = editRenderer?.validator(field, rowItem);
     if (typeof result.validator === "object") {
       return result;
     }
@@ -27,22 +29,22 @@ export const validator = (value: string, field: FieldItem, rowItem: any, gridCon
     return result;
   }
 
-  if (fieldRender.different) {
-    const diffFieldName = fieldRender.different.field;
+  if (editRenderer.different) {
+    const diffFieldName = editRenderer.different.field;
     const diffField = gridConfig.allColumnMap[diffFieldName];
 
     if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
-      result.message = fieldRender.different.message;
+      result.message = editRenderer.different.message;
       return result;
     }
   }
 
-  if (fieldRender.identical) {
-    const diffFieldName = fieldRender.identical.field;
+  if (editRenderer.identical) {
+    const diffFieldName = editRenderer.identical.field;
     const diffField = gridConfig.allColumnMap[diffFieldName];
 
     if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
-      result.message = fieldRender.identical.message;
+      result.message = editRenderer.identical.message;
       return result;
     }
   }

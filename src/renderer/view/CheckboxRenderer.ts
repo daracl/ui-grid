@@ -3,6 +3,7 @@ import GridMain from "src/view/GridMain";
 import ViewRenderer from "../ViewRenderer";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * checkbox renderer
@@ -12,9 +13,9 @@ import { getCellInfo } from "src/util/gridUtils";
  * @extends {ViewRenderer}
  */
 export default class CheckboxRenderer extends ViewRenderer {
-  private trueValue: string | boolean;
-  private falseValue: string | boolean;
-  private showLabel: boolean;
+  private readonly trueValue: string | boolean;
+  private readonly falseValue: string | boolean;
+  private readonly showLabel: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -25,7 +26,8 @@ export default class CheckboxRenderer extends ViewRenderer {
     this.showLabel = rendererInfo.showLabel ?? false;
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const inputName = this.fieldName;
 
     const val = item[inputName];
@@ -83,9 +85,13 @@ export default class CheckboxRenderer extends ViewRenderer {
 
         item[this.fieldName] = checked ? this.trueValue : this.falseValue;
 
-        this.render(cellInfo.rowIndex, cellInfo.r, cellInfo.c, cellInfo.item, cellElement);
+        this.render(cellInfo, cellElement);
       },
       { passive: false }
     );
+  }
+
+  public isEditRenderer() {
+    return true;
   }
 }

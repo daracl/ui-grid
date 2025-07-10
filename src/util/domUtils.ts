@@ -3,8 +3,9 @@ import { styleClassSplit } from "./styleUtils";
 export function hasClass(element: HTMLElement, styleClass: string) {
   const styleClassArr = styleClassSplit(styleClass);
 
+  const classList = element.classList;
   for (let styleClassItem of styleClassArr) {
-    if (element.classList.contains(styleClassItem)) {
+    if (classList.contains(styleClassItem)) {
       return true;
     }
   }
@@ -12,12 +13,39 @@ export function hasClass(element: HTMLElement, styleClass: string) {
   return false;
 }
 
-export function getOffset(el: HTMLElement): { top: number; left: number } {
+/**
+ * 주어진 요소의 위치 및 크기를 반환합니다.
+ *
+ * @param el - 위치를 구할 HTML 요소
+ * @param includeScroll - true이면 문서 전체 기준 좌표 (스크롤 보정 포함), false이면 뷰포트 기준 좌표
+ * @returns 요소의 top, left, right, bottom, width, height 정보를 포함한 객체
+ */
+export function getElementRect(
+  el: Element,
+  includeScroll: boolean = false
+): {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+  width: number;
+  height: number;
+} {
+  if (!el) {
+    throw new Error("유효하지 않은 요소입니다.");
+  }
+
   const rect = el.getBoundingClientRect();
+  const scrollX = includeScroll ? window.scrollX : 0;
+  const scrollY = includeScroll ? window.scrollY : 0;
 
   return {
-    top: rect.top + window.scrollY,
-    left: rect.left + window.scrollX,
+    top: rect.top + scrollY,
+    left: rect.left + scrollX,
+    bottom: rect.bottom + scrollY,
+    right: rect.right + scrollX,
+    width: rect.width,
+    height: rect.height,
   };
 }
 

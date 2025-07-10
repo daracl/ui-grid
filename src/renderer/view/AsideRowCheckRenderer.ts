@@ -4,6 +4,7 @@ import { ROW_CHECK_KEY } from "src/constants";
 import GridMain from "src/view/GridMain";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * Aside RowCheck Renderer
@@ -20,15 +21,18 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
     this.allowMultiSelect = field.renderer.customOptions?.allowMultiSelect ?? true;
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const isMulti = this.allowMultiSelect;
     const inputName = ROW_CHECK_KEY;
 
-    let input = element.firstElementChild as HTMLInputElement | null;
+    let label = element.firstElementChild as HTMLLabelElement;
 
     // 최초 렌더링 시 구조 생성
-    if (!input) {
-      input = document.createElement("input");
+    if (!label) {
+      label = document.createElement("label");
+
+      const input = document.createElement("input");
       input.type = isMulti ? "checkbox" : "radio";
       input.name = "dgRowCheck";
       if (!isMulti) input.classList.add("childRadio");
@@ -36,10 +40,14 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
       const mark = document.createElement("span");
       mark.className = isMulti ? "dg-checkmark" : "radiomark";
 
-      element.appendChild(input);
-      element.appendChild(mark);
+      label.appendChild(input);
+      label.appendChild(mark);
+
+      element.appendChild(label);
+
       this.initClick(input);
     }
+    const input = label.firstChild as HTMLInputElement;
     input.checked = item[inputName];
   }
 
@@ -53,6 +61,7 @@ export default class AsideRowCheckRenderer extends ViewRenderer {
       contentElement,
       "click",
       (e: UIEvent) => {
+        console.log("aaaaaa");
         const cellElement = contentElement.closest(".dg-cell") as HTMLElement;
 
         const cellInfo = getCellInfo(cfg, cellElement);

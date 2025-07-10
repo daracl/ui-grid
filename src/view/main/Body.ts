@@ -76,7 +76,7 @@ export default class Body {
       const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + "," + cell.c + '"]');
 
       this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
-      cell.field.$renderer.render(cell.rowIndex, cell.r, cell.c, rowItem, cellEle.querySelector(".dg-cell") as HTMLElement);
+      cell.field.$renderer.render(cell, cellEle.querySelector(".dg-cell") as HTMLElement);
 
       return rowItem;
     }
@@ -473,7 +473,7 @@ export default class Body {
           const field = leftFields[j];
           const cell = rowCells[j];
           this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
+          field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
         }
       }
 
@@ -483,7 +483,7 @@ export default class Body {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
         this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
-        field.$renderer.render(rowIdx, viewRowIdx, j, item, cell.firstElementChild);
+        field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
       }
 
       // right panel
@@ -494,7 +494,8 @@ export default class Body {
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
           this.setSelectCell(startCell, viewRowIdx, cellIdx, cell, field, item);
-          field.$renderer.render(rowIdx, viewRowIdx, cellIdx, item, cell.firstElementChild);
+
+          field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo, cell.firstElementChild);
         }
       }
     }

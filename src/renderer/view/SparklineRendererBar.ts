@@ -1,7 +1,8 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
-import { isUndefined } from "src/util/utils";
 import GridMain from "src/view/GridMain";
+import { getElementRect } from "src/util/domUtils";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * Sparkline bar renderer
@@ -15,7 +16,8 @@ export default class SparklineRendererBar extends ViewRenderer {
     super(field, gridMain);
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value, item);
 
@@ -27,8 +29,9 @@ export default class SparklineRendererBar extends ViewRenderer {
       return;
     }
 
-    const width = element.getBoundingClientRect().width;
-    const height = element.getBoundingClientRect().height;
+    const rect = getElementRect(element);
+    const width = rect.width;
+    const height = rect.height;
 
     // 기존 canvas가 있으면 재사용, 없으면 생성
     let canvas = element.querySelector("canvas") as HTMLCanvasElement | null;

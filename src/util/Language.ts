@@ -112,7 +112,7 @@ export default class Language {
 
     const reMessage: string[] = [];
 
-    const msgParam = Object.assign({}, { name: field.name, label: field.label }, field.renderer.rule);
+    const msgParam = Object.assign({}, { name: field.name, label: field.label }, field.editRenderer?.rule);
     messageFormats.forEach((msgFormat) => {
       if (msgFormat) {
         reMessage.push(message(msgFormat, msgParam));

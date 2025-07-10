@@ -16,7 +16,12 @@ export const numberValidator = (value: string, field: FieldItem, rowItem: any, g
   const result: ValidResult = { name: field.name, constraint: [] };
   const numValue = Number(value);
 
-  if (field.renderer.required && utils.isBlank(value)) {
+  const editRenderer = field.editRenderer;
+  if (!editRenderer) {
+    return true;
+  }
+
+  if (editRenderer.required && utils.isBlank(value)) {
     result.constraint.push(RULES.REQUIRED);
     return result;
   }
@@ -30,7 +35,7 @@ export const numberValidator = (value: string, field: FieldItem, rowItem: any, g
     return result;
   }
 
-  const rule = field.renderer.rule;
+  const rule = editRenderer.rule;
   if (rule) {
     const isMinimum = utils.isNumber(rule.minimum),
       isMaximum = utils.isNumber(rule.maximum);

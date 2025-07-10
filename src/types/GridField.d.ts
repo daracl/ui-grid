@@ -1,7 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import { TEXT_ALIGN_TYPE } from "src/constants";
 import { OptionCallback } from "./Common";
-import { RendererInfo } from "./RendererInfo";
+import { EditRendererInfo, RendererInfo } from "./RendererInfo";
 import ViewRenderer from "src/renderer/ViewRenderer";
 import EditRenderer from "src/renderer/EditRenderer";
 
@@ -37,6 +37,10 @@ export interface FieldItem {
    */
   hidden: boolean;
   /**
+   * 수정 가능 여부
+   */
+  editable: boolean;
+  /**
    * 정렬 여부
    */
   sort: boolean;
@@ -45,9 +49,13 @@ export interface FieldItem {
    */
   align: TEXT_ALIGN_TYPE;
   /**
-   * RENDER_TYPE
+   * renderer info
    */
   renderer: RendererInfo;
+  /**
+   * edit renderer info
+   */
+  editRenderer?: EditRendererInfo;
   /**
    * 포멧터
    */

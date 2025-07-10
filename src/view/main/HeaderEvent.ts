@@ -6,8 +6,8 @@ import * as utils from "src/util/utils";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getHeaderCellInfo, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
-import { addAttr, getOffset, removeAttr } from "src/util/domUtils";
+import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
+import { addAttr, getElementRect, removeAttr } from "src/util/domUtils";
 import Header from "./Header";
 
 /**
@@ -166,7 +166,7 @@ export default class HeaderEvent {
         headerCellElements,
         "mousedown touchstart",
         (e: UIEvent) => {
-          const position = getOffset(headerElement.getElement());
+          const position = getElementRect(headerElement.getElement(), true);
           const mainRightWidth = cfg.dimensions.mainRightWidth;
           const _l = position.left + cfg.dimensions.mainLeftWidth,
             _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;

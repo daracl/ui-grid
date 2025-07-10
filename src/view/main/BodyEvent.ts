@@ -2,15 +2,13 @@ import { CellInfo, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
-import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, isSpacebar, stopPreventCancel } from "src/util/eventUtils";
 import SelectionInfo from "src/selection/selection";
-import AsideRowCheckRenderer from "src/renderer/view/AsideRowCheckRenderer";
-import { getOffset, hasClass } from "src/util/domUtils";
+import { getElementRect, hasClass } from "src/util/domUtils";
 import Body from "./Body";
 import { ROW_CHECK_NAME } from "src/constants";
 
@@ -226,7 +224,7 @@ export default class BodyEvent {
 
         //const startEvtPosition = eventPosition(e);
 
-        const position = getOffset(bodyElement);
+        const position = getElementRect(bodyElement, true);
         const mainRightWidth = cfg.dimensions.mainRightWidth;
         const _l = position.left + cfg.dimensions.mainLeftWidth,
           _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;
@@ -356,17 +354,14 @@ export default class BodyEvent {
         };
 
         if (editable === true) {
-          if (startCellInfo.field.renderer.type == "dropdown") {
-            resetClick();
-            cfg.edit.enable = true;
-            startCellInfo.field.$editRenderer.render(cellElement, startCellInfo);
-            return false;
-          }
-
           if (clickCnt == 0) {
             cfg.edit.enable = false;
             this.body.editAreaClose(); // 이전 에디트창 닫기
           }
+        }
+
+        if (startCellInfo.field.$isAside) {
+          return;
         }
 
         if (clickCnt > 0 && currentCellPosition.position == positionInfo.position && currentCellPosition.rowItemIdx == rowIndex) {
@@ -374,9 +369,11 @@ export default class BodyEvent {
           conserveClick(positionInfo);
           resetClick();
 
+          const field = startCellInfo.field;
+
           if (dblClickEventFlag) {
-            if (editable === true && !startCellInfo.field.$isAside) {
-              startCellInfo.field.$editRenderer.render(cellElement, startCellInfo);
+            if (editable === true && field.editable !== false && !field.$renderer.isEditRenderer()) {
+              field.$editRenderer.render(startCellInfo, cellElement);
               return;
             }
 
@@ -395,10 +392,6 @@ export default class BodyEvent {
 
         // row click event
         if (isCellClick) {
-          if (startCellInfo.field.$isAside) {
-            return;
-          }
-
           if (cellClickFn) cellClickFn(startCellInfo);
         }
 
@@ -434,6 +427,8 @@ export default class BodyEvent {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;
+
+      console.log("asdf", cfg.focus, isInputField(targetElement.tagName));
 
       if (isInputField(targetElement.tagName)) {
         return true;

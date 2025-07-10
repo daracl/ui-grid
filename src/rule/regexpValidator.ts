@@ -28,7 +28,7 @@ export const regexpValidator = (value: string, field: FieldItem, result: ValidRe
     result = { name: field.name, constraint: [] };
   }
 
-  const regexpType = field.renderer.regexpType;
+  const regexpType = field.editRenderer?.regexpType;
 
   if (regexpType) {
     if (!regexp[regexpType].test(value)) {

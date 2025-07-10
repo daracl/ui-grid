@@ -1,6 +1,7 @@
 import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * password renderer
@@ -14,8 +15,10 @@ export default class PasswordRenderer extends EditRenderer {
     super(field, gridMain);
   }
 
-  public render(element: HTMLElement, value: any): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     element.innerText = `<input type="password">`;
+    const value = item[cellInfo.field.name];
 
     this.getValue(value);
   }

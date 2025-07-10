@@ -1,6 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 /**
  * image renderer
  *
@@ -13,7 +14,8 @@ export default class ImageRenderer extends ViewRenderer {
     super(field, gridMain);
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
     const labelText = refValue?.label ?? null;

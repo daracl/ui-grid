@@ -1,6 +1,7 @@
 import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * custom renderer
@@ -20,8 +21,10 @@ export default class EditCustomRenderer extends EditRenderer {
   public setValue(element: HTMLElement, value: any): void {
     (element as HTMLInputElement).value = this.getValue(value);
   }
-  public render(element: HTMLElement, value: any): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     element.innerText = `<input type="text">`;
+    const value = item[cellInfo.field.name];
 
     this.getValue(value);
   }

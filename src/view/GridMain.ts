@@ -1,20 +1,19 @@
 import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 
-import * as utils from "../util/utils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, FOOTER_HEIGHT, GRID_THEME, LAYER_ATTR_NAME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, EDIT_RENDERER, FOOTER_HEIGHT, GRID_THEME, LAYER_ATTR_NAME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
-import { eventOn, stopPreventCancel } from "src/util/eventUtils";
+import { eventOn } from "src/util/eventUtils";
 import { getTextWidth, isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
-import { addClass } from "src/util/styleUtils";
+import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -159,8 +158,6 @@ export default class GridMain {
     eventOn(mainElement, "blur", (e: FocusEvent) => {
       const nextFocused = e.relatedTarget as HTMLElement;
 
-      console.log("nextFocused :  ", nextFocused);
-
       // container 바깥으로 포커스가 나간 경우에만 실행
       if (!nextFocused || !mainElement?.contains(nextFocused)) {
         if (!this.grid.config().focus) {
@@ -169,7 +166,9 @@ export default class GridMain {
 
         this.setGridFocusOut(e);
       } else {
-        mainElement.focus({ preventScroll: true });
+        if (!isInputField(nextFocused.tagName)) {
+          mainElement.focus({ preventScroll: true });
+        }
       }
     });
 
@@ -292,7 +291,7 @@ export default class GridMain {
 
     if (typeof ResizeObserver !== "undefined") {
       const resizeObserver = new ResizeObserver(
-        utils.debounce(() => {
+        debounce(() => {
           this.resize(el);
         }, threshold)
       );
@@ -301,7 +300,7 @@ export default class GridMain {
     } else {
       window.addEventListener(
         "resize",
-        utils.debounce(() => {
+        debounce(() => {
           this.resize(el);
         }, threshold)
       );
@@ -315,7 +314,7 @@ export default class GridMain {
    */
   public resize(el: DaraElement) {
     requestAnimationFrame(() => {
-      if (!utils.isVisible(el.getElement())) return;
+      if (!isVisible(el.getElement())) return;
 
       const initGridSize = this.initGridSize;
 
@@ -389,16 +388,16 @@ export default class GridMain {
   public setSize(width?: number | "auto", height?: number | "auto", drawFlag: boolean = false) {
     const cfg = this.grid.config();
 
-    if (!utils.isNumber(width) && utils.isNumber(this.grid.getOptions().width)) {
+    if (!isNumber(width) && isNumber(this.grid.getOptions().width)) {
       width = this.grid.getOptions().width;
     }
 
-    if (!utils.isNumber(height) && utils.isNumber(this.grid.getOptions().height)) {
+    if (!isNumber(height) && isNumber(this.grid.getOptions().height)) {
       height = this.grid.getOptions().height;
     }
 
-    cfg.dimensions.width = utils.isNumber(width) ? width : this.grid.element().width();
-    cfg.dimensions.height = utils.isNumber(height) ? height : this.grid.element().height();
+    cfg.dimensions.width = isNumber(width) ? width : this.grid.element().width();
+    cfg.dimensions.height = isNumber(height) ? height : this.grid.element().height();
     cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
 
     if (drawFlag) {
@@ -410,7 +409,7 @@ export default class GridMain {
     const cfg = this.grid.config();
     this.calcBody();
 
-    if (!utils.isUndefined(this._mainElement)) {
+    if (!isUndefined(this._mainElement)) {
       this.setElementDimentions();
       this.scroll.calcScroll();
       this.fieldResize();
@@ -477,14 +476,14 @@ export default class GridMain {
     const opts = this.grid.getOptions();
 
     if (opts.toolbar.enabled) {
-      dimensions.toolbarHeight = utils.isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
+      dimensions.toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
     }
 
     if (opts.footer.enabled) {
-      dimensions.footerHeight = utils.isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
+      dimensions.footerHeight = isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
     }
 
-    if (!utils.isUndefined(opts.summary)) {
+    if (!isUndefined(opts.summary)) {
       const summaryItemLength = opts.summary.items.length > 0 ? opts.summary.items.length : 0;
       dimensions.mainSummaryHeight = summaryItemLength * opts.body.row.height;
     }
@@ -509,7 +508,7 @@ export default class GridMain {
     const isHeaderResize = cfg.isHeaderResize;
 
     const lineNumberIdx = cfg.fieldIndex.get(LINE_NUMBER_NAME);
-    if (!utils.isUndefined(lineNumberIdx)) {
+    if (!isUndefined(lineNumberIdx)) {
       const numberField = fields[lineNumberIdx];
       if (rowLength >= 100000) {
         const textWidth = getTextWidth(cfg, rowLength + "");
@@ -626,14 +625,14 @@ export default class GridMain {
   public calcHeader() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
-    let fields = utils.deepCopy(opts.fields);
+    let fields = deepCopy(opts.fields);
 
     cfg.fieldHeaderGroup = defaultFieldGroupInfo();
 
     let asideOrder: any[] = [];
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: LINE_NUMBER_NAME, renderer: { type: "lineNumber" }, $isAside: true });
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: LINE_NUMBER_NAME, renderer: { type: "lineNumber" }, $isAside: true });
 
       opts.aside.lineNumber.order = opts.aside.lineNumber.order ?? 0;
       asideOrder.push(fieldItem);
@@ -641,14 +640,14 @@ export default class GridMain {
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: ROW_CHECK_NAME, renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: ROW_CHECK_NAME, renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
       opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
       asideOrder.push(fieldItem);
     }
 
     // modifyInfo 추가.
     if (opts.aside.modifyInfo.enabled === true) {
-      let fieldItem = utils.merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
       opts.aside.modifyInfo.order = opts.aside.modifyInfo.order ?? 2;
       asideOrder.push(fieldItem);
     }
@@ -760,14 +759,14 @@ export default class GridMain {
       field.$resizeIdx = fieldGroupInfo.leaf.length;
     }
 
-    if (utils.isUndefined(fieldGroupInfo.left[depth])) {
+    if (isUndefined(fieldGroupInfo.left[depth])) {
       fieldGroupInfo.left[depth] = [];
     }
-    if (utils.isUndefined(fieldGroupInfo.center[depth])) {
+    if (isUndefined(fieldGroupInfo.center[depth])) {
       fieldGroupInfo.center[depth] = [];
     }
 
-    if (utils.isUndefined(fieldGroupInfo.right[depth])) {
+    if (isUndefined(fieldGroupInfo.right[depth])) {
       fieldGroupInfo.right[depth] = [];
     }
 
@@ -834,14 +833,14 @@ export default class GridMain {
       if (field.$isLeaf) fieldGroupInfo.leafRight.push(field);
     }
 
-    if (utils.isUndefined(field.$panel)) {
+    if (isUndefined(field.$panel)) {
       fieldGroupInfo.center[depth].push(field);
       field.$panel = "center";
       if (field.$isLeaf) fieldGroupInfo.leafCenter.push(field);
     }
 
     if (field.$isLeaf) {
-      field.width = utils.isNumber(field.width) ? field.width : this.cellMinWidth;
+      field.width = isNumber(field.width) ? field.width : this.cellMinWidth;
 
       if (!field.$isAside) {
         field.width = Math.max(field.width, this.cellMinWidth);
@@ -864,22 +863,39 @@ export default class GridMain {
    * @returns {FieldItem} 필드 item
    */
   public setRendererInfo(field: FieldItem): FieldItem {
+    const opts = this.grid.getOptions();
     let renderInfo = { type: "text" };
 
-    if (utils.isPlainObject(field.renderer)) {
-      renderInfo = utils.merge({}, field.renderer);
-    } else if (utils.isString(field.renderer)) {
+    if (isPlainObject(field.renderer)) {
+      renderInfo = merge({}, field.renderer);
+    } else if (isString(field.renderer)) {
       renderInfo = { type: field.renderer };
     }
 
     let render = VIEW_RENDERER[renderInfo.type];
 
-    if (utils.isUndefined(render)) {
+    if (isUndefined(render)) {
       renderInfo.type = "text";
     }
 
     field.renderer = renderInfo;
     field.$renderer = new VIEW_RENDERER[renderInfo.type](field, this);
+
+    if (opts.editable && field.editable !== false) {
+      let editRendererInfo = field.editRenderer;
+
+      if (isString(editRendererInfo)) {
+        editRendererInfo = { type: editRendererInfo };
+      }
+
+      let type = editRendererInfo?.type;
+
+      if (!type || (type && isUndefined(EDIT_RENDERER[type]))) {
+        type = "text";
+      }
+
+      field.$editRenderer = new EDIT_RENDERER[type](field, this);
+    }
 
     return field;
   }
@@ -914,7 +930,7 @@ export default class GridMain {
   private setDataInfo(items: any[]) {
     const cfg = this.grid.config();
 
-    cfg.orginItems = utils.arrayCopy(items);
+    cfg.orginItems = arrayCopy(items);
 
     this.setRowId(cfg);
 
@@ -923,7 +939,7 @@ export default class GridMain {
 
   public setViewDataInfo(items: any[]) {
     const cfg = this.grid.config();
-    cfg.items = utils.arrayCopy(items);
+    cfg.items = arrayCopy(items);
     cfg.dataInfo.rowLength = cfg.items.length;
     cfg.dataInfo.lastRow = cfg.dataInfo.rowLength > 0 ? cfg.dataInfo.rowLength - 1 : 0;
 
@@ -970,11 +986,11 @@ export default class GridMain {
 
     const addItems = Array.isArray(items) ? items : [items];
 
-    utils.insertToArray(currentItems, items, isBefore, rowIndex);
+    insertToArray(currentItems, items, isBefore, rowIndex);
 
     this.setData(currentItems);
 
-    if (utils.isUndefined(rowIndex)) {
+    if (isUndefined(rowIndex)) {
       if (isBefore) {
         this.scroll.moveVerticalScroll({ rowIdx: 0 });
       } else {
@@ -1025,9 +1041,9 @@ export default class GridMain {
 
     let exportNames: string[] = [];
     let isAll = false;
-    if (utils.isUndefined(names)) {
+    if (isUndefined(names)) {
       isAll = true;
-    } else if (!utils.isArray(names)) {
+    } else if (!isArray(names)) {
       exportNames = [names];
     } else {
       exportNames = names;
@@ -1222,7 +1238,7 @@ function fieldCopy(field: any): any {
   const result: any = {};
 
   Object.entries(field).forEach(([key, value]) => {
-    if (!utils.isObject(value) || key == "renderer") {
+    if (!isObject(value) || key == "renderer") {
       result[key] = value;
     }
   });

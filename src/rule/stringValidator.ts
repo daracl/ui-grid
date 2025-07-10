@@ -14,7 +14,12 @@ import { Config } from "@t/GridConfig";
 export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | boolean => {
   let result: ValidResult = { name: field.name, constraint: [] };
 
-  if (field.renderer.required && utils.isBlank(value)) {
+  const editRenderer = field.editRenderer;
+  if (!editRenderer) {
+    return true;
+  }
+
+  if (editRenderer.required && utils.isBlank(value)) {
     result.constraint.push(RULES.REQUIRED);
     return result;
   }
@@ -23,7 +28,7 @@ export const stringValidator = (value: string, field: FieldItem, rowItem: any, g
     return validResult;
   }
 
-  const rule = field.renderer.rule;
+  const rule = editRenderer.rule;
 
   if (rule) {
     const valueLength = value.length;

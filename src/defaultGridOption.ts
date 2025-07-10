@@ -212,6 +212,7 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   rowspan: 0,
   hidden: false,
   sort: false,
+  editable: true,
   align: "center",
   renderer: {
     type: "text",

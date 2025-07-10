@@ -1,6 +1,7 @@
 import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * number renderer
@@ -13,8 +14,10 @@ export default class NumberRenderer extends EditRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
-  public render(element: HTMLElement, value: any): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     element.innerText = `<input type="number">`;
+    const value = item[cellInfo.field.name];
 
     this.getValue(value);
   }

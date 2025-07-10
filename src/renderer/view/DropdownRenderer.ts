@@ -10,6 +10,7 @@ import { HIDDEN_ELEMENT } from "src/DaraGrid";
 import GridMain from "src/view/GridMain";
 import { LAYER_ATTR_NAME } from "src/constants";
 import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
+import { getElementRect } from "src/util/domUtils";
 
 const SELECTED_STYLE_CLASS = "selected";
 
@@ -72,7 +73,8 @@ export default class DropdownRenderer extends ViewRenderer {
     this.valueLabelMap = valueLabelMap;
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
 
@@ -208,34 +210,47 @@ export default class DropdownRenderer extends ViewRenderer {
    * @param {any[]} list list item
    */
   private openMenu(cellElement: HTMLElement, menuElement: HTMLElement, eventElement: HTMLElement, cellInfo: CellInfo, list: any[]) {
-    const rendererContainer = this.rendererContainer.getBoundingClientRect();
-    const elementRect = eventElement.getBoundingClientRect();
+    const rendererContainer = getElementRect(this.rendererContainer);
+    const elementRect = getElementRect(eventElement);
 
-    menuElement.style.display = "block";
+    const menuStyle = menuElement.style;
 
-    // renderer 위치 util 만들것.
-    //
-    //
-    //
+    menuStyle.height = "auto";
+    menuStyle.display = "block";
 
-    const menuHeight = menuElement.offsetHeight || menuElement.getBoundingClientRect().height;
+    let menuHeight = menuElement.offsetHeight || getElementRect(menuElement).height;
     const windowBottom = window.innerHeight;
 
     // 버튼 위치를 #grid 기준으로 변환
-    const relativeTop = elementRect.top - rendererContainer.top;
-    const relativeLeft = elementRect.left - rendererContainer.left;
+    const gridTop = rendererContainer.top - elementRect.top;
+    const menuOffsetBottom = elementRect.bottom + menuHeight;
 
     // 위로 띄울지 아래로 띄울지 결정
-    const shouldOpenUpward = elementRect.bottom + menuHeight > windowBottom;
+    const shouldOpenUpward = menuOffsetBottom > windowBottom;
+
+    const margin = 2;
+
+    let top = elementRect.top - (menuHeight - margin);
 
     if (shouldOpenUpward) {
-      menuElement.style.top = `${relativeTop - menuHeight - 2}px`;
-    } else {
-      menuElement.style.top = `${relativeTop + eventElement.offsetHeight}px`;
-    }
+      top = elementRect.top - (menuHeight - margin);
+      if (top < 0) {
+        menuHeight = menuHeight - 5 + top;
+      }
 
-    menuElement.style.left = `${relativeLeft}px`;
-    menuElement.style.width = `${elementRect.width}px`;
+      if (windowBottom - elementRect.bottom > menuHeight) {
+        menuHeight = windowBottom - elementRect.bottom - margin;
+        top = elementRect.bottom - rendererContainer.top;
+      } else {
+        top = -(menuHeight + margin) - gridTop;
+      }
+    } else {
+      top = elementRect.bottom - rendererContainer.top;
+    }
+    menuStyle.top = `${top}px`;
+    menuStyle.left = `${elementRect.left - rendererContainer.left}px`;
+    menuStyle.width = `${elementRect.width}px`;
+    menuStyle.height = `${menuHeight}px`;
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
 
@@ -284,11 +299,11 @@ export default class DropdownRenderer extends ViewRenderer {
           cellInfo.item[this.fieldName] = addValue;
         }
 
-        this.render(cellInfo.rowIndex, cellInfo.r, cellInfo.c, cellInfo.item, cellElement);
+        this.render(cellInfo, cellElement);
 
         if (!isMultiple) {
           eventOff(items, "click");
-          menuElement.style.display = "none";
+          menuStyle.display = "none";
         }
       },
       { passive: false }
@@ -331,5 +346,9 @@ export default class DropdownRenderer extends ViewRenderer {
     }
 
     return templateParts.join("");
+  }
+
+  public isEditRenderer() {
+    return true;
   }
 }

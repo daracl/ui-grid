@@ -1,6 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * bar renderer
@@ -18,7 +19,8 @@ export default class BarRenderer extends ViewRenderer {
     this.max = field.renderer.rule?.maximum ?? 100;
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const fieldValue = item[this.fieldName];
     const refValue = this.getRefValue(fieldValue, item);
 

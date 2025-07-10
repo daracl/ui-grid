@@ -4,20 +4,13 @@ import { ValidResult } from "@t/ValidResult";
 import * as utils from "src/util/utils";
 import Renderer from "./Renderer";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
 
 export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
 
-  protected listValueKey;
-
-  protected listLabelKey;
-
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
-
-    this.listValueKey = field.renderer?.listItem?.valueField ? field.renderer?.listItem.valueField : "value";
-
-    this.listLabelKey = field.renderer?.listItem?.labelField ? field.renderer?.listItem.labelField : "label";
   }
 
   /**
@@ -26,7 +19,7 @@ export default abstract class EditRenderer extends Renderer {
    * @param {HTMLElement} element td element
    * @param {*} value value row item
    */
-  public abstract render(element: HTMLElement, value: any): void;
+  public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
   public abstract reset(element: HTMLElement): void;
 
@@ -79,9 +72,9 @@ export default abstract class EditRenderer extends Renderer {
     return val[label] || "";
   }
 
-  public changeEventCall(e: Event | null, element: HTMLElement): boolean | undefined {
+  public changeEventCall(e: Event | null, value: any): boolean | undefined {
     const field = this.field;
-    const fieldValue = field.$editRenderer.getValue(element);
+    const fieldValue = value;
 
     if (field.renderer.change) {
       let changeInfo: any = {
@@ -91,43 +84,10 @@ export default abstract class EditRenderer extends Renderer {
         value: fieldValue,
       };
 
-      const list = this.field.renderer.listItem?.list;
-
-      if (list) {
-        let listItems = [];
-
-        if (utils.isArray(list)) {
-          listItems = list;
-        } else if (utils.isFunction(list)) {
-          listItems = list(changeInfo);
-        }
-
-        let valuesItem = [];
-        const valueKey = this.listValueKey;
-
-        for (let val of listItems) {
-          let changeVal = val[valueKey];
-          if (utils.isString(fieldValue)) {
-            if (changeVal == fieldValue) {
-              valuesItem.push(val);
-              break;
-            }
-          } else if (utils.isArray(fieldValue)) {
-            if (fieldValue.includes(changeVal)) {
-              valuesItem.push(val);
-            }
-          }
-        }
-
-        changeInfo.valueItems = valuesItem;
-      }
-
       if (changeInfo.oldValue != changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
         field.$editRenderer.setValue(fieldValue, false);
         return false;
       }
-
-      //field.$value = changeInfo.value;
     }
   }
 }

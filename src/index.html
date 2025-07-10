@@ -298,7 +298,7 @@
           }
         }
         , {
-          name: 'c', label: 'link', width: 100, renderer: {
+          name: 'c', label: 'link', width: 100, editable: false, renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -323,7 +323,7 @@
             type: 'switch',
             trueValue: "Y",
             falseValue: "N",
-            showLabel: true
+            // showLabel: true
           }
         }
         , {
@@ -648,7 +648,7 @@
 
   function gridDraw(element, aaa, colItem, message) {
     let gridObj = Daracl.grid.create(element, {
-      editable: false
+      editable: true
       , styleClass: "striped"
       , selectionMode: 'multiple-cell'	// row , cell , multiple-row , multiple-cell	// 선택 방법. 
       , enableWidthFixed: false

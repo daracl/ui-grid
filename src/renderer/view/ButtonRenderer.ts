@@ -1,8 +1,9 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
-import { eventOn, stopPreventCancel } from "src/util/eventUtils";
+import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
+import { CellInfo } from "@t/GridConfig";
 
 /**
  * button renderer
@@ -15,7 +16,8 @@ export default class ButtonRenderer extends ViewRenderer {
     super(field, gridMain);
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const value = item[this.fieldName];
 
     let btnElement = element.firstElementChild as HTMLElement | null;

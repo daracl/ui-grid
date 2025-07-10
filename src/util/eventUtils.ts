@@ -140,7 +140,7 @@ export const eventOn = (el: Element | string | NodeList | null | Document, type:
 
   for (const eventType of eventTypes) {
     addEventInfo(el, eventType, fn);
-    elements.forEach((el) => {
+    elements.forEach((el: Element) => {
       el.addEventListener(eventType, fn, fnOpts ?? {});
     });
   }
@@ -172,18 +172,18 @@ export const eventKeyCode = (e: any) => {
  * @returns
  */
 export const eventPosition = (e: Event) => {
-  if (e instanceof TouchEvent && e.touches.length > 0) {
-    return {
-      x: e.touches[0].pageX,
-      y: e.touches[0].pageY,
-    };
+  let evt;
+  if (typeof TouchEvent !== "undefined" && e instanceof TouchEvent && e.touches.length > 0) {
+    evt = e.touches[0];
   } else if (e instanceof MouseEvent) {
-    return {
-      x: e.pageX,
-      y: e.pageY,
-    };
+    evt = e;
+  } else {
+    evt = { pageX: 0, pageY: 0 };
   }
-  return { x: 0, y: 0 }; // fallback
+  return {
+    x: evt.pageX,
+    y: evt.pageY,
+  };
 };
 
 function $querySelector(el: Element | string | NodeList | Document): any[] {

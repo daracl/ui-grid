@@ -1,6 +1,8 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
+import { isString } from "src/util/utils";
 
 /**
  * html renderer
@@ -14,8 +16,26 @@ export default class HtmlRenderer extends ViewRenderer {
     super(field, gridMain);
   }
 
-  public render(rowIdx: number, rowNumber: number, colNumber: number, item: any, element: HTMLElement): void {
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
     const value = item[this.fieldName];
-    element.innerHTML = value;
+
+    const refValue = this.getRefValue(value);
+
+    if (refValue) {
+      const template = refValue.template;
+      if (isString(refValue.template)) {
+        element.innerHTML = refValue.template;
+      } else {
+        const oldEl = element.firstChild;
+        if (oldEl) {
+          element.replaceChild(template, oldEl);
+        } else {
+          element.appendChild(template);
+        }
+      }
+    } else {
+      element.innerHTML = value;
+    }
   }
 }

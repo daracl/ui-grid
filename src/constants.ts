@@ -78,14 +78,11 @@ export const VIEW_RENDERER: any = {
 
 // edit renderer type
 export const EDIT_RENDERER: any = {
-  checkbox: CheckboxRenderer,
   date: DateRenderer,
-
   custom: EditCustomRenderer,
   text: EditTextRenderer,
   number: NumberRenderer,
   password: PasswordRenderer,
-  radio: RadioRenderer,
   range: RangeRenderer,
   textarea: TextAreaRenderer,
 };
