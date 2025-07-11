@@ -218,13 +218,6 @@ export default class GridMain {
 
     if (this.grid.config().focus) return;
     this.grid.config().focus = true;
-
-    const targetElement = e.target as HTMLElement;
-
-    if (!isInputField(targetElement.tagName)) {
-      // TODO
-      //this.body.editAreaClose();
-    }
   }
 
   /**
@@ -249,11 +242,14 @@ export default class GridMain {
     }
   }
   public hideLayer(activeComponent?: string) {
-    const layers = this._mainElement.getElement().querySelectorAll(this.layerSelector);
+    const mainElement = this._mainElement.getElement();
+    const layers = mainElement.querySelectorAll(this.layerSelector);
 
     if (!activeComponent) {
       this.grid.config().activeComponent = "";
     }
+
+    mainElement.focus({ preventScroll: true });
 
     console.log("hideLayer  ");
     //  const stack = new Error().stack;
@@ -507,9 +503,9 @@ export default class GridMain {
 
     const isHeaderResize = cfg.isHeaderResize;
 
-    const lineNumberIdx = cfg.fieldIndex.get(LINE_NUMBER_NAME);
-    if (!isUndefined(lineNumberIdx)) {
-      const numberField = fields[lineNumberIdx];
+    const lineNumberCol = cfg.allFieldMap.get(LINE_NUMBER_NAME)?.$colSeq;
+    if (!isUndefined(lineNumberCol)) {
+      const numberField = fields[lineNumberCol];
       if (rowLength >= 100000) {
         const textWidth = getTextWidth(cfg, rowLength + "");
         numberField.width = textWidth ?? numberField.width;
@@ -850,7 +846,9 @@ export default class GridMain {
 
       fieldGroupInfo.leaf.push(field);
 
-      this.grid.config().fieldIndex.set(field.name, fieldGroupInfo.leaf.length - 1);
+      field.$colSeq = fieldGroupInfo.leaf.length - 1;
+
+      this.grid.config().allFieldMap.set(field.name, field);
     }
 
     return field;

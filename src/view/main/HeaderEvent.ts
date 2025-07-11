@@ -300,6 +300,9 @@ export default class HeaderEvent {
       "mousedown touchstart",
       (e: UIEvent) => {
         stopPreventCancel(e);
+
+        this.gridMain.hideLayer();
+
         const targetElement = e.currentTarget as HTMLElement;
         this.calcColumnResize(targetElement);
         clicks++;

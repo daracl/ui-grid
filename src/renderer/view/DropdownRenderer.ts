@@ -1,12 +1,9 @@
 import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
-import { addValueIfMissing, isArray, isFunction, isString, isUndefined } from "src/util/utils";
+import { addValueIfMissing, isArray, isFunction, isString } from "src/util/utils";
 import { CellInfo } from "@t/GridConfig";
-import { eventOff, eventOn, stopPreventCancel } from "src/util/eventUtils";
-import { RendererInfo } from "@t/RendererInfo";
-import { getCellInfo, valuesLabelKey, valuesLabelValue, valuesValueKey } from "src/util/gridUtils";
-import Language from "src/util/Language";
-import { HIDDEN_ELEMENT } from "src/DaraGrid";
+import { eventOff, eventOn } from "src/util/eventUtils";
+import { getCellInfo, valuesLabelKey, valuesValueKey } from "src/util/gridUtils";
 import GridMain from "src/view/GridMain";
 import { LAYER_ATTR_NAME } from "src/constants";
 import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
@@ -217,6 +214,7 @@ export default class DropdownRenderer extends ViewRenderer {
 
     menuStyle.height = "auto";
     menuStyle.display = "block";
+    menuStyle.width = `${elementRect.width}px`;
 
     let menuHeight = menuElement.offsetHeight || getElementRect(menuElement).height;
     const windowBottom = window.innerHeight;
@@ -249,7 +247,6 @@ export default class DropdownRenderer extends ViewRenderer {
     }
     menuStyle.top = `${top}px`;
     menuStyle.left = `${elementRect.left - rendererContainer.left}px`;
-    menuStyle.width = `${elementRect.width}px`;
     menuStyle.height = `${menuHeight}px`;
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
@@ -263,20 +260,25 @@ export default class DropdownRenderer extends ViewRenderer {
         const target = e.target as HTMLElement;
         const addValue = target.getAttribute("data-dg-value");
 
+        if (target.classList.contains("disabled")) {
+          return;
+        }
+
         toggleClass(target, SELECTED_STYLE_CLASS);
 
         if (isMultiple) {
-          const allItemLength = list.length;
+          const notDisabledList = list.filter((item) => !item.disabled);
+          const allItemLength = notDisabledList.length;
           const currentValue = cellInfo.item[this.fieldName] ?? "";
           if (addValue == "$all$") {
-            const allItemElement = menuElement.querySelectorAll(".dg-dropdown-item");
+            const allItemElement = menuElement.querySelectorAll(".dg-dropdown-item:not(.disabled)");
             if (allItemLength == currentValue.split(this.valueDelimiter).length) {
               cellInfo.item[this.fieldName] = "";
 
               removeClass(allItemElement, SELECTED_STYLE_CLASS);
             } else {
               const valueKey = this.valueKey;
-              cellInfo.item[this.fieldName] = list
+              cellInfo.item[this.fieldName] = notDisabledList
                 .map((item) => {
                   return item[valueKey];
                 })
@@ -290,7 +292,7 @@ export default class DropdownRenderer extends ViewRenderer {
             cellInfo.item[this.fieldName] = newValue.join(this.valueDelimiter);
 
             if (allItemLength == newValue.length) {
-              addClass(menuElement.querySelectorAll(".dg-dropdown-item"), SELECTED_STYLE_CLASS);
+              addClass(menuElement.querySelectorAll(".dg-dropdown-item:not(.disabled)"), SELECTED_STYLE_CLASS);
             } else {
               removeClass(menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="$all$"]'), SELECTED_STYLE_CLASS);
             }

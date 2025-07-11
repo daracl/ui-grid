@@ -105,7 +105,8 @@ export default class Body {
    * @param {boolean} checked check flag
    * @param {*} item row item
    */
-  public setCheckItem(cellInfo: CellInfo, checked: boolean, item: any) {
+  public setCheckItem(cellInfo: CellInfo, checked: boolean) {
+    const item = cellInfo.item;
     const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
 
     if (!isRowAllowMultiSelect) {

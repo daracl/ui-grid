@@ -1,13 +1,12 @@
 import CheckboxRenderer from "./renderer/view/CheckboxRenderer";
-import EditCustomRenderer from "./renderer/edit/EditCustomRenderer";
+import CustomEditRenderer from "./renderer/edit/CustomEditRenderer";
 import DateRenderer from "./renderer/edit/DateRenderer";
 
-import NumberRenderer from "./renderer/edit/NumberRenderer";
-import PasswordRenderer from "./renderer/edit/PasswordRenderer";
-import RadioRenderer from "./renderer/edit/RadioRenderer";
+import NumberEditRenderer from "./renderer/edit/NumberEditRenderer";
+import PasswordRenderer from "./renderer/view/PasswordRenderer";
 import RangeRenderer from "./renderer/edit/RangeRenderer";
 import TextAreaRenderer from "./renderer/edit/TextAreaRenderer";
-import EditTextRenderer from "./renderer/edit/EditTextRenderer";
+import TextEditRenderer from "./renderer/edit/TextEditRenderer";
 
 import AsideLineNumberRenderer from "./renderer/view/AsideLineNumberRenderer";
 import AsideModifyInfoRenderer from "./renderer/view/AsideModifyInfoRenderer";
@@ -25,6 +24,7 @@ import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
 import SparklineRenderer from "./renderer/view/SparklineRenderer";
 import SparklineRendererBar from "./renderer/view/SparklineRendererBar";
 import SwitchRenderer from "./renderer/view/SwitchRenderer";
+import PasswordEditRenderer from "./renderer/edit/PasswordEditRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -71,6 +71,7 @@ export const VIEW_RENDERER: any = {
   image: ImageRenderer,
   link: LinkRenderer,
   text: TextRenderer,
+  password: PasswordRenderer,
   sparkline: SparklineRenderer,
   sparklineBar: SparklineRendererBar,
   custom: ViewCustomRenderer,
@@ -79,10 +80,11 @@ export const VIEW_RENDERER: any = {
 // edit renderer type
 export const EDIT_RENDERER: any = {
   date: DateRenderer,
-  custom: EditCustomRenderer,
-  text: EditTextRenderer,
-  number: NumberRenderer,
-  password: PasswordRenderer,
+  custom: CustomEditRenderer,
+  text: TextEditRenderer,
+  number: NumberEditRenderer,
+  dropdown: DropdownRenderer,
+  password: PasswordEditRenderer,
   range: RangeRenderer,
   textarea: TextAreaRenderer,
 };

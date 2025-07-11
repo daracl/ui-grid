@@ -12,26 +12,26 @@ import { Config } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | boolean => {
-  const result: ValidResult = { name: field.name, constraint: [] };
+export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | null => {
+  const result: ValidResult = { name: field.name, constraints: [] };
   const numValue = Number(value);
 
   const editRenderer = field.editRenderer;
   if (!editRenderer) {
-    return true;
+    return null;
   }
 
   if (editRenderer.required && utils.isBlank(value)) {
-    result.constraint.push(RULES.REQUIRED);
+    result.constraints.push(RULES.REQUIRED);
     return result;
   }
 
   if (!utils.isNumber(value)) {
-    result.constraint.push(RULES.NAN);
+    result.constraints.push(RULES.NAN);
     return result;
   }
 
-  if (validator(value, field, rowItem, gridConfig, result) !== true) {
+  if (validator(value, field, rowItem, gridConfig, result) != null) {
     return result;
   }
 
@@ -63,36 +63,36 @@ export const numberValidator = (value: string, field: FieldItem, rowItem: any, g
 
     if (isMinimum && isMaximum && (minRule || minExclusive || maxRule || maxExclusive)) {
       if (rule.exclusiveMinimum && rule.exclusiveMaximum && (minExclusive || maxExclusive)) {
-        result.constraint.push(RULES.BETWEEN_EXCLUSIVE_MINMAX);
+        result.constraints.push(RULES.BETWEEN_EXCLUSIVE_MINMAX);
       } else if (minExclusive) {
-        result.constraint.push(RULES.BETWEEN_EXCLUSIVE_MIN);
+        result.constraints.push(RULES.BETWEEN_EXCLUSIVE_MIN);
       } else if (maxExclusive) {
-        result.constraint.push(RULES.BETWEEN_EXCLUSIVE_MAX);
+        result.constraints.push(RULES.BETWEEN_EXCLUSIVE_MAX);
       } else {
-        result.constraint.push(RULES.BETWEEN);
+        result.constraints.push(RULES.BETWEEN);
       }
     } else {
       if (minExclusive) {
-        result.constraint.push(RULES.EXCLUSIVE_MIN);
+        result.constraints.push(RULES.EXCLUSIVE_MIN);
       }
 
       if (maxExclusive) {
-        result.constraint.push(RULES.EXCLUSIVE_MAX);
+        result.constraints.push(RULES.EXCLUSIVE_MAX);
       }
 
       if (minRule) {
-        result.constraint.push(RULES.MIN);
+        result.constraints.push(RULES.MIN);
       }
 
       if (maxRule) {
-        result.constraint.push(RULES.MAX);
+        result.constraints.push(RULES.MAX);
       }
     }
   }
 
-  if (result.constraint.length > 0) {
+  if (result.constraints.length > 0) {
     return result;
   }
 
-  return true;
+  return null;
 };

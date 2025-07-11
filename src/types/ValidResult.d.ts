@@ -2,7 +2,7 @@ import { RULES } from "../constants";
 
 export interface ValidResult {
   name: string;
-  constraint: any[];
+  constraints: any[];
   regexp?: string;
   validator?: any;
   message?: string;

@@ -1,0 +1,123 @@
+import EditRenderer from "../EditRenderer";
+import { FieldItem } from "@t/GridField";
+import GridMain from "src/view/GridMain";
+import { CellInfo } from "@t/GridConfig";
+import { LAYER_ATTR_NAME } from "src/constants";
+import { getElementRect } from "src/util/domUtils";
+import { eventOn } from "src/util/eventUtils";
+import { EditRendererInfo } from "@t/RendererInfo";
+import { numberValidator } from "src/rule/numberValidator";
+import { ValidResult } from "@t/ValidResult";
+import { isBooleanObject } from "util/types";
+
+/**
+ * number renderer
+ *
+ * @class NumberEditRenderer
+ * @typedef {NumberEditRenderer}
+ * @extends {EditRenderer}
+ */
+export default class NumberEditRenderer extends EditRenderer {
+  private editElement: HTMLInputElement;
+  private item: any;
+  private cellElement: HTMLElement;
+  private cellInfo: CellInfo;
+
+  private isShow: boolean;
+  private readonly editRendererInfo: EditRendererInfo;
+
+  constructor(field: FieldItem, gridMain: GridMain) {
+    super(field, gridMain);
+    this.editRendererInfo = field.editRenderer ?? ({} as EditRendererInfo);
+  }
+
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    const item = cellInfo.item;
+
+    this.cellInfo = cellInfo;
+    this.item = item;
+    this.cellElement = element;
+
+    let editElement = this.editElement;
+    if (!editElement) {
+      editElement = document.createElement("input");
+      editElement.type = "number";
+      editElement.className = "dg-edit-input";
+      editElement.name = this.fieldName;
+      editElement.setAttribute(LAYER_ATTR_NAME, cellInfo.c + "");
+      editElement.setAttribute("autocomplete", "off");
+
+      if (this.editRendererInfo.rule?.minimum) {
+        editElement.min = this.editRendererInfo.rule?.minimum + "";
+      }
+
+      if (this.editRendererInfo.rule?.maximum) {
+        editElement.max = this.editRendererInfo.rule?.maximum + "";
+      }
+
+      this.rendererContainer.appendChild(editElement);
+      this.editElement = editElement;
+
+      this.initEvt(editElement, item);
+    }
+
+    const style = editElement.style;
+
+    const cellRect = getElementRect(element);
+    const rendererContainer = getElementRect(this.rendererContainer);
+
+    this.isShow = true;
+    style.display = "block";
+    style.top = `${cellRect.top - rendererContainer.top}px`;
+    style.left = `${cellRect.left - rendererContainer.left}px`;
+    style.width = `${cellRect.width}px`;
+    style.height = `${cellRect.height}px`;
+    editElement.value = item[this.fieldName] ?? "";
+
+    setTimeout(() => {
+      editElement.focus();
+    }, 100);
+  }
+
+  initEvt(editElement: HTMLInputElement, item: any) {
+    eventOn(editElement, "blur", (e: FocusEvent) => {
+      if (this.isShow) {
+        this.setChangeValue(e);
+      }
+    });
+
+    eventOn(editElement, "keydown", (e: KeyboardEvent) => {
+      const key = e.key;
+
+      if (key === "Enter") {
+        this.setChangeValue(e);
+      } else if (key === "Escape") {
+        this.setChangeValue(e, true);
+      }
+    });
+  }
+
+  setChangeValue(e: Event, cancelFlag: boolean = false) {
+    this.isShow = false;
+    if (!cancelFlag) {
+      const value = this.editElement.value;
+      if (this.setValue(e, this.item, value) === false) {
+        this.isShow = true;
+        return false;
+      }
+    }
+
+    this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
+    this.gridMain.hideLayer();
+  }
+
+  valid(value: string): boolean {
+    const result = numberValidator(value, this.field, this.item, this.gridMain.getGrid().config());
+
+    if (result == null) {
+      return true;
+    }
+
+    return !this.showInvalidMessage(result, this.cellElement);
+  }
+}

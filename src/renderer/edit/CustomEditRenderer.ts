@@ -4,25 +4,27 @@ import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 
 /**
- * number renderer
+ * custom renderer
  *
- * @class NumberRenderer
- * @typedef {NumberRenderer}
+ * @class CustomEditRenderer
+ * @typedef {CustomEditRenderer}
  * @extends {EditRenderer}
  */
-export default class NumberRenderer extends EditRenderer {
+export default class CustomEditRenderer extends EditRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
+
+  public getValue(value: any) {
+    return value[this.field.name];
+  }
+
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = `<input type="number">`;
+    element.innerText = `<input type="text">`;
     const value = item[cellInfo.field.name];
 
     this.getValue(value);
-  }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
   }
 
   valid(element: HTMLElement): any {

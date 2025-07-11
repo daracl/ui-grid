@@ -56,9 +56,9 @@ export default class BodyEvent {
    */
   private setRowCheckItemClick(cellInfo: CellInfo) {
     const cfg = this.grid.config();
-    const rowCheckIdx = cfg.fieldIndex.get(ROW_CHECK_NAME);
-    if (!utils.isEmpty(rowCheckIdx)) {
-      (this.bodyElement.getElement().querySelector(`[data-cell-position="${cellInfo.r},${rowCheckIdx}"] [name="dgRowCheck"]`) as HTMLElement).click();
+    const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
+    if (!utils.isEmpty(rowCheckCol)) {
+      (this.bodyElement.getElement().querySelector(`[data-cell-position="${cellInfo.r},${rowCheckCol}"] [name="dgRowCheck"]`) as HTMLElement).click();
     }
   }
 
@@ -416,6 +416,7 @@ export default class BodyEvent {
   private initKeydownEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
+    const editable = opts.editable;
     const selectionMode = opts.selectionMode;
     // window keydown 처리.  tabindex 처리 확인 해볼것.
 
@@ -435,13 +436,30 @@ export default class BodyEvent {
       }
 
       // 설정 영역 keydown 처리
-      if (targetElement.closest(".pubGrid-setting-area")) return true;
+      if (targetElement.closest(".dg-setting-area")) return true;
 
       const evtKey = eventKeyCode(e);
 
       if (isSpacebar(e)) {
-        //TODO spacebar 처리 할것.
         stopPreventCancel(e);
+
+        const startCell = cfg.selection.startCell;
+
+        const field = cfg.currentFields[startCell.startCol];
+
+        if (editable === true && field.editable !== false && !field.$renderer.isEditRenderer()) {
+          // 스크롤 이동하고 움직일것
+
+          this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
+
+          const startElement = this.gridMain.getBody().getBodyElement().find(".dg-cell.start-cell");
+
+          const cellInfo = getCellInfo(cfg, startElement);
+
+          field.$editRenderer.render(cellInfo, startElement);
+          return;
+        }
+
         return false;
       }
 
@@ -534,14 +552,10 @@ export default class BodyEvent {
           moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
         }
 
-        console.log("moveRowIdx11 : ", moveRowIdx);
-
         // 스크롤 밖에 있을때
         if (this.insideScrollCheck(evtKey, evt, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
-
-        console.log("moveRowIdx22 : ", moveRowIdx);
 
         if (moveRowIdx >= scrollInfo.startIdx + insideViewRow) {
           scrollCtrl.moveVerticalScroll({ direction: "D", rowIdx: moveRowIdx - insideViewRow });
@@ -595,7 +609,7 @@ export default class BodyEvent {
       case 35: // End
       case 9: // tab
       case 39: {
-        let moveCol = gridStartCol;
+        let moveCol;
         if (evtKey == 39 && isCtrl) {
           moveCol = dataInfo.colLength - 1;
         } else {

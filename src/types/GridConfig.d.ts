@@ -45,13 +45,10 @@ export interface Config {
     // center view width;
     mainCenterViewWidth: number;
   };
-  allColumnMap: {
-    [key: string]: FieldItem;
-  };
 
   currentFields: FieldItem[];
 
-  fieldIndex: Map<String, number>;
+  allFieldMap: Map<String, FieldItem>;
 
   activeComponent: string;
 

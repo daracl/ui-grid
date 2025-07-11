@@ -12,9 +12,9 @@ import { Config } from "@t/GridConfig";
  * @param {ValidResult} result
  * @returns {(ValidResult | boolean)}
  */
-export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config, result: ValidResult): ValidResult | boolean => {
+export const validator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config, result: ValidResult): ValidResult | null => {
   const editRenderer = field.editRenderer;
-  if (!editRenderer) return false;
+  if (!editRenderer) return null;
 
   if (editRenderer.validator) {
     result.validator = editRenderer?.validator(field, rowItem);
@@ -23,7 +23,7 @@ export const validator = (value: string, field: FieldItem, rowItem: any, gridCon
     }
   }
 
-  result = regexpValidator(rowItem, field, result);
+  result = regexpValidator(value, field, result);
 
   if (result.regexp) {
     return result;
@@ -31,9 +31,8 @@ export const validator = (value: string, field: FieldItem, rowItem: any, gridCon
 
   if (editRenderer.different) {
     const diffFieldName = editRenderer.different.field;
-    const diffField = gridConfig.allColumnMap[diffFieldName];
 
-    if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
+    if (gridConfig.allFieldMap.has(diffFieldName) && value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
       result.message = editRenderer.different.message;
       return result;
     }
@@ -41,13 +40,12 @@ export const validator = (value: string, field: FieldItem, rowItem: any, gridCon
 
   if (editRenderer.identical) {
     const diffFieldName = editRenderer.identical.field;
-    const diffField = gridConfig.allColumnMap[diffFieldName];
 
-    if (!utils.isEmpty(diffField) && value == diffField.$renderer.getValue(rowItem)) {
+    if (gridConfig.allFieldMap.has(diffFieldName) && value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
       result.message = editRenderer.identical.message;
       return result;
     }
   }
 
-  return true;
+  return null;
 };

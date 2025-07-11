@@ -25,10 +25,12 @@ const regexp = {
  */
 export const regexpValidator = (value: string, field: FieldItem, result: ValidResult): ValidResult => {
   if (typeof result === "undefined") {
-    result = { name: field.name, constraint: [] };
+    result = { name: field.name, constraints: [] };
   }
 
   const regexpType = field.editRenderer?.regexpType;
+
+  console.log("regexpValidator ", regexpType, value);
 
   if (regexpType) {
     if (!regexp[regexpType].test(value)) {

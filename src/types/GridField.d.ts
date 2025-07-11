@@ -151,4 +151,9 @@ export interface FieldItem {
    * field unique id
    */
   $uid: string;
+
+  /**
+   * column seq
+   */
+  $colSeq: number;
 }

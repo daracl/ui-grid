@@ -22,9 +22,6 @@ export default class RangeRenderer extends EditRenderer {
 
     this.getValue(value);
   }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
-  }
 
   valid(element: HTMLElement): any {
     return true;

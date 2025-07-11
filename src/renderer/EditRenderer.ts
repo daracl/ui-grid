@@ -5,12 +5,19 @@ import * as utils from "src/util/utils";
 import Renderer from "./Renderer";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
+import { LAYER_ATTR_NAME } from "src/constants";
+import { getElementRect } from "src/util/domUtils";
 
 export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
+  protected readonly rendererContainer: HTMLElement;
+
+  private validatorElement: HTMLElement;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
+
+    this.rendererContainer = this.gridMain.getRendererContainer();
   }
 
   /**
@@ -21,9 +28,7 @@ export default abstract class EditRenderer extends Renderer {
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
-  public abstract reset(element: HTMLElement): void;
-
-  public abstract valid(element: HTMLElement): ValidResult | boolean;
+  public abstract valid(value: any): ValidResult | boolean;
 
   /**
    * set value items
@@ -50,10 +55,14 @@ export default abstract class EditRenderer extends Renderer {
    * @param {HTMLElement} element cell element
    * @param {any} value row value
    */
-  public setValue(element: HTMLElement, value: any): void {
-    (element as HTMLInputElement).value = this.getValue(value);
+  public setValue(e: Event, item: any, value: string) {
+    if (!this.valid(value)) {
+      return false;
+    }
+    if (this.changeEventCall(e, item, value)) {
+      item[this.fieldName] = value;
+    }
   }
-
   public isEnableView() {
     return this.enableView;
   }
@@ -72,7 +81,7 @@ export default abstract class EditRenderer extends Renderer {
     return val[label] || "";
   }
 
-  public changeEventCall(e: Event | null, value: any): boolean | undefined {
+  public changeEventCall(e: Event | null, item: any, value: any): boolean {
     const field = this.field;
     const fieldValue = value;
 
@@ -80,14 +89,67 @@ export default abstract class EditRenderer extends Renderer {
       let changeInfo: any = {
         field: field,
         evt: e,
+        item: utils.merge({}, item),
         //oldValue: field.$value,
         value: fieldValue,
       };
 
       if (changeInfo.oldValue != changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
-        field.$editRenderer.setValue(fieldValue, false);
         return false;
       }
     }
+
+    return true;
+  }
+
+  /**
+   * 유효성 검증 html element
+   * @returns div element
+   */
+  public getValidatorElement() {
+    if (this.validatorElement) {
+      return this.validatorElement;
+    }
+
+    const div = document.createElement("div");
+    div.className = "dg-validator-message";
+    div.setAttribute(LAYER_ATTR_NAME, "validator");
+
+    this.validatorElement = div;
+
+    this.rendererContainer.appendChild(div);
+
+    return div;
+  }
+
+  /**
+   * 유효성 메시지 보이기
+   *
+   * @param result 유효성 검증 결과
+   * @param cellElement cell element
+   * @returns
+   */
+  public showInvalidMessage(result: ValidResult, cellElement: HTMLElement) {
+    const message = this.language.validMessage(this.field, result);
+
+    console.log(message);
+
+    if (message.length > 0) {
+      const element = this.getValidatorElement();
+      element.textContent = message[0];
+
+      const cellRect = getElementRect(cellElement);
+      const rendererContainer = getElementRect(this.rendererContainer);
+
+      const style = element.style;
+
+      style.display = "block";
+      style.top = `${cellRect.top - rendererContainer.top - element.offsetHeight}px`;
+      style.left = `${cellRect.left - rendererContainer.left}px`;
+
+      return true;
+    }
+
+    return false;
   }
 }

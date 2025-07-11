@@ -5,25 +5,33 @@
 @use "./common/common" as comm;
 
 @mixin hiddenComponent {
+  .dg-validator-message {
+    border: 2px solid var(--invalid-border-color);
+    background-color: var(--invalid-bg);
+    color: var(--invalid-font-color);
+    width: max-content;
+    white-space: nowrap;
+    padding: 5px 10px;
+    border-radius: 5px;
+  }
+
   /*edit */
   .dg-edit-input {
-    position: absolute;
-    z-index: 1000;
     background-color: var(--body-bg);
     user-select: none !important;
     padding: 0px 5px;
     overflow: hidden;
+    border: 2px solid var(--cell-selection-border);
+    outline: none;
   }
   /*dropdown menu*/
   .dg-dropdown-menu {
-    position: absolute;
     margin-top: 1px;
     border: 1px solid var(--border-color);
     display: none;
     background-color: var(--body-bg);
     overflow: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
     width: 100%;
     min-width: 65px;
     max-height: 230px;
@@ -36,6 +44,10 @@
       cursor: pointer;
       padding: 2px 16px;
       text-align: center;
+
+      &.disabled {
+        background-color: var(--disabled-bg) !important;
+      }
 
       &.dg-all {
         font-weight: bold;

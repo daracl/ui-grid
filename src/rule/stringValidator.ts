@@ -11,20 +11,20 @@ import { Config } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | boolean => {
-  let result: ValidResult = { name: field.name, constraint: [] };
+export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | null => {
+  let result: ValidResult = { name: field.name, constraints: [] };
 
   const editRenderer = field.editRenderer;
   if (!editRenderer) {
-    return true;
+    return null;
   }
 
   if (editRenderer.required && utils.isBlank(value)) {
-    result.constraint.push(RULES.REQUIRED);
+    result.constraints.push(RULES.REQUIRED);
     return result;
   }
   const validResult = validator(value, field, rowItem, gridConfig, result);
-  if (validResult !== true) {
+  if (validResult != null) {
     return validResult;
   }
 
@@ -46,20 +46,20 @@ export const stringValidator = (value: string, field: FieldItem, rowItem: any, g
     }
 
     if (isMinNumber && isMaxNumber && (minRule || maxRule)) {
-      result.constraint.push(RULES.BETWEEN);
+      result.constraints.push(RULES.BETWEEN);
     } else {
       if (minRule) {
-        result.constraint.push(RULES.MIN_LENGTH);
+        result.constraints.push(RULES.MIN_LENGTH);
       }
 
       if (maxRule) {
-        result.constraint.push(RULES.MAX_LENGTH);
+        result.constraints.push(RULES.MAX_LENGTH);
       }
     }
-    if (result.constraint.length > 0) {
+    if (result.constraints.length > 0) {
       return result;
     }
   }
 
-  return true;
+  return null;
 };

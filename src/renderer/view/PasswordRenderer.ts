@@ -4,18 +4,22 @@ import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 
 /**
- * text renderer
+ * password renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {PasswordRenderer}
  * @extends {ViewRenderer}
  */
-export default class TextRenderer extends ViewRenderer {
+export default class PasswordRenderer extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = item[this.fieldName];
+    const value = item[this.fieldName];
+
+    const raw = String(value ?? "");
+    const masked = "*".repeat(raw.length);
+    element.innerText = masked;
   }
 }

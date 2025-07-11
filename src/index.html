@@ -128,6 +128,45 @@
 </style>
 <script>
 
+  const koreanFoods = [
+    { name: '김치찌개', cd: 'kimchi_stew' },
+    { name: '비빔밥', cd: 'bibimbap' },
+    { name: '불고기', cd: 'bulgogi' },
+    { name: '된장찌개', cd: 'doenjang_stew' },
+    { name: '잡채', cd: 'japchae' }
+  ];
+
+  const americanFoods = [
+    { name: '햄버거', cd: 'hamburger' },
+    { name: '핫도그', cd: 'hotdog' },
+    { name: '바비큐 립', cd: 'bbq_ribs' },
+    { name: '클램 차우더', cd: 'clam_chowder' },
+    { name: '치킨 윙', cd: 'chicken_wings' }
+  ];
+
+  const chineseFoods = [
+    { name: '짜장면', cd: 'zhajiangmian' },
+    { name: '탕수육', cd: 'tangsuyuk' },
+    { name: '마파두부', cd: 'mapo_tofu' },
+    { name: '양장피', cd: 'yangjangpi' },
+    { name: '깐풍기', cd: 'kanpunggi' }
+  ];
+
+  const japaneseFoods = [
+    { name: '스시', cd: 'sushi', disabled: true },
+    { name: '라멘', cd: 'ramen' },
+    { name: '돈카츠', cd: 'tonkatsu' },
+    { name: '우동', cd: 'udon' },
+    { name: '오코노미야키', cd: 'okonomiyaki' }
+  ];
+
+  const allFoods = [
+    ...koreanFoods,
+    ...americanFoods,
+    ...chineseFoods,
+    ...japaneseFoods
+  ];
+
   Daracl.grid.message({ "no.data": "데이터가 없습니다.", "select.all": "ALL" })
 
   const THEME_KEY = "grid-theme";
@@ -177,10 +216,7 @@
           console.log('dgGridSampleConfig : ', dgGridSampleConfig, e);
         }
       }
-
     }
-
-
 
     const itemType = document.getElementById('dataType').value;
     const itemCount = parseInt(document.getElementById("itemCount").value, 10);
@@ -235,6 +271,7 @@
           , i: 'iiii' + i
           , j: 'jjjj' + i
           , k: i % 2 == 0 ? "Y" : "N"
+          , m: "한글테스트 : " + i
           , s: generateRandomNumbers(1, 100, 6)
           , t: generateRandomNumbers(1, 100, 6)
           , z: Math.floor(Math.random() * 201) - 100
@@ -248,7 +285,7 @@
           children: [
             { name: 'a', label: '에이에이에이에이에이에이', width: 50, sort: true, editable: false }
             , {
-              name: 'b', label: '비', width: 50, visible: true, colClick: function (idx, item) { console.log(idx, item) }, styleClass: function (rowInfo) {
+              name: 'b', label: '비', width: 100, styleClass: function (rowInfo) {
                 const rowIdx = rowInfo.rowIdx;
                 if (rowIdx % 3 == 0) {
                   return 'dg-primary';
@@ -258,10 +295,26 @@
                   return '';
                 }
               }
+              , editRenderer: {
+                type: "text"
+                , required: true
+                , regexpType: "email"
+                , rule: {
+                  minLength: 0
+                  , maxLength: 50
+                }
+              }
             }
             , {
-              name: 'z', label: 'bar', width: 50, sort: true, editable: false, renderer: {
+              name: 'z', label: 'bar', width: 50, sort: true, renderer: {
                 type: 'bar'
+                , rule: {
+                  minimum: -100
+                  , maximum: 100
+                }
+              }
+              , editRenderer: {
+                type: 'number'
                 , rule: {
                   minimum: -100
                   , maximum: 100
@@ -298,7 +351,7 @@
           }
         }
         , {
-          name: 'c', label: 'link', width: 100, editable: false, renderer: {
+          name: 'c', label: 'link', width: 60, editable: false, renderer: {
             type: 'link'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -307,6 +360,26 @@
             }
             , click: function (item) {
               console.log('link ', item)
+            }
+          }
+        }
+        , {
+          name: 'm', label: 'password', width: 70, renderer: {
+            type: 'password'
+          }
+          , editRenderer: {
+            type: 'password'
+          }
+        }
+        , {
+          name: 'h', label: 'number', width: 60, align: 'right', renderer: {
+            type: 'number'
+          }
+          , editRenderer: {
+            type: "number"
+            , rule: {
+              minimum: -100
+              , maximum: 100
             }
           }
         }
@@ -327,28 +400,16 @@
           }
         }
         , {
-          name: 'd', label: 'dropdown', width: 100, type: 'text', renderer: {
+          name: 'd', label: 'dropdown', width: 100, renderer: {
             type: 'dropdown'
             , listItem: {
               labelField: 'name'
               , valueField: 'cd'
               , list: [
-                { name: 'USA', 'cd': 'USA' }
-                , { name: 'KOREA', 'cd': 'KOREA' }
-                , { name: 'CHINA', 'cd': 'CHINA' }
-                , { name: 'KOREA1', 'cd': 'KOREA1' }
-
-                /*	,'KOREA2'
-                  ,'KOREA3'
-                  ,'KOREA4'
-                  ,'KOREA5'
-                  ,'KOREA6'
-                  ,'KOREA7'
-                  ,'KOREA8'
-                  ,'KOREA9'
-                  ,'KOREA10'
-                  ,'KOREA11'
-              */
+                { name: 'KOREA', 'cd': 'ko' }
+                , { name: 'USA', 'cd': 'en' }
+                , { name: 'CHINA', 'cd': 'zh' }
+                , { name: 'JAPAN', 'cd': 'jp' }
               ]
             }
           }
@@ -361,28 +422,27 @@
               , valueField: 'cd'
               , multiple: true
               , list: (cellInfo, callback) => {
-                callback([
-                  { name: 'AAAAAAAAAAAAAAAAAAAAAAAA', 'cd': 'a' }
-                  , { name: 'BBB', 'cd': 'b' }
-                  , { name: 'CCC', 'cd': 'C' }
-                  , { name: 'DDD', 'cd': 'd' }
-                  , { name: 'EEE', 'cd': 'e' }
-                  , { name: 'fff', 'cd': 'g' }
-                  , { name: 'ggg', 'cd': 'g' }
-                  , { name: 'hhh', 'cd': 'h' }
+                const item = cellInfo.item;
 
-                  /*	,'KOREA2'
-                    ,'KOREA3'
-                    ,'KOREA4'
-                    ,'KOREA5'
-                    ,'KOREA6'
-                    ,'KOREA7'
-                    ,'KOREA8'
-                    ,'KOREA9'
-                    ,'KOREA10'
-                    ,'KOREA11'
-                */
-                ]);
+                if (typeof item === "undefined") {
+                  callback(allFoods);
+                  return;
+                }
+                const dValue = item.d;
+
+                let foods = [];
+
+                if (dValue == "en") {
+                  foods = americanFoods;
+                } else if (dValue == "zh") {
+                  foods = chineseFoods;
+                } else if (dValue == "jp") {
+                  foods = japaneseFoods;
+                } else {
+                  foods = koreanFoods;
+                }
+
+                callback(foods);
               }
             }
           }
@@ -410,11 +470,7 @@
             }
           }
         }
-        , {
-          name: 'h', label: 'number', width: 100, align: 'right', type: 'number', visible: true, renderer: {
-            type: 'number'
-          }
-        }
+
         //,{key :'d', label:'디', hidden:true}
       ]
     } else if (type == 2) {
@@ -679,7 +735,7 @@
         //, heights: [20, 50, 50]
         , sort: {
           //정렬 활성화 여부
-          enabled: true
+          enabled: false
           // null value 를 항상 끝으로 유지 할지 여부
           , nullsLast: true
           // custom sorting function

@@ -177,6 +177,17 @@ export default class Header {
     this.rightElement.html(this.template("right"));
 
     this.headerCellElements = this.headerElement.finds(".dg-header-cell");
+    /*
+      this.headerElement.finds(".dg-header-cell").forEach((node) => {
+      const ele = node as HTMLElement;
+      const cellIdx = parseInt(ele.getAttribute("data-header-cell-idx") || "0", 10);
+      this.headerCellElements[cellIdx] = node;
+    });
+    */
+    //
+    //
+    //
+    //
   }
 
   /**
@@ -257,7 +268,7 @@ export default class Header {
 
         const label =
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
-            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="dg-checkmark"></span></label>'
+            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
             : `<div class="centered">${headerItem.label}</div>`;
 
         const labelHtml = `

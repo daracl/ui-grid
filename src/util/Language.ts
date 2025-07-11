@@ -5,7 +5,7 @@ import { RULES } from "src/constants";
 import { merge } from "./utils";
 
 let localeMessage: Message = {
-  required: "{label} 필수 입력사항입니다.",
+  required: "필수 입력사항 입니다.",
   selection: "선택",
   string: {
     minLength: "{minLength} 글자 이상으로 입력하세요.",
@@ -93,13 +93,13 @@ export default class Language {
       messageFormats.push(messageFormat);
     }
 
-    (validResult.constraint ?? []).forEach((constraint) => {
+    (validResult.constraints ?? []).forEach((constraint) => {
       if (constraint === RULES.REQUIRED) {
         messageFormat = message(this.lang.required, field);
         messageFormats.push(messageFormat);
       }
 
-      const renderType = field.renderer.type;
+      const renderType = field.editRenderer?.type;
 
       if (renderType == "number" || renderType == "range") {
         messageFormat = (this.lang.number as any)[constraint];

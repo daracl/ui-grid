@@ -5,6 +5,7 @@ import { CellInfo } from "@t/GridConfig";
 import { LAYER_ATTR_NAME } from "src/constants";
 import { getElementRect } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
+import { stringValidator } from "src/rule/stringValidator";
 
 /**
  * text renderer
@@ -14,16 +15,15 @@ import { eventOn } from "src/util/eventUtils";
  */
 export default class TextRenderer extends EditRenderer {
   private editElement: HTMLInputElement;
-  private readonly rendererContainer: HTMLElement;
   private item: any;
   private cellElement: HTMLElement;
   private cellInfo: CellInfo;
 
+  private isShow: boolean;
+
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
     const rendererInfo = this.field.editRenderer;
-
-    this.rendererContainer = this.gridMain.getRendererContainer();
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
@@ -39,6 +39,7 @@ export default class TextRenderer extends EditRenderer {
       editElement.className = "dg-edit-input";
       editElement.name = this.fieldName;
       editElement.setAttribute(LAYER_ATTR_NAME, cellInfo.c + "");
+      editElement.setAttribute("autocomplete", "off");
 
       this.rendererContainer.appendChild(editElement);
       this.editElement = editElement;
@@ -51,6 +52,7 @@ export default class TextRenderer extends EditRenderer {
     const cellRect = getElementRect(element);
     const rendererContainer = getElementRect(this.rendererContainer);
 
+    this.isShow = true;
     style.display = "block";
     style.top = `${cellRect.top - rendererContainer.top}px`;
     style.left = `${cellRect.left - rendererContainer.left}px`;
@@ -65,27 +67,45 @@ export default class TextRenderer extends EditRenderer {
 
   initEvt(editElement: HTMLInputElement, item: any) {
     eventOn(editElement, "blur", (e: FocusEvent) => {
-      const value = this.editElement.value;
+      if (this.isShow) {
+        this.setChangeValue(e);
+      }
+    });
 
-      this.item[this.fieldName] = value;
+    eventOn(editElement, "keydown", (e: KeyboardEvent) => {
+      const key = e.key;
 
-      console.log("value ", value);
-      this.changeEventCall(e, value);
-      //
-      //
-      //
-      // cell element 수정할것.
-
-      this.field.$renderer.render(this.cellInfo, this.cellElement);
-
-      this.gridMain.hideLayer();
+      if (key === "Enter") {
+        this.setChangeValue(e);
+      } else if (key === "Escape") {
+        this.setChangeValue(e, true);
+      }
     });
   }
-  public reset(element: HTMLElement): void {
-    this.setValue(element, this.field.renderer.defaultValue);
+
+  setChangeValue(e: Event, cancelFlag: boolean = false) {
+    this.isShow = false;
+    if (!cancelFlag) {
+      const value = this.editElement.value;
+      if (this.setValue(e, this.item, value) === false) {
+        this.isShow = true;
+        return false;
+      }
+    }
+
+    this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
+    this.gridMain.hideLayer();
   }
 
-  valid(element: HTMLElement): any {
-    return true;
+  valid(value: string): any {
+    const result = stringValidator(value, this.field, this.item, this.gridMain.getGrid().config());
+
+    if (result == null) {
+      return true;
+    }
+
+    console.log(result);
+
+    return !this.showInvalidMessage(result, this.cellElement);
   }
 }

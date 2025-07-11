@@ -237,4 +237,5 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   $isAside: false,
   $panel: "center",
   $uid: "",
+  $colSeq: 0,
 };

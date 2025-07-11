@@ -505,6 +505,8 @@ export default class SelectionInfo {
     const dataInfo = this.config.dataInfo;
     const headerCellElements = this.gridMain.getHeader().getHeaderCellElements();
 
+    console.log("setColumnLineSelection : ", dataInfo, headerCellElements);
+
     const isAll = this.isAllSelect();
     for (let col = dataInfo.startCol; col < dataInfo.colLength; col++) {
       const headerEle = headerCellElements[col];
