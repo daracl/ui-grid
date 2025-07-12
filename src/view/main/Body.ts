@@ -633,7 +633,7 @@ export default class Body {
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name)}" data-cell-position="${rowIdx + "," + (startCol + j)}">
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name).replace("$", "")}" data-cell-position="${rowIdx + "," + (startCol + j)}">
           <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></div>
         </td>`);
         } else {

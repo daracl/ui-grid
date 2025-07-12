@@ -231,7 +231,7 @@ export default class BodyEvent {
         const _t = position.top,
           _b = _t + cfg.dimensions.mainBodyHeight;
 
-        if (multipleFlag && hasClass(cellElement, "$line-number")) {
+        if (multipleFlag && hasClass(cellElement, "line-number")) {
           selectionMode = "multiple-row";
         }
 
