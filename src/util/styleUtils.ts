@@ -1,4 +1,5 @@
 import DaraGrid from "src/DaraGrid";
+import { $querySelector } from "./domUtils";
 
 /**
  * @method addStyleTag
@@ -65,10 +66,10 @@ export const styleClassSplit = (styleClass: string) => {
  *
  * @param {string} styleClasss css class
  */
-export function addClass(element: Element | NodeListOf<Element> | null, styleClass: string): void {
+export function addClass(element: Element | NodeListOf<Element> | null | Element[], styleClass: string): void {
   if (!element) return;
 
-  const elements = element instanceof Element ? [element] : Array.from(element);
+  const elements = $querySelector(element);
 
   const addStyles = styleClassSplit(styleClass);
 
@@ -83,10 +84,10 @@ export function addClass(element: Element | NodeListOf<Element> | null, styleCla
  * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
  * @param {string} styleClass style css class
  */
-export function removeClass(element: Element | NodeListOf<Element> | null, classNames: string): void {
+export function removeClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
   if (!element || typeof classNames !== "string") return;
 
-  const elements = element instanceof Element ? [element] : Array.from(element);
+  const elements = $querySelector(element);
 
   const styleClasses = styleClassSplit(classNames);
 
@@ -103,10 +104,10 @@ export function removeClass(element: Element | NodeListOf<Element> | null, class
  * @param element - 단일 Element 또는 NodeListOf<Element> 또는 null
  * @param classNames - 공백으로 구분된 하나 이상의 클래스 이름
  */
-export function toggleClass(element: Element | NodeListOf<Element> | null, classNames: string): void {
+export function toggleClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
   if (!element || typeof classNames !== "string") return;
 
-  const elements = element instanceof Element ? [element] : Array.from(element);
+  const elements = $querySelector(element);
   const styleClasses = styleClassSplit(classNames);
 
   for (const el of elements) {

@@ -26,7 +26,7 @@ export default class Header {
   private centerElement: DaraElement;
   private rightElement: DaraElement;
 
-  private headerCellElements: NodeListOf<HTMLElement>;
+  private headerCellElements: HTMLElement[];
 
   private headerEvent: HeaderEvent;
 
@@ -176,18 +176,12 @@ export default class Header {
     this.centerElement.html(this.template("center"));
     this.rightElement.html(this.template("right"));
 
-    this.headerCellElements = this.headerElement.finds(".dg-header-cell");
-    /*
-      this.headerElement.finds(".dg-header-cell").forEach((node) => {
+    this.headerCellElements = [];
+    this.headerElement.finds(".dg-header-cell").forEach((node) => {
       const ele = node as HTMLElement;
       const cellIdx = parseInt(ele.getAttribute("data-header-cell-idx") || "0", 10);
       this.headerCellElements[cellIdx] = node;
     });
-    */
-    //
-    //
-    //
-    //
   }
 
   /**

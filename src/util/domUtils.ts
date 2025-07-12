@@ -1,4 +1,5 @@
 import { styleClassSplit } from "./styleUtils";
+import { isArray } from "./utils";
 
 export function hasClass(element: HTMLElement, styleClass: string) {
   const styleClassArr = styleClassSplit(styleClass);
@@ -79,4 +80,31 @@ export function removeAttr(element: HTMLElement | NodeList, ...attrKey: string[]
       (ele as HTMLElement).removeAttribute(attr);
     }
   });
+}
+
+export function $querySelector(el: Element | string | NodeList | Document | Element[]): any[] {
+  if (isArray(el)) {
+    return el;
+  }
+  if (el instanceof Document) {
+    return [document];
+  }
+
+  if (el instanceof Element) {
+    return [el];
+  }
+  let nodeList;
+  if (el instanceof NodeList) {
+    nodeList = el;
+  } else {
+    nodeList = document.querySelectorAll(el);
+  }
+
+  const reval: Element[] = [];
+
+  for (let node of nodeList) {
+    reval.push(node as Element);
+  }
+
+  return reval;
 }

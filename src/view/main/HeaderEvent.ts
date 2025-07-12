@@ -26,7 +26,7 @@ export default class HeaderEvent {
 
   private readonly headerElement: DaraElement;
 
-  private readonly headerCellElements: NodeListOf<HTMLElement>;
+  private readonly headerCellElements: HTMLElement[];
 
   private readonly resizerHelperElement: DaraElement;
 

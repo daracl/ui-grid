@@ -1,6 +1,7 @@
 import { Config } from "@t/GridConfig";
 import { FieldItem } from "@t/GridField";
-import { intValue, isEmpty, isString, isUndefined } from "./utils";
+import { intValue, isArray, isEmpty, isString, isUndefined } from "./utils";
+import { $querySelector } from "./domUtils";
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -62,7 +63,7 @@ export function isSpacebar(evt: Event): boolean {
  * @param {string} type event type "click mousedown" space split
  * @returns {*}
  */
-export const eventOff = (el: Element | string | NodeList | null | Document, type: string) => {
+export const eventOff = (el: Element | string | NodeList | null | Document | Element[], type: string) => {
   if (el == null) return el;
 
   const eventTypes = type.replaceAll(/\s+/g, " ").split(" ");
@@ -100,7 +101,7 @@ export const eventOff = (el: Element | string | NodeList | null | Document, type
  * @param {?*} [fnOpts] listener option
  * @returns {*}
  */
-export const eventOn = (el: Element | string | NodeList | null | Document, type: string, listener?: any, selector?: any, fnOpts?: any) => {
+export const eventOn = (el: Element | string | NodeList | null | Document | Element[], type: string, listener?: any, selector?: any, fnOpts?: any) => {
   if (el == null) return;
 
   const eventTypes = type.replaceAll(/\s+/g, " ").split(" ");
@@ -185,27 +186,3 @@ export const eventPosition = (e: Event) => {
     y: evt.pageY,
   };
 };
-
-function $querySelector(el: Element | string | NodeList | Document): any[] {
-  if (el instanceof Document) {
-    return [document];
-  }
-
-  if (el instanceof Element) {
-    return [el];
-  }
-  let nodeList;
-  if (el instanceof NodeList) {
-    nodeList = el;
-  } else {
-    nodeList = document.querySelectorAll(el);
-  }
-
-  const reval: Element[] = [];
-
-  for (let node of nodeList) {
-    reval.push(node as Element);
-  }
-
-  return reval;
-}
