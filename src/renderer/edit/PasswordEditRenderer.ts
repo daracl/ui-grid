@@ -53,7 +53,7 @@ export default class PasswordEditRenderer extends EditRenderer {
     const rendererContainer = getElementRect(this.rendererContainer);
 
     this.isShow = true;
-    style.display = "block";
+    this.gridMain.openLayer(editElement);
     style.top = `${cellRect.top - rendererContainer.top}px`;
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;

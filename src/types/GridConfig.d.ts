@@ -64,6 +64,8 @@ export interface Config {
 
   isCellEdit: boolean;
 
+  isOpenLayer: boolean;
+
   /**
    * row 다중 체크 여부
    *

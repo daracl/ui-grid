@@ -51,6 +51,8 @@ export function initConfig(opts: GridOptions): Config {
     items: [],
     orginItems: [],
     isHeaderResize: false,
+    isOpenLayer: false,
+
     currentFields: [],
     allFieldMap: new Map(),
     dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, startCol: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },

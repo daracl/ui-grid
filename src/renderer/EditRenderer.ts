@@ -130,9 +130,9 @@ export default abstract class EditRenderer extends Renderer {
    * @returns
    */
   public showInvalidMessage(result: ValidResult, cellElement: HTMLElement) {
-    const message = this.language.validMessage(this.field, result);
+    if (!this.gridMain.getGrid().config().isOpenLayer) return true;
 
-    console.log(message);
+    const message = this.language.validMessage(this.field, result);
 
     if (message.length > 0) {
       const element = this.getValidatorElement();
@@ -143,7 +143,7 @@ export default abstract class EditRenderer extends Renderer {
 
       const style = element.style;
 
-      style.display = "block";
+      this.gridMain.openLayer(element);
       style.top = `${cellRect.top - rendererContainer.top - element.offsetHeight}px`;
       style.left = `${cellRect.left - rendererContainer.left}px`;
 

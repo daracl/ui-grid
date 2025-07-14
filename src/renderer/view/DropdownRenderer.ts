@@ -213,7 +213,9 @@ export default class DropdownRenderer extends ViewRenderer {
     const menuStyle = menuElement.style;
 
     menuStyle.height = "auto";
-    menuStyle.display = "block";
+
+    this.gridMain.openLayer(menuElement);
+
     menuStyle.width = `${elementRect.width}px`;
 
     let menuHeight = menuElement.offsetHeight || getElementRect(menuElement).height;

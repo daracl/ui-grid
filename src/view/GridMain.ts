@@ -55,7 +55,7 @@ export default class GridMain {
 
   private readonly initGridSize: any;
 
-  private readonly layerSelector: string;
+  private readonly openLayers: HTMLElement[] = [];
 
   constructor(grid: DaraGrid) {
     this.grid = grid;
@@ -83,8 +83,6 @@ export default class GridMain {
       height: opts.height == "auto" ? -1 : opts.height,
       width: opts.width == "auto" ? -1 : opts.width,
     };
-
-    this.layerSelector = `[${LAYER_ATTR_NAME}]`;
   }
 
   /**
@@ -241,25 +239,29 @@ export default class GridMain {
       this.body.editAreaClose();
     }
   }
+
+  public openLayer(layerElement: HTMLElement) {
+    layerElement.style.display = "block";
+    this.grid.config().isOpenLayer = true;
+
+    this.openLayers.push(layerElement);
+  }
+
   public hideLayer(activeComponent?: string) {
-    const mainElement = this._mainElement.getElement();
-    const layers = mainElement.querySelectorAll(this.layerSelector);
+    if (this.openLayers.length < 1) return;
 
-    if (!activeComponent) {
-      this.grid.config().activeComponent = "";
-    }
+    this.grid.config().isOpenLayer = false;
 
-    mainElement.focus({ preventScroll: true });
+    console.log("hideLayer : ", this.grid.config().isOpenLayer);
 
-    console.log("hideLayer  ");
-    //  const stack = new Error().stack;
+    // const stack = new Error().stack;
 
     // if (stack) {
     //   console.log("호출한 함수:", stack);
     // }
 
-    layers.forEach((layer) => {
-      const layerElement = layer as HTMLElement;
+    for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
+      const layerElement = this.openLayers[idx];
       if (activeComponent) {
         const attrValue = layerElement.getAttribute(LAYER_ATTR_NAME) ?? "";
 
@@ -269,7 +271,16 @@ export default class GridMain {
       } else {
         layerElement.style.display = "none";
       }
-    });
+      this.openLayers.splice(idx, 1);
+    }
+
+    const mainElement = this._mainElement.getElement();
+
+    if (!activeComponent) {
+      this.grid.config().activeComponent = "";
+    }
+
+    mainElement.focus({ preventScroll: true });
   }
 
   /**

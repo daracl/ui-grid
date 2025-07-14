@@ -696,9 +696,7 @@ export default class BodyEvent {
 
     this.gridMain.setGridFocusIn(e, true);
 
-    if (cellInfo.field.renderer.type == "dropdown" && cellInfo.c == +cfg.activeComponent) {
-      //this.gridMain.hideLayer(cfg.activeComponent);
-    } else {
+    if (!(cellInfo.field.renderer.type == "dropdown" && cellInfo.c == +cfg.activeComponent)) {
       this.gridMain.hideLayer();
     }
 
