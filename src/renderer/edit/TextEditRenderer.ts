@@ -2,8 +2,7 @@ import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
-import { LAYER_ATTR_NAME } from "src/constants";
-import { getElementRect } from "src/util/domUtils";
+import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
 import { stringValidator } from "src/rule/stringValidator";
 
@@ -35,10 +34,8 @@ export default class TextRenderer extends EditRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = document.createElement("input");
-      editElement.className = "dg-edit-input";
+      editElement = getLayerElement("input", "dg-edit-input", cellInfo.c + "") as HTMLInputElement;
       editElement.name = this.fieldName;
-      editElement.setAttribute(LAYER_ATTR_NAME, cellInfo.c + "");
       editElement.setAttribute("autocomplete", "off");
 
       this.rendererContainer.appendChild(editElement);

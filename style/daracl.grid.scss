@@ -437,6 +437,7 @@ body {
     & > * {
       position: absolute;
       z-index: 1000;
+      display: none;
     }
 
     @include _HIDDEN.hiddenComponent;

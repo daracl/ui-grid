@@ -1,14 +1,14 @@
 import { HeaderOptions } from "@t/GridOptions";
-import { Selection, SelectionRange } from "@t/GridConfig";
+import { Config, Selection, SelectionRange } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
-import * as utils from "src/util/utils";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
-import { addAttr, getElementRect, removeAttr } from "src/util/domUtils";
+import { addAttr, getElementRect, getLayerElement, getOpenLayerPosition, removeAttr } from "src/util/domUtils";
 import Header from "./Header";
+import { arrayCopy, isFunction, multiSort } from "src/util/utils";
 
 /**
  * Header class
@@ -32,6 +32,8 @@ export default class HeaderEvent {
 
   private drag: any;
 
+  private toolTipElement: HTMLElement;
+
   constructor(grid: DaraGrid, gridMain: GridMain, header: Header) {
     this.grid = grid;
     this.gridMain = gridMain;
@@ -48,11 +50,105 @@ export default class HeaderEvent {
   }
 
   initEvt() {
+    this.initHelpButton();
     this.initHeaderSelectionEvent();
     this.initSortEvent();
 
     this.initResizeEvent();
     this.initHeaderCheckbox();
+  }
+
+  /**
+   * init help button event
+   * @returns
+   */
+  initHelpButton() {
+    const helpOpts = this.headerOpts.help;
+
+    if (!helpOpts.enabled) return;
+
+    const isClick = isFunction(helpOpts.click);
+    const helpClickFn = helpOpts.click ?? function () {};
+
+    const cfg = this.grid.config();
+
+    const helpElements = this.headerElement.finds(".dg-header-help");
+
+    if (isClick) {
+      eventOff(helpElements, "mousedown touchstart");
+      eventOn(
+        helpElements,
+        "mousedown touchstart",
+        (e: UIEvent) => {
+          stopPreventCancel(e);
+
+          const currentElement = e.currentTarget as HTMLElement;
+          const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
+
+          helpClickFn(cellInfo);
+
+          return false;
+        },
+        null,
+        { passive: false }
+      );
+    }
+
+    // tooltip mouseenter
+    const delay = helpOpts.showDelay;
+    const renderContainer = this.gridMain.getRendererContainer();
+    let tooltipTimer: any;
+    eventOff(helpElements, "mouseenter");
+    eventOn(helpElements, "mouseenter", (e: UIEvent) => {
+      const currentElement = e.currentTarget as HTMLElement;
+      const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
+
+      const field = cellInfo.field;
+
+      const content = field?.headerTooltip?.content;
+
+      if (!content) return false;
+
+      let toolTipElement = this.toolTipElement;
+
+      if (!toolTipElement) {
+        toolTipElement = getLayerElement("div", "dg-header-help-tooltip", "help-tooltip");
+
+        renderContainer.appendChild(toolTipElement);
+        this.toolTipElement = toolTipElement;
+      }
+
+      tooltipTimer = setTimeout(() => {
+        let tooltipContent: any;
+        if (isFunction(content)) {
+          tooltipContent = content(cellInfo);
+        } else {
+          tooltipContent = content;
+        }
+
+        toolTipElement.innerHTML = tooltipContent;
+
+        const layerStyle = toolTipElement.style;
+
+        layerStyle.height = "auto";
+        this.gridMain.openLayer(toolTipElement);
+        layerStyle.width = "auto";
+
+        const openPosition = getOpenLayerPosition(renderContainer, currentElement, toolTipElement);
+
+        layerStyle.top = `${openPosition.top}px`;
+        layerStyle.left = `${openPosition.left}px`;
+        layerStyle.height = `${openPosition.height}px`;
+      }, delay);
+
+      return false;
+    });
+
+    eventOn(helpElements, "mouseleave", (e: UIEvent) => {
+      clearTimeout(tooltipTimer);
+      this.gridMain.hideLayer(this.toolTipElement);
+      return false;
+    });
   }
 
   /**
@@ -73,7 +169,7 @@ export default class HeaderEvent {
 
         const currentElement = e.currentTarget as HTMLElement;
 
-        const sortCell = parseInt(currentElement.closest(".dg-header-cell")?.getAttribute("data-header-cell-idx") ?? "0", 10);
+        const sortCell = parseInt(currentElement.closest(".dg-header-cell")?.getAttribute("data-header-cell-position") ?? "0", 10);
 
         const sortField = cfg.currentFields[sortCell];
 
@@ -91,7 +187,7 @@ export default class HeaderEvent {
             });
             cfg.sort.orders = [];
           }
-          sortItems = utils.arrayCopy(cfg.orginItems);
+          sortItems = arrayCopy(cfg.orginItems);
         }
 
         const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);
@@ -120,7 +216,7 @@ export default class HeaderEvent {
           cfg.sort.orders.push({ key: sortName, ascOrder: true, sortCell: sortCell });
         }
 
-        //.dg-header-cell[data-header-cell-idx="8"] .dg-sort-icon;
+        //.dg-header-cell[data-header-cell-position="8"] .dg-sort-icon;
 
         if (cfg.sort.orders.length > 0) {
           if (cfg.sort.orders.length > 1 && isNumModify) {
@@ -128,7 +224,7 @@ export default class HeaderEvent {
               (this.headerCellElements[item.sortCell].querySelector(".dg-sort-num") as HTMLElement).textContent = index + 1 + "";
             });
           }
-          cfg.items = utils.multiSort(sortItems, cfg.sort.orders, nullsLast);
+          cfg.items = multiSort(sortItems, cfg.sort.orders, nullsLast);
         } else {
           cfg.items = cfg.orginItems;
         }
@@ -173,7 +269,7 @@ export default class HeaderEvent {
 
           const currentElement = e.currentTarget as HTMLElement;
 
-          const colIdx = parseInt(currentElement.getAttribute("data-header-cell-idx") ?? "0", 10);
+          const colIdx = parseInt(currentElement.getAttribute("data-header-cell-position") ?? "0", 10);
           const field = leafAllFields[colIdx];
           if (field.$isAside) {
             return;
@@ -377,7 +473,7 @@ export default class HeaderEvent {
     let w = currentFireld.$width + resizeWidth;
 
     this.header.setColumnWidth(resizeIdx, w);
-    if (utils.isFunction(this.headerOpts.resize.update)) {
+    if (isFunction(this.headerOpts.resize.update)) {
       this.headerOpts.resize.update.call(null, { index: this.drag.resizeIdx, width: w });
     }
   }
@@ -435,5 +531,35 @@ export default class HeaderEvent {
       },
       { passive: false }
     );
+  }
+
+  getHeaderHelpCellInfo(cfg: Config, currentElement: HTMLElement) {
+    let cell;
+    let field;
+    const groupCellElement = currentElement.closest(".dg-header-group-cell");
+    if (groupCellElement) {
+      const groupPosition = groupCellElement.getAttribute("data-header-group-position")?.split(",");
+
+      if (groupPosition && groupPosition.length > 0) {
+        const row = parseInt(groupPosition[0], 10);
+        const idx = parseInt(groupPosition[1], 10);
+
+        let fieldGroups;
+        if (groupCellElement.closest(".dg-left")) {
+          fieldGroups = cfg.fieldHeaderGroup.left;
+        } else if (groupCellElement.closest(".dg-right")) {
+          fieldGroups = cfg.fieldHeaderGroup.right;
+        } else {
+          fieldGroups = cfg.fieldHeaderGroup.center;
+        }
+        field = fieldGroups[row][idx];
+        cell = idx;
+      }
+    } else {
+      cell = parseInt(currentElement.closest(".dg-header-cell")?.getAttribute("data-header-cell-position") ?? "0", 10);
+      field = cfg.currentFields[cell];
+    }
+
+    return { c: cell, field: field };
   }
 }

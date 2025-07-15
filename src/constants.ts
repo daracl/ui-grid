@@ -185,3 +185,8 @@ export const ROW_HEIGHT_KEY = "_dg$rowHeight";
  * @type {"data-dg-grid-layer"}
  */
 export const LAYER_ATTR_NAME = "data-dg-grid-layer";
+
+/**
+ * 전체 선택 value
+ */
+export const ALL_SELECT_VALUE = "$all$";

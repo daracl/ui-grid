@@ -97,7 +97,7 @@ export default class Header {
     if (!idx) {
       headerCellElement = (this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).closest(".dg-header-cell");
     } else {
-      headerCellElement = this.headerElement.getElement().querySelector(`[data-header-cell-idx="${idx}"]`);
+      headerCellElement = this.headerElement.getElement().querySelector(`[data-header-cell-position="${idx}"]`);
     }
 
     const checkEle = headerCellElement?.querySelector(".dg-checkbox.dg-all");
@@ -179,7 +179,7 @@ export default class Header {
     this.headerCellElements = [];
     this.headerElement.finds(".dg-header-cell").forEach((node) => {
       const ele = node as HTMLElement;
-      const cellIdx = parseInt(ele.getAttribute("data-header-cell-idx") || "0", 10);
+      const cellIdx = parseInt(ele.getAttribute("data-header-cell-position") || "0", 10);
       this.headerCellElements[cellIdx] = node;
     });
   }
@@ -216,7 +216,6 @@ export default class Header {
 
     const rowsHtml: string[] = [];
     const helpEnabled = opts.header.help.enabled;
-    const helpTitle = opts.header.help.title;
     const headerGroupLength = headerGroups.length;
 
     const resizeEnabled = this.headerOpts.resize.enabled;
@@ -227,7 +226,7 @@ export default class Header {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
       const rowHtml: string[] = [`<tr class="dg-header-row" style="height:${trHeight}px">`];
 
-      headerGroup.forEach((headerItem) => {
+      headerGroup.forEach((headerItem, colIndex: number) => {
         if (headerItem.$isLeaf && headerItem.$depth < headerGroupLength) {
           headerItem.$rowspan = headerGroupLength - headerItem.$depth + 1;
         }
@@ -235,9 +234,10 @@ export default class Header {
         let cellIdx = "";
         if (headerItem.$isLeaf) {
           classes = "dg-header-cell";
-          cellIdx = ` data-header-cell-idx="${headerItem.$resizeIdx}"`;
+          cellIdx = ` data-header-cell-position="${headerItem.$resizeIdx}"`;
         } else {
           classes = "dg-header-group-cell";
+          cellIdx = ` data-header-group-position="${rowIndex},${colIndex}"`;
         }
 
         const colspan = headerItem.$colspan > 1 ? ` colspan="${headerItem.$colspan}" scope="colgroup"` : "";
@@ -251,9 +251,10 @@ export default class Header {
               </svg></div>`
             : "";
 
+        const isHeaderTooltip = headerItem.headerTooltip?.enabled ?? true;
         const helpIcon =
-          helpEnabled && !headerItem.$isAside
-            ? `<div class="dg-header-help-wrapper" title="${helpTitle}">
+          helpEnabled && isHeaderTooltip !== false && !headerItem.$isAside
+            ? `<div class="dg-header-help-button">
                <svg class="dg-header-help" viewBox="0 0 100 100">
                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
                </svg>

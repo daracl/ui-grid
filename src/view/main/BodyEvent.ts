@@ -11,6 +11,7 @@ import SelectionInfo from "src/selection/selection";
 import { getElementRect, hasClass } from "src/util/domUtils";
 import Body from "./Body";
 import { ROW_CHECK_NAME } from "src/constants";
+import DataSearch from "./DataSearch";
 
 /**
  * Body event class
@@ -28,6 +29,7 @@ export default class BodyEvent {
   private readonly pasteElement: DaraElement;
 
   private readonly allCellElements: any;
+  private dataSearch: DataSearch;
 
   constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.grid = grid;
@@ -207,7 +209,7 @@ export default class BodyEvent {
       bodyElement,
       "mousedown touchstart",
       (e: UIEvent) => {
-        if ((e as MouseEvent).button === 3) {
+        if ((e as MouseEvent).button !== 0) {
           return true;
         }
         const eventElement = e.target as HTMLElement;
@@ -420,6 +422,8 @@ export default class BodyEvent {
     const selectionMode = opts.selectionMode;
     // window keydown 처리.  tabindex 처리 확인 해볼것.
 
+    const searchEnabled = opts.search.enabled;
+
     const pasteElement = this.pasteElement.getElement();
     const mainElement = this.gridMain.mainElement().getElement();
 
@@ -428,8 +432,6 @@ export default class BodyEvent {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;
-
-      console.log("asdf", cfg.focus, isInputField(targetElement.tagName));
 
       if (isInputField(targetElement.tagName)) {
         return true;
@@ -491,6 +493,17 @@ export default class BodyEvent {
         } else if (evtKey == 70) {
           // ctrl+f
           stopPreventCancel(e);
+
+          //find 처리할것.
+          //
+          //
+          if (searchEnabled) {
+            if (!this.dataSearch) {
+              this.dataSearch = new DataSearch(this.grid, this.gridMain);
+            }
+
+            this.dataSearch.openSearch();
+          }
 
           //_$setting.settingBtnToggle(_this);
           return true;

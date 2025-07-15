@@ -159,10 +159,11 @@
           right: -6px;
         }
 
-        .dg-header-help-wrapper {
+        .dg-header-help-button {
           position: absolute;
           top: 0px;
-          z-index: 1;
+          z-index: 3;
+          cursor: pointer;
 
           .dg-header-help {
             position: absolute;

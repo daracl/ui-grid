@@ -1,3 +1,4 @@
+import { LAYER_ATTR_NAME } from "src/constants";
 import { styleClassSplit } from "./styleUtils";
 import { isArray } from "./utils";
 
@@ -107,4 +108,58 @@ export function $querySelector(el: Element | string | NodeList | Document | Elem
   }
 
   return reval;
+}
+
+export function getOpenLayerPosition(renderContainer: HTMLElement, targetElement: HTMLElement, layerElement: HTMLElement, margin: number = 2) {
+  const rendererContainer = getElementRect(renderContainer);
+  const elementRect = getElementRect(targetElement);
+
+  let layerHeight = layerElement.offsetHeight || getElementRect(layerElement).height;
+  const windowBottom = window.innerHeight;
+
+  // 버튼 위치를 #grid 기준으로 변환
+  const gridTop = rendererContainer.top - elementRect.top;
+  const menuOffsetBottom = elementRect.bottom + layerHeight;
+
+  // 위로 띄울지 아래로 띄울지 결정
+  const shouldOpenUpward = menuOffsetBottom > windowBottom;
+
+  let top = elementRect.top - (layerHeight - margin);
+
+  if (shouldOpenUpward) {
+    top = elementRect.top - (layerHeight - margin);
+    if (top < 0) {
+      layerHeight = layerHeight - 5 + top;
+    }
+
+    if (windowBottom - elementRect.bottom > layerHeight) {
+      layerHeight = windowBottom - elementRect.bottom - margin;
+      top = elementRect.bottom - rendererContainer.top;
+    } else {
+      top = -(layerHeight + margin) - gridTop;
+    }
+  } else {
+    top = elementRect.bottom - rendererContainer.top;
+  }
+
+  return {
+    top: top,
+    left: elementRect.left - rendererContainer.left,
+    height: layerHeight,
+    width: elementRect.width,
+  };
+}
+
+/**
+ * get layer element
+ * @param tagName layer tag
+ * @param className class name
+ * @param layerName layer name
+ * @returns
+ */
+export function getLayerElement(tagName: string, className: string, layerName: string): HTMLElement {
+  const layerElement = document.createElement(tagName);
+  layerElement.className = className;
+  layerElement.setAttribute(LAYER_ATTR_NAME, layerName);
+  return layerElement;
 }

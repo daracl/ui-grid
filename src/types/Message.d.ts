@@ -37,7 +37,12 @@ export interface Message {
     "upper-char-special-number"?: string;
   };
   "search.label": string;
-  "search.button": string;
+
   "no.data": string;
   "select.all": string;
+  all: string;
+  select: string;
+  search: string;
+  prev: string;
+  next: string;
 }

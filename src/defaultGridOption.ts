@@ -49,9 +49,9 @@ export const DEFAULT_OPTIONS: GridOptions = {
     help: {
       //	header help btn 설정
       enabled: false, // header help btn 활성 여부.
-      title: "", // tooltip
-      click: (clickInfo: any) => {}, // click event
-      dblclick: (clickInfo: any) => {}, // double click event
+      tooltip: "", // tooltip
+      click: undefined, // click event
+      showDelay: 300, // tooltip delay
     },
     drag: {
       enabled: false, // 활성화여부
@@ -62,11 +62,10 @@ export const DEFAULT_OPTIONS: GridOptions = {
       },
     },
   },
-  finder: {
+  search: {
+    enabled: false, // 활성여부
     // 그리드 설정
     mode: "simple", // simple (search , fixed) , full(column config , filter)
-    enabled: false, // 활성여부
-    enableColumnFix: false, // 고정 컬럼 활성여부
     click: false, // 직접 처리 할경우. function 으로 처리.
     onlyCloseButton: false, // button 으로만 닫기 여부
     useRememberValue: false, // 검색어 local storage에 저장 여부
@@ -221,8 +220,12 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   defaultValue: "",
   styleClass: undefined,
   tooltip: {
-    show: false,
-    formatter: undefined,
+    enabled: false,
+    content: undefined,
+  },
+  headerTooltip: {
+    enabled: false,
+    content: undefined,
   },
   $renderer: VIEW_RENDERER["text"],
   $editRenderer: EDIT_RENDERER["text"],

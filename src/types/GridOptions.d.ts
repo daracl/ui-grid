@@ -83,7 +83,7 @@ export interface GridOptions {
   /**
    * find option
    */
-  finder: FindOptions;
+  search: SearchOptions;
   /**
    * toolbar option
    */
@@ -238,15 +238,15 @@ export interface HeaderOptions {
     /**
      * tooltip title
      */
-    title: string;
+    tooltip: string | OptionCallback;
     /**
      * click event
      */
-    click: boolean | OptionCallback;
+    click?: OptionCallback;
     /**
-     * double click event
+     * tooltip delay
      */
-    dblclick: boolean | OptionCallback;
+    showDelay: number;
   };
 
   /**
@@ -269,12 +269,12 @@ export interface HeaderOptions {
 }
 
 /**
- * find options
+ * search options
  *
- * @interface FindOptions
- * @typedef {FindOptions}
+ * @interface SearchOptions
+ * @typedef {SearchOptions}
  */
-export interface FindOptions {
+export interface SearchOptions {
   /**
    * 활성화 여부
    */

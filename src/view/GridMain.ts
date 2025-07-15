@@ -247,8 +247,22 @@ export default class GridMain {
     this.openLayers.push(layerElement);
   }
 
-  public hideLayer(activeComponent?: string) {
+  public hideLayer(hideElement?: HTMLElement) {
     if (this.openLayers.length < 1) return;
+
+    if (hideElement) {
+      for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
+        const layerElement = this.openLayers[idx];
+
+        if (hideElement == layerElement) {
+          layerElement.style.display = "none";
+          this.openLayers.splice(idx, 1);
+          break;
+        }
+      }
+      this.grid.config().isOpenLayer = this.openLayers.length > 0;
+      return;
+    }
 
     this.grid.config().isOpenLayer = false;
 
@@ -262,23 +276,15 @@ export default class GridMain {
 
     for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
       const layerElement = this.openLayers[idx];
-      if (activeComponent) {
-        const attrValue = layerElement.getAttribute(LAYER_ATTR_NAME) ?? "";
 
-        if (activeComponent != attrValue) {
-          layerElement.style.display = "none";
-        }
-      } else {
-        layerElement.style.display = "none";
-      }
+      layerElement.style.display = "none";
+
       this.openLayers.splice(idx, 1);
     }
 
     const mainElement = this._mainElement.getElement();
 
-    if (!activeComponent) {
-      this.grid.config().activeComponent = "";
-    }
+    this.grid.config().activeComponent = "";
 
     mainElement.focus({ preventScroll: true });
   }

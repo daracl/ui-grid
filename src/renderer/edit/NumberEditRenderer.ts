@@ -2,8 +2,7 @@ import EditRenderer from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
-import { LAYER_ATTR_NAME } from "src/constants";
-import { getElementRect } from "src/util/domUtils";
+import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
 import { EditRendererInfo } from "@t/RendererInfo";
 import { numberValidator } from "src/rule/numberValidator";
@@ -40,11 +39,9 @@ export default class NumberEditRenderer extends EditRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = document.createElement("input");
+      editElement = getLayerElement("input", "dg-edit-input", cellInfo.c + "") as HTMLInputElement;
       editElement.type = "number";
-      editElement.className = "dg-edit-input";
       editElement.name = this.fieldName;
-      editElement.setAttribute(LAYER_ATTR_NAME, cellInfo.c + "");
       editElement.setAttribute("autocomplete", "off");
 
       if (this.editRendererInfo.rule?.minimum) {

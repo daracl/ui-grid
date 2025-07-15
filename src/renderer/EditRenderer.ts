@@ -5,8 +5,7 @@ import * as utils from "src/util/utils";
 import Renderer from "./Renderer";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
-import { LAYER_ATTR_NAME } from "src/constants";
-import { getElementRect } from "src/util/domUtils";
+import { getElementRect, getLayerElement } from "src/util/domUtils";
 
 export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -111,9 +110,7 @@ export default abstract class EditRenderer extends Renderer {
       return this.validatorElement;
     }
 
-    const div = document.createElement("div");
-    div.className = "dg-validator-message";
-    div.setAttribute(LAYER_ATTR_NAME, "validator");
+    const div = getLayerElement("div", "dg-validator-message", "validator");
 
     this.validatorElement = div;
 

@@ -75,11 +75,24 @@ export interface FieldItem {
     /**
      * 툴팁 보일지 여부.
      */
-    show: boolean;
+    enabled: boolean;
     /**
      * 툴팁 내용
      */
-    formatter?: OptionCallback;
+    content?: OptionCallback;
+  };
+  /**
+   * header tooltip 설정
+   */
+  headerTooltip?: {
+    /**
+     * 툴팁 보일지 여부.
+     */
+    enabled: boolean;
+    /**
+     * 툴팁 내용
+     */
+    content?: string | OptionCallback;
   };
   /**
    * 자식 컬럼 정보

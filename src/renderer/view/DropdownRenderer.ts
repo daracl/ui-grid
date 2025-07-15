@@ -5,9 +5,9 @@ import { CellInfo } from "@t/GridConfig";
 import { eventOff, eventOn } from "src/util/eventUtils";
 import { getCellInfo, valuesLabelKey, valuesValueKey } from "src/util/gridUtils";
 import GridMain from "src/view/GridMain";
-import { LAYER_ATTR_NAME } from "src/constants";
 import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
-import { getElementRect } from "src/util/domUtils";
+import { getElementRect, getLayerElement, getOpenLayerPosition } from "src/util/domUtils";
+import { ALL_SELECT_VALUE } from "src/constants";
 
 const SELECTED_STYLE_CLASS = "selected";
 
@@ -156,9 +156,7 @@ export default class DropdownRenderer extends ViewRenderer {
 
     let menuElement = this.menuElement;
     if (!menuElement) {
-      menuElement = document.createElement("div");
-      menuElement.className = "dg-dropdown-menu";
-      menuElement.setAttribute(LAYER_ATTR_NAME, cellPosition);
+      menuElement = getLayerElement("div", "dg-dropdown-menu", cellPosition);
 
       this.rendererContainer.appendChild(menuElement);
       this.menuElement = menuElement;
@@ -207,49 +205,19 @@ export default class DropdownRenderer extends ViewRenderer {
    * @param {any[]} list list item
    */
   private openMenu(cellElement: HTMLElement, menuElement: HTMLElement, eventElement: HTMLElement, cellInfo: CellInfo, list: any[]) {
-    const rendererContainer = getElementRect(this.rendererContainer);
     const elementRect = getElementRect(eventElement);
 
     const menuStyle = menuElement.style;
 
     menuStyle.height = "auto";
-
     this.gridMain.openLayer(menuElement);
-
     menuStyle.width = `${elementRect.width}px`;
 
-    let menuHeight = menuElement.offsetHeight || getElementRect(menuElement).height;
-    const windowBottom = window.innerHeight;
+    const openPosition = getOpenLayerPosition(this.rendererContainer, eventElement, menuElement);
 
-    // 버튼 위치를 #grid 기준으로 변환
-    const gridTop = rendererContainer.top - elementRect.top;
-    const menuOffsetBottom = elementRect.bottom + menuHeight;
-
-    // 위로 띄울지 아래로 띄울지 결정
-    const shouldOpenUpward = menuOffsetBottom > windowBottom;
-
-    const margin = 2;
-
-    let top = elementRect.top - (menuHeight - margin);
-
-    if (shouldOpenUpward) {
-      top = elementRect.top - (menuHeight - margin);
-      if (top < 0) {
-        menuHeight = menuHeight - 5 + top;
-      }
-
-      if (windowBottom - elementRect.bottom > menuHeight) {
-        menuHeight = windowBottom - elementRect.bottom - margin;
-        top = elementRect.bottom - rendererContainer.top;
-      } else {
-        top = -(menuHeight + margin) - gridTop;
-      }
-    } else {
-      top = elementRect.bottom - rendererContainer.top;
-    }
-    menuStyle.top = `${top}px`;
-    menuStyle.left = `${elementRect.left - rendererContainer.left}px`;
-    menuStyle.height = `${menuHeight}px`;
+    menuStyle.top = `${openPosition.top}px`;
+    menuStyle.left = `${openPosition.left}px`;
+    menuStyle.height = `${openPosition.height}px`;
 
     const items = menuElement.querySelectorAll(".dg-dropdown-item");
 
@@ -272,7 +240,7 @@ export default class DropdownRenderer extends ViewRenderer {
           const notDisabledList = list.filter((item) => !item.disabled);
           const allItemLength = notDisabledList.length;
           const currentValue = cellInfo.item[this.fieldName] ?? "";
-          if (addValue == "$all$") {
+          if (addValue == ALL_SELECT_VALUE) {
             const allItemElement = menuElement.querySelectorAll(".dg-dropdown-item:not(.disabled)");
             if (allItemLength == currentValue.split(this.valueDelimiter).length) {
               cellInfo.item[this.fieldName] = "";
@@ -296,7 +264,7 @@ export default class DropdownRenderer extends ViewRenderer {
             if (allItemLength == newValue.length) {
               addClass(menuElement.querySelectorAll(".dg-dropdown-item:not(.disabled)"), SELECTED_STYLE_CLASS);
             } else {
-              removeClass(menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="$all$"]'), SELECTED_STYLE_CLASS);
+              removeClass(menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'), SELECTED_STYLE_CLASS);
             }
           }
         } else {
@@ -325,7 +293,7 @@ export default class DropdownRenderer extends ViewRenderer {
     const isMultiple = this.isMultiple;
 
     if (isMultiple) {
-      templateParts.push(`<div data-dg-value="$all$" class="dg-dropdown-item dg-all ${list.length == valueSet.size ? SELECTED_STYLE_CLASS : ""}">${this.language.getMessage("select.all")}</div>`);
+      templateParts.push(`<div data-dg-value="${ALL_SELECT_VALUE}" class="dg-dropdown-item dg-all ${list.length == valueSet.size ? SELECTED_STYLE_CLASS : ""}">${this.language.getMessage("select.all")}</div>`);
     }
 
     for (const item of list) {

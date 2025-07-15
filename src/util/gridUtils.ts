@@ -110,7 +110,7 @@ export const getHeaderCellInfo = (cfg: Config, cellElement: HTMLElement): Header
  * @returns
  */
 export const getHeaderCellPosition = (cellElement: HTMLElement) => {
-  return intValue(cellElement.getAttribute("data-header-cell-idx") ?? "-1");
+  return intValue(cellElement.getAttribute("data-header-cell-position") ?? "-1");
 };
 
 /**

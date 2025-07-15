@@ -306,7 +306,13 @@
               }
             }
             , {
-              name: 'z', label: 'bar', width: 50, sort: true, renderer: {
+              name: 'z', label: 'bar', width: 50, sort: true, headerTooltip: {
+                enabled: true, content: (header) => {
+                  const field = header.field;
+                  console.log(field);
+                  return `<div>name : ${field.name}</div><div>label : ${field.label}</div>`;
+                }
+              }, renderer: {
                 type: 'bar'
                 , rule: {
                   minimum: -100
@@ -325,7 +331,7 @@
           ]
         }
         , {
-          name: 's', label: 'sparklineBar', width: 100, renderer: {
+          name: 's', label: 'sparklineBar', width: 100, headerTooltip: { enabled: false }, renderer: {
             type: 'sparklineBar'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -338,7 +344,9 @@
           }
         }
         , {
-          name: 't', label: 'sparkline', width: 100, renderer: {
+          name: 't', label: 'sparkline', width: 100, headerTooltip: {
+            enabled: true, content: `sparkline : tooltip <br> <span style="color:red;">경고</span>`
+          }, renderer: {
             type: 'sparkline'
             //,url : 'http://localhost?aaa={{a}}'
             , refValue: (field, value, rowItem) => {
@@ -760,11 +768,10 @@
         }
         , help: {
           enabled: true	// header help btn 활성 여부.
-          , title: 'test'
-          , click: (clickInfo) => {	// click event
-            console.log('clickInfo : ', clickInfo)
+          , tootip: (field) => {
+            return 'test';
           }
-          , dblclick: (clickInfo) => {	// click event
+          , click: (clickInfo) => {	// click event
             console.log('clickInfo : ', clickInfo)
           }
         }
@@ -777,11 +784,11 @@
         }
       }
       , summary: { items: [{ test: 111 }] }
-      , finder: {
+      , search: {
         enabled: true
         , enableColumnFix: true
         , click: false
-        , mode: 'full'
+        , mode: "simple"//'full'
         , width: 700
         , height: 250
         , onlyCloseButton: true

@@ -37,9 +37,14 @@ let localeMessage: Message = {
     "upper-char-special-number": "대문자,소문자,특수문자,숫자 각각 하나 이상 포함 되어야합니다.",
   },
   "search.label": "찾기",
-  "search.button": "검색",
+
   "no.data": "No Data",
   "select.all": "전체선택",
+  all: "전체",
+  select: "선택",
+  search: "검색",
+  prev: "이전",
+  next: "다음",
 };
 
 /**
