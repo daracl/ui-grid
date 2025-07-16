@@ -254,39 +254,6 @@ export default class Body {
     return rowItem;
   }
 
-  public editAreaClose() {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
-    if (cfg.isCellEdit === true) {
-      /*
-      const editRowInfo = cfg.editRowInfo;
-      const renderer = editRowInfo.colInfo.renderer;
-
-      const newValue = editRowInfo.rowItem[editRowInfo.colInfo.key];
-      if (renderer && renderer.type == "dropdown") {
-        const selectElements = $("#" + gridCtx.prefix + "_pubGridEditArea .pubGrid-select-item.selected");
-
-        if (selectElements.length > 0) {
-          newValue = selectElements.attr("data-val");
-        }
-
-        $("#" + gridCtx.prefix + "_pubGridEditArea").removeClass("open");
-      } else {
-        let beforeEditEle = gridCtx.element.body.find('.pub-body-td[data-cell-position="' + cfg.editRowInfo.r + "," + cfg.editRowInfo.c + '"] .pubGrid-edit-field');
-
-        if (beforeEditEle.length > 0) {
-          newValue = beforeEditEle.val();
-          beforeEditEle.remove();
-        }
-      }
-
-      if (newValue != editRowInfo.rowItem[editRowInfo.colInfo.key]) {
-        _$util.setChangeValue(gridCtx, "modify", editRowInfo.rowItem, editRowInfo.colInfo, newValue);
-      }
-      */
-    }
-  }
-
   public setCenterElementStyle(styleCss: any) {
     this.centerElement.css(styleCss);
   }

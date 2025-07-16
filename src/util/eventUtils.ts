@@ -51,7 +51,22 @@ export function isCtrlKey(evt: Event): boolean {
 export function isSpacebar(evt: Event): boolean {
   const event = evt as KeyboardEvent;
 
-  if (event.key === " " || event.code === "Space" || event.keyCode === 32) {
+  if (event.key === " " || event.code === "Space") {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * spacebar check
+ *
+ * @param {Event} evt event
+ * @returns {boolean}
+ */
+export function isEnter(evt: Event): boolean {
+  const event = evt as KeyboardEvent;
+
+  if (event.key === "Enter" || event.code === "Enter") {
     return true;
   }
   return false;

@@ -14,6 +14,7 @@ import { getTextWidth, isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
 import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
+import DataSearch from "./main/DataSearch";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -38,6 +39,8 @@ export default class GridMain {
   private footer: Footer;
 
   private scroll: Scroll;
+
+  private dataSearch: DataSearch;
 
   private _mainElement: DaraElement;
 
@@ -114,13 +117,18 @@ export default class GridMain {
    * @private
    */
   private initMainView() {
-    this.selectionInfo = new SelectionInfo(this, this.grid.getOptions(), this.grid.config());
+    const opts = this.grid.getOptions();
+    this.selectionInfo = new SelectionInfo(this, opts, this.grid.config());
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
     this.scroll = new Scroll(this.grid, this);
     this.footer = new Footer(this.grid, this);
 
-    if (!this.grid.getOptions().footer.enabled || !this.grid.getOptions().footer.paging?.enabled) {
+    if (opts.search.enabled) {
+      this.dataSearch = new DataSearch(this.grid, this);
+    }
+
+    if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
     }
   }
@@ -235,8 +243,6 @@ export default class GridMain {
       this.grid.config().focus = false;
 
       this.hideLayer();
-
-      this.body.editAreaClose();
     }
   }
 
@@ -355,6 +361,10 @@ export default class GridMain {
    */
   public mainElement() {
     return this._mainElement;
+  }
+
+  public getDataSearch() {
+    return this.dataSearch;
   }
 
   /**

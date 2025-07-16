@@ -29,7 +29,6 @@ export default class BodyEvent {
   private readonly pasteElement: DaraElement;
 
   private readonly allCellElements: any;
-  private dataSearch: DataSearch;
 
   constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.grid = grid;
@@ -358,7 +357,6 @@ export default class BodyEvent {
         if (editable === true) {
           if (clickCnt == 0) {
             cfg.edit.enable = false;
-            this.body.editAreaClose(); // 이전 에디트창 닫기
           }
         }
 
@@ -494,18 +492,9 @@ export default class BodyEvent {
           // ctrl+f
           stopPreventCancel(e);
 
-          //find 처리할것.
-          //
-          //
           if (searchEnabled) {
-            if (!this.dataSearch) {
-              this.dataSearch = new DataSearch(this.grid, this.gridMain);
-            }
-
-            this.dataSearch.openSearch();
+            this.gridMain.getDataSearch().openSearch();
           }
-
-          //_$setting.settingBtnToggle(_this);
           return true;
         }
       }

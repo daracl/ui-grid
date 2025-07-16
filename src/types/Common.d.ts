@@ -32,3 +32,10 @@ export interface AnyKeyMap {
 interface StringArrayMap {
   [key: string]: string[];
 }
+
+export type SearchMode = {
+  matchCase?: boolean;
+  matchWholeWord?: boolean;
+  useRegex?: boolean;
+  searchFields?: string | string[] | "$all$";
+};

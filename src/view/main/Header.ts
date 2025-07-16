@@ -7,7 +7,7 @@ import GridMain from "../GridMain";
 import { getHeaderCellInfo } from "src/util/gridUtils";
 import { removeClass } from "src/util/styleUtils";
 import HeaderEvent from "./HeaderEvent";
-import { ROW_CHECK_NAME } from "src/constants";
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from "src/constants";
 
 /**
  * Header class
@@ -215,12 +215,21 @@ export default class Header {
     if (!headerGroups?.length || !headerGroups[0]?.length) return "";
 
     const rowsHtml: string[] = [];
+    const searchEnabled = opts.search.enabled;
     const helpEnabled = opts.header.help.enabled;
     const headerGroupLength = headerGroups.length;
 
     const resizeEnabled = this.headerOpts.resize.enabled;
 
     const sortEnabled = opts.header.sort.enabled;
+
+    const searchIcon = searchEnabled
+      ? `<div class="dg-search-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="5" cy="5" r="3.5" />
+      <line x1="8.5" y1="8.5" x2="11" y2="11" />
+    </svg>
+    </div>`
+      : "";
 
     headerGroups.forEach((headerGroup, rowIndex) => {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
@@ -266,6 +275,8 @@ export default class Header {
             ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
             : `<div class="centered">${headerItem.label}</div>`;
 
+        const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : "";
+
         const labelHtml = `
           ${helpIcon}
           <div class="label-wrapper">
@@ -279,6 +290,7 @@ export default class Header {
 
         rowHtml.push(`
           <th class="${classes}"${colspan}${rowspan}${cellIdx}>
+            ${searchHtml}
             ${labelHtml}
             ${resizerHtml}
           </th>`);

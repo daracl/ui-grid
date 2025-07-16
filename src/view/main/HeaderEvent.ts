@@ -50,12 +50,39 @@ export default class HeaderEvent {
   }
 
   initEvt() {
+    this.initSearchButton();
     this.initHelpButton();
     this.initHeaderSelectionEvent();
     this.initSortEvent();
 
     this.initResizeEvent();
     this.initHeaderCheckbox();
+  }
+  initSearchButton() {
+    const searchOpts = this.grid.getOptions().search;
+
+    if (!searchOpts.enabled) return;
+
+    const headerElement = this.headerElement;
+
+    const searchIconElement = headerElement.find(".dg-search-icon");
+
+    const cfg = this.grid.config();
+
+    // 검색 처리 추가 할것.
+    eventOff(searchIconElement, "click");
+    eventOn(
+      searchIconElement,
+      "click",
+      (e: UIEvent) => {
+        stopPreventCancel(e);
+
+        this.gridMain.getDataSearch().openSearch();
+        return false;
+      },
+      null,
+      { passive: false }
+    );
   }
 
   /**

@@ -12,6 +12,8 @@ import SelectionInfo from "src/selection/selection";
 import BodyEvent from "./BodyEvent";
 import { SearchOptions } from "@t/GridOptions";
 import { getLayerElement, getOpenLayerPosition } from "src/util/domUtils";
+import { eventOff, eventOn, isEnter, stopPreventCancel } from "src/util/eventUtils";
+import { gridDataSearch } from "src/util/searchUtils";
 
 /**
  * DataSearch class
@@ -29,6 +31,9 @@ export default class DataSearch {
 
   private searchElement: HTMLElement;
 
+  private searchTextElement: HTMLInputElement;
+  private searchFieldElement: HTMLSelectElement;
+
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
     this.cfg = grid.config();
@@ -39,6 +44,8 @@ export default class DataSearch {
 
   openSearch() {
     this.gridMain.openLayer(this.searchElement);
+
+    this.searchTextElement.focus();
   }
 
   createTemplate() {
@@ -87,11 +94,54 @@ export default class DataSearch {
 
     const searchStyle = searchElement.style;
 
+    searchStyle.height = "auto";
+
     const headerElement = this.gridMain.getHeader().getHeaderElement();
 
-    const openPosition = getOpenLayerPosition(rendererContainer, headerElement.getElement(), searchElement);
+    const searchIconElement = headerElement.find(".dg-search-icon");
 
-    searchStyle.top = `${openPosition.top}px`;
-    searchStyle.left = `${openPosition.left}px`;
+    const openPosition = getOpenLayerPosition(rendererContainer, searchIconElement, searchElement);
+
+    searchStyle.top = `${openPosition.top + 3}px`;
+    searchStyle.left = `${openPosition.left + 3}px`;
+
+    this.searchTextElement = this.searchElement.querySelector(".search-text") as HTMLInputElement;
+    this.searchFieldElement = this.searchElement.querySelector(".search-field") as HTMLSelectElement;
+
+    this.initSimpleModeEvent();
+  }
+
+  initSimpleModeEvent() {
+    const searchTextElement = this.searchTextElement;
+    eventOff(searchTextElement, "keydown");
+    eventOn(searchTextElement, "keydown", (e: KeyboardEvent) => {
+      if (isEnter(e)) {
+        this.simpleSearch();
+      }
+    });
+
+    const searchBtnElement = this.searchElement.querySelector(".search-btn") as HTMLElement;
+
+    eventOff(searchBtnElement, "click");
+    eventOn(searchBtnElement, "click", (e: KeyboardEvent) => {
+      stopPreventCancel(e);
+      this.simpleSearch();
+    });
+  }
+
+  simpleSearch() {
+    const searchText = this.searchTextElement.value;
+    const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
+
+    const cfg = this.grid.config();
+    let searchResult = [];
+    if (searchText == "") {
+      searchResult = cfg.orginItems;
+    } else {
+      searchResult = gridDataSearch(cfg.orginItems, searchText, { searchFields: searchField });
+    }
+
+    this.gridMain.setViewDataInfo(searchResult);
+    this.gridMain.getBody().dataDraw("search");
   }
 }

@@ -20,50 +20,33 @@
       margin-right: 5px;
       padding: 0px;
       height: 25px;
+      vertical-align: middle;
     }
 
     > .search-text {
       width: 180px;
       height: 25px;
       margin-right: 5px;
+      outline: none;
+      vertical-align: middle;
     }
 
     > .search-btn {
+      width: 25px;
       height: 25px;
-      width: 30px;
-      display: inline-flex;
-      line-height: normal;
-      vertical-align: bottom;
-      align-items: center;
-      gap: 4px;
+      display: inline-block;
+      vertical-align: middle;
+      border: 1px solid var(--border-color);
+      border-radius: 3px;
+      cursor: pointer;
 
-      span {
-        width: 18px;
-        height: 24px;
-        border-radius: 3px;
-        cursor: pointer;
-        position: relative;
-        padding: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 16px 16px;
 
-        &:hover {
-          background-color: #ddd;
-        }
-
-        &::before {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 14px;
-        }
-      }
-
-      .search-nav-up::before {
-        content: "↑";
-      }
-
-      .search-nav-down::before {
-        content: "↓";
+      &:hover {
+        background-color: #ddd;
       }
     }
   }
