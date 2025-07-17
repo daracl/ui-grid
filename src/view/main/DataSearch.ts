@@ -55,7 +55,6 @@ export default class DataSearch {
     } else {
       this.simpleTemplate();
     }
-    console.log("createTemplate");
   }
 
   simpleTemplate() {
@@ -134,14 +133,22 @@ export default class DataSearch {
     const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
 
     const cfg = this.grid.config();
-    let searchResult = [];
-    if (searchText == "") {
-      searchResult = cfg.orginItems;
-    } else {
-      searchResult = gridDataSearch(cfg.orginItems, searchText, { searchFields: searchField });
-    }
 
-    this.gridMain.setViewDataInfo(searchResult);
-    this.gridMain.getBody().dataDraw("search");
+    if (searchText == "") {
+      cfg.searchEnable = false;
+      this.gridMain.setViewDataInfo(cfg.orginItems);
+      this.gridMain.getBody().dataDraw("search");
+    } else {
+      cfg.searchEnable = true;
+      const result = gridDataSearch(cfg.orginItems, searchText, {
+        matchCase: false,
+        matchWholeWord: false,
+        useRegex: false,
+        searchFields: searchField,
+      });
+      this.gridMain.setViewDataInfo(result);
+      this.gridMain.getBody().dataDraw("search");
+    }
+    this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }
 }

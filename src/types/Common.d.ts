@@ -34,8 +34,22 @@ interface StringArrayMap {
 }
 
 export type SearchMode = {
-  matchCase?: boolean;
-  matchWholeWord?: boolean;
-  useRegex?: boolean;
-  searchFields?: string | string[] | "$all$";
+  matchCase: boolean;
+  matchWholeWord: boolean;
+  useRegex: boolean;
+  searchFields: string | string[] | "$all$";
+};
+
+export type SearchResult = {
+  item: any;
+  matchedFields: MatchedField[];
+  totalMatches: number;
+};
+
+export type MatchedField = {
+  fieldName: string;
+  originalValue: string;
+  highlightedValue: string;
+  matchCount: number;
+  matchPositions: { start: number; end: number }[];
 };

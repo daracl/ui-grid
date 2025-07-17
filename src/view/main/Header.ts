@@ -5,7 +5,7 @@ import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 
 import { getHeaderCellInfo } from "src/util/gridUtils";
-import { removeClass } from "src/util/styleUtils";
+import { addClass, removeClass } from "src/util/styleUtils";
 import HeaderEvent from "./HeaderEvent";
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from "src/constants";
 
@@ -164,6 +164,16 @@ export default class Header {
 
   public setCenterElementStyle(styleCss: any) {
     this.centerElement.css(styleCss);
+  }
+
+  public setSearchIcon(searchDataFlag: boolean) {
+    const searchIconElement = this.headerElement.find(".dg-search-icon");
+
+    if (searchDataFlag) {
+      addClass(searchIconElement, "dg-on");
+    } else {
+      removeClass(searchIconElement, "dg-on");
+    }
   }
 
   public createTemplate() {

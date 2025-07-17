@@ -129,6 +129,12 @@
           position: absolute;
           top: 0px;
           left: 0px;
+
+          &.dg-on {
+            > svg {
+              stroke: #ff5e5e !important;
+            }
+          }
         }
 
         .dg-header-label {

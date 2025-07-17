@@ -1,4 +1,4 @@
-import { gridDataSearch } from "../../src/util/searchUtils";
+import { gridDataSearch, simpleDataSearch } from "../../src/util/searchUtils";
 
 /*
 export type SearchMode = {
@@ -14,17 +14,17 @@ describe("gridDataSearch", () => {
   // 사용 예시
 
   it("name check", () => {
-    const result = gridDataSearch(employeeList, "김민수", {});
+    const result = simpleDataSearch(employeeList, "김민수", {});
     expect(1).toEqual(result.length);
   });
 
   it("useRegex name check", () => {
-    const result = gridDataSearch(employeeList, "백엔드|디자이너", { searchFields: "position", useRegex: true });
+    const result = simpleDataSearch(employeeList, "백엔드|디자이너", { searchFields: "position", useRegex: true });
     expect(7).toEqual(result.length);
   });
 
   it("new line check", () => {
-    const result = gridDataSearch(employeeList, `전략적으로\n 문제를`, {});
+    const result = simpleDataSearch(employeeList, `전략적으로\n 문제를`, {});
     expect(1).toEqual(result.length);
   });
 });

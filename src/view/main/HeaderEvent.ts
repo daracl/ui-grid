@@ -243,8 +243,6 @@ export default class HeaderEvent {
           cfg.sort.orders.push({ key: sortName, ascOrder: true, sortCell: sortCell });
         }
 
-        //.dg-header-cell[data-header-cell-position="8"] .dg-sort-icon;
-
         if (cfg.sort.orders.length > 0) {
           if (cfg.sort.orders.length > 1 && isNumModify) {
             cfg.sort.orders.forEach((item: any, index: number) => {

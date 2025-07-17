@@ -428,10 +428,18 @@ export default class Body {
     const centerElements = this.allCellElements["center"];
     const rightElements = this.allCellElements["right"];
 
+    // TODO
+    // 검색 결과 표시 부분 처리 할것.
+    //
+    const searchEnable = cfg.searchEnable;
+
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       let item = items[viewRowIdx];
 
+      if (searchEnable) {
+        item = item.item;
+      }
       const rowIdx = pagingStartIdx + viewRowIdx;
 
       // left panel
