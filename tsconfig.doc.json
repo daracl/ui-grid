@@ -13,6 +13,7 @@
     "excludePrivate": true,
     "readme": "DOC-README.md",
     "gitRevision": "main",
+    "plugin": ["typedoc-plugin-markdown"],
     /*
     "plugin": [
       "@mxssfd/typedoc-theme"
