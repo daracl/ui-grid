@@ -113,6 +113,10 @@
           margin: 0 !important;
           overflow: hidden;
 
+          &.dg-search-highlight {
+            background-color: var(--search-cell-bg);
+          }
+
           .dg-cell-renderer {
             position: relative;
             margin: 0px 3px 0px 3px !important;

@@ -15,7 +15,7 @@
     padding: 5px 10px;
     border-radius: 5px;
 
-    > .search-field {
+    > .dg-search-field {
       width: 50px;
       margin-right: 5px;
       padding: 0px;
@@ -23,15 +23,92 @@
       vertical-align: middle;
     }
 
-    > .search-text {
+    .dg-search-container {
+      position: relative;
+      display: inline-block;
       width: 180px;
       height: 25px;
       margin-right: 5px;
       outline: none;
+      border: 1px solid var(--border-color);
       vertical-align: middle;
+
+      .dg-search-text {
+        width: calc(100% - 60px);
+        height: 22px;
+        background-color: var(--body-bg);
+        border-width: 0px;
+        font-size: 13px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .dg-search-icons {
+        position: absolute;
+        top: 0;
+        right: 2px;
+        color: var(--input-color);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .dg-icon-button {
+          width: 15px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          background-color: transparent;
+          color: var(--input-color);
+          border: none;
+          cursor: pointer;
+          border-radius: 3px;
+          padding: 0;
+          position: relative;
+          transition: background-color 0.2s, color 0.2s;
+
+          &:hover {
+            background-color: var(--button-bg-hover);
+          }
+
+          &.on {
+            background-color: var(--button-bg-active);
+            color: var(--input-color);
+          }
+
+          // Whole Word 스타일 적용
+          .dg-whole-word-icon {
+            position: relative;
+            font-weight: bold;
+            font-size: 11px;
+            line-height: 1;
+
+            &::before,
+            &::after {
+              content: "";
+              position: absolute;
+              left: 0;
+              right: 0;
+              height: 1px;
+              background-color: currentColor;
+              opacity: 0.8;
+            }
+
+            &::before {
+              top: -2px;
+            }
+
+            &::after {
+              bottom: -2px;
+            }
+          }
+        }
+      }
     }
 
-    > .search-btn {
+    > .dg-search-btn {
       width: 25px;
       height: 25px;
       display: inline-block;

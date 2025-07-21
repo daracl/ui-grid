@@ -36,6 +36,8 @@ export default class DaraGrid {
 
   private language: Language;
 
+  public static MATCH_WHOLE_REGEX = /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;
+
   /**
    * unique id
    */

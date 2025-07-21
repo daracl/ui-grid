@@ -95,9 +95,15 @@ export interface Config {
   sort: {
     orders: Array;
   };
+  searchParameter: {
+    matchCase: boolean;
+    matchWholeWord: boolean;
+    useRegex: boolean;
+    searchFields: string | string[] | "$all$";
+    searchText: string;
+  };
   paging: PagingOptions;
   selection: Selection;
-  searchOn: boolean;
   isHeaderResize: boolean;
   focus: boolean;
   isBodyDragging: boolean;

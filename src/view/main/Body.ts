@@ -428,18 +428,12 @@ export default class Body {
     const centerElements = this.allCellElements["center"];
     const rightElements = this.allCellElements["right"];
 
-    // TODO
-    // 검색 결과 표시 부분 처리 할것.
-    //
     const searchEnable = cfg.searchEnable;
 
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       let item = items[viewRowIdx];
 
-      if (searchEnable) {
-        item = item.item;
-      }
       const rowIdx = pagingStartIdx + viewRowIdx;
 
       // left panel
@@ -448,7 +442,7 @@ export default class Body {
         for (let j = 0; j < leftFields.length; j++) {
           const field = leftFields[j];
           const cell = rowCells[j];
-          this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
+          this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable);
           field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
         }
       }
@@ -458,7 +452,7 @@ export default class Body {
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
-        this.setSelectCell(startCell, viewRowIdx, j, cell, field, item);
+        this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable);
         field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
       }
 
@@ -469,7 +463,7 @@ export default class Body {
           const field = rightFields[j];
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
-          this.setSelectCell(startCell, viewRowIdx, cellIdx, cell, field, item);
+          this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, searchEnable);
 
           field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo, cell.firstElementChild);
         }
@@ -491,9 +485,32 @@ export default class Body {
    * @param {HTMLElement} addEle cell element
    * @returns {boolean}
    */
-  private setSelectCell(startCellInfo: any, rowIdx: number, col: number, cellElement: HTMLElement, field: FieldItem, item: any) {
+  private setCellStyle(startCellInfo: any, rowIdx: number, col: number, cellElement: HTMLElement, field: FieldItem, item: any, searchEnable: boolean) {
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
+    const { classList } = cellElement;
+    if (searchEnable) {
+      if (item.$$matchedFields && item.$$matchedFields.length > 0) {
+        let highlightFlag = false;
+        for (const matchItem of item.$$matchedFields) {
+          if (field.name == matchItem.fieldName) {
+            highlightFlag = true;
+            if (!classList.contains("dg-search-highlight")) {
+              classList.add("dg-search-highlight");
+            }
+          }
+        }
+
+        if (!highlightFlag && classList.contains("dg-search-highlight")) {
+          classList.remove("dg-search-highlight");
+        }
+      }
+    } else {
+      if (classList.contains("dg-search-highlight")) {
+        classList.remove("dg-search-highlight");
+      }
+    }
+
     if (field.$isAside) return;
 
     this.selectionInfo.setCellSelectionStyleClass(cellElement, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);

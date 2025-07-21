@@ -988,10 +988,15 @@ export default class GridMain {
 
     const rowHeight = cfg.rowHeight;
 
-    for (let i = 0; i < len; i++) {
-      const item = items[i];
-      item[ROW_ID_KEY] = cfg.rowIdSeq++;
-      item[ROW_HEIGHT_KEY] = rowHeight;
+    const CHUNK_SIZE = 1000;
+
+    for (let i = 0; i < len; i += CHUNK_SIZE) {
+      const chunk = items.slice(i, i + CHUNK_SIZE);
+
+      for (const item of chunk) {
+        item[ROW_ID_KEY] = cfg.rowIdSeq++;
+        item[ROW_HEIGHT_KEY] = rowHeight;
+      }
     }
 
     return;
