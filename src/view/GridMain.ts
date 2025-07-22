@@ -2,7 +2,24 @@ import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION, ALIGN, ALIGN_STYLE, EDIT_RENDERER, FOOTER_HEIGHT, GRID_THEME, LAYER_ATTR_NAME, LINE_NUMBER_NAME, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY, THEME_TYPE, TOOLBAR_HEIGHT, VIEW_RENDERER } from "src/constants";
+import {
+  ADD_ROW_POSITION,
+  ALIGN,
+  ALIGN_STYLE,
+  CHUNK_SIZE,
+  EDIT_RENDERER,
+  FOOTER_HEIGHT,
+  GRID_THEME,
+  LAYER_ATTR_NAME,
+  LINE_NUMBER_NAME,
+  ROW_CHECK_KEY,
+  ROW_CHECK_NAME,
+  ROW_HEIGHT_KEY,
+  ROW_ID_KEY,
+  THEME_TYPE,
+  TOOLBAR_HEIGHT,
+  VIEW_RENDERER,
+} from "src/constants";
 import Header from "./main/Header";
 import Body from "./main/Body";
 import DaraElement from "src/element/DaraElement";
@@ -1034,18 +1051,15 @@ export default class GridMain {
 
     const rowHeight = cfg.rowHeight;
 
-    const CHUNK_SIZE = 1000;
-
     for (let i = 0; i < len; i += CHUNK_SIZE) {
-      const chunk = items.slice(i, i + CHUNK_SIZE);
+      const end = Math.min(i + CHUNK_SIZE, len);
+      const chunk = items.slice(i, end);
 
       for (const item of chunk) {
         item[ROW_ID_KEY] = cfg.rowIdSeq++;
         item[ROW_HEIGHT_KEY] = rowHeight;
       }
     }
-
-    return;
   }
 
   /**

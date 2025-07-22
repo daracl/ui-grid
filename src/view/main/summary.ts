@@ -4,9 +4,10 @@ import { Config, GridElement, Selection } from "@t/GridConfig";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import { camelToKebab, isFunction } from "src/util/utils";
-import { ROW_CHECK_NAME } from "src/constants";
+import { CHUNK_SIZE, ROW_CHECK_NAME } from "src/constants";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
+import { calcSummary } from "src/util/mathUtils";
 
 /**
  * Summary class
@@ -234,26 +235,5 @@ export default class Summary {
     }
 
     return returnTemplate.join("");
-  }
-}
-
-function calcSummary(items: any[], mode: string, itemKey: string): number | string {
-  const values = items.map((user) => user[itemKey]).filter((value): value is number => typeof value === "number");
-
-  if (values.length === 0) {
-    return "not valid";
-  }
-
-  switch (mode) {
-    case "min":
-      return Math.min(...values);
-    case "max":
-      return Math.max(...values);
-    case "sum":
-      return values.reduce((acc, val) => acc + val, 0);
-    case "average":
-      return values.reduce((acc, val) => acc + val, 0) / values.length;
-    default:
-      return `${mode} not valid`;
   }
 }

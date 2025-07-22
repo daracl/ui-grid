@@ -190,3 +190,10 @@ export const LAYER_ATTR_NAME = "data-dg-grid-layer";
  * 전체 선택 value
  */
 export const ALL_SELECT_VALUE = "$all$";
+
+/**
+ * item chunk size
+ *
+ * @type {1000}
+ */
+export const CHUNK_SIZE = 1000;

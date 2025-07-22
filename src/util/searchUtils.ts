@@ -1,4 +1,5 @@
 import { MatchedField, SearchMode } from "@t/Common";
+import { CHUNK_SIZE } from "src/constants";
 import DaraGrid from "src/DaraGrid";
 
 export function gridDataSearch(
@@ -13,13 +14,12 @@ export function gridDataSearch(
 ): any[] {
   const results: any[] = [];
 
-  // 배치 처리를 위한 청크 크기
-  const CHUNK_SIZE = 1000;
-
+  const searchListLength = searchList.length;
   // 빈 검색어 처리
   if (!searchText.trim()) {
-    for (let i = 0; i < searchList.length; i += CHUNK_SIZE) {
-      const chunk = searchList.slice(i, i + CHUNK_SIZE);
+    for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
+      const end = Math.min(i + CHUNK_SIZE, searchListLength);
+      const chunk = searchList.slice(i, end);
 
       for (const item of chunk) {
         if (item.$$matchedFields) {
@@ -54,8 +54,9 @@ export function gridDataSearch(
     wordBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedSearchText)}\\b`, flags);
   }
 
-  for (let i = 0; i < searchList.length; i += CHUNK_SIZE) {
-    const chunk = searchList.slice(i, i + CHUNK_SIZE);
+  for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
+    const end = Math.min(i + CHUNK_SIZE, searchListLength);
+    const chunk = searchList.slice(i, end);
 
     for (const item of chunk) {
       const matchedFields = findFirstMatchInItemOptimized(item, searchText, normalizedSearchText, matchCase, matchWholeWord, compiledRegex, wordBoundaryRegex, fieldsToSearch);
@@ -76,7 +77,6 @@ export function gridDataSearch(
 
 function getSearchFields(searchList: any[], searchFields: string | string[] | "$all$"): string[] {
   if (searchFields === "$all$") {
-    // 첫 번째 아이템에서 필드 추출 (모든 아이템이 같은 구조라고 가정)
     return searchList.length > 0 ? Object.keys(searchList[0]) : [];
   }
 
