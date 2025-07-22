@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import { TEXT_ALIGN_TYPE } from "src/constants";
-import { OptionCallback } from "./Common";
+import { DisplayFormatOptions, OptionCallback } from "./Common";
 import { EditRendererInfo, RendererInfo } from "./RendererInfo";
 import ViewRenderer from "src/renderer/ViewRenderer";
 import EditRenderer from "src/renderer/EditRenderer";
@@ -59,7 +59,7 @@ export interface FieldItem {
   /**
    * 포멧터
    */
-  formatter?: OptionCallback;
+  displayFormat?: DisplayFormatOptions;
   /**
    * add item default value
    */

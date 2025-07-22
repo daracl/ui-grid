@@ -215,7 +215,7 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   renderer: {
     type: "text",
   },
-  formatter: undefined,
+  displayFormat: undefined,
   defaultValue: "",
   styleClass: undefined,
   tooltip: {

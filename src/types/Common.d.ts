@@ -47,3 +47,11 @@ export type MatchedField = {
   matchCount: number;
   matchPositions: { start: number; end: number }[];
 };
+
+export type DisplayFormatOptions = {
+  type: "number" | "date" | "currency";
+  format: string;
+  prefix: string;
+  suffix: string;
+  locale: string;
+};
