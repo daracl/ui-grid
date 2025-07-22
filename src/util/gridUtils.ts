@@ -3,6 +3,7 @@ import { intValue, isEmpty } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
+import { isArray, isNumber } from "lodash";
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -420,4 +421,25 @@ export function valuesLabelValue(label: string, val: any) {
   }
 
   return val[label] || "";
+}
+
+/**
+ * get height option value first value
+ *
+ * @export
+ * @param {(number | number[] | undefined)} heightOption  height option value
+ * @param {number} defaultHeight default height
+ * @returns {{ height: number; heights: {}; }}
+ */
+export function heightOptionValue(heightOption: number | number[] | undefined, defaultHeight: number) {
+  let height: number;
+  let heights: number[] = [];
+  if (isArray(heightOption) && heightOption.length > 0) {
+    height = heightOption[0];
+    heights = heightOption;
+  } else {
+    height = !isNumber(heightOption) ? 28 : heightOption;
+  }
+
+  return { height, heights };
 }

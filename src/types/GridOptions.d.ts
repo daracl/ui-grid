@@ -158,14 +158,7 @@ export interface HeaderOptions {
    * header 높이
    * @default 25
    */
-  height: number;
-
-  /**
-   * 헤더 그룹일 경우 높이 값
-   *
-   * @type {number[]}
-   */
-  heights: number[];
+  height: number | number[];
 
   /**
    * 정렬 여부
@@ -310,12 +303,12 @@ export interface SearchOptions {
   /**
    * 넓이
    */
-  width?: string | number;
+  width?: number;
 
   /**
    * 높이
    */
-  height?: string | number;
+  height?: number;
 
   /**
    * click 콜백
@@ -720,6 +713,12 @@ export interface ValueFormatter {
 }
 
 export interface SummaryOptions {
+  /**
+   * header 높이
+   * @type number |number[]
+   */
+  height: number | number[];
+
   items: SummaryItem[][];
 }
 

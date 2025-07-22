@@ -13,10 +13,10 @@ import { PagingInfo } from "@t/PagingInfo";
 import { eventOn } from "src/util/eventUtils";
 
 /**
- * Summary class
+ * Footer class
  *
- * @class Summary
- * @typedef {Summary}
+ * @class Footer
+ * @typedef {Footer}
  */
 export default class Footer {
   private grid: DaraGrid;

@@ -564,7 +564,7 @@ export default class Body {
   }
 
   /**
-   * header html template
+   * html template
    *
    * @public
    * @param {string} type position type

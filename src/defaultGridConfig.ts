@@ -37,6 +37,9 @@ export function initConfig(opts: GridOptions): Config {
       mainCenterOverWidth: 0,
       mainCenterViewWidth: 0,
     },
+    summary: {
+      heights: [],
+    },
     fontFamily: "Noto Sans KR",
     fontSize: "12px",
     isCellEdit: false,

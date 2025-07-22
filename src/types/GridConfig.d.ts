@@ -46,6 +46,11 @@ export interface Config {
     mainCenterViewWidth: number;
   };
 
+  // summary info
+  summary: {
+    heights: number[];
+  };
+
   currentFields: FieldItem[];
 
   allFieldMap: Map<String, FieldItem>;

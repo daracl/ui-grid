@@ -2,10 +2,61 @@
 
 @mixin summary {
   .dg-summary {
-    height: 30px;
-    position: absolute;
-    bottom: 0px;
-    background: var(--summary-bg);
-    width: 100%;
+    position: relative;
+    z-index: 0;
+
+    & > div {
+      position: absolute;
+      background: var(--summary-bg);
+      border-top: 1px solid var(--border-color);
+      padding-top: 2px;
+
+      &.dg-left {
+        left: 0px;
+        z-index: 1;
+
+        .fixed-column-line {
+          right: 0px;
+        }
+      }
+
+      &.dg-center {
+        z-index: 0;
+      }
+
+      &.dg-right {
+        right: -1px;
+        z-index: 1;
+
+        .fixed-column-line {
+          left: 0px;
+        }
+      }
+
+      > .dg-body-table {
+        table-layout: fixed;
+        width: 0px !important;
+        min-width: auto !important;
+        border-collapse: separate !important;
+        border-top: 1px solid var(--border-color);
+        .dg-row {
+          background-color: var(--summary-bg);
+        }
+
+        .dg-row > .dg-cell {
+          border: 1px solid var(--border-color);
+          border-top: none !important;
+          border-left: none !important;
+          position: relative;
+          padding: 0px !important;
+          margin: 0 !important;
+          overflow: hidden;
+
+          &.line-number {
+            border-right: 1px solid var(--border-color) !important;
+          }
+        }
+      }
+    }
   }
 }

@@ -27,7 +27,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
   header: {
     view: true, //  보기 여부
     height: 28, //  높이
-    heights: [], // 그룹일 경우 높이 배열
     sort: {
       enabled: true,
       nullsLast: false, // null value 를 항상 끝으로 유지 할지 여부
@@ -69,8 +68,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
     click: false, // 직접 처리 할경우. function 으로 처리.
     onlyCloseButton: false, // button 으로만 닫기 여부
     useRememberValue: false, // 검색어 local storage에 저장 여부
-    width: "auto",
-    height: "auto",
+    width: 250,
+    height: 30,
     callback: false,
     rememberValue: {
       field: "",
@@ -132,7 +131,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
     },
   },
-  summary: { items: [] },
+  summary: { height: 28, items: [] },
   scroll: {
     // 스크롤 옵션
     enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용

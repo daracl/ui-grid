@@ -9,35 +9,16 @@ import { $querySelector } from "./domUtils";
 export const addStyleTag = (grid: DaraGrid) => {
   const options = grid.getOptions();
 
-  const cssStr = [];
+  const cssStr: string[] = [];
 
-  const rowOptHeight = grid.config().rowHeight;
-
-  const uidAttribute = grid.getUidAttrSelector();
-
-  if (!isNaN(rowOptHeight)) {
-    cssStr.push(`${uidAttribute} .dg-cell, ${uidAttribute} .pub-body-aside-td{max-height:${rowOptHeight}px;height:${rowOptHeight}px;line-height:${rowOptHeight - 4}px;}`);
-    cssStr.push("${uidAttribute} .dg-cell>.pub-content, ${uidAttribute} .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;max-height:${(rowOptHeight - 3)}px; }");
-    //cssStr.push('#'+_this.prefix+'_pubGrid .dg-cell>.pub-content, #'+_this.prefix+'_pubGrid .pub-body-aside-td > .aside-content{margin:1px 0px 1px 0px;height:'+(rowOptHeight-3)+'px; line-height:'+(rowOptHeight-5)+'px;}');
-  }
-
-  const headerHeight = options.header.height;
-
-  if (!isNaN(headerHeight)) {
-    cssStr.push(`${uidAttribute} .pubGrid-header-container th{height:${headerHeight}px;}`);
-  }
-
-  if (options.aside.lineNumber.enableRowSelection === true) {
-    cssStr.push(`${uidAttribute} .pubGrid-body-aside .pub-body-aside-td{cursor:pointer;}`);
-  }
   const instanceId = grid.instanceId();
-  let styleTag = document.querySelector(`[daracl-style="${instanceId}"]`) as HTMLStyleElement;
+  let styleTag = document.querySelector(`[dg-style-id="${instanceId}"]`) as HTMLStyleElement;
 
   if (styleTag) {
   } else {
     styleTag = document.createElement("style");
     document.getElementsByTagName("head")[0].appendChild(styleTag);
-    styleTag.setAttribute("daracl-style", instanceId);
+    styleTag.setAttribute("dg-style-id", instanceId);
     styleTag.setAttribute("type", "text/css");
   }
 

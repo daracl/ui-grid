@@ -10,11 +10,13 @@ import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
 import Scroll from "./main/Scroll";
 import { eventOn } from "src/util/eventUtils";
-import { getTextWidth, isInputField } from "src/util/gridUtils";
+import { getTextWidth, heightOptionValue, isInputField } from "src/util/gridUtils";
 import SelectionInfo from "src/selection/selection";
 import Footer from "./Footer";
 import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
 import DataSearch from "./main/DataSearch";
+import Summary from "./main/Summary";
+import { h } from "preact";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -39,6 +41,8 @@ export default class GridMain {
   private footer: Footer;
 
   private scroll: Scroll;
+
+  private summary: Summary;
 
   private dataSearch: DataSearch;
 
@@ -121,12 +125,15 @@ export default class GridMain {
     this.selectionInfo = new SelectionInfo(this, opts, this.grid.config());
     this.header = new Header(this.grid, this);
     this.body = new Body(this.grid, this);
-    this.scroll = new Scroll(this.grid, this);
-    this.footer = new Footer(this.grid, this);
+
+    this.summary = new Summary(this.grid, this);
 
     if (opts.search.enabled) {
       this.dataSearch = new DataSearch(this.grid, this);
     }
+
+    this.scroll = new Scroll(this.grid, this);
+    this.footer = new Footer(this.grid, this);
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
@@ -377,6 +384,22 @@ export default class GridMain {
     return this.body;
   }
 
+  /**
+   * summary object
+   *
+   * @public
+   * @returns {Summary}
+   */
+  public getSummary() {
+    return this.summary;
+  }
+
+  /**
+   * footer object
+   *
+   * @public
+   * @returns {Footer}
+   */
   public getFooter() {
     return this.footer;
   }
@@ -447,7 +470,7 @@ export default class GridMain {
    * cell size 설정
    */
   public fieldResize() {
-    this.updateFieldWidth(this.grid.config().currentFields, this.header.getHeaderElement(), this.body.getBodyElement());
+    this.updateFieldWidth(this.grid.config().currentFields, this.header.getHeaderElement(), this.body.getBodyElement(), this.summary.getElement());
   }
 
   /**
@@ -457,7 +480,7 @@ export default class GridMain {
    * @param headerElement header html element
    * @param bodyElement body html element
    */
-  private updateFieldWidth(fields: FieldItem[], headerElement: DaraElement, bodyElement: DaraElement) {
+  private updateFieldWidth(fields: FieldItem[], headerElement: DaraElement, bodyElement: DaraElement, summaryElement: DaraElement) {
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
 
@@ -466,6 +489,9 @@ export default class GridMain {
 
       headerElement.find(selector).style.width = width;
       bodyElement.find(selector).style.width = width;
+      if (summaryElement) {
+        summaryElement.find(selector).style.width = width;
+      }
     }
   }
 
@@ -485,6 +511,7 @@ export default class GridMain {
 
     this.header.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
     this.body.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
+    this.summary.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
 
     this.changeScrollMode();
   }
@@ -507,8 +534,26 @@ export default class GridMain {
     }
 
     if (!isUndefined(opts.summary)) {
-      const summaryItemLength = opts.summary.items.length > 0 ? opts.summary.items.length : 0;
-      dimensions.mainSummaryHeight = summaryItemLength * opts.body.row.height;
+      const heightOption = heightOptionValue(opts.summary.height, 28);
+      const { height, heights } = heightOption;
+
+      const len = opts.summary.items.length;
+
+      cfg.summary.heights = new Array(len);
+
+      let totalHeight = 0;
+
+      let summaryHeight = height;
+      for (let i = 0; i < len; i++) {
+        if (heights.length > i) {
+          summaryHeight = heights[i];
+          summaryHeight = summaryHeight > 0 ? summaryHeight : height;
+        }
+        totalHeight += summaryHeight;
+        cfg.summary.heights[i] = summaryHeight;
+      }
+
+      dimensions.mainSummaryHeight = totalHeight + 1; // 2 border-width
     }
 
     this.setSize(this.grid.getOptions().width, this.grid.getOptions().height, false);
@@ -716,16 +761,16 @@ export default class GridMain {
       return;
     }
 
-    const height = opts.header.height;
-    const heights = opts.header.heights;
+    const heightOption = heightOptionValue(opts.header.height, 28);
+    const { height, heights } = heightOption;
+
     const groupDepth = cfg.fieldHeaderGroup.depth;
 
     cfg.fieldHeaderGroup.heights = new Array(groupDepth);
 
     let mainHeaderHeight = 0;
-
+    let headerHeight = height;
     for (let i = 0; i < groupDepth; i++) {
-      let headerHeight = height;
       if (heights.length > i) {
         headerHeight = heights[i];
         headerHeight = headerHeight > 0 ? headerHeight : height;
@@ -973,6 +1018,7 @@ export default class GridMain {
       this.scroll.calcScroll();
       this.setElementDimentions();
       this.fieldResize();
+      this.summary.drawData();
     }
   }
 

@@ -751,7 +751,7 @@
       , theme: document.getElementById("theme").value
       , fixedLeftIndex: 2
       , fixedRightIndex: 0
-      , height: 500
+      //, height: 500
       , width: 1000
       , aside: {
         lineNumber: { enabled: true },
@@ -814,7 +814,7 @@
           }
         }
       }
-      , summary: { items: [{ test: 111 }] }
+      , summary: { height: [30, 40], items: [[{ name: "name", label: "합계" }, { name: "age", expression: "sum" }], [{ name: "name", label: "평균" }, { name: "age", expression: "average" }]] }
       , search: {
         enabled: true
         , enableColumnFix: true

@@ -788,8 +788,11 @@ export default class Scroll {
 
     this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
 
-    this.gridMain.getHeader().setCenterElementStyle({ left: "-" + centerLeftPosition + "px" });
-    this.gridMain.getBody().setCenterElementStyle({ left: "-" + centerLeftPosition + "px" });
+    const leftCss = { left: "-" + centerLeftPosition + "px" };
+
+    this.gridMain.getHeader().setCenterElementStyle(leftCss);
+    this.gridMain.getBody().setCenterElementStyle(leftCss);
+    this.gridMain.getSummary().setCenterElementStyle(leftCss);
   }
 
   /**
