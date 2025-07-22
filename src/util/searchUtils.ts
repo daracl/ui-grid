@@ -1,7 +1,4 @@
-import { LAYER_ATTR_NAME } from "src/constants";
-import { styleClassSplit } from "./styleUtils";
-import { isArray } from "./utils";
-import { MatchedField, SearchMode, SearchResult } from "@t/Common";
+import { MatchedField, SearchMode } from "@t/Common";
 import DaraGrid from "src/DaraGrid";
 
 export function gridDataSearch(
@@ -13,14 +10,24 @@ export function gridDataSearch(
     useRegex: false,
     searchFields: "$all$",
   }
-): SearchResult[] {
+): any[] {
+  const results: any[] = [];
+
+  // 배치 처리를 위한 청크 크기
+  const CHUNK_SIZE = 1000;
+
   // 빈 검색어 처리
   if (!searchText.trim()) {
-    return searchList.map((item) => ({
-      item,
-      matchedFields: [],
-      totalMatches: 0,
-    }));
+    for (let i = 0; i < searchList.length; i += CHUNK_SIZE) {
+      const chunk = searchList.slice(i, i + CHUNK_SIZE);
+
+      for (const item of chunk) {
+        if (item.$$matchedFields) {
+          delete item.$$matchedFields;
+          delete item.$$totalMatches;
+        }
+      }
+    }
   }
 
   const { matchCase, matchWholeWord, useRegex, searchFields } = options;
@@ -47,11 +54,6 @@ export function gridDataSearch(
     wordBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedSearchText)}\\b`, flags);
   }
 
-  const results: SearchResult[] = [];
-
-  // 배치 처리를 위한 청크 크기
-  const CHUNK_SIZE = 1000;
-
   for (let i = 0; i < searchList.length; i += CHUNK_SIZE) {
     const chunk = searchList.slice(i, i + CHUNK_SIZE);
 
@@ -62,6 +64,9 @@ export function gridDataSearch(
         item.$$matchedFields = matchedFields;
         item.$$totalMatches = matchedFields.length;
         results.push(item);
+      } else if (item.$$matchedFields) {
+        delete item.$$matchedFields;
+        delete item.$$totalMatches;
       }
     }
   }

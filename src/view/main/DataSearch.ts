@@ -181,21 +181,21 @@ export default class DataSearch {
     searchParameter.searchText = searchText;
     searchParameter.searchFields = searchField;
 
+    const result = gridDataSearch(cfg.orginItems, searchText, {
+      matchCase: searchParameter.matchCase,
+      matchWholeWord: searchParameter.matchWholeWord,
+      useRegex: searchParameter.useRegex,
+      searchFields: searchField,
+    });
+
     if (searchText == "") {
       cfg.searchEnable = false;
-      this.gridMain.setViewDataInfo(cfg.orginItems);
-      this.gridMain.getBody().dataDraw("search");
+      this.gridMain.getBody().clearSearchHighlight();
     } else {
       cfg.searchEnable = true;
-      const result = gridDataSearch(cfg.orginItems, searchText, {
-        matchCase: searchParameter.matchCase,
-        matchWholeWord: searchParameter.matchWholeWord,
-        useRegex: searchParameter.useRegex,
-        searchFields: searchField,
-      });
-      this.gridMain.setViewDataInfo(result);
-      this.gridMain.getBody().dataDraw("search");
     }
+    this.gridMain.setViewDataInfo(result);
+    this.gridMain.getBody().dataDraw("search");
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }
 }

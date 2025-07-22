@@ -40,12 +40,6 @@ export type SearchMode = {
   searchFields: string | string[] | "$all$";
 };
 
-export type SearchResult = {
-  item: any;
-  matchedFields: MatchedField[];
-  totalMatches: number;
-};
-
 export type MatchedField = {
   fieldName: string;
   originalValue: string;

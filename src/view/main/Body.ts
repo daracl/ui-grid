@@ -447,7 +447,7 @@ export default class Body {
         }
       }
 
-      // 중앙
+      // center panel
       const rowCenterCells = centerElements[i];
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
@@ -488,10 +488,11 @@ export default class Body {
   private setCellStyle(startCellInfo: any, rowIdx: number, col: number, cellElement: HTMLElement, field: FieldItem, item: any, searchEnable: boolean) {
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
-    const { classList } = cellElement;
+
     if (searchEnable) {
+      const { classList } = cellElement;
+      let highlightFlag = false;
       if (item.$$matchedFields && item.$$matchedFields.length > 0) {
-        let highlightFlag = false;
         for (const matchItem of item.$$matchedFields) {
           if (field.name == matchItem.fieldName) {
             highlightFlag = true;
@@ -500,13 +501,9 @@ export default class Body {
             }
           }
         }
-
-        if (!highlightFlag && classList.contains("dg-search-highlight")) {
-          classList.remove("dg-search-highlight");
-        }
       }
-    } else {
-      if (classList.contains("dg-search-highlight")) {
+
+      if (!highlightFlag && classList.contains("dg-search-highlight")) {
         classList.remove("dg-search-highlight");
       }
     }
@@ -514,6 +511,11 @@ export default class Body {
     if (field.$isAside) return;
 
     this.selectionInfo.setCellSelectionStyleClass(cellElement, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
+  }
+
+  public clearSearchHighlight() {
+    const bodyElement = this.bodyElement;
+    removeClass(bodyElement.finds(".dg-cell.dg-search-highlight"), "dg-search-highlight");
   }
 
   /**
