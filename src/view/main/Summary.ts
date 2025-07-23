@@ -8,6 +8,7 @@ import { CHUNK_SIZE, ROW_CHECK_NAME } from "src/constants";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
 import { calcSummary } from "src/util/mathUtils";
+import { formatValue } from "src/util/formatUtils";
 
 /**
  * Summary class
@@ -80,17 +81,19 @@ export default class Summary {
 
     const allFieldMap = cfg.allFieldMap;
 
-    //TODO 포멧 추가.
-    //
-    //
-    //
-
     let rowIdx = 0;
     for (const groupItem of summaryItems) {
       for (const item of groupItem) {
         const fieldName = item.name;
 
         if (allFieldMap.has(fieldName)) {
+          const field = allFieldMap.get(fieldName);
+
+          let displayFormat = item.displayFormat;
+          if (!displayFormat) {
+            displayFormat = field?.displayFormat;
+          }
+
           const col = allFieldMap.get(fieldName)?.$colSeq;
           const cellElement = this.summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`).firstChild as HTMLElement;
 
@@ -102,6 +105,9 @@ export default class Summary {
               summaryValue = expression(items);
             } else {
               summaryValue = calcSummary(items, expression, item.name);
+            }
+            if (displayFormat) {
+              summaryValue = formatValue(summaryValue, displayFormat);
             }
           } else if (item.label) {
             summaryValue = item.label;

@@ -509,7 +509,10 @@
       {
         name: "salary",
         label: "월급",
-        width: 80
+        width: 80,
+        displayFormat: {
+          type: 'number'
+        }
       },
 
 
@@ -822,7 +825,24 @@
           }
         }
       }
-      , summary: { height: [30, 40], items: [[{ name: "name", label: "합계" }, { name: "age", expression: "sum" }], [{ name: "name", label: "평균" }, { name: "age", expression: "average" }]] }
+      , summary: {
+        height: [30, 40], items: [[{ name: "name", label: "합계" }, { name: "age", expression: "sum" }, {
+          name: "salary", expression: "sum", displayFormat: {
+            type: 'number',
+            format: "0,0"
+          }
+        }], [{ name: "name", label: "평균" }, {
+          name: "age", expression: "average", displayFormat: {
+            type: 'number',
+            format: "0,0.00"
+          }
+        }, {
+          name: "salary", expression: "average", displayFormat: {
+            type: 'number',
+            format: "0,0"
+          }
+        }]]
+      }
       , search: {
         enabled: true
         , enableColumnFix: true

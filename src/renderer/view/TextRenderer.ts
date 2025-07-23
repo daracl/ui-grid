@@ -16,6 +16,6 @@ export default class TextRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = item[this.fieldName];
+    element.innerText = this.getValue(item);
   }
 }

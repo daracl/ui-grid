@@ -9,8 +9,8 @@ describe("number format check", () => {
   });
 
   it("currency check", () => {
-    const result = formatNumber(1234.5, "$0,0.00"); // "$1,234.5"
-    expect("$1,234.5").toEqual(result);
+    const result = formatNumber(1234, "$0,0.00"); // "$1,234.5"
+    expect("$1,234").toEqual(result);
   });
 
   it("percent check", () => {

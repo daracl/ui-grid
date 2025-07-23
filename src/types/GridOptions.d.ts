@@ -1,5 +1,5 @@
 import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "src/constants";
-import { OptionCallback } from "./Common";
+import { DisplayFormatOptions, OptionCallback } from "./Common";
 import { FieldItem } from "./GridField";
 
 /**
@@ -735,4 +735,8 @@ export interface SummaryItem {
    * sum, avg 연산
    */
   expression: string | OptionCallback;
+  /**
+   *display format
+   */
+  displayFormat?: DisplayFormatOptions;
 }

@@ -4,6 +4,7 @@ import Renderer from "./Renderer";
 import { isFunction } from "src/util/utils";
 import { CellInfo, Config } from "@t/GridConfig";
 import GridMain from "src/view/GridMain";
+import { formatValue } from "src/util/formatUtils";
 
 export default abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;
@@ -65,7 +66,14 @@ export default abstract class ViewRenderer extends Renderer {
   }
 
   public getValue(rowItem: any): any {
-    return rowItem[this.field.name];
+    const displayFormat = this.field.displayFormat;
+
+    const val = rowItem[this.fieldName];
+    if (displayFormat) {
+      return formatValue(val, displayFormat);
+    }
+
+    return val;
   }
 
   public click(e: Event, eventElement: HTMLElement, cellInfo: CellInfo) {
