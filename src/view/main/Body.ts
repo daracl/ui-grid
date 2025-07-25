@@ -378,18 +378,10 @@ export default class Body {
       return;
     }
 
-    // 마지막 라인 처리 할것.
-    //
-    //
-    //
-
-    console.log(currentViewRow, viewRow, cfg.scroll.startIdx, cfg.dataInfo.rowLength, cfg.dimensions.mainBodyHeight < cfg.rowHeight);
-
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       const hideRowIdx = viewRow - 1;
-      let breakFlag = false;
-      for (let i = hideRowIdx; i > 0; i--) {
+      for (let i = 0; i < viewRow; i++) {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
             if (i == hideRowIdx) {
@@ -399,13 +391,8 @@ export default class Body {
 
             const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
             if (style.display == "none") style.removeProperty("display");
-            else {
-              breakFlag = true;
-              break;
-            }
           }
         }
-        if (breakFlag) break;
       }
 
       cfg.scroll.before.hideLastRow = true;

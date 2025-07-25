@@ -77,7 +77,7 @@ export default class Scroll {
       cfg.scroll.vTrackHeight = vTrackHeight;
       cfg.scroll.vThumbHeight = thumbHeight;
 
-      console.log("111111111scroll  : ", totalRows, cfg.scroll.startIdx, cfg.scroll.viewRow, cfg.scroll.insideViewRow);
+      //console.log("111111111scroll  : ", totalRows, cfg.scroll.startIdx, cfg.scroll.viewRow, cfg.scroll.insideViewRow);
 
       if (totalRows < cfg.scroll.startIdx + cfg.scroll.viewRow) {
         this.setVerticalPosition(cfg, (totalRows - cfg.scroll.insideViewRow) * cfg.scroll.oneRowMove);

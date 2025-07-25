@@ -631,8 +631,8 @@ export default class GridMain {
     cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > dimensions.mainBodyHeight - MAIN_MARGIN_BOTTOM;
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
-    cfg.scroll.viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
-    cfg.scroll.viewRow = Math.min(Math.max(1, cfg.scroll.viewRow), rowLength);
+    const viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
+    cfg.scroll.viewRow = Math.min(Math.max(1, viewRow), rowLength);
     cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
 
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
