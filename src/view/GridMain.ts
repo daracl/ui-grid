@@ -33,7 +33,6 @@ import Footer from "./Footer";
 import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
 import DataSearch from "./main/DataSearch";
 import Summary from "./main/Summary";
-import { h } from "preact";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -570,7 +569,7 @@ export default class GridMain {
         cfg.summary.heights[i] = summaryHeight;
       }
 
-      dimensions.mainSummaryHeight = totalHeight + 1; // 2 border-width
+      dimensions.mainSummaryHeight = totalHeight + 3; // 2 border + 1 padding
     }
 
     this.setSize(this.grid.getOptions().width, this.grid.getOptions().height, false);
@@ -1248,11 +1247,22 @@ export default class GridMain {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
+    const { footer, summary, scroll } = opts;
 
-    const pagingAlign = ALIGN[opts.footer.paging?.position ?? "center"];
-    const selectionAlign = ALIGN[opts.footer.selection?.position ?? "center"];
-    const pagingInfoAlign = ALIGN[opts.footer.paging?.formatPosition ?? "center"];
-    // class="${align}"
+    const pagingAlign = ALIGN[footer.paging?.position ?? "center"];
+    const selectionAlign = ALIGN[footer.selection?.position ?? "center"];
+    const pagingInfoAlign = ALIGN[footer.paging?.formatPosition ?? "center"];
+
+    let summaryTemplate = "";
+    let isSummaryTop = false;
+    if (dimensions.mainSummaryHeight > 0) {
+      isSummaryTop = summary?.position === "top";
+      summaryTemplate = `<div class="dg-panel dg-summary ${isSummaryTop ? "dg-top" : ""}" style="height:${dimensions.mainSummaryHeight}px;">
+          <div class="dg-left"></div>
+          <div class="dg-center"></div>
+          <div class="dg-right"></div>
+      </div>`;
+    }
 
     let templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
@@ -1269,32 +1279,25 @@ export default class GridMain {
                     </div>`
                       : ""
                   }
-                 
+                  
+                  ${isSummaryTop ? summaryTemplate : ""}
                   <div class="dg-panel dg-body">
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
                       <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid.i18n().getMessage("no.data")}</span></span></div>
                   </div>
-                  ${
-                    dimensions.mainSummaryHeight > 0
-                      ? `<div class="dg-panel dg-summary" style="height:${dimensions.mainSummaryHeight}px;">
-                      <div class="dg-left"></div>
-                      <div class="dg-center"></div>
-                      <div class="dg-right"></div>
-                  </div>`
-                      : ""
-                  }
+                  ${!isSummaryTop ? summaryTemplate : ""}
               </div>
               <div class="dg-resize-helper"></div>
               <div class="dg-scroll-container">
-                  <div class="dg-scroll vertical" style="width:${opts.scroll.width}px">
+                  <div class="dg-scroll vertical" style="width:${scroll.width}px">
                     <div class="dg-scroll-track"></div>
                     <div class="dg-scroll-thumb"></div>
                     <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
                     <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
                   </div>
-                  <div class="dg-scroll horizontal" style="height:${opts.scroll.width}px">
+                  <div class="dg-scroll horizontal" style="height:${scroll.width}px">
                     <div class="dg-scroll-track"></div>
                     <div class="dg-scroll-thumb"></div>
                     <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
@@ -1307,7 +1310,7 @@ export default class GridMain {
               <div class="dg-renderer-container"></div>
           </div>
           ${
-            opts.footer.enabled
+            footer.enabled
               ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;">
             <span class="dg-status ${selectionAlign}">
               <span class="dg-selection-status"></span>

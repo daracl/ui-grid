@@ -719,6 +719,8 @@ export interface SummaryOptions {
    */
   height: number | number[];
 
+  position: top | bottom;
+
   items: SummaryItem[][];
 }
 

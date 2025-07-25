@@ -131,7 +131,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
     },
   },
-  summary: { height: 28, items: [] },
+  summary: { height: 28, position: "bottom", items: [] },
   scroll: {
     // 스크롤 옵션
     enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용

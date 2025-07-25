@@ -3,13 +3,29 @@
 @mixin summary {
   .dg-summary {
     position: relative;
-    z-index: 0;
+    z-index: 2;
+
+    &.dg-top {
+      & > div {
+        border-top: 1px solid transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding-top: 0px;
+        padding-bottom: 1px;
+
+        > .dg-body-table {
+          border-top: 0px solid transparent;
+          .dg-row > .dg-cell {
+            border: 1px solid var(--border-color);
+          }
+        }
+      }
+    }
 
     & > div {
       position: absolute;
       background: var(--summary-bg);
       border-top: 1px solid var(--border-color);
-      padding-top: 2px;
+      padding-top: 1px;
 
       &.dg-left {
         left: 0px;
