@@ -772,7 +772,7 @@ export default class Scroll {
     if (topVal > 0) {
       startIdx = Math.round(topVal / cfg.scroll.oneRowMove);
     }
-
+    cfg.scroll.before.startIdx = cfg.scroll.startIdx;
     cfg.scroll.startIdx = startIdx;
   }
 

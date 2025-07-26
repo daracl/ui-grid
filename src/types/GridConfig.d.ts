@@ -233,6 +233,7 @@ export interface ScrollInfo {
   enableHorizontal: boolean;
   centerLeftPosition: number;
   before: {
+    startIdx: number;
     viewRow: number;
     startCol: number;
     endCol: number;

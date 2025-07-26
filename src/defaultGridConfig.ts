@@ -138,6 +138,7 @@ export function initScrollInfo(): ScrollInfo {
   return {
     centerLeftPosition: 0,
     before: {
+      startIdx: 0,
       viewRow: 0,
       startCol: 0,
       endCol: 0,

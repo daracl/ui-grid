@@ -476,7 +476,7 @@ export default class GridMain {
       this.scroll.calcScroll();
       this.fieldResize();
 
-      if (cfg.scroll.before.viewRow != cfg.scroll.viewRow || cfg.scroll.before.startCol != cfg.scroll.startCol || cfg.scroll.before.endCol != cfg.scroll.endCol) {
+      if (cfg.scroll.before.startIdx != cfg.scroll.startIdx || cfg.scroll.before.viewRow != cfg.scroll.viewRow || cfg.scroll.before.startCol != cfg.scroll.startCol || cfg.scroll.before.endCol != cfg.scroll.endCol) {
         this.body.dataDraw("resize");
       }
     }
@@ -626,14 +626,18 @@ export default class GridMain {
       dimensions.mainHeight = dimensions.mainHeight + MAIN_MARGIN_BOTTOM;
     }
 
-    dimensions.mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0));
+    const mainBodyHeight = dimensions.mainHeight - (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (cfg.scroll.enableHorizontal ? opts.scroll.width : 0)) - 2; // 2 border height;
 
-    cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > dimensions.mainBodyHeight - MAIN_MARGIN_BOTTOM;
+    cfg.scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > mainBodyHeight;
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
 
-    const viewRow = Math.ceil(dimensions.mainBodyHeight / rowHeight);
+    dimensions.mainBodyHeight = mainBodyHeight;
+
+    const orginViewRow = mainBodyHeight / rowHeight;
+    const viewRow = Math.ceil(orginViewRow);
     cfg.scroll.viewRow = Math.min(Math.max(1, viewRow), rowLength);
-    cfg.scroll.insideViewRow = cfg.scroll.viewRow - (dimensions.mainBodyHeight % rowHeight > 0 ? 1 : 0);
+
+    cfg.scroll.insideViewRow = cfg.scroll.viewRow - (cfg.scroll.viewRow > Math.floor(orginViewRow) ? 1 : 0);
 
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
 
