@@ -39,12 +39,12 @@ export default class Scroll {
     this.verticalTrackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
     this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
 
-    this.calcScroll();
+    this.calculate();
 
     this.initEvent();
   }
 
-  public calcScroll() {
+  public calculate() {
     const cfg = this.grid.config();
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
@@ -68,7 +68,7 @@ export default class Scroll {
       }
 
       // row 보이기 기준으로 계산
-      cfg.scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - Math.floor(dimensions.mainBodyHeight / rowHeight));
+      cfg.scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - cfg.scroll.insideViewRow);
 
       this.verticalElement.css({ height: vHeight + "px" });
       this.verticalThumbElement.css({ height: thumbHeight + "px" });
@@ -321,7 +321,7 @@ export default class Scroll {
 
       const delta = lastY - startY;
 
-      console.log("111111 : ", lastY, startY);
+      //console.log("111111 : ", lastY, startY);
 
       this.moveVerticalScroll({ position: initialTop + delta });
 

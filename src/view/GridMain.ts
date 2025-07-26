@@ -473,7 +473,7 @@ export default class GridMain {
 
     if (!isUndefined(this._mainElement)) {
       this.setElementDimentions();
-      this.scroll.calcScroll();
+      this.scroll.calculate();
       this.fieldResize();
 
       if (cfg.scroll.before.startIdx != cfg.scroll.startIdx || cfg.scroll.before.viewRow != cfg.scroll.viewRow || cfg.scroll.before.startCol != cfg.scroll.startCol || cfg.scroll.before.endCol != cfg.scroll.endCol) {
@@ -634,10 +634,10 @@ export default class GridMain {
     dimensions.mainBodyHeight = mainBodyHeight;
 
     const orginViewRow = mainBodyHeight / rowHeight;
-    const viewRow = Math.ceil(orginViewRow);
-    cfg.scroll.viewRow = Math.min(Math.max(1, viewRow), rowLength);
+    const viewRow = Math.min(Math.max(1, Math.ceil(orginViewRow)), rowLength);
 
-    cfg.scroll.insideViewRow = cfg.scroll.viewRow - (cfg.scroll.viewRow > Math.floor(orginViewRow) ? 1 : 0);
+    cfg.scroll.insideViewRow = viewRow - (viewRow > 1 && viewRow > Math.floor(orginViewRow) ? 1 : 0);
+    cfg.scroll.viewRow = viewRow;
 
     const verticalScrollWidth = cfg.scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
 
@@ -1035,7 +1035,7 @@ export default class GridMain {
 
     this.calcBody();
     if (this.scroll) {
-      this.scroll.calcScroll();
+      this.scroll.calculate();
       this.setElementDimentions();
       this.fieldResize();
       this.summary.drawData();
