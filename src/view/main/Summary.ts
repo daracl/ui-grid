@@ -100,17 +100,20 @@ export default class Summary {
           const expression = item.expression;
 
           let summaryValue: any = "";
-          if (expression) {
-            if (isFunction(expression)) {
-              summaryValue = expression(items);
-            } else {
-              summaryValue = calcSummary(items, expression, item.name);
+
+          if (items.length > 0) {
+            if (expression) {
+              if (isFunction(expression)) {
+                summaryValue = expression(items);
+              } else {
+                summaryValue = calcSummary(items, expression, item.name);
+              }
+              if (displayFormat) {
+                summaryValue = formatValue(summaryValue, displayFormat);
+              }
+            } else if (item.label) {
+              summaryValue = item.label;
             }
-            if (displayFormat) {
-              summaryValue = formatValue(summaryValue, displayFormat);
-            }
-          } else if (item.label) {
-            summaryValue = item.label;
           }
 
           cellElement.innerText = summaryValue;
