@@ -8,6 +8,7 @@ import { EditRendererInfo } from "@t/RendererInfo";
 import { numberValidator } from "src/rule/numberValidator";
 import { ValidResult } from "@t/ValidResult";
 import { isBooleanObject } from "util/types";
+import TextEditAbstractRenderer from "./TextEditAbstractRenderer";
 
 /**
  * number renderer
@@ -16,13 +17,7 @@ import { isBooleanObject } from "util/types";
  * @typedef {NumberEditRenderer}
  * @extends {EditRenderer}
  */
-export default class NumberEditRenderer extends EditRenderer {
-  private editElement: HTMLInputElement;
-  private item: any;
-  private cellElement: HTMLElement;
-  private cellInfo: CellInfo;
-
-  private isShow: boolean;
+export default class NumberEditRenderer extends TextEditAbstractRenderer {
   private readonly editRendererInfo: EditRendererInfo;
 
   constructor(field: FieldItem, gridMain: GridMain) {
@@ -74,38 +69,6 @@ export default class NumberEditRenderer extends EditRenderer {
     setTimeout(() => {
       editElement.focus();
     }, 100);
-  }
-
-  initEvt(editElement: HTMLInputElement, item: any) {
-    eventOn(editElement, "blur", (e: FocusEvent) => {
-      if (this.isShow) {
-        this.setChangeValue(e);
-      }
-    });
-
-    eventOn(editElement, "keydown", (e: KeyboardEvent) => {
-      const key = e.key;
-
-      if (key === "Enter") {
-        this.setChangeValue(e);
-      } else if (key === "Escape") {
-        this.setChangeValue(e, true);
-      }
-    });
-  }
-
-  setChangeValue(e: Event, cancelFlag: boolean = false) {
-    this.isShow = false;
-    if (!cancelFlag) {
-      const value = this.editElement.value;
-      if (this.setValue(e, this.item, value) === false) {
-        this.isShow = true;
-        return false;
-      }
-    }
-
-    this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
-    this.gridMain.hideLayer();
   }
 
   valid(value: string): boolean {
