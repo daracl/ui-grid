@@ -7,12 +7,12 @@ import { eventOn } from "src/util/eventUtils";
 import { stringValidator } from "src/rule/stringValidator";
 
 /**
- * text renderer
+ * time renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {TimeRenderer}
  * @extends {EditRenderer}
  */
-export default class TextRenderer extends EditRenderer {
+export default class TimeRenderer extends EditRenderer {
   private editElement: HTMLInputElement;
   private item: any;
   private cellElement: HTMLElement;
@@ -35,7 +35,7 @@ export default class TextRenderer extends EditRenderer {
     let editElement = this.editElement;
     if (!editElement) {
       editElement = getLayerElement("input", "dg-edit-input", cellInfo.c + "") as HTMLInputElement;
-      editElement.type = "text";
+      editElement.type = "time";
       editElement.name = this.fieldName;
       editElement.setAttribute("autocomplete", "off");
 

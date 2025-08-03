@@ -500,7 +500,16 @@
       }, {
         name: "birth",
         label: "생년월일",
-        width: 120
+        width: 120,
+        editRenderer: {
+          type: "date"
+          /*
+          , rule: {
+            minimum: -100
+            , maximum: 100
+          }
+            */
+        }
       }, {
         name: "position",
         label: "직책",
@@ -512,6 +521,7 @@
         width: 80,
         displayFormat: {
           type: 'number'
+          , format: "₩ 0,0 원"
         }
       },
       {

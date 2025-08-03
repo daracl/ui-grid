@@ -12,18 +12,18 @@ import { SCROLL_ARROW_BUTTON_SIZE } from "src/constants";
 const SCROLL_THUMB_MIN_SIZE = 18;
 
 export default class Scroll {
-  private grid: DaraGrid;
-  private gridMain: GridMain;
+  private readonly grid: DaraGrid;
+  private readonly gridMain: GridMain;
 
-  private opts: GridOptions;
+  private readonly opts: GridOptions;
 
-  private horizontalElement: DaraElement;
-  private horizontalTrackElement: DaraElement;
-  private horizontalThumbElement: DaraElement;
+  private readonly horizontalElement: DaraElement;
+  private readonly horizontalTrackElement: DaraElement;
+  private readonly horizontalThumbElement: DaraElement;
 
-  private verticalElement: DaraElement;
-  private verticalTrackElement: DaraElement;
-  private verticalThumbElement: DaraElement;
+  private readonly verticalElement: DaraElement;
+  private readonly verticalTrackElement: DaraElement;
+  private readonly verticalThumbElement: DaraElement;
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
