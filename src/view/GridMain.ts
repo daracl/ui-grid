@@ -1268,6 +1268,8 @@ export default class GridMain {
       </div>`;
     }
 
+    const scrollSize = scroll.width;
+
     let templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
         <div style="position:absolute;">
@@ -1295,15 +1297,15 @@ export default class GridMain {
               </div>
               <div class="dg-resize-helper"></div>
               <div class="dg-scroll-container">
-                  <div class="dg-scroll vertical" style="width:${scroll.width}px">
+                  <div class="dg-scroll vertical" style="width:${scrollSize}px">
                     <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb"></div>
+                    <div class="dg-scroll-thumb" style="width:${scrollSize - 3}px"></div>
                     <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
                     <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
                   </div>
-                  <div class="dg-scroll horizontal" style="height:${scroll.width}px">
+                  <div class="dg-scroll horizontal" style="height:${scrollSize}px">
                     <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb"></div>
+                    <div class="dg-scroll-thumb" style="height:${scrollSize - 3}px"></div>
                     <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
                     <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
