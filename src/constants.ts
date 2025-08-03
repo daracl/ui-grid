@@ -144,6 +144,8 @@ export const FOOTER_HEIGHT = 35;
  */
 export const SCROLL_ARROW_BUTTON_SIZE = 14;
 
+export const ROw_ITEM_PREFIX_NAME = "_dg";
+
 /**
  * line number name
  *
@@ -163,21 +165,28 @@ export const ROW_CHECK_NAME = "$rowCheck";
  *
  * @type {"_dg$rowCheck"}
  */
-export const ROW_CHECK_KEY = "_dg" + ROW_CHECK_NAME;
+export const ROW_CHECK_KEY = ROw_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
 
 /**
  * row id key
  *
  * @type {"_dg$rowid"}
  */
-export const ROW_ID_KEY = "_dg$rowid";
+export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + "$rowid";
 
 /**
  * row id key
  *
  * @type {"_dg$rowid"}
  */
-export const ROW_HEIGHT_KEY = "_dg$rowHeight";
+export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + "$rowHeight";
+
+/**
+ * row cud name key
+ *
+ * @type {string}
+ */
+export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + "$CUD";
 
 /**
  * layer attribute name

@@ -5,7 +5,7 @@ import { getCheckboxMode } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
+import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";
@@ -59,13 +59,19 @@ export default class Body {
    * @description CUD모드 변경. (c = create , u = update , d =delete)
    */
   public setChangeValue(mode: string, rowItem: any, colInfo?: FieldItem, newValue?: any) {
-    if (mode == "new" || mode == "remove") {
-      rowItem["_dgCUD"] = mode == "new" ? "C" : "D";
+    if (mode == "new") {
+      rowItem[ROW_CUD_KEY] = "C";
+      return rowItem;
+    }
+    if (mode == "remove") {
+      rowItem[ROW_CUD_KEY] = "D";
       return rowItem;
     }
 
     if (mode == "modify" && colInfo) {
-      rowItem["_dgCUD"] = rowItem["_dgCUD"] == "_C" ? "C" : rowItem["_dgCUD"] == "C" ? "CU" : "U";
+      if (rowItem[ROW_CUD_KEY] == "_") {
+        rowItem[ROW_CUD_KEY] = "U";
+      }
 
       rowItem[colInfo.name] = newValue;
 

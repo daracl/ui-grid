@@ -111,8 +111,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
       // 수정 여부
       enabled: false, // 활성화 여부
       order: 3,
-      label: "modify", // name
-      width: 10, // 넓이값
+      label: "", // name
+      width: 20, // 넓이값
     },
   },
   body: {

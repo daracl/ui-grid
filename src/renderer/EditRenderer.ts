@@ -6,6 +6,7 @@ import Renderer from "./Renderer";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { getElementRect, getLayerElement } from "src/util/domUtils";
+import { ROW_CUD_KEY } from "src/constants";
 
 export default abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -58,7 +59,11 @@ export default abstract class EditRenderer extends Renderer {
     if (!this.valid(value)) {
       return false;
     }
+
     if (this.changeEventCall(e, item, value)) {
+      if (item[ROW_CUD_KEY] == "R") {
+        item[ROW_CUD_KEY] = "U";
+      }
       item[this.fieldName] = value;
     }
   }

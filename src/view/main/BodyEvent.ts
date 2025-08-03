@@ -46,7 +46,7 @@ export default class BodyEvent {
   public initEvent() {
     this.initKeydownEvent();
     this.initCellEvent();
-    this.initBodyEvent();
+    this.initPasteEvent();
   }
 
   /**
@@ -63,7 +63,12 @@ export default class BodyEvent {
     }
   }
 
-  private initBodyEvent() {
+  /**
+   * init paste event
+   *
+   * @private
+   */
+  private initPasteEvent() {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     const pasteBeforeFn = opts.body.pasteBefore;
@@ -100,13 +105,15 @@ export default class BodyEvent {
 
         let itemLength = items.length;
 
+        console.log("llllll : ", contentArr.length, startCellInfo.startIdx + contentArr.length, itemLength);
+
         let maxCol = 0,
           iLen = contentArr.length;
-        let addItems = [];
+        let pasteResultItems: any[] = items;
         if (startCellInfo.startIdx + iLen > itemLength) {
           // 붙여 넣기 데이터가 더 많으면 추가 row 생성.
-          addItems = items.concat(createNewItems(currentFields, startCellInfo.startIdx + iLen - itemLength));
-          itemLength = addItems.length;
+          pasteResultItems = pasteResultItems.concat(createNewItems(currentFields, startCellInfo.startIdx + iLen - itemLength));
+          itemLength = pasteResultItems.length;
         }
 
         for (let i = 0; i < iLen; i++) {
@@ -118,22 +125,27 @@ export default class BodyEvent {
             break;
           }
 
-          const rowItem = items[addRowIdx];
+          const rowItem = pasteResultItems[addRowIdx];
 
           const addContArr = addCont.split(/\t/);
           const jLen = addContArr.length;
-
-          this.body.setChangeValue("new", rowItem);
 
           for (let j = 0; j < jLen; j++) {
             const addColIdx = startCol + j;
 
             if (addColIdx < headerItemsLength) {
               maxCol = Math.max(maxCol, addColIdx);
+
+              if (currentFields[addColIdx].$editRenderer.setValue(event, rowItem, addContArr[j]) === false) {
+                return;
+              }
+
               rowItem[currentFields[addColIdx].name] = addContArr[j];
             }
           }
         }
+
+        this.gridMain.setViewDataInfo(pasteResultItems);
 
         this.selectionInfo.setSelectionRangeInfo(
           {
@@ -144,11 +156,7 @@ export default class BodyEvent {
           false
         );
 
-        // add, set data 부분 처리 할것.
-        //
-        //
-
-        // _this.setData(items, "reDraw_paste", { focus: true, index: _this.config.scroll.viewIdx });
+        this.gridMain.getBody().dataDraw("reDraw_paste");
 
         if (pasteAfterFnFlag) {
           pasteAfterFn(pastedText);

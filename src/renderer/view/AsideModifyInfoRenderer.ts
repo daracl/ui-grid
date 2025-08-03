@@ -2,6 +2,7 @@ import { FieldItem } from "@t/GridField";
 import ViewRenderer from "../ViewRenderer";
 import GridMain from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
+import { ROW_CUD_KEY } from "src/constants";
 
 /**
  * aside modify info
@@ -16,6 +17,24 @@ export default class AsideModifyInfoRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.innerText = ``;
+    const item = cellInfo.item;
+
+    const cudValue = item[ROW_CUD_KEY];
+    if (cudValue == "C") {
+      element.innerText = "C";
+      return;
+    }
+
+    if (cudValue == "U") {
+      element.innerText = "M";
+      return;
+    }
+
+    if (cudValue == "D") {
+      element.innerText = "D";
+      return;
+    }
+
+    element.innerText = "";
   }
 }

@@ -5,7 +5,7 @@ import { getCheckboxMode } from "../../util/gridUtils";
 import DaraGrid from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
-import { ALL_SELECT_VALUE, ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
+import { ALL_SELECT_VALUE } from "src/constants";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";

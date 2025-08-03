@@ -4,6 +4,7 @@ import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
 import { isArray, isNumber } from "lodash";
+import { ROW_CUD_KEY } from "src/constants";
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -359,7 +360,8 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
 
   const result = [];
   for (let i = 0; i < createCount; i++) {
-    let newItem: any = { _pubCUD: "_C" };
+    let newItem: any = {};
+    newItem[ROW_CUD_KEY] = "C";
     for (let j = 0; j < len; j++) {
       const headerItem = headerItems[j];
       newItem[headerItem.name] = headerItem.defaultValue ?? "";
@@ -367,6 +369,8 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
 
     result.push(newItem);
   }
+
+  console.log("createNewItems , ", createCount, result);
 
   return result;
 }

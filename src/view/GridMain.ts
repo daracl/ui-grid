@@ -14,6 +14,7 @@ import {
   LINE_NUMBER_NAME,
   ROW_CHECK_KEY,
   ROW_CHECK_NAME,
+  ROW_CUD_KEY,
   ROW_HEIGHT_KEY,
   ROW_ID_KEY,
   THEME_TYPE,
@@ -1060,6 +1061,7 @@ export default class GridMain {
 
       for (const item of chunk) {
         item[ROW_ID_KEY] = cfg.rowIdSeq++;
+        item[ROW_CUD_KEY] = "R";
         item[ROW_HEIGHT_KEY] = rowHeight;
       }
     }
