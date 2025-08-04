@@ -16,6 +16,19 @@ export default class TextRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = this.getValue(item);
+
+    const renderValue = this.getValue(item);
+
+    if (element.textContent != renderValue) {
+      const oldEl = element.firstChild;
+
+      const newTextElement = document.createTextNode(renderValue);
+
+      if (oldEl) {
+        element.replaceChild(newTextElement, oldEl);
+      } else {
+        element.appendChild(newTextElement);
+      }
+    }
   }
 }

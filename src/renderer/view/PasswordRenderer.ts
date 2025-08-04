@@ -16,10 +16,20 @@ export default class PasswordRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    const value = item[this.fieldName];
 
-    const raw = String(value ?? "");
+    const raw = String(this.getValue(item) ?? "");
     const masked = "*".repeat(raw.length);
-    element.innerText = masked;
+
+    if (element.textContent != masked) {
+      const oldEl = element.firstChild;
+
+      const newTextElement = document.createTextNode(masked);
+
+      if (oldEl) {
+        element.replaceChild(newTextElement, oldEl);
+      } else {
+        element.appendChild(newTextElement);
+      }
+    }
   }
 }

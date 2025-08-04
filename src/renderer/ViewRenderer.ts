@@ -66,11 +66,9 @@ export default abstract class ViewRenderer extends Renderer {
   }
 
   public getValue(rowItem: any): any {
-    const displayFormat = this.field.displayFormat;
-
     const val = rowItem[this.fieldName];
-    if (displayFormat) {
-      return formatValue(val, displayFormat);
+    if (this.field.displayFormat) {
+      return formatValue(val, this.field.displayFormat);
     }
 
     return val;

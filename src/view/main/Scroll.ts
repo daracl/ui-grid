@@ -48,7 +48,7 @@ export default class Scroll {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    const arrowButtonSize = opts.scroll.width  * 2;
+    const arrowButtonSize = opts.scroll.width * 2;
 
     if (cfg.scroll.enableVertical) {
       const rowHeight = cfg.rowHeight;
@@ -56,7 +56,7 @@ export default class Scroll {
       const totalRowHeight = rowHeight * totalRows;
       const verticalHeight = dimensions.mainHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
 
-      const vHeight = verticalHeight-2; // 2 top bottom border 
+      const vHeight = verticalHeight - 2; // 2 top bottom border
       const vTrackHeight = vHeight - arrowButtonSize;
 
       let thumbHeight = (vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
@@ -89,8 +89,8 @@ export default class Scroll {
     if (cfg.scroll.enableHorizontal) {
       const totalColWidth = dimensions.mainTotalWidth;
 
-      const hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) -2; // 2 left right border 
-      // 2 top bottom border 
+      const hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) - 2; // 2 left right border
+      // 2 top bottom border
       const hTrackWidth = hWidth - arrowButtonSize;
       let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
       thumbWidth = Math.max(thumbWidth, SCROLL_THUMB_MIN_SIZE);
@@ -250,9 +250,8 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode", "up");
 
-        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode","up");
-        
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
@@ -549,7 +548,7 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
-        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode","left");
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode", "left");
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
@@ -658,7 +657,9 @@ export default class Scroll {
 
     if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
+    console.time("innerText overwrite");
     this.gridMain.getBody().dataDraw("vscroll");
+    console.timeEnd("innerText overwrite");
   }
 
   /**
