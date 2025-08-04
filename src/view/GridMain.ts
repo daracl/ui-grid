@@ -115,6 +115,7 @@ export default class GridMain {
   private initElement() {
     const cfg = this.grid.config();
     this._mainElement = new DaraElement(this.grid.element().find(".dg-main"));
+
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
 
     this.rendererContainer = this.grid.element().find(".dg-renderer-container");
@@ -998,9 +999,23 @@ export default class GridMain {
    */
   private changeScrollMode() {
     const cfg = this.grid.config();
+    const scrollWidth = this.grid.getOptions().scroll.width; 
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
+    
+    const mainContainerStyle = this._mainElement.find('.dg-main-container').style;
 
-    if (scrollMode == 0) {
+    mainContainerStyle.removeProperty("height");
+    mainContainerStyle.removeProperty("width");
+
+    if(cfg.scroll.enableHorizontal){
+      mainContainerStyle.height = `calc(100% - ${scrollWidth})`;
+    }
+
+    if(cfg.scroll.enableVertical){
+      mainContainerStyle.width = `calc(100% - ${scrollWidth})`;
+    }
+
+    if (scrollMode == 0) {      
       this._mainElement.removeAttr("data-scroll");
     } else {
       this._mainElement.attr({ "data-scroll": SCROLL_MODE[scrollMode] });
@@ -1277,7 +1292,7 @@ export default class GridMain {
         <div style="position:absolute;">
           ${opts.toolbar.enabled ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>` : ""}
           <div tabindex="-1" style="outline:none !important;" class="dg-main ${opts.selectionMode != "none" ? "daracl-noselect" : ""} dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : "default"}" data-scroll="none">
-              <div class="dg-main-container ">
+              <div class="dg-main-container">
                   ${
                     opts.header.view
                       ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
@@ -1299,18 +1314,19 @@ export default class GridMain {
               </div>
               <div class="dg-resize-helper"></div>
               <div class="dg-scroll-container">
-                  <div class="dg-scroll vertical" style="width:${scrollSize}px">
+                  <div class="dg-scroll dg-vertical" style="width:${scrollSize}px">
                     <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb" style="width:${scrollSize - 3}px"></div>
-                    <div class="dg-scroll-button up"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
-                    <div class="dg-scroll-button down"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
+                    <div class="dg-scroll-thumb" style="width:${scrollSize - 3}px;margin:${scrollSize}px 0px;"></div>
+                    <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
+                    <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
                   </div>
-                  <div class="dg-scroll horizontal" style="height:${scrollSize}px">
+                  <div class="dg-scroll dg-horizontal" style="height:${scrollSize}px">
                     <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb" style="height:${scrollSize - 3}px"></div>
-                    <div class="dg-scroll-button left"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
-                    <div class="dg-scroll-button right"><svg style="width: 12px; height: 12px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
+                    <div class="dg-scroll-thumb" style="height:${scrollSize - 3}px;margin:0px ${scrollSize}px"></div>
+                    <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
+                    <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
                   </div>
+                  <div class="dg-scroll-edge" style="width:${scrollSize}px;height:${scrollSize}px;"></div>
               </div>
               <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
                 <textarea class="dg-paste-area"></textarea>

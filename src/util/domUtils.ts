@@ -15,6 +15,10 @@ export function hasClass(element: HTMLElement, styleClass: string) {
   return false;
 }
 
+export function eqAttributeValue(element: HTMLElement, attr:string, value:string) {
+  return element.getAttribute(attr) == value;
+}
+
 /**
  * 주어진 요소의 위치 및 크기를 반환합니다.
  *

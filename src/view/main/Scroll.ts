@@ -6,8 +6,7 @@ import { eventOff, eventOn, eventPosition, isShiftKey, stopPreventCancel } from 
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
-import { hasClass } from "src/util/domUtils";
-import { SCROLL_ARROW_BUTTON_SIZE } from "src/constants";
+import { eqAttributeValue, hasClass } from "src/util/domUtils";
 
 const SCROLL_THUMB_MIN_SIZE = 18;
 
@@ -31,11 +30,11 @@ export default class Scroll {
 
     this.opts = this.grid.getOptions();
 
-    this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.horizontal");
+    this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.dg-horizontal");
     this.horizontalTrackElement = this.horizontalElement.findDaraElement(".dg-scroll-track");
     this.horizontalThumbElement = this.horizontalElement.findDaraElement(".dg-scroll-thumb");
 
-    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.vertical");
+    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.dg-vertical");
     this.verticalTrackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
     this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
 
@@ -49,7 +48,7 @@ export default class Scroll {
     const dimensions = cfg.dimensions;
     const opts = this.grid.getOptions();
 
-    const arrowButtonSize = SCROLL_ARROW_BUTTON_SIZE * 2;
+    const arrowButtonSize = opts.scroll.width  * 2;
 
     if (cfg.scroll.enableVertical) {
       const rowHeight = cfg.rowHeight;
@@ -57,7 +56,7 @@ export default class Scroll {
       const totalRowHeight = rowHeight * totalRows;
       const verticalHeight = dimensions.mainHeight - (cfg.scroll.enableHorizontal ? opts.scroll.width : 0);
 
-      const vHeight = verticalHeight;
+      const vHeight = verticalHeight-2; // 2 top bottom border 
       const vTrackHeight = vHeight - arrowButtonSize;
 
       let thumbHeight = (vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
@@ -66,7 +65,6 @@ export default class Scroll {
       } else {
         thumbHeight = Math.max(SCROLL_THUMB_MIN_SIZE, Math.min(thumbHeight, verticalHeight));
       }
-
       // row 보이기 기준으로 계산
       cfg.scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - cfg.scroll.insideViewRow);
 
@@ -91,7 +89,8 @@ export default class Scroll {
     if (cfg.scroll.enableHorizontal) {
       const totalColWidth = dimensions.mainTotalWidth;
 
-      const hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0);
+      const hWidth = dimensions.width - (cfg.scroll.enableVertical ? opts.scroll.width : 0) -2; // 2 left right border 
+      // 2 top bottom border 
       const hTrackWidth = hWidth - arrowButtonSize;
       let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
       thumbWidth = Math.max(thumbWidth, SCROLL_THUMB_MIN_SIZE);
@@ -251,7 +250,9 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
-        const mode = hasClass(e.currentTarget as HTMLElement, "up");
+
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode","up");
+        
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
@@ -548,7 +549,7 @@ export default class Scroll {
       scrollButtonElements,
       "mousedown touchstart",
       (e: Event) => {
-        const mode = hasClass(e.currentTarget as HTMLElement, "left");
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode","left");
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {

@@ -25,21 +25,13 @@
 
     /*scroll 처리*/
     &[data-scroll="horizontal"] {
-      > .dg-main-container {
-        height: calc(100% - 14px);
-      }
-
-      .dg-scroll.horizontal {
+      .dg-scroll.dg-horizontal {
         display: block !important;
       }
     }
 
     &[data-scroll="vertical"] {
-      > .dg-main-container {
-        width: calc(100% - 14px);
-      }
-
-      .dg-scroll.vertical {
+      .dg-scroll.dg-vertical {
         display: block !important;
       }
 
@@ -49,12 +41,11 @@
     }
 
     &[data-scroll="both"] {
-      > .dg-main-container {
-        width: calc(100% - 14px);
-        height: calc(100% - 14px);
+      .dg-scroll {
+        display: block !important;
       }
 
-      .dg-scroll {
+      .dg-scroll-edge{
         display: block !important;
       }
 

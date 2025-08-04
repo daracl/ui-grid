@@ -137,12 +137,6 @@ export const TOOLBAR_HEIGHT = 35;
  */
 export const FOOTER_HEIGHT = 35;
 
-/**
- * scroll button size
- *
- * @type {14}
- */
-export const SCROLL_ARROW_BUTTON_SIZE = 14;
 
 export const ROw_ITEM_PREFIX_NAME = "_dg";
 
