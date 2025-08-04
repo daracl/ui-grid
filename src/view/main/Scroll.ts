@@ -657,9 +657,7 @@ export default class Scroll {
 
     if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
-    console.time("innerText overwrite");
     this.gridMain.getBody().dataDraw("vscroll");
-    console.timeEnd("innerText overwrite");
   }
 
   /**
