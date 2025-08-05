@@ -12,6 +12,7 @@ import GridMain from "./view/GridMain";
 import DaraElement from "./element/DaraElement";
 import { FieldItem } from "@t/GridField";
 import { PagingInfo } from "@t/PagingInfo";
+import { allEventOff } from "./util/eventUtils";
 
 declare const APP_VERSION: string;
 
@@ -63,7 +64,9 @@ export default class DaraGrid {
       throw new Error(`${gridElement} grid element not found`);
     }
 
-    this.$uid = `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
+    const beforeUid = gridElement.getAttribute(SEQ_ATTR_KEY);
+
+    this.$uid = beforeUid ?? `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
 
     gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
 
@@ -176,10 +179,22 @@ export default class DaraGrid {
     this.gridMain.clearData();
   };
 
+  /**
+   * add row items
+   * 
+   * @param items add items
+   * @param position add position
+   * @param addRowIndex add row index
+   */
   public addRow = (items: any[], position: ADD_ROW_POSITION, addRowIndex?: number) => {
     this.gridMain.addRow(items, position, addRowIndex);
   };
 
+  /**
+   * remove row data
+   *
+   * @param {any[]} ids row positions
+   */
   public removeRow = (ids: any[]) => {
     this.gridMain.removeRow(ids);
   };
@@ -204,6 +219,15 @@ export default class DaraGrid {
    */
   public getCheckedItems = (names?: string | string[]) => {
     return this.gridMain.getCheckedItems(names);
+  };
+
+  /**
+   * get checked items
+   *
+   * @returns {*}
+   */
+  public getCheckedIds = () => {
+    return this.gridMain.getCheckedIds();
   };
 
   /**
@@ -281,6 +305,31 @@ export default class DaraGrid {
       return this.gridElement.height();
     } else {
       return this.options.height;
+    }
+  }
+
+  
+  /**
+   * grid destroy
+   *
+   * @public
+   */
+  public destroy (){
+
+    const currentUid = this.gridElement.getAttr(SEQ_ATTR_KEY);;
+
+    if(currentUid && ALL_INSTANCE[currentUid]){
+      allEventOff();
+      this.gridElement.removeAttr(SEQ_ATTR_KEY);
+      const el = this.gridElement.getElement();
+      while (el.firstChild) {
+        if (typeof el.firstChild.remove === 'function') {
+          el.firstChild.remove(); // DOM에서 제거
+        } else {
+          el.removeChild(el.firstChild);
+        }
+      }
+      delete ALL_INSTANCE[currentUid];
     }
   }
 }

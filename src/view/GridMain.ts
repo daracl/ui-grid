@@ -47,6 +47,7 @@ const MAIN_MARGIN_BOTTOM = 3;
  * @typedef {DaraGrid}
  */
 export default class GridMain {
+  
   private readonly grid: DaraGrid;
 
   private readonly _BODY_STYLE: string[] = ["default", "striped", "borderless"];
@@ -1018,7 +1019,7 @@ export default class GridMain {
     if (scrollMode == 0) {      
       this._mainElement.removeAttr("data-scroll");
     } else {
-      this._mainElement.attr({ "data-scroll": SCROLL_MODE[scrollMode] });
+      this._mainElement.setAttr({ "data-scroll": SCROLL_MODE[scrollMode] });
     }
   }
 
@@ -1124,7 +1125,9 @@ export default class GridMain {
 
     for (const pos of sortedPositions) {
       if (pos >= 0 && pos < currentItems.length) {
-        currentItems.splice(pos, 1);
+        if(currentItems[pos]){
+          currentItems[pos][ROW_CUD_KEY] = 'D';
+        }
       }
     }
     this.setData(currentItems);
@@ -1187,6 +1190,10 @@ export default class GridMain {
    */
   public getCheckedItemByName(name: string) {
     return this.getBody().getCheckedItemByName(name);
+  }
+
+  public getCheckedIds() {
+    return this.getBody().getCheckedItemByName(ROW_ID_KEY);
   }
 
   /**

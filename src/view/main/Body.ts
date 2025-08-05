@@ -378,7 +378,7 @@ export default class Body {
       cfg.scroll.before.viewRow = viewRow;
     }
 
-    this.bodyElement.attr({ "data-view-mode": items.length < 1 ? "empty" : "grid" });
+    this.bodyElement.setAttr({ "data-view-mode": items.length < 1 ? "empty" : "grid" });
 
     if (currentViewRow < 1) {
       return;

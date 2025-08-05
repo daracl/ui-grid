@@ -58,6 +58,18 @@ export function isSpacebar(evt: Event): boolean {
 }
 
 /**
+ * 모든 이벤트 취소
+ */
+export function allEventOff(){
+  for (const [element, events] of EVENT_HANDLER_MAP) {
+
+    for(let event in events){
+      eventOff(element,event);
+    }
+  }
+}
+
+/**
  * spacebar check
  *
  * @param {Event} evt event

@@ -200,12 +200,23 @@ export default class DaraElement {
       this.element.insertAdjacentElement(insertPosition, renderElements);
     }
   }
+
   /**
-   * add attribute
+   * get attribute value
+   *
+   * @param {string} attrKey attribute key
+   * @returns {*} attribute value
+   */
+  getAttr(attrKey:string){
+    return this.element.getAttribute(attrKey);
+  }
+
+  /**
+   * set attribute
    * @param attrs element attribute object
    * @returns DaraElement
    */
-  attr(attrs: any) {
+  setAttr(attrs: any) {
     for (let key in attrs) {
       this.element.setAttribute(key, attrs[key]);
     }
