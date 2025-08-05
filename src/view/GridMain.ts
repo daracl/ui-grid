@@ -1121,17 +1121,23 @@ export default class GridMain {
     const cfg = this.grid.config();
     const currentItems = cfg.orginItems;
 
-    const sortedPositions = [...new Set(ids)].sort((a, b) => b - a);
+    for (const item of currentItems) {
+      if(ids.length <1) break; 
 
-    for (const pos of sortedPositions) {
-      if (pos >= 0 && pos < currentItems.length) {
-        if(currentItems[pos]){
-          currentItems[pos][ROW_CUD_KEY] = 'D';
-        }
+      const index = ids.findIndex(el => el === item[ROW_ID_KEY]);
+
+      console.log('index : ',item[ROW_CUD_KEY] ,index, ids)
+
+      if (index !== -1) {
+        ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
+        item[ROW_CUD_KEY] = 'D';
+
+        console.log(item);
       }
     }
-    this.setData(currentItems);
-  };
+    this.setViewDataInfo(currentItems);
+    this.getBody().dataDraw("remove_row");
+  }
 
   /**
    * all data clear

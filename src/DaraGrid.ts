@@ -307,7 +307,6 @@ export default class DaraGrid {
       return this.options.height;
     }
   }
-
   
   /**
    * grid destroy
