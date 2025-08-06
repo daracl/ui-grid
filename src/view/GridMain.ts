@@ -1126,13 +1126,9 @@ export default class GridMain {
 
       const index = ids.findIndex(el => el === item[ROW_ID_KEY]);
 
-      console.log('index : ',item[ROW_CUD_KEY] ,index, ids)
-
       if (index !== -1) {
         ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
         item[ROW_CUD_KEY] = 'D';
-
-        console.log(item);
       }
     }
     this.setViewDataInfo(currentItems);

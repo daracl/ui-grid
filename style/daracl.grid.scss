@@ -7,6 +7,7 @@
 @use "./main" as _MAIN;
 @use "./footer" as _FOOTER;
 @use "./hidden.component" as _HIDDEN;
+@use "./main/contextmenu" as _CONTEXT;
 
 .daracl-noselect {
   -webkit-touch-callout: none;
@@ -23,7 +24,7 @@ body {
   .daracl-grid > .dg-light,
   .dg-hidden-container.dg-light {
     --border-color: #cdcdcd;
-    --border_thick_color: #b9bdc1;
+    --border-thick-color: #b9bdc1;
     --scroll-bg: #f7f7f7;
     --scroll-track-bg: #f7f7f7;
     --scroll-thumb-bg: #a5a5a5;
@@ -35,6 +36,7 @@ body {
     --status-danger-bg: #d9534f;
     --font-color: #686868;
     --font-hover-color: #3a3d41;
+    --font-disable-color: #ebebeb;
     --invalid-font-color: #ff4136;
     --invalid-border-color: #ffb6b4;
     --invalid-bg: #fdd;
@@ -85,7 +87,7 @@ body {
   .daracl-grid > .dg-dark,
   .dg-hidden-container.dg-dark {
     --border-color: #3a3a3a;
-    --border_thick_color: #4d4d4d;
+    --border-thick-color: #4d4d4d;
 
     --scroll-bg: #1e1e1e;
     --scroll-track-bg: #1e1e1e;
@@ -99,6 +101,7 @@ body {
 
     --font-color: #e0e0e0;
     --font-hover-color: #ffffff;
+    --font-disable-color: #ebebeb;
     --invalid-font-color: #ff9b9b;
     --invalid-border-color: #ff5e5e;
     --invalid-bg: #3a1f1f;
@@ -440,3 +443,4 @@ body {
     @include _HIDDEN.hiddenComponent;
   }
 }
+@include _CONTEXT.contextMenu;

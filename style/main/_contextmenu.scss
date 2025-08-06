@@ -1,0 +1,162 @@
+@use "../common/common";
+
+@mixin contextMenu {
+  .dg-contextmenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    display: none;
+    float: left;
+    min-width: 160px;
+    padding: 5px 0;
+    margin: 2px 0 0;
+    list-style: none;
+    color: var(--font-color);
+    border: 1px solid var(-border-color);
+    background-color: var(--body-bg);
+    text-align: left;
+    -webkit-background-clip: padding-box;
+    -moz-background-clip: padding;
+    background-clip: padding-box;
+
+    &.dg-right {
+      right: 0;
+      left: auto;
+    }
+
+    .dg-divider {
+      width: 100%;
+      height: 1px;
+      margin: 9px 1px;
+      margin: 3px 0px 3px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--border-thick-color);
+    }
+
+    a {
+      display: block;
+      cursor: default;
+      padding: 0px 20px 0px 14px;
+      clear: both;
+      font-weight: normal;
+      line-height: 20px;
+      color: var(--font-color);
+      white-space: nowrap;
+      text-decoration: none;
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    > li > a:hover,
+    .dg-contextmenu-submenu:hover > a {
+      text-decoration: none;
+      color: var(--font-hover-color);
+      background-color: var(--body-bg-hover);
+      border: 1px solid var(--border-thick-color);
+      outline: none;
+    }
+
+    .disabled > a {
+      color: var(--font-disable-color);
+    }
+
+    label {
+      display: inline-block;
+      max-width: 100%;
+      margin-bottom: 0px;
+      font-weight: bold;
+      width: 100%;
+    }
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      vertical-align: baseline;
+      position: relative;
+      width: 20px;
+      float: left;
+    }
+
+    .dg-contextmenu-header {
+      cursor: default;
+      color: var(--font-color);
+      padding: 3px 7px;
+      font-weight: bold;
+      line-height: 20px;
+    }
+  }
+
+  .dg-contextmenu-submenu {
+    position: relative;
+
+    > .dg-contextmenu {
+      top: 0;
+      left: 100%;
+      margin-top: -6px;
+      margin-left: -1px;
+    }
+
+    > .dg-contextmenu.drop-left {
+      left: -100%;
+    }
+
+    > a:after {
+      display: block;
+      float: right;
+      width: 0;
+      height: 0;
+      margin-top: -13px;
+      margin-right: -10px;
+      border-color: transparent;
+      border-left-color: var(--border-color);
+      border-style: solid;
+      border-width: 5px 0 5px 5px;
+      content: " ";
+    }
+
+    &:hover > a:after {
+      border-left-color: var(--border-thick-color);
+    }
+
+    &.disabled > a:after {
+      border-left-color: var(--border-color);
+    }
+  }
+
+  .dg-contextmenu-top {
+    .dg-contextmenu-submenu {
+      .dg-contextmenu {
+        display: none;
+      }
+
+      &.on .dg-contextmenu {
+        display: block;
+      }
+
+      &.disabled .dg-contextmenu {
+        display: none !important;
+      }
+    }
+  }
+
+  .dg-contextmenu-item-title {
+    max-width: 50%;
+    display: table-cell;
+  }
+  .dg-contextmenu-hotkey {
+    width: 50%;
+    max-width: 50%;
+    padding-left: 8px;
+    min-width: 78px;
+    text-align: right;
+    display: table-cell;
+  }
+
+  .dg-contextmenu-hotkey-empty {
+    width: 78px;
+    min-width: 78px;
+    margin-left: 8px;
+    text-align: right;
+    display: table-cell;
+  }
+}

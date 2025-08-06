@@ -44,7 +44,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
     enableAllColumnSelection: true, // 전체 선택 여부.
     enableScroll: true, // 마우스 휠로 가로 스크롤 이동할지 여부.
     enableViewAllLabel: false,
-    contextMenu: false, // header contextmenu event
     help: {
       //	header help btn 설정
       enabled: false, // header help btn 활성 여부.
@@ -125,7 +124,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
     row: {
       // 로우 옵션.
       height: 30, // cell 높이
-      contextMenu: false, // row(tr) contextmenu event
       addStyle: false, // 추가할 style method
       dblClick: false, // row dblclick event
       enableDblClickRowCheck: false, // double click row checkbox checked true 여부.

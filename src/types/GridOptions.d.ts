@@ -139,6 +139,13 @@ export interface GridOptions {
    * 요약정보
    */
   summary?: SummaryOptions;
+
+  /**
+   * context menu option
+   *
+   * @type {ContextMenuOptions}
+   */
+  contextMenu?: ContextMenuOptions;
 }
 
 /**
@@ -214,11 +221,6 @@ export interface HeaderOptions {
    * 모든 header label 활성화 할지 여부
    */
   enableViewAllLabel: boolean;
-
-  /**
-   *header contextmenu event
-   */
-  contextMenu: boolean | OptionCallback;
 
   /**
    * help 버튼 옵션
@@ -550,10 +552,6 @@ export interface BodyOptions {
      */
     height: number;
     /**
-     * row(tr) contextmenu event
-     */
-    contextMenu: boolean | OptionCallback;
-    /**
      * 추가할 style method
      */
     addStyle: boolean | OptionCallback;
@@ -741,4 +739,90 @@ export interface SummaryItem {
    *display format
    */
   displayFormat?: DisplayFormatOptions;
+}
+
+/**
+ * context menu
+ *
+ * @export
+ * @interface ContextMenuOptions
+ * @typedef {ContextMenuOptions}
+ */
+export interface ContextMenuOptions {
+  /**
+   * click before
+   *
+   */
+  beforeSelect: OptionCallback;
+  /**
+   * 컨텍스트 메뉴 오픈시 disable item
+   */
+  disableItem: OptionCallback;
+  /**
+   * click callback
+   */
+  callback: OptionCallback;
+  /**
+   * context mene items
+   */
+  items: ContextMenuItem;
+}
+
+/**
+ * context menu item
+ *
+ * @export
+ * @interface ContextMenuItem
+ * @typedef {ContextMenuItem}
+ */
+export interface ContextMenuItem {
+  /**
+   * context menu header
+   *
+   * @type {?string}
+   */
+  header?: string;
+
+  /**
+   * key
+   *
+   * @type {?string}
+   */
+  key?: string;
+  /**
+   * click disabled
+   */
+  disabeld?: boolean;
+  /**
+   * hotkey
+   */
+  hotkey?: string;
+  /**
+   * context menu label
+   */
+  label: string;
+  /**
+   * checkbox
+   */
+  checkbox?: boolean;
+
+  /**
+   * click callback
+   *
+   * @type {?OptionCallback}
+   */
+  callback?: OptionCallback;
+
+  /**
+   * 구분선
+   *
+   * @type {?boolean}
+   */
+  divider?: boolean;
+  /**
+   * children
+   *
+   * @type {ContextMenuItem[]}
+   */
+  children?: ContextMenuItem[];
 }
