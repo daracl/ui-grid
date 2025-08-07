@@ -34,6 +34,7 @@ import Footer from "./Footer";
 import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
 import DataSearch from "./main/DataSearch";
 import Summary from "./main/Summary";
+import ContextMenu from "./main/ContextMenu";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -47,7 +48,6 @@ const MAIN_MARGIN_BOTTOM = 3;
  * @typedef {DaraGrid}
  */
 export default class GridMain {
-  
   private readonly grid: DaraGrid;
 
   private readonly _BODY_STYLE: string[] = ["default", "striped", "borderless"];
@@ -61,6 +61,8 @@ export default class GridMain {
   private scroll: Scroll;
 
   private summary: Summary;
+
+  private contextMenu: ContextMenu;
 
   private dataSearch: DataSearch;
 
@@ -153,6 +155,7 @@ export default class GridMain {
 
     this.scroll = new Scroll(this.grid, this);
     this.footer = new Footer(this.grid, this);
+    this.contextMenu = new ContextMenu(this.grid, this);
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
@@ -1000,23 +1003,23 @@ export default class GridMain {
    */
   private changeScrollMode() {
     const cfg = this.grid.config();
-    const scrollWidth = this.grid.getOptions().scroll.width; 
+    const scrollWidth = this.grid.getOptions().scroll.width;
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
-    
-    const mainContainerStyle = this._mainElement.find('.dg-main-container').style;
+
+    const mainContainerStyle = this._mainElement.find(".dg-main-container").style;
 
     mainContainerStyle.removeProperty("height");
     mainContainerStyle.removeProperty("width");
 
-    if(cfg.scroll.enableHorizontal){
+    if (cfg.scroll.enableHorizontal) {
       mainContainerStyle.height = `calc(100% - ${scrollWidth})`;
     }
 
-    if(cfg.scroll.enableVertical){
+    if (cfg.scroll.enableVertical) {
       mainContainerStyle.width = `calc(100% - ${scrollWidth})`;
     }
 
-    if (scrollMode == 0) {      
+    if (scrollMode == 0) {
       this._mainElement.removeAttr("data-scroll");
     } else {
       this._mainElement.setAttr({ "data-scroll": SCROLL_MODE[scrollMode] });
@@ -1122,18 +1125,18 @@ export default class GridMain {
     const currentItems = cfg.orginItems;
 
     for (const item of currentItems) {
-      if(ids.length <1) break; 
+      if (ids.length < 1) break;
 
-      const index = ids.findIndex(el => el === item[ROW_ID_KEY]);
+      const index = ids.findIndex((el) => el === item[ROW_ID_KEY]);
 
       if (index !== -1) {
         ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
-        item[ROW_CUD_KEY] = 'D';
+        item[ROW_CUD_KEY] = "D";
       }
     }
     this.setViewDataInfo(currentItems);
     this.getBody().dataDraw("remove_row");
-  }
+  };
 
   /**
    * all data clear

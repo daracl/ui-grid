@@ -765,7 +765,7 @@ export interface ContextMenuOptions {
   /**
    * context mene items
    */
-  items: ContextMenuItem;
+  items: ContextMenuItem[];
 }
 
 /**
@@ -792,7 +792,7 @@ export interface ContextMenuItem {
   /**
    * click disabled
    */
-  disabeld?: boolean;
+  disabled?: boolean;
   /**
    * hotkey
    */
@@ -812,6 +812,8 @@ export interface ContextMenuItem {
    * @type {?OptionCallback}
    */
   callback?: OptionCallback;
+
+  styleClass: string;
 
   /**
    * 구분선

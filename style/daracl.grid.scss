@@ -20,6 +20,7 @@
 
 body {
   &[data-dg-theme="light"] .daracl-grid,
+  &[data-dg-theme="light"] .dg-contentmenu,
   &[data-dg-theme="light"] .dg-hidden-container,
   .daracl-grid > .dg-light,
   .dg-hidden-container.dg-light {
@@ -83,6 +84,7 @@ body {
   }
 
   &[data-dg-theme="dark"] .daracl-grid,
+  &[data-dg-theme="dark"] .dg-contentmenu,
   &[data-dg-theme="dark"] .dg-hidden-container,
   .daracl-grid > .dg-dark,
   .dg-hidden-container.dg-dark {

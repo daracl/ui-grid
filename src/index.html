@@ -810,14 +810,6 @@
           , minWidth: 10
           , maxWidth: 1000
         }
-        , contextMenu: {
-          callback: (key, sObj) => {
-            console.log('header context', this, key, sObj);
-          }
-          , items: [
-            { key: "refresh", "name": "새로고침" }
-          ]
-        }
         , help: {
           enabled: true	// header help btn 활성 여부.
           , tootip: (field) => {
@@ -993,54 +985,54 @@
         , row: {
           height: 30
           , enableDblClickRowCheck: true
-          , contextMenu: {
-            beforeSelect: function (info) {
+        }
+      }
 
-            }
-            , callback: function (key, sObj) {
-              console.log(this, key, sObj);
+      , contextMenu: {
+        beforeSelect: function (info) {
 
-              if (key == 'copy') {
-                gridObj.copyData();
-              }
-            }
-            , items: [
-              { key: "refresh", "name": "새로고침" }
-              , { key: "copy", "name": "복사", hotkey: 'Ctrl+C' }
-              , {
-                key: "sql_create", "name": "sql생성"
-                , subMenu: [
-                  { key: "selectStar", "name": "select *", mode: "selectStar" }
-                  , { key: "select", "name": "select column", mode: "select" }
-                  , { key: "insert", "name": "insert", mode: "insert" }
-                  , { key: "update", "name": "update", mode: "update" }
-                  , { key: "delete", "name": "delete", mode: "delete" }
-                  , { key: "drop", "name": "drop", mode: "drop" }
-                ]
-              }
-              , {
-                key: "create_ddl", "name": "DDL 보기", hotkey: 'Ctrl+shift+C'
+        }
+        , callback: function (key, sObj) {
+          console.log(this, key, sObj);
 
-              }
-              , {
-                key: "mybatis-sql_create", "name": "mybatis Sql생성"
-                , subMenu: [
-                  { key: "mybatis_insert", "name": "insert", mode: "insert", param_yn: 'Y' }
-                  , { key: "mybatis_update", "name": "update", mode: "update", param_yn: 'Y' }
-                  , { key: "mybatis_delete", "name": "delete", mode: "delete", param_yn: 'Y' }
-                ]
-              }
-              , {
-                key: 'export', "name": "내보내기"
-                , subMenu: [
-                  { key: "export_data", "name": "데이타 내보내기" }
-                  , { key: "export_column", "name": "컬럼정보 내보내기" }
-                ]
-              }
-            ]
+          if (key == 'copy') {
+            gridObj.copyData();
           }
         }
+        , items: [
+          { key: "refresh", "label": "새로고침" }
+          , { key: "copy", "label": "복사", hotkey: 'Ctrl+C' }
+          , {
+            key: "sql_create", "label": "sql생성"
+            , children: [
+              { key: "selectStar", "label": "select *", mode: "selectStar" }
+              , { key: "select", "label": "select column", mode: "select" }
+              , { key: "insert", "label": "insert", mode: "insert" }
+              , { key: "update", "label": "update", mode: "update" }
+              , { key: "delete", "label": "delete", mode: "delete" }
+              , { key: "drop", "label": "drop", mode: "drop" }
+            ]
+          }
+          , {
+            key: "create_ddl", "label": "DDL 보기", hotkey: 'Ctrl+shift+C'
 
+          }
+          , {
+            key: "mybatis-sql_create", "label": "mybatis Sql생성"
+            , children: [
+              { key: "mybatis_insert", "label": "insert", mode: "insert", param_yn: 'Y' }
+              , { key: "mybatis_update", "label": "update", mode: "update", param_yn: 'Y' }
+              , { key: "mybatis_delete", "label": "delete", mode: "delete", param_yn: 'Y' }
+            ]
+          }
+          , {
+            key: 'export', "label": "내보내기"
+            , children: [
+              { key: "export_data", "label": "데이타 내보내기" }
+              , { key: "export_column", "label": "컬럼정보 내보내기" }
+            ]
+          }
+        ]
       }
 
 
