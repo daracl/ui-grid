@@ -207,7 +207,7 @@ export default class DaraElement {
    * @param {string} attrKey attribute key
    * @returns {*} attribute value
    */
-  getAttr(attrKey:string){
+  getAttr(attrKey: string) {
     return this.element.getAttribute(attrKey);
   }
 
@@ -245,6 +245,7 @@ export default class DaraElement {
    */
   css(attrs: any) {
     for (let key in attrs) {
+      console.log("csscsscsscss : ", key, attrs[key]);
       if (attrs.hasOwnProperty(key)) {
         this.element.style.setProperty(key, attrs[key]);
       }

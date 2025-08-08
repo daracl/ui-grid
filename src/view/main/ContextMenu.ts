@@ -3,7 +3,9 @@ import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";
 import { ContextMenuItem, ContextMenuOptions } from "@t/GridOptions";
-import { isUndefined } from "src/util/utils";
+import { isFunction, isUndefined } from "src/util/utils";
+import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
+import { addClass, removeClass } from "src/util/styleUtils";
 
 /**
  * Body class
@@ -19,7 +21,7 @@ export default class ContextMenu {
 
   private selectionInfo: SelectionInfo;
 
-  private contextElement: HTMLElement;
+  private contextElement: DaraElement;
 
   private contextData: Map<String, ContextMenuItem> = new Map();
 
@@ -29,8 +31,6 @@ export default class ContextMenu {
 
     const contextOpts = this.grid.getOptions().contextMenu;
 
-    console.log("contextOpts : ", contextOpts);
-
     if (!contextOpts) {
       return;
     }
@@ -38,10 +38,69 @@ export default class ContextMenu {
     this.contextOpts = contextOpts;
     this.selectionInfo = gridMain.selectionInfo;
     const contextElement = document.createElement("div");
+    contextElement.className = "dg-contextmenu-container";
+    contextElement.setAttribute("draggable", "false");
+    contextElement.setAttribute("onselectstart", "return false");
     contextElement.innerHTML = this.template(contextOpts.items, "top", false, 0);
-    this.contextElement = contextElement;
 
-    HIDDEN_ELEMENT?.appendChild(this.contextElement);
+    HIDDEN_ELEMENT?.appendChild(contextElement);
+
+    this.contextElement = new DaraElement(contextElement);
+
+    this.initEvent();
+  }
+
+  private initEvent() {
+    const contextOpts = this.contextOpts;
+    const bodyElement = this.gridMain.getBody().getBodyElement().getElement();
+
+    const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
+    const isBeforeSelectFn = isFunction(contextOpts.beforeSelect);
+
+    let selectElement: HTMLElement;
+
+    const _$win = window;
+    eventOff(bodyElement, "contextmenu");
+    eventOn(bodyElement, "contextmenu", (e: Event) => {
+      stopPreventCancel(e);
+
+      if (isDisableItemKeyFn) {
+        const disableItem = contextOpts.disableItem(contextOpts.items);
+        const disableItemLen = disableItem.length;
+        let item;
+        if (disableItemLen > 0) {
+          for (let i = 0; i < disableItemLen; i++) {
+            item = disableItem[i];
+            addClass(this.contextElement.find('[context-key="' + item.depth + "_" + item.key + '"]'), "disabled");
+          }
+        }
+      }
+
+      const targetElement = e.target as HTMLElement;
+      selectElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
+      addClass(selectElement, "dg-select");
+
+      const selectItemElement = new DaraElement(selectElement);
+
+      if (isBeforeSelectFn) {
+        contextOpts.beforeSelect.call(this, { evt: e, element: selectElement });
+      }
+      /*
+      const eleH = selectItemElement.height(),
+        eleW = selectItemElement.width();
+      const position = eventPosition(e);
+
+      const evtX = position.x,
+        evtY = position.y;
+      */
+
+      const position = calculateLayerPosition(targetElement, this.contextElement.getElement());
+      console.log("position : ", position, this.contextElement);
+
+      this.contextElement.addClass("dg-on");
+      this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
+      //$dd.css({ top: offTop, left: offLeft }).fadeIn(opt.fadeSpeed);
+    });
   }
 
   /**
@@ -107,4 +166,55 @@ export default class ContextMenu {
 
     return `<ul class="dg-contextmenu ${subClass}" id="${id}">${htmlTemplate.join("")}</ul>`;
   }
+}
+
+/**
+ * 기준 요소(targetEl)를 기준으로 레이어(layerEl)를 띄울 위치를 계산합니다.
+ * 스크롤과 창 크기를 고려해 화면 밖으로 나가지 않도록 자동 조정됩니다.
+ *
+ * @param targetEl 기준이 되는 DOM 요소
+ * @param layerEl 띄울 레이어 DOM 요소
+ * @param preferredDirection 기본 방향 ('bottom' 또는 'top')
+ * @returns top, left 좌표 (픽셀 단위)
+ */
+function calculateLayerPosition(targetEl: HTMLElement, layerEl: HTMLElement, preferredDirection?: "top" | "bottom") {
+  const rect = targetEl.getBoundingClientRect();
+
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+  const targetTop = rect.top + scrollTop;
+  const targetLeft = rect.left + scrollLeft;
+  const targetBottom = rect.bottom + scrollTop;
+
+  const layerWidth = layerEl.offsetWidth;
+  const layerHeight = layerEl.offsetHeight;
+
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  let top: number;
+  let left: number;
+
+  // 기본 방향: 아래
+  top = preferredDirection === "top" ? targetTop - layerHeight : targetBottom;
+
+  left = targetLeft;
+
+  // 오른쪽 넘어가면 왼쪽으로 붙임
+  if (left + layerWidth > scrollLeft + windowWidth) {
+    left = scrollLeft + windowWidth - layerWidth - 10;
+  }
+
+  // 아래쪽 넘어가면 위로 올림
+  if (top + layerHeight > scrollTop + windowHeight) {
+    top = targetTop - layerHeight - 10;
+  }
+
+  // 위쪽도 넘치면 다시 아래로
+  if (top < scrollTop) {
+    top = targetBottom;
+  }
+
+  return { top, left };
 }
