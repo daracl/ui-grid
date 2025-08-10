@@ -445,5 +445,6 @@ body {
 }
 
 .dg-hidden-container {
+  position: initial;
   @include _CONTEXT.contextMenu;
 }

@@ -245,7 +245,6 @@ export default class DaraElement {
    */
   css(attrs: any) {
     for (let key in attrs) {
-      console.log("csscsscsscss : ", key, attrs[key]);
       if (attrs.hasOwnProperty(key)) {
         this.element.style.setProperty(key, attrs[key]);
       }

@@ -52,7 +52,7 @@ export default class ContextMenu {
 
   private initEvent() {
     const contextOpts = this.contextOpts;
-    const bodyElement = this.gridMain.getBody().getBodyElement().getElement();
+    const bodyElement = this.gridMain.mainElement().getElement();
 
     const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
     const isBeforeSelectFn = isFunction(contextOpts.beforeSelect);
@@ -85,16 +85,9 @@ export default class ContextMenu {
       if (isBeforeSelectFn) {
         contextOpts.beforeSelect.call(this, { evt: e, element: selectElement });
       }
-      /*
-      const eleH = selectItemElement.height(),
-        eleW = selectItemElement.width();
-      const position = eventPosition(e);
+      const evtPosition = eventPosition(e);
 
-      const evtX = position.x,
-        evtY = position.y;
-      */
-
-      const position = calculateLayerPosition(targetElement, this.contextElement.getElement());
+      const position = calculateLayerPosition(targetElement, this.contextElement.getElement(), evtPosition);
       console.log("position : ", position, this.contextElement);
 
       this.contextElement.addClass("dg-on");
@@ -177,14 +170,14 @@ export default class ContextMenu {
  * @param preferredDirection 기본 방향 ('bottom' 또는 'top')
  * @returns top, left 좌표 (픽셀 단위)
  */
-function calculateLayerPosition(targetEl: HTMLElement, layerEl: HTMLElement, preferredDirection?: "top" | "bottom") {
+function calculateLayerPosition(targetEl: HTMLElement, layerEl: HTMLElement, evtPosition: any, preferredDirection?: "top" | "bottom") {
   const rect = targetEl.getBoundingClientRect();
 
   const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
   const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
-  const targetTop = rect.top + scrollTop;
-  const targetLeft = rect.left + scrollLeft;
+  const targetTop = evtPosition.y;
+  const targetLeft = evtPosition.x;
   const targetBottom = rect.bottom + scrollTop;
 
   const layerWidth = layerEl.offsetWidth;
