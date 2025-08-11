@@ -121,7 +121,7 @@ export default class GridMain {
 
     this.containerElement = new DaraElement(this.grid.element().find(".daracl-grid > div"));
 
-    this.rendererContainer = this.grid.element().find(".dg-renderer-container");
+    this.rendererContainer = this.grid.element().find(".dg-layer-container");
 
     this.setTheme(this.grid.getOptions().theme);
 
@@ -207,7 +207,7 @@ export default class GridMain {
       }
     });
 
-    const rendererElement = this.mainElement().findDaraElement(".dg-renderer-container");
+    const rendererElement = this.mainElement().findDaraElement(".dg-layer-container");
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
 
@@ -246,7 +246,7 @@ export default class GridMain {
   public setGridFocusIn(e: Event, focunInFlag: boolean = false) {
     if (!focunInFlag) {
       const targetElement = e.target as HTMLElement;
-      if (targetElement.closest(".dg-body") == null && targetElement.closest(".dg-renderer-container") == null) {
+      if (targetElement.closest(".dg-body") == null && targetElement.closest(".dg-layer-container") == null) {
         this.hideLayer();
       }
     }
@@ -1343,7 +1343,7 @@ export default class GridMain {
               <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
                 <textarea class="dg-paste-area"></textarea>
               </div>
-              <div class="dg-renderer-container"></div>
+              <div class="dg-layer-container"></div>
           </div>
           ${
             footer.enabled

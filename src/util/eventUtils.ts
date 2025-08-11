@@ -1,7 +1,7 @@
 import { Config } from "@t/GridConfig";
 import { FieldItem } from "@t/GridField";
 import { intValue, isArray, isEmpty, isString, isUndefined } from "./utils";
-import { $querySelector } from "./domUtils";
+import { $querySelector, getElementRect } from "./domUtils";
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -60,11 +60,10 @@ export function isSpacebar(evt: Event): boolean {
 /**
  * 모든 이벤트 취소
  */
-export function allEventOff(){
+export function allEventOff() {
   for (const [element, events] of EVENT_HANDLER_MAP) {
-
-    for(let event in events){
-      eventOff(element,event);
+    for (let event in events) {
+      eventOff(element, event);
     }
   }
 }
@@ -213,3 +212,25 @@ export const eventPosition = (e: Event) => {
     y: evt.pageY,
   };
 };
+
+/**
+ * 클릭 이벤트가 유효한 '왼쪽 클릭(mouse)' 또는 '터치(touch)'인지 확인하는 유틸 함수
+ *
+ * @param e MouseEvent 또는 TouchEvent 객체
+ * @returns true: 왼쪽 클릭 또는 터치 / false: 오른쪽 클릭, 휠 클릭 등 무시해야 할 경우
+ */
+export function isClickEvent(e: Event): boolean {
+  // 모바일 터치 이벤트인 경우 항상 클릭으로 간주 (버튼 없음)
+  if (e.type === "touchstart") {
+    return true;
+  }
+
+  // 마우스 이벤트인 경우
+  if (e instanceof MouseEvent) {
+    // 왼쪽 버튼 클릭인지 확인 (button === 0)
+    return e.button === 0;
+  }
+
+  // 그 외의 경우 (안전 장치)
+  return false;
+}

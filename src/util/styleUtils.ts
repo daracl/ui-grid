@@ -97,3 +97,17 @@ export function toggleClass(element: Element | NodeListOf<Element> | null | Elem
     });
   }
 }
+
+/**
+ * 주어진 HTMLElement에 여러 CSS 속성을 한 번에 적용하는 함수
+ *
+ * @param element - 스타일을 적용할 HTML 요소
+ * @param styles - 적용할 스타일 객체 (예: { color: 'red', 'font-size': '16px' })
+ */
+export function addStyleCss(element: HTMLElement, styles: any) {
+  for (const key in styles) {
+    if (Object.prototype.hasOwnProperty.call(styles, key)) {
+      element.style.setProperty(key, styles[key]);
+    }
+  }
+}

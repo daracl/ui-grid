@@ -6,7 +6,7 @@ import { eventOff, eventOn } from "src/util/eventUtils";
 import { getCellInfo, valuesLabelKey, valuesValueKey } from "src/util/gridUtils";
 import GridMain from "src/view/GridMain";
 import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
-import { getElementRect, getLayerElement, getOpenLayerPosition } from "src/util/domUtils";
+import { getElementRect, getLayerElement, innerLayerPosition } from "src/util/domUtils";
 import { ALL_SELECT_VALUE } from "src/constants";
 
 const SELECTED_STYLE_CLASS = "selected";
@@ -213,7 +213,7 @@ export default class DropdownRenderer extends ViewRenderer {
     this.gridMain.openLayer(menuElement);
     menuStyle.width = `${elementRect.width}px`;
 
-    const openPosition = getOpenLayerPosition(this.rendererContainer, eventElement, menuElement);
+    const openPosition = innerLayerPosition(this.rendererContainer, eventElement, menuElement);
 
     menuStyle.top = `${openPosition.top}px`;
     menuStyle.left = `${openPosition.left}px`;

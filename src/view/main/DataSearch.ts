@@ -11,7 +11,7 @@ import DaraElement from "src/element/DaraElement";
 import SelectionInfo from "src/selection/selection";
 import BodyEvent from "./BodyEvent";
 import { SearchOptions } from "@t/GridOptions";
-import { getLayerElement, getOpenLayerPosition, hasClass } from "src/util/domUtils";
+import { getLayerElement, innerLayerPosition, hasClass } from "src/util/domUtils";
 import { eventOff, eventOn, isEnter, stopPreventCancel } from "src/util/eventUtils";
 import { gridDataSearch } from "src/util/searchUtils";
 
@@ -114,7 +114,7 @@ export default class DataSearch {
 
     const searchIconElement = headerElement.find(".dg-search-icon");
 
-    const openPosition = getOpenLayerPosition(rendererContainer, searchIconElement, searchElement);
+    const openPosition = innerLayerPosition(rendererContainer, searchIconElement, searchElement);
 
     searchStyle.top = `${openPosition.top + 3}px`;
     searchStyle.left = `${openPosition.left + 3}px`;

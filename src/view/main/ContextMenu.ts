@@ -5,7 +5,8 @@ import SelectionInfo from "src/selection/selection";
 import { ContextMenuItem, ContextMenuOptions } from "@t/GridOptions";
 import { isFunction, isUndefined } from "src/util/utils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
-import { addClass, removeClass } from "src/util/styleUtils";
+import { addClass, addStyleCss, removeClass } from "src/util/styleUtils";
+import { outerLayerPosition, getElementRect, hasClass, getBrowserSize } from "src/util/domUtils";
 
 /**
  * Body class
@@ -37,8 +38,8 @@ export default class ContextMenu {
 
     this.contextOpts = contextOpts;
     this.selectionInfo = gridMain.selectionInfo;
-    const contextElement = document.createElement("div");
-    contextElement.className = "dg-contextmenu-container";
+    const contextElement = document.createElement("ul");
+    contextElement.className = "dg-contextmenu dg-contextmenu-top";
     contextElement.setAttribute("draggable", "false");
     contextElement.setAttribute("onselectstart", "return false");
     contextElement.innerHTML = this.template(contextOpts.items, "top", false, 0);
@@ -52,17 +53,19 @@ export default class ContextMenu {
 
   private initEvent() {
     const contextOpts = this.contextOpts;
-    const bodyElement = this.gridMain.mainElement().getElement();
+    const gridElement = this.gridMain.mainElement().getElement();
 
     const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
     const isBeforeSelectFn = isFunction(contextOpts.beforeSelect);
 
     let selectElement: HTMLElement;
 
-    const _$win = window;
-    eventOff(bodyElement, "contextmenu");
-    eventOn(bodyElement, "contextmenu", (e: Event) => {
+    eventOff(gridElement, "contextmenu");
+    eventOn(gridElement, "contextmenu", (e: Event) => {
       stopPreventCancel(e);
+
+      removeClass(this.contextElement.finds(".dg-submenu-item.dg-on"), "dg-on");
+      removeClass(this.contextElement.finds(".dg-contextmenu.dg-contextmenu-left"), "dg-contextmenu-left");
 
       if (isDisableItemKeyFn) {
         const disableItem = contextOpts.disableItem(contextOpts.items);
@@ -87,12 +90,70 @@ export default class ContextMenu {
       }
       const evtPosition = eventPosition(e);
 
-      const position = calculateLayerPosition(targetElement, this.contextElement.getElement(), evtPosition);
-      console.log("position : ", position, this.contextElement);
+      const contextElement = this.contextElement.getElement();
 
-      this.contextElement.addClass("dg-on");
+      this.gridMain.openLayer(contextElement);
+
+      const position = outerLayerPosition(contextElement, evtPosition);
+
       this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
-      //$dd.css({ top: offTop, left: offLeft }).fadeIn(opt.fadeSpeed);
+    });
+
+    let beforeSubElement: HTMLElement;
+
+    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
+    eventOff(contextItemElements, "mouseenter");
+    // sub menu click
+    eventOn(contextItemElements, "mouseenter", (e: Event) => {
+      const itemElement = e.target as HTMLElement;
+
+      console.log("111", beforeSubElement);
+
+      const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
+
+      const activeItemElement = parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on");
+
+      removeClass(activeItemElement, "dg-on");
+
+      if (!hasClass(itemElement, "dg-submenu-item")) {
+        return;
+      } else {
+        beforeSubElement = itemElement;
+        addClass(itemElement, "dg-on");
+      }
+
+      //sEle.closest('.pub-context-menu').find('.pub-context-submenu.on').removeClass('on');
+
+      const browserSize = getBrowserSize();
+
+      const itemRect = getElementRect(itemElement);
+
+      const subMenuElement = itemElement.querySelector(".dg-contextmenu-submenu") as HTMLElement;
+      const rect = getElementRect(subMenuElement);
+      const subWidth = rect.width,
+        subLeft = rect.left,
+        collision = subWidth + subLeft > browserSize.width;
+
+      // 위치 잡을것.
+
+      if (collision) {
+        addStyleCss(subMenuElement, { left: "-" + (subWidth / itemRect.width) * 100 + "%" });
+
+        addClass(subMenuElement, "dg-contextmenu-left");
+      }
+
+      /*
+      const offTop = itemRect.top,
+        subHeight =rect.height,
+        screenBottom = _$win.scrollTop() +browserSize.height;
+      if (offTop + subHeight + 10 > screenBottom) {
+        offTop = offTop + subHeight + 10 - screenBottom;
+        offTop = offTop < 0 ? 0 : offTop;
+        $sub.css("top", "-" + offTop + "px");
+      } else {
+        $sub.css("top", "");
+      }
+        */
     });
   }
 
@@ -104,7 +165,6 @@ export default class ContextMenu {
    * @returns {string} template string
    */
   public template(data: ContextMenuItem[], id: string, isChildren: boolean, depth: number): string {
-    const subClass = isChildren ? " dg-contextmenu-sub" : " dg-contextmenu-top";
     const htmlTemplate = [];
 
     const dateLen = data.length;
@@ -140,13 +200,13 @@ export default class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(`<li class="dg-contextmenu-submenu ${styleClass}" data-context-key="${itemKey}">
+        htmlTemplate.push(`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-context-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>`);
 
-        htmlTemplate.push(this.template(item.children, id, true, depth + 1));
+        htmlTemplate.push(`<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, true, depth + 1)}</ul>`);
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : "";
         htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-context-key="${itemKey}">
@@ -157,57 +217,6 @@ export default class ContextMenu {
       htmlTemplate.push("</li>");
     }
 
-    return `<ul class="dg-contextmenu ${subClass}" id="${id}">${htmlTemplate.join("")}</ul>`;
+    return htmlTemplate.join("");
   }
-}
-
-/**
- * 기준 요소(targetEl)를 기준으로 레이어(layerEl)를 띄울 위치를 계산합니다.
- * 스크롤과 창 크기를 고려해 화면 밖으로 나가지 않도록 자동 조정됩니다.
- *
- * @param targetEl 기준이 되는 DOM 요소
- * @param layerEl 띄울 레이어 DOM 요소
- * @param preferredDirection 기본 방향 ('bottom' 또는 'top')
- * @returns top, left 좌표 (픽셀 단위)
- */
-function calculateLayerPosition(targetEl: HTMLElement, layerEl: HTMLElement, evtPosition: any, preferredDirection?: "top" | "bottom") {
-  const rect = targetEl.getBoundingClientRect();
-
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-  const targetTop = evtPosition.y;
-  const targetLeft = evtPosition.x;
-  const targetBottom = rect.bottom + scrollTop;
-
-  const layerWidth = layerEl.offsetWidth;
-  const layerHeight = layerEl.offsetHeight;
-
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-
-  let top: number;
-  let left: number;
-
-  // 기본 방향: 아래
-  top = preferredDirection === "top" ? targetTop - layerHeight : targetBottom;
-
-  left = targetLeft;
-
-  // 오른쪽 넘어가면 왼쪽으로 붙임
-  if (left + layerWidth > scrollLeft + windowWidth) {
-    left = scrollLeft + windowWidth - layerWidth - 10;
-  }
-
-  // 아래쪽 넘어가면 위로 올림
-  if (top + layerHeight > scrollTop + windowHeight) {
-    top = targetTop - layerHeight - 10;
-  }
-
-  // 위쪽도 넘치면 다시 아래로
-  if (top < scrollTop) {
-    top = targetBottom;
-  }
-
-  return { top, left };
 }

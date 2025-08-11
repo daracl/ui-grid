@@ -425,7 +425,7 @@ body {
   @include _MAIN.main;
   @include _FOOTER.footer;
 
-  .dg-renderer-container {
+  .dg-layer-container {
     visibility: visible;
     width: 0;
     height: 0px;

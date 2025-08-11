@@ -15,7 +15,7 @@ export function hasClass(element: HTMLElement, styleClass: string) {
   return false;
 }
 
-export function eqAttributeValue(element: HTMLElement, attr:string, value:string) {
+export function eqAttributeValue(element: HTMLElement, attr: string, value: string) {
   return element.getAttribute(attr) == value;
 }
 
@@ -114,7 +114,21 @@ export function $querySelector(el: Element | string | NodeList | Document | Elem
   return reval;
 }
 
-export function getOpenLayerPosition(renderContainer: HTMLElement, targetElement: HTMLElement, layerElement: HTMLElement, margin: number = 2) {
+/**
+ * get layer element
+ * @param tagName layer tag
+ * @param className class name
+ * @param layerName layer name
+ * @returns
+ */
+export function getLayerElement(tagName: string, className: string, layerName: string): HTMLElement {
+  const layerElement = document.createElement(tagName);
+  layerElement.className = className;
+  layerElement.setAttribute(LAYER_ATTR_NAME, layerName);
+  return layerElement;
+}
+
+export function innerLayerPosition(renderContainer: HTMLElement, targetElement: HTMLElement, layerElement: HTMLElement, margin: number = 2) {
   const rendererContainer = getElementRect(renderContainer);
   const elementRect = getElementRect(targetElement);
 
@@ -155,15 +169,45 @@ export function getOpenLayerPosition(renderContainer: HTMLElement, targetElement
 }
 
 /**
- * get layer element
- * @param tagName layer tag
- * @param className class name
- * @param layerName layer name
- * @returns
+ * 레이어(layerEl)를 띄울 위치를 계산합니다.
+ * 스크롤과 창 크기를 고려해 화면 밖으로 나가지 않도록 자동 조정됩니다.
+ *
+ * @param layerEl 띄울 레이어 DOM 요소
+ * @param evtPosition event position (x, y)
+ * @returns top, left 좌표 (픽셀 단위)
  */
-export function getLayerElement(tagName: string, className: string, layerName: string): HTMLElement {
-  const layerElement = document.createElement(tagName);
-  layerElement.className = className;
-  layerElement.setAttribute(LAYER_ATTR_NAME, layerName);
-  return layerElement;
+export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+
+  const rect = getElementRect(layerEl);
+
+  const layerWidth = rect.width;
+  const layerHeight = rect.height;
+
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  const targetX = evtPosition.x;
+  const targetY = evtPosition.y;
+
+  const bottom = scrollTop + windowHeight,
+    right = scrollLeft + windowWidth;
+
+  //console.log(`targetX : ${targetX}, targetY : ${targetY}, right : ${right}, bottom : ${bottom}, scrollTop : ${scrollTop}, windowHeight: ${windowHeight}, layerHeight:${layerHeight}, layerWidth:${layerWidth} `);
+
+  let top = targetY + layerHeight + 20 > bottom ? bottom - (layerHeight + 20) : targetY;
+  top = top < 0 ? 0 : top;
+
+  let left = targetX + layerWidth > right ? targetX - layerWidth : targetX;
+  left = left < 0 ? 0 : left;
+
+  return { top, left };
+}
+
+export function getBrowserSize() {
+  return {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  };
 }

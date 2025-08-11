@@ -4,9 +4,9 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import DaraGrid from "src/DaraGrid";
 import DaraElement from "src/element/DaraElement";
 import GridMain from "../GridMain";
-import { eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
+import { eventOff, eventOn, eventPosition, isClickEvent, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
-import { addAttr, getElementRect, getLayerElement, getOpenLayerPosition, removeAttr } from "src/util/domUtils";
+import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from "src/util/domUtils";
 import Header from "./Header";
 import { arrayCopy, isFunction, multiSort } from "src/util/utils";
 
@@ -107,6 +107,9 @@ export default class HeaderEvent {
         helpElements,
         "mousedown touchstart",
         (e: UIEvent) => {
+          if (!isClickEvent(e)) {
+            return;
+          }
           stopPreventCancel(e);
 
           const currentElement = e.currentTarget as HTMLElement;
@@ -161,7 +164,7 @@ export default class HeaderEvent {
         this.gridMain.openLayer(toolTipElement);
         layerStyle.width = "auto";
 
-        const openPosition = getOpenLayerPosition(renderContainer, currentElement, toolTipElement);
+        const openPosition = innerLayerPosition(renderContainer, currentElement, toolTipElement);
 
         layerStyle.top = `${openPosition.top}px`;
         layerStyle.left = `${openPosition.left}px`;
@@ -191,7 +194,10 @@ export default class HeaderEvent {
     eventOn(
       sortElements,
       "mousedown touchstart",
-      (e: UIEvent) => {
+      (e: MouseEvent | TouchEvent) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
         stopPreventCancel(e);
 
         const currentElement = e.currentTarget as HTMLElement;
@@ -286,7 +292,11 @@ export default class HeaderEvent {
       eventOn(
         headerCellElements,
         "mousedown touchstart",
-        (e: UIEvent) => {
+        (e: MouseEvent | TouchEvent) => {
+          if (!isClickEvent(e)) {
+            return;
+          }
+
           const position = getElementRect(headerElement.getElement(), true);
           const mainRightWidth = cfg.dimensions.mainRightWidth;
           const _l = position.left + cfg.dimensions.mainLeftWidth,
