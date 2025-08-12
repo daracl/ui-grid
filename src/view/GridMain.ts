@@ -193,6 +193,8 @@ export default class GridMain {
     eventOn(mainElement, "blur", (e: FocusEvent) => {
       const nextFocused = e.relatedTarget as HTMLElement;
 
+      console.log("nextFocused : ", nextFocused);
+
       // container 바깥으로 포커스가 나간 경우에만 실행
       if (!nextFocused || !mainElement?.contains(nextFocused)) {
         if (!this.grid.config().focus) {
@@ -264,13 +266,24 @@ export default class GridMain {
   public setGridFocusOut(e: Event) {
     if (!this.grid.config().focus) return;
 
-    console.log("setGridFocusOut : ");
-
     const targetElement = e.target as HTMLElement;
 
-    if ((e as MouseEvent).button !== 2) {
-      this.grid.config().focus = false;
+    console.log("setGridFocusOut : ", this.grid.config().focus, targetElement);
 
+    if ((e as MouseEvent).button !== 2) {
+      const mainElement = this._mainElement.getElement();
+
+      const relatedTarget = (e as any).relatedTarget as HTMLElement;
+      if (relatedTarget && relatedTarget.closest(".dg-hidden-container") != null) {
+        const outerLayerElement = relatedTarget.closest(".dg-outer-layer") as HTMLElement;
+
+        if (outerLayerElement && outerLayerElement.getAttribute("data-grid-id") == this.grid.instanceId()) {
+          mainElement.focus({ preventScroll: true });
+          return;
+        }
+      }
+
+      this.grid.config().focus = false;
       this.hideLayer();
     }
   }
@@ -284,6 +297,8 @@ export default class GridMain {
 
   public hideLayer(hideElement?: HTMLElement) {
     if (this.openLayers.length < 1) return;
+
+    console.log("hideLayer111 : ", this.openLayers.length, hideElement);
 
     if (hideElement) {
       for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
@@ -301,13 +316,13 @@ export default class GridMain {
 
     this.grid.config().isOpenLayer = false;
 
-    console.log("hideLayer : ", this.grid.config().isOpenLayer);
+    console.log("hideLayer222 : ", this.openLayers.length, hideElement);
 
-    // const stack = new Error().stack;
+    const stack = new Error().stack;
 
-    // if (stack) {
-    //   console.log("호출한 함수:", stack);
-    // }
+    if (stack) {
+      console.log("호출한 함수:", stack);
+    }
 
     for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
       const layerElement = this.openLayers[idx];

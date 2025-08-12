@@ -38,17 +38,22 @@ export default class ContextMenu {
 
     this.contextOpts = contextOpts;
     this.selectionInfo = gridMain.selectionInfo;
+
+    this.create();
+    this.initEvent();
+  }
+
+  create() {
     const contextElement = document.createElement("ul");
-    contextElement.className = "dg-contextmenu dg-contextmenu-top";
+    contextElement.setAttribute("data-grid-id", this.grid.instanceId());
+    contextElement.className = "dg-contextmenu dg-contextmenu-top dg-outer-layer";
     contextElement.setAttribute("draggable", "false");
     contextElement.setAttribute("onselectstart", "return false");
-    contextElement.innerHTML = this.template(contextOpts.items, "top", false, 0);
+    contextElement.innerHTML = this.template(this.contextOpts.items, "top", 0);
 
     HIDDEN_ELEMENT?.appendChild(contextElement);
 
     this.contextElement = new DaraElement(contextElement);
-
-    this.initEvent();
   }
 
   private initEvent() {
@@ -95,7 +100,25 @@ export default class ContextMenu {
 
       this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
     });
+    this.itemClick();
+    this.submenuEvent();
+  }
+  itemClick() {
+    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
 
+    // contextmenu item click
+    eventOff(contextItemElements, "click");
+    eventOn(contextItemElements, "click", (e: Event) => {
+      const itemElement = e.target as HTMLElement;
+
+      if (hasClass(itemElement, "dg-submenu-item")) {
+        return;
+      }
+
+      console.log(itemElement);
+    });
+  }
+  submenuEvent() {
     const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
 
     let submenuTimer: any;
@@ -104,6 +127,8 @@ export default class ContextMenu {
     eventOff(contextItemElements, "mouseenter");
     eventOn(contextItemElements, "mouseenter", (e: Event) => {
       const itemElement = e.target as HTMLElement;
+
+      // 마우스 엔터 서브 메뉴 focusout 처리 할것.
 
       const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
 
@@ -157,7 +182,7 @@ export default class ContextMenu {
    * @param {string} type position type
    * @returns {string} template string
    */
-  public template(data: ContextMenuItem[], id: string, isChildren: boolean, depth: number): string {
+  public template(data: ContextMenuItem[], id: string, depth: number): string {
     const htmlTemplate = [];
 
     const dateLen = data.length;
@@ -199,7 +224,7 @@ export default class ContextMenu {
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>`);
 
-        htmlTemplate.push(`<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, true, depth + 1)}</ul>`);
+        htmlTemplate.push(`<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`);
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : "";
         htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-context-key="${itemKey}">

@@ -161,7 +161,7 @@ export default class HeaderEvent {
         const layerStyle = toolTipElement.style;
 
         layerStyle.height = "auto";
-        this.gridMain.openLayer(toolTipElement);
+        layerStyle.display = "block";
         layerStyle.width = "auto";
 
         const openPosition = innerLayerPosition(renderContainer, currentElement, toolTipElement);
@@ -176,7 +176,11 @@ export default class HeaderEvent {
 
     eventOn(helpElements, "mouseleave", (e: UIEvent) => {
       clearTimeout(tooltipTimer);
-      this.gridMain.hideLayer(this.toolTipElement);
+
+      if (this.toolTipElement && this.toolTipElement.style) {
+        this.toolTipElement.style.display = "none";
+      }
+
       return false;
     });
   }
