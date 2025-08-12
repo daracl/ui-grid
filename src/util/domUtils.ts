@@ -177,26 +177,28 @@ export function innerLayerPosition(renderContainer: HTMLElement, targetElement: 
  * @returns top, left 좌표 (픽셀 단위)
  */
 export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollPostion = getScrollPosition();
+  const scrollTop = scrollPostion.top;
+  const scrollLeft = scrollPostion.left;
 
   const rect = getElementRect(layerEl);
 
   const layerWidth = rect.width;
   const layerHeight = rect.height;
 
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
+  const browserSize = getBrowserSize();
 
   const targetX = evtPosition.x;
   const targetY = evtPosition.y;
 
-  const bottom = scrollTop + windowHeight,
-    right = scrollLeft + windowWidth;
+  const bottom = scrollTop + browserSize.height,
+    right = scrollLeft + browserSize.width;
+
+  const layerBottomMargin = 5;
 
   //console.log(`targetX : ${targetX}, targetY : ${targetY}, right : ${right}, bottom : ${bottom}, scrollTop : ${scrollTop}, windowHeight: ${windowHeight}, layerHeight:${layerHeight}, layerWidth:${layerWidth} `);
 
-  let top = targetY + layerHeight + 20 > bottom ? bottom - (layerHeight + 20) : targetY;
+  let top = targetY + layerHeight + layerBottomMargin > bottom ? bottom - (layerHeight + layerBottomMargin) : targetY;
   top = top < 0 ? 0 : top;
 
   let left = targetX + layerWidth > right ? targetX - layerWidth : targetX;
@@ -205,9 +207,42 @@ export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
   return { top, left };
 }
 
-export function getBrowserSize() {
+/**
+ * 스크롤바가 차지하는 영역을 제외한 브라우저의 실제 사용 가능한 크기를 반환합니다.
+ * (뷰포트 크기 - 스크롤바 크기)
+ *
+ * @returns { width: number, height: number }
+ */
+export function getBrowserSize(usableSize: boolean = true) {
+  // 전체 뷰포트 크기 (스크롤바 포함)
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  // 실제 컨텐츠 렌더링 가능한 크기 (스크롤바 제외)
+  let scrollbarWidth = 0;
+  let scrollbarHeight = 0;
+  if (usableSize) {
+    const documentElement = document.documentElement;
+    // 스크롤바 너비 = 전체 뷰포트 - 렌더링 영역
+    scrollbarWidth = windowWidth - documentElement.clientWidth;
+    scrollbarHeight = windowHeight - documentElement.clientHeight;
+  }
+
   return {
-    width: window.innerWidth,
-    height: window.innerHeight,
+    width: windowWidth - scrollbarWidth,
+    height: windowHeight - scrollbarHeight,
   };
+}
+
+/**
+ * 현재 문서의 스크롤 위치를 반환합니다.
+ *
+ * @returns { top: number, left: number }
+ */
+export function getScrollPosition(): { top: number; left: number } {
+  const top = window.pageYOffset !== undefined ? window.pageYOffset : document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+  const left = window.pageXOffset !== undefined ? window.pageXOffset : document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+
+  return { top, left };
 }

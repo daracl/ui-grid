@@ -6,7 +6,7 @@ import { ContextMenuItem, ContextMenuOptions } from "@t/GridOptions";
 import { isFunction, isUndefined } from "src/util/utils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import { addClass, addStyleCss, removeClass } from "src/util/styleUtils";
-import { outerLayerPosition, getElementRect, hasClass, getBrowserSize } from "src/util/domUtils";
+import { outerLayerPosition, getElementRect, hasClass, getBrowserSize, getScrollPosition } from "src/util/domUtils";
 
 /**
  * Body class
@@ -65,7 +65,6 @@ export default class ContextMenu {
       stopPreventCancel(e);
 
       removeClass(this.contextElement.finds(".dg-submenu-item.dg-on"), "dg-on");
-      removeClass(this.contextElement.finds(".dg-contextmenu.dg-contextmenu-left"), "dg-contextmenu-left");
 
       if (isDisableItemKeyFn) {
         const disableItem = contextOpts.disableItem(contextOpts.items);
@@ -83,31 +82,28 @@ export default class ContextMenu {
       selectElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
       addClass(selectElement, "dg-select");
 
-      const selectItemElement = new DaraElement(selectElement);
-
       if (isBeforeSelectFn) {
         contextOpts.beforeSelect.call(this, { evt: e, element: selectElement });
       }
       const evtPosition = eventPosition(e);
 
-      const contextElement = this.contextElement.getElement();
+      const orginContextElement = this.contextElement.getElement();
 
-      this.gridMain.openLayer(contextElement);
+      this.gridMain.openLayer(orginContextElement);
 
-      const position = outerLayerPosition(contextElement, evtPosition);
+      const position = outerLayerPosition(orginContextElement, evtPosition);
 
       this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
     });
 
-    let beforeSubElement: HTMLElement;
-
     const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
+
+    let submenuTimer: any;
+
+    // sub mouseenter
     eventOff(contextItemElements, "mouseenter");
-    // sub menu click
     eventOn(contextItemElements, "mouseenter", (e: Event) => {
       const itemElement = e.target as HTMLElement;
-
-      console.log("111", beforeSubElement);
 
       const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
 
@@ -115,45 +111,42 @@ export default class ContextMenu {
 
       removeClass(activeItemElement, "dg-on");
 
+      clearTimeout(submenuTimer);
+
       if (!hasClass(itemElement, "dg-submenu-item")) {
         return;
-      } else {
-        beforeSubElement = itemElement;
+      }
+
+      submenuTimer = setTimeout(() => {
         addClass(itemElement, "dg-on");
-      }
 
-      //sEle.closest('.pub-context-menu').find('.pub-context-submenu.on').removeClass('on');
+        const browserSize = getBrowserSize();
 
-      const browserSize = getBrowserSize();
+        const itemRect = getElementRect(itemElement);
 
-      const itemRect = getElementRect(itemElement);
+        const subMenuElement = itemElement.querySelector(".dg-contextmenu-submenu") as HTMLElement;
 
-      const subMenuElement = itemElement.querySelector(".dg-contextmenu-submenu") as HTMLElement;
-      const rect = getElementRect(subMenuElement);
-      const subWidth = rect.width,
-        subLeft = rect.left,
-        collision = subWidth + subLeft > browserSize.width;
+        const subContextMenuElement = new DaraElement(subMenuElement);
+        subContextMenuElement.css({ left: "", top: "" });
+        const rect = getElementRect(subMenuElement);
 
-      // 위치 잡을것.
+        const subWidth = rect.width;
+        const collision = subWidth + itemRect.left + itemRect.width > browserSize.width;
 
-      if (collision) {
-        addStyleCss(subMenuElement, { left: "-" + (subWidth / itemRect.width) * 100 + "%" });
+        if (collision) {
+          subContextMenuElement.css({ left: "-" + (subWidth / (itemRect.width + 3)) * 100 + "%" });
+        }
 
-        addClass(subMenuElement, "dg-contextmenu-left");
-      }
+        let offTop = itemRect.top,
+          subHeight = rect.height,
+          screenBottom = browserSize.height;
 
-      /*
-      const offTop = itemRect.top,
-        subHeight =rect.height,
-        screenBottom = _$win.scrollTop() +browserSize.height;
-      if (offTop + subHeight + 10 > screenBottom) {
-        offTop = offTop + subHeight + 10 - screenBottom;
-        offTop = offTop < 0 ? 0 : offTop;
-        $sub.css("top", "-" + offTop + "px");
-      } else {
-        $sub.css("top", "");
-      }
-        */
+        if (offTop + subHeight > screenBottom) {
+          offTop = offTop + subHeight - screenBottom;
+          offTop = offTop < 0 ? 0 : offTop;
+          subContextMenuElement.css({ top: "-" + offTop + "px" });
+        }
+      }, 450);
     });
   }
 

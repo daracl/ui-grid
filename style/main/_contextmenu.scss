@@ -6,11 +6,13 @@
     top: 100%;
     left: 0;
     float: left;
+    display: none;
     min-width: 160px;
     z-index: 1000;
     width: auto;
     height: auto;
     padding: 5px 0;
+    border-radius: 5px;
     margin: 2px 0 0;
     list-style: none;
     color: var(--font-color);
@@ -105,10 +107,6 @@
         margin-left: -1px;
         display: block;
       }
-    }
-
-    > .dg-contextmenu.dg-contextmenu-left {
-      left: -100%;
     }
 
     > a:after {
