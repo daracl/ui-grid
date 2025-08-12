@@ -54,6 +54,10 @@ export default class ContextMenu {
     HIDDEN_ELEMENT?.appendChild(contextElement);
 
     this.contextElement = new DaraElement(contextElement);
+
+    eventOn(contextElement, "contextmenu", (e: Event) => {
+      stopPreventCancel(e);
+    });
   }
 
   private initEvent() {
@@ -106,35 +110,49 @@ export default class ContextMenu {
   itemClick() {
     const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
 
+    const fnContextCallback = this.contextOpts.callback;
+
+    const isContextCallback = isFunction(fnContextCallback);
+
     // contextmenu item click
     eventOff(contextItemElements, "click");
     eventOn(contextItemElements, "click", (e: Event) => {
-      const itemElement = e.target as HTMLElement;
+      const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, "dg-submenu-item")) {
         return;
       }
 
-      console.log(itemElement);
+      const itemKey = itemElement.getAttribute("data-item-key") || "";
+
+      const clickItem = this.contextData.get(itemKey);
+
+      this.gridMain.hideLayer();
+
+      if (clickItem?.callback) {
+        clickItem.callback(clickItem);
+        return;
+      }
+
+      if (isContextCallback) {
+        fnContextCallback(clickItem);
+      }
     });
   }
+
   submenuEvent() {
-    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
+    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item > a");
 
     let submenuTimer: any;
 
     // sub mouseenter
     eventOff(contextItemElements, "mouseenter");
     eventOn(contextItemElements, "mouseenter", (e: Event) => {
-      const itemElement = e.target as HTMLElement;
-
-      // 마우스 엔터 서브 메뉴 focusout 처리 할것.
-
+      const targetElement = e.currentTarget as HTMLElement;
+      const itemElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
       const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
 
-      const activeItemElement = parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on");
-
-      removeClass(activeItemElement, "dg-on");
+      removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
 
       clearTimeout(submenuTimer);
 
@@ -198,17 +216,17 @@ export default class ContextMenu {
       itemKey = depth + "_" + (item.key || "");
 
       if (item.divider === true) {
-        htmlTemplate.push(`<li class="divider ${styleClass}" data-context-key="divider"></li>`);
+        htmlTemplate.push(`<li class="dg-divider ${styleClass}"></li>`);
         continue;
       }
 
       if (typeof item.header !== "undefined") {
-        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-context-key="${itemKey}_header">${item.header}</li>`);
+        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-item-key="${itemKey}_header">${item.header}</li>`);
         continue;
       }
 
       if (item.checkbox === true) {
-        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-context-key="checkbox">
+        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-item-key="checkbox">
           <label for="dgcontext_${item.key}"><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
           </label>
         </li>`);
@@ -218,7 +236,7 @@ export default class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-context-key="${itemKey}">
+        htmlTemplate.push(`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-item-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
@@ -227,7 +245,7 @@ export default class ContextMenu {
         htmlTemplate.push(`<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`);
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : "";
-        htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-context-key="${itemKey}">
+        htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm}
           </a>`);

@@ -22,6 +22,7 @@ body {
   &[data-dg-theme="light"] .daracl-grid,
   &[data-dg-theme="light"] .dg-hidden-container,
   .daracl-grid > .dg-light,
+  .dg-hidden-container,
   .dg-hidden-container.dg-light {
     --border-color: #cdcdcd;
     --border-thick-color: #b9bdc1;

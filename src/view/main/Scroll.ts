@@ -2,7 +2,7 @@ import { GridOptions } from "@t/GridOptions";
 import { Config } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
-import { eventOff, eventOn, eventPosition, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
+import { eventOff, eventOn, eventPosition, isClickEvent, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
 import DaraGrid from "src/DaraGrid";
 import GridMain from "../GridMain";
 import DaraElement from "src/element/DaraElement";
@@ -214,6 +214,9 @@ export default class Scroll {
       .eventOn(
         "mousedown touchstart",
         (e: MouseEvent) => {
+          if (!isClickEvent(e)) {
+            return;
+          }
           bgMoveMode = 1;
           startEventY = e.offsetY;
           oneRowMove = cfg.scroll.oneRowMove;
@@ -337,6 +340,9 @@ export default class Scroll {
     verticalThumbElement.eventOn(
       "mousedown touchstart",
       (e: MouseEvent | TouchEvent) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
         stopPreventCancel(e);
 
         dragging = true;
@@ -458,6 +464,9 @@ export default class Scroll {
     horizontalThumbElement.eventOn(
       "mousedown touchstart",
       (e: MouseEvent | TouchEvent) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
         stopPreventCancel(e);
 
         dragging = true;
@@ -504,6 +513,9 @@ export default class Scroll {
       .eventOn(
         "mousedown touchstart",
         (e: MouseEvent) => {
+          if (!isClickEvent(e)) {
+            return;
+          }
           bgMoveMode = 1;
           startEventX = e.offsetX;
 

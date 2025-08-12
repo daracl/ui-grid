@@ -49,12 +49,14 @@
         white-space: nowrap;
         text-decoration: none;
         border: 1px solid transparent;
+        border-left-width: 0px;
+        border-right-width: 0px;
         outline: none;
 
         &:hover {
           color: var(--font-hover-color);
           background-color: var(--body-bg-hover);
-          border: 1px solid var(--border-thick-color);
+          border-color: var(--border-thick-color);
         }
       }
 
@@ -62,12 +64,12 @@
         > a {
           color: var(--font-hover-color);
           background-color: var(--body-bg-hover);
-          border: 1px solid var(--border-thick-color);
+          border-color: var(--border-thick-color);
         }
       }
 
       &.disabled > a {
-        color: var(--font-disable-color);
+        opacity: 0.5;
       }
     }
 
@@ -99,6 +101,19 @@
   .dg-submenu-item {
     position: relative;
 
+    .dg-contextmenu {
+      display: none;
+    }
+
+    &.disabled {
+      > a:after {
+        border-left-color: transparent !important;
+      }
+      .dg-contextmenu {
+        display: none !important;
+      }
+    }
+
     &.dg-on {
       > .dg-contextmenu {
         top: 0;
@@ -106,6 +121,10 @@
         margin-top: -6px;
         margin-left: -1px;
         display: block;
+      }
+
+      > a:after {
+        border-left-color: var(--border-thick-color);
       }
     }
 
@@ -121,28 +140,6 @@
       border-style: solid;
       border-width: 5px 0 5px 5px;
       content: " ";
-    }
-
-    &:hover > a:after {
-      border-left-color: var(--border-thick-color);
-    }
-
-    &.disabled > a:after {
-      border-left-color: var(--border-color);
-    }
-  }
-
-  .dg-submenu-item {
-    .dg-contextmenu {
-      display: none;
-    }
-
-    &.on .dg-contextmenu {
-      display: block;
-    }
-
-    &.disabled .dg-contextmenu {
-      display: none !important;
     }
   }
 

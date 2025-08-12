@@ -1001,9 +1001,12 @@
         }
         , items: [
           { key: "refresh", "label": "새로고침" }
+          , {
+            divider: true
+          }
           , { key: "copy", "label": "복사", hotkey: 'Ctrl+C' }
           , {
-            key: "sql_create", "label": "sql생성"
+            key: "sql_create", "label": "sql생성", disabled: true
             , children: [
               { key: "selectStar", "label": "select *", mode: "selectStar" }
               , { key: "select", "label": "select column", mode: "select" }

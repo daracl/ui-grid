@@ -193,8 +193,6 @@ export default class GridMain {
     eventOn(mainElement, "blur", (e: FocusEvent) => {
       const nextFocused = e.relatedTarget as HTMLElement;
 
-      console.log("nextFocused : ", nextFocused);
-
       // container 바깥으로 포커스가 나간 경우에만 실행
       if (!nextFocused || !mainElement?.contains(nextFocused)) {
         if (!this.grid.config().focus) {
@@ -202,10 +200,12 @@ export default class GridMain {
         }
 
         this.setGridFocusOut(e);
-      } else {
-        if (!isInputField(nextFocused.tagName)) {
-          mainElement.focus({ preventScroll: true });
-        }
+
+        return;
+      }
+
+      if (!isInputField(nextFocused.tagName)) {
+        mainElement.focus({ preventScroll: true });
       }
     });
 
