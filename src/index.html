@@ -991,8 +991,11 @@
       , contextMenu: {
         enableHeader: true,
         beforeActivate: function (info) {
-          console.log()
-          gridObj.changeContextMenuHeader("111111")
+          const field = info.field;
+          const item = info.item;
+          if (item) {
+            gridObj.changeContextMenuHeader(item[field.name])
+          }
         }
         , callback: function (item) {
           console.log(item.key, item);

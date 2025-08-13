@@ -7,6 +7,7 @@ import { isFunction, isUndefined } from "src/util/utils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import { addClass, addStyleCss, removeClass } from "src/util/styleUtils";
 import { outerLayerPosition, getElementRect, hasClass, getBrowserSize, getScrollPosition } from "src/util/domUtils";
+import { getCellInfo } from "src/util/gridUtils";
 
 /**
  * Body class
@@ -67,6 +68,7 @@ export default class ContextMenu {
   }
 
   private initEvent() {
+    const cfg = this.grid.config();
     const contextOpts = this.contextOpts;
     const gridElement = this.gridMain.mainElement().getElement();
 
@@ -98,7 +100,15 @@ export default class ContextMenu {
       addClass(selectElement, "dg-select");
 
       if (isBeforeActivateFn) {
-        contextOpts.beforeActivate.call(this, { evt: e, element: selectElement });
+        const cellElement = targetElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement) {
+          const cellInfo = getCellInfo(cfg, cellElement);
+
+          contextOpts.beforeActivate(cellInfo, { evt: e, element: targetElement });
+        } else {
+          contextOpts.beforeActivate({ evt: e, element: targetElement });
+        }
       }
       const evtPosition = eventPosition(e);
 
