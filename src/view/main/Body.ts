@@ -265,6 +265,21 @@ export default class Body {
   }
 
   /**
+   * grid data copy
+   *
+   * @public
+   */
+  public copyData() {
+    let selectData = this.selectionInfo.selectionData();
+
+    try {
+      utils.copyStringToClipboard(selectData);
+    } catch (e) {
+      console.log("Unable to copy", e);
+    }
+  }
+
+  /**
    * remove start cell style class
    *
    */

@@ -480,13 +480,8 @@ export default class BodyEvent {
             return;
           }
 
-          let copyData = this.selectionInfo.selectionData();
+          this.body.copyData();
 
-          try {
-            utils.copyStringToClipboard(copyData);
-          } catch (e) {
-            console.log("Unable to copy", e);
-          }
           return;
         } else if (evtKey == 65) {
           // ctrl + a

@@ -47,6 +47,19 @@
       }
     }
 
+    > .dg-contextmenu-check {
+      > a {
+        clear: both;
+        font-weight: normal;
+        line-height: 20px;
+        color: var(--font-color);
+        white-space: nowrap;
+        text-decoration: none;
+        outline: none;
+        margin: 0px 5px;
+      }
+    }
+
     > .dg-contextmenu-item {
       > a {
         display: flex;
@@ -84,10 +97,10 @@
 
     label {
       display: inline-block;
-      max-width: 100%;
-      margin-bottom: 0px;
       font-weight: bold;
-      width: 100%;
+      padding: 5px 10px;
+      line-height: 100%;
+      vertical-align: middle;
     }
 
     input[type="checkbox"],
@@ -95,7 +108,6 @@
       vertical-align: baseline;
       position: relative;
       width: 20px;
-      float: left;
     }
 
     .dg-contextmenu-header {
@@ -103,7 +115,7 @@
       color: var(--font-color);
       padding: 3px 7px;
       font-weight: bold;
-      line-height: 20px;
+      display: block;
     }
   }
 

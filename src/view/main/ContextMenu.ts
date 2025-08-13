@@ -20,8 +20,6 @@ export default class ContextMenu {
 
   private contextOpts: ContextMenuOptions;
 
-  private selectionInfo: SelectionInfo;
-
   private contextElement: DaraElement;
 
   private contextData: Map<String, ContextMenuItem> = new Map();
@@ -37,7 +35,6 @@ export default class ContextMenu {
     }
 
     this.contextOpts = contextOpts;
-    this.selectionInfo = gridMain.selectionInfo;
 
     this.create();
     this.initEvent();
@@ -49,7 +46,16 @@ export default class ContextMenu {
     contextElement.className = "dg-contextmenu dg-contextmenu-top dg-outer-layer";
     contextElement.setAttribute("draggable", "false");
     contextElement.setAttribute("onselectstart", "return false");
-    contextElement.innerHTML = this.template(this.contextOpts.items, "top", 0);
+
+    const htmlTemplate = [];
+    if (this.contextOpts.enableHeader) {
+      htmlTemplate.push(`<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>`);
+      htmlTemplate.push(`<li><a class="dg-divider" tabindex="-1"></a></li>`);
+    }
+
+    htmlTemplate.push(this.template(this.contextOpts.items, "top", 0));
+
+    contextElement.innerHTML = htmlTemplate.join("");
 
     HIDDEN_ELEMENT?.appendChild(contextElement);
 
@@ -65,7 +71,7 @@ export default class ContextMenu {
     const gridElement = this.gridMain.mainElement().getElement();
 
     const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
-    const isBeforeSelectFn = isFunction(contextOpts.beforeSelect);
+    const isBeforeActivateFn = isFunction(contextOpts.beforeActivate);
 
     let selectElement: HTMLElement;
 
@@ -91,8 +97,8 @@ export default class ContextMenu {
       selectElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
       addClass(selectElement, "dg-select");
 
-      if (isBeforeSelectFn) {
-        contextOpts.beforeSelect.call(this, { evt: e, element: selectElement });
+      if (isBeforeActivateFn) {
+        contextOpts.beforeActivate.call(this, { evt: e, element: selectElement });
       }
       const evtPosition = eventPosition(e);
 
@@ -104,10 +110,11 @@ export default class ContextMenu {
 
       this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
     });
-    this.itemClick();
-    this.submenuEvent();
+    this.initItemClickEvent();
+    this.initSubmenuEvent();
   }
-  itemClick() {
+
+  private initItemClickEvent() {
     const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
 
     const fnContextCallback = this.contextOpts.callback;
@@ -122,6 +129,10 @@ export default class ContextMenu {
       if (hasClass(itemElement, "dg-submenu-item")) {
         return;
       }
+
+      const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
+
+      parentElement.querySelectorAll('input[type="checkbox"]');
 
       const itemKey = itemElement.getAttribute("data-item-key") || "";
 
@@ -140,7 +151,7 @@ export default class ContextMenu {
     });
   }
 
-  submenuEvent() {
+  private initSubmenuEvent() {
     const contextItemElements = this.contextElement.finds(".dg-contextmenu-item > a");
 
     let submenuTimer: any;
@@ -195,6 +206,16 @@ export default class ContextMenu {
   }
 
   /**
+   * change header label
+   *
+   * @public
+   * @param {string} label header label
+   */
+  public changeHeader(label: string) {
+    this.contextElement.find(".dg-contextmenu-header").textContent = label;
+  }
+
+  /**
    * html template
    *
    * @public
@@ -221,15 +242,10 @@ export default class ContextMenu {
         continue;
       }
 
-      if (typeof item.header !== "undefined") {
-        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-item-key="${itemKey}_header">${item.header}</li>`);
-        continue;
-      }
-
       if (item.checkbox === true) {
-        htmlTemplate.push(`<li class="dg-contextmenu-header ${styleClass}" data-item-key="checkbox">
+        htmlTemplate.push(`<li class="dg-contextmenu-check ${styleClass}"><a tabindex="-1">
           <label for="dgcontext_${item.key}"><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
-          </label>
+          </label></a>
         </li>`);
         continue;
       }

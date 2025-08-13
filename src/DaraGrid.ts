@@ -181,7 +181,7 @@ export default class DaraGrid {
 
   /**
    * add row items
-   * 
+   *
    * @param items add items
    * @param position add position
    * @param addRowIndex add row index
@@ -307,22 +307,29 @@ export default class DaraGrid {
       return this.options.height;
     }
   }
-  
+
+  public copyData() {
+    this.gridMain.getBody().copyData();
+  }
+
+  public changeContextMenuHeader(label: string) {
+    this.gridMain.getContextMenu().changeHeader(label);
+  }
+
   /**
    * grid destroy
    *
    * @public
    */
-  public destroy (){
+  public destroy() {
+    const currentUid = this.gridElement.getAttr(SEQ_ATTR_KEY);
 
-    const currentUid = this.gridElement.getAttr(SEQ_ATTR_KEY);;
-
-    if(currentUid && ALL_INSTANCE[currentUid]){
+    if (currentUid && ALL_INSTANCE[currentUid]) {
       allEventOff();
       this.gridElement.removeAttr(SEQ_ATTR_KEY);
       const el = this.gridElement.getElement();
       while (el.firstChild) {
-        if (typeof el.firstChild.remove === 'function') {
+        if (typeof el.firstChild.remove === "function") {
           el.firstChild.remove(); // DOM에서 제거
         } else {
           el.removeChild(el.firstChild);

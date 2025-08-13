@@ -268,12 +268,13 @@ export default class GridMain {
 
     const targetElement = e.target as HTMLElement;
 
-    console.log("setGridFocusOut : ", this.grid.config().focus, targetElement);
-
     if ((e as MouseEvent).button !== 2) {
       const mainElement = this._mainElement.getElement();
 
       const relatedTarget = (e as any).relatedTarget as HTMLElement;
+
+      console.log("setGridFocusOut relatedTarget : ", this.grid.config().focus, relatedTarget);
+
       if (relatedTarget && relatedTarget.closest(".dg-hidden-container") != null) {
         const outerLayerElement = relatedTarget.closest(".dg-outer-layer") as HTMLElement;
 
@@ -419,6 +420,15 @@ export default class GridMain {
    */
   public getBody() {
     return this.body;
+  }
+
+  /**
+   * contextmenu object
+   *
+   * @returns {ContextMenu}
+   */
+  public getContextMenu() {
+    return this.contextMenu;
   }
 
   /**

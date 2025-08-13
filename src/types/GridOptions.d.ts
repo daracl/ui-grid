@@ -753,7 +753,7 @@ export interface ContextMenuOptions {
    * click before
    *
    */
-  beforeSelect: OptionCallback;
+  beforeActivate: OptionCallback;
   /**
    * 컨텍스트 메뉴 오픈시 disable item
    */
@@ -766,6 +766,11 @@ export interface ContextMenuOptions {
    * context mene items
    */
   items: ContextMenuItem[];
+
+  /**
+   * enable header
+   */
+  enableHeader: boolean;
 }
 
 /**

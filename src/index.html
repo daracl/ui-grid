@@ -989,13 +989,15 @@
       }
 
       , contextMenu: {
-        beforeSelect: function (info) {
-
+        enableHeader: true,
+        beforeActivate: function (info) {
+          console.log()
+          gridObj.changeContextMenuHeader("111111")
         }
-        , callback: function (key, sObj) {
-          console.log(this, key, sObj);
+        , callback: function (item) {
+          console.log(item.key, item);
 
-          if (key == 'copy') {
+          if (item.key == 'copy') {
             gridObj.copyData();
           }
         }
@@ -1008,12 +1010,23 @@
           , {
             key: "sql_create", "label": "sql생성", disabled: true
             , children: [
-              { key: "selectStar", "label": "select *", mode: "selectStar" }
-              , { key: "select", "label": "select column", mode: "select" }
-              , { key: "insert", "label": "insert", mode: "insert" }
-              , { key: "update", "label": "update", mode: "update" }
-              , { key: "delete", "label": "delete", mode: "delete" }
-              , { key: "drop", "label": "drop", mode: "drop" }
+              { key: "selectStar", "label": "select *" }
+              , { key: "select", "label": "select column" }
+              , { key: "insert", "label": "insert" }
+              , { key: "update", "label": "update" }
+              , { key: "delete", "label": "delete" }
+              , { key: "drop", "label": "drop" }
+            ]
+          }
+          , {
+            key: "download", "label": "download"
+            , children: [
+              { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' }
+              , { divider: true }
+              , { key: "download_excel", "label": "EXCEL" }
+              , { key: "download_csv", "label": "CSV" }
+              , { key: "download_xml", "label": "XML" }
+              , { key: "download_json", "label": "json" }
             ]
           }
           , {
