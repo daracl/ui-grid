@@ -30,33 +30,43 @@
 
     .dg-divider {
       width: 100%;
-      height: 1px;
-      margin: 9px 1px;
-      margin: 3px 0px 3px;
+      height: 10px;
       overflow: hidden;
-      border-bottom: 1px solid var(--border-thick-color);
+      position: relative;
+      display: block;
+
+      &:after {
+        content: "";
+        position: absolute;
+        top: calc(50% - 1px);
+        left: 0;
+        width: 100%;
+        padding: 0px;
+        margin: 0px;
+        border-top: 1px solid var(--border-thick-color);
+      }
     }
 
     > .dg-contextmenu-item {
       > a {
-        display: block;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         cursor: default;
-        padding: 0px 20px 0px 14px;
+        padding: 3px 20px 3px 14px;
         clear: both;
         font-weight: normal;
         line-height: 20px;
         color: var(--font-color);
         white-space: nowrap;
         text-decoration: none;
-        border: 1px solid transparent;
-        border-left-width: 0px;
-        border-right-width: 0px;
         outline: none;
+        margin: 0px 5px;
+        border-radius: 4px;
 
         &:hover {
           color: var(--font-hover-color);
           background-color: var(--body-bg-hover);
-          border-color: var(--border-thick-color);
         }
       }
 
@@ -64,7 +74,6 @@
         > a {
           color: var(--font-hover-color);
           background-color: var(--body-bg-hover);
-          border-color: var(--border-thick-color);
         }
       }
 
@@ -122,10 +131,6 @@
         margin-left: -1px;
         display: block;
       }
-
-      > a:after {
-        border-left-color: var(--border-thick-color);
-      }
     }
 
     > a:after {
@@ -133,10 +138,10 @@
       float: right;
       width: 0;
       height: 0;
-      margin-top: -13px;
+      margin-top: 0px;
       margin-right: -10px;
       border-color: transparent;
-      border-left-color: var(--border-color);
+      border-left-color: var(--border-thick-color);
       border-style: solid;
       border-width: 5px 0 5px 5px;
       content: " ";

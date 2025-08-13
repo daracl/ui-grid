@@ -152,12 +152,15 @@ export default class ContextMenu {
       const itemElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
       const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
 
-      removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
-
       clearTimeout(submenuTimer);
 
       if (!hasClass(itemElement, "dg-submenu-item")) {
+        removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
         return;
+      }
+
+      if (!hasClass(itemElement, "dg-on")) {
+        removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
       }
 
       submenuTimer = setTimeout(() => {
@@ -169,25 +172,23 @@ export default class ContextMenu {
 
         const subMenuElement = itemElement.querySelector(".dg-contextmenu-submenu") as HTMLElement;
 
-        const subContextMenuElement = new DaraElement(subMenuElement);
-        subContextMenuElement.css({ left: "", top: "" });
-        const rect = getElementRect(subMenuElement);
+        const submenuElement = new DaraElement(subMenuElement);
+        submenuElement.css({ left: "", top: "" });
+        const submenuRect = getElementRect(subMenuElement);
 
-        const subWidth = rect.width;
-        const collision = subWidth + itemRect.left + itemRect.width > browserSize.width;
+        const submenuWidth = submenuRect.width;
+        const submenuHeight = submenuRect.height;
+        const willOverflowRight = submenuWidth + itemRect.left + itemRect.width > browserSize.width;
 
-        if (collision) {
-          subContextMenuElement.css({ left: "-" + (subWidth / (itemRect.width + 3)) * 100 + "%" });
+        if (willOverflowRight) {
+          const shiftLeftPercent = (submenuWidth / (itemRect.width + 3)) * 100;
+          submenuElement.css({ left: `-${shiftLeftPercent}%` });
         }
 
-        let offTop = itemRect.top,
-          subHeight = rect.height,
-          screenBottom = browserSize.height;
+        const overflowBottom = itemRect.top + submenuHeight - browserSize.height;
 
-        if (offTop + subHeight > screenBottom) {
-          offTop = offTop + subHeight - screenBottom;
-          offTop = offTop < 0 ? 0 : offTop;
-          subContextMenuElement.css({ top: "-" + offTop + "px" });
+        if (overflowBottom > 0) {
+          submenuElement.css({ top: `-${overflowBottom}px` });
         }
       }, 450);
     });
@@ -216,7 +217,7 @@ export default class ContextMenu {
       itemKey = depth + "_" + (item.key || "");
 
       if (item.divider === true) {
-        htmlTemplate.push(`<li class="dg-divider ${styleClass}"></li>`);
+        htmlTemplate.push(`<li><a class="dg-divider" tabindex="-1"></a></li>`);
         continue;
       }
 
