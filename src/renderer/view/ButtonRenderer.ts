@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
-import GridMain from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
@@ -11,7 +11,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {ButtonRenderer}
  * @extends {ViewRenderer}
  */
-export default class ButtonRenderer extends ViewRenderer {
+export class ButtonRenderer extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

@@ -1,6 +1,6 @@
-import EditRenderer from "../EditRenderer";
+import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
@@ -12,7 +12,7 @@ import { stringValidator } from "src/rule/stringValidator";
  * @typedef {TextRenderer}
  * @extends {EditRenderer}
  */
-export default abstract class TextEditAbstractRenderer extends EditRenderer {
+export abstract class TextEditAbstractRenderer extends EditRenderer {
   protected editElement: HTMLInputElement;
   protected item: any;
   protected cellElement: HTMLElement;

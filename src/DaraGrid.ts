@@ -3,13 +3,13 @@ import { Config, GridElement, Selection } from "@t/GridConfig";
 
 import { DEFAULT_OPTIONS } from "./defaultGridOption";
 import { initConfig } from "./defaultGridConfig";
-import { ADD_ROW_POSITION, FIELD_PREFIX, THEME_TYPE } from "./constants";
+import { ADD_ROW_POSITION, FIELD_PREFIX, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from "./constants";
 
 import * as utils from "./util/utils";
 import { Message } from "@t/Message";
-import Language from "./util/Language";
-import GridMain from "./view/GridMain";
-import DaraElement from "./element/DaraElement";
+import { Language } from "./util/Language";
+import { GridMain } from "./view/GridMain";
+import { DaraElement } from "./element/DaraElement";
 import { FieldItem } from "@t/GridField";
 import { PagingInfo } from "@t/PagingInfo";
 import { allEventOff } from "./util/eventUtils";
@@ -21,7 +21,7 @@ const ALL_INSTANCE: any = {};
 
 const SEQ_ATTR_KEY = "daracl-grid-id";
 
-export let HIDDEN_ELEMENT: HTMLElement | null = null;
+let HIDDEN_ELEMENT: HTMLElement | null = null;
 
 let DARA_GRID_SEQ = 0;
 /**
@@ -30,7 +30,7 @@ let DARA_GRID_SEQ = 0;
  * @class DaraGrid
  * @typedef {DaraGrid}
  */
-export default class DaraGrid {
+export class DaraGrid {
   public static VERSION = `${APP_VERSION}`;
 
   private readonly options;
@@ -81,7 +81,7 @@ export default class DaraGrid {
   initGlobalConfig() {
     if (HIDDEN_ELEMENT === null) {
       const hiddenElement = document.createElement("div");
-      hiddenElement.className = "dg-hidden-container";
+      hiddenElement.className = HIDDEN_ELEMENT_SELECTOR.replace(".", "");
       document.body.appendChild(hiddenElement);
       HIDDEN_ELEMENT = hiddenElement;
     }

@@ -1,7 +1,7 @@
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 
-export default abstract class Renderer {
+export abstract class Renderer {
   protected field;
   protected fieldName;
   protected gridMain;

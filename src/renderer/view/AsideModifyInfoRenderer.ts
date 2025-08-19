@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
-import GridMain from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { ROW_CUD_KEY } from "src/constants";
 
@@ -11,7 +11,7 @@ import { ROW_CUD_KEY } from "src/constants";
  * @typedef {AsideModifyInfoRenderer}
  * @extends {ViewRenderer}
  */
-export default class AsideModifyInfoRenderer extends ViewRenderer {
+export class AsideModifyInfoRenderer extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

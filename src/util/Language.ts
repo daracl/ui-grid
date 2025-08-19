@@ -53,7 +53,7 @@ let localeMessage: Message = {
  * @class Language
  * @typedef {Language}
  */
-export default class Language {
+export class Language {
   private lang: Message = localeMessage;
 
   public static setGlobalMessage(lang?: Message) {

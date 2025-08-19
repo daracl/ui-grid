@@ -1,7 +1,7 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
+import { ViewRenderer } from "../ViewRenderer";
 import { ROW_CHECK_KEY } from "src/constants";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
@@ -13,7 +13,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {AsideRowCheckRenderer}
  * @extends {ViewRenderer}
  */
-export default class AsideRowCheckRenderer extends ViewRenderer {
+export class AsideRowCheckRenderer extends ViewRenderer {
   private allowMultiSelect: boolean;
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);

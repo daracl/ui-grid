@@ -1,17 +1,17 @@
 import { CellInfo, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
 import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
-import DaraGrid from "src/DaraGrid";
+import { DaraGrid } from "src/DaraGrid";
 import * as utils from "src/util/utils";
 
-import GridMain from "../GridMain";
-import DaraElement from "src/element/DaraElement";
+import { GridMain } from "../GridMain";
+import { DaraElement } from "src/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, isSpacebar, stopPreventCancel } from "src/util/eventUtils";
-import SelectionInfo from "src/selection/selection";
+import { SelectionInfo } from "src/selection/selection";
 import { getElementRect, hasClass } from "src/util/domUtils";
-import Body from "./Body";
+import { Body } from "./Body";
 import { ROW_CHECK_NAME } from "src/constants";
-import DataSearch from "./DataSearch";
+import { DataSearch } from "./DataSearch";
 
 /**
  * Body event class
@@ -19,7 +19,7 @@ import DataSearch from "./DataSearch";
  * @class BodyEvent
  * @typedef {BodyEvent}
  */
-export default class BodyEvent {
+export class BodyEvent {
   private readonly grid: DaraGrid;
   private readonly body: Body;
   private readonly gridMain: GridMain;

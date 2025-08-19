@@ -1,7 +1,7 @@
 import { OptionCallback, AnyKeyMap, StringKeyMap } from "./Common";
-import FieldInfoMap from "../FieldInfoMap";
+import { FieldInfoMap } from "../FieldInfoMap";
 import { FieldItem } from "./GridField";
-import DaraElement from "src/element/DaraElement";
+import { DaraElement } from "src/element/DaraElement";
 import { PagingInfo } from "./PagingInfo";
 import { PagingOptions } from "./GridOptions";
 

@@ -1,6 +1,6 @@
 import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 
-import DaraGrid from "src/DaraGrid";
+import { DaraGrid } from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import {
   ADD_ROW_POSITION,
@@ -21,20 +21,20 @@ import {
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
 } from "src/constants";
-import Header from "./main/Header";
-import Body from "./main/Body";
-import DaraElement from "src/element/DaraElement";
+import { Header } from "./main/Header";
+import { Body } from "./main/Body";
+import { DaraElement } from "src/element/DaraElement";
 import { defaultFieldGroupInfo } from "src/defaultGridConfig";
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
-import Scroll from "./main/Scroll";
+import { Scroll } from "./main/Scroll";
 import { eventOn } from "src/util/eventUtils";
 import { getTextWidth, heightOptionValue, isInputField } from "src/util/gridUtils";
-import SelectionInfo from "src/selection/selection";
-import Footer from "./Footer";
+import { SelectionInfo } from "src/selection/selection";
+import { Footer } from "./Footer";
 import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
-import DataSearch from "./main/DataSearch";
-import Summary from "./main/Summary";
-import ContextMenu from "./main/ContextMenu";
+import { DataSearch } from "./main/DataSearch";
+import { Summary } from "./main/Summary";
+import { ContextMenu } from "./main/ContextMenu";
 
 const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
 
@@ -47,7 +47,7 @@ const MAIN_MARGIN_BOTTOM = 3;
  * @class DaraGrid
  * @typedef {DaraGrid}
  */
-export default class GridMain {
+export class GridMain {
   private readonly grid: DaraGrid;
 
   private readonly _BODY_STYLE: string[] = ["default", "striped", "borderless"];

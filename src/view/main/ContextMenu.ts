@@ -1,13 +1,13 @@
-import DaraGrid, { HIDDEN_ELEMENT } from "src/DaraGrid";
-import GridMain from "../GridMain";
-import DaraElement from "src/element/DaraElement";
-import SelectionInfo from "src/selection/selection";
+import { DaraGrid } from "src/DaraGrid";
+import { GridMain } from "../GridMain";
+import { DaraElement } from "src/element/DaraElement";
 import { ContextMenuItem, ContextMenuOptions } from "@t/GridOptions";
 import { isFunction, isUndefined } from "src/util/utils";
 import { eventOff, eventOn, eventPosition, stopPreventCancel } from "src/util/eventUtils";
 import { addClass, addStyleCss, removeClass } from "src/util/styleUtils";
 import { outerLayerPosition, getElementRect, hasClass, getBrowserSize, getScrollPosition } from "src/util/domUtils";
 import { getCellInfo } from "src/util/gridUtils";
+import { HIDDEN_ELEMENT_SELECTOR } from "src/constants";
 
 /**
  * Body class
@@ -15,7 +15,7 @@ import { getCellInfo } from "src/util/gridUtils";
  * @class Body
  * @typedef {Body}
  */
-export default class ContextMenu {
+export class ContextMenu {
   private grid: DaraGrid;
   private gridMain: GridMain;
 
@@ -58,7 +58,7 @@ export default class ContextMenu {
 
     contextElement.innerHTML = htmlTemplate.join("");
 
-    HIDDEN_ELEMENT?.appendChild(contextElement);
+    document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(contextElement);
 
     this.contextElement = new DaraElement(contextElement);
 

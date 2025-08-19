@@ -1,4 +1,4 @@
-import DaraGrid from "./DaraGrid";
+import { DaraGrid } from "./DaraGrid";
 
 import "../style/daracl.grid.scss";
 

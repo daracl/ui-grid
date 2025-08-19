@@ -1,6 +1,6 @@
-import EditRenderer from "../EditRenderer";
+import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
@@ -8,7 +8,7 @@ import { EditRendererInfo } from "@t/RendererInfo";
 import { numberValidator } from "src/rule/numberValidator";
 import { ValidResult } from "@t/ValidResult";
 import { isBooleanObject } from "util/types";
-import TextEditAbstractRenderer from "./TextEditAbstractRenderer";
+import { TextEditAbstractRenderer } from "./TextEditAbstractRenderer";
 
 /**
  * number renderer
@@ -17,7 +17,7 @@ import TextEditAbstractRenderer from "./TextEditAbstractRenderer";
  * @typedef {NumberEditRenderer}
  * @extends {EditRenderer}
  */
-export default class NumberEditRenderer extends TextEditAbstractRenderer {
+export class NumberEditRenderer extends TextEditAbstractRenderer {
   private readonly editRendererInfo: EditRendererInfo;
 
   constructor(field: FieldItem, gridMain: GridMain) {

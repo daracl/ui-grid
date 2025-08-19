@@ -2,7 +2,7 @@ import { eventOff, eventOn } from "src/util/eventUtils";
 import { styleClassSplit } from "../util/styleUtils";
 import { isBlank, isString, isUndefined } from "../util/utils";
 
-export default class DaraElement {
+export class DaraElement {
   private readonly element: HTMLElement;
 
   constructor(element: HTMLElement | null) {

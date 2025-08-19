@@ -1,10 +1,10 @@
-import EditRenderer from "../EditRenderer";
+import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { eventOn } from "src/util/eventUtils";
-import TextEditAbstractRenderer from "./TextEditAbstractRenderer";
+import { TextEditAbstractRenderer } from "./TextEditAbstractRenderer";
 
 /**
  * password renderer
@@ -13,7 +13,7 @@ import TextEditAbstractRenderer from "./TextEditAbstractRenderer";
  * @typedef {PasswordEditRenderer}
  * @extends {EditRenderer}
  */
-export default class PasswordEditRenderer extends TextEditAbstractRenderer {
+export class PasswordEditRenderer extends TextEditAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

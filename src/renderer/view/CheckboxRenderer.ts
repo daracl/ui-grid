@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
-import ViewRenderer from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
@@ -12,7 +12,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {CheckboxRenderer}
  * @extends {ViewRenderer}
  */
-export default class CheckboxRenderer extends ViewRenderer {
+export class CheckboxRenderer extends ViewRenderer {
   private readonly trueValue: string | boolean;
   private readonly falseValue: string | boolean;
   private readonly showLabel: boolean;

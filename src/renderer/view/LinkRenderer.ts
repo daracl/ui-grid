@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
-import GridMain from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
@@ -12,7 +12,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {LinkRenderer}
  * @extends {ViewRenderer}
  */
-export default class LinkRenderer extends ViewRenderer {
+export class LinkRenderer extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

@@ -2,14 +2,14 @@ import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
 
 import { addClass, removeClass, toggleClass } from "../../util/styleUtils";
 import { getCheckboxMode } from "../../util/gridUtils";
-import DaraGrid from "src/DaraGrid";
+import { DaraGrid } from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ALL_SELECT_VALUE } from "src/constants";
-import GridMain from "../GridMain";
-import DaraElement from "src/element/DaraElement";
-import SelectionInfo from "src/selection/selection";
-import BodyEvent from "./BodyEvent";
+import { GridMain } from "../GridMain";
+import { DaraElement } from "src/element/DaraElement";
+import { SelectionInfo } from "src/selection/selection";
+import { BodyEvent } from "./BodyEvent";
 import { SearchOptions } from "@t/GridOptions";
 import { getLayerElement, innerLayerPosition, hasClass } from "src/util/domUtils";
 import { eventOff, eventOn, isEnter, stopPreventCancel } from "src/util/eventUtils";
@@ -21,7 +21,7 @@ import { gridDataSearch } from "src/util/searchUtils";
  * @class DataSearch
  * @typedef {DataSearch}
  */
-export default class DataSearch {
+export class DataSearch {
   private grid: DaraGrid;
   private gridMain: GridMain;
 

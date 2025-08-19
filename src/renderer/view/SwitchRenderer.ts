@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
-import ViewRenderer from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
 import { eventOn } from "src/util/eventUtils";
 import { getCellInfo } from "src/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
@@ -12,7 +12,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {SwitchRenderer}
  * @extends {ViewRenderer}
  */
-export default class SwitchRenderer extends ViewRenderer {
+export class SwitchRenderer extends ViewRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
   private showLabel: boolean;

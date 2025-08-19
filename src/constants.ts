@@ -1,30 +1,30 @@
-import CheckboxRenderer from "./renderer/view/CheckboxRenderer";
-import CustomEditRenderer from "./renderer/edit/CustomEditRenderer";
-import DateRenderer from "./renderer/edit/DateRenderer";
+import { CheckboxRenderer } from "./renderer/view/CheckboxRenderer";
+import { CustomEditRenderer } from "./renderer/edit/CustomEditRenderer";
+import { DateRenderer } from "./renderer/edit/DateRenderer";
 
-import NumberEditRenderer from "./renderer/edit/NumberEditRenderer";
-import PasswordRenderer from "./renderer/view/PasswordRenderer";
-import RangeRenderer from "./renderer/edit/RangeRenderer";
-import TextAreaRenderer from "./renderer/edit/TextAreaRenderer";
-import TextEditRenderer from "./renderer/edit/TextEditRenderer";
+import { NumberEditRenderer } from "./renderer/edit/NumberEditRenderer";
+import { PasswordRenderer } from "./renderer/view/PasswordRenderer";
+import { RangeRenderer } from "./renderer/edit/RangeRenderer";
+import { TextAreaRenderer } from "./renderer/edit/TextAreaRenderer";
+import { TextEditRenderer } from "./renderer/edit/TextEditRenderer";
 
-import AsideLineNumberRenderer from "./renderer/view/AsideLineNumberRenderer";
-import AsideModifyInfoRenderer from "./renderer/view/AsideModifyInfoRenderer";
-import AsideRowCheckRenderer from "./renderer/view/AsideRowCheckRenderer";
+import { AsideLineNumberRenderer } from "./renderer/view/AsideLineNumberRenderer";
+import { AsideModifyInfoRenderer } from "./renderer/view/AsideModifyInfoRenderer";
+import { AsideRowCheckRenderer } from "./renderer/view/AsideRowCheckRenderer";
 
-import BarRenderer from "./renderer/view/BarRenderer";
-import ButtonRenderer from "./renderer/view/ButtonRenderer";
-import HiddenRenderer from "./renderer/view/HiddenRenderer";
-import HtmlRenderer from "./renderer/view/HtmlRenderer";
-import ImageRenderer from "./renderer/view/ImageRenderer";
-import DropdownRenderer from "./renderer/view/DropdownRenderer";
-import LinkRenderer from "./renderer/view/LinkRenderer";
-import TextRenderer from "./renderer/view/TextRenderer";
-import ViewCustomRenderer from "./renderer/view/ViewCustomRenderer";
-import SparklineRenderer from "./renderer/view/SparklineRenderer";
-import SparklineRendererBar from "./renderer/view/SparklineRendererBar";
-import SwitchRenderer from "./renderer/view/SwitchRenderer";
-import PasswordEditRenderer from "./renderer/edit/PasswordEditRenderer";
+import { BarRenderer } from "./renderer/view/BarRenderer";
+import { ButtonRenderer } from "./renderer/view/ButtonRenderer";
+import { HiddenRenderer } from "./renderer/view/HiddenRenderer";
+import { HtmlRenderer } from "./renderer/view/HtmlRenderer";
+import { ImageRenderer } from "./renderer/view/ImageRenderer";
+import { DropdownRenderer } from "./renderer/view/DropdownRenderer";
+import { LinkRenderer } from "./renderer/view/LinkRenderer";
+import { TextRenderer } from "./renderer/view/TextRenderer";
+import { ViewCustomRenderer } from "./renderer/view/ViewCustomRenderer";
+import { SparklineRenderer } from "./renderer/view/SparklineRenderer";
+import { SparklineRendererBar } from "./renderer/view/SparklineRendererBar";
+import { SwitchRenderer } from "./renderer/view/SwitchRenderer";
+import { PasswordEditRenderer } from "./renderer/edit/PasswordEditRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -137,7 +137,6 @@ export const TOOLBAR_HEIGHT = 35;
  */
 export const FOOTER_HEIGHT = 35;
 
-
 export const ROw_ITEM_PREFIX_NAME = "_dg";
 
 /**
@@ -200,3 +199,5 @@ export const ALL_SELECT_VALUE = "$all$";
  * @type {1000}
  */
 export const CHUNK_SIZE = 1000;
+
+export const HIDDEN_ELEMENT_SELECTOR = ".dg-hidden-container";

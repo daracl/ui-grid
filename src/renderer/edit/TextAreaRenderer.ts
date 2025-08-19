@@ -1,7 +1,7 @@
 import { CellInfo } from "@t/GridConfig";
-import EditRenderer from "../EditRenderer";
+import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 
 /**
  * textarea renderer
@@ -10,7 +10,7 @@ import GridMain from "src/view/GridMain";
  * @typedef {TextAreaRenderer}
  * @extends {EditRenderer}
  */
-export default class TextAreaRenderer extends EditRenderer {
+export class TextAreaRenderer extends EditRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

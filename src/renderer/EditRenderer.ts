@@ -2,13 +2,13 @@ import { FieldItem } from "@t/GridField";
 
 import { ValidResult } from "@t/ValidResult";
 import * as utils from "src/util/utils";
-import Renderer from "./Renderer";
-import GridMain from "src/view/GridMain";
+import { Renderer } from "./Renderer";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 import { getElementRect, getLayerElement } from "src/util/domUtils";
 import { ROW_CUD_KEY } from "src/constants";
 
-export default abstract class EditRenderer extends Renderer {
+export abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
   protected readonly rendererContainer: HTMLElement;
 

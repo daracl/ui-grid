@@ -1,6 +1,6 @@
-import EditRenderer from "../EditRenderer";
+import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 
 /**
@@ -10,7 +10,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {RangeRenderer}
  * @extends {EditRenderer}
  */
-export default class RangeRenderer extends EditRenderer {
+export class RangeRenderer extends EditRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

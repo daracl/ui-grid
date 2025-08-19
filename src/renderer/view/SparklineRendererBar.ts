@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
-import GridMain from "src/view/GridMain";
+import { ViewRenderer } from "../ViewRenderer";
+import { GridMain } from "src/view/GridMain";
 import { getElementRect } from "src/util/domUtils";
 import { CellInfo } from "@t/GridConfig";
 
@@ -11,7 +11,7 @@ import { CellInfo } from "@t/GridConfig";
  * @typedef {SparklineRendererBar}
  * @extends {ViewRenderer}
  */
-export default class SparklineRendererBar extends ViewRenderer {
+export class SparklineRendererBar extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

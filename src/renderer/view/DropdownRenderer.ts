@@ -1,10 +1,10 @@
 import { FieldItem } from "@t/GridField";
-import ViewRenderer from "../ViewRenderer";
+import { ViewRenderer } from "../ViewRenderer";
 import { addValueIfMissing, isArray, isFunction, isString } from "src/util/utils";
 import { CellInfo } from "@t/GridConfig";
 import { eventOff, eventOn } from "src/util/eventUtils";
 import { getCellInfo, valuesLabelKey, valuesValueKey } from "src/util/gridUtils";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { addClass, removeClass, toggleClass } from "src/util/styleUtils";
 import { getElementRect, getLayerElement, innerLayerPosition } from "src/util/domUtils";
 import { ALL_SELECT_VALUE } from "src/constants";
@@ -18,7 +18,7 @@ const SELECTED_STYLE_CLASS = "selected";
  * @typedef {DropdownRenderer}
  * @extends {ViewRenderer}
  */
-export default class DropdownRenderer extends ViewRenderer {
+export class DropdownRenderer extends ViewRenderer {
   private menuElement: HTMLElement;
   private currentEditRow: number;
   private readonly labelKey: string;

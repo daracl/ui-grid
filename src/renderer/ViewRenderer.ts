@@ -1,12 +1,12 @@
 import { FieldItem } from "@t/GridField";
 
-import Renderer from "./Renderer";
+import { Renderer } from "./Renderer";
 import { isFunction } from "src/util/utils";
 import { CellInfo, Config } from "@t/GridConfig";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { formatValue } from "src/util/formatUtils";
 
-export default abstract class ViewRenderer extends Renderer {
+export abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;
   private readonly isRefFunction: boolean;
 

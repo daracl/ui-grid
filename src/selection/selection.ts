@@ -3,12 +3,12 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "src/util/utils";
 import { initSelectionInfo, initSelectionRange } from "../defaultGridConfig";
 import { isMultipleSelection, isRowSelection } from "src/util/gridUtils";
-import GridMain from "src/view/GridMain";
+import { GridMain } from "src/view/GridMain";
 import { removeClass } from "src/util/styleUtils";
 import { hasClass } from "src/util/domUtils";
 import { isShiftKey } from "src/util/eventUtils";
 
-export default class SelectionInfo {
+export class SelectionInfo {
   private readonly gridMain: GridMain;
 
   private readonly options: GridOptions;

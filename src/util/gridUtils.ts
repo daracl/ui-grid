@@ -1,9 +1,8 @@
 import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
-import { intValue, isEmpty } from "./utils";
+import { intValue, isArray, isEmpty, isNumber } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
-import { isArray, isNumber } from "lodash";
 import { ROW_CUD_KEY } from "src/constants";
 
 /**

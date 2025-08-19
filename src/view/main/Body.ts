@@ -2,14 +2,14 @@ import { CellInfo, HeaderCellInfo } from "@t/GridConfig";
 
 import { removeClass } from "../../util/styleUtils";
 import { getCheckboxMode } from "../../util/gridUtils";
-import DaraGrid from "src/DaraGrid";
+import { DaraGrid } from "src/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import * as utils from "src/util/utils";
 import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
-import GridMain from "../GridMain";
-import DaraElement from "src/element/DaraElement";
-import SelectionInfo from "src/selection/selection";
-import BodyEvent from "./BodyEvent";
+import { GridMain } from "../GridMain";
+import { DaraElement } from "src/element/DaraElement";
+import { SelectionInfo } from "src/selection/selection";
+import { BodyEvent } from "./BodyEvent";
 
 /**
  * Body class
@@ -17,7 +17,7 @@ import BodyEvent from "./BodyEvent";
  * @class Body
  * @typedef {Body}
  */
-export default class Body {
+export class Body {
   private grid: DaraGrid;
   private gridMain: GridMain;
 

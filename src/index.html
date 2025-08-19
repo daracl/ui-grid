@@ -1009,7 +1009,15 @@
           , {
             divider: true
           }
-          , { key: "copy", "label": "복사", hotkey: 'Ctrl+C' }
+          , {
+            key: "copy", "label": "복사", hotkey: 'Ctrl+C', callback: function (item) {
+              console.log('direct copy callback : ', item.key, item);
+
+              if (item.key == 'copy') {
+                gridObj.copyData();
+              }
+            }
+          }
           , {
             key: "sql_create", "label": "sql생성", disabled: true
             , children: [

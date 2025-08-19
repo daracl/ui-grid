@@ -2,8 +2,8 @@ import { FieldItem } from "@t/GridField";
 import { TEXT_ALIGN_TYPE } from "src/constants";
 import { DisplayFormatOptions, OptionCallback } from "./Common";
 import { EditRendererInfo, RendererInfo } from "./RendererInfo";
-import ViewRenderer from "src/renderer/ViewRenderer";
-import EditRenderer from "src/renderer/EditRenderer";
+import { ViewRenderer } from "src/renderer/ViewRenderer";
+import { EditRenderer } from "src/renderer/EditRenderer";
 
 /**
  * Field info

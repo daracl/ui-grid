@@ -1,6 +1,6 @@
-import DaraForm from "src/DaraForm";
+import { DaraForm } from "src/DaraForm";
 import { RENDER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, ORIENTATION_TYPE, EDIT_RENDER_TYPE, VIEW_RENDER_TYPE } from "src/constants";
-import Renderer from "src/renderer/Render";
+import { Renderer } from "src/renderer/Render";
 import { OptionCallback } from "@t/Common";
 
 export interface ValuesInfo {

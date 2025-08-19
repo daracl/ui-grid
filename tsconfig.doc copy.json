@@ -1,8 +1,13 @@
 {
   "extends": "./tsconfig",
   "typedocOptions": {
-    "entryPoints": ["src/docIndex.ts"],
-    "entryPointStrategy": "resolve",
+    "entryPoints": [
+      "src/DaraGrid.ts",
+      "src/types/GridOptions.d.ts",
+      "src/types/Message.d.ts"
+      // "src/core/StringUtils.ts"
+      //"packages/b/src/index.ts",
+    ],
     "out": "docs",
     "name": "Daracl Grid",
     "excludePrivate": true,
