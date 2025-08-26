@@ -1,9 +1,9 @@
 # DaraGrid
 JavaScript grid creation library
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/darainfo/daracl.grid/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/daracl/daracl.grid/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@daracl%2Fgrid.svg)](https://badge.fury.io/js/@daracl%2Fgrid)
-[![npm](https://img.shields.io/npm/d18m/%40daracl%2Fgrid)](https://github.com/darainfo/daracl.grid/releases)
+[![npm](https://img.shields.io/npm/d18m/%40daracl%2Fgrid)](https://github.com/daracl/daracl.grid/releases)
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/@daracl%2Fgrid)](https://bundlephobia.com/package/@daracl%2Fgrid)
 
 
@@ -16,7 +16,7 @@ Latest ✔ | Latest ✔ | Latest ✔ | Latest ✔ | Latest ✔ |
 
 
 <p>
-<img src="https://github.com/darainfo/daracl.grid/blob/main/demo.gif?raw=true"/>
+<img src="https://github.com/daracl/daracl.grid/blob/main/demo.gif?raw=true"/>
 </p>
 
 
@@ -143,4 +143,4 @@ type: {
 
 
 ## License
-Darainfo is under [MIT License](./LICENSE).
+Daracl is under [MIT License](./LICENSE).

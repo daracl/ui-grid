@@ -4,13 +4,13 @@
   "sideEffects": false,
   "description": "Daracl Grid",
   "author": {
-    "name": "darainfo",
+    "name": "daracl",
     "email": "info@daracl.com",
-    "url": "https://www.moaview.com"
+    "url": "https://ui.daracl.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/darainfo/daracl.grid.git"
+    "url": "https://github.com/daracl/ui-grid.git"
   },
   "publishConfig": {
     "access": "public",
@@ -23,14 +23,14 @@
     "daracl-grid",
     "grid",
     "validation",
-    "darainfo",
+    "daracl",
     "javascript"
   ],
   "main": "src/index.ts",
   "types": "./dist/index.d.ts",
-  "homepage": "https://github.com/darainfo/daracl.grid",
+  "homepage": "https://github.com/daracl/daracl.grid",
   "bugs": {
-    "url": "https://github.com/darainfo/daracl.grid/issues",
+    "url": "https://github.com/daracl/daracl.grid/issues",
     "email": "info@daracl.com"
   },
   "exports": {
