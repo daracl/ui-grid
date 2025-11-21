@@ -1,7 +1,5 @@
-import { Config } from "@t/GridConfig";
-import { FieldItem } from "@t/GridField";
-import { intValue, isArray, isEmpty, isString, isUndefined } from "./utils";
-import { $querySelector, getElementRect } from "./domUtils";
+import { isEmpty, isString, isUndefined } from "./utils";
+import { $querySelector } from "./domUtils";
 
 const EVENT_KEY_CODE = {
   Enter: 13,
