@@ -1,8 +1,8 @@
 import { FieldItem } from "@t/GridField";
 import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "src/view/GridMain";
-import { eventOn } from "src/util/eventUtils";
-import { getCellInfo } from "src/util/gridUtils";
+import { GridMain } from "@/view/GridMain";
+import { eventOn } from "@/util/eventUtils";
+import { getCellInfo } from "@/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
 
 /**

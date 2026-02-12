@@ -1,13 +1,13 @@
 import { HeaderOptions } from "@t/GridOptions";
 
-import { DaraGrid } from "src/DaraGrid";
-import { DaraElement } from "src/element/DaraElement";
+import { DaraGrid } from "@/DaraGrid";
+import { DaraElement } from "@/element/DaraElement";
 import { GridMain } from "../GridMain";
 
-import { getHeaderCellInfo } from "src/util/gridUtils";
-import { addClass, removeClass } from "src/util/styleUtils";
+import { getHeaderCellInfo } from "@/util/gridUtils";
+import { addClass, removeClass } from "@/util/styleUtils";
 import { HeaderEvent } from "./HeaderEvent";
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from "src/constants";
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from "@/constants";
 
 /**
  * Header class

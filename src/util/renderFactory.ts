@@ -1,8 +1,8 @@
 import { VIEW_RENDERER } from "../constants";
 import { FieldItem } from "@t/GridField";
 import { isPlainObject, isString, isUndefined, merge } from "./utils";
-import { ViewRenderer } from "src/renderer/ViewRenderer";
-import { EditRenderer } from "src/renderer/EditRenderer";
+import { ViewRenderer } from "@/renderer/ViewRenderer";
+import { EditRenderer } from "@/renderer/EditRenderer";
 
 export const getViewRenderer = (field: FieldItem): ViewRenderer => {
   let render;

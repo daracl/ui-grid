@@ -1,7 +1,7 @@
 import { FieldItem } from "@t/GridField";
 import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "src/view/GridMain";
-import { getElementRect } from "src/util/domUtils";
+import { GridMain } from "@/view/GridMain";
+import { getElementRect } from "@/util/domUtils";
 import { CellInfo } from "@t/GridConfig";
 
 /**

@@ -128,6 +128,24 @@ export const DEFAULT_OPTIONS: GridOptions = {
       dblClick: false, // row dblclick event
       enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
     },
+
+    //
+    //
+    // 확인 할것.
+    //
+    //
+
+    // row 이동 옵션
+    rowMove: {
+      enabled: false, // 기본 비활성화
+      dragHandle: undefined, // 지정하지 않으면 row 전체에서 drag 가능
+      allowChangeParent: false, // tree 구조일 때 부모 이동 제한
+      draggable: undefined, // 기본 모든 row drag 가능
+      dragStart: undefined, // drag 시작 콜백
+      dragOver: undefined, // drag 중 위치 변경 콜백
+      drop: undefined, // drop 완료 콜백
+      dragEnd: undefined, // drag 종료 콜백
+    },
   },
   summary: { height: 28, position: "bottom", items: [] },
   scroll: {

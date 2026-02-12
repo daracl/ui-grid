@@ -3,7 +3,7 @@ import { intValue, isArray, isEmpty, isNumber } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
-import { ROW_CUD_KEY } from "src/constants";
+import { ROW_CUD_KEY } from "@/constants";
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.

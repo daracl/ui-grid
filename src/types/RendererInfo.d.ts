@@ -1,4 +1,4 @@
-import { REGEXP_TYPE, ORIENTATION_TYPE } from "src/constants";
+import { REGEXP_TYPE, ORIENTATION_TYPE } from "@/constants";
 import { OptionCallback } from "@t/Common";
 import { EditRenderer } from "../renderer/EditRenderer";
 

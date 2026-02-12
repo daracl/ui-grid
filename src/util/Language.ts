@@ -1,7 +1,7 @@
 import { Message } from "@t/Message";
 import { FieldItem } from "../types/GridField";
 import { ValidResult } from "@t/ValidResult";
-import { RULES } from "src/constants";
+import { RULES } from "@/constants";
 import { merge } from "./utils";
 
 let localeMessage: Message = {

@@ -2,13 +2,13 @@ import { CellInfo, HeaderCellInfo } from "@t/GridConfig";
 
 import { removeClass } from "../../util/styleUtils";
 import { getCheckboxMode } from "../../util/gridUtils";
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import * as utils from "src/util/utils";
-import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "src/constants";
+import * as utils from "@/util/utils";
+import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "@/constants";
 import { GridMain } from "../GridMain";
-import { DaraElement } from "src/element/DaraElement";
-import { SelectionInfo } from "src/selection/selection";
+import { DaraElement } from "@/element/DaraElement";
+import { SelectionInfo } from "@/selection/selection";
 import { BodyEvent } from "./BodyEvent";
 
 /**
@@ -629,7 +629,7 @@ export class Body {
       <thead><tr>${colGroupHtm.join("")}</tr></thead>
       <tbody></tbody>
     </table> 
-    ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+    ${type == "center" ? "" : '<div class="fixed-column-line"></div>'}`;
   }
 
   /**

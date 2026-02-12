@@ -1,12 +1,12 @@
 import { GridOptions } from "@t/GridOptions";
 import { Config } from "@t/GridConfig";
-import * as utils from "src/util/utils";
-import { getCenterContentLeft, getHorizontalScrollPosition } from "src/util/gridUtils";
-import { eventOff, eventOn, eventPosition, isClickEvent, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { DaraGrid } from "src/DaraGrid";
+import * as utils from "@/util/utils";
+import { getCenterContentLeft, getHorizontalScrollPosition } from "@/util/gridUtils";
+import { eventOff, eventOn, eventPosition, isClickEvent, isShiftKey, stopPreventCancel } from "@/util/eventUtils";
+import { DaraGrid } from "@/DaraGrid";
 import { GridMain } from "../GridMain";
-import { DaraElement } from "src/element/DaraElement";
-import { eqAttributeValue, hasClass } from "src/util/domUtils";
+import { DaraElement } from "@/element/DaraElement";
+import { eqAttributeValue, hasClass } from "@/util/domUtils";
 
 const SCROLL_THUMB_MIN_SIZE = 18;
 

@@ -1,4 +1,4 @@
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { $querySelector } from "./domUtils";
 
 /**

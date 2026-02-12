@@ -1,12 +1,12 @@
 import { FieldItem } from "@t/GridField";
 
 import { ValidResult } from "@t/ValidResult";
-import * as utils from "src/util/utils";
+import * as utils from "@/util/utils";
 import { Renderer } from "./Renderer";
-import { GridMain } from "src/view/GridMain";
+import { GridMain } from "@/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "src/util/domUtils";
-import { ROW_CUD_KEY } from "src/constants";
+import { getElementRect, getLayerElement } from "@/util/domUtils";
+import { ROW_CUD_KEY } from "@/constants";
 
 export abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -65,6 +65,9 @@ export abstract class EditRenderer extends Renderer {
         item[ROW_CUD_KEY] = "U";
       }
       item[this.fieldName] = value;
+
+      // 데이터 변경후 그리드 리프레시
+      this.gridMain.getBody().dataDraw("dataChange");
     }
   }
   public isEnableView() {

@@ -1,4 +1,4 @@
-import { eventOff, eventOn } from "src/util/eventUtils";
+import { eventOff, eventOn } from "@/util/eventUtils";
 import { styleClassSplit } from "../util/styleUtils";
 import { isBlank, isString, isUndefined } from "../util/utils";
 

@@ -1,16 +1,16 @@
 import { FooterOptions, GridOptions, HeaderOptions, PagingParam } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import * as utils from "src/util/utils";
-import { ALIGN, ALIGN_STYLE } from "src/constants";
-import { DaraElement } from "src/element/DaraElement";
+import * as utils from "@/util/utils";
+import { ALIGN, ALIGN_STYLE } from "@/constants";
+import { DaraElement } from "@/element/DaraElement";
 import { GridMain } from "./GridMain";
-import { SelectionInfo } from "src/selection/selection";
-import { getPagingInfo } from "src/util/pagingUtil";
+import { SelectionInfo } from "@/selection/selection";
+import { getPagingInfo } from "@/util/pagingUtil";
 import { PagingInfo } from "@t/PagingInfo";
-import { eventOn } from "src/util/eventUtils";
+import { eventOn } from "@/util/eventUtils";
 
 /**
  * Footer class

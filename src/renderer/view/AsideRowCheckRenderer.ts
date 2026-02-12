@@ -1,9 +1,9 @@
 import { FieldItem } from "@t/GridField";
 import { ViewRenderer } from "../ViewRenderer";
-import { ROW_CHECK_KEY } from "src/constants";
-import { GridMain } from "src/view/GridMain";
-import { eventOn } from "src/util/eventUtils";
-import { getCellInfo } from "src/util/gridUtils";
+import { ROW_CHECK_KEY } from "@/constants";
+import { GridMain } from "@/view/GridMain";
+import { eventOn } from "@/util/eventUtils";
+import { getCellInfo } from "@/util/gridUtils";
 import { CellInfo } from "@t/GridConfig";
 
 /**

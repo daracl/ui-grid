@@ -1,5 +1,5 @@
 import { Config } from "@t/GridConfig";
-import { ROW_ID_KEY } from "src/constants";
+import { ROW_ID_KEY } from "@/constants";
 
 const workerCode = `
 self.onmessage = function (e) {

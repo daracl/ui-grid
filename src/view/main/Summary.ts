@@ -1,14 +1,14 @@
 import { GridOptions, HeaderOptions, SummaryOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import { camelToKebab, isFunction } from "src/util/utils";
-import { CHUNK_SIZE, ROW_CHECK_NAME } from "src/constants";
-import { DaraElement } from "src/element/DaraElement";
+import { camelToKebab, isFunction } from "@/util/utils";
+import { CHUNK_SIZE, ROW_CHECK_NAME } from "@/constants";
+import { DaraElement } from "@/element/DaraElement";
 import { GridMain } from "../GridMain";
-import { calcSummary } from "src/util/mathUtils";
-import { formatValue } from "src/util/formatUtils";
+import { calcSummary } from "@/util/mathUtils";
+import { formatValue } from "@/util/formatUtils";
 
 /**
  * Summary class

@@ -1,10 +1,10 @@
 import { GridOptions, HeaderOptions } from "@t/GridOptions";
 import { Config, GridElement, Selection } from "@t/GridConfig";
 
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { FieldItem } from "@t/GridField";
-import * as utils from "src/util/utils";
-import { ALIGN_STYLE } from "src/constants";
+import * as utils from "@/util/utils";
+import { ALIGN_STYLE } from "@/constants";
 
 /**
  * Body class

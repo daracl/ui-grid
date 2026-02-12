@@ -1,4 +1,4 @@
-import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "src/constants";
+import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "@/constants";
 import { DisplayFormatOptions, OptionCallback } from "./Common";
 import { FieldItem } from "./GridField";
 
@@ -521,46 +521,112 @@ export interface AsideOptions {
  */
 export interface BodyOptions {
   /**
-   * body cell double click
+   * cell double click 이벤트
    */
   cellDblClick?: OptionCallback;
 
   /**
-   * row(tr) click event
+   * row(click) 이벤트
    */
   cellClick?: OptionCallback;
+
   /**
-   * arrows key handler function
+   * 화살표 키 이동 등 key 이벤트 핸들러
    */
   keyNavHandler?: OptionCallback;
 
   /**
-   * 붙여 넣기 전 호출 메소드
+   * 붙여넣기 전 호출 이벤트
    */
   pasteBefore?: OptionCallback;
+
   /**
-   * 붙여 넣기 후 호출 메소드
+   * 붙여넣기 후 호출 이벤트
    */
   pasteAfter?: OptionCallback;
 
   /**
-   * 로우 옵션.
+   * 행 이동(row drag & drop / reorder / tree 이동) 옵션
+   */
+  rowMove?: {
+    /**
+     * 기능 활성화 여부
+     */
+    enabled: boolean;
+
+    /**
+     * 드래그 핸들 컬럼 지정
+     * 컬럼 key 또는 배열로 지정 가능
+     * 지정하지 않으면 전체 row 어디서든 drag 가능
+     */
+    dragHandle?: string | string[];
+
+    /**
+     * 드래그 가능 여부를 동적으로 제어
+     * @param rowData 현재 row 데이터
+     * @param rowIndex row index
+     */
+    draggable?: (rowData: any, rowIndex: number) => boolean;
+
+    /**
+     * 다른 parent(row)로 이동 허용 여부
+     * tree 구조를 고려한 옵션
+     */
+    allowChangeParent?: boolean;
+
+    /**
+     * 드래그 시작 이벤트
+     */
+    dragStart?: OptionCallback;
+
+    /**
+     * 드래그 중 위치 변경 이벤트
+     * (UI 업데이트, placeholder 이동 등)
+     */
+    dragOver?: OptionCallback;
+
+    /**
+     * 드롭 완료 이벤트
+     * @param params.sourceId 이동한 row ID
+     * @param params.targetId drop 대상 row ID
+     * @param params.position "before" | "after" | "inside" drop 위치
+     */
+    drop?: (params: {
+      sourceId: string;
+      targetId: string;
+      position: "before" | "after" | "inside";
+      rows?: any[]; // 드롭 후 전체 rows 상태
+    }) => void;
+
+    /**
+     * 드래그 종료 이벤트
+     * (drop 성공/취소 관계없이 호출)
+     */
+    dragEnd?: OptionCallback;
+  };
+
+  /**
+   * row 단위 옵션
    */
   row: {
     /**
-     *  cell 높이
+     * row 높이
      */
     height: number;
+
     /**
-     * 추가할 style method
+     * 추가 스타일 적용 여부
+     * boolean 또는 callback으로 row 단위 제어 가능
      */
     addStyle: boolean | OptionCallback;
+
     /**
-     * row dblclick event
+     * row double click 이벤트
      */
     dblClick: boolean | OptionCallback;
+
     /**
-     * double click row checkbox checked true 여부.
+     * double click 시 row checkbox 체크 여부
      */
     enableDblClickRowCheck: boolean;
   };

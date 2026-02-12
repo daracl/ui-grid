@@ -1,7 +1,7 @@
 import { CellInfo } from "@t/GridConfig";
 import { EditRenderer } from "../EditRenderer";
 import { FieldItem } from "@t/GridField";
-import { GridMain } from "src/view/GridMain";
+import { GridMain } from "@/view/GridMain";
 
 /**
  * textarea renderer

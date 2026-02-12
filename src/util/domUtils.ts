@@ -1,4 +1,4 @@
-import { LAYER_ATTR_NAME } from "src/constants";
+import { LAYER_ATTR_NAME } from "@/constants";
 import { styleClassSplit } from "./styleUtils";
 import { isArray } from "./utils";
 

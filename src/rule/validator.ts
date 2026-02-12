@@ -1,6 +1,6 @@
 import { ValidResult } from "@t/ValidResult";
 import { regexpValidator } from "./regexpValidator";
-import * as utils from "src/util/utils";
+import * as utils from "@/util/utils";
 import { FieldItem } from "@t/GridField";
 import { Config } from "@t/GridConfig";
 

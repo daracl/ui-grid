@@ -1,14 +1,14 @@
 import { HeaderOptions } from "@t/GridOptions";
 import { Config, Selection, SelectionRange } from "@t/GridConfig";
 
-import { DaraGrid } from "src/DaraGrid";
-import { DaraElement } from "src/element/DaraElement";
+import { DaraGrid } from "@/DaraGrid";
+import { DaraElement } from "@/element/DaraElement";
 import { GridMain } from "../GridMain";
-import { eventOff, eventOn, eventPosition, isClickEvent, isCtrlKey, isShiftKey, stopPreventCancel } from "src/util/eventUtils";
-import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "src/util/gridUtils";
-import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from "src/util/domUtils";
+import { eventOff, eventOn, eventPosition, isClickEvent, isCtrlKey, isShiftKey, stopPreventCancel } from "@/util/eventUtils";
+import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "@/util/gridUtils";
+import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from "@/util/domUtils";
 import { Header } from "./Header";
-import { arrayCopy, isFunction, multiSort } from "src/util/utils";
+import { arrayCopy, isFunction, multiSort } from "@/util/utils";
 
 /**
  * Header class

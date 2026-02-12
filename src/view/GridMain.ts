@@ -1,6 +1,6 @@
 import { Config, FieldHeaderGroupInfo } from "@t/GridConfig";
 
-import { DaraGrid } from "src/DaraGrid";
+import { DaraGrid } from "@/DaraGrid";
 import { FieldItem } from "@t/GridField";
 import {
   ADD_ROW_POSITION,
@@ -20,18 +20,18 @@ import {
   THEME_TYPE,
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
-} from "src/constants";
+} from "@/constants";
 import { Header } from "./main/Header";
 import { Body } from "./main/Body";
-import { DaraElement } from "src/element/DaraElement";
-import { defaultFieldGroupInfo } from "src/defaultGridConfig";
-import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "src/defaultGridOption";
+import { DaraElement } from "@/element/DaraElement";
+import { defaultFieldGroupInfo } from "@/defaultGridConfig";
+import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "@/defaultGridOption";
 import { Scroll } from "./main/Scroll";
-import { eventOn } from "src/util/eventUtils";
-import { getTextWidth, heightOptionValue, isInputField } from "src/util/gridUtils";
-import { SelectionInfo } from "src/selection/selection";
+import { eventOn } from "@/util/eventUtils";
+import { getTextWidth, heightOptionValue, isInputField } from "@/util/gridUtils";
+import { SelectionInfo } from "@/selection/selection";
 import { Footer } from "./Footer";
-import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "src/util/utils";
+import { arrayCopy, debounce, deepCopy, insertToArray, isArray, isNumber, isObject, isPlainObject, isString, isUndefined, isVisible, merge } from "@/util/utils";
 import { DataSearch } from "./main/DataSearch";
 import { Summary } from "./main/Summary";
 import { ContextMenu } from "./main/ContextMenu";
@@ -316,14 +316,6 @@ export class GridMain {
     }
 
     this.grid.config().isOpenLayer = false;
-
-    console.log("hideLayer222 : ", this.openLayers.length, hideElement);
-
-    const stack = new Error().stack;
-
-    if (stack) {
-      console.log("호출한 함수:", stack);
-    }
 
     for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
       const layerElement = this.openLayers[idx];

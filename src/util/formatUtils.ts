@@ -1,5 +1,5 @@
 import { DisplayFormatOptions } from "@t/Common";
-import { formatNumber } from "src/format/formatNumber";
+import { formatNumber } from "@/format/formatNumber";
 
 export function formatValue(value: any, displayFormat: DisplayFormatOptions) {
   const type = displayFormat.type;

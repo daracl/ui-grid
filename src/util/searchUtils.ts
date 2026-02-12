@@ -1,6 +1,6 @@
 import { MatchedField, SearchMode } from "@t/Common";
-import { CHUNK_SIZE } from "src/constants";
-import { DaraGrid } from "src/DaraGrid";
+import { CHUNK_SIZE } from "@/constants";
+import { DaraGrid } from "@/DaraGrid";
 
 export function gridDataSearch(
   searchList: any[],

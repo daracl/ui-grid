@@ -1,10 +1,10 @@
 import { FieldItem } from "@t/GridField";
 
 import { Renderer } from "./Renderer";
-import { isFunction } from "src/util/utils";
+import { isFunction } from "@/util/utils";
 import { CellInfo, Config } from "@t/GridConfig";
-import { GridMain } from "src/view/GridMain";
-import { formatValue } from "src/util/formatUtils";
+import { GridMain } from "@/view/GridMain";
+import { formatValue } from "@/util/formatUtils";
 
 export abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;

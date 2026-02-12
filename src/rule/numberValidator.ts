@@ -1,7 +1,7 @@
 import { ValidResult } from "@t/ValidResult";
-import { RULES } from "src/constants";
+import { RULES } from "@/constants";
 import { validator } from "./validator";
-import * as utils from "src/util/utils";
+import * as utils from "@/util/utils";
 import { FieldItem } from "@t/GridField";
 import { Config } from "@t/GridConfig";
 

@@ -1,5 +1,5 @@
 import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION } from "src/constants";
+import { ADD_ROW_POSITION } from "@/constants";
 
 const xssFilter = {
   "&": "&amp;",

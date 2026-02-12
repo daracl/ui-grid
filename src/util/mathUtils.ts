@@ -1,4 +1,4 @@
-import { CHUNK_SIZE } from "src/constants";
+import { CHUNK_SIZE } from "@/constants";
 
 export function calcSummary(items: any[], mode: string, itemKey: string): number | string {
   if (mode !== "min" && mode !== "max" && mode !== "sum" && mode !== "average") {

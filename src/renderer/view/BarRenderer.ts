@@ -1,6 +1,6 @@
 import { FieldItem } from "@t/GridField";
 import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "src/view/GridMain";
+import { GridMain } from "@/view/GridMain";
 import { CellInfo } from "@t/GridConfig";
 
 /**
