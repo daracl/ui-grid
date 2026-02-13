@@ -100,18 +100,22 @@ export const eventOff = (el: Element | string | NodeList | null | Document | Ele
     return;
   }
 
+  // 각 요소별로 WeakMap에서 이벤트 정보를 읽어와 제거
   for (const eventType of eventTypes) {
-    if (isUndefined(evtInfo[eventType])) continue;
+    const event = eventType.split(".")[0];
+    elements.forEach((target) => {
+      const elementEvents = EVENT_HANDLER_MAP.get(target);
+      if (isEmpty(elementEvents) || isEmpty(elementEvents[eventType])) {
+        return;
+      }
 
-    elements.forEach((el) => {
-      el.removeEventListener(eventType, evtInfo[eventType]);
+      target.removeEventListener(event, elementEvents[eventType]);
+      delete elementEvents[eventType];
+
+      if (Object.keys(elementEvents).length < 1) {
+        EVENT_HANDLER_MAP.delete(target);
+      }
     });
-
-    delete evtInfo[eventType];
-  }
-
-  if (Object.keys(evtInfo).length < 1) {
-    EVENT_HANDLER_MAP.delete(el);
   }
 };
 
@@ -165,8 +169,9 @@ export const eventOn = (el: Element | string | NodeList | null | Document | Elem
 
   for (const eventType of eventTypes) {
     addEventInfo(el, eventType, fn);
-    elements.forEach((el: Element) => {
-      el.addEventListener(eventType, fn, fnOpts ?? {});
+    const event = eventType.split(".")[0];
+    elements.forEach((el: Node) => {
+      el.addEventListener(event, fn, fnOpts ?? {});
     });
   }
 };

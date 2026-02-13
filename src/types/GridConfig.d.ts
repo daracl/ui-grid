@@ -111,6 +111,10 @@ export interface Config {
   selection: Selection;
   isHeaderResize: boolean;
   focus: boolean;
+
+  // row move 상태 여부
+  isRowMove: boolean;
+
   isBodyDragging: boolean;
   isHeaderDragging: boolean;
   mouseEnter: boolean;

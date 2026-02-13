@@ -128,13 +128,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
       dblClick: false, // row dblclick event
       enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
     },
-
-    //
-    //
-    // 확인 할것.
-    //
-    //
-
     // row 이동 옵션
     rowMove: {
       enabled: false, // 기본 비활성화
@@ -145,6 +138,23 @@ export const DEFAULT_OPTIONS: GridOptions = {
       dragOver: undefined, // drag 중 위치 변경 콜백
       drop: undefined, // drop 완료 콜백
       dragEnd: undefined, // drag 종료 콜백
+      /**
+       * 🔥 드래그 중 보여질 템플릿 설정
+       */
+      dragTemplate: {
+        /**
+         * 기본 ghost UI 사용 여부
+         * true → 기본 텍스트 표시
+         * false → 커스텀 renderer 사용
+         */
+        useDefault: true,
+
+        /**
+         * 커스텀 템플릿 렌더 함수
+         * HTMLElement 또는 HTML string 반환 가능
+         */
+        renderer: undefined as ((rowData: any, rowIndex: number) => HTMLElement | string) | undefined,
+      },
     },
   },
   summary: { height: 28, position: "bottom", items: [] },

@@ -603,6 +603,21 @@ export interface BodyOptions {
      * (drop 성공/취소 관계없이 호출)
      */
     dragEnd?: OptionCallback;
+
+    dragTemplate: {
+      /**
+       * 기본 ghost UI 사용 여부
+       * true → 기본 텍스트 표시
+       * false → 커스텀 renderer 사용
+       */
+      useDefault: boolean;
+
+      /**
+       * 커스텀 템플릿 렌더 함수
+       * HTMLElement 또는 HTML string 반환 가능
+       */
+      renderer: string | OptionCallback | undefined;
+    };
   };
 
   /**

@@ -10,7 +10,7 @@ import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, 
 import { SelectionInfo } from "@/selection/selection";
 import { getElementRect, hasClass } from "@/util/domUtils";
 import { Body } from "./Body";
-import { ROW_CHECK_NAME } from "@/constants";
+import { HIDDEN_ELEMENT_SELECTOR, ROW_CHECK_NAME } from "@/constants";
 import { DataSearch } from "./DataSearch";
 
 /**
@@ -46,6 +46,7 @@ export class BodyEvent {
   public initEvent() {
     this.initKeydownEvent();
     this.initCellEvent();
+    this.initRowMoveEvent();
     this.initPasteEvent();
   }
 
@@ -166,6 +167,142 @@ export class BodyEvent {
   }
 
   /**
+   * init row move event
+   *
+   * @private
+   */
+  private initRowMoveEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+
+    const rowMoveOptions = opts.body.rowMove;
+
+    console.log("rowMoveOptions : ", opts.body, rowMoveOptions);
+
+    if (rowMoveOptions?.enabled !== true) {
+      return;
+    }
+
+    const rowHeight = cfg.rowHeight;
+
+    const bodyElement = this.bodyElement.getElement();
+
+    const rowMoveElement = document.createElement("div");
+    rowMoveElement.className = "dg-row-move-helper";
+    rowMoveElement.style = `position:absolute;top:0;left:0;z-index:1000;padding:3px 3px;height:${rowHeight}`;
+
+    document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(rowMoveElement);
+
+    eventOn(
+      bodyElement,
+      "mousedown.rowmove touchstart.rowmove",
+      (e: UIEvent) => {
+        if ((e as MouseEvent).button !== 0) {
+          return true;
+        }
+        const eventElement = e.target as HTMLElement;
+        if (isInputField(eventElement.tagName)) {
+          return true;
+        }
+
+        cfg.isRowMove = false;
+
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement == null || hasClass(cellElement, "$row-check $modify-info")) {
+          this.gridMain.hideLayer();
+          return;
+        }
+
+        //const startEvtPosition = eventPosition(e);
+
+        const position = getElementRect(bodyElement, true);
+        const _t = position.top,
+          _b = _t + cfg.dimensions.mainBodyHeight;
+
+        const startCellInfo = getCellInfo(cfg, cellElement);
+
+        if (!(rowMoveOptions?.dragHandle == startCellInfo.field.name || (Array.isArray(rowMoveOptions?.dragHandle) && rowMoveOptions?.dragHandle.indexOf(startCellInfo.field.name) > -1) || !rowMoveOptions?.dragHandle)) {
+          return;
+        }
+
+        stopPreventCancel(e);
+
+        startCellInfo.c = startCellInfo.c < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : startCellInfo.c;
+
+        let beforeMoveRange = { endIdx: -1, endCol: -1 };
+
+        let rowMoveDragTimer: any = -1;
+        // mouse darg scroll
+        let mouseDragDirectionY: string;
+        eventOn(document, "touchmove.rowmove mousemove.rowmove", (moveEvt: Event) => {
+          cfg.isRowMove = true;
+
+          const e1Position = eventPosition(moveEvt);
+          const moveRange: any = {};
+          const moveYInfo = dragVerticalMovePosition(cfg, e1Position.y, rowHeight, startCellInfo, _t, _b);
+          mouseDragDirectionY = moveYInfo.mouseDragDirectionY;
+          if (moveYInfo.rowIdx > -1) {
+            moveRange.endIdx = moveYInfo.rowIdx;
+          }
+
+          // drag row move helper 표시
+          // 처리 할것.
+          rowMoveElement.style.display = "block";
+          rowMoveElement.style.top = `${e1Position.y}px`;
+          rowMoveElement.style.left = `${e1Position.x}px`;
+          rowMoveElement.innerText = "asdfasdfa";
+
+          console.log("moveRange 11111111 : ", moveYInfo);
+
+          if (beforeMoveRange.endIdx == moveRange.endIdx) return;
+
+          beforeMoveRange = moveRange;
+
+          if (rowMoveDragTimer < 1) {
+            let beforeMovePosition = { col: -1, rowIdx: -1 };
+            rowMoveDragTimer = setInterval(() => {
+              if (mouseDragDirectionY == "") return;
+
+              const moveRangeInfo = {} as SelectionRange;
+
+              if (mouseDragDirectionY != "") {
+                let endIdx = mouseDragDirectionY == "D" ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1 : cfg.scroll.startIdx - 1;
+
+                if (beforeMovePosition.rowIdx != endIdx) {
+                  moveRangeInfo.endIdx = endIdx;
+                  this.gridMain.getScroll().moveVerticalScroll({ direction: mouseDragDirectionY, drawFlag: false });
+                  beforeMovePosition.rowIdx = endIdx;
+                }
+              }
+
+              this.body.dataDraw("dragscroll");
+            }, 200);
+          }
+        });
+
+        eventOn(document, "touchend.rowmove mouseup.rowmove ", () => {
+          cfg.isRowMove = false;
+          eventOff(document, "touchmove.rowmove mousemove.rowmove touchend.rowmove mouseup.rowmove");
+          clearInterval(rowMoveDragTimer);
+          rowMoveElement.style.display = "none";
+          //bodyDragTimer = -1;
+        });
+      },
+      ".dg-cell",
+      { passive: false }
+    );
+
+    eventOn(bodyElement, "mouseup.rowmove touchend.rowmove", (e: UIEvent) => {
+      cfg.isRowMove = false;
+      rowMoveElement.style.display = "none";
+
+      //selectionMode = orginSelectionMode;
+      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
+    });
+  }
+
+  /**
    * cell click drag event
    *
    * @private
@@ -254,6 +391,8 @@ export class BodyEvent {
           let mouseScrollDirectionX: string;
           let mouseDragDirectionY: string;
           eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
+            if (cfg.isRowMove) return;
+
             cfg.isBodyDragging = true;
 
             const e1Position = eventPosition(moveEvt);

@@ -205,4 +205,11 @@
       }
     }
   }
+
+  .dg-row-move-helper {
+    background-color: #e6f0ff;
+    position: absolute;
+    display: none;
+    padding: 3px 3px;
+  }
 }
