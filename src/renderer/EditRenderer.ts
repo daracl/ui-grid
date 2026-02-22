@@ -61,6 +61,8 @@ export abstract class EditRenderer extends Renderer {
     }
 
     if (this.changeEventCall(e, item, value)) {
+      if (item[this.fieldName] == value) return;
+
       if (item[ROW_CUD_KEY] == "R") {
         item[ROW_CUD_KEY] = "U";
       }

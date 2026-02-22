@@ -1338,6 +1338,7 @@ export class GridMain {
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
                       <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid.i18n().getMessage("no.data")}</span></span></div>
+                      <div class="dg-movedrop-helper"></div>
                   </div>
                   ${!isSummaryTop ? summaryTemplate : ""}
               </div>

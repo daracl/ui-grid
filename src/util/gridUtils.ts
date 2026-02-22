@@ -217,40 +217,45 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
  * @param {CellInfo} startCellInfo start cell 정보
  * @param {number} _t grid top position
  * @param {number} _b grid bottom position
- * @returns {{ mouseDragDirectionY: string; rowIdx: number; }}
+ * @returns {{ scrollDirectionY: string; rowIdx: number; }}
  */
 export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
-  let mouseDragDirectionY = "";
-  let rowIdx = -1;
-  const { scroll, dataInfo } = cfg;
+  const scroll = cfg.scroll;
+  const dataInfo = cfg.dataInfo;
+
   const startIdx = scroll.startIdx;
+  const insideViewRow = scroll.insideViewRow;
+  const viewRow = scroll.viewRow;
+  const rowLength = dataInfo.rowLength;
 
+  let scrollDirectionY: "U" | "D" | "" = "";
+  let rowIdx = -1;
+
+  // 위
   if (moveY < _t) {
-    mouseDragDirectionY = "U";
-  } else if (moveY > _b) {
-    mouseDragDirectionY = "D";
-  } else {
-    let topVal = 0;
-    const contentTop = moveY - _t;
-    for (let i = 0; i < scroll.viewRow; i++) {
-      topVal += rowHeight;
-
-      if (topVal > contentTop) {
-        rowIdx = i;
-        break;
-      }
-    }
-
-    if (rowIdx >= 0) {
-      rowIdx = startIdx + rowIdx;
-    }
+    if (startIdx > 0) scrollDirectionY = "U";
+    return { scrollDirectionY, rowIdx };
   }
 
-  if ((mouseDragDirectionY == "U" && startIdx == 0) || (mouseDragDirectionY == "D" && dataInfo.rowLength == startIdx + scroll.insideViewRow)) {
-    mouseDragDirectionY = "";
+  // 아래
+  if (moveY > _b) {
+    if (startIdx + insideViewRow < rowLength) scrollDirectionY = "D";
+    return { scrollDirectionY, rowIdx };
   }
 
-  return { mouseDragDirectionY, rowIdx };
+  // 내부 영역
+  const relativeY = moveY - _t;
+
+  // division 제거 → 곱셈 사용
+  const invRowHeight = 1 / rowHeight;
+  const visibleRowIndex = (relativeY * invRowHeight) | 0;
+  // | 0 은 floor보다 빠름 (양수 전제)
+
+  if (visibleRowIndex < viewRow) {
+    rowIdx = startIdx + visibleRowIndex;
+  }
+
+  return { scrollDirectionY, rowIdx };
 }
 
 /**

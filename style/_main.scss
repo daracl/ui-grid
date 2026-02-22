@@ -45,7 +45,7 @@
         display: block !important;
       }
 
-      .dg-scroll-edge{
+      .dg-scroll-edge {
         display: block !important;
       }
 
@@ -150,6 +150,20 @@
     margin-left: -2px;
     z-index: 100;
     border-left: 3px dotted #bcbcbd;
+
+    &.active {
+      display: block;
+    }
+  }
+
+  .dg-movedrop-helper {
+    width: 100%;
+    position: absolute;
+    display: none;
+    height: 3px;
+    top: 0px;
+    z-index: 100;
+    background-color: #b6b6b6 !important;
 
     &.active {
       display: block;

@@ -8,6 +8,7 @@
 @use "./footer" as _FOOTER;
 @use "./hidden.component" as _HIDDEN;
 @use "./main/contextmenu" as _CONTEXT;
+@use "./hidden.helper" as _HIDDEN_HELPER;
 
 .daracl-noselect {
   -webkit-touch-callout: none;
@@ -448,4 +449,5 @@ body {
 .dg-hidden-container {
   position: initial;
   @include _CONTEXT.contextMenu;
+  @include _HIDDEN_HELPER.hiddenHelper;
 }
