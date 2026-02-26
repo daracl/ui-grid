@@ -217,7 +217,7 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
  * @param {CellInfo} startCellInfo start cell 정보
  * @param {number} _t grid top position
  * @param {number} _b grid bottom position
- * @returns {{ scrollDirectionY: string; rowIdx: number; }}
+ * @returns {{ scrollDirectionY: string; rowIdx: number;, viewRowIdx: number; }}
  */
 export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
   const scroll = cfg.scroll;
@@ -234,13 +234,13 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
   // 위
   if (moveY < _t) {
     if (startIdx > 0) scrollDirectionY = "U";
-    return { scrollDirectionY, rowIdx };
+    return { scrollDirectionY, rowIdx, viewRowIdx: 0 };
   }
 
   // 아래
   if (moveY > _b) {
     if (startIdx + insideViewRow < rowLength) scrollDirectionY = "D";
-    return { scrollDirectionY, rowIdx };
+    return { scrollDirectionY, rowIdx, viewRowIdx: insideViewRow };
   }
 
   // 내부 영역
@@ -248,14 +248,14 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
 
   // division 제거 → 곱셈 사용
   const invRowHeight = 1 / rowHeight;
-  const visibleRowIndex = (relativeY * invRowHeight) | 0;
+  const viewRowIdx = (relativeY * invRowHeight) | 0;
   // | 0 은 floor보다 빠름 (양수 전제)
 
-  if (visibleRowIndex < viewRow) {
-    rowIdx = startIdx + visibleRowIndex;
+  if (viewRowIdx < viewRow) {
+    rowIdx = startIdx + viewRowIdx;
   }
 
-  return { scrollDirectionY, rowIdx };
+  return { scrollDirectionY, rowIdx, viewRowIdx };
 }
 
 /**
