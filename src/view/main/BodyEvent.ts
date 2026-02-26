@@ -179,102 +179,91 @@ export class BodyEvent {
     if (rowMoveOptions?.enabled !== true) return;
 
     const rowHeight = cfg.rowHeight;
-    const invRowHeight = 1 / rowHeight;
-
-    const rowMoveDropHelperElement = this.grid.element().findDaraElement(".dg-movedrop-helper").getElement();
-
     const bodyElement = this.bodyElement.getElement();
 
     const rowMoveElement = document.createElement("div");
     rowMoveElement.className = "dg-row-move-helper";
-    rowMoveElement.style.position = "absolute";
-    rowMoveElement.style.zIndex = "1000";
-    rowMoveElement.style.padding = "3px";
-    rowMoveElement.style.height = `${rowHeight}px`;
-    rowMoveElement.style.willChange = "transform";
+    // set static styles once
+    rowMoveElement.style.cssText = `position: absolute; z-index: 1000; padding: 3px; height: ${rowHeight}px; will-change: transform; display: none;`;
 
     document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(rowMoveElement);
 
-    let mouseMovePosition: { x: number; y: number };
+    let mouseMovePosition: { x: number; y: number } = { x: 0, y: 0 };
     let isTicking = false;
-    let scrollDirectionY: string;
+    let scrollDirectionY: string = "";
     let lastRowIdx = -1;
     let autoScrollRAF = 0;
-    let processDragRAF = 0;
+    let verticalMovePosition: { scrollDirectionY: string; rowIdx: number; viewRowIdx: number } | null = null;
 
-    let verticalMovePosition: { scrollDirectionY: string; rowIdx: number } | null = null;
+    const rowMoveDropHelperElement = this.grid.element().findDaraElement(".dg-movedrop-helper").getElement();
+    let bodyTop = 0;
+    let bodyBottom = 0;
+
+    const SCROLL_INTERVAL = 140;
+    const ROW_DRAG_RATIO = 3;
 
     const processDrag = () => {
-      if (!verticalMovePosition) {
+      if (!verticalMovePosition || !isTicking) {
         isTicking = false;
         return;
       }
 
-      scrollDirectionY = verticalMovePosition?.scrollDirectionY ?? "";
-      const scroll = cfg.scroll;
+      scrollDirectionY = verticalMovePosition.scrollDirectionY ?? "";
+      const viewRowIdx = verticalMovePosition.viewRowIdx;
 
-      let rowIdx = verticalMovePosition?.rowIdx ?? 0;
+      const moveViewRowY = mouseMovePosition.y - bodyTop;
 
-      let currentViewIndex = 0;
-      if (rowIdx == -1) {
-        currentViewIndex = scrollDirectionY == "U" ? 0 : scroll.insideViewRow;
-      } else {
-        currentViewIndex = rowIdx - scroll.startIdx + 1;
-        currentViewIndex = currentViewIndex >= scroll.insideViewRow ? scroll.insideViewRow : currentViewIndex;
+      const offsetInRow = moveViewRowY - viewRowIdx * rowHeight;
+
+      // 위쪽 1/3, 아래쪽 2/3 기준
+      let isMoveUp = offsetInRow < rowHeight / ROW_DRAG_RATIO; // 상단 1/3 안쪽
+      let isMoveDown = rowHeight - offsetInRow < rowHeight / ROW_DRAG_RATIO; // 하단 2/3 밖
+
+      let helperViewIndex = lastRowIdx;
+
+      if (isMoveUp) {
+        helperViewIndex = viewRowIdx;
+      } else if (isMoveDown) {
+        helperViewIndex = viewRowIdx + 1;
       }
+
+      // 범위 제한
+      helperViewIndex = Math.max(0, Math.min(helperViewIndex, cfg.scroll.insideViewRow));
+
+      const helperTop = helperViewIndex * rowHeight;
 
       rowMoveElement.style.transform = `translate(${mouseMovePosition.x}px, ${mouseMovePosition.y}px)`;
 
-      //currentViewIndex += currentViewIndex < lastRowIdx ? -1 : 0;
-
-      console.log("rowIdx : ", lastRowIdx, currentViewIndex, scrollDirectionY, rowIdx, scroll.startIdx, scroll.insideViewRow);
-
-      const rowTop = bodyTop + currentViewIndex * rowHeight;
-      const offsetInRow = mouseMovePosition.y - rowTop;
-      const isBelowHalf = offsetInRow > rowHeight / 2;
-
-      let helperTop = (isBelowHalf ? currentViewIndex : currentViewIndex - 1) * rowHeight;
-
-      console.log("rowIdx : ", isBelowHalf, rowTop, mouseMovePosition.y, offsetInRow);
-
-      if (lastRowIdx == currentViewIndex) {
-        isTicking = false;
-        return;
+      if (lastRowIdx !== helperViewIndex) {
+        rowMoveDropHelperElement.style.transform = `translateY(${helperTop}px)`;
+        lastRowIdx = helperViewIndex;
       }
-
-      // --- 2/3 기준으로 helper 위치 결정 ---
-
-      rowMoveDropHelperElement.style.transform = `translateY(${helperTop}px)`;
-      lastRowIdx = currentViewIndex;
 
       isTicking = false;
     };
 
-    let lastScrollTime = 0; // 마지막 스크롤 실행 시간
+    const stopMouseMove = () => {
+      cfg.isRowMove = false;
+      rowMoveDropHelperElement.style.display = "none";
+      rowMoveElement.style.display = "none";
+      cancelAnimationFrame(autoScrollRAF);
+      eventOff(document, "mousemove.rowmove mouseup.rowmove touchend.rowmove");
+    };
 
-    const autoScrollLoop = (timestamp?: number) => {
+    const autoScrollLoop = () => {
       if (!cfg.isRowMove) return;
 
-      const now = timestamp || performance.now();
-
-      console.log("11111111");
-
-      // 200ms 간격 체크
-      if (scrollDirectionY !== "" && now - lastScrollTime > 200) {
+      if (scrollDirectionY !== "") {
         this.gridMain.getScroll().moveVerticalScroll({
           direction: scrollDirectionY,
           drawFlag: false,
         });
         this.body.dataDraw("dragscroll");
-
-        lastScrollTime = now;
       }
-
-      autoScrollRAF = requestAnimationFrame(autoScrollLoop);
+      setTimeout(() => {
+        autoScrollRAF = requestAnimationFrame(autoScrollLoop);
+      }, SCROLL_INTERVAL);
     };
-
-    let bodyTop = 0;
-    let bodyBottom = 0;
 
     eventOn(bodyElement, "mousedown.rowmove touchstart.rowmove", (e: MouseEvent) => {
       if (e.button !== 0) return;
@@ -300,44 +289,36 @@ export class BodyEvent {
       bodyTop = rect.top;
       bodyBottom = bodyTop + cfg.dimensions.mainBodyHeight;
 
-      cfg.isRowMove = true;
       lastRowIdx = -1;
+      scrollDirectionY = "";
 
       eventOn(document, "mousemove.rowmove", (moveEvt: MouseEvent) => {
-        mouseMovePosition = eventPosition(moveEvt);
-
-        verticalMovePosition = dragVerticalMovePosition(cfg, mouseMovePosition.y, rowHeight, startCellInfo, bodyTop, bodyBottom);
-
-        if (!isTicking) {
+        if (!cfg.isRowMove) {
+          cfg.isRowMove = true;
+          // start auto scroll loop
+          autoScrollRAF = requestAnimationFrame(autoScrollLoop);
           rowMoveElement.textContent = startCellInfo.item[startCellInfo.field.name];
           rowMoveDropHelperElement.style.display = "block";
           rowMoveElement.style.display = "block";
+        }
+
+        mouseMovePosition = eventPosition(moveEvt);
+        verticalMovePosition = dragVerticalMovePosition(cfg, mouseMovePosition.y, rowHeight, startCellInfo, bodyTop, bodyBottom);
+
+        if (!isTicking) {
           isTicking = true;
           requestAnimationFrame(processDrag);
-
-          autoScrollRAF = requestAnimationFrame(autoScrollLoop);
         }
       });
 
-      eventOn(document, "mouseup.rowmove", () => {
-        cfg.isRowMove = false;
-
-        cancelAnimationFrame(autoScrollRAF);
-
-        eventOff(document, "mousemove.rowmove mouseup.rowmove");
-
-        rowMoveDropHelperElement.style.transform = "";
-        rowMoveDropHelperElement.style.display = "none";
-        rowMoveElement.style.display = "none";
+      eventOn(document, "mouseup.rowmove touchend.rowmove", () => {
+        stopMouseMove();
       });
     });
 
-    eventOn(bodyElement, "mouseup.rowmove touchend.rowmove", (e: UIEvent) => {
-      cfg.isRowMove = false;
-      rowMoveDropHelperElement.style.display = "none";
-      rowMoveElement.style.display = "none";
-
-      cancelAnimationFrame(autoScrollRAF);
+    // safety end handlers (in case mouseup occurs on body)
+    eventOn(bodyElement, "mouseup.rowmove touchend.rowmove", () => {
+      stopMouseMove();
     });
   }
 

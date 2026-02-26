@@ -11,6 +11,7 @@
     top: 0;
     left: 0;
     z-index: 1000;
+    display: none;
     pointer-events: none; /* 마우스 이벤트 통과 */
     will-change: transform;
     border: 1px solid #1a73e8;
