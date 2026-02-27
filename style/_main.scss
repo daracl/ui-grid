@@ -168,6 +168,10 @@
     &.active {
       display: block;
     }
+
+    &.dg-drop-forbidden {
+      background-color: #d95959 !important;
+    }
   }
 
   /* main scroll */

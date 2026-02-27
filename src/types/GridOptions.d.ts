@@ -576,33 +576,49 @@ export interface BodyOptions {
 
     /**
      * 드래그 시작 이벤트
+     *  @param params.moveItems 이동하는 row 데이터 배열
+     * @returns 이동 허용 여부 (false 반환 시 해당 드래그 동작 취소)
+     * - 드래그 시작 시점에 이동을 허용할지 여부를 결정하는 콜백 함수
+     * - 예: 특정 row는 이동 불가하도록 설정 가능
+     * - 반환값이 false인 경우 해당 드래그 동작이 취소되고, row는 원래 위치에 남게 됨
+     * - 반환값이 true이거나 undefined인 경우 드래그가 정상적으로 진행됨
      */
-    dragStart?: OptionCallback;
+    dragStart?: (params: { moveItems: any[] }) => boolean | void;
 
     /**
      * 드래그 중 위치 변경 이벤트
      * (UI 업데이트, placeholder 이동 등)
+     * @param params.moveItems 이동하는 row 데이터 배열
+     * @param params.dropItemIdx 현재 드롭 위치의 row index
+     * @returns 드롭 허용 여부 (false 반환 시 해당 위치로의 드롭 금지)
+     * - 드래그 중에 현재 드롭 위치가 유효한지 여부를 결정하는 콜백 함수
+     * - 예: 특정 위치에는 드롭 불가하도록 설정 가능
+     * - 반환값이 false인 경우 해당 위치로의 드롭이 금지되고, UI 상에서 드롭 위치 표시 등이 업데이트되지 않음
+     * - 반환값이 true이거나 undefined인 경우 해당 위치로의 드롭이 허용되고, UI 업데이트 등이 정상적으로 진행됨
      */
-    dragOver?: OptionCallback;
+    dragOver?: (params: RowMoveEventParams) => boolean | void;
 
     /**
      * 드롭 완료 이벤트
-     * @param params.sourceId 이동한 row ID
-     * @param params.targetId drop 대상 row ID
-     * @param params.position "before" | "after" | "inside" drop 위치
+     * @param params.moveItems 이동하는 row 데이터 배열
+     * @param params.dropItemIdx 드롭된 위치의 row index
+     * @returns 드롭 허용 여부 (false 반환 시 드롭 동작 취소)
+     * - 드롭이 완료된 후에 해당 드롭 동작을 최종적으로 허용할지 여부를 결정하는 콜백 함수
+     * - 예: 특정 조건에서는 드롭을 취소하도록 설정 가능
+     * - 반환값이 false인 경우 해당 드롭 동작이 취소되고, row는 원래 위치로 돌아감
+     * - 반환값이 true이거나 undefined인 경우 드롭이 정상적으로 완료되고, row는 새로운 위치에 남게 됨
      */
-    drop?: (params: {
-      sourceId: string;
-      targetId: string;
-      position: "before" | "after" | "inside";
-      rows?: any[]; // 드롭 후 전체 rows 상태
-    }) => void;
+    drop?: (params: RowMoveEventParams) => boolean | void;
 
     /**
      * 드래그 종료 이벤트
-     * (drop 성공/취소 관계없이 호출)
+     * @param params.moveItems 이동하는 row 데이터 배열
+     * @param params.dropItemIdx 드롭된 위치의 row index (drop이 취소된 경우에도 마지막 드롭 위치)
+     * @returns void
+     * - 드래그가 종료된 후에 호출되는 콜백 함수로, 드롭 성공 여부와 관계없이 항상 호출됨
+     * - 예: 드래그 종료 시점에 리소스 정리, 상태 초기화 등의 작업 수행 가능
      */
-    dragEnd?: OptionCallback;
+    dragEnd?: (params: RowMoveEventParams) => boolean | void;
 
     dragTemplate: {
       /**
@@ -647,6 +663,10 @@ export interface BodyOptions {
   };
 }
 
+export interface RowMoveEventParams {
+  moveItems: any[];
+  dropItemIdx: number;
+}
 /**
  * scroll option
  *

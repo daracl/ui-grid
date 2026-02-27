@@ -518,6 +518,30 @@
           rowMove: {
             enabled: true,
             dragHandle: "name",
+            // drag 시작 콜백
+            dragStart(itemInfo) {
+              console.log("dragStart", itemInfo);
+            },
+            draggable(itemInfo) {
+              console.log("draggable", itemInfo);
+            }, // 기본 모든 row drag 가능
+            // drag 중 위치 변경 콜백
+            dragOver(itemInfo) {
+              const { moveItems, dropItemIdx } = itemInfo;
+              console.log("dragOver", itemInfo);
+              if (dropItemIdx == 3) {
+                console.log("false return : ", itemInfo);
+                return false; // drop 금지
+              }
+            },
+            // drop 완료 콜백
+            drop(itemInfo) {
+              console.log("drop", itemInfo);
+            },
+            // drag 종료 콜백
+            dragEnd(itemInfo) {
+              console.log("dragEnd", itemInfo);
+            },
           },
           cellDblClick: function (itemInfo) {
             //console.log('cellDblClick', itemInfo)

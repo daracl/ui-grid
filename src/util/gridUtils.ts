@@ -142,7 +142,9 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
 
   const context = cfg.canvasContext as CanvasRenderingContext2D;
 
-  for (let i = 0, len = cfg.dataInfo.rowLength < 100 ? cfg.dataInfo.rowLength : 100; i < len; i++) {
+  const startIdx = cfg.scroll.startIdx;
+
+  for (let i = startIdx, len = Math.min(cfg.dataInfo.rowLength, startIdx + 100); i < len; i++) {
     const tmpVal = field.$renderer.getValue(items[i]);
 
     if (isEmpty(tmpVal)) continue;
