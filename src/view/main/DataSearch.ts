@@ -9,7 +9,7 @@ import { ALL_SELECT_VALUE } from "@/constants";
 import { GridMain } from "../GridMain";
 import { DaraElement } from "@/element/DaraElement";
 import { SelectionInfo } from "@/selection/selection";
-import { BodyEvent } from "./BodyEvent";
+import { BodyEvent } from "./body/BodyEvent";
 import { SearchOptions } from "@t/GridOptions";
 import { getLayerElement, innerLayerPosition, hasClass } from "@/util/domUtils";
 import { eventOff, eventOn, isEnter, stopPreventCancel } from "@/util/eventUtils";

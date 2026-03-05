@@ -1,17 +1,21 @@
 import { CellInfo, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
 
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, isMultipleSelection, createNewItems, isRowSelection } from "../../util/gridUtils";
+import { dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, createNewItems, isRowSelection, moveItem } from "../../../util/gridUtils";
 import { DaraGrid } from "@/DaraGrid";
 import * as utils from "@/util/utils";
 
-import { GridMain } from "../GridMain";
+import { GridMain } from "../../GridMain";
 import { DaraElement } from "@/element/DaraElement";
 import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, isSpacebar, stopPreventCancel } from "@/util/eventUtils";
 import { SelectionInfo } from "@/selection/selection";
 import { getElementRect, hasClass } from "@/util/domUtils";
 import { Body } from "./Body";
-import { HIDDEN_ELEMENT_SELECTOR, ROW_CHECK_NAME } from "@/constants";
-import { DataSearch } from "./DataSearch";
+import { HIDDEN_ELEMENT_SELECTOR, ROW_CHECK_NAME, POINTER_STATE } from "@/constants";
+import { PointerHandler } from "@/event/PointerHandler";
+import { CellClickHandler } from "./CellClickHandler";
+import { PointerSession } from "@/event/PointerSession";
+import { ClickManager } from "@/event/ClickManager";
+import { RowMoveHandler } from "./RowMoveHandler";
 
 /**
  * Body event class
@@ -30,6 +34,8 @@ export class BodyEvent {
 
   private readonly allCellElements: any;
 
+  private handlers: PointerHandler[];
+
   constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.grid = grid;
     this.gridMain = gridMain;
@@ -40,14 +46,127 @@ export class BodyEvent {
     this.allCellElements = this.body.getBodyCellElements();
     this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
 
+    this.handlers = [];
+
+    const rowMoveOptions = grid.getOptions().body.rowMove;
+
+    if (rowMoveOptions?.enabled !== true) {
+      this.handlers.push(new RowMoveHandler({ grid, gridMain }, this));
+    }
+    this.handlers.push(new CellClickHandler({ grid, gridMain }, this));
+
     this.initEvent();
   }
 
   public initEvent() {
     this.initKeydownEvent();
-    this.initCellEvent();
-    this.initRowMoveEvent();
+
+    this.initBodyPointerEvent();
+
     this.initPasteEvent();
+  }
+
+  initBodyPointerEvent() {
+    const cfg = this.grid.config();
+    const opts = this.grid.getOptions();
+    const bodyElement = this.bodyElement.getElement();
+
+    let session: PointerSession;
+    const editable = opts.editable;
+
+    let clickManager = new ClickManager();
+
+    eventOn(
+      bodyElement,
+      "mousedown.cellclick touchstart.cellclick",
+      (e: UIEvent) => {
+        if ((e as MouseEvent).button !== 0) {
+          return true;
+        }
+        const eventElement = e.target as HTMLElement;
+        if (isInputField(eventElement.tagName)) {
+          return true;
+        }
+
+        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+
+        if (cellElement == null || hasClass(cellElement, "$row-check $modify-info")) {
+          this.gridMain.hideLayer();
+          return;
+        }
+
+        const startEvtPosition = eventPosition(e);
+        const startCellInfo = getCellInfo(cfg, cellElement);
+        startCellInfo.c = startCellInfo.c < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : startCellInfo.c;
+
+        console.log("startEvtPosition : ", startEvtPosition, "startCellInfo : ", startCellInfo);
+
+        session = {
+          state: "PRESSED",
+          event: e,
+          startPos: startEvtPosition,
+          currentPos: startEvtPosition,
+          cellInfo: startCellInfo,
+          startTime: Date.now(),
+          lastClickTime: 0,
+          cellEl: cellElement,
+          clickCount: 1,
+        };
+
+        //clickManager.conserveClick(session.startPos);
+
+        let handlerPriority = -1;
+        for (const handler of this.handlers) {
+          if (handler.canHandle(session)) {
+            if (handlerPriority > handler.priority) {
+              continue;
+            }
+            handlerPriority = handler.priority;
+            session.handler = handler;
+          }
+        }
+
+        const handler = session.handler!;
+
+        console.log("pointer handler : ", handlerPriority, this.handlers, handler);
+
+        handler.onActivate?.(session);
+
+        if (handler.onPointerMove) {
+          eventOn(document, "touchmove.cellclick mousemove.cellclick", (moveEvt: Event) => {
+            session.state = POINTER_STATE.DRAGGING;
+            session.currentPos = eventPosition(moveEvt);
+            handler.onPointerMove?.(session);
+          });
+
+          eventOn(document, "touchend.cellclick mouseup.cellclick", (moveEvt: Event) => {
+            session.state = POINTER_STATE.IDLE;
+            session.currentPos = eventPosition(moveEvt);
+            eventOff(document, "touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick");
+            handler.onPointerUp?.(session);
+          });
+        }
+
+        if (editable === true) {
+          if (clickManager.getClickCount() == 0) {
+            cfg.edit.enable = false;
+          }
+        }
+
+        clickManager.processClick(session, handler);
+
+        if (startCellInfo.field.$isAside) {
+          return;
+        }
+      },
+      ".dg-cell",
+      { passive: false }
+    );
+
+    eventOn(bodyElement, "mouseup.cellclick touchend.cellclick", (e: UIEvent) => {
+      cfg.selection.isMouseDown = false;
+      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
+    });
   }
 
   /**
@@ -56,7 +175,7 @@ export class BodyEvent {
    * @public
    * @param {CellInfo} cellInfo
    */
-  private setRowCheckItemClick(cellInfo: CellInfo) {
+  public setRowCheckItemClick(cellInfo: CellInfo) {
     const cfg = this.grid.config();
     const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
     if (!utils.isEmpty(rowCheckCol)) {
@@ -204,10 +323,10 @@ export class BodyEvent {
     let bodyBottom = 0;
 
     const SCROLL_INTERVAL = 140;
-    const ROW_DRAG_RATIO = 3;
+    const ROW_DRAG_RATIO = 2;
 
     let moveItemIdx: any[] = [];
-    let dropViewRowIdx: number = -1;
+    let dropRowIdx: number = -1;
     let moveRowItem: any;
     let isDropForbidden = false;
 
@@ -228,7 +347,7 @@ export class BodyEvent {
       let isMoveUp = offsetInRow < rowHeight / ROW_DRAG_RATIO; // 상단 1/3 안쪽
       let isMoveDown = rowHeight - offsetInRow < rowHeight / ROW_DRAG_RATIO; // 하단 2/3 밖
 
-      let helperViewIndex = dropViewRowIdx === -1 ? viewRowIdx : dropViewRowIdx;
+      let helperViewIndex = dropRowIdx === -1 ? viewRowIdx : verticalMovePosition.rowIdx - scroll.startIdx;
 
       if (isMoveUp) {
         helperViewIndex = viewRowIdx;
@@ -244,12 +363,16 @@ export class BodyEvent {
 
       rowMoveElement.style.transform = `translate(${mouseMovePosition.x}px, ${mouseMovePosition.y}px)`;
 
-      if (dropViewRowIdx !== helperViewIndex) {
+      const currentDropRowIdx = scroll.startIdx + helperViewIndex;
+
+      console.log("viewRowIdx : ", viewRowIdx, "isMoveUp : ", isMoveUp, "isMoveDown : ", isMoveDown, "currentDropRowIdx : ", currentDropRowIdx);
+
+      if (dropRowIdx !== currentDropRowIdx) {
         rowMoveDropHelperElement.style.transform = `translateY(${helperTop}px)`;
-        dropViewRowIdx = helperViewIndex;
+        dropRowIdx = currentDropRowIdx;
         isDropForbidden = false;
 
-        if (moveRowItem.rowIndex === scroll.startIdx + helperViewIndex || moveRowItem.rowIndex === scroll.startIdx + helperViewIndex - 1) {
+        if (moveRowItem.rowIndex === currentDropRowIdx || moveRowItem.rowIndex === currentDropRowIdx - 1) {
           isDropForbidden = true;
           rowMoveDropHelperElement.style.display = "none";
           return;
@@ -257,7 +380,7 @@ export class BodyEvent {
           rowMoveDropHelperElement.style.display = "block";
         }
 
-        if (dragOver?.({ moveItems: moveRowItem, dropItemIdx: scroll.startIdx + dropViewRowIdx }) === false) {
+        if (dragOver?.({ moveItems: moveRowItem, dropItemIdx: currentDropRowIdx }) === false) {
           isDropForbidden = true;
           rowMoveDropHelperElement.classList.add("dg-drop-forbidden");
         } else {
@@ -273,17 +396,38 @@ export class BodyEvent {
       cancelAnimationFrame(autoScrollRAF);
       eventOff(document, "mousemove.rowmove mouseup.rowmove touchend.rowmove");
 
-      if (isDropForbidden) {
+      if (isDropForbidden || dropRowIdx === -1) {
         return;
       }
 
       if (type == "move") {
-        if (drop && drop({ moveItems: moveRowItem, dropItemIdx: scroll.startIdx + dropViewRowIdx }) === false) {
+        if (drop && drop({ moveItems: moveRowItem, dropItemIdx: dropRowIdx }) === false) {
           return;
         }
       }
+      if (type == "up") {
+        cfg.items = moveItem(cfg.items, moveRowItem.rowIndex, dropRowIdx);
 
-      dragEnd?.({ moveItems: moveRowItem, dropItemIdx: scroll.startIdx + dropViewRowIdx });
+        console.log("cfg.selection : ", cfg.selection);
+
+        const startIdx = cfg.selection.startCell.startIdx;
+
+        const moveIdx = startIdx - dropRowIdx;
+
+        // /cfg.selection.maxIdx moveIdx
+        this.selectionInfo.setStartCellRowIdx(dropRowIdx);
+        const moveRange: any = { startIdx: dropRowIdx, endIdx: dropRowIdx };
+        this.selectionInfo.setSelectionRangeInfo(
+          {
+            range: moveRange as SelectionRange,
+          } as Selection,
+          false,
+          false
+        );
+
+        this.gridMain.getBody().dataDraw("dragmove_redraw");
+        dragEnd?.({ moveItems: moveRowItem, dropItemIdx: dropRowIdx });
+      }
     };
 
     const autoScrollLoop = () => {
@@ -295,6 +439,8 @@ export class BodyEvent {
           drawFlag: false,
         });
         this.body.dataDraw("dragscroll");
+        isTicking = true;
+        requestAnimationFrame(processDrag);
       }
       setTimeout(() => {
         autoScrollRAF = requestAnimationFrame(autoScrollLoop);
@@ -321,25 +467,27 @@ export class BodyEvent {
         if (!(rowMoveOptions?.dragHandle == moveRowItem.field.name || (utils.isArray(rowMoveOptions?.dragHandle) && rowMoveOptions?.dragHandle.indexOf(moveRowItem.field.name) > -1) || !rowMoveOptions?.dragHandle)) {
           return;
         }
+
+        cfg.isRowMove = true;
+
         moveItemIdx = [];
 
         moveItemIdx.push(moveRowItem.rowIndex);
-
-        stopPreventCancel(e);
 
         const rect = getElementRect(bodyElement, true);
         bodyTop = rect.top;
         bodyBottom = bodyTop + cfg.dimensions.mainBodyHeight;
 
-        dropViewRowIdx = -1;
+        dropRowIdx = -1;
         scrollDirectionY = "";
 
-        eventOn(document, "mousemove.rowmove", (moveEvt: MouseEvent) => {
-          if (!cfg.isRowMove) {
-            cfg.isRowMove = true;
+        let isDargStart = false;
 
+        eventOn(document, "mousemove.rowmove", (moveEvt: MouseEvent) => {
+          if (!isDargStart) {
+            isDargStart = true;
             if (dragStart?.(moveRowItem) === false) {
-              cfg.isRowMove = false;
+              stopMouseMove("move");
               return;
             }
 
@@ -362,6 +510,8 @@ export class BodyEvent {
         eventOn(document, "mouseup.rowmove touchend.rowmove", () => {
           stopMouseMove("move");
         });
+
+        //return false;
       },
       null,
       { passive: false }
@@ -369,260 +519,8 @@ export class BodyEvent {
 
     // safety end handlers (in case mouseup occurs on body)
     eventOn(bodyElement, "mouseup.rowmove touchend.rowmove", () => {
+      if (!cfg.isRowMove) return;
       stopMouseMove("up");
-    });
-  }
-
-  /**
-   * cell click drag event
-   *
-   * @private
-   */
-  private initCellEvent() {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
-
-    // body  selection 처리.
-    // cell event 처리할것.
-    const orginSelectionMode = opts.selectionMode;
-    let selectionMode = orginSelectionMode;
-
-    let bodyDragTimer: any = -1;
-    let bodyDragDelay = 150;
-    let multipleFlag = isMultipleSelection(selectionMode);
-
-    let clickCnt = 0,
-      clickDelay = 400;
-
-    let clickTimer: any;
-    let currentCellPosition: any;
-    const resetClick = function () {
-      clickCnt = 0;
-      currentCellPosition = null;
-    };
-
-    function conserveClick(cellPosition: any) {
-      currentCellPosition = cellPosition;
-      clearTimeout(clickTimer);
-      clickTimer = setTimeout(resetClick, clickDelay);
-    }
-
-    const rowOptions = opts.body.row;
-    const rowHeight = cfg.rowHeight;
-    // row cell double click event
-    const enableDblClickRowCheck = rowOptions.enableDblClickRowCheck === true;
-    const editable = opts.editable;
-    const dblClickEventFlag = editable || enableDblClickRowCheck || utils.isFunction(opts.body.cellDblClick);
-    const isCellDblClick = utils.isFunction(opts.body.cellDblClick);
-    const cellDblClick = opts.body.cellDblClick ?? function () {};
-
-    const cellClickFn = opts.body.cellClick;
-    const isCellClick = utils.isFunction(cellClickFn);
-
-    const bodyElement = this.bodyElement.getElement();
-    eventOn(
-      bodyElement,
-      "mousedown touchstart",
-      (e: UIEvent) => {
-        if ((e as MouseEvent).button !== 0) {
-          return true;
-        }
-        const eventElement = e.target as HTMLElement;
-        if (isInputField(eventElement.tagName)) {
-          return true;
-        }
-
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
-
-        if (cellElement == null || hasClass(cellElement, "$row-check $modify-info")) {
-          this.gridMain.hideLayer();
-          return;
-        }
-
-        //const startEvtPosition = eventPosition(e);
-
-        const position = getElementRect(bodyElement, true);
-        const mainRightWidth = cfg.dimensions.mainRightWidth;
-        const _l = position.left + cfg.dimensions.mainLeftWidth,
-          _r = position.left + cfg.dimensions.mainInsideWidth - mainRightWidth;
-        const _t = position.top,
-          _b = _t + cfg.dimensions.mainBodyHeight;
-
-        if (multipleFlag && hasClass(cellElement, "line-number")) {
-          selectionMode = "multiple-row";
-        }
-
-        const startCellInfo = getCellInfo(cfg, cellElement);
-        startCellInfo.c = startCellInfo.c < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : startCellInfo.c;
-
-        let beforeMoveRange = { endIdx: -1, endCol: -1 };
-
-        if (multipleFlag) {
-          // mouse darg scroll
-          let mouseScrollDirectionX: string;
-          let scrollDirectionY: string;
-          eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
-            if (cfg.isRowMove) return;
-
-            cfg.isBodyDragging = true;
-
-            const e1Position = eventPosition(moveEvt);
-
-            const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r, beforeMoveRange.endCol);
-            mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
-
-            const moveRange: any = {};
-            if (moveXInfo.overCell > -1) {
-              moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(selectionMode, moveXInfo.overCell, cfg, cellElement, cfg.selection.isMouseDown).endCol;
-            }
-
-            const moveYInfo = dragVerticalMovePosition(cfg, e1Position.y, rowHeight, startCellInfo, _t, _b);
-            scrollDirectionY = moveYInfo.scrollDirectionY;
-            if (moveYInfo.rowIdx > -1) {
-              moveRange.endIdx = moveYInfo.rowIdx;
-            }
-
-            if (beforeMoveRange.endIdx == moveRange.endIdx && beforeMoveRange.endCol == moveRange.endCol) return;
-
-            if (Object.keys(moveRange).length > 0) {
-              this.selectionInfo.setSelectionRangeInfo(
-                {
-                  range: moveRange as SelectionRange,
-                } as Selection,
-                false,
-                mouseScrollDirectionX == "" && scrollDirectionY == ""
-              );
-            }
-
-            // console.log("moveRange 11111111 : ", mouseScrollDirectionX, mouseDragDirectionY, moveRange);
-
-            beforeMoveRange = moveRange;
-
-            if (bodyDragTimer < 1) {
-              let beforeMovePosition = { col: -1, rowIdx: -1 };
-              bodyDragTimer = setInterval(() => {
-                if (mouseScrollDirectionX == "" && scrollDirectionY == "") return;
-
-                let isDraw = false;
-
-                const moveRangeInfo = {} as SelectionRange;
-
-                if (mouseScrollDirectionX != "") {
-                  const isRight = mouseScrollDirectionX === "R";
-                  let endCol = isRight ? cfg.scroll.insideEndCol + 3 : cfg.scroll.insideStartCol - 3;
-
-                  if (beforeMovePosition.col != endCol) {
-                    if ((isRight && cfg.fixedRightIndex == 0) || (!isRight && cfg.fixedLeftIndex == 0)) {
-                      moveRangeInfo.endCol = endCol;
-                    }
-
-                    this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: false });
-                    beforeMovePosition.col = endCol;
-                    isDraw = true;
-                  }
-                }
-
-                if (scrollDirectionY != "") {
-                  let endIdx = scrollDirectionY == "D" ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1 : cfg.scroll.startIdx - 1;
-
-                  if (beforeMovePosition.rowIdx != endIdx) {
-                    moveRangeInfo.endIdx = endIdx;
-                    this.gridMain.getScroll().moveVerticalScroll({ direction: scrollDirectionY, drawFlag: false });
-                    beforeMovePosition.rowIdx = endIdx;
-                    isDraw = true;
-                  }
-                }
-
-                if (isDraw) {
-                  this.selectionInfo.setSelectionRangeInfo(
-                    {
-                      range: moveRangeInfo,
-                    } as Selection,
-                    false,
-                    false
-                  );
-                  this.body.dataDraw("dragscroll");
-                }
-              }, bodyDragDelay);
-            }
-          });
-
-          eventOn(document, "touchend mouseup", () => {
-            cfg.isBodyDragging = false;
-            eventOff(document, "touchmove mousemove touchend mouseup");
-            clearInterval(bodyDragTimer);
-            bodyDragTimer = -1;
-          });
-        }
-
-        const currViewIdx = cfg.scroll.startIdx;
-
-        this.setCellClick(e, startCellInfo, multipleFlag, selectionMode, cellElement);
-
-        const newViewIdx = cfg.scroll.startIdx;
-
-        if (currViewIdx != newViewIdx) {
-          startCellInfo.r = startCellInfo.r - 1;
-        }
-
-        const rowIndex = startCellInfo.rowIndex;
-
-        const positionInfo = {
-          position: cellElement.getAttribute("data-cell-position"),
-          rowItemIdx: rowIndex,
-        };
-
-        if (editable === true) {
-          if (clickCnt == 0) {
-            cfg.edit.enable = false;
-          }
-        }
-
-        if (startCellInfo.field.$isAside) {
-          return;
-        }
-
-        if (clickCnt > 0 && currentCellPosition.position == positionInfo.position && currentCellPosition.rowItemIdx == rowIndex) {
-          // double click 처리.
-          conserveClick(positionInfo);
-          resetClick();
-
-          const field = startCellInfo.field;
-
-          if (dblClickEventFlag) {
-            if (editable === true && field.editable !== false && !field.$renderer.isEditRenderer()) {
-              field.$editRenderer.render(startCellInfo, cellElement);
-              return;
-            }
-
-            if (enableDblClickRowCheck) {
-              this.setRowCheckItemClick(startCellInfo);
-            }
-
-            if (isCellDblClick) cellDblClick(startCellInfo);
-
-            return;
-          }
-        } else {
-          ++clickCnt;
-          conserveClick(positionInfo);
-        }
-
-        // row click event
-        if (isCellClick) {
-          if (cellClickFn) cellClickFn(startCellInfo);
-        }
-
-        return;
-      },
-      ".dg-cell",
-      { passive: false }
-    );
-
-    eventOn(bodyElement, "mouseup touchend", (e: UIEvent) => {
-      cfg.selection.isMouseDown = false;
-      selectionMode = orginSelectionMode;
-      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
   }
 
@@ -906,7 +804,7 @@ export class BodyEvent {
   }
 
   // cell click
-  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
+  public setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
     const cfg = this.grid.config();
 
     this.gridMain.setGridFocusIn(e, true);

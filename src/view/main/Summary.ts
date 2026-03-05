@@ -227,11 +227,11 @@ export class Summary {
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace("$", "")}" data-cell-position="${rowIdx + "," + (startCol + j)}">
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace("$", "")}" data-cell-position="${rowIdx},${startCol + j}">
             <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></div>
           </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${startCol + j}"><div role="presentation"
               class="dg-cell-renderer dg-cell-ellipsis 
               dg-${renderType} ${field.$alignStyle}"></div>
           </td>`);

@@ -58,12 +58,6 @@ export class SelectionInfo {
 
     const currentSelection = this.setSelectionInfo(initFlag, cfg.selection, changeSelection);
 
-    // const stack = new Error().stack;
-
-    // if (stack) {
-    //   console.log("호출한 함수:", stack);
-    // }
-
     const lastRowIdx = cfg.dataInfo.lastRow;
     const lastCol = cfg.dataInfo.colLength - 1;
 
@@ -708,6 +702,14 @@ export class SelectionInfo {
     }
 
     return "auto" + ++this.serialNumber;
+  }
+
+  /**
+   * set start cell row index
+   * @param {number} rowIdx row index
+   */
+  public setStartCellRowIdx(rowIdx: number) {
+    this.config.selection.startCell.startIdx = rowIdx;
   }
 }
 

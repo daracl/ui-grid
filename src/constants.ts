@@ -201,3 +201,9 @@ export const ALL_SELECT_VALUE = "$all$";
 export const CHUNK_SIZE = 1000;
 
 export const HIDDEN_ELEMENT_SELECTOR = ".dg-hidden-container";
+
+export const POINTER_STATE = {
+  IDLE: "IDLE",
+  PRESSED: "PRESSED",
+  DRAGGING: "DRAGGING",
+} as const;

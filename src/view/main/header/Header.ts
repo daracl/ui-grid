@@ -2,7 +2,7 @@ import { HeaderOptions } from "@t/GridOptions";
 
 import { DaraGrid } from "@/DaraGrid";
 import { DaraElement } from "@/element/DaraElement";
-import { GridMain } from "../GridMain";
+import { GridMain } from "../../GridMain";
 
 import { getHeaderCellInfo } from "@/util/gridUtils";
 import { addClass, removeClass } from "@/util/styleUtils";

@@ -81,12 +81,16 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
  * @returns {{ r: number; c: number; }}
  */
 export const getCellPosition = (cellElement: HTMLElement) => {
-  const posInfo = (cellElement.getAttribute("data-cell-position") ?? "").split(",");
+  const posInfo = (getCellPositionAttr(cellElement) ?? "").split(",");
 
   return {
     r: intValue(posInfo[0]),
     c: intValue(posInfo[1]),
   };
+};
+
+export const getCellPositionAttr = (cellElement: HTMLElement) => {
+  return cellElement.getAttribute("data-cell-position");
 };
 
 /**
@@ -235,13 +239,25 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
 
   // 위
   if (moveY < _t) {
-    if (startIdx > 0) scrollDirectionY = "U";
+    if (startIdx > 0) {
+      scrollDirectionY = "U";
+      rowIdx = startIdx - 1;
+    } else {
+      rowIdx = 0;
+    }
+
     return { scrollDirectionY, rowIdx, viewRowIdx: 0 };
   }
 
   // 아래
   if (moveY > _b) {
-    if (startIdx + insideViewRow < rowLength) scrollDirectionY = "D";
+    if (startIdx + insideViewRow < rowLength) {
+      scrollDirectionY = "D";
+      rowIdx = startIdx + insideViewRow + 1;
+    } else {
+      rowIdx = rowLength - 1;
+    }
+
     return { scrollDirectionY, rowIdx, viewRowIdx: insideViewRow };
   }
 
@@ -452,4 +468,18 @@ export function heightOptionValue(heightOption: number | number[] | undefined, d
   }
 
   return { height, heights };
+}
+
+/**
+ * 배열 아이템 이동
+ *
+ * @param {any[]} array 이동할 배열
+ * @param {number} fromIndex 이동할 아이템의 현재 인덱스
+ * @param {number} toIndex 이동할 아이템의 새로운 인덱스
+ * @returns {any[]} 이동된 아이템이 반영된 새로운 배열
+ */
+export function moveItem(array: any[], fromIndex: number, toIndex: number): any[] {
+  const item = array.splice(fromIndex, 1)[0];
+  array.splice(toIndex, 0, item);
+  return array;
 }

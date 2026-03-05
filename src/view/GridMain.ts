@@ -21,8 +21,8 @@ import {
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
 } from "@/constants";
-import { Header } from "./main/Header";
-import { Body } from "./main/Body";
+import { Header } from "./main/header/Header";
+import { Body } from "./main/body/Body";
 import { DaraElement } from "@/element/DaraElement";
 import { defaultFieldGroupInfo } from "@/defaultGridConfig";
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from "@/defaultGridOption";

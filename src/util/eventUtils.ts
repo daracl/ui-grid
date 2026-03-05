@@ -1,5 +1,6 @@
 import { isEmpty, isString, isUndefined } from "./utils";
 import { $querySelector } from "./domUtils";
+import { PointerPosition } from "@/event/PointerSession";
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -17,7 +18,10 @@ function addEventInfo(el: any, eventType: string, listener: any) {
   if (!EVENT_HANDLER_MAP.has(el)) {
     EVENT_HANDLER_MAP.set(el, {});
   }
-  EVENT_HANDLER_MAP.get(el)[eventType] = listener;
+  const evtObj = EVENT_HANDLER_MAP.get(el);
+  if (!evtObj[eventType]) {
+    EVENT_HANDLER_MAP.get(el)[eventType] = listener;
+  }
 }
 
 /**
@@ -105,6 +109,7 @@ export const eventOff = (el: Element | string | NodeList | null | Document | Ele
     const event = eventType.split(".")[0];
     elements.forEach((target) => {
       const elementEvents = EVENT_HANDLER_MAP.get(target);
+
       if (isEmpty(elementEvents) || isEmpty(elementEvents[eventType])) {
         return;
       }
@@ -201,7 +206,7 @@ export const eventKeyCode = (e: any) => {
  * @param e event
  * @returns
  */
-export const eventPosition = (e: Event) => {
+export const eventPosition = (e: Event): PointerPosition => {
   let evt;
   if (typeof TouchEvent !== "undefined" && e instanceof TouchEvent && e.touches.length > 0) {
     evt = e.touches[0];
@@ -224,8 +229,8 @@ export const eventPosition = (e: Event) => {
  */
 export function isClickEvent(e: Event): boolean {
   // 모바일 터치 이벤트인 경우 항상 클릭으로 간주 (버튼 없음)
-  if (e.type === "touchstart") {
-    return true;
+  if (e.type.startsWith("touch")) {
+    return true; // 또는 터치 이동 거리 체크
   }
 
   // 마우스 이벤트인 경우
