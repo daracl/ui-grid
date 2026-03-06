@@ -4,19 +4,16 @@ export interface PointerHandler {
   priority: number;
 
   /** 이 세션을 처리할 수 있는가 */
-  canHandle(session: PointerSession): boolean;
+  canHandle(session: PointerSession): boolean | void;
 
   /** pointer down 시점 */
-  onPointerDown?(session: PointerSession): void;
-
-  /** 드래그 임계치 넘어서 활성화 되기 직전 */
-  beforeActivate?(session: PointerSession): boolean;
+  onPointerDown?(session: PointerSession): boolean | void;
 
   /** 실제 활성화 (drag 시작 등) */
-  onActivate?(session: PointerSession): void;
+  onActivate?(session: PointerSession): boolean | void;
 
   /** move 중 */
-  onPointerMove?(session: PointerSession): void;
+  onPointerMove?(session: PointerSession): boolean | void;
 
   /** pointer up */
   onPointerUp?(session: PointerSession): void;

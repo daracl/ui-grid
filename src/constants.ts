@@ -207,3 +207,26 @@ export const POINTER_STATE = {
   PRESSED: "PRESSED",
   DRAGGING: "DRAGGING",
 } as const;
+
+/**
+ * Scroll direction enum for X-axis
+ */
+export enum ScrollDirectionX {
+  LEFT = "L",
+  RIGHT = "R",
+}
+
+/**
+ * Scroll direction enum for Y-axis
+ */
+export enum ScrollDirectionY {
+  UP = "U",
+  DOWN = "D",
+}
+
+export enum SelectionMode {
+  MULTIPLE_ROW = "multiple-row",
+  MULTIPLE_CELL = "multiple-cell",
+  ROW = "row",
+  CELL = "cell",
+}

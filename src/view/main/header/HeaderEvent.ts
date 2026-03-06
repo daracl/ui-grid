@@ -3,7 +3,7 @@ import { Config, Selection, SelectionRange } from "@t/GridConfig";
 
 import { DaraGrid } from "@/DaraGrid";
 import { DaraElement } from "@/element/DaraElement";
-import { GridMain } from "../GridMain";
+import { GridMain } from "../../GridMain";
 import { eventOff, eventOn, eventPosition, isClickEvent, isCtrlKey, isShiftKey, stopPreventCancel } from "@/util/eventUtils";
 import { dragHorizontalMovePosition, getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleCellSelection, isRowSelection } from "@/util/gridUtils";
 import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from "@/util/domUtils";
@@ -317,14 +317,14 @@ export class HeaderEvent {
           if (multipleFlag) {
             let beforeMoveRange = { endCol: -1 };
             // mouse darg scroll
-            let mouseScrollDirectionX: string;
+            let scrollDirectionX: string | null = null;
             eventOn(document, "touchmove mousemove", (moveEvt: Event) => {
               cfg.isHeaderDragging = true;
 
               const e1Position = eventPosition(moveEvt);
 
               const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, position.left, _l, _r, beforeMoveRange.endCol);
-              mouseScrollDirectionX = moveXInfo.mouseScrollDirectionX;
+              scrollDirectionX = moveXInfo.scrollDirectionX;
 
               const moveRange: any = {};
               if (moveXInfo.overCell > 0) {
@@ -338,7 +338,7 @@ export class HeaderEvent {
                     range: moveRange as SelectionRange,
                   } as Selection,
                   false,
-                  mouseScrollDirectionX == ""
+                  scrollDirectionX == null
                 );
 
                 beforeMoveRange = moveRange;
@@ -347,8 +347,8 @@ export class HeaderEvent {
               if (headDragTimer < 1) {
                 let beforeMovePosition = { col: -1 };
                 headDragTimer = setInterval(() => {
-                  if (mouseScrollDirectionX !== "") {
-                    const isRight = mouseScrollDirectionX === "R";
+                  if (scrollDirectionX !== "") {
+                    const isRight = scrollDirectionX === "R";
                     let endCol = isRight ? cfg.scroll.insideEndCol + 1 : cfg.scroll.insideStartCol - 1;
 
                     if (beforeMovePosition.col != endCol) {
@@ -362,7 +362,7 @@ export class HeaderEvent {
                         );
                       }
 
-                      this.gridMain.getScroll().moveHorizontalScroll({ direction: mouseScrollDirectionX, colIdx: endCol, drawFlag: false });
+                      this.gridMain.getScroll().moveHorizontalScroll({ direction: scrollDirectionX, colIdx: endCol, drawFlag: false });
                       beforeMovePosition.col = endCol;
                       this.gridMain.getBody().dataDraw("drageHeadScroll");
                     }

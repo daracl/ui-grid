@@ -854,8 +854,8 @@ export class Scroll {
     cfg.scroll.before.endCol = cfg.scroll.endCol;
 
     cfg.scroll.insideStartCol = cfg.fixedLeftIndex + cfg.scroll.insideStartCol;
-    cfg.scroll.startCol = cfg.fixedLeftIndex + (startCol > 0 ? startCol : 0);
-    cfg.scroll.endCol = cfg.fixedLeftIndex + (endCol >= fields.length ? fields.length : endCol);
+    cfg.scroll.startCol = cfg.fixedLeftIndex + Math.max(startCol, 0);
+    cfg.scroll.endCol = cfg.fixedLeftIndex + Math.min(endCol, fields.length);
 
     // 화면에 다 보이는 col size
     cfg.scroll.insideEndCol = cfg.scroll.endCol + (getHorizontalScrollPosition(cfg, itemLeftVal, "R") != cfg.scroll.left ? -1 : 0);

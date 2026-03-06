@@ -49,7 +49,7 @@ export class ClickManager {
     if (this.clickCount === 2 && !moved) {
       this.resetClick();
       handler.onDoubleClick?.(session);
-    } else if (this.clickCount === 1) {
+    } else {
       this.conserveClick(session.startPos);
       handler.onClick?.(session);
     }

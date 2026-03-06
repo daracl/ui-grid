@@ -63,10 +63,6 @@ export class RowMoveHandler implements PointerHandler {
 
     const rowMoveOptions = this.opts.body.rowMove;
 
-    if (rowMoveOptions?.enabled !== true) return;
-
-    const { dragStart, dragOver, drop, dragEnd } = rowMoveOptions;
-
     this.rowMoveOptions = rowMoveOptions;
 
     this.rowHeight = this.cfg.rowHeight;
@@ -95,118 +91,74 @@ export class RowMoveHandler implements PointerHandler {
     return true;
   }
 
+  onPointerDown(session: PointerSession): void {}
+
   onActivate(session: PointerSession) {
     const cfg = this.cfg;
-    const position = getElementRect(this.context.gridMain.getBody().getBodyElement().getElement(), true);
-    const { mainLeftWidth, mainInsideWidth, mainRightWidth, mainBodyHeight } = cfg.dimensions;
+    const opts = this.opts;
+    const rowMoveOptions = opts.body.rowMove;
 
-    this.gridBounds = {
-      left: position.left + mainLeftWidth,
-      right: position.left + mainInsideWidth - mainRightWidth,
-      top: position.top,
-      bottom: position.top + mainBodyHeight,
-    };
+    const moveRowItem = session.cellInfo!;
 
-    this.bodyPosition = position;
+    const dragStart = rowMoveOptions?.dragStart;
 
-    this.cellElement = session.cellEl!;
-    this.startCellInfo = session.cellInfo!;
-
-    this.scrollDirectionX = "";
-    this.scrollDirectionY = "";
-
-    this.beforeMoveRange = { endIdx: -1, endCol: -1 };
+    if (dragStart?.({ moveItems: [moveRowItem] }) === false) {
+      return false;
+    }
   }
 
   /** move 중 */
   onPointerMove(session: PointerSession) {
-    if (!this.multipleFlag) return;
+    scrollDirectionY = verticalMovePosition.scrollDirectionY ?? "";
+    const viewRowIdx = verticalMovePosition.viewRowIdx;
 
-    const cfg = this.cfg;
+    const moveViewRowY = mouseMovePosition.y - bodyTop;
 
-    this.cfg.isBodyDragging = true;
+    const offsetInRow = moveViewRowY - viewRowIdx * rowHeight;
 
-    const bounds = this.gridBounds;
+    // 위쪽 1/3, 아래쪽 2/3 기준
+    let isMoveUp = offsetInRow < rowHeight / ROW_DRAG_RATIO; // 상단 1/3 안쪽
+    let isMoveDown = rowHeight - offsetInRow < rowHeight / ROW_DRAG_RATIO; // 하단 2/3 밖
 
-    const e1Position = session.currentPos;
+    let helperViewIndex = dropRowIdx === -1 ? viewRowIdx : verticalMovePosition.rowIdx - scroll.startIdx;
 
-    const moveXInfo = dragHorizontalMovePosition(cfg, e1Position.x, this.bodyPosition.left, bounds.left, bounds.right, this.beforeMoveRange.endCol);
-    this.scrollDirectionX = moveXInfo.mouseScrollDirectionX;
-
-    const moveRange: any = {};
-    if (moveXInfo.overCell > -1) {
-      moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(this.selectionMode, moveXInfo.overCell, cfg, this.cellElement, cfg.selection.isMouseDown).endCol;
+    if (isMoveUp) {
+      helperViewIndex = viewRowIdx;
+    } else if (isMoveDown) {
+      helperViewIndex = viewRowIdx + 1;
     }
 
-    const moveYInfo = dragVerticalMovePosition(cfg, e1Position.y, this.rowHeight, this.startCellInfo, bounds.top, bounds.bottom);
-    this.scrollDirectionY = moveYInfo.scrollDirectionY;
-    if (moveYInfo.rowIdx > -1) {
-      moveRange.endIdx = moveYInfo.rowIdx;
-    }
+    helperViewIndex = Math.max(0, Math.min(helperViewIndex, cfg.scroll.insideViewRow));
 
-    if (this.beforeMoveRange.endIdx == moveRange.endIdx && this.beforeMoveRange.endCol == moveRange.endCol) return;
+    isTicking = false;
 
-    if (Object.keys(moveRange).length > 0) {
-      this.selectionInfo.setSelectionRangeInfo(
-        {
-          range: moveRange as SelectionRange,
-        } as Selection,
-        false,
-        this.scrollDirectionX == "" && this.scrollDirectionY == ""
-      );
-    }
+    const helperTop = helperViewIndex * rowHeight;
 
-    this.beforeMoveRange = moveRange;
+    rowMoveElement.style.transform = `translate(${mouseMovePosition.x}px, ${mouseMovePosition.y}px)`;
 
-    if (this.bodyDragTimer < 1) {
-      let beforeMovePosition = { col: -1, rowIdx: -1 };
-      this.bodyDragTimer = setInterval(() => {
-        const scrollDirectionX = this.scrollDirectionX;
-        const scrollDirectionY = this.scrollDirectionY;
+    const currentDropRowIdx = scroll.startIdx + helperViewIndex;
 
-        if (scrollDirectionX == "" && scrollDirectionY == "") return;
+    console.log("viewRowIdx : ", viewRowIdx, "isMoveUp : ", isMoveUp, "isMoveDown : ", isMoveDown, "currentDropRowIdx : ", currentDropRowIdx);
 
-        let isDraw = false;
+    if (dropRowIdx !== currentDropRowIdx) {
+      rowMoveDropHelperElement.style.transform = `translateY(${helperTop}px)`;
+      dropRowIdx = currentDropRowIdx;
+      isDropForbidden = false;
 
-        const moveRangeInfo = {} as SelectionRange;
+      if (moveRowItem.rowIndex === currentDropRowIdx || moveRowItem.rowIndex === currentDropRowIdx - 1) {
+        isDropForbidden = true;
+        rowMoveDropHelperElement.style.display = "none";
+        return;
+      } else {
+        rowMoveDropHelperElement.style.display = "block";
+      }
 
-        if (scrollDirectionX != "") {
-          const isRight = scrollDirectionX === "R";
-          let endCol = isRight ? cfg.scroll.insideEndCol + 3 : cfg.scroll.insideStartCol - 3;
-
-          if (beforeMovePosition.col != endCol) {
-            if ((isRight && cfg.fixedRightIndex == 0) || (!isRight && cfg.fixedLeftIndex == 0)) {
-              moveRangeInfo.endCol = endCol;
-            }
-
-            this.context.gridMain.getScroll().moveHorizontalScroll({ direction: scrollDirectionX, colIdx: endCol, drawFlag: false });
-            beforeMovePosition.col = endCol;
-            isDraw = true;
-          }
-        }
-
-        if (scrollDirectionY != "") {
-          let endIdx = scrollDirectionY == "D" ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1 : cfg.scroll.startIdx - 1;
-
-          if (beforeMovePosition.rowIdx != endIdx) {
-            moveRangeInfo.endIdx = endIdx;
-            this.context.gridMain.getScroll().moveVerticalScroll({ direction: scrollDirectionY, drawFlag: false });
-            beforeMovePosition.rowIdx = endIdx;
-            isDraw = true;
-          }
-        }
-
-        if (isDraw) {
-          this.selectionInfo.setSelectionRangeInfo(
-            {
-              range: moveRangeInfo,
-            } as Selection,
-            false,
-            false
-          );
-          this.context.gridMain.getBody().dataDraw("dragscroll");
-        }
-      }, this.bodyDragDelay);
+      if (dragOver?.({ moveItems: moveRowItem, dropItemIdx: currentDropRowIdx }) === false) {
+        isDropForbidden = true;
+        rowMoveDropHelperElement.classList.add("dg-drop-forbidden");
+      } else {
+        rowMoveDropHelperElement.classList.remove("dg-drop-forbidden");
+      }
     }
   }
 

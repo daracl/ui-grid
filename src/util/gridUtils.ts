@@ -3,7 +3,7 @@ import { intValue, isArray, isEmpty, isNumber } from "./utils";
 import { GridOptions } from "@t/GridOptions";
 import { FieldItem } from "@t/GridField";
 import { RendererInfo } from "@t/RendererInfo";
-import { ROW_CUD_KEY } from "@/constants";
+import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -37,11 +37,11 @@ export const removeActiveColumnStyle = (element: HTMLElement) => {
  * @type {string} selection mode
  */
 export const isMultipleSelection = (selectionMode: string): boolean => {
-  return selectionMode == "multiple-row" || selectionMode == "multiple-cell";
+  return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.MULTIPLE_CELL;
 };
 
 export const isMultipleCellSelection = (selectionMode: string): boolean => {
-  return selectionMode == "multiple-cell";
+  return selectionMode == SelectionMode.MULTIPLE_CELL;
 };
 
 /**
@@ -51,7 +51,7 @@ export const isMultipleCellSelection = (selectionMode: string): boolean => {
  * @returns {boolean}
  */
 export const isRowSelection = (selectionMode: string): boolean => {
-  return selectionMode == "multiple-row" || selectionMode == "row";
+  return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.ROW;
 };
 
 /**
@@ -184,21 +184,26 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
  * 센터 포지션 값 - > 스크롤 left postion
  *
  * @param {Config} cfg 그리드 설정 정보
- * @param {number} contentLeft center content left 값
+ * @param {number} centerGridLeft center content left 값
  * @returns {number}
  */
-export function getHorizontalScrollPosition(cfg: Config, contentLeft: number, direction?: string): number {
-  if (contentLeft < 1) {
+export function getHorizontalScrollPosition(cfg: Config, centerGridLeft: number, direction?: string): number {
+  if (centerGridLeft < 1) {
     return 0;
   }
 
-  if (direction == "R") {
-    contentLeft = contentLeft - cfg.dimensions.mainCenterViewWidth;
-  } else {
-    contentLeft = contentLeft - 2;
+  if (cfg.dimensions.mainCenterOverWidth <= 0) {
+    return 0;
   }
 
-  return ((contentLeft / cfg.dimensions.mainCenterOverWidth) * 100 * (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) / 100;
+  let left;
+  if (direction == ScrollDirectionX.RIGHT) {
+    left = centerGridLeft - cfg.dimensions.mainCenterViewWidth;
+  } else {
+    left = centerGridLeft - 2;
+  }
+
+  return ((left / cfg.dimensions.mainCenterOverWidth) * 100 * (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) / 100;
 }
 
 /**
@@ -234,13 +239,13 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
   const viewRow = scroll.viewRow;
   const rowLength = dataInfo.rowLength;
 
-  let scrollDirectionY: "U" | "D" | "" = "";
+  let scrollDirectionY: ScrollDirectionY.UP | ScrollDirectionY.DOWN | null = null;
   let rowIdx = -1;
 
   // 위
   if (moveY < _t) {
     if (startIdx > 0) {
-      scrollDirectionY = "U";
+      scrollDirectionY = ScrollDirectionY.UP;
       rowIdx = startIdx - 1;
     } else {
       rowIdx = 0;
@@ -252,7 +257,7 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
   // 아래
   if (moveY > _b) {
     if (startIdx + insideViewRow < rowLength) {
-      scrollDirectionY = "D";
+      scrollDirectionY = ScrollDirectionY.DOWN;
       rowIdx = startIdx + insideViewRow + 1;
     } else {
       rowIdx = rowLength - 1;
@@ -288,10 +293,10 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
  * @param {number} _r right start position
  * @param {HTMLElement} cellElement start element
  * @param {string} selectionMode selection mode
- * @returns {{ mouseScrollDirectionX: string; overCell: number; }}
+ * @returns {{ scrollDirectionX: string; overCell: number; }}
  */
 export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX: number, _l: number, _r: number, beforeEndCol: number) {
-  let mouseScrollDirectionX = "";
+  let scrollDirectionX = null;
   let overCell = -1;
 
   const currentFields = cfg.currentFields;
@@ -311,7 +316,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
     centerMovePageX = moveX - positionX;
     endCellIdx = fixedLeftIndex;
 
-    mouseScrollDirectionX = "L";
+    scrollDirectionX = ScrollDirectionX.LEFT;
   } else if (moveX > _r) {
     // 오른쪽으로 드래그
     startCellIdx = fixedRightIndex;
@@ -322,7 +327,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
       overCell = totalCells - 1;
     }
 
-    mouseScrollDirectionX = "R";
+    scrollDirectionX = ScrollDirectionX.RIGHT;
   } else {
     // 중앙 영역
     centerMovePageX = moveX - _l;
@@ -330,7 +335,7 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
     contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
   }
 
-  if (!(startCellIdx < 1 && mouseScrollDirectionX === "R")) {
+  if (!(startCellIdx < 1 && scrollDirectionX === ScrollDirectionX.RIGHT)) {
     if (centerMovePageX <= 0) {
       overCell = 0;
     } else if (overCell === -1) {
@@ -359,15 +364,15 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
   }
 
   if (
-    (mouseScrollDirectionX == "L" && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
-    (mouseScrollDirectionX == "R" && (isFixedRightPostion(cfg, startCol) || totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
+    (scrollDirectionX == ScrollDirectionX.LEFT && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
+    (scrollDirectionX == ScrollDirectionX.RIGHT && (isFixedRightPostion(cfg, startCol) || totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
   ) {
-    mouseScrollDirectionX = "";
+    scrollDirectionX = null;
   }
 
-  overCell = overCell < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : overCell;
+  overCell = Math.max(overCell, cfg.dataInfo.startCol);
 
-  return { mouseScrollDirectionX, overCell };
+  return { scrollDirectionX, overCell };
 }
 
 /**
@@ -392,7 +397,7 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
     result.push(newItem);
   }
 
-  console.log("createNewItems , ", createCount, result);
+  // console.log("createNewItems , ", createCount, result);
 
   return result;
 }
@@ -435,9 +440,10 @@ export function valuesLabelKey(rendererInfo: RendererInfo): string {
   return rendererInfo?.listItem?.labelField ?? "label";
 }
 
+const TEMPLATE_REGEX = /\{\{([A-Za-z0-9_.]*)\}\}/g;
 export function valuesLabelValue(label: string, val: any) {
   let replaceFlag = false;
-  const resultValue = label.replace(/\{\{([A-Za-z0-9_.]*)\}\}/g, (match, key) => {
+  const resultValue = label.replace(TEMPLATE_REGEX, (match, key) => {
     replaceFlag = true;
     return val[key] || "";
   });

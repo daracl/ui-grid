@@ -7,6 +7,7 @@ import { GridMain } from "@/view/GridMain";
 import { removeClass } from "@/util/styleUtils";
 import { hasClass } from "@/util/domUtils";
 import { isShiftKey } from "@/util/eventUtils";
+import { SelectionMode } from "@/constants";
 
 export class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -634,7 +635,7 @@ export class SelectionInfo {
     if (isRowSelection(selectionMode)) {
       startCol = cfg.dataInfo.startCol;
       endCol = cfg.dataInfo.colLength - 1;
-    } else if (selectionMode == "multiple-cell") {
+    } else if (selectionMode == SelectionMode.MULTIPLE_CELL) {
       if (isMouseDown) {
         startCol = -1;
       } else if (hasClass(cellElement, "line-number")) {
