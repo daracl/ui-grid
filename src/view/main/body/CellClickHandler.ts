@@ -18,15 +18,17 @@ import { ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
  */
 export class CellClickHandler implements PointerHandler {
   priority = 5;
-  private readonly rowHeight: number;
-  private readonly context: PointerContext;
-  private readonly cfg: Config;
+  protected readonly rowHeight: number;
+  protected readonly context: PointerContext;
+  protected readonly cfg: Config;
+  protected readonly selectionInfo: SelectionInfo;
+  protected readonly bodyEvent: BodyEvent;
+  protected readonly opts: GridOptions;
   private readonly bodyDragDelay = 150;
 
   private readonly orginSelectionMode: string;
-  private readonly selectionInfo: SelectionInfo;
-  private readonly bodyEvent: BodyEvent;
-  private bodyPosition: any;
+
+  protected bodyPosition: any;
 
   private readonly moveRange: { endIdx: number; endCol: number } = { endIdx: -1, endCol: -1 };
   private beforeEndIdx = -1;
@@ -35,18 +37,19 @@ export class CellClickHandler implements PointerHandler {
   private readonly cellClickFn: ((cellInfo: any) => void) | undefined;
 
   private readonly editable: boolean;
-  private readonly opts: GridOptions;
+
   private readonly multipleFlag: boolean;
 
-  private gridBounds: { left: number; right: number; top: number; bottom: number };
+  protected gridBounds: { left: number; right: number; top: number; bottom: number };
 
-  private startCellInfo: CellInfo;
+  protected startCellInfo: CellInfo;
   private cellElement: HTMLElement;
 
-  private scrollDirectionX: ScrollDirectionX | null = null;
-  private scrollDirectionY: ScrollDirectionY | null = null;
+  protected scrollDirectionX: ScrollDirectionX | null = null;
+  protected scrollDirectionY: ScrollDirectionY | null = null;
 
-  private dragAnimationId: number = 0;
+  protected dragAnimationId: number = 0;
+  private lastScrollTime = 0;
 
   private selectionMode: string;
 
@@ -156,9 +159,7 @@ export class CellClickHandler implements PointerHandler {
     }
   }
 
-  private lastScrollTime = 0;
-
-  private startAutoScroll() {
+  protected startAutoScroll(selection: boolean = true) {
     if (this.dragAnimationId) return;
 
     this.lastScrollTime = 0;
@@ -222,7 +223,9 @@ export class CellClickHandler implements PointerHandler {
       }
 
       if (isDraw) {
-        this.selectionInfo.setSelectionRangeInfo({ range: moveRangeInfo } as Selection, false, false);
+        if (selection) {
+          this.selectionInfo.setSelectionRangeInfo({ range: moveRangeInfo } as Selection, false, false);
+        }
 
         body.dataDraw("dragscroll");
       }
@@ -233,7 +236,7 @@ export class CellClickHandler implements PointerHandler {
     this.dragAnimationId = requestAnimationFrame(loop);
   }
 
-  private stopAutoScroll() {
+  protected stopAutoScroll() {
     if (this.dragAnimationId !== 0) {
       cancelAnimationFrame(this.dragAnimationId);
       this.dragAnimationId = 0;
@@ -256,7 +259,7 @@ export class CellClickHandler implements PointerHandler {
     const cellInfo = session.cellInfo!;
     const field = cellInfo.field;
 
-    if ((field.editable === true || (this.editable === true && field.editable !== false)) && !field.$renderer.isEditRenderer()) {
+    if (!field.$isAside && !field.$renderer.isEditRenderer() && (field.editable === true || (this.editable === true && field.editable !== false))) {
       field.$editRenderer.render(cellInfo, session.cellEl!);
     }
 

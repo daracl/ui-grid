@@ -92,6 +92,6 @@ export class CheckboxRenderer extends ViewRenderer {
   }
 
   public isEditRenderer() {
-    return true;
+    return false;
   }
 }

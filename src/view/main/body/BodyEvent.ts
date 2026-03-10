@@ -50,7 +50,7 @@ export class BodyEvent {
 
     const rowMoveOptions = grid.getOptions().body.rowMove;
 
-    if (rowMoveOptions?.enabled !== true) {
+    if (rowMoveOptions?.enabled === true) {
       this.handlers.push(new RowMoveHandler({ grid, gridMain }, this));
     }
     this.handlers.push(new CellClickHandler({ grid, gridMain }, this));
@@ -97,7 +97,7 @@ export class BodyEvent {
 
         const startEvtPosition = eventPosition(e);
         const startCellInfo = getCellInfo(cfg, cellElement);
-        startCellInfo.c = startCellInfo.c < cfg.dataInfo.startCol ? cfg.dataInfo.startCol : startCellInfo.c;
+        startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
         console.log("startEvtPosition : ", startEvtPosition, "startCellInfo : ", startCellInfo);
 
@@ -140,6 +140,7 @@ export class BodyEvent {
               isMoveStarted = true;
               if (handler.onActivate?.(session) === false) {
                 eventOff(document, "touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick");
+                return;
               }
             }
 

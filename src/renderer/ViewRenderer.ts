@@ -80,6 +80,11 @@ export abstract class ViewRenderer extends Renderer {
     }
   }
 
+  /**
+   * 랜더러가 editor 랜더러 인지 여부
+   *
+   * @returns {boolean}
+   */
   public isEditRenderer() {
     return false;
   }

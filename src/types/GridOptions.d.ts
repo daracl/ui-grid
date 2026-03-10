@@ -602,6 +602,7 @@ export interface BodyOptions {
      * 드롭 완료 이벤트
      * @param params.moveItems 이동하는 row 데이터 배열
      * @param params.dropItemIdx 드롭된 위치의 row index
+     * @param params.position 드랍 위치
      * @returns 드롭 허용 여부 (false 반환 시 드롭 동작 취소)
      * - 드롭이 완료된 후에 해당 드롭 동작을 최종적으로 허용할지 여부를 결정하는 콜백 함수
      * - 예: 특정 조건에서는 드롭을 취소하도록 설정 가능
@@ -614,6 +615,7 @@ export interface BodyOptions {
      * 드래그 종료 이벤트
      * @param params.moveItems 이동하는 row 데이터 배열
      * @param params.dropItemIdx 드롭된 위치의 row index (drop이 취소된 경우에도 마지막 드롭 위치)
+     * @param params.position 드랍 위치
      * @returns void
      * - 드래그가 종료된 후에 호출되는 콜백 함수로, 드롭 성공 여부와 관계없이 항상 호출됨
      * - 예: 드래그 종료 시점에 리소스 정리, 상태 초기화 등의 작업 수행 가능
@@ -666,6 +668,7 @@ export interface BodyOptions {
 export interface RowMoveEventParams {
   moveItems: any[];
   dropItemIdx: number;
+  position: "before" | "after" | "inside";
 }
 /**
  * scroll option

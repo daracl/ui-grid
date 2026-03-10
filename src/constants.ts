@@ -230,3 +230,9 @@ export enum SelectionMode {
   ROW = "row",
   CELL = "cell",
 }
+
+export enum MovePosition {
+  BEFORE = "before",
+  AFTER = "after",
+  INSIDE = "inside",
+}
