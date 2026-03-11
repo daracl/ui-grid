@@ -1,13 +1,10 @@
 import { PointerContext } from "@/event/PointerContext";
-import { PointerHandler } from "@/event/PointerHandler";
 import { PointerSession } from "@/event/PointerSession";
-import { SelectionInfo } from "@/selection/selection";
-import { Config, SelectionRange, Selection, CellInfo } from "@/types/GridConfig";
-import { getElementRect, hasClass } from "@/util/domUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, getCellInfo, isMultipleSelection } from "@/util/gridUtils";
+import { SelectionRange, Selection, CellInfo } from "@/types/GridConfig";
+import { getElementRect } from "@/util/domUtils";
+import { dragVerticalMovePosition } from "@/util/gridUtils";
 import { BodyEvent } from "./BodyEvent";
 import * as utils from "@/util/utils";
-import { GridOptions } from "@/types/GridOptions";
 import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE } from "@/constants";
 import { CellClickHandler } from "./CellClickHandler";
 import { moveItem } from "../../../util/gridUtils";
@@ -23,8 +20,8 @@ export class RowMoveHandler extends CellClickHandler {
 
   private readonly ROW_DRAG_RATIO = 2;
 
-  private rowMoveOptions: any;
-  private rowMoveDropHelperElement: HTMLElement;
+  private readonly rowMoveOptions: any;
+  private readonly rowMoveDropHelperElement: HTMLElement;
   private rowMoveElement: HTMLElement;
 
   private dropRowIdx: number = -1;
@@ -180,8 +177,6 @@ export class RowMoveHandler extends CellClickHandler {
 
   onPointerUp(session: PointerSession) {
     this.stopAutoScroll();
-
-    console.log("this.isDropForbidden ", this.isDropForbidden);
 
     this.rowMoveDropHelperElement.style.display = "none";
     this.rowMoveElement.style.display = "none";

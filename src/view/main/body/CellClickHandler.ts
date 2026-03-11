@@ -4,11 +4,13 @@ import { PointerSession } from "@/event/PointerSession";
 import { SelectionInfo } from "@/selection/selection";
 import { Config, SelectionRange, Selection, CellInfo } from "@/types/GridConfig";
 import { getElementRect, hasClass } from "@/util/domUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, isMultipleSelection } from "@/util/gridUtils";
+import { dragHorizontalMovePosition, dragVerticalMovePosition, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection, isRowSelection } from "@/util/gridUtils";
 import { BodyEvent } from "./BodyEvent";
 import * as utils from "@/util/utils";
 import { GridOptions } from "@/types/GridOptions";
-import { ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
+import { ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
+import { isCtrlKey, isShiftKey } from "@/util/eventUtils";
+import { DaraElement } from "@/element/DaraElement";
 
 /**
  * CellClickHandler class
@@ -22,7 +24,6 @@ export class CellClickHandler implements PointerHandler {
   protected readonly context: PointerContext;
   protected readonly cfg: Config;
   protected readonly selectionInfo: SelectionInfo;
-  protected readonly bodyEvent: BodyEvent;
   protected readonly opts: GridOptions;
   private readonly bodyDragDelay = 150;
 
@@ -57,14 +58,20 @@ export class CellClickHandler implements PointerHandler {
   private readonly cellDblClick: ((cellInfo: any) => any) | undefined;
   private readonly isCellDbClickEvent: boolean;
 
+  private readonly bodyElement: HTMLElement;
+
   public constructor(context: PointerContext, bodyEvent: BodyEvent) {
     this.context = context;
     this.cfg = context.grid.config();
     this.selectionInfo = context.gridMain.selectionInfo;
-    this.bodyEvent = bodyEvent;
+
+    this.bodyElement = context.body?.getBodyElement().getElement()!;
     this.opts = context.grid.getOptions();
 
     this.orginSelectionMode = this.opts.selectionMode;
+
+    console.log("this.opts.selectionMode : ", this.opts.selectionMode, this.orginSelectionMode);
+
     this.multipleFlag = isMultipleSelection(this.orginSelectionMode);
 
     this.cellClickFn = this.opts.body.cellClick;
@@ -86,12 +93,13 @@ export class CellClickHandler implements PointerHandler {
   onPointerDown(session: PointerSession): void {
     this.cellElement = session.cellEl!;
     this.startCellInfo = session.cellInfo!;
+    this.selectionMode = this.orginSelectionMode;
   }
 
   onActivate(session: PointerSession) {
     const cfg = this.cfg;
 
-    const position = getElementRect(this.context.gridMain.getBody().getBodyElement().getElement(), true);
+    const position = getElementRect(this.bodyElement, true);
 
     const { mainLeftWidth, mainInsideWidth, mainRightWidth, mainBodyHeight } = cfg.dimensions;
 
@@ -109,8 +117,6 @@ export class CellClickHandler implements PointerHandler {
 
     this.beforeEndIdx = -1;
     this.beforeEndCol = -1;
-
-    this.selectionMode = this.orginSelectionMode;
 
     if (this.multipleFlag && hasClass(session.cellEl!, "line-number")) {
       this.selectionMode = SelectionMode.MULTIPLE_ROW;
@@ -170,7 +176,7 @@ export class CellClickHandler implements PointerHandler {
 
     const gridMain = this.context.gridMain;
     const scroll = gridMain.getScroll();
-    const body = gridMain.getBody();
+    const body = this.context.body!;
 
     const loop = (time: number) => {
       const scrollDirectionX = this.scrollDirectionX;
@@ -248,7 +254,7 @@ export class CellClickHandler implements PointerHandler {
   }
 
   onClick(session: PointerSession): void {
-    this.bodyEvent.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, this.cellElement);
+    this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, this.cellElement);
 
     this.cellClickFn?.(this.startCellInfo);
   }
@@ -264,9 +270,103 @@ export class CellClickHandler implements PointerHandler {
     }
 
     if (this.enableDblClickRowCheck) {
-      this.bodyEvent.setRowCheckItemClick(cellInfo);
+      this.setRowCheckItemClick(cellInfo);
     }
 
     if (this.cellDblClick?.(cellInfo) === false) return;
+  }
+
+  /**
+   * row check item click event trigger
+   *
+   * @public
+   * @param {CellInfo} cellInfo
+   */
+  private setRowCheckItemClick(cellInfo: CellInfo) {
+    const cfg = this.context.grid.config();
+    const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
+    if (!utils.isEmpty(rowCheckCol)) {
+      (this.bodyElement.querySelector(`[data-cell-position="${cellInfo.r},${rowCheckCol}"] [name="dgRowCheck"]`) as HTMLElement).click();
+    }
+  }
+
+  // cell click
+  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
+    const context = this.context;
+    const cfg = context.grid.config();
+    const gridMain = context.gridMain;
+
+    gridMain.setGridFocusIn(e, true);
+
+    if (!(cellInfo.field.renderer.type == "dropdown" && cellInfo.c == +cfg.activeComponent)) {
+      gridMain.hideLayer();
+    }
+
+    const rowIndex = cellInfo.rowIndex,
+      cellIdx = cellInfo.c;
+
+    if (!isFixedLeftPostion(cfg, cellIdx) && !isFixedRightPostion(cfg, cellIdx)) {
+      if (cellIdx < cfg.scroll.insideStartCol) {
+        gridMain.getScroll().moveHorizontalScroll({ direction: "L", colIdx: cellIdx });
+      } else if (cellIdx > cfg.scroll.insideEndCol) {
+        gridMain.getScroll().moveHorizontalScroll({ direction: "R", colIdx: cellIdx });
+      }
+    }
+
+    let keyMode = (isShiftKey(e) ? 2 : 0) + (isCtrlKey(e) ? 1 : 0);
+
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
+
+    if ((multipleFlag && keyMode != 2) || !multipleFlag) {
+      context.body?.removeStartCellClass();
+    }
+
+    const rangeType = isRowSelection(selectionMode) ? "row" : "cell";
+
+    if (multipleFlag && keyMode >= 2) {
+      // shift key
+      let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol, modifierKey: 2 } as SelectionRange;
+
+      if (selectRangeInfo.startCol > -1) {
+        rangeInfo.startCol = selectRangeInfo.startCol;
+      }
+
+      rangeInfo.type = rangeType;
+
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          range: rangeInfo,
+          isMouseDown: true,
+        } as Selection,
+        false,
+        true
+      );
+    } else if (multipleFlag && keyMode == 1) {
+      // ctrl key
+
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol, modifierKey: 1 } as SelectionRange,
+          isSelect: true,
+          isMouseDown: true,
+          startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
+        } as Selection,
+        false,
+        true
+      );
+    } else {
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          isSelect: true,
+          isMouseDown: true,
+          startCell: { startIdx: rowIndex, startCol: cellIdx },
+        } as Selection,
+        true,
+        true
+      );
+    }
+
+    window.getSelection()?.removeAllRanges();
   }
 }

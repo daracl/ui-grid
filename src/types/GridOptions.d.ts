@@ -531,6 +531,11 @@ export interface BodyOptions {
   cellClick?: OptionCallback;
 
   /**
+   * disable keydown
+   */
+  disableKeydown?: boolean;
+
+  /**
    * 화살표 키 이동 등 key 이벤트 핸들러
    */
   keyNavHandler?: OptionCallback;

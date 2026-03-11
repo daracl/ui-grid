@@ -25,8 +25,6 @@ export class Body {
 
   private bodyElement: DaraElement;
 
-  private bodyEvent: BodyEvent;
-
   private leftElement: DaraElement;
   private centerElement: DaraElement;
   private rightElement: DaraElement;
@@ -43,7 +41,8 @@ export class Body {
     this.createTemplate();
     this.selectionInfo = gridMain.selectionInfo;
 
-    this.bodyEvent = new BodyEvent(grid, gridMain, this, this.selectionInfo);
+    const bodyEvent = new BodyEvent(grid, gridMain, this, this.selectionInfo);
+    bodyEvent.init();
   }
 
   public getBodyElement() {
