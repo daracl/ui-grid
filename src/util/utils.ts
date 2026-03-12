@@ -60,7 +60,7 @@ export const isVisible = (elm: HTMLElement): boolean => {
 };
 
 export const isUndefined = (value: any): value is undefined => {
-  return typeof value === "undefined";
+  return value === undefined;
 };
 
 export const isFunction = (value: any): value is Function => {
@@ -70,16 +70,17 @@ export const isFunction = (value: any): value is Function => {
 export const isString = (value: any): value is string => {
   return typeof value === "string";
 };
-export const isNumber = (value: any): value is number => {
+export const isNumber = (value: unknown): value is number => {
   if (isBlank(value)) {
     return false;
   }
-  value = +value;
-  return !isNaN(value);
+
+  const num = Number(value);
+  return !Number.isNaN(num);
 };
 
 export const intValue = (val: any): number => {
-  return parseInt(val, 10);
+  return Number.parseInt(val, 10);
 };
 
 export const isArray = (value: any): value is Array<any> => {
@@ -310,8 +311,8 @@ export function isObject(value: any) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isDate(value: any) {
-  return value instanceof Date && !isNaN(value.valueOf());
+function isDate(value: unknown): value is Date {
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 /**
@@ -444,7 +445,7 @@ function cloneDeep(dst: any, src: any): any {
   }
 
   if (isDate(src)) {
-    return new src.constructor(src);
+    return new Date(src.getTime());
   }
 
   if (isObject(src)) {

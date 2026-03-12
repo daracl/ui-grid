@@ -123,4 +123,13 @@
       }
     }
   }
+  /* aside row drag handle*/
+  .dg-row-drag-handle {
+    cursor: move;
+    &::before {
+      content: "\2261";
+      font-size: 18px;
+      color: var(--font-color);
+    }
+  }
 }

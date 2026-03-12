@@ -1,7 +1,6 @@
 import { GridOptions, PagingParam } from "@t/GridOptions";
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from "./types/GridConfig";
 import { FieldItem } from "@t/GridField";
-import { PagingInfo } from "@t/PagingInfo";
 import { isPlainObject } from "./util/utils";
 
 /**
@@ -83,8 +82,8 @@ export function initConfig(opts: GridOptions): Config {
       searchCheckItem: false, // 검색 정규식
       filterCheckItem: false, // filter info {checkFn, check condition}
     },
-    fixedLeftIndex: opts.fixedLeftIndex > 0 ? opts.fixedLeftIndex : 0,
-    fixedRightIndex: opts.fixedRightIndex > 0 ? opts.fixedRightIndex : 0,
+    fixedLeftIndex: Math.max(opts.fixedLeftIndex, 0),
+    fixedRightIndex: Math.max(opts.fixedRightIndex, 0),
     scroll: initScrollInfo(),
     edit: initEditInfo(),
     canvasContext: undefined,

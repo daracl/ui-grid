@@ -643,6 +643,11 @@ export class Body {
   private rowTemplate(viewRow: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
     const returnTemplate = [];
 
+    for (let j = 0; j < fields.length; j++) {
+      let field = fields[j];
+      console.log(field.$isAside, field);
+    }
+
     for (let i = 0; i < rowCount; i++) {
       let rowIdx = viewRow + i;
 

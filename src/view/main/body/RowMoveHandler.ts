@@ -5,9 +5,10 @@ import { getElementRect } from "@/util/domUtils";
 import { dragVerticalMovePosition } from "@/util/gridUtils";
 import { BodyEvent } from "./BodyEvent";
 import * as utils from "@/util/utils";
-import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE } from "@/constants";
+import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from "@/constants";
 import { CellClickHandler } from "./CellClickHandler";
 import { moveItem } from "../../../util/gridUtils";
+import { RowMoveOptions } from "@/types/GridOptions";
 
 /**
  * RowMoveHandler class
@@ -20,23 +21,21 @@ export class RowMoveHandler extends CellClickHandler {
 
   private readonly ROW_DRAG_RATIO = 2;
 
-  private readonly rowMoveOptions: any;
+  private readonly rowMoveOptions: RowMoveOptions;
   private readonly rowMoveDropHelperElement: HTMLElement;
   private rowMoveElement: HTMLElement;
 
   private dropRowIdx: number = -1;
   private moveStartItem: CellInfo;
 
-  private moveItems: any[];
+  private moveItems: CellInfo[];
 
   private isDropForbidden: boolean = true;
 
   public constructor(context: PointerContext, bodyEvent: BodyEvent) {
     super(context, bodyEvent);
 
-    const rowMoveOptions = this.opts.body.rowMove;
-
-    this.rowMoveOptions = rowMoveOptions;
+    this.rowMoveOptions = this.opts.body.rowMove!;
 
     this.rowMoveDropHelperElement = context.grid.element().findDaraElement(".dg-movedrop-helper").getElement();
     this.initTemplate();
@@ -45,8 +44,7 @@ export class RowMoveHandler extends CellClickHandler {
   initTemplate() {
     const rowMoveElement = document.createElement("div");
     rowMoveElement.className = "dg-row-move-helper";
-    // set static styles once
-    rowMoveElement.style.cssText = `position: absolute; z-index: 1000; padding: 3px; height: ${this.rowHeight}px; will-change: transform; display: none;`;
+    rowMoveElement.style.cssText = `height: ${this.rowHeight}px; display: none;`;
 
     document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(rowMoveElement);
     this.rowMoveElement = rowMoveElement;
@@ -55,8 +53,11 @@ export class RowMoveHandler extends CellClickHandler {
   canHandle(session: PointerSession) {
     const moveRowItem = session.cellInfo!;
     const rowMoveOptions = this.rowMoveOptions;
+    const fieldName = moveRowItem.field?.name;
 
-    if (!(rowMoveOptions?.dragHandle == moveRowItem.field.name || (utils.isArray(rowMoveOptions?.dragHandle) && rowMoveOptions?.dragHandle.indexOf(moveRowItem.field.name) > -1) || !rowMoveOptions?.dragHandle)) {
+    const dragHandle = rowMoveOptions?.dragHandle;
+
+    if (dragHandle !== "ALL" && dragHandle !== fieldName && !(rowMoveOptions?.enableDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)) {
       return false;
     }
 
@@ -72,10 +73,21 @@ export class RowMoveHandler extends CellClickHandler {
     const opts = this.opts;
 
     const moveStartItem = session.cellInfo!;
+    const rowMoveOptions = opts.body.rowMove;
+    this.moveItems = [session.cellInfo!];
 
-    this.moveStartItem = moveStartItem;
     //TODO 다중 이동 처리할 것.
-    this.moveItems = [session.cellInfo];
+    // ctrl 또는 multi 일경우.
+    // drag 영역 ctrl+ click 해서 찍었을때  drag시 drag될 수 있게 처리할것.
+    // drag handle 처리할것.
+    //
+    //
+    //
+
+    if (rowMoveOptions?.dragStart?.({ moveItems: this.moveItems }) === false) {
+      return false;
+    }
+    this.moveStartItem = moveStartItem;
 
     const position = getElementRect(this.context.gridMain.getBody().getBodyElement().getElement(), true);
 
@@ -90,14 +102,14 @@ export class RowMoveHandler extends CellClickHandler {
 
     this.bodyPosition = position;
 
-    const rowMoveOptions = opts.body.rowMove;
+    const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveItems });
 
-    this.rowMoveElement.textContent = moveStartItem.item[moveStartItem.field.name];
-    this.rowMoveElement.style.display = "block";
-
-    if (rowMoveOptions?.dragStart?.({ moveItems: this.moveItems }) === false) {
-      return false;
+    if (helperTemplate) {
+      this.rowMoveElement.innerHTML = helperTemplate;
+    } else {
+      this.rowMoveElement.textContent = `${this.moveItems.length} Row`;
     }
+    this.rowMoveElement.style.display = "flex";
   }
 
   /** move 중 */
@@ -166,7 +178,7 @@ export class RowMoveHandler extends CellClickHandler {
         dropItemIdx = currentDropRowIdx - 1;
       }
 
-      if (this.rowMoveOptions.dragOver?.({ moveItems: moveStartItem, dropItemIdx: dropItemIdx, position: position }) === false) {
+      if (this.rowMoveOptions.dragOver?.({ moveItems: [moveStartItem], dropItemIdx: dropItemIdx, position: position }) === false) {
         this.isDropForbidden = true;
         rowMoveDropHelperElement.classList.add("dg-drop-forbidden");
       } else {
@@ -198,7 +210,7 @@ export class RowMoveHandler extends CellClickHandler {
       dropRowIdx = dropRowIdx - 1;
     }
 
-    if (rowMoveOptions?.drop({ moveItems: moveItems, dropItemIdx: dropRowIdx, position: position }) === false) {
+    if (rowMoveOptions?.drop?.({ moveItems: moveItems, dropItemIdx: dropRowIdx, position: position }) === false) {
       return;
     }
 
@@ -216,6 +228,6 @@ export class RowMoveHandler extends CellClickHandler {
     );
 
     this.context.gridMain.getBody().dataDraw("dragmove_redraw");
-    rowMoveOptions?.dragEnd?.({ moveItems: moveStartItem, dropItemIdx: dropRowIdx, position: position });
+    rowMoveOptions?.dragEnd?.({ moveItems: moveItems, dropItemIdx: dropRowIdx, position: position });
   }
 }

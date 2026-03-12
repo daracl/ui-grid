@@ -13,6 +13,7 @@ import { DaraElement } from "./element/DaraElement";
 import { FieldItem } from "@t/GridField";
 import { PagingInfo } from "@t/PagingInfo";
 import { allEventOff } from "./util/eventUtils";
+import { isUndefined } from "./util/utils";
 
 declare const APP_VERSION: string;
 
@@ -60,7 +61,7 @@ export class DaraGrid {
 
     if (message) this.language.setMessage(message);
 
-    if (gridElement == null || typeof gridElement === "undefined") {
+    if (gridElement == null || isUndefined(gridElement)) {
       throw new Error(`${gridElement} grid element not found`);
     }
 

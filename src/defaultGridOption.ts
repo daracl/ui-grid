@@ -141,20 +141,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       /**
        * 🔥 드래그 중 보여질 템플릿 설정
        */
-      dragTemplate: {
-        /**
-         * 기본 ghost UI 사용 여부
-         * true → 기본 텍스트 표시
-         * false → 커스텀 renderer 사용
-         */
-        useDefault: true,
-
-        /**
-         * 커스텀 템플릿 렌더 함수
-         * HTMLElement 또는 HTML string 반환 가능
-         */
-        renderer: undefined as ((rowData: any, rowIndex: number) => HTMLElement | string) | undefined,
-      },
+      dragTemplate: undefined,
     },
   },
   summary: { height: 28, position: "bottom", items: [] },

@@ -25,6 +25,7 @@ import { SparklineRenderer } from "./renderer/view/SparklineRenderer";
 import { SparklineRendererBar } from "./renderer/view/SparklineRendererBar";
 import { SwitchRenderer } from "./renderer/view/SwitchRenderer";
 import { PasswordEditRenderer } from "./renderer/edit/PasswordEditRenderer";
+import { AsideRowDragHandleRenderer } from "./renderer/view/AsideRowDragHandleRenderer";
 
 export type MODE = "edit" | "view";
 
@@ -61,6 +62,7 @@ export const VIEW_RENDERER: any = {
   lineNumber: AsideLineNumberRenderer,
   modifyInfo: AsideModifyInfoRenderer,
   rowCheckbox: AsideRowCheckRenderer,
+  rowDragHandle: AsideRowDragHandleRenderer,
   dropdown: DropdownRenderer,
   checkbox: CheckboxRenderer,
   switch: SwitchRenderer,
@@ -168,11 +170,18 @@ export const ROW_CHECK_KEY = ROw_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
 export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + "$rowid";
 
 /**
- * row id key
+ * row height key
  *
- * @type {"_dg$rowid"}
+ * @type {"_dg$rowHeight"}
  */
 export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + "$rowHeight";
+
+/**
+ * row drag handle name
+ *
+ * @type {"$rowDragHandle"}
+ */
+export const ROW_DRAG_HANDLE_NAME = "$rowDragHandle";
 
 /**
  * row cud name key

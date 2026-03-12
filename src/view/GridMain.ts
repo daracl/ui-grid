@@ -15,6 +15,7 @@ import {
   ROW_CHECK_KEY,
   ROW_CHECK_NAME,
   ROW_CUD_KEY,
+  ROW_DRAG_HANDLE_NAME,
   ROW_HEIGHT_KEY,
   ROW_ID_KEY,
   THEME_TYPE,
@@ -743,25 +744,32 @@ export class GridMain {
     let asideOrder: any[] = [];
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
-      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: LINE_NUMBER_NAME, renderer: { type: "lineNumber" }, $isAside: true });
-
       opts.aside.lineNumber.order = opts.aside.lineNumber.order ?? 0;
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, { name: LINE_NUMBER_NAME, renderer: { type: "lineNumber" }, $isAside: true });
       asideOrder.push(fieldItem);
     }
 
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
-      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: ROW_CHECK_NAME, renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
       opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, { name: ROW_CHECK_NAME, renderer: { type: "rowCheckbox", customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } }, $isAside: true });
+      asideOrder.push(fieldItem);
+    }
+
+    // rowDragHandle
+    if (opts.body.rowMove?.enabled === true && opts.body.rowMove?.enableDragHandle !== false) {
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, { name: ROW_DRAG_HANDLE_NAME, width: 32, order: 2, renderer: { type: "rowDragHandle" }, $isAside: true });
       asideOrder.push(fieldItem);
     }
 
     // modifyInfo 추가.
     if (opts.aside.modifyInfo.enabled === true) {
-      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
       opts.aside.modifyInfo.order = opts.aside.modifyInfo.order ?? 2;
+      let fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, { name: "$modifyInfo", renderer: { type: "modifyInfo" }, $isAside: true });
       asideOrder.push(fieldItem);
     }
+
+    console.log("asideOrder : ", asideOrder);
 
     asideOrder.sort((a, b) => {
       const orderA = a.order;
