@@ -161,6 +161,20 @@ export class DaraGrid {
     return this.mainConfig.items;
   };
 
+  /**
+   * item index 값으로 item 얻기
+   *
+   * @param {number[]} indexs index
+   * @returns {{}}
+   */
+  public getDataByIndexs = (indexs: number[]) => {
+    const result = [];
+    for (let index of indexs) {
+      result.push(this.mainConfig.items[index]);
+    }
+    return result;
+  };
+
   public setPaging = (paging: PagingInfo) => {
     this.getOptions().paging = paging;
     this.config().paging = paging;

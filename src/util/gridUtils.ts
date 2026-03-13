@@ -397,8 +397,6 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
     result.push(newItem);
   }
 
-  // console.log("createNewItems , ", createCount, result);
-
   return result;
 }
 /**

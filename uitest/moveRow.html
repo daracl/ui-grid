@@ -213,7 +213,7 @@
         body: {
           rowMove: {
             enabled: true,
-            //dragHandle: "name",
+            dragHandle: "name",
             // drag 시작 콜백
             dragStart(itemInfo) {
               console.log("dragStart", itemInfo);
@@ -228,7 +228,6 @@
 
               const moveIdx = dropItemIdx + (position == "after" ? 1 : 0);
               if (moveIdx == 3) {
-                console.log("false return : ");
                 return false; // drop 금지
               }
             },
@@ -240,16 +239,12 @@
             dragEnd(itemInfo) {
               console.log("dragEnd", itemInfo);
             },
-            dragTemplate(itemInfo) {
+            dragTemplate1(itemInfo) {
               const moveItem = itemInfo.moveItems[0];
               const info = moveItem.item;
               console.log(moveItem);
               return `${info.name} / ${info.age} / ${info.email} `;
             },
-          },
-          row: {
-            height: 30,
-            enableDblClickRowCheck: true,
           },
         },
 

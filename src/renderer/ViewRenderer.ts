@@ -45,12 +45,10 @@ export abstract class ViewRenderer extends Renderer {
   /**
    * view render
    *
-   * @param rowIdx row index
-   * @param rowNumber grid row number
-   * @param colNumber column number
-   * @param value row item
-   * @param element cell element
-   * @param config config
+   * @public
+   * @abstract
+   * @param {CellInfo} cellInfo cell info
+   * @param {HTMLElement} element cell element
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 

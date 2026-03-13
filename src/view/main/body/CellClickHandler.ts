@@ -39,7 +39,7 @@ export class CellClickHandler implements PointerHandler {
 
   private readonly editable: boolean;
 
-  private readonly multipleFlag: boolean;
+  protected readonly multipleFlag: boolean;
 
   protected gridBounds: { left: number; right: number; top: number; bottom: number };
 
@@ -52,7 +52,7 @@ export class CellClickHandler implements PointerHandler {
   protected dragAnimationId: number = 0;
   private lastScrollTime = 0;
 
-  private selectionMode: string;
+  protected selectionMode: string;
 
   private readonly enableDblClickRowCheck: boolean;
   private readonly cellDblClick: ((cellInfo: any) => any) | undefined;
@@ -69,8 +69,6 @@ export class CellClickHandler implements PointerHandler {
     this.opts = context.grid.getOptions();
 
     this.orginSelectionMode = this.opts.selectionMode;
-
-    console.log("this.opts.selectionMode : ", this.opts.selectionMode, this.orginSelectionMode);
 
     this.multipleFlag = isMultipleSelection(this.orginSelectionMode);
 
@@ -291,7 +289,7 @@ export class CellClickHandler implements PointerHandler {
   }
 
   // cell click
-  private setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
+  protected setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
     const context = this.context;
     const cfg = context.grid.config();
     const gridMain = context.gridMain;

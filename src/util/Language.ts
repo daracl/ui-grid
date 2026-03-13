@@ -45,6 +45,8 @@ let localeMessage: Message = {
   search: "검색",
   prev: "이전",
   next: "다음",
+  row: "행",
+  column: "열",
 };
 
 /**
@@ -132,8 +134,23 @@ export class Language {
   }
 }
 
-function message(msgFormat: string, msgParam: any): string {
-  return msgFormat.replace(/\{{1,1}([A-Za-z0-9_.]*)\}{1,1}/g, (match, key) => {
-    return typeof msgParam[key] !== "undefined" ? msgParam[key] : match;
+const TOKEN_REGEX = /\{([A-Za-z0-9_.]+)\}/g;
+
+function getValue(obj: any, path: string): unknown {
+  const parts = path.split(".");
+  let current: any = obj;
+
+  for (let i = 0; i < parts.length; i++) {
+    if (current == null) return undefined;
+    current = current[parts[i]];
+  }
+
+  return current;
+}
+
+function message(format: string, params: any): string {
+  return format.replace(TOKEN_REGEX, (match, key: string) => {
+    const value = getValue(params, key);
+    return value === undefined || value === null ? match : String(value);
   });
 }

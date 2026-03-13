@@ -116,4 +116,10 @@ export interface Message {
 
   /** 다음 페이지 버튼 텍스트 */
   next: string;
+
+  /** row 텍스트 */
+  row: string;
+
+  /** column 텍스트 */
+  column: string;
 }

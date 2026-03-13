@@ -1,7 +1,7 @@
 import { GridOptions } from "@t/GridOptions";
 import { Config, Selection, SelectionRange } from "@t/GridConfig";
 import * as utils from "@/util/utils";
-import { initSelectionInfo, initSelectionRange } from "../defaultGridConfig";
+import { initSelectionInfo } from "../defaultGridConfig";
 import { isMultipleSelection, isRowSelection } from "@/util/gridUtils";
 import { GridMain } from "@/view/GridMain";
 import { removeClass } from "@/util/styleUtils";
@@ -17,8 +17,8 @@ export class SelectionInfo {
 
   private reversedAllRanges: SelectionRange[] = [];
 
-  private rowLine: Set<number> = new Set();
-  private columnLine: Set<number> = new Set();
+  private readonly rowLine: Set<number> = new Set();
+  private readonly columnLine: Set<number> = new Set();
 
   /**
    * select id number
@@ -433,6 +433,18 @@ export class SelectionInfo {
    */
   public isCellSelectionRange(range: SelectionRange, rowIdx: number, col: number): boolean {
     return range.minIdx <= rowIdx && rowIdx <= range.maxIdx && range.minCol <= col && col <= range.maxCol;
+  }
+
+  /**
+   * 선택된 cell 인지 확인
+   *
+   * @param {SelectionRange} range range info
+   * @param {number} rowIdx row number
+   * @param {number} col col number
+   * @returns {boolean} 여부
+   */
+  public isCellSelection(range: SelectionRange, rowIdx: number, col: number): boolean {
+    return range.minIdx == rowIdx && rowIdx == range.maxIdx && range.minCol == col && col == range.maxCol;
   }
 
   /**

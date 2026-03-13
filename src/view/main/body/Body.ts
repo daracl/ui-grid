@@ -18,10 +18,10 @@ import { BodyEvent } from "./BodyEvent";
  * @typedef {Body}
  */
 export class Body {
-  private grid: DaraGrid;
-  private gridMain: GridMain;
+  private readonly grid: DaraGrid;
+  private readonly gridMain: GridMain;
 
-  private selectionInfo: SelectionInfo;
+  private readonly selectionInfo: SelectionInfo;
 
   private bodyElement: DaraElement;
 
@@ -31,7 +31,7 @@ export class Body {
 
   private allCellElements: any;
 
-  private rowCheckSet = new Set<number>();
+  private readonly rowCheckSet = new Set<number>();
 
   private beforeRowCheckItem: any;
 
@@ -560,7 +560,6 @@ export class Body {
       const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
       contentEleStyle.maxHeight = heightPixel;
       contentEleStyle.height = heightPixel;
-      //contentEleStyle.lineHeight = height + "px";
     }
 
     if (!field.styleClass) return;
@@ -642,11 +641,6 @@ export class Body {
    */
   private rowTemplate(viewRow: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
     const returnTemplate = [];
-
-    for (let j = 0; j < fields.length; j++) {
-      let field = fields[j];
-      console.log(field.$isAside, field);
-    }
 
     for (let i = 0; i < rowCount; i++) {
       let rowIdx = viewRow + i;
