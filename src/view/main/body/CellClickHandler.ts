@@ -27,7 +27,7 @@ export class CellClickHandler implements PointerHandler {
   protected readonly opts: GridOptions;
   private readonly bodyDragDelay = 150;
 
-  private readonly orginSelectionMode: string;
+  protected readonly selectionMode: string;
 
   protected bodyPosition: any;
 
@@ -52,7 +52,7 @@ export class CellClickHandler implements PointerHandler {
   protected dragAnimationId: number = 0;
   private lastScrollTime = 0;
 
-  protected selectionMode: string;
+  private currentSelectionMode: string;
 
   private readonly enableDblClickRowCheck: boolean;
   private readonly cellDblClick: ((cellInfo: any) => any) | undefined;
@@ -68,9 +68,9 @@ export class CellClickHandler implements PointerHandler {
     this.bodyElement = context.body?.getBodyElement().getElement()!;
     this.opts = context.grid.getOptions();
 
-    this.orginSelectionMode = this.opts.selectionMode;
+    this.selectionMode = this.opts.selectionMode;
 
-    this.multipleFlag = isMultipleSelection(this.orginSelectionMode);
+    this.multipleFlag = isMultipleSelection(this.selectionMode);
 
     this.cellClickFn = this.opts.body.cellClick;
     this.editable = this.opts.editable;
@@ -91,7 +91,7 @@ export class CellClickHandler implements PointerHandler {
   onPointerDown(session: PointerSession): void {
     this.cellElement = session.cellEl!;
     this.startCellInfo = session.cellInfo!;
-    this.selectionMode = this.orginSelectionMode;
+    this.currentSelectionMode = this.selectionMode;
   }
 
   onActivate(session: PointerSession) {
@@ -117,7 +117,7 @@ export class CellClickHandler implements PointerHandler {
     this.beforeEndCol = -1;
 
     if (this.multipleFlag && hasClass(session.cellEl!, "line-number")) {
-      this.selectionMode = SelectionMode.MULTIPLE_ROW;
+      this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
     }
   }
 
@@ -137,7 +137,7 @@ export class CellClickHandler implements PointerHandler {
     const moveXInfo = dragHorizontalMovePosition(cfg, x, this.bodyPosition.left, bounds.left, bounds.right, this.beforeEndCol);
     if (moveXInfo.overCell > -1) {
       hasMove = true;
-      moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(this.selectionMode, moveXInfo.overCell, cfg, this.cellElement, cfg.selection.isMouseDown).endCol;
+      moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(this.currentSelectionMode, moveXInfo.overCell, cfg, this.cellElement, cfg.selection.isMouseDown).endCol;
     }
 
     const moveYInfo = dragVerticalMovePosition(cfg, y, this.rowHeight, this.startCellInfo, bounds.top, bounds.bottom);
@@ -252,7 +252,7 @@ export class CellClickHandler implements PointerHandler {
   }
 
   onClick(session: PointerSession): void {
-    this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, this.cellElement);
+    this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.currentSelectionMode, this.cellElement);
 
     this.cellClickFn?.(this.startCellInfo);
   }

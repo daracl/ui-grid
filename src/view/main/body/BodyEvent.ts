@@ -127,8 +127,6 @@ export class BodyEvent {
 
         handler.onPointerDown?.(session);
 
-        console.log("pointer handler : ", handlerPriority, this.handlers, handler);
-
         if (handler.onPointerMove) {
           let isMoveStarted = false;
           eventOn(document, "touchmove.cellclick mousemove.cellclick", (moveEvt: Event) => {
