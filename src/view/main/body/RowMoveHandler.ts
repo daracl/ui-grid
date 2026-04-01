@@ -29,8 +29,8 @@ export class RowMoveHandler extends CellClickHandler {
   private dropRowIdx = -1;
   private moveStartItem: CellInfo;
 
-  private moveRowIndexs: number[];
-  private moveItems: CellInfo[];
+  private moveRowIndexs: number[] = [];
+  private moveItems: CellInfo[] = [];
 
   private isDropForbidden = true;
 
@@ -83,6 +83,8 @@ export class RowMoveHandler extends CellClickHandler {
     ) {
       return false;
     }
+    this.moveRowIndexs.length = 0;
+    this.moveItems.length = 0;
     this.dropRowIdx = -1;
     this.scrollDirectionX = null;
     this.scrollDirectionY = null;
@@ -102,13 +104,12 @@ export class RowMoveHandler extends CellClickHandler {
     const moveStartItem = session.cellInfo as CellInfo;
     const rowMoveOptions = opts.body.rowMove;
 
-    const col = moveStartItem.field.$colSeq;
-
     const allRange = this.cfg.selection.allRange;
 
     const moveRowIndexs: number[] = [];
 
     if (allRange.size > 0) {
+      const col = moveStartItem.field.$colSeq;
       if (this.isSelectionRowMode) {
         const { colLength, startCol } = this.cfg.dataInfo;
         const lastCol = colLength - 1;
@@ -135,13 +136,14 @@ export class RowMoveHandler extends CellClickHandler {
         for (const [key, range] of allRange) {
           const { minIdx, maxIdx } = range;
           let breakFlag = false;
+
           for (let idx = minIdx; idx <= maxIdx; idx++) {
             if (this.selectionInfo.isCellSelection(range, idx, col)) {
               if (range.mode == 'remove') {
                 const removeIdx = moveRowIndexs.indexOf(idx);
 
                 if (removeIdx !== -1) {
-                  moveRowIndexs.splice(removeIdx, idx);
+                  moveRowIndexs.splice(removeIdx, 1);
                 }
               } else {
                 moveRowIndexs.push(idx);
@@ -159,14 +161,14 @@ export class RowMoveHandler extends CellClickHandler {
     }
 
     // 이동할 item 구하기
-    this.moveItems = [];
+    const moveItems: CellInfo[] = [];
 
     if (moveRowIndexs.length > 0) {
       const items = cfg.items;
       if (moveRowIndexs.includes(moveStartItem.rowIndex)) {
         moveRowIndexs.sort((a, b) => a - b);
         for (const rowIdx of moveRowIndexs) {
-          this.moveItems.push(items[rowIdx]);
+          moveItems.push(items[rowIdx]);
         }
       } else {
         moveRowIndexs.length = 0;
@@ -176,16 +178,16 @@ export class RowMoveHandler extends CellClickHandler {
     if (moveRowIndexs.length < 1) {
       this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, session.cellEl!);
       moveRowIndexs.push(moveStartItem.rowIndex);
-      this.moveItems.push(moveStartItem.item);
+      moveItems.push(moveStartItem.item);
+    }
+
+    if (rowMoveOptions?.dragStart?.({ moveItems: moveItems }) === false) {
+      return false;
     }
 
     this.moveRowIndexs = moveRowIndexs;
-
+    this.moveItems = moveItems;
     this.isMoveRowSequential = isSequential(moveRowIndexs);
-
-    if (rowMoveOptions?.dragStart?.({ moveItems: this.moveItems }) === false) {
-      return false;
-    }
     this.moveStartItem = moveStartItem;
     const position = getElementRect(this.context.gridMain.getBody().getBodyElement().getElement(), true);
 
@@ -229,10 +231,6 @@ export class RowMoveHandler extends CellClickHandler {
       return;
     }
 
-    const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
-    classlist.remove('dg-fail');
-    classlist.add('dg-success');
-
     const rowHeight = this.rowHeight;
 
     const verticalMovePosition = dragVerticalMovePosition(
@@ -271,50 +269,45 @@ export class RowMoveHandler extends CellClickHandler {
 
     const currentDropRowIdx = cfg.scroll.startIdx + helperViewIndex;
 
-    const moveStartItem = this.moveStartItem;
+    if (this.dropRowIdx === currentDropRowIdx) {
+      return;
+    }
 
-    const moveRowIndexs = this.moveRowIndexs;
+    const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
+    classlist.remove('dg-fail');
+    classlist.add('dg-success');
 
-    if (this.dropRowIdx !== currentDropRowIdx) {
-      this.isDropForbidden = false;
+    this.isDropForbidden = false;
 
-      if (this.isMoveRowSequential) {
-        if (
-          moveRowIndexs.includes(currentDropRowIdx) ||
-          (moveRowIndexs[moveRowIndexs.length - 1] < currentDropRowIdx && moveRowIndexs.includes(currentDropRowIdx - 1))
-        ) {
-          this.preventDrop();
-          return;
-        }
-      }
-
-      rowMoveDropHelperElement.style.transform = `translateY(${helperViewIndex * rowHeight}px)`;
-
-      this.dropRowIdx = currentDropRowIdx;
-
-      if (this.isDropForbidden) {
-        rowMoveDropHelperElement.style.display = 'none';
-        return;
-      }
-
-      rowMoveDropHelperElement.style.display = 'block';
-
-      let position = MovePosition.BEFORE;
-      let dropItemIdx = currentDropRowIdx;
-      if (moveStartItem.rowIndex < currentDropRowIdx) {
-        position = MovePosition.AFTER;
-        dropItemIdx = currentDropRowIdx - 1;
-      }
-
+    if (this.isMoveRowSequential) {
+      const moveRowIndexs = this.moveRowIndexs;
       if (
-        this.rowMoveOptions.dragOver?.({ moveItems: [moveStartItem], dropItemIdx: dropItemIdx, position: position }) ===
-        false
+        moveRowIndexs.includes(currentDropRowIdx) ||
+        (moveRowIndexs[moveRowIndexs.length - 1] < currentDropRowIdx && moveRowIndexs.includes(currentDropRowIdx - 1))
       ) {
         this.preventDrop();
-        rowMoveDropHelperElement.classList.add('dg-drop-forbidden');
-      } else {
-        rowMoveDropHelperElement.classList.remove('dg-drop-forbidden');
+        return;
       }
+    }
+
+    this.dropRowIdx = currentDropRowIdx;
+    rowMoveDropHelperElement.style.transform = `translateY(${helperViewIndex * rowHeight}px)`;
+    rowMoveDropHelperElement.style.display = 'block';
+
+    const moveStartItem = this.moveStartItem;
+
+    let position = MovePosition.BEFORE;
+    let dropItemIdx = currentDropRowIdx;
+    if (moveStartItem.rowIndex < currentDropRowIdx) {
+      position = MovePosition.AFTER;
+      dropItemIdx = currentDropRowIdx - 1;
+    }
+
+    if (
+      this.rowMoveOptions.dragOver?.({ moveItems: this.moveItems, dropItemIdx: dropItemIdx, position: position }) ===
+      false
+    ) {
+      this.preventDrop();
     }
   }
 
