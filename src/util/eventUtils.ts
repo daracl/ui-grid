@@ -1,6 +1,6 @@
-import { isEmpty, isString, isUndefined } from "./utils";
-import { $querySelector } from "./domUtils";
-import { PointerPosition } from "@/event/PointerSession";
+import { isEmpty, isString, isUndefined } from './utils';
+import { $querySelector } from './domUtils';
+import { PointerPosition } from '@/event/PointerSession';
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -53,7 +53,7 @@ export function isCtrlKey(evt: Event): boolean {
 export function isSpacebar(evt: Event): boolean {
   const event = evt as KeyboardEvent;
 
-  if (event.key === " " || event.code === "Space") {
+  if (event.key === ' ' || event.code === 'Space') {
     return true;
   }
   return false;
@@ -64,7 +64,7 @@ export function isSpacebar(evt: Event): boolean {
  */
 export function allEventOff() {
   for (const [element, events] of EVENT_HANDLER_MAP) {
-    for (let event in events) {
+    for (const event in events) {
       eventOff(element, event);
     }
   }
@@ -79,7 +79,7 @@ export function allEventOff() {
 export function isEnter(evt: Event): boolean {
   const event = evt as KeyboardEvent;
 
-  if (event.key === "Enter" || event.code === "Enter") {
+  if (event.key === 'Enter' || event.code === 'Enter') {
     return true;
   }
   return false;
@@ -94,7 +94,7 @@ export function isEnter(evt: Event): boolean {
 export const eventOff = (el: Element | string | NodeList | null | Document | Element[], type: string) => {
   if (el == null) return el;
 
-  const eventTypes = type.replaceAll(/\s+/g, " ").split(" ");
+  const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
 
   const elements = $querySelector(el);
 
@@ -106,7 +106,7 @@ export const eventOff = (el: Element | string | NodeList | null | Document | Ele
 
   // 각 요소별로 WeakMap에서 이벤트 정보를 읽어와 제거
   for (const eventType of eventTypes) {
-    const event = eventType.split(".")[0];
+    const event = eventType.split('.')[0];
     elements.forEach((target) => {
       const elementEvents = EVENT_HANDLER_MAP.get(target);
 
@@ -134,10 +134,16 @@ export const eventOff = (el: Element | string | NodeList | null | Document | Ele
  * @param {?*} [fnOpts] listener option
  * @returns {*}
  */
-export const eventOn = (el: Element | string | NodeList | null | Document | Element[], type: string, listener?: any, selector?: any, fnOpts?: any) => {
+export const eventOn = (
+  el: Element | string | NodeList | null | Document | Element[],
+  type: string,
+  listener?: any,
+  selector?: any,
+  fnOpts?: any,
+) => {
   if (el == null) return;
 
-  const eventTypes = type.replaceAll(/\s+/g, " ").split(" ");
+  const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
 
   const elements = $querySelector(el);
 
@@ -174,7 +180,7 @@ export const eventOn = (el: Element | string | NodeList | null | Document | Elem
 
   for (const eventType of eventTypes) {
     addEventInfo(el, eventType, fn);
-    const event = eventType.split(".")[0];
+    const event = eventType.split('.')[0];
     elements.forEach((el: Node) => {
       el.addEventListener(event, fn, fnOpts ?? {});
     });
@@ -208,7 +214,7 @@ export const eventKeyCode = (e: any) => {
  */
 export const eventPosition = (e: Event): PointerPosition => {
   let evt;
-  if (typeof TouchEvent !== "undefined" && e instanceof TouchEvent && e.touches.length > 0) {
+  if (typeof TouchEvent !== 'undefined' && e instanceof TouchEvent && e.touches.length > 0) {
     evt = e.touches[0];
   } else if (e instanceof MouseEvent) {
     evt = e;
@@ -229,7 +235,7 @@ export const eventPosition = (e: Event): PointerPosition => {
  */
 export function isClickEvent(e: Event): boolean {
   // 모바일 터치 이벤트인 경우 항상 클릭으로 간주 (버튼 없음)
-  if (e.type.startsWith("touch")) {
+  if (e.type.startsWith('touch')) {
     return true; // 또는 터치 이동 거리 체크
   }
 

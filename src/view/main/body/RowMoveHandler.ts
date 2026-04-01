@@ -1,16 +1,13 @@
-import { PointerContext } from "@/event/PointerContext";
-import { PointerSession } from "@/event/PointerSession";
-import { SelectionRange, Selection, CellInfo } from "@/types/GridConfig";
-import { getElementRect } from "@/util/domUtils";
-import { dragVerticalMovePosition, isRowSelection } from "@/util/gridUtils";
-import { BodyEvent } from "./BodyEvent";
-import * as utils from "@/util/utils";
-import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from "@/constants";
-import { CellClickHandler } from "./CellClickHandler";
-import { moveItem } from "../../../util/gridUtils";
-import { RowMoveOptions } from "@/types/GridOptions";
-import { Message } from "@/types/Message";
-import { Language } from "@/util/Language";
+import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import { PointerContext } from '@/event/PointerContext';
+import { PointerSession } from '@/event/PointerSession';
+import { CellInfo, Selection, SelectionRange } from '@/types/GridConfig';
+import { RowMoveOptions } from '@/types/GridOptions';
+import { getElementRect } from '@/util/domUtils';
+import { dragVerticalMovePosition, isCellSelectionMode, isRowSelectionMode, isSequential } from '@/util/gridUtils';
+import { Language } from '@/util/Language';
+import { BodyEvent } from './BodyEvent';
+import { CellClickHandler } from './CellClickHandler';
 
 /**
  * RowMoveHandler class
@@ -29,49 +26,64 @@ export class RowMoveHandler extends CellClickHandler {
 
   private rowMoveElement: HTMLElement;
 
-  private dropRowIdx: number = -1;
+  private dropRowIdx = -1;
   private moveStartItem: CellInfo;
 
   private moveRowIndexs: number[];
   private moveItems: CellInfo[];
 
-  private isDropForbidden: boolean = true;
+  private isDropForbidden = true;
 
-  private isSelectionRowMode: boolean = true;
+  private isMoveRowSequential = false;
+
+  private readonly isSelectionRowMode: boolean;
 
   public constructor(context: PointerContext, bodyEvent: BodyEvent) {
     super(context, bodyEvent);
 
     this.language = context.gridMain.getGrid().i18n();
 
-    this.rowMoveOptions = this.opts.body.rowMove!;
+    this.rowMoveOptions = this.opts.body.rowMove as RowMoveOptions;
 
-    this.isSelectionRowMode = isRowSelection(this.selectionMode);
+    this.isSelectionRowMode = isRowSelectionMode(this.selectionMode);
 
-    this.rowMoveDropHelperElement = context.grid.element().findDaraElement(".dg-movedrop-helper").getElement();
+    this.rowMoveDropHelperElement = context.grid.element().findDaraElement('.dg-movedrop-helper').getElement();
     this.initTemplate();
   }
 
   initTemplate() {
-    const rowMoveElement = document.createElement("div");
-    rowMoveElement.className = "dg-row-move-helper";
+    const rowMoveElement = document.createElement('div');
+    rowMoveElement.className = 'dg-row-move-helper';
     rowMoveElement.style.cssText = `height: ${this.rowHeight}px; display: none;`;
+
+    const statusElement = document.createElement('div');
+    statusElement.className = 'dg-row-move-status dg-icon';
+    rowMoveElement.appendChild(statusElement);
+
+    const helperElement = document.createElement('div');
+    helperElement.className = 'dg-row-move-content';
+
+    rowMoveElement.appendChild(helperElement);
 
     document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(rowMoveElement);
     this.rowMoveElement = rowMoveElement;
   }
 
   canHandle(session: PointerSession) {
-    const moveRowItem = session.cellInfo!;
+    const moveRowItem = session.cellInfo as CellInfo;
     const rowMoveOptions = this.rowMoveOptions;
     const fieldName = moveRowItem.field?.name;
 
     const dragHandle = rowMoveOptions?.dragHandle;
 
-    if (dragHandle !== "ALL" && dragHandle !== fieldName && !(rowMoveOptions?.enableDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)) {
+    if (
+      dragHandle !== 'ALL' &&
+      dragHandle !== fieldName &&
+      !(rowMoveOptions?.enableDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)
+    ) {
       return false;
     }
-
+    this.dropRowIdx = -1;
     this.scrollDirectionX = null;
     this.scrollDirectionY = null;
     this.isDropForbidden = true;
@@ -80,18 +92,17 @@ export class RowMoveHandler extends CellClickHandler {
   }
 
   onClick(session: PointerSession): void {
-    //this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, this.cellElement);
-    //this.cellClickFn?.(this.startCellInfo);
+    // click ignore
   }
 
   onActivate(session: PointerSession) {
     const cfg = this.cfg;
     const opts = this.opts;
 
-    const moveStartItem = session.cellInfo!;
+    const moveStartItem = session.cellInfo as CellInfo;
     const rowMoveOptions = opts.body.rowMove;
 
-    let col = moveStartItem.field.$colSeq;
+    const col = moveStartItem.field.$colSeq;
 
     const allRange = this.cfg.selection.allRange;
 
@@ -104,15 +115,15 @@ export class RowMoveHandler extends CellClickHandler {
         for (const [key, range] of allRange) {
           const { minIdx, maxIdx } = range;
           if (range.minCol == startCol && lastCol == range.maxCol) {
-            for (let i = minIdx; i <= maxIdx; i++) {
-              if (range.mode == "remove") {
-                const idx = moveRowIndexs.indexOf(i);
+            for (let idx = minIdx; idx <= maxIdx; idx++) {
+              if (range.mode == 'remove') {
+                const removeIdx = moveRowIndexs.indexOf(idx);
 
-                if (idx !== -1) {
-                  moveRowIndexs.splice(idx, 1);
+                if (removeIdx !== -1) {
+                  moveRowIndexs.splice(removeIdx, 1);
                 }
               } else {
-                moveRowIndexs.push(i);
+                moveRowIndexs.push(idx);
               }
             }
           } else {
@@ -122,18 +133,24 @@ export class RowMoveHandler extends CellClickHandler {
         }
       } else if (col > -1) {
         for (const [key, range] of allRange) {
-          if (this.selectionInfo.isCellSelection(range, range.startIdx, col)) {
-            const addRowIdx = range.startIdx;
-            if (range.mode == "remove") {
-              const idx = moveRowIndexs.indexOf(addRowIdx);
+          const { minIdx, maxIdx } = range;
+          let breakFlag = false;
+          for (let idx = minIdx; idx <= maxIdx; idx++) {
+            if (this.selectionInfo.isCellSelection(range, idx, col)) {
+              if (range.mode == 'remove') {
+                const removeIdx = moveRowIndexs.indexOf(idx);
 
-              if (idx !== -1) {
-                moveRowIndexs.splice(idx, addRowIdx);
+                if (removeIdx !== -1) {
+                  moveRowIndexs.splice(removeIdx, idx);
+                }
+              } else {
+                moveRowIndexs.push(idx);
               }
             } else {
-              moveRowIndexs.push(addRowIdx);
+              breakFlag = true;
             }
-          } else {
+          }
+          if (breakFlag) {
             moveRowIndexs.length = 0;
             break;
           }
@@ -146,13 +163,13 @@ export class RowMoveHandler extends CellClickHandler {
 
     if (moveRowIndexs.length > 0) {
       const items = cfg.items;
-      if (!moveRowIndexs.includes(moveStartItem.rowIndex)) {
-        moveRowIndexs.length = 0;
-      } else {
+      if (moveRowIndexs.includes(moveStartItem.rowIndex)) {
         moveRowIndexs.sort((a, b) => a - b);
-        for (let rowIdx of moveRowIndexs) {
+        for (const rowIdx of moveRowIndexs) {
           this.moveItems.push(items[rowIdx]);
         }
+      } else {
+        moveRowIndexs.length = 0;
       }
     }
 
@@ -164,6 +181,8 @@ export class RowMoveHandler extends CellClickHandler {
 
     this.moveRowIndexs = moveRowIndexs;
 
+    this.isMoveRowSequential = isSequential(moveRowIndexs);
+
     if (rowMoveOptions?.dragStart?.({ moveItems: this.moveItems }) === false) {
       return false;
     }
@@ -173,8 +192,10 @@ export class RowMoveHandler extends CellClickHandler {
     const { mainLeftWidth, mainInsideWidth, mainRightWidth, mainBodyHeight } = cfg.dimensions;
 
     this.gridBounds = {
-      left: position.left + mainLeftWidth,
-      right: position.left + mainInsideWidth - mainRightWidth,
+      gridLeft: position.left,
+      gridRight: position.left + cfg.dimensions.mainTotalWidth,
+      mainLeft: position.left + mainLeftWidth,
+      mainRight: position.left + mainInsideWidth - mainRightWidth,
       top: position.top,
       bottom: position.top + mainBodyHeight,
     };
@@ -182,13 +203,14 @@ export class RowMoveHandler extends CellClickHandler {
     this.bodyPosition = position;
 
     const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveItems });
-
+    const helperContent = this.rowMoveElement.querySelector('.dg-row-move-content') as HTMLElement;
     if (helperTemplate) {
-      this.rowMoveElement.innerHTML = helperTemplate;
+      helperContent.innerHTML = helperTemplate;
     } else {
-      this.rowMoveElement.textContent = `${this.moveItems.length} ${this.language.getMessage("row")}`;
+      helperContent.textContent = `${this.moveItems.length} ${this.language.getMessage('row')}`;
     }
-    this.rowMoveElement.style.display = "flex";
+
+    this.rowMoveElement.style.display = 'flex';
   }
 
   /** move 중 */
@@ -198,10 +220,29 @@ export class RowMoveHandler extends CellClickHandler {
     const bounds = this.gridBounds;
     const { x, y } = session.currentPos;
     this.rowMoveElement.style.transform = `translate(${x}px, ${y}px)`;
+    const rowMoveDropHelperElement = this.rowMoveDropHelperElement;
+
+    if (x < bounds.gridLeft - 3 || x > bounds.gridRight + 3 || y < bounds.top - 30 || y > bounds.bottom + 30) {
+      this.stopAutoScroll();
+      this.preventDrop();
+
+      return;
+    }
+
+    const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
+    classlist.remove('dg-fail');
+    classlist.add('dg-success');
 
     const rowHeight = this.rowHeight;
 
-    const verticalMovePosition = dragVerticalMovePosition(cfg, y, rowHeight, this.startCellInfo, bounds.top, bounds.bottom);
+    const verticalMovePosition = dragVerticalMovePosition(
+      cfg,
+      y,
+      rowHeight,
+      this.startCellInfo,
+      bounds.top,
+      bounds.bottom,
+    );
 
     this.scrollDirectionY = verticalMovePosition.scrollDirectionY;
 
@@ -215,8 +256,8 @@ export class RowMoveHandler extends CellClickHandler {
 
     const offsetInRow = moveViewRowY - viewRowIdx * rowHeight;
 
-    let isMoveUp = offsetInRow < rowHeight / this.ROW_DRAG_RATIO; // 상단 체크
-    let isMoveDown = rowHeight - offsetInRow < rowHeight / this.ROW_DRAG_RATIO; // 하단 체크
+    const isMoveUp = offsetInRow < rowHeight / this.ROW_DRAG_RATIO; // 상단 체크
+    const isMoveDown = rowHeight - offsetInRow < rowHeight / this.ROW_DRAG_RATIO; // 하단 체크
 
     let helperViewIndex = this.dropRowIdx === -1 ? viewRowIdx : verticalMovePosition.rowIdx - cfg.scroll.startIdx;
 
@@ -228,50 +269,23 @@ export class RowMoveHandler extends CellClickHandler {
 
     helperViewIndex = Math.max(0, Math.min(helperViewIndex, cfg.scroll.insideViewRow));
 
-    let currentDropRowIdx = cfg.scroll.startIdx + helperViewIndex;
+    const currentDropRowIdx = cfg.scroll.startIdx + helperViewIndex;
 
     const moveStartItem = this.moveStartItem;
 
-    const rowMoveDropHelperElement = this.rowMoveDropHelperElement;
+    const moveRowIndexs = this.moveRowIndexs;
+
     if (this.dropRowIdx !== currentDropRowIdx) {
       this.isDropForbidden = false;
 
-      // helper 위치 수정할것.
-      //
-      //
-      //
-      //
-      //
-
-      console.log("aaaaaa: helperViewIndex : ", helperViewIndex, this.moveRowIndexs.includes(currentDropRowIdx), currentDropRowIdx, this.moveRowIndexs);
-
-      if (this.moveRowIndexs.length == 1 && (moveStartItem.rowIndex === currentDropRowIdx || moveStartItem.rowIndex === currentDropRowIdx - 1)) {
-        this.isDropForbidden = true;
-      } else if (this.moveRowIndexs.length > 1) {
-        const idx = this.moveRowIndexs.indexOf(currentDropRowIdx);
-        const beforeIdx = this.moveRowIndexs.indexOf(currentDropRowIdx - 1);
-
-        // 지울것.
-        const beforecurrentDropRowIdx = currentDropRowIdx;
-        if (beforeIdx == this.moveRowIndexs.length - 1) {
-          this.isDropForbidden = true;
-        } else if (idx > -1) {
-          if (beforeIdx > -1) {
-            currentDropRowIdx -= 1;
-            helperViewIndex -= 1;
-          } else {
-            this.isDropForbidden = true;
-          }
-        } else if (idx < 0) {
-          if (beforeIdx > -1) {
-            this.isDropForbidden = true;
-          } else if (beforeIdx == -1) {
-            //currentDropRowIdx += 1;
-            //helperViewIndex += 1;
-          }
+      if (this.isMoveRowSequential) {
+        if (
+          moveRowIndexs.includes(currentDropRowIdx) ||
+          (moveRowIndexs[moveRowIndexs.length - 1] < currentDropRowIdx && moveRowIndexs.includes(currentDropRowIdx - 1))
+        ) {
+          this.preventDrop();
+          return;
         }
-
-        console.log("idx : ", beforecurrentDropRowIdx, currentDropRowIdx, idx, beforeIdx);
       }
 
       rowMoveDropHelperElement.style.transform = `translateY(${helperViewIndex * rowHeight}px)`;
@@ -279,11 +293,11 @@ export class RowMoveHandler extends CellClickHandler {
       this.dropRowIdx = currentDropRowIdx;
 
       if (this.isDropForbidden) {
-        rowMoveDropHelperElement.style.display = "none";
+        rowMoveDropHelperElement.style.display = 'none';
         return;
       }
 
-      rowMoveDropHelperElement.style.display = "block";
+      rowMoveDropHelperElement.style.display = 'block';
 
       let position = MovePosition.BEFORE;
       let dropItemIdx = currentDropRowIdx;
@@ -292,26 +306,40 @@ export class RowMoveHandler extends CellClickHandler {
         dropItemIdx = currentDropRowIdx - 1;
       }
 
-      if (this.rowMoveOptions.dragOver?.({ moveItems: [moveStartItem], dropItemIdx: dropItemIdx, position: position }) === false) {
-        this.isDropForbidden = true;
-        rowMoveDropHelperElement.classList.add("dg-drop-forbidden");
+      if (
+        this.rowMoveOptions.dragOver?.({ moveItems: [moveStartItem], dropItemIdx: dropItemIdx, position: position }) ===
+        false
+      ) {
+        this.preventDrop();
+        rowMoveDropHelperElement.classList.add('dg-drop-forbidden');
       } else {
-        rowMoveDropHelperElement.classList.remove("dg-drop-forbidden");
+        rowMoveDropHelperElement.classList.remove('dg-drop-forbidden');
       }
     }
+  }
+
+  /**
+   * drop 금지 시, 드롭 위치에 X 표시, 허용 시 O 표시
+   */
+  preventDrop() {
+    const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
+    classlist.remove('dg-success');
+    classlist.add('dg-fail');
+    this.isDropForbidden = true;
+    this.rowMoveDropHelperElement.style.display = 'none';
   }
 
   onPointerUp(session: PointerSession) {
     this.stopAutoScroll();
     let dropRowIdx = this.dropRowIdx;
-    //
-    //this.cellClickFn?.(this.startCellInfo);
 
-    this.rowMoveDropHelperElement.style.display = "none";
-    this.rowMoveElement.style.display = "none";
+    this.rowMoveDropHelperElement.style.display = 'none';
+    this.rowMoveElement.style.display = 'none';
 
     if (this.isDropForbidden || dropRowIdx === -1) {
-      this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, session.cellEl!);
+      if (!this.cfg.isBodyDragging && session.clickManager.getClickCount() === 1) {
+        this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.selectionMode, session.cellEl!);
+      }
       return;
     }
 
@@ -326,49 +354,13 @@ export class RowMoveHandler extends CellClickHandler {
       position = MovePosition.AFTER;
     }
 
-    /*
-    if (this.isSelectionRowMode) {
-        for (const [key, range] of allRange) {
-          const { minIdx, maxIdx } = range;
-          if (range.minCol == this.cfg.dataInfo.startCol && this.cfg.dataInfo.colLength - 1 == range.maxCol) {
-            for (let i = minIdx; i <= maxIdx; i++) {
-              if (range.mode == "remove") {
-                const idx = moveRowIndexs.indexOf(i);
-
-                if (idx !== -1) {
-                  moveRowIndexs.splice(idx, 1);
-                }
-              } else {
-                moveRowIndexs.push(i);
-              }
-            }
-          } else {
-            moveRowIndexs.length = 0;
-            break;
-          }
-        }
-      } else if (col > -1) {
-        for (const [key, range] of allRange) {
-          if (this.selectionInfo.isCellSelection(range, range.startIdx, col)) {
-            const addRowIdx = range.startIdx;
-            if (range.mode == "remove") {
-              const idx = moveRowIndexs.indexOf(addRowIdx);
-
-              if (idx !== -1) {
-                moveRowIndexs.splice(idx, addRowIdx);
-              }
-            } else {
-              moveRowIndexs.push(addRowIdx);
-            }
-          } else {
-            moveRowIndexs.length = 0;
-            break;
-          }
-        }
-      }
-      */
-
-    if (rowMoveOptions?.drop?.({ moveItems: moveItems, dropItemIdx: position == MovePosition.AFTER ? dropRowIdx - 1 : dropRowIdx, position: position }) === false) {
+    if (
+      rowMoveOptions?.drop?.({
+        moveItems: moveItems,
+        dropItemIdx: position == MovePosition.AFTER ? dropRowIdx - 1 : dropRowIdx,
+        position: position,
+      }) === false
+    ) {
       return;
     }
 
@@ -386,24 +378,33 @@ export class RowMoveHandler extends CellClickHandler {
       items.splice(rowIndex, 1);
     }
 
-    console.log(dropRowIdx, this.moveItems);
-
     items.splice(dropRowIdx, 0, ...this.moveItems);
 
-    cfg.items = items; //moveItem(cfg.items, moveStartItem.rowIndex, dropRowIdx);
+    cfg.items = items;
 
-    // /cfg.selection.maxIdx moveIdx
-    this.selectionInfo.setStartCellRowIdx(dropRowIdx);
-    const moveRange: any = { startIdx: dropRowIdx, endIdx: dropRowIdx };
+    let startCol = cfg.dataInfo.startCol;
+    let endCol = cfg.dataInfo.colLength - 1;
+    if (isCellSelectionMode(this.selectionMode)) {
+      startCol = cfg.selection.range.startCol;
+      endCol = startCol;
+    }
+
+    const moveRange: any = {
+      startIdx: dropRowIdx,
+      startCol: startCol,
+      endCol: endCol,
+      endIdx: dropRowIdx + moveRowIndexs.length - 1,
+    };
+
     this.selectionInfo.setSelectionRangeInfo(
       {
         range: moveRange as SelectionRange,
       } as Selection,
-      false,
-      false
+      true,
+      true,
     );
 
-    this.context.gridMain.getBody().dataDraw("dragmove_redraw");
+    this.context.gridMain.getBody().dataDraw('dragmove_redraw');
     rowMoveOptions?.dragEnd?.({ moveItems: moveItems, dropItemIdx: dropRowIdx, position: position });
   }
 }

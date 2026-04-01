@@ -1,10 +1,10 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "@/util/domUtils";
-import { eventOn } from "@/util/eventUtils";
-import { TextEditAbstractRenderer } from "./TextEditAbstractRenderer";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { eventOn } from '@/util/eventUtils';
+import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
 
 /**
  * password renderer
@@ -19,6 +19,6 @@ export class PasswordEditRenderer extends TextEditAbstractRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    this.textRender(cellInfo, element, "password");
+    this.textRender(cellInfo, element, 'password');
   }
 }

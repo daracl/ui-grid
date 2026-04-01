@@ -1,7 +1,7 @@
-import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from "@/constants";
-import { DisplayFormatOptions, OptionCallback } from "./Common";
-import { FieldItem } from "./GridField";
-import { CellInfo } from "./GridConfig";
+import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
+import { DisplayFormatOptions, OptionCallback } from './Common';
+import { FieldItem } from './GridField';
+import { CellInfo } from './GridConfig';
 
 /**
  * grid options
@@ -17,11 +17,11 @@ export interface GridOptions {
   /**
    * 높이
    */
-  height: "auto" | number;
+  height: 'auto' | number;
   /**
    *  넓이값
    */
-  width: "auto" | number;
+  width: 'auto' | number;
 
   /**
    * window resize delay
@@ -281,7 +281,7 @@ export interface SearchOptions {
    * @example
    * "search" | "full"
    */
-  mode?: "simple" | "full";
+  mode?: 'simple' | 'full';
 
   /**
    * 고정 컬럼 활성여부
@@ -586,7 +586,7 @@ export interface BodyOptions {
 export interface RowMoveEventParams {
   moveItems: CellInfo[];
   dropItemIdx: number;
-  position: "before" | "after" | "inside";
+  position: 'before' | 'after' | 'inside';
 }
 /**
  * scroll option

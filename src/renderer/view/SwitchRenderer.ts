@@ -1,9 +1,9 @@
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { ViewRenderer } from "../ViewRenderer";
-import { eventOn } from "@/util/eventUtils";
-import { getCellInfo } from "@/util/gridUtils";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { ViewRenderer } from '../ViewRenderer';
+import { eventOn } from '@/util/eventUtils';
+import { getCellInfo } from '@/util/gridUtils';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * Switch renderer
@@ -36,14 +36,14 @@ export class SwitchRenderer extends ViewRenderer {
 
     // 최초 렌더링 시 구조 생성
     if (!label) {
-      label = document.createElement("label");
+      label = document.createElement('label');
 
-      const input = document.createElement("input");
-      input.type = "checkbox";
+      const input = document.createElement('input');
+      input.type = 'checkbox';
       input.name = inputName;
 
-      const mark = document.createElement("span");
-      mark.className = "dg-slider";
+      const mark = document.createElement('span');
+      mark.className = 'dg-slider';
 
       label.appendChild(input);
       label.appendChild(mark);
@@ -57,7 +57,7 @@ export class SwitchRenderer extends ViewRenderer {
     input.checked = val === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = element.querySelector(".dg-slider");
+      const labelElement = element.querySelector('.dg-slider');
       if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
     }
   }
@@ -67,9 +67,9 @@ export class SwitchRenderer extends ViewRenderer {
 
     eventOn(
       contentElement,
-      "click",
+      'click',
       (e: UIEvent) => {
-        const cellElement = contentElement.closest(".dg-cell") as HTMLElement;
+        const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
 
         const cellInfo = getCellInfo(cfg, cellElement);
 
@@ -81,7 +81,7 @@ export class SwitchRenderer extends ViewRenderer {
 
         this.render(cellInfo, cellElement);
       },
-      { passive: false }
+      { passive: false },
     );
   }
 

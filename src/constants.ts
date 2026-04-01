@@ -1,61 +1,61 @@
-import { CheckboxRenderer } from "./renderer/view/CheckboxRenderer";
-import { CustomEditRenderer } from "./renderer/edit/CustomEditRenderer";
-import { DateRenderer } from "./renderer/edit/DateRenderer";
+import { CheckboxRenderer } from './renderer/view/CheckboxRenderer';
+import { CustomEditRenderer } from './renderer/edit/CustomEditRenderer';
+import { DateRenderer } from './renderer/edit/DateRenderer';
 
-import { NumberEditRenderer } from "./renderer/edit/NumberEditRenderer";
-import { PasswordRenderer } from "./renderer/view/PasswordRenderer";
-import { RangeRenderer } from "./renderer/edit/RangeRenderer";
-import { TextAreaRenderer } from "./renderer/edit/TextAreaRenderer";
-import { TextEditRenderer } from "./renderer/edit/TextEditRenderer";
+import { NumberEditRenderer } from './renderer/edit/NumberEditRenderer';
+import { PasswordRenderer } from './renderer/view/PasswordRenderer';
+import { RangeRenderer } from './renderer/edit/RangeRenderer';
+import { TextAreaRenderer } from './renderer/edit/TextAreaRenderer';
+import { TextEditRenderer } from './renderer/edit/TextEditRenderer';
 
-import { AsideLineNumberRenderer } from "./renderer/view/AsideLineNumberRenderer";
-import { AsideModifyInfoRenderer } from "./renderer/view/AsideModifyInfoRenderer";
-import { AsideRowCheckRenderer } from "./renderer/view/AsideRowCheckRenderer";
+import { AsideLineNumberRenderer } from './renderer/view/AsideLineNumberRenderer';
+import { AsideModifyInfoRenderer } from './renderer/view/AsideModifyInfoRenderer';
+import { AsideRowCheckRenderer } from './renderer/view/AsideRowCheckRenderer';
 
-import { BarRenderer } from "./renderer/view/BarRenderer";
-import { ButtonRenderer } from "./renderer/view/ButtonRenderer";
-import { HiddenRenderer } from "./renderer/view/HiddenRenderer";
-import { HtmlRenderer } from "./renderer/view/HtmlRenderer";
-import { ImageRenderer } from "./renderer/view/ImageRenderer";
-import { DropdownRenderer } from "./renderer/view/DropdownRenderer";
-import { LinkRenderer } from "./renderer/view/LinkRenderer";
-import { TextRenderer } from "./renderer/view/TextRenderer";
-import { ViewCustomRenderer } from "./renderer/view/ViewCustomRenderer";
-import { SparklineRenderer } from "./renderer/view/SparklineRenderer";
-import { SparklineRendererBar } from "./renderer/view/SparklineRendererBar";
-import { SwitchRenderer } from "./renderer/view/SwitchRenderer";
-import { PasswordEditRenderer } from "./renderer/edit/PasswordEditRenderer";
-import { AsideRowDragHandleRenderer } from "./renderer/view/AsideRowDragHandleRenderer";
+import { BarRenderer } from './renderer/view/BarRenderer';
+import { ButtonRenderer } from './renderer/view/ButtonRenderer';
+import { HiddenRenderer } from './renderer/view/HiddenRenderer';
+import { HtmlRenderer } from './renderer/view/HtmlRenderer';
+import { ImageRenderer } from './renderer/view/ImageRenderer';
+import { DropdownRenderer } from './renderer/view/DropdownRenderer';
+import { LinkRenderer } from './renderer/view/LinkRenderer';
+import { TextRenderer } from './renderer/view/TextRenderer';
+import { ViewCustomRenderer } from './renderer/view/ViewCustomRenderer';
+import { SparklineRenderer } from './renderer/view/SparklineRenderer';
+import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
+import { SwitchRenderer } from './renderer/view/SwitchRenderer';
+import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
+import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
 
-export type MODE = "edit" | "view";
+export type MODE = 'edit' | 'view';
 
 // copy type
-export type COPY_MODE = "single" | "multiple" | "none";
+export type COPY_MODE = 'single' | 'multiple' | 'none';
 
 // align type
-export type ALIGN_TYPE = "left" | "center" | "right";
+export type ALIGN_TYPE = 'left' | 'center' | 'right';
 
 // 선택 타입
-export type SELECTION_MODE = "row" | "cell" | "multiple-row" | "multiple-cell" | "none";
+export type SELECTION_MODE = 'row' | 'cell' | 'multiple-row' | 'multiple-cell' | 'none';
 
 export const RULES = {
-  NAN: "nan",
-  MIN: "minimum",
-  EXCLUSIVE_MIN: "exclusiveMinimum",
-  MAX: "maximum",
-  EXCLUSIVE_MAX: "exclusiveMaximum",
-  MIN_LENGTH: "minLength",
-  MAX_LENGTH: "maxLength",
-  BETWEEN: "between",
-  BETWEEN_EXCLUSIVE_MIN: "betweenExclusiveMin",
-  BETWEEN_EXCLUSIVE_MAX: "betweenExclusiveMax",
-  BETWEEN_EXCLUSIVE_MINMAX: "betweenExclusiveMinMax",
-  REGEXP: "regexp",
-  REQUIRED: "required",
-  VALIDATOR: "validator",
+  NAN: 'nan',
+  MIN: 'minimum',
+  EXCLUSIVE_MIN: 'exclusiveMinimum',
+  MAX: 'maximum',
+  EXCLUSIVE_MAX: 'exclusiveMaximum',
+  MIN_LENGTH: 'minLength',
+  MAX_LENGTH: 'maxLength',
+  BETWEEN: 'between',
+  BETWEEN_EXCLUSIVE_MIN: 'betweenExclusiveMin',
+  BETWEEN_EXCLUSIVE_MAX: 'betweenExclusiveMax',
+  BETWEEN_EXCLUSIVE_MINMAX: 'betweenExclusiveMinMax',
+  REGEXP: 'regexp',
+  REQUIRED: 'required',
+  VALIDATOR: 'validator',
 } as const;
 
-export const FIELD_PREFIX = "dg"; // daracl grid field
+export const FIELD_PREFIX = 'dg'; // daracl grid field
 
 // renderer type
 export const VIEW_RENDERER: any = {
@@ -92,38 +92,57 @@ export const EDIT_RENDERER: any = {
 };
 
 export const ALIGN = {
-  left: "left",
-  center: "center",
-  right: "right",
+  left: 'left',
+  center: 'center',
+  right: 'right',
 } as const;
 
 export const ALIGN_STYLE = {
-  left: "text-al",
-  center: "text-ac",
-  right: "text-ar",
+  left: 'text-al',
+  center: 'text-ac',
+  right: 'text-ar',
 } as const;
 
 // theme type
-export type THEME_TYPE = "light" | "dark";
+export type THEME_TYPE = 'light' | 'dark';
 
 export const GRID_THEME = {
-  light: "dg-light",
-  dark: "dg-dark",
+  light: 'dg-light',
+  dark: 'dg-dark',
 } as const;
 
 export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];
 
-export type POSITION_TYPE = "left" | "center" | "right";
+export type POSITION_TYPE = 'left' | 'center' | 'right';
 
-export type RENDERER_TYPE = "bar" | "button" | "html" | "image" | "link" | "number" | "text" | "file" | "textarea" | "dropdown" | "radio" | "checkbox" | "date" | "datetime" | "dateyear" | "datemonth" | "datehour" | "group" | "custom";
+export type RENDERER_TYPE =
+  | 'bar'
+  | 'button'
+  | 'html'
+  | 'image'
+  | 'link'
+  | 'number'
+  | 'text'
+  | 'file'
+  | 'textarea'
+  | 'dropdown'
+  | 'radio'
+  | 'checkbox'
+  | 'date'
+  | 'datetime'
+  | 'dateyear'
+  | 'datemonth'
+  | 'datehour'
+  | 'group'
+  | 'custom';
 
-export type REGEXP_TYPE = "email" | "url" | "alpha" | "alpha-num";
+export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
 
-export type PASSWORD_TYPE = "number" | "upper" | "upper-special" | "upper-special-number"; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
+export type PASSWORD_TYPE = 'number' | 'upper' | 'upper-special' | 'upper-special-number'; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
 
-export type ORIENTATION_TYPE = "horizontal" | "vertical";
+export type ORIENTATION_TYPE = 'horizontal' | 'vertical';
 
-export type ADD_ROW_POSITION = "before" | "after";
+export type ADD_ROW_POSITION = 'before' | 'after';
 
 /**
  * default toolbar height
@@ -139,21 +158,21 @@ export const TOOLBAR_HEIGHT = 35;
  */
 export const FOOTER_HEIGHT = 35;
 
-export const ROw_ITEM_PREFIX_NAME = "_dg";
+export const ROw_ITEM_PREFIX_NAME = '_dg';
 
 /**
  * line number name
  *
  * @type {"$lineNumber"}
  */
-export const LINE_NUMBER_NAME = "$lineNumber";
+export const LINE_NUMBER_NAME = '$lineNumber';
 
 /**
  * row check name
  *
  * @type {"$rowCheck"}
  */
-export const ROW_CHECK_NAME = "$rowCheck";
+export const ROW_CHECK_NAME = '$rowCheck';
 
 /**
  * row check key
@@ -167,40 +186,40 @@ export const ROW_CHECK_KEY = ROw_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
  *
  * @type {"_dg$rowid"}
  */
-export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + "$rowid";
+export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + '$rowid';
 
 /**
  * row height key
  *
  * @type {"_dg$rowHeight"}
  */
-export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + "$rowHeight";
+export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + '$rowHeight';
 
 /**
  * row drag handle name
  *
  * @type {"$rowDragHandle"}
  */
-export const ROW_DRAG_HANDLE_NAME = "$rowDragHandle";
+export const ROW_DRAG_HANDLE_NAME = '$rowDragHandle';
 
 /**
  * row cud name key
  *
  * @type {string}
  */
-export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + "$CUD";
+export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + '$CUD';
 
 /**
  * layer attribute name
  *
  * @type {"data-dg-grid-layer"}
  */
-export const LAYER_ATTR_NAME = "data-dg-grid-layer";
+export const LAYER_ATTR_NAME = 'data-dg-grid-layer';
 
 /**
  * 전체 선택 value
  */
-export const ALL_SELECT_VALUE = "$all$";
+export const ALL_SELECT_VALUE = '$all$';
 
 /**
  * item chunk size
@@ -209,39 +228,39 @@ export const ALL_SELECT_VALUE = "$all$";
  */
 export const CHUNK_SIZE = 1000;
 
-export const HIDDEN_ELEMENT_SELECTOR = ".dg-hidden-container";
+export const HIDDEN_ELEMENT_SELECTOR = '.dg-hidden-container';
 
 export const POINTER_STATE = {
-  IDLE: "IDLE",
-  PRESSED: "PRESSED",
-  DRAGGING: "DRAGGING",
+  IDLE: 'IDLE',
+  PRESSED: 'PRESSED',
+  DRAGGING: 'DRAGGING',
 } as const;
 
 /**
  * Scroll direction enum for X-axis
  */
 export enum ScrollDirectionX {
-  LEFT = "L",
-  RIGHT = "R",
+  LEFT = 'L',
+  RIGHT = 'R',
 }
 
 /**
  * Scroll direction enum for Y-axis
  */
 export enum ScrollDirectionY {
-  UP = "U",
-  DOWN = "D",
+  UP = 'U',
+  DOWN = 'D',
 }
 
 export enum SelectionMode {
-  MULTIPLE_ROW = "multiple-row",
-  MULTIPLE_CELL = "multiple-cell",
-  ROW = "row",
-  CELL = "cell",
+  MULTIPLE_ROW = 'multiple-row',
+  MULTIPLE_CELL = 'multiple-cell',
+  ROW = 'row',
+  CELL = 'cell',
 }
 
 export enum MovePosition {
-  BEFORE = "before",
-  AFTER = "after",
-  INSIDE = "inside",
+  BEFORE = 'before',
+  AFTER = 'after',
+  INSIDE = 'inside',
 }

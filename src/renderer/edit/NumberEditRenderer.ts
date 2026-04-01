@@ -1,14 +1,14 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "@/util/domUtils";
-import { eventOn } from "@/util/eventUtils";
-import { EditRendererInfo } from "@t/RendererInfo";
-import { numberValidator } from "@/rule/numberValidator";
-import { ValidResult } from "@t/ValidResult";
-import { isBooleanObject } from "util/types";
-import { TextEditAbstractRenderer } from "./TextEditAbstractRenderer";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { eventOn } from '@/util/eventUtils';
+import { EditRendererInfo } from '@t/RendererInfo';
+import { numberValidator } from '@/rule/numberValidator';
+import { ValidResult } from '@t/ValidResult';
+import { isBooleanObject } from 'util/types';
+import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
 
 /**
  * number renderer
@@ -34,17 +34,17 @@ export class NumberEditRenderer extends TextEditAbstractRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = getLayerElement("input", "dg-edit-input", cellInfo.c + "") as HTMLInputElement;
-      editElement.type = "number";
+      editElement = getLayerElement('input', 'dg-edit-input', cellInfo.c + '') as HTMLInputElement;
+      editElement.type = 'number';
       editElement.name = this.fieldName;
-      editElement.setAttribute("autocomplete", "off");
+      editElement.setAttribute('autocomplete', 'off');
 
       if (this.editRendererInfo.rule?.minimum) {
-        editElement.min = this.editRendererInfo.rule?.minimum + "";
+        editElement.min = this.editRendererInfo.rule?.minimum + '';
       }
 
       if (this.editRendererInfo.rule?.maximum) {
-        editElement.max = this.editRendererInfo.rule?.maximum + "";
+        editElement.max = this.editRendererInfo.rule?.maximum + '';
       }
 
       this.rendererContainer.appendChild(editElement);
@@ -64,7 +64,7 @@ export class NumberEditRenderer extends TextEditAbstractRenderer {
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
-    editElement.value = item[this.fieldName] ?? "";
+    editElement.value = item[this.fieldName] ?? '';
 
     setTimeout(() => {
       editElement.focus();

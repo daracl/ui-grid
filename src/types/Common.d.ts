@@ -34,10 +34,11 @@ interface StringArrayMap {
 }
 
 export type SearchMode = {
-  matchCase: boolean;
-  matchWholeWord: boolean;
-  useRegex: boolean;
-  searchFields: string | string[] | "$all$";
+  matchCase?: boolean;
+  matchWholeWord?: boolean;
+  useRegex?: boolean;
+  searchFields?: string | string[] | '$all$';
+  matchWholeRegex?: RegExp;
 };
 
 export type MatchedField = {
@@ -49,7 +50,7 @@ export type MatchedField = {
 };
 
 export type DisplayFormatOptions = {
-  type: "number" | "date" | "currency";
+  type: 'number' | 'date' | 'currency';
   format: string;
   prefix: string;
   suffix: string;

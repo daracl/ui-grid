@@ -1,5 +1,5 @@
-import { Config } from "@t/GridConfig";
-import { ROW_ID_KEY } from "@/constants";
+import { Config } from '@t/GridConfig';
+import { ROW_ID_KEY } from '@/constants';
 
 const workerCode = `
 self.onmessage = function (e) {
@@ -19,7 +19,7 @@ let worker: Worker;
 export function getItemWorker() {
   if (worker) return worker;
 
-  const blob = new Blob([workerCode], { type: "application/javascript" });
+  const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
   worker = new Worker(workerUrl);
 

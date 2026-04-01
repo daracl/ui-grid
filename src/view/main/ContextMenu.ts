@@ -1,13 +1,13 @@
-import { DaraGrid } from "@/DaraGrid";
-import { GridMain } from "../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { ContextMenuItem, ContextMenuOptions } from "@t/GridOptions";
-import { isFunction, isUndefined } from "@/util/utils";
-import { eventOff, eventOn, eventPosition, stopPreventCancel } from "@/util/eventUtils";
-import { addClass, addStyleCss, removeClass } from "@/util/styleUtils";
-import { outerLayerPosition, getElementRect, hasClass, getBrowserSize, getScrollPosition } from "@/util/domUtils";
-import { getCellInfo } from "@/util/gridUtils";
-import { HIDDEN_ELEMENT_SELECTOR } from "@/constants";
+import { DaraGrid } from '@/DaraGrid';
+import { GridMain } from '../GridMain';
+import { DaraElement } from '@/element/DaraElement';
+import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
+import { isFunction, isUndefined } from '@/util/utils';
+import { eventOff, eventOn, eventPosition, stopPreventCancel } from '@/util/eventUtils';
+import { addClass, removeClass } from '@/util/styleUtils';
+import { outerLayerPosition, getElementRect, hasClass, getBrowserSize } from '@/util/domUtils';
+import { getCellInfo } from '@/util/gridUtils';
+import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
 
 /**
  * Body class
@@ -23,7 +23,7 @@ export class ContextMenu {
 
   private contextElement: DaraElement;
 
-  private contextData: Map<String, ContextMenuItem> = new Map();
+  private contextData: Map<string, ContextMenuItem> = new Map();
 
   constructor(grid: DaraGrid, gridMain: GridMain) {
     this.grid = grid;
@@ -42,27 +42,27 @@ export class ContextMenu {
   }
 
   create() {
-    const contextElement = document.createElement("ul");
-    contextElement.setAttribute("data-grid-id", this.grid.instanceId());
-    contextElement.className = "dg-contextmenu dg-contextmenu-top dg-outer-layer";
-    contextElement.setAttribute("draggable", "false");
-    contextElement.setAttribute("onselectstart", "return false");
+    const contextElement = document.createElement('ul');
+    contextElement.setAttribute('data-grid-id', this.grid.instanceId());
+    contextElement.className = 'dg-contextmenu dg-contextmenu-top dg-outer-layer';
+    contextElement.setAttribute('draggable', 'false');
+    contextElement.setAttribute('onselectstart', 'return false');
 
     const htmlTemplate = [];
     if (this.contextOpts.enableHeader) {
-      htmlTemplate.push(`<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>`);
-      htmlTemplate.push(`<li><a class="dg-divider" tabindex="-1"></a></li>`);
+      htmlTemplate.push('<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>');
+      htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
     }
 
-    htmlTemplate.push(this.template(this.contextOpts.items, "top", 0));
+    htmlTemplate.push(this.template(this.contextOpts.items, 'top', 0));
 
-    contextElement.innerHTML = htmlTemplate.join("");
+    contextElement.innerHTML = htmlTemplate.join('');
 
     document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(contextElement);
 
     this.contextElement = new DaraElement(contextElement);
 
-    eventOn(contextElement, "contextmenu", (e: Event) => {
+    eventOn(contextElement, 'contextmenu', (e: Event) => {
       stopPreventCancel(e);
     });
   }
@@ -77,11 +77,11 @@ export class ContextMenu {
 
     let selectElement: HTMLElement;
 
-    eventOff(gridElement, "contextmenu");
-    eventOn(gridElement, "contextmenu", (e: Event) => {
+    eventOff(gridElement, 'contextmenu');
+    eventOn(gridElement, 'contextmenu', (e: Event) => {
       stopPreventCancel(e);
 
-      removeClass(this.contextElement.finds(".dg-submenu-item.dg-on"), "dg-on");
+      removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
 
       if (isDisableItemKeyFn) {
         const disableItem = contextOpts.disableItem(contextOpts.items);
@@ -90,17 +90,17 @@ export class ContextMenu {
         if (disableItemLen > 0) {
           for (let i = 0; i < disableItemLen; i++) {
             item = disableItem[i];
-            addClass(this.contextElement.find('[context-key="' + item.depth + "_" + item.key + '"]'), "disabled");
+            addClass(this.contextElement.find('[context-key="' + item.depth + '_' + item.key + '"]'), 'disabled');
           }
         }
       }
 
       const targetElement = e.target as HTMLElement;
-      selectElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
-      addClass(selectElement, "dg-select");
+      selectElement = targetElement.closest('.dg-contextmenu-item') as HTMLElement;
+      addClass(selectElement, 'dg-select');
 
       if (isBeforeActivateFn) {
-        const cellElement = targetElement.closest(".dg-cell") as HTMLElement;
+        const cellElement = targetElement.closest('.dg-cell') as HTMLElement;
 
         if (cellElement) {
           const cellInfo = getCellInfo(cfg, cellElement);
@@ -118,33 +118,33 @@ export class ContextMenu {
 
       const position = outerLayerPosition(orginContextElement, evtPosition);
 
-      this.contextElement.css({ top: position.top + "px", left: position.left + "px" });
+      this.contextElement.css({ top: position.top + 'px', left: position.left + 'px' });
     });
     this.initItemClickEvent();
     this.initSubmenuEvent();
   }
 
   private initItemClickEvent() {
-    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
+    const contextItemElements = this.contextElement.finds('.dg-contextmenu-item');
 
     const fnContextCallback = this.contextOpts.callback;
 
     const isContextCallback = isFunction(fnContextCallback);
 
     // contextmenu item click
-    eventOff(contextItemElements, "click");
-    eventOn(contextItemElements, "click", (e: Event) => {
+    eventOff(contextItemElements, 'click');
+    eventOn(contextItemElements, 'click', (e: Event) => {
       const itemElement = e.currentTarget as HTMLElement;
 
-      if (hasClass(itemElement, "dg-submenu-item")) {
+      if (hasClass(itemElement, 'dg-submenu-item')) {
         return;
       }
 
-      const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
+      const parentElement = itemElement.closest('.dg-contextmenu') as HTMLElement;
 
       parentElement.querySelectorAll('input[type="checkbox"]');
 
-      const itemKey = itemElement.getAttribute("data-item-key") || "";
+      const itemKey = itemElement.getAttribute('data-item-key') || '';
 
       const clickItem = this.contextData.get(itemKey);
 
@@ -162,39 +162,39 @@ export class ContextMenu {
   }
 
   private initSubmenuEvent() {
-    const contextItemElements = this.contextElement.finds(".dg-contextmenu-item > a");
+    const contextItemElements = this.contextElement.finds('.dg-contextmenu-item > a');
 
     let submenuTimer: any;
 
     // sub mouseenter
-    eventOff(contextItemElements, "mouseenter");
-    eventOn(contextItemElements, "mouseenter", (e: Event) => {
+    eventOff(contextItemElements, 'mouseenter');
+    eventOn(contextItemElements, 'mouseenter', (e: Event) => {
       const targetElement = e.currentTarget as HTMLElement;
-      const itemElement = targetElement.closest(".dg-contextmenu-item") as HTMLElement;
-      const parentElement = itemElement.closest(".dg-contextmenu") as HTMLElement;
+      const itemElement = targetElement.closest('.dg-contextmenu-item') as HTMLElement;
+      const parentElement = itemElement.closest('.dg-contextmenu') as HTMLElement;
 
       clearTimeout(submenuTimer);
 
-      if (!hasClass(itemElement, "dg-submenu-item")) {
-        removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
+      if (!hasClass(itemElement, 'dg-submenu-item')) {
+        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.dg-on'), 'dg-on');
         return;
       }
 
-      if (!hasClass(itemElement, "dg-on")) {
-        removeClass(parentElement.querySelectorAll(":scope >.dg-contextmenu-item.dg-on"), "dg-on");
+      if (!hasClass(itemElement, 'dg-on')) {
+        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.dg-on'), 'dg-on');
       }
 
       submenuTimer = setTimeout(() => {
-        addClass(itemElement, "dg-on");
+        addClass(itemElement, 'dg-on');
 
         const browserSize = getBrowserSize();
 
         const itemRect = getElementRect(itemElement);
 
-        const subMenuElement = itemElement.querySelector(".dg-contextmenu-submenu") as HTMLElement;
+        const subMenuElement = itemElement.querySelector('.dg-contextmenu-submenu') as HTMLElement;
 
         const submenuElement = new DaraElement(subMenuElement);
-        submenuElement.css({ left: "", top: "" });
+        submenuElement.css({ left: '', top: '' });
         const submenuRect = getElementRect(subMenuElement);
 
         const submenuWidth = submenuRect.width;
@@ -222,7 +222,7 @@ export class ContextMenu {
    * @param {string} label header label
    */
   public changeHeader(label: string) {
-    this.contextElement.find(".dg-contextmenu-header").textContent = label;
+    this.contextElement.find('.dg-contextmenu-header').textContent = label;
   }
 
   /**
@@ -243,12 +243,12 @@ export class ContextMenu {
 
       if (isUndefined(item)) continue;
 
-      styleClass = (item.styleClass ? item.styleClass : "") + (item.disabled === true ? " disabled" : "");
+      styleClass = (item.styleClass ? item.styleClass : '') + (item.disabled === true ? ' disabled' : '');
 
-      itemKey = depth + "_" + (item.key || "");
+      itemKey = depth + '_' + (item.key || '');
 
       if (item.divider === true) {
-        htmlTemplate.push(`<li><a class="dg-divider" tabindex="-1"></a></li>`);
+        htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
         continue;
       }
 
@@ -269,17 +269,19 @@ export class ContextMenu {
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>`);
 
-        htmlTemplate.push(`<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`);
+        htmlTemplate.push(
+          `<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`,
+        );
       } else {
-        const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : "";
+        const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : '';
         htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm}
           </a>`);
       }
-      htmlTemplate.push("</li>");
+      htmlTemplate.push('</li>');
     }
 
-    return htmlTemplate.join("");
+    return htmlTemplate.join('');
   }
 }

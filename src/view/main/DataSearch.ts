@@ -1,19 +1,13 @@
-import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
+import { Config } from '@t/GridConfig';
 
-import { addClass, removeClass, toggleClass } from "../../util/styleUtils";
-import { getCheckboxMode } from "../../util/gridUtils";
-import { DaraGrid } from "@/DaraGrid";
-import { FieldItem } from "@t/GridField";
-import * as utils from "@/util/utils";
-import { ALL_SELECT_VALUE } from "@/constants";
-import { GridMain } from "../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { SelectionInfo } from "@/selection/selection";
-import { BodyEvent } from "./body/BodyEvent";
-import { SearchOptions } from "@t/GridOptions";
-import { getLayerElement, innerLayerPosition, hasClass } from "@/util/domUtils";
-import { eventOff, eventOn, isEnter, stopPreventCancel } from "@/util/eventUtils";
-import { gridDataSearch } from "@/util/searchUtils";
+import { ALL_SELECT_VALUE } from '@/constants';
+import { DaraGrid } from '@/DaraGrid';
+import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
+import { eventOff, eventOn, isEnter, stopPreventCancel } from '@/util/eventUtils';
+import { gridDataSearch } from '@/util/searchUtils';
+import { SearchOptions } from '@t/GridOptions';
+import { toggleClass } from '../../util/styleUtils';
+import { GridMain } from '../GridMain';
 
 /**
  * DataSearch class
@@ -51,8 +45,7 @@ export class DataSearch {
   createTemplate() {
     const searchOpts = this.searchOpts;
 
-    if (searchOpts.mode == "full") {
-    } else {
+    if (searchOpts.mode != 'full') {
       this.simpleTemplate();
     }
   }
@@ -63,8 +56,6 @@ export class DataSearch {
    * @private
    */
   private simpleTemplate() {
-    const searchOpts = this.searchOpts;
-
     const rendererContainer = this.gridMain.getRendererContainer();
 
     const fields = this.cfg.currentFields;
@@ -73,15 +64,15 @@ export class DataSearch {
     if (!searchElement) {
       const template = [];
 
-      searchElement = getLayerElement("div", "dg-search-simple", "help-tooltip");
+      searchElement = getLayerElement('div', 'dg-search-simple', 'help-tooltip');
 
       template.push('<select class="dg-search-field">');
-      template.push(`<option value="${ALL_SELECT_VALUE}">${this.gridMain.getGrid().i18n().getMessage("all")}</option>`);
-      for (let field of fields) {
+      template.push(`<option value="${ALL_SELECT_VALUE}">${this.gridMain.getGrid().i18n().getMessage('all')}</option>`);
+      for (const field of fields) {
         if (field.$isAside) continue;
         template.push(`<option value="${field.name}">${field.label}</option>`);
       }
-      template.push("</select>");
+      template.push('</select>');
 
       template.push(`<div class="dg-search-container">
           <input type="text" class="dg-search-text" placeholder="Search">
@@ -95,11 +86,11 @@ export class DataSearch {
         </div>
       `);
       template.push(`<span class="dg-search-btn">
-          <span class="search-nav-up" title="${this.gridMain.getGrid().i18n().getMessage("prev")}"></span>
-          <span class="search-nav-down" title="${this.gridMain.getGrid().i18n().getMessage("next")}"></span>
+          <span class="search-nav-up" title="${this.gridMain.getGrid().i18n().getMessage('prev')}"></span>
+          <span class="search-nav-down" title="${this.gridMain.getGrid().i18n().getMessage('next')}"></span>
         </span>`);
 
-      searchElement.innerHTML = template.join("");
+      searchElement.innerHTML = template.join('');
 
       rendererContainer.appendChild(searchElement);
 
@@ -108,19 +99,19 @@ export class DataSearch {
 
     const searchStyle = searchElement.style;
 
-    searchStyle.height = "auto";
+    searchStyle.height = 'auto';
 
     const headerElement = this.gridMain.getHeader().getHeaderElement();
 
-    const searchIconElement = headerElement.find(".dg-search-icon");
+    const searchIconElement = headerElement.find('.dg-search-icon');
 
     const openPosition = innerLayerPosition(rendererContainer, searchIconElement, searchElement);
 
     searchStyle.top = `${openPosition.top + 3}px`;
     searchStyle.left = `${openPosition.left + 3}px`;
 
-    this.searchTextElement = this.searchElement.querySelector(".dg-search-text") as HTMLInputElement;
-    this.searchFieldElement = this.searchElement.querySelector(".dg-search-field") as HTMLSelectElement;
+    this.searchTextElement = this.searchElement.querySelector('.dg-search-text') as HTMLInputElement;
+    this.searchFieldElement = this.searchElement.querySelector('.dg-search-field') as HTMLSelectElement;
 
     this.initSimpleModeEvent();
   }
@@ -132,42 +123,42 @@ export class DataSearch {
     const cfg = this.grid.config();
     const searchParameter = cfg.searchParameter;
     const searchTextElement = this.searchTextElement;
-    eventOff(searchTextElement, "keydown");
-    eventOn(searchTextElement, "keydown", (e: KeyboardEvent) => {
+    eventOff(searchTextElement, 'keydown');
+    eventOn(searchTextElement, 'keydown', (e: KeyboardEvent) => {
       if (isEnter(e)) {
         this.simpleSearch();
       }
     });
 
-    const searchBtnElement = this.searchElement.querySelector(".dg-search-btn") as HTMLElement;
+    const searchBtnElement = this.searchElement.querySelector('.dg-search-btn') as HTMLElement;
 
-    eventOff(searchBtnElement, "click");
-    eventOn(searchBtnElement, "click", (e: UIEvent) => {
+    eventOff(searchBtnElement, 'click');
+    eventOn(searchBtnElement, 'click', (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch();
     });
 
-    const searchIconElement = this.searchElement.querySelectorAll(".dg-icon-button");
+    const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
 
-    eventOff(searchIconElement, "click");
-    eventOn(searchIconElement, "click", (e: UIEvent) => {
+    eventOff(searchIconElement, 'click');
+    eventOn(searchIconElement, 'click', (e: UIEvent) => {
       stopPreventCancel(e);
 
       const evtElement = e.currentTarget as HTMLElement;
 
-      const dataSearchType = evtElement.getAttribute("data-search-type");
+      const dataSearchType = evtElement.getAttribute('data-search-type');
 
-      const activeFlag = !hasClass(evtElement, "on");
+      const activeFlag = !hasClass(evtElement, 'on');
 
-      if (dataSearchType == "mc") {
+      if (dataSearchType == 'mc') {
         searchParameter.matchCase = activeFlag;
-      } else if (dataSearchType == "mww") {
+      } else if (dataSearchType == 'mww') {
         searchParameter.matchWholeWord = activeFlag;
-      } else if (dataSearchType == "regex") {
+      } else if (dataSearchType == 'regex') {
         searchParameter.useRegex = activeFlag;
       }
 
-      toggleClass(evtElement, "on");
+      toggleClass(evtElement, 'on');
     });
   }
 
@@ -188,14 +179,14 @@ export class DataSearch {
       searchFields: searchField,
     });
 
-    if (searchText == "") {
+    if (searchText == '') {
       cfg.searchEnable = false;
       this.gridMain.getBody().clearSearchHighlight();
     } else {
       cfg.searchEnable = true;
     }
     this.gridMain.setViewDataInfo(result);
-    this.gridMain.getBody().dataDraw("search");
+    this.gridMain.getBody().dataDraw('search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }
 }

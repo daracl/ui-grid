@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * password renderer
@@ -17,8 +17,8 @@ export class PasswordRenderer extends ViewRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
 
-    const raw = String(this.getValue(item) ?? "");
-    const masked = "*".repeat(raw.length);
+    const raw = String(this.getValue(item) ?? '');
+    const masked = '*'.repeat(raw.length);
 
     if (element.textContent != masked) {
       const oldEl = element.firstChild;

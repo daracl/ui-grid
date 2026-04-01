@@ -1,12 +1,12 @@
-import { PointerPosition, PointerSession } from "@/event/PointerSession";
-import { PointerHandler } from "@/event/PointerHandler";
+import { PointerPosition, PointerSession } from '@/event/PointerSession';
+import { PointerHandler } from '@/event/PointerHandler';
 
 const DBLCLICK_DELAY = 400; // ms
 const DRAG_THRESHOLD = 3; // px
 
 export class ClickManager {
-  private lastClickTime: number = 0;
-  private clickCount: number = 0;
+  private lastClickTime = 0;
+  private clickCount = 0;
   private readonly clickDelay: number;
   private currentCellPosition: PointerPosition;
   private clickTimer: any;
@@ -27,6 +27,7 @@ export class ClickManager {
 
   conserveClick(cellPosition: PointerPosition) {
     this.currentCellPosition = cellPosition;
+    this.clickCount = 1;
     clearTimeout(this.clickTimer);
     this.clickTimer = setTimeout(() => this.resetClick(), this.clickDelay);
   }
@@ -36,22 +37,24 @@ export class ClickManager {
 
     if (now - this.lastClickTime < DBLCLICK_DELAY) {
       this.clickCount++;
-    } else {
-      this.clickCount = 1;
     }
+
     this.lastClickTime = now;
 
     const dx = this.currentCellPosition.x - session.startPos.x;
     const dy = this.currentCellPosition.y - session.startPos.y;
 
-    let moved = dx * dx + dy * dy > 2;
+    const moved = dx * dx + dy * dy > 2;
 
-    if (this.clickCount === 2 && !moved) {
-      this.resetClick();
-      handler.onDoubleClick?.(session);
-    } else {
-      this.conserveClick(session.startPos);
-      handler.onClick?.(session);
+    if (this.clickCount === 2) {
+      if (!moved) {
+        handler.onDoubleClick?.(session);
+        this.resetClick();
+        return;
+      }
     }
+
+    this.conserveClick(session.startPos);
+    handler.onClick?.(session);
   }
 }

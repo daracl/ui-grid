@@ -1,26 +1,26 @@
-import { GridOptions } from "@t/GridOptions";
-import { Config, GridElement, Selection } from "@t/GridConfig";
+import { Config } from '@t/GridConfig';
+import { GridOptions } from '@t/GridOptions';
 
-import { DEFAULT_OPTIONS } from "./defaultGridOption";
-import { initConfig } from "./defaultGridConfig";
-import { ADD_ROW_POSITION, FIELD_PREFIX, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from "./constants";
+import { ADD_ROW_POSITION, FIELD_PREFIX, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
+import { initConfig } from './defaultGridConfig';
+import { DEFAULT_OPTIONS } from './defaultGridOption';
 
-import * as utils from "./util/utils";
-import { Message } from "@t/Message";
-import { Language } from "./util/Language";
-import { GridMain } from "./view/GridMain";
-import { DaraElement } from "./element/DaraElement";
-import { FieldItem } from "@t/GridField";
-import { PagingInfo } from "@t/PagingInfo";
-import { allEventOff } from "./util/eventUtils";
-import { isUndefined } from "./util/utils";
+import { FieldItem } from '@t/GridField';
+import { Message } from '@t/Message';
+import { PagingInfo } from '@t/PagingInfo';
+import { DaraElement } from './element/DaraElement';
+import { allEventOff } from './util/eventUtils';
+import { Language } from './util/Language';
+import * as utils from './util/utils';
+import { isUndefined } from './util/utils';
+import { GridMain } from './view/GridMain';
 
 declare const APP_VERSION: string;
 
 // all instance
 const ALL_INSTANCE: any = {};
 
-const SEQ_ATTR_KEY = "daracl-grid-id";
+const SEQ_ATTR_KEY = 'daracl-grid-id';
 
 let HIDDEN_ELEMENT: HTMLElement | null = null;
 
@@ -81,8 +81,8 @@ export class DaraGrid {
 
   initGlobalConfig() {
     if (HIDDEN_ELEMENT === null) {
-      const hiddenElement = document.createElement("div");
-      hiddenElement.className = HIDDEN_ELEMENT_SELECTOR.replace(".", "");
+      const hiddenElement = document.createElement('div');
+      hiddenElement.className = HIDDEN_ELEMENT_SELECTOR.replace('.', '');
       document.body.appendChild(hiddenElement);
       HIDDEN_ELEMENT = hiddenElement;
     }
@@ -141,7 +141,7 @@ export class DaraGrid {
     if (utils.isString(eleOrId)) {
       id = eleOrId;
     } else {
-      id = eleOrId instanceof HTMLElement ? eleOrId?.getAttribute(SEQ_ATTR_KEY) : "";
+      id = eleOrId instanceof HTMLElement ? eleOrId?.getAttribute(SEQ_ATTR_KEY) : '';
     }
 
     if (id && ALL_INSTANCE[id]) {
@@ -169,7 +169,7 @@ export class DaraGrid {
    */
   public getDataByIndexs = (indexs: number[]) => {
     const result = [];
-    for (let index of indexs) {
+    for (const index of indexs) {
       result.push(this.mainConfig.items[index]);
     }
     return result;
@@ -224,7 +224,7 @@ export class DaraGrid {
    * @returns {*}
    */
   public getSelectedItems = () => {
-    return this.gridMain.selectionInfo.selectionData("json", false);
+    return this.gridMain.selectionInfo.selectionData('json', false);
   };
 
   /**
@@ -316,7 +316,7 @@ export class DaraGrid {
    * @returns {*}
    */
   public getGridHeight(): number {
-    if (this.options.height == "auto") {
+    if (this.options.height == 'auto') {
       return this.gridElement.height();
     } else {
       return this.options.height;
@@ -344,7 +344,7 @@ export class DaraGrid {
       this.gridElement.removeAttr(SEQ_ATTR_KEY);
       const el = this.gridElement.getElement();
       while (el.firstChild) {
-        if (typeof el.firstChild.remove === "function") {
+        if (typeof el.firstChild.remove === 'function') {
           el.firstChild.remove(); // DOM에서 제거
         } else {
           el.removeChild(el.firstChild);

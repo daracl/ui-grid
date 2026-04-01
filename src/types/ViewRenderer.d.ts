@@ -1,7 +1,5 @@
-import { DaraForm } from "@/DaraForm";
-import { RENDER_TYPE, REGEXP_TYPE, TEXT_ALIGN_TYPE, FIELD_POSITION, ORIENTATION_TYPE, EDIT_RENDER_TYPE, VIEW_RENDER_TYPE } from "@/constants";
-import { Renderer } from "@/renderer/Render";
-import { OptionCallback } from "@t/Common";
+import { REGEXP_TYPE, ORIENTATION_TYPE, VIEW_RENDER_TYPE } from '@/constants';
+import { OptionCallback } from '@t/Common';
 
 export interface ValuesInfo {
   labelField: string;

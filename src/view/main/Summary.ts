@@ -1,14 +1,14 @@
-import { GridOptions, HeaderOptions, SummaryOptions } from "@t/GridOptions";
-import { Config, GridElement, Selection } from "@t/GridConfig";
+import { Config } from '@t/GridConfig';
+import { SummaryOptions } from '@t/GridOptions';
 
-import { DaraGrid } from "@/DaraGrid";
-import { FieldItem } from "@t/GridField";
-import { camelToKebab, isFunction } from "@/util/utils";
-import { CHUNK_SIZE, ROW_CHECK_NAME } from "@/constants";
-import { DaraElement } from "@/element/DaraElement";
-import { GridMain } from "../GridMain";
-import { calcSummary } from "@/util/mathUtils";
-import { formatValue } from "@/util/formatUtils";
+import { ROW_CHECK_NAME } from '@/constants';
+import { DaraGrid } from '@/DaraGrid';
+import { DaraElement } from '@/element/DaraElement';
+import { formatValue } from '@/util/formatUtils';
+import { calcSummary } from '@/util/mathUtils';
+import { camelToKebab, isFunction } from '@/util/utils';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '../GridMain';
 
 /**
  * Summary class
@@ -60,9 +60,9 @@ export class Summary {
 
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
     if (!this._isActive) return;
-    this.leftElement.css({ width: mainLeftWidth + "px" });
-    this.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
-    this.rightElement.css({ width: mainRightWidth + "px" });
+    this.leftElement.css({ width: mainLeftWidth + 'px' });
+    this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
+    this.rightElement.css({ width: mainRightWidth + 'px' });
   }
 
   public setCenterElementStyle(styleCss: any) {
@@ -89,17 +89,15 @@ export class Summary {
         if (allFieldMap.has(fieldName)) {
           const field = allFieldMap.get(fieldName);
 
-          let displayFormat = item.displayFormat;
-          if (!displayFormat) {
-            displayFormat = field?.displayFormat;
-          }
+          const displayFormat = item.displayFormat ?? field?.displayFormat;
 
           const col = allFieldMap.get(fieldName)?.$colSeq;
-          const cellElement = this.summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`).firstChild as HTMLElement;
+          const cellElement = this.summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
+            .firstChild as HTMLElement;
 
           const expression = item.expression;
 
-          let summaryValue: any = "";
+          let summaryValue: any = '';
 
           if (items.length > 0) {
             if (expression) {
@@ -122,22 +120,20 @@ export class Summary {
       rowIdx++;
     }
 
-    //const col = .get(LINE_NUMBER_NAME)?.$colSeq;
-
-    console.log("summary draw data ", this._isActive);
+    //console.log('summary draw data ', this._isActive);
   }
 
   private createTemplate() {
     const cfg = this.config;
-    const summaryElement = this.grid.element().findDaraElement(".dg-summary");
+    const summaryElement = this.grid.element().findDaraElement('.dg-summary');
     this.summaryElement = summaryElement;
-    this.leftElement = summaryElement.findDaraElement(".dg-left");
-    this.centerElement = summaryElement.findDaraElement(".dg-center");
-    this.rightElement = summaryElement.findDaraElement(".dg-right");
+    this.leftElement = summaryElement.findDaraElement('.dg-left');
+    this.centerElement = summaryElement.findDaraElement('.dg-center');
+    this.rightElement = summaryElement.findDaraElement('.dg-right');
 
-    this.leftElement.html(this.template("left"));
-    this.centerElement.html(this.template("center"));
-    this.rightElement.html(this.template("right"));
+    this.leftElement.html(this.template('left'));
+    this.centerElement.html(this.template('center'));
+    this.rightElement.html(this.template('right'));
 
     const leftFields = cfg.fieldHeaderGroup.leafLeft;
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
@@ -147,9 +143,9 @@ export class Summary {
     const fixedRightIndex = cfg.fixedRightIndex;
 
     const fieldGroups = [
-      { name: "left", fields: leftFields, element: this.leftElement, startCol: 0 },
-      { name: "center", fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
-      { name: "right", fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
+      { name: 'left', fields: leftFields, element: this.leftElement, startCol: 0 },
+      { name: 'center', fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
+      { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
     const heights = cfg.summary.heights;
@@ -159,7 +155,9 @@ export class Summary {
     fieldGroups.forEach(({ fields, element, startCol }) => {
       if (fields.length === 0) return;
 
-      element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(0, heightsLength, heights, fields, startCol));
+      element
+        .findDaraElement('.dg-body-table > tbody')
+        .append(this.rowTemplate(0, heightsLength, heights, fields, startCol));
     });
   }
 
@@ -175,9 +173,9 @@ export class Summary {
 
     let leafFields;
     let startGroupIdx = 0;
-    if (type == "left") {
+    if (type == 'left') {
       leafFields = cfg.fieldHeaderGroup.leafLeft;
-    } else if (type == "right") {
+    } else if (type == 'right') {
       startGroupIdx = cfg.fixedRightIndex;
       leafFields = cfg.fieldHeaderGroup.leafRight;
     } else {
@@ -188,22 +186,24 @@ export class Summary {
     const viewRow = cfg.scroll.viewRow;
     const leafLength = leafFields.length;
 
-    if (viewRow < 1 || leafLength < 1) return "";
+    if (viewRow < 1 || leafLength < 1) return '';
 
-    let colGroupHtm = [];
+    const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;
     let tableWidth = 0;
-    for (let leafNode of leafFields) {
+    for (const leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
-      colGroupHtm.push(`<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`);
+      colGroupHtm.push(
+        `<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`,
+      );
     }
 
     return `<table class="dg-body-table">
-        <thead><tr>${colGroupHtm.join("")}</tr></thead>
+        <thead><tr>${colGroupHtm.join('')}</tr></thead>
         <tbody></tbody>
       </table> 
-      ${type != "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+      ${type != 'center' ? '<div class="fixed-column-line"></div>' : ''}`;
   }
 
   /**
@@ -215,23 +215,36 @@ export class Summary {
    * @param {FieldItem[]} fields fields 정보
    * @returns {string} template
    */
-  private rowTemplate(viewRow: number, rowCount: number, rowHeight: number[], fields: FieldItem[], startCol: number): any {
+  private rowTemplate(
+    viewRow: number,
+    rowCount: number,
+    rowHeight: number[],
+    fields: FieldItem[],
+    startCol: number,
+  ): any {
     const returnTemplate = [];
 
     for (let i = 0; i < rowCount; i++) {
-      let rowIdx = viewRow + i;
+      const rowIdx = viewRow + i;
 
-      let cellTemplate = [];
+      const cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
-        let field = fields[j];
+        const field = fields[j];
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace("$", "")}" data-cell-position="${rowIdx},${startCol + j}">
-            <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></div>
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace(
+            '$',
+            '',
+          )}" data-cell-position="${rowIdx},${startCol + j}">
+            <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${
+            field.$alignStyle
+          }"></div>
           </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${startCol + j}"><div role="presentation"
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${
+            startCol + j
+          }"><div role="presentation"
               class="dg-cell-renderer dg-cell-ellipsis 
               dg-${renderType} ${field.$alignStyle}"></div>
           </td>`);
@@ -239,10 +252,10 @@ export class Summary {
       }
 
       returnTemplate.push(`<tr class="dg-row" rowinfo="${rowIdx}" style="height:${rowHeight[i]}px">
-          ${cellTemplate.join("")}
+          ${cellTemplate.join('')}
         </tr>`);
     }
 
-    return returnTemplate.join("");
+    return returnTemplate.join('');
   }
 }

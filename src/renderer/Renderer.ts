@@ -1,5 +1,5 @@
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
 
 export abstract class Renderer {
   protected field;

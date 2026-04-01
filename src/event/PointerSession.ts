@@ -1,12 +1,13 @@
-import { CellInfo } from "@/types/GridConfig";
-import { PointerHandler } from "@/event/PointerHandler";
+import { CellInfo } from '@/types/GridConfig';
+import { PointerHandler } from '@/event/PointerHandler';
+import { ClickManager } from './ClickManager';
 
 export interface PointerPosition {
   x: number;
   y: number;
 }
 
-export type PointerState = "IDLE" | "PRESSED" | "DRAGGING";
+export type PointerState = 'IDLE' | 'PRESSED' | 'DRAGGING';
 
 export interface PointerSession {
   state?: PointerState;
@@ -15,7 +16,7 @@ export interface PointerSession {
   currentPos: PointerPosition;
   startTime: number;
   lastClickTime: number;
-  clickCount: number;
+  clickManager: ClickManager;
 
   handler?: PointerHandler;
   cellInfo?: CellInfo;

@@ -2,7 +2,7 @@
 * hidden helper css
 */
 
-@use "./common/common" as comm;
+@use './common/common' as comm;
 
 @mixin hiddenHelper {
   /*search-simple*/
@@ -21,5 +21,46 @@
     pointer-events: none; /* 마우스 이벤트 통과 */
     will-change: transform;
     border: 1px solid var(--border-thick-color);
+
+    > .dg-row-move-content {
+      line-height: 1;
+    }
+
+    > .dg-row-move-status {
+      width: 15px;
+      height: 20px;
+      flex-shrink: 0; /* 아이콘 찌그러짐 방지 */
+      margin-right: 10px;
+    }
+
+    > .dg-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 15px;
+      height: 26px;
+      font-size: 16px;
+      font-weight: bold;
+
+      &::before {
+        content: '';
+      }
+
+      &.dg-success {
+        color: #28a745;
+
+        &::before {
+          content: '\2714';
+        }
+      }
+
+      &.dg-fail {
+        color: #dc3545;
+
+        &::before {
+          content: '\2716';
+        }
+      }
+    }
   }
 }

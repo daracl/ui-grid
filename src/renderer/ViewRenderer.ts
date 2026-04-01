@@ -1,17 +1,17 @@
-import { FieldItem } from "@t/GridField";
+import { FieldItem } from '@t/GridField';
 
-import { Renderer } from "./Renderer";
-import { isFunction } from "@/util/utils";
-import { CellInfo, Config } from "@t/GridConfig";
-import { GridMain } from "@/view/GridMain";
-import { formatValue } from "@/util/formatUtils";
+import { Renderer } from './Renderer';
+import { isFunction } from '@/util/utils';
+import { CellInfo, Config } from '@t/GridConfig';
+import { GridMain } from '@/view/GridMain';
+import { formatValue } from '@/util/formatUtils';
 
 export abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;
   private readonly isRefFunction: boolean;
 
   protected isClick = false;
-  protected eventStyleClass = "";
+  protected eventStyleClass = '';
   protected readonly cfg: Config;
 
   constructor(field: FieldItem, gridMain: GridMain) {
@@ -24,7 +24,7 @@ export abstract class ViewRenderer extends Renderer {
   }
 
   initEventClass() {
-    let eventStyleClass = this.isClick ? "dg-cell-click" : "";
+    const eventStyleClass = this.isClick ? 'dg-cell-click' : '';
 
     this.eventStyleClass = eventStyleClass;
   }
@@ -39,7 +39,7 @@ export abstract class ViewRenderer extends Renderer {
   public getRendererStyleClass(defaultStyleClass: string) {
     if (!this.eventStyleClass) return defaultStyleClass;
 
-    return defaultStyleClass ? defaultStyleClass + " " + this.eventStyleClass : this.eventStyleClass;
+    return defaultStyleClass ? defaultStyleClass + ' ' + this.eventStyleClass : this.eventStyleClass;
   }
 
   /**

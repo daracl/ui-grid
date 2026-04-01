@@ -15,29 +15,31 @@
  */
 export function formatNumber(value: number, format: string): string {
   // 숫자 포맷 추출
-  const numberPatternMatch = format.match(/[0,\.]+/);
+
+  const numberPatternRegex = /[0,.]+/;
+  const numberPatternMatch = numberPatternRegex.exec(format);
   if (!numberPatternMatch) return format;
 
   const numberPattern = numberPatternMatch[0];
   const prefix = format.slice(0, format.indexOf(numberPattern));
   const suffix = format.slice(format.indexOf(numberPattern) + numberPattern.length);
 
-  const [intFmt, decFmt] = numberPattern.split(".");
-  const useComma = intFmt.includes(",");
+  const [intFmt, decFmt] = numberPattern.split('.');
+  const useComma = intFmt.includes(',');
 
-  let result = "";
+  let result = '';
 
   if (decFmt) {
     // 반올림한 소수점 문자열
     const rounded = value.toFixed(decFmt.length);
-    const [intPart, decPart] = rounded.split(".");
+    const [intPart, decPart] = rounded.split('.');
 
     // 소수점 뒤 0 제거 (불필요한 자리 제거)
-    const trimmedDec = decPart.replace(/0+$/, "");
+    const trimmedDec = decPart.replace(/0+$/, '');
 
     result = useComma ? addComma(intPart) : intPart;
     if (trimmedDec.length > 0) {
-      result += "." + trimmedDec;
+      result += '.' + trimmedDec;
     }
   } else {
     const rounded = Math.round(value).toString();
@@ -48,5 +50,5 @@ export function formatNumber(value: number, format: string): string {
 }
 
 function addComma(numStr: string): string {
-  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }

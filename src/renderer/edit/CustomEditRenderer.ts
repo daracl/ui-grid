@@ -1,7 +1,7 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * custom renderer
@@ -21,7 +21,7 @@ export class CustomEditRenderer extends EditRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = `<input type="text">`;
+    element.innerText = '<input type="text">';
     const value = item[cellInfo.field.name];
 
     this.getValue(value);

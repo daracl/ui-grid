@@ -1,8 +1,8 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { getElementRect } from "@/util/domUtils";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { getElementRect } from '@/util/domUtils';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * Sparkline bar renderer
@@ -25,7 +25,7 @@ export class SparklineRendererBar extends ViewRenderer {
 
     if (!Array.isArray(data) || data.length === 0) {
       // 데이터가 없으면 비워두기
-      element.innerHTML = "";
+      element.innerHTML = '';
       return;
     }
 
@@ -34,10 +34,10 @@ export class SparklineRendererBar extends ViewRenderer {
     const height = rect.height;
 
     // 기존 canvas가 있으면 재사용, 없으면 생성
-    let canvas = element.querySelector("canvas") as HTMLCanvasElement | null;
+    let canvas = element.querySelector('canvas') as HTMLCanvasElement | null;
 
     if (!canvas) {
-      canvas = document.createElement("canvas");
+      canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       element.appendChild(canvas);
@@ -47,7 +47,7 @@ export class SparklineRendererBar extends ViewRenderer {
       if (canvas.height !== height) canvas.height = height;
     }
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const min = Math.min(...data);
@@ -68,13 +68,13 @@ export class SparklineRendererBar extends ViewRenderer {
       const y = height - barHeight - yPadding;
 
       if (val === max) {
-        ctx.fillStyle = "#28a745";
+        ctx.fillStyle = '#28a745';
       } else if (val === min) {
-        ctx.fillStyle = "#dc3545";
+        ctx.fillStyle = '#dc3545';
       } else if (i === 0 || i === data.length - 1) {
-        ctx.fillStyle = "#0000ff";
+        ctx.fillStyle = '#0000ff';
       } else {
-        ctx.fillStyle = "#ff9900";
+        ctx.fillStyle = '#ff9900';
       }
 
       ctx.fillRect(x + 1, y, barWidth - 2, barHeight);

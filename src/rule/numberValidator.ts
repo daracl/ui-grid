@@ -1,9 +1,9 @@
-import { ValidResult } from "@t/ValidResult";
-import { RULES } from "@/constants";
-import { validator } from "./validator";
-import * as utils from "@/util/utils";
-import { FieldItem } from "@t/GridField";
-import { Config } from "@t/GridConfig";
+import { ValidResult } from '@t/ValidResult';
+import { RULES } from '@/constants';
+import { validator } from './validator';
+import * as utils from '@/util/utils';
+import { FieldItem } from '@t/GridField';
+import { Config } from '@t/GridConfig';
 
 /**
  * 숫자 유효성 체크
@@ -12,7 +12,12 @@ import { Config } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const numberValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | null => {
+export const numberValidator = (
+  value: string,
+  field: FieldItem,
+  rowItem: any,
+  gridConfig: Config,
+): ValidResult | null => {
   const result: ValidResult = { name: field.name, constraints: [] };
   const numValue = Number(value);
 

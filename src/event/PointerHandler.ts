@@ -1,4 +1,4 @@
-import { PointerSession } from "./PointerSession";
+import { PointerSession } from './PointerSession';
 
 export interface PointerHandler {
   priority: number;

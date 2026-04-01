@@ -1,4 +1,4 @@
-import { PagingInfo } from "@t/PagingInfo";
+import { PagingInfo } from '@t/PagingInfo';
 
 /**
  * 페이징 정보 얻기
@@ -9,7 +9,12 @@ import { PagingInfo } from "@t/PagingInfo";
  * @param {number} unitPage 한페이지에 보여질 페이지 수
  * @returns {PagingInfo} 페이징 정보
  */
-export const getPagingInfo = (totalCount: number, currPage: number, countPerPage: number, unitPage: number): PagingInfo => {
+export const getPagingInfo = (
+  totalCount: number,
+  currPage: number,
+  countPerPage: number,
+  unitPage: number,
+): PagingInfo => {
   countPerPage = countPerPage || 10;
   unitPage = unitPage || 10;
 
@@ -26,7 +31,8 @@ export const getPagingInfo = (totalCount: number, currPage: number, countPerPage
     countPerPage = totalCount;
   }
 
-  const totalPage = totalCount % countPerPage == 0 ? totalCount / countPerPage : Math.floor(totalCount / countPerPage) + 1;
+  const totalPage =
+    totalCount % countPerPage == 0 ? totalCount / countPerPage : Math.floor(totalCount / countPerPage) + 1;
 
   if (totalPage < currPage) {
     currPage = totalPage;

@@ -75,32 +75,32 @@ export interface Message {
     alpha?: string;
 
     /** 알파벳 + 숫자 조합이 아닐 때 */
-    "alpha-num"?: string;
+    'alpha-num'?: string;
 
     /** 변수명 형식이 아닐 때 */
     variable?: string;
 
     /** 숫자 포함 필요할 때 */
-    "number-char"?: string;
+    'number-char'?: string;
 
     /** 대문자 포함 필요할 때 */
-    "upper-char"?: string;
+    'upper-char'?: string;
 
     /** 대문자 + 특수문자 포함 필요할 때 */
-    "upper-char-special"?: string;
+    'upper-char-special'?: string;
 
     /** 대문자 + 특수문자 + 숫자 포함 필요할 때 */
-    "upper-char-special-number"?: string;
+    'upper-char-special-number'?: string;
   };
 
   /** 검색 필드 라벨 텍스트 */
-  "search.label": string;
+  'search.label': string;
 
   /** 데이터가 없을 때 표시할 메시지 */
-  "no.data": string;
+  'no.data': string;
 
   /** 전체 선택 텍스트 */
-  "select.all": string;
+  'select.all': string;
 
   /** "전체" 라벨 */
   all: string;

@@ -1,5 +1,5 @@
-export { DaraGrid } from "./DaraGrid";
+export { DaraGrid } from './DaraGrid';
 
-import "../style/daracl.grid.scss";
+import '../style/daracl.grid.scss';
 
-import "./global";
+import './global';

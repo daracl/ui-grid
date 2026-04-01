@@ -1,12 +1,12 @@
-import { FieldItem } from "@t/GridField";
-import { ADD_ROW_POSITION } from "@/constants";
+import { FieldItem } from '@t/GridField';
 
 const xssFilter = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  // eslint-disable-next-line quotes
+  "'": '&#39;',
 } as any;
 
 export const replaceXss = (inputText: string): string => {
@@ -20,7 +20,7 @@ export const replaceXss = (inputText: string): string => {
 };
 
 export const hasOwnProp = (obj: any, key: string): boolean => {
-  return obj.hasOwnProperty(key);
+  return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
 export const unReplace = (inputText: string): string => {
@@ -38,13 +38,13 @@ export const unFieldName = (fieldName: string): string => {
   if (fieldName) {
     return unReplace(fieldName).replaceAll('"', '\\"');
   }
-  return "";
+  return '';
 };
 export const isBlank = (value: any): boolean => {
   if (value === null) return true;
-  if (value === "") return true;
-  if (typeof value === "undefined") return true;
-  if (typeof value === "string" && (value === "" || value.replace(/\s/g, "") === "")) return true;
+  if (value === '') return true;
+  if (typeof value === 'undefined') return true;
+  if (typeof value === 'string' && (value === '' || value.replace(/\s/g, '') === '')) return true;
 
   return false;
 };
@@ -53,7 +53,7 @@ export const isVisible = (elm: HTMLElement): boolean => {
   if (!elm.offsetHeight && !elm.offsetWidth) {
     return false;
   }
-  if (getComputedStyle(elm).visibility === "hidden") {
+  if (getComputedStyle(elm).visibility === 'hidden') {
     return false;
   }
   return true;
@@ -63,12 +63,17 @@ export const isUndefined = (value: any): value is undefined => {
   return value === undefined;
 };
 
+/* old
 export const isFunction = (value: any): value is Function => {
-  return typeof value === "function";
+  return typeof value === 'function';
+}; 
+*/
+export const isFunction = <T extends (...args: any[]) => any>(value: unknown): value is T => {
+  return typeof value === 'function';
 };
 
 export const isString = (value: any): value is string => {
-  return typeof value === "string";
+  return typeof value === 'string';
 };
 export const isNumber = (value: unknown): value is number => {
   if (isBlank(value)) {
@@ -91,7 +96,7 @@ export const copyStringToClipboard = (copyText: string) => {
   if (navigator.clipboard) {
     navigator.clipboard
       .writeText(copyText)
-      .then(() => {})
+      .then(() => void 0)
       .catch((err) => {
         console.log(err);
         fallbackCopyToClipboard(copyText);
@@ -115,17 +120,17 @@ export function debounce<T extends (...args: any[]) => void>(f: T, delay: number
 }
 
 function fallbackCopyToClipboard(copyText: string) {
-  const copyAreaElement = document.createElement("textarea") as HTMLTextAreaElement;
-  copyAreaElement.setAttribute("style", "top:-9999px;left:-9999px;position:fixed;z-index:9999;");
+  const copyAreaElement = document.createElement('textarea') as HTMLTextAreaElement;
+  copyAreaElement.setAttribute('style', 'top:-9999px;left:-9999px;position:fixed;z-index:9999;');
   document.body.appendChild(copyAreaElement);
 
   copyAreaElement.value = copyText;
   copyAreaElement.select();
 
   try {
-    document.execCommand("copy");
+    document.execCommand('copy');
   } catch (err) {
-    console.error("Fallback copy failed:", err);
+    console.error('Fallback copy failed:', err);
   }
 
   document.body.removeChild(copyAreaElement);
@@ -153,11 +158,11 @@ export const getHashCode = (str: string) => {
   let hash = 0;
   if (str.length == 0) return hash;
   for (let i = 0; i < str.length; i++) {
-    let tmpChar = str.charCodeAt(i);
+    const tmpChar = str.charCodeAt(i);
     hash = (hash << 5) - hash + tmpChar;
     hash = hash & hash;
   }
-  return String(hash).replaceAll(/-/g, "_");
+  return String(hash).replaceAll(/-/g, '_');
 };
 
 /**
@@ -167,9 +172,9 @@ export const getHashCode = (str: string) => {
  * @param {*} param replace parameter
  * @returns {*}
  */
-export const replaceMesasgeFormat = (template: string, data: any) => {
+export const replaceMesasgeFormat = (pTmplate: string, data: any) => {
   // 1. 조건부 블록 처리
-  template = template.replace(/{{if\(([^)]+)\)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
+  let template = pTmplate.replace(/{{if\(([^)]+)\)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
     const booleanConditionRegex = /^\s*(\w+)\s*$/;
     const comparisonConditionRegex = /^\s*(\w+)\s*(==|!=|>|>=|<|<=)\s*(\d+)\s*$/;
 
@@ -184,47 +189,47 @@ export const replaceMesasgeFormat = (template: string, data: any) => {
       const right = Number(numberStr);
 
       switch (operator) {
-        case "==":
+        case '==':
           result = left == right;
           break;
-        case "!=":
+        case '!=':
           result = left != right;
           break;
-        case ">":
+        case '>':
           result = left > right;
           break;
-        case ">=":
+        case '>=':
           result = left >= right;
           break;
-        case "<":
+        case '<':
           result = left < right;
           break;
-        case "<=":
+        case '<=':
           result = left <= right;
           break;
       }
     }
 
-    return result ? content : "";
+    return result ? content : '';
   });
 
   // 2. 변수 치환
   template = template.replace(/{{\s*(\w+)\s*}}/g, (match, key) => {
-    return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : "";
+    return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : '';
   });
 
   return template;
 };
 
 export const templateToElement = (htmlTemplate: string): Element | null => {
-  const template = document.createElement("template");
+  const template = document.createElement('template');
   template.innerHTML = htmlTemplate;
   return template.content.firstElementChild;
 };
 
 export function isPlainObject(obj: any) {
   // 객체가 아닌 경우 또는 null인 경우 false 반환
-  if (typeof obj !== "object" || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 
@@ -245,7 +250,7 @@ export function isPlainObject(obj: any) {
  * @returns {*}
  */
 export function camelToUnderscore(str: string) {
-  return str.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase(); // 전체를 소문자로
+  return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase(); // 전체를 소문자로
 }
 
 /**
@@ -255,7 +260,7 @@ export function camelToUnderscore(str: string) {
  * @returns {*}
  */
 export function camelToKebab(str: string) {
-  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 /**
@@ -268,7 +273,7 @@ export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) 
   const sortArr = Array.from(sortKeys);
 
   return data.slice().sort((a, b) => {
-    for (let { key, ascOrder = true } of sortArr) {
+    for (const { key, ascOrder = true } of sortArr) {
       const valA = a[key];
       const valB = b[key];
 
@@ -281,7 +286,7 @@ export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) 
       if (isNullishA && isNullishB) continue;
 
       let comparison;
-      if (typeof valA === "number" && typeof valB === "number") {
+      if (typeof valA === 'number' && typeof valB === 'number') {
         comparison = valA - valB;
       } else {
         comparison = String(valA).localeCompare(String(valB));
@@ -308,7 +313,7 @@ export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
 }
 
 export function isObject(value: any) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isDate(value: unknown): value is Date {
@@ -324,7 +329,13 @@ function isDate(value: unknown): value is Date {
  * @param options 삽입 위치, 인덱스, 최대 길이 등 옵션
  * @returns 수정된 원본 배열 (targetArray)
  */
-export function insertToArray<T>(targetArray: T[], values: T | T[], isBefore: boolean = false, rowIndex?: number, limit: number = Infinity): T[] {
+export function insertToArray<T>(
+  targetArray: T[],
+  values: T | T[],
+  isBefore = false,
+  rowIndex?: number,
+  limit = Infinity,
+): T[] {
   const items: T[] = Array.isArray(values) ? values : [values];
 
   if (isUndefined(rowIndex)) {
@@ -354,8 +365,8 @@ export function insertToArray<T>(targetArray: T[], values: T | T[], isBefore: bo
  */
 export const deepCopy = (copyValue: any): any => {
   if (isArray(copyValue)) {
-    let reval = [];
-    for (let value of copyValue) {
+    const reval = [];
+    for (const value of copyValue) {
       if (isPlainObject(value)) {
         reval.push(merge({}, value));
       } else {
@@ -402,19 +413,19 @@ export const merge = (...value: any[]): any => {
  * 문자열을 delimiter로 분리하여 특정 값을 포함하지 않으면 추가하고,
  * 필요 시 정렬 후 다시 문자열로 반환합니다.
  *
- * @param {string} value - 원본 문자열 (예: "a,b,c")
+ * @param {string} pValue - 원본 문자열 (예: "a,b,c")
  * @param {string} addValue - 추가할 값 (중복되면 추가하지 않음)
  * @param {boolean} shouldSort - true일 경우 정렬함 (기본값: false)
  * @param {string} delimiter - 분리 기준 문자 (기본값: ',')
  * @returns {string} 결과 문자열
  */
-export function addValueIfMissing(value: string, addValue: string | null, shouldSort = false, delimiter = ",") {
+export function addValueIfMissing(pValue: string, addValue: string | null, shouldSort = false, delimiter = ',') {
   if (!addValue) return [];
 
-  value = (value || "") + "";
+  const value = (pValue || '') + '';
 
   // 1. split + trim + filter out empty values
-  const items = (value || "")
+  const items = (value || '')
     .split(delimiter)
     .map((item) => item.trim())
     .filter((item) => item); // 빈 문자열 제거
@@ -427,7 +438,7 @@ export function addValueIfMissing(value: string, addValue: string | null, should
     uniqueItems.add(addValue);
   }
 
-  let result = Array.from(uniqueItems);
+  const result = Array.from(uniqueItems);
   if (shouldSort) {
     result.sort();
   }
@@ -436,7 +447,7 @@ export function addValueIfMissing(value: string, addValue: string | null, should
 }
 
 export function trim(s: string): string {
-  return s.replace(/^\s+|\s+$/g, "");
+  return s.replace(/^\s+|\s+$/g, '');
 }
 
 function cloneDeep(dst: any, src: any): any {
@@ -446,6 +457,11 @@ function cloneDeep(dst: any, src: any): any {
 
   if (isDate(src)) {
     return new Date(src.getTime());
+  }
+
+  if (src instanceof RegExp) {
+    // RegExp 인스턴스는 복제해서 반환
+    return new RegExp(src.source, src.flags);
   }
 
   if (isObject(src)) {
@@ -472,6 +488,8 @@ function cloneObjectDeep(dst: any, src: any): object {
       dst[key] = val;
     } else if (isFunction(val)) {
       dst[key] = val;
+    } else if (val instanceof RegExp) {
+      dst[key] = new RegExp(val.source, val.flags);
     } else if (isEmpty(dst[key])) {
       dst[key] = cloneDeep(isArray(val) ? [] : {}, val);
     } else if (!isObject(val)) {
@@ -496,6 +514,8 @@ function cloneArrayDeep(dst: any, src: any[]) {
 
     if (val == null) {
       newVal = val;
+    } else if (val instanceof RegExp) {
+      newVal = new RegExp(val.source, val.flags);
     } else {
       newVal = cloneDeep(isArray(val) ? [] : {}, val);
     }

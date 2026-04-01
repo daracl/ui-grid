@@ -1,8 +1,8 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { ROW_CUD_KEY } from "@/constants";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { ROW_CUD_KEY } from '@/constants';
 
 /**
  * aside modify info
@@ -20,21 +20,21 @@ export class AsideModifyInfoRenderer extends ViewRenderer {
     const item = cellInfo.item;
 
     const cudValue = item[ROW_CUD_KEY];
-    if (cudValue == "C") {
-      element.innerText = "C";
+    if (cudValue == 'C') {
+      element.innerText = 'C';
       return;
     }
 
-    if (cudValue == "U") {
-      element.innerText = "M";
+    if (cudValue == 'U') {
+      element.innerText = 'M';
       return;
     }
 
-    if (cudValue == "D") {
-      element.innerText = "D";
+    if (cudValue == 'D') {
+      element.innerText = 'D';
       return;
     }
 
-    element.innerText = "";
+    element.innerText = '';
   }
 }

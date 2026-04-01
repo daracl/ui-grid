@@ -1,16 +1,23 @@
-import { PointerContext } from "@/event/PointerContext";
-import { PointerHandler } from "@/event/PointerHandler";
-import { PointerSession } from "@/event/PointerSession";
-import { SelectionInfo } from "@/selection/selection";
-import { Config, SelectionRange, Selection, CellInfo } from "@/types/GridConfig";
-import { getElementRect, hasClass } from "@/util/domUtils";
-import { dragHorizontalMovePosition, dragVerticalMovePosition, isFixedLeftPostion, isFixedRightPostion, isMultipleSelection, isRowSelection } from "@/util/gridUtils";
-import { BodyEvent } from "./BodyEvent";
-import * as utils from "@/util/utils";
-import { GridOptions } from "@/types/GridOptions";
-import { ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
-import { isCtrlKey, isShiftKey } from "@/util/eventUtils";
-import { DaraElement } from "@/element/DaraElement";
+import { PointerContext } from '@/event/PointerContext';
+import { PointerHandler } from '@/event/PointerHandler';
+import { PointerSession } from '@/event/PointerSession';
+import { SelectionInfo } from '@/selection/selection';
+import { Config, SelectionRange, Selection, CellInfo } from '@/types/GridConfig';
+import { getElementRect, hasClass } from '@/util/domUtils';
+import {
+  dragHorizontalMovePosition,
+  dragVerticalMovePosition,
+  isFixedLeftPostion,
+  isFixedRightPostion,
+  isMultipleSelectionMode,
+  isRowSelectionMode,
+} from '@/util/gridUtils';
+import { BodyEvent } from './BodyEvent';
+import * as utils from '@/util/utils';
+import { GridOptions } from '@/types/GridOptions';
+import { ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import { isCtrlKey, isShiftKey } from '@/util/eventUtils';
+import { DaraElement } from '@/element/DaraElement';
 
 /**
  * CellClickHandler class
@@ -41,7 +48,14 @@ export class CellClickHandler implements PointerHandler {
 
   protected readonly multipleFlag: boolean;
 
-  protected gridBounds: { left: number; right: number; top: number; bottom: number };
+  protected gridBounds: {
+    gridLeft: number;
+    gridRight: number;
+    mainLeft: number;
+    mainRight: number;
+    top: number;
+    bottom: number;
+  };
 
   protected startCellInfo: CellInfo;
   private cellElement: HTMLElement;
@@ -49,7 +63,7 @@ export class CellClickHandler implements PointerHandler {
   protected scrollDirectionX: ScrollDirectionX | null = null;
   protected scrollDirectionY: ScrollDirectionY | null = null;
 
-  protected dragAnimationId: number = 0;
+  protected dragAnimationId = 0;
   private lastScrollTime = 0;
 
   private currentSelectionMode: string;
@@ -65,12 +79,12 @@ export class CellClickHandler implements PointerHandler {
     this.cfg = context.grid.config();
     this.selectionInfo = context.gridMain.selectionInfo;
 
-    this.bodyElement = context.body?.getBodyElement().getElement()!;
+    this.bodyElement = context.body?.getBodyElement().getElement() as HTMLElement;
     this.opts = context.grid.getOptions();
 
     this.selectionMode = this.opts.selectionMode;
 
-    this.multipleFlag = isMultipleSelection(this.selectionMode);
+    this.multipleFlag = isMultipleSelectionMode(this.selectionMode);
 
     this.cellClickFn = this.opts.body.cellClick;
     this.editable = this.opts.editable;
@@ -102,8 +116,10 @@ export class CellClickHandler implements PointerHandler {
     const { mainLeftWidth, mainInsideWidth, mainRightWidth, mainBodyHeight } = cfg.dimensions;
 
     this.gridBounds = {
-      left: position.left + mainLeftWidth,
-      right: position.left + mainInsideWidth - mainRightWidth,
+      gridLeft: position.left,
+      gridRight: position.left + cfg.dimensions.mainTotalWidth,
+      mainLeft: position.left + mainLeftWidth,
+      mainRight: position.left + mainInsideWidth - mainRightWidth,
       top: position.top,
       bottom: position.top + mainBodyHeight,
     };
@@ -116,7 +132,7 @@ export class CellClickHandler implements PointerHandler {
     this.beforeEndIdx = -1;
     this.beforeEndCol = -1;
 
-    if (this.multipleFlag && hasClass(session.cellEl!, "line-number")) {
+    if (this.multipleFlag && hasClass(session.cellEl!, 'line-number')) {
       this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
     }
   }
@@ -134,10 +150,24 @@ export class CellClickHandler implements PointerHandler {
 
     let hasMove = false;
 
-    const moveXInfo = dragHorizontalMovePosition(cfg, x, this.bodyPosition.left, bounds.left, bounds.right, this.beforeEndCol);
+    const moveXInfo = dragHorizontalMovePosition(
+      cfg,
+      x,
+      this.bodyPosition.left,
+      bounds.mainLeft,
+      bounds.mainRight,
+      this.beforeEndCol,
+    );
+
     if (moveXInfo.overCell > -1) {
       hasMove = true;
-      moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(this.currentSelectionMode, moveXInfo.overCell, cfg, this.cellElement, cfg.selection.isMouseDown).endCol;
+      moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(
+        this.currentSelectionMode,
+        moveXInfo.overCell,
+        cfg,
+        this.cellElement,
+        cfg.selection.isMouseDown,
+      ).endCol;
     }
 
     const moveYInfo = dragVerticalMovePosition(cfg, y, this.rowHeight, this.startCellInfo, bounds.top, bounds.bottom);
@@ -152,7 +182,11 @@ export class CellClickHandler implements PointerHandler {
     if (this.beforeEndIdx === moveRange.endIdx && this.beforeEndCol === moveRange.endCol) return;
 
     if (hasMove) {
-      this.selectionInfo.setSelectionRangeInfo({ range: moveRange as SelectionRange } as Selection, false, this.scrollDirectionX === null && this.scrollDirectionY === null);
+      this.selectionInfo.setSelectionRangeInfo(
+        { range: moveRange as SelectionRange } as Selection,
+        false,
+        this.scrollDirectionX === null && this.scrollDirectionY === null,
+      );
     }
 
     this.beforeEndCol = moveRange.endCol ?? -1;
@@ -163,14 +197,14 @@ export class CellClickHandler implements PointerHandler {
     }
   }
 
-  protected startAutoScroll(selection: boolean = true) {
+  protected startAutoScroll(selection = true) {
     if (this.dragAnimationId) return;
 
     this.lastScrollTime = 0;
 
     const cfg = this.cfg;
 
-    let beforeMovePosition = { col: -1, rowIdx: -1 };
+    const beforeMovePosition = { col: -1, rowIdx: -1 };
 
     const gridMain = this.context.gridMain;
     const scroll = gridMain.getScroll();
@@ -214,7 +248,10 @@ export class CellClickHandler implements PointerHandler {
       }
 
       if (scrollDirectionY !== null) {
-        const endIdx = scrollDirectionY === ScrollDirectionY.DOWN ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1 : cfg.scroll.startIdx - 1;
+        const endIdx =
+          scrollDirectionY === ScrollDirectionY.DOWN
+            ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1
+            : cfg.scroll.startIdx - 1;
 
         if (beforeMovePosition.rowIdx !== endIdx) {
           moveRangeInfo.endIdx = endIdx;
@@ -231,7 +268,7 @@ export class CellClickHandler implements PointerHandler {
           this.selectionInfo.setSelectionRangeInfo({ range: moveRangeInfo } as Selection, false, false);
         }
 
-        body.dataDraw("dragscroll");
+        body.dataDraw('dragscroll');
       }
 
       this.dragAnimationId = requestAnimationFrame(loop);
@@ -252,7 +289,13 @@ export class CellClickHandler implements PointerHandler {
   }
 
   onClick(session: PointerSession): void {
-    this.setCellClick(session.event, this.startCellInfo, this.multipleFlag, this.currentSelectionMode, this.cellElement);
+    this.setCellClick(
+      session.event,
+      this.startCellInfo,
+      this.multipleFlag,
+      this.currentSelectionMode,
+      this.cellElement,
+    );
 
     this.cellClickFn?.(this.startCellInfo);
   }
@@ -263,7 +306,11 @@ export class CellClickHandler implements PointerHandler {
     const cellInfo = session.cellInfo!;
     const field = cellInfo.field;
 
-    if (!field.$isAside && !field.$renderer.isEditRenderer() && (field.editable === true || (this.editable === true && field.editable !== false))) {
+    if (
+      !field.$isAside &&
+      !field.$renderer.isEditRenderer() &&
+      (field.editable === true || (this.editable === true && field.editable !== false))
+    ) {
       field.$editRenderer.render(cellInfo, session.cellEl!);
     }
 
@@ -284,19 +331,29 @@ export class CellClickHandler implements PointerHandler {
     const cfg = this.context.grid.config();
     const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
     if (!utils.isEmpty(rowCheckCol)) {
-      (this.bodyElement.querySelector(`[data-cell-position="${cellInfo.r},${rowCheckCol}"] [name="dgRowCheck"]`) as HTMLElement).click();
+      (
+        this.bodyElement.querySelector(
+          `[data-cell-position="${cellInfo.r},${rowCheckCol}"] [name="dgRowCheck"]`,
+        ) as HTMLElement
+      ).click();
     }
   }
 
   // cell click
-  protected setCellClick(e: Event, cellInfo: CellInfo, multipleFlag: boolean, selectionMode: string, cellElement: HTMLElement) {
+  protected setCellClick(
+    e: Event,
+    cellInfo: CellInfo,
+    multipleFlag: boolean,
+    selectionMode: string,
+    cellElement: HTMLElement,
+  ) {
     const context = this.context;
     const cfg = context.grid.config();
     const gridMain = context.gridMain;
 
     gridMain.setGridFocusIn(e, true);
 
-    if (!(cellInfo.field.renderer.type == "dropdown" && cellInfo.c == +cfg.activeComponent)) {
+    if (!(cellInfo.field.renderer.type == 'dropdown' && cellInfo.c == +cfg.activeComponent)) {
       gridMain.hideLayer();
     }
 
@@ -305,25 +362,31 @@ export class CellClickHandler implements PointerHandler {
 
     if (!isFixedLeftPostion(cfg, cellIdx) && !isFixedRightPostion(cfg, cellIdx)) {
       if (cellIdx < cfg.scroll.insideStartCol) {
-        gridMain.getScroll().moveHorizontalScroll({ direction: "L", colIdx: cellIdx });
+        gridMain.getScroll().moveHorizontalScroll({ direction: 'L', colIdx: cellIdx });
       } else if (cellIdx > cfg.scroll.insideEndCol) {
-        gridMain.getScroll().moveHorizontalScroll({ direction: "R", colIdx: cellIdx });
+        gridMain.getScroll().moveHorizontalScroll({ direction: 'R', colIdx: cellIdx });
       }
     }
 
-    let keyMode = (isShiftKey(e) ? 2 : 0) + (isCtrlKey(e) ? 1 : 0);
+    const keyMode = (isShiftKey(e) ? 2 : 0) + (isCtrlKey(e) ? 1 : 0);
 
-    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(selectionMode, cellIdx, cfg, cellElement, multipleFlag && keyMode == 2);
+    const selectRangeInfo = this.selectionInfo.getSelectionModeColInfo(
+      selectionMode,
+      cellIdx,
+      cfg,
+      cellElement,
+      multipleFlag && keyMode == 2,
+    );
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
       context.body?.removeStartCellClass();
     }
 
-    const rangeType = isRowSelection(selectionMode) ? "row" : "cell";
+    const rangeType = isRowSelectionMode(selectionMode) ? 'row' : 'cell';
 
     if (multipleFlag && keyMode >= 2) {
       // shift key
-      let rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol, modifierKey: 2 } as SelectionRange;
+      const rangeInfo = { endIdx: rowIndex, endCol: selectRangeInfo.endCol, modifierKey: 2 } as SelectionRange;
 
       if (selectRangeInfo.startCol > -1) {
         rangeInfo.startCol = selectRangeInfo.startCol;
@@ -337,31 +400,44 @@ export class CellClickHandler implements PointerHandler {
           isMouseDown: true,
         } as Selection,
         false,
-        true
+        true,
       );
     } else if (multipleFlag && keyMode == 1) {
       // ctrl key
 
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol, modifierKey: 1 } as SelectionRange,
+          range: {
+            type: rangeType,
+            startIdx: rowIndex,
+            endIdx: rowIndex,
+            startCol: selectRangeInfo.startCol,
+            endCol: selectRangeInfo.endCol,
+            modifierKey: 1,
+          } as SelectionRange,
           isSelect: true,
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: selectRangeInfo.startCol },
         } as Selection,
         false,
-        true
+        true,
       );
     } else {
       this.selectionInfo.setSelectionRangeInfo(
         {
-          range: { type: rangeType, startIdx: rowIndex, endIdx: rowIndex, startCol: selectRangeInfo.startCol, endCol: selectRangeInfo.endCol } as SelectionRange,
+          range: {
+            type: rangeType,
+            startIdx: rowIndex,
+            endIdx: rowIndex,
+            startCol: selectRangeInfo.startCol,
+            endCol: selectRangeInfo.endCol,
+          } as SelectionRange,
           isSelect: true,
           isMouseDown: true,
           startCell: { startIdx: rowIndex, startCol: cellIdx },
         } as Selection,
         true,
-        true
+        true,
       );
     }
 

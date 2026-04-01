@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 /**
  * image renderer
  *
@@ -20,16 +20,16 @@ export class ImageRenderer extends ViewRenderer {
     const refValue = this.getRefValue(value);
     const labelText = refValue?.label ?? null;
     const src = refValue?.src ?? value;
-    const alt = refValue?.alt ?? "";
+    const alt = refValue?.alt ?? '';
 
     // 캐싱된 요소 재사용
-    let img = element.querySelector("img.dg-cell-content") as HTMLImageElement;
-    let label = element.querySelector("span.dg-cell-content-label") as HTMLSpanElement;
+    let img = element.querySelector('img.dg-cell-content') as HTMLImageElement;
+    let label = element.querySelector('span.dg-cell-content-label') as HTMLSpanElement;
 
     // img 없으면 새로 생성
     if (!img) {
-      img = document.createElement("img");
-      img.className = this.getRendererStyleClass("dg-cell-content");
+      img = document.createElement('img');
+      img.className = this.getRendererStyleClass('dg-cell-content');
       element.appendChild(img);
     }
 
@@ -40,8 +40,8 @@ export class ImageRenderer extends ViewRenderer {
     // label이 필요한 경우
     if (labelText) {
       if (!label) {
-        label = document.createElement("span");
-        label.className = "dg-cell-content-label";
+        label = document.createElement('span');
+        label.className = 'dg-cell-content-label';
         element.appendChild(label);
       }
 

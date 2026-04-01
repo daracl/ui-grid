@@ -1,13 +1,13 @@
-import { HeaderOptions } from "@t/GridOptions";
+import { HeaderOptions } from '@t/GridOptions';
 
-import { DaraGrid } from "@/DaraGrid";
-import { DaraElement } from "@/element/DaraElement";
-import { GridMain } from "../../GridMain";
+import { DaraGrid } from '@/DaraGrid';
+import { DaraElement } from '@/element/DaraElement';
+import { GridMain } from '../../GridMain';
 
-import { getHeaderCellInfo } from "@/util/gridUtils";
-import { addClass, removeClass } from "@/util/styleUtils";
-import { HeaderEvent } from "./HeaderEvent";
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from "@/constants";
+import { getHeaderCellInfo } from '@/util/gridUtils';
+import { addClass, removeClass } from '@/util/styleUtils';
+import { HeaderEvent } from './HeaderEvent';
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
 
 /**
  * Header class
@@ -72,13 +72,13 @@ export class Header {
       allCheckedElement.checked = checked;
     }
 
-    const headerCellElement = allCheckedElement.closest(".dg-header-cell");
+    const headerCellElement = allCheckedElement.closest('.dg-header-cell');
 
     const cellInfo = getHeaderCellInfo(cfg, headerCellElement as HTMLElement);
 
-    const checkEle = headerCellElement?.querySelector(".dg-checkbox.dg-all");
+    const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
 
-    removeClass(checkEle as HTMLElement, "indeterminate");
+    removeClass(checkEle as HTMLElement, 'indeterminate');
 
     this.gridMain.getBody().setAllCheckItem(cellInfo, allCheckedElement.checked);
   }
@@ -90,25 +90,27 @@ export class Header {
    * @param {number} idx
    * @param {("all" | "none" | "partial")} mode
    */
-  public setCheckboxStyle(mode: "all" | "none" | "partial", idx?: number) {
+  public setCheckboxStyle(mode: 'all' | 'none' | 'partial', idx?: number) {
     if (!this.grid.config().isRowAllowMultiSelect) return;
 
     let headerCellElement;
     if (!idx) {
-      headerCellElement = (this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).closest(".dg-header-cell");
+      headerCellElement = (
+        this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement
+      ).closest('.dg-header-cell');
     } else {
       headerCellElement = this.headerElement.getElement().querySelector(`[data-header-cell-position="${idx}"]`);
     }
 
-    const checkEle = headerCellElement?.querySelector(".dg-checkbox.dg-all");
+    const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
 
     const classList = checkEle?.classList;
-    if (mode == "partial") {
+    if (mode == 'partial') {
       (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = false;
-      if (!classList?.contains("indeterminate")) classList?.add("indeterminate");
+      if (!classList?.contains('indeterminate')) classList?.add('indeterminate');
     } else {
-      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = mode == "all";
-      if (classList?.contains("indeterminate")) classList.remove("indeterminate");
+      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = mode == 'all';
+      if (classList?.contains('indeterminate')) classList.remove('indeterminate');
     }
   }
 
@@ -157,9 +159,9 @@ export class Header {
    * @param {number} mainRightWidth
    */
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
-    this.leftElement.css({ width: mainLeftWidth + "px" });
-    this.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
-    this.rightElement.css({ width: mainRightWidth + "px" });
+    this.leftElement.css({ width: mainLeftWidth + 'px' });
+    this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
+    this.rightElement.css({ width: mainRightWidth + 'px' });
   }
 
   public setCenterElementStyle(styleCss: any) {
@@ -167,29 +169,29 @@ export class Header {
   }
 
   public setSearchIcon(searchDataFlag: boolean) {
-    const searchIconElement = this.headerElement.find(".dg-search-icon");
+    const searchIconElement = this.headerElement.find('.dg-search-icon');
 
     if (searchDataFlag) {
-      addClass(searchIconElement, "dg-on");
+      addClass(searchIconElement, 'dg-on');
     } else {
-      removeClass(searchIconElement, "dg-on");
+      removeClass(searchIconElement, 'dg-on');
     }
   }
 
   public createTemplate() {
-    this.headerElement = this.grid.element().findDaraElement(".dg-header");
-    this.leftElement = this.headerElement.findDaraElement(".dg-header>.dg-left");
-    this.centerElement = this.headerElement.findDaraElement(".dg-header>.dg-center");
-    this.rightElement = this.headerElement.findDaraElement(".dg-header>.dg-right");
+    this.headerElement = this.grid.element().findDaraElement('.dg-header');
+    this.leftElement = this.headerElement.findDaraElement('.dg-header>.dg-left');
+    this.centerElement = this.headerElement.findDaraElement('.dg-header>.dg-center');
+    this.rightElement = this.headerElement.findDaraElement('.dg-header>.dg-right');
 
-    this.leftElement.html(this.template("left"));
-    this.centerElement.html(this.template("center"));
-    this.rightElement.html(this.template("right"));
+    this.leftElement.html(this.template('left'));
+    this.centerElement.html(this.template('center'));
+    this.rightElement.html(this.template('right'));
 
     this.headerCellElements = [];
-    this.headerElement.finds(".dg-header-cell").forEach((node) => {
+    this.headerElement.finds('.dg-header-cell').forEach((node) => {
       const ele = node as HTMLElement;
-      const cellIdx = parseInt(ele.getAttribute("data-header-cell-position") || "0", 10);
+      const cellIdx = parseInt(ele.getAttribute('data-header-cell-position') || '0', 10);
       this.headerCellElements[cellIdx] = node;
     });
   }
@@ -209,10 +211,10 @@ export class Header {
     let startGroupIdx = 0;
     const currentFields = cfg.currentFields;
 
-    if (type == "left") {
+    if (type == 'left') {
       headerGroups = cfg.fieldHeaderGroup.left;
       leafGroup = cfg.fieldHeaderGroup.leafLeft;
-    } else if (type == "right") {
+    } else if (type == 'right') {
       startGroupIdx = cfg.fixedRightIndex;
       headerGroups = cfg.fieldHeaderGroup.right;
       leafGroup = cfg.fieldHeaderGroup.leafRight;
@@ -222,7 +224,7 @@ export class Header {
       leafGroup = cfg.fieldHeaderGroup.leafCenter;
     }
 
-    if (!headerGroups?.length || !headerGroups[0]?.length) return "";
+    if (!headerGroups?.length || !headerGroups[0]?.length) return '';
 
     const rowsHtml: string[] = [];
     const searchEnabled = opts.search.enabled;
@@ -239,7 +241,7 @@ export class Header {
       <line x1="8.5" y1="8.5" x2="11" y2="11" />
     </svg>
     </div>`
-      : "";
+      : '';
 
     headerGroups.forEach((headerGroup, rowIndex) => {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
@@ -249,18 +251,18 @@ export class Header {
         if (headerItem.$isLeaf && headerItem.$depth < headerGroupLength) {
           headerItem.$rowspan = headerGroupLength - headerItem.$depth + 1;
         }
-        let classes = "";
-        let cellIdx = "";
+        let classes = '';
+        let cellIdx = '';
         if (headerItem.$isLeaf) {
-          classes = "dg-header-cell";
+          classes = 'dg-header-cell';
           cellIdx = ` data-header-cell-position="${headerItem.$resizeIdx}"`;
         } else {
-          classes = "dg-header-group-cell";
+          classes = 'dg-header-group-cell';
           cellIdx = ` data-header-group-position="${rowIndex},${colIndex}"`;
         }
 
-        const colspan = headerItem.$colspan > 1 ? ` colspan="${headerItem.$colspan}" scope="colgroup"` : "";
-        const rowspan = headerItem.$rowspan > 1 ? ` rowspan="${headerItem.$rowspan}"` : "";
+        const colspan = headerItem.$colspan > 1 ? ` colspan="${headerItem.$colspan}" scope="colgroup"` : '';
+        const rowspan = headerItem.$rowspan > 1 ? ` rowspan="${headerItem.$rowspan}"` : '';
 
         const sortIcons =
           headerItem.$isLeaf && !headerItem.$isAside && (sortEnabled || headerItem.sort === true)
@@ -268,7 +270,7 @@ export class Header {
                 <path class="dg-asc" d="M10 5H2a.5.5 0 01-.46-.31.47.47 0 01.11-.54L5.29.5A1 1 0 016.7.5l3.65 3.65a.49.49 0 01.11.54A.51.51 0 0110 5z"/>
                 <path class="dg-desc" d="M2 7a.5.5 0 00-.46.31.47.47 0 00.11.54L5.3 11.5a1 1 0 001.41 0l3.65-3.65a.49.49 0 00.11-.54A.53.53 0 0010 7z"/>
               </svg></div>`
-            : "";
+            : '';
 
         const isHeaderTooltip = headerItem.headerTooltip?.enabled ?? true;
         const helpIcon =
@@ -278,25 +280,28 @@ export class Header {
                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
                </svg>
              </div>`
-            : "";
+            : '';
 
         const label =
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
             ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
             : `<div class="centered">${headerItem.label}</div>`;
 
-        const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : "";
+        const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : '';
 
         const labelHtml = `
           ${helpIcon}
           <div class="label-wrapper">
-            <div class="dg-header-label ${headerItem.sort ? "sort-header" : ""}">
+            <div class="dg-header-label ${headerItem.sort ? 'sort-header' : ''}">
              <div class="dg-inner"> ${label}</div>
               ${sortIcons}
             </div>
           </div>`;
 
-        const resizerHtml = !resizeEnabled || headerItem.$isAside ? "" : `<div class="dg-header-resizer" data-resize-idx="${headerItem.$resizeIdx}"></div>`;
+        const resizerHtml =
+          !resizeEnabled || headerItem.$isAside
+            ? ''
+            : `<div class="dg-header-resizer" data-resize-idx="${headerItem.$resizeIdx}"></div>`;
 
         rowHtml.push(`
           <th class="${classes}"${colspan}${rowspan}${cellIdx}>
@@ -306,23 +311,25 @@ export class Header {
           </th>`);
       });
 
-      rowHtml.push("</tr>");
-      rowsHtml.push(rowHtml.join(""));
+      rowHtml.push('</tr>');
+      rowsHtml.push(rowHtml.join(''));
     });
 
-    let colGroupHtml = [];
+    const colGroupHtml = [];
     let colGroupIdx = startGroupIdx;
 
     for (let i = 0; i < leafGroup.length; i++) {
       const idx = colGroupIdx++;
-      colGroupHtml.push(`<th data-col-idx="${idx}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${currentFields[idx].$width}px;"></th>`);
+      colGroupHtml.push(
+        `<th data-col-idx="${idx}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${currentFields[idx].$width}px;"></th>`,
+      );
     }
 
     return `
       <table class="dg-header-table">
-        <thead><tr>${colGroupHtml.join("")}</tr></thead>
-        <tbody>${rowsHtml.join("")}</tbody>
+        <thead><tr>${colGroupHtml.join('')}</tr></thead>
+        <tbody>${rowsHtml.join('')}</tbody>
       </table>
-      ${type !== "center" ? '<div class="fixed-column-line"></div>' : ""}`;
+      ${type !== 'center' ? '<div class="fixed-column-line"></div>' : ''}`;
   }
 }

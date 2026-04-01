@@ -1,9 +1,7 @@
-import { OptionCallback, AnyKeyMap, StringKeyMap } from "./Common";
-import { FieldInfoMap } from "../FieldInfoMap";
-import { FieldItem } from "./GridField";
-import { DaraElement } from "@/element/DaraElement";
-import { PagingInfo } from "./PagingInfo";
-import { PagingOptions } from "./GridOptions";
+import { AnyKeyMap } from './Common';
+import { FieldItem } from './GridField';
+import { DaraElement } from '@/element/DaraElement';
+import { PagingOptions } from './GridOptions';
 
 /**
  * grid config info
@@ -53,7 +51,7 @@ export interface Config {
 
   currentFields: FieldItem[];
 
-  allFieldMap: Map<String, FieldItem>;
+  allFieldMap: Map<string, FieldItem>;
 
   activeComponent: string;
 
@@ -104,7 +102,7 @@ export interface Config {
     matchCase: boolean;
     matchWholeWord: boolean;
     useRegex: boolean;
-    searchFields: string | string[] | "$all$";
+    searchFields: string | string[] | '$all$';
     searchText: string;
   };
   paging: PagingOptions;
@@ -213,8 +211,8 @@ export interface SelectionRange {
    *
    */
   modifierKey: -1 | 1 | 2; // 1 = ctrl, 2 = shift
-  type?: "column" | "row" | "cell";
-  mode?: "" | "add" | "remove" | "drag";
+  type?: 'column' | 'row' | 'cell';
+  mode?: '' | 'add' | 'remove' | 'drag';
   startIdx: number;
   endIdx: number;
   startCol: number;

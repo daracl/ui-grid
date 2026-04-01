@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * view custom renderer
@@ -16,6 +16,6 @@ export class ViewCustomRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.innerText = `<input type="text">`;
+    element.innerText = '<input type="text">';
   }
 }

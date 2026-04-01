@@ -1,8 +1,7 @@
-import { VIEW_RENDERER } from "../constants";
-import { FieldItem } from "@t/GridField";
-import { isPlainObject, isString, isUndefined, merge } from "./utils";
-import { ViewRenderer } from "@/renderer/ViewRenderer";
-import { EditRenderer } from "@/renderer/EditRenderer";
+import { VIEW_RENDERER } from '../constants';
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '@/renderer/ViewRenderer';
+import { EditRenderer } from '@/renderer/EditRenderer';
 
 export const getViewRenderer = (field: FieldItem): ViewRenderer => {
   let render;
@@ -12,7 +11,7 @@ export const getViewRenderer = (field: FieldItem): ViewRenderer => {
     if (render) return render;
   }
 
-  return VIEW_RENDERER["text"];
+  return VIEW_RENDERER['text'];
 };
 
 export const getEditRenderer = (field: FieldItem): EditRenderer => {
@@ -23,5 +22,5 @@ export const getEditRenderer = (field: FieldItem): EditRenderer => {
     if (render) return render;
   }
 
-  return VIEW_RENDERER["text"];
+  return VIEW_RENDERER['text'];
 };

@@ -1,9 +1,9 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { eventOn } from "@/util/eventUtils";
-import { getCellInfo } from "@/util/gridUtils";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { eventOn } from '@/util/eventUtils';
+import { getCellInfo } from '@/util/gridUtils';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * button renderer
@@ -24,8 +24,8 @@ export class ButtonRenderer extends ViewRenderer {
 
     // 최초 렌더링 시만 생성
     if (!btnElement) {
-      btnElement = document.createElement("div");
-      btnElement.className = this.getRendererStyleClass("dg-cell-content");
+      btnElement = document.createElement('div');
+      btnElement.className = this.getRendererStyleClass('dg-cell-content');
       element.appendChild(btnElement);
       this.initEvent(btnElement);
     }
@@ -40,15 +40,15 @@ export class ButtonRenderer extends ViewRenderer {
     const cfg = this.gridMain.getGrid().config();
     eventOn(
       contentElement,
-      "click",
+      'click',
       (e: UIEvent) => {
         const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
         const cellInfo = getCellInfo(cfg, cellElement);
 
         this.click(e, cellElement, cellInfo);
       },
-      { passive: false }
+      { passive: false },
     );
   }
 }

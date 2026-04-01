@@ -1,8 +1,8 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { getElementRect } from "@/util/domUtils";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { getElementRect } from '@/util/domUtils';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * Sparkline renderer
@@ -25,7 +25,7 @@ export class SparklineRenderer extends ViewRenderer {
 
     if (!Array.isArray(data) || data.length === 0) {
       // 데이터가 없으면 비워두기
-      element.innerHTML = "";
+      element.innerHTML = '';
       return;
     }
     const rect = getElementRect(element);
@@ -33,10 +33,10 @@ export class SparklineRenderer extends ViewRenderer {
     const height = rect.height;
 
     // 기존 canvas가 있으면 재사용, 없으면 생성
-    let canvas = element.querySelector("canvas") as HTMLCanvasElement | null;
+    let canvas = element.querySelector('canvas') as HTMLCanvasElement | null;
 
     if (!canvas) {
-      canvas = document.createElement("canvas");
+      canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       element.appendChild(canvas);
@@ -46,7 +46,7 @@ export class SparklineRenderer extends ViewRenderer {
       if (canvas.height !== height) canvas.height = height;
     }
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const min = Math.min(...data);
@@ -62,7 +62,7 @@ export class SparklineRenderer extends ViewRenderer {
     ctx.clearRect(0, 0, width, height);
 
     // 라인 그리기
-    ctx.strokeStyle = "#007acc";
+    ctx.strokeStyle = '#007acc';
     ctx.lineWidth = 1;
     ctx.beginPath();
 
@@ -86,13 +86,13 @@ export class SparklineRenderer extends ViewRenderer {
       const y = yPadding + (1 - (val - min) / range) * graphHeight;
 
       if (val === max) {
-        ctx.fillStyle = "#28a745"; // green
+        ctx.fillStyle = '#28a745'; // green
       } else if (val === min) {
-        ctx.fillStyle = "#dc3545"; // red
+        ctx.fillStyle = '#dc3545'; // red
       } else if (i === 0 || i === data.length - 1) {
-        ctx.fillStyle = "#0000ff"; // blue
+        ctx.fillStyle = '#0000ff'; // blue
       } else {
-        ctx.fillStyle = "#ff9900"; // orange
+        ctx.fillStyle = '#ff9900'; // orange
       }
 
       ctx.beginPath();

@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * rowDragHandle renderer
@@ -16,8 +16,8 @@ export class AsideRowDragHandleRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    if (!element.classList.contains("dg-row-drag-handle")) {
-      element.classList.add("dg-row-drag-handle");
+    if (!element.classList.contains('dg-row-drag-handle')) {
+      element.classList.add('dg-row-drag-handle');
     }
   }
 }

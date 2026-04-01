@@ -1,10 +1,10 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "@/util/domUtils";
-import { eventOn } from "@/util/eventUtils";
-import { stringValidator } from "@/rule/stringValidator";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { eventOn } from '@/util/eventUtils';
+import { stringValidator } from '@/rule/stringValidator';
 
 /**
  * text renderer
@@ -25,24 +25,24 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
   }
 
   initEvt(editElement: HTMLInputElement, item: any) {
-    eventOn(editElement, "blur", (e: FocusEvent) => {
+    eventOn(editElement, 'blur', (e: FocusEvent) => {
       if (this.isShow) {
         this.setChangeValue(e);
       }
     });
 
-    eventOn(editElement, "keydown", (e: KeyboardEvent) => {
+    eventOn(editElement, 'keydown', (e: KeyboardEvent) => {
       const key = e.key;
 
-      if (key === "Enter") {
+      if (key === 'Enter') {
         this.setChangeValue(e);
-      } else if (key === "Escape") {
+      } else if (key === 'Escape') {
         this.setChangeValue(e, true);
       }
     });
   }
 
-  setChangeValue(e: Event, cancelFlag: boolean = false) {
+  setChangeValue(e: Event, cancelFlag = false) {
     this.isShow = false;
     if (!cancelFlag) {
       const value = this.editElement.value;
@@ -75,10 +75,10 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = getLayerElement("input", "dg-edit-input", cellInfo.c + "") as HTMLInputElement;
+      editElement = getLayerElement('input', 'dg-edit-input', cellInfo.c + '') as HTMLInputElement;
       editElement.type = type;
       editElement.name = this.fieldName;
-      editElement.setAttribute("autocomplete", "off");
+      editElement.setAttribute('autocomplete', 'off');
 
       this.rendererContainer.appendChild(editElement);
       this.editElement = editElement;
@@ -97,7 +97,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
-    editElement.value = item[this.fieldName] ?? "";
+    editElement.value = item[this.fieldName] ?? '';
 
     setTimeout(() => {
       editElement.focus();

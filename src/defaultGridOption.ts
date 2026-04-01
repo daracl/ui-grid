@@ -1,18 +1,18 @@
-import { FieldItem } from "@t/GridField";
-import { GridOptions } from "@t/GridOptions";
-import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionMode, TOOLBAR_HEIGHT, VIEW_RENDERER } from "./constants";
+import { FieldItem } from '@t/GridField';
+import { GridOptions } from '@t/GridOptions';
+import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionMode, TOOLBAR_HEIGHT, VIEW_RENDERER } from './constants';
 
 /**
  * grid default option
  */
 export const DEFAULT_OPTIONS: GridOptions = {
-  theme: "light", // 테마 값
-  height: "auto", // 높이 값
-  width: "auto", // 넓이값
+  theme: 'light', // 테마 값
+  height: 'auto', // 높이 값
+  width: 'auto', // 넓이값
   windowResizeDelay: 50,
   fixedLeftIndex: -1,
   fixedRightIndex: -1,
-  styleClass: "default",
+  styleClass: 'default',
   enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
   editable: false, // 편집 모드 활성화
@@ -21,8 +21,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
   addLimitRow: -1, // add시 item max로 유지할 카운트
   valueFilter: false, // value filter function (colItem, objectValue)
   dataTypeFormatter: {
-    money: { prefix: "$", suffix: "원", fixed: 0 }, // money 설정 prefix : 앞에 붙일 문구 , suffix : 마지막에 붙일 문구 , fixed : 소수점
-    number: { prefix: "", suffix: "", fixed: 0 }, // number 값 설정
+    money: { prefix: '$', suffix: '원', fixed: 0 }, // money 설정 prefix : 앞에 붙일 문구 , suffix : 마지막에 붙일 문구 , fixed : 소수점
+    number: { prefix: '', suffix: '', fixed: 0 }, // number 값 설정
   },
   header: {
     view: true, //  보기 여부
@@ -47,13 +47,13 @@ export const DEFAULT_OPTIONS: GridOptions = {
     help: {
       //	header help btn 설정
       enabled: false, // header help btn 활성 여부.
-      tooltip: "", // tooltip
+      tooltip: '', // tooltip
       click: undefined, // click event
       showDelay: 300, // tooltip delay
     },
     drag: {
       enabled: false, // 활성화여부
-      dropSelector: "", // drop selector
+      dropSelector: '', // drop selector
       dropCallback: (colItem: any) => {
         // drop 전에 이벤트
         return true;
@@ -63,7 +63,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   search: {
     enabled: false, // 활성여부
     // 그리드 설정
-    mode: "simple", // simple (search , fixed) , full(column config , filter)
+    mode: 'simple', // simple (search , fixed) , full(column config , filter)
     click: false, // 직접 처리 할경우. function 으로 처리.
     onlyCloseButton: false, // button 으로만 닫기 여부
     useRememberValue: false, // 검색어 local storage에 저장 여부
@@ -71,18 +71,18 @@ export const DEFAULT_OPTIONS: GridOptions = {
     height: 30,
     callback: false,
     rememberValue: {
-      field: "",
-      keyword: "",
+      field: '',
+      keyword: '',
     },
     util: {
       isTypeNumber: (hederInfo: any): boolean => {
-        return hederInfo.type == "number";
+        return hederInfo.type == 'number';
       },
     },
   },
   toolbar: {
     enabled: false,
-    position: "right", // left, center, right
+    position: 'right', // left, center, right
     height: TOOLBAR_HEIGHT,
     items: [],
   },
@@ -91,7 +91,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     lineNumber: {
       // 번호
       enabled: true, // 활성화 여부
-      label: "", //  컬럼명
+      label: '', //  컬럼명
       order: 0, // 순서
       width: 40, // 넓이
       enableRowSelection: true, // 선택 여부
@@ -110,7 +110,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       // 수정 여부
       enabled: false, // 활성화 여부
       order: 3,
-      label: "", // name
+      label: '', // name
       width: 20, // 넓이값
     },
   },
@@ -144,7 +144,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       dragTemplate: undefined,
     },
   },
-  summary: { height: 28, position: "bottom", items: [] },
+  summary: { height: 28, position: 'bottom', items: [] },
   scroll: {
     // 스크롤 옵션
     enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용
@@ -175,23 +175,23 @@ export const DEFAULT_OPTIONS: GridOptions = {
       /**
        * 위치 값
        */
-      position: "center",
+      position: 'center',
       /**
        * 페이지 상태값 포지션션
        */
-      formatPosition: "right",
+      formatPosition: 'right',
       /**
        * 페이지 상태값
        */
-      format: "{{start}} - {{end}} of {{total}}",
+      format: '{{start}} - {{end}} of {{total}}',
 
       // 페이지 콜백
       //callback: (no)=>{},
     },
 
     selection: {
-      position: "left",
-      format: "Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}",
+      position: 'left',
+      format: 'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
     },
   },
   paging: {
@@ -201,35 +201,37 @@ export const DEFAULT_OPTIONS: GridOptions = {
     unitPage: 5,
   }, // paging info
   i18n: {
-    empty: "no data",
-    "search.label": "설정",
-    "search.button": "Search",
-    "setting.speed.label": "스크롤속도",
-    "setting.column.fixed.label": "고정컬럼",
-    "setting.column.fixed.notused": "사용안함",
+    empty: 'no data',
+    'search.label': '설정',
+    'search.button': 'Search',
+    'setting.speed.label': '스크롤속도',
+    'setting.column.fixed.label': '고정컬럼',
+    'setting.column.fixed.notused': '사용안함',
   },
   icon: {
-    sortup: '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg>',
-    sortdown: '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>',
+    sortup:
+      '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg>',
+    sortdown:
+      '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>',
   },
   operators: {}, // setting condition operator
 };
 
 export const DEFAULT_FIELD_INFO: FieldItem = {
-  name: "",
-  label: "",
+  name: '',
+  label: '',
   width: 0,
   colspan: 0,
   rowspan: 0,
   hidden: false,
   sort: false,
   editable: true,
-  align: "center",
+  align: 'center',
   renderer: {
-    type: "text",
+    type: 'text',
   },
   displayFormat: undefined,
-  defaultValue: "",
+  defaultValue: '',
   styleClass: undefined,
   tooltip: {
     enabled: false,
@@ -239,8 +241,8 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
     enabled: false,
     content: undefined,
   },
-  $renderer: VIEW_RENDERER["text"],
-  $editRenderer: EDIT_RENDERER["text"],
+  $renderer: VIEW_RENDERER['text'],
+  $editRenderer: EDIT_RENDERER['text'],
   $colspan: 0,
   $rowspan: 0,
   $depth: 0,
@@ -248,9 +250,9 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   $childLength: 0,
   $resizeIdx: 0,
   $width: 0,
-  $alignStyle: "",
+  $alignStyle: '',
   $isAside: false,
-  $panel: "center",
-  $uid: "",
+  $panel: 'center',
+  $uid: '',
   $colSeq: 0,
 };

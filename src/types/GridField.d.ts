@@ -1,9 +1,9 @@
-import { FieldItem } from "@t/GridField";
-import { TEXT_ALIGN_TYPE } from "@/constants";
-import { DisplayFormatOptions, OptionCallback } from "./Common";
-import { EditRendererInfo, RendererInfo } from "./RendererInfo";
-import { ViewRenderer } from "@/renderer/ViewRenderer";
-import { EditRenderer } from "@/renderer/EditRenderer";
+import { FieldItem } from '@t/GridField';
+import { TEXT_ALIGN_TYPE } from '@/constants';
+import { DisplayFormatOptions, OptionCallback } from './Common';
+import { EditRendererInfo, RendererInfo } from './RendererInfo';
+import { ViewRenderer } from '@/renderer/ViewRenderer';
+import { EditRenderer } from '@/renderer/EditRenderer';
 
 /**
  * Field info
@@ -158,7 +158,7 @@ export interface FieldItem {
   /**
    *panel
    */
-  $panel: "left" | "center" | "right";
+  $panel: 'left' | 'center' | 'right';
 
   /**
    * field unique id

@@ -1,7 +1,7 @@
-import { GridOptions, PagingParam } from "@t/GridOptions";
-import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from "./types/GridConfig";
-import { FieldItem } from "@t/GridField";
-import { isPlainObject } from "./util/utils";
+import { GridOptions, PagingParam } from '@t/GridOptions';
+import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from './types/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { isPlainObject } from './util/utils';
 
 /**
  * 
@@ -18,7 +18,7 @@ export function initConfig(opts: GridOptions): Config {
 
   return {
     rowIdSeq: 0,
-    theme: "light",
+    theme: 'light',
     dimensions: {
       width: 0,
       height: 0,
@@ -39,8 +39,8 @@ export function initConfig(opts: GridOptions): Config {
     summary: {
       heights: [],
     },
-    fontFamily: "Noto Sans KR",
-    fontSize: "12px",
+    fontFamily: 'Noto Sans KR',
+    fontSize: '12px',
     isCellEdit: false,
     isRowAllowMultiSelect: opts.aside?.rowCheckbox?.allowMultiSelect ?? true,
     searchEnable: false,
@@ -48,8 +48,8 @@ export function initConfig(opts: GridOptions): Config {
       matchCase: false,
       matchWholeWord: false,
       useRegex: false,
-      searchFields: "$all$",
-      searchText: "",
+      searchFields: '$all$',
+      searchText: '',
     },
     fieldHeaderGroup: defaultFieldGroupInfo(),
     footer: { height: 0, width: 0 },
@@ -63,7 +63,15 @@ export function initConfig(opts: GridOptions): Config {
     isOpenLayer: false,
     currentFields: [],
     allFieldMap: new Map(),
-    dataInfo: { colLength: 0, rowLength: 0, asideLength: 0, startCol: 0, lastRow: 0, orginLeafHeaders: [], orginLeafHeaderKeyMap: {} },
+    dataInfo: {
+      colLength: 0,
+      rowLength: 0,
+      asideLength: 0,
+      startCol: 0,
+      lastRow: 0,
+      orginLeafHeaders: [],
+      orginLeafHeaderKeyMap: {},
+    },
     cellWidths: [],
     rowHeight: Math.max(opts.body.row.height ?? 30, 25),
     sort: { orders: [] },
@@ -77,7 +85,7 @@ export function initConfig(opts: GridOptions): Config {
     allCheck: false,
     settingConfig: {
       viewInitFlag: true,
-      filterTemplate: "",
+      filterTemplate: '',
       filterOperatorTemplate: {}, // filter html template
       searchCheckItem: false, // 검색 정규식
       filterCheckItem: false, // filter info {checkFn, check condition}
@@ -87,7 +95,7 @@ export function initConfig(opts: GridOptions): Config {
     scroll: initScrollInfo(),
     edit: initEditInfo(),
     canvasContext: undefined,
-    activeComponent: "",
+    activeComponent: '',
   };
 }
 
@@ -98,7 +106,7 @@ export function initConfig(opts: GridOptions): Config {
  */
 export function initSelectionInfo(): Selection {
   return {
-    id: "",
+    id: '',
     range: initSelectionRange(),
     allRange: new Map<string, SelectionRange>(),
     isSelect: false,
@@ -115,8 +123,8 @@ export function initSelectionInfo(): Selection {
 export function initSelectionRange(): SelectionRange {
   return {
     modifierKey: -1,
-    type: "cell",
-    mode: "",
+    type: 'cell',
+    mode: '',
     startIdx: -1,
     endIdx: -1,
     startCol: -1,

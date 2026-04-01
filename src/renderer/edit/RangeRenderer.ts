@@ -1,7 +1,7 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * range renderer
@@ -17,7 +17,7 @@ export class RangeRenderer extends EditRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = `<input type="text">`;
+    element.innerText = '<input type="range">';
     const value = item[cellInfo.field.name];
 
     this.getValue(value);

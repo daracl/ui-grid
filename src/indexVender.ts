@@ -1,9 +1,4 @@
-import DateTimePicker from "@daracl/datetimepicker";
-import Toast from "@daracl/toast";
+import DateTimePicker from '@daracl/datetimepicker';
 
-import "@daracl/datetimepicker/style/daracl.datetimepicker.scss";
-import "@daracl/toast/style/daracl.toast.scss";
-
+import '@daracl/datetimepicker/style/daracl.datetimepicker.scss';
 export const dateTimePicker = DateTimePicker;
-
-export const toast = Toast;

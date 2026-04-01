@@ -1,5 +1,5 @@
-import { DaraGrid } from "@/DaraGrid";
-import { $querySelector } from "./domUtils";
+import { DaraGrid } from '@/DaraGrid';
+import { $querySelector } from './domUtils';
 
 /**
  * @method addStyleTag
@@ -14,18 +14,17 @@ export const addStyleTag = (grid: DaraGrid) => {
   const instanceId = grid.instanceId();
   let styleTag = document.querySelector(`[dg-style-id="${instanceId}"]`) as HTMLStyleElement;
 
-  if (styleTag) {
-  } else {
-    styleTag = document.createElement("style");
-    document.getElementsByTagName("head")[0].appendChild(styleTag);
-    styleTag.setAttribute("dg-style-id", instanceId);
-    styleTag.setAttribute("type", "text/css");
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    document.getElementsByTagName('head')[0].appendChild(styleTag);
+    styleTag.setAttribute('dg-style-id', instanceId);
+    styleTag.setAttribute('type', 'text/css');
   }
 
   if (styleTag.style) {
-    styleTag.style.cssText = cssStr.join("");
+    styleTag.style.cssText = cssStr.join('');
   } else {
-    styleTag.innerHTML = cssStr.join("");
+    styleTag.innerHTML = cssStr.join('');
   }
 };
 
@@ -66,7 +65,7 @@ export function addClass(element: Element | NodeListOf<Element> | null | Element
  * @param {string} styleClass style css class
  */
 export function removeClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
-  if (!element || typeof classNames !== "string") return;
+  if (!element || typeof classNames !== 'string') return;
 
   const elements = $querySelector(element);
 
@@ -86,7 +85,7 @@ export function removeClass(element: Element | NodeListOf<Element> | null | Elem
  * @param classNames - 공백으로 구분된 하나 이상의 클래스 이름
  */
 export function toggleClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
-  if (!element || typeof classNames !== "string") return;
+  if (!element || typeof classNames !== 'string') return;
 
   const elements = $querySelector(element);
   const styleClasses = styleClassSplit(classNames);

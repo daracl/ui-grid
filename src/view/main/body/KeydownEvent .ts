@@ -1,14 +1,14 @@
-import { ScrollInfo } from "@t/GridConfig";
+import { ScrollInfo } from '@t/GridConfig';
 
-import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from "../../../util/gridUtils";
-import { DaraGrid } from "@/DaraGrid";
-import * as utils from "@/util/utils";
+import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '../../../util/gridUtils';
+import { DaraGrid } from '@/DaraGrid';
 
-import { GridMain } from "../../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, isCtrlKey, isSpacebar, stopPreventCancel } from "@/util/eventUtils";
-import { SelectionInfo } from "@/selection/selection";
-import { Body } from "./Body";
+import { GridMain } from '../../GridMain';
+import { DaraElement } from '@/element/DaraElement';
+import { eventKeyCode, eventOff, eventOn, isCtrlKey, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
+import { SelectionInfo } from '@/selection/selection';
+import { Body } from './Body';
+import { isFunction } from '@/util/utils';
 
 /**
  * keydown event class
@@ -36,7 +36,7 @@ export class KeydownEvent {
    *
    */
   public init() {
-    this.pasteElement = new DaraElement(this.grid.element().find(".dg-paste-area"));
+    this.pasteElement = new DaraElement(this.grid.element().find('.dg-paste-area'));
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
     const editable = opts.editable;
@@ -48,8 +48,8 @@ export class KeydownEvent {
     const pasteElement = this.pasteElement.getElement();
     const mainElement = this.gridMain.mainElement().getElement();
 
-    eventOff(mainElement, "keydown");
-    eventOn(mainElement, "keydown", (e: KeyboardEvent) => {
+    eventOff(mainElement, 'keydown');
+    eventOn(mainElement, 'keydown', (e: KeyboardEvent) => {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;
@@ -59,7 +59,7 @@ export class KeydownEvent {
       }
 
       // 설정 영역 keydown 처리
-      if (targetElement.closest(".dg-setting-area")) return true;
+      if (targetElement.closest('.dg-setting-area')) return true;
 
       const evtKey = eventKeyCode(e);
 
@@ -75,7 +75,7 @@ export class KeydownEvent {
 
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 
-          const startElement = this.gridMain.getBody().getBodyElement().find(".dg-cell.start-cell");
+          const startElement = this.gridMain.getBody().getBodyElement().find('.dg-cell.start-cell');
 
           const cellInfo = getCellInfo(cfg, startElement);
 
@@ -91,7 +91,7 @@ export class KeydownEvent {
 
         if (evtKey == 67) {
           // ctrl+ c
-          if (selectionMode == "none") {
+          if (selectionMode == 'none') {
             return;
           }
 
@@ -154,9 +154,9 @@ export class KeydownEvent {
     const endIdx = startCell.startIdx,
       endCol = startCell.startCol;
 
-    let insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
+    const insideViewRow = scrollInfo.insideViewRow - 1; // start idx 0 부터 시작 하기 때문에 하나 처리함;
 
-    let gridStartCol = cfg.dataInfo.startCol;
+    const gridStartCol = cfg.dataInfo.startCol;
 
     const isCtrl = isCtrlKey(evt);
     switch (evtKey) {
@@ -178,7 +178,7 @@ export class KeydownEvent {
         }
 
         if (moveRowIdx >= scrollInfo.startIdx + insideViewRow) {
-          scrollCtrl.moveVerticalScroll({ direction: "D", rowIdx: moveRowIdx - insideViewRow });
+          scrollCtrl.moveVerticalScroll({ direction: 'D', rowIdx: moveRowIdx - insideViewRow });
         }
 
         break;
@@ -199,7 +199,7 @@ export class KeydownEvent {
         }
 
         if (moveRowIdx < scrollInfo.startIdx) {
-          scrollCtrl.moveVerticalScroll({ direction: "U", rowIdx: moveRowIdx });
+          scrollCtrl.moveVerticalScroll({ direction: 'U', rowIdx: moveRowIdx });
         }
 
         break;
@@ -221,7 +221,7 @@ export class KeydownEvent {
         }
 
         if (!isFixedLeftPostion(cfg, moveCol) && moveCol < scrollInfo.insideStartCol) {
-          scrollCtrl.moveHorizontalScroll({ direction: "L", colIdx: moveCol });
+          scrollCtrl.moveHorizontalScroll({ direction: 'L', colIdx: moveCol });
         }
 
         break;
@@ -242,7 +242,7 @@ export class KeydownEvent {
         }
 
         if (!isFixedRightPostion(cfg, moveCol) && moveCol > scrollInfo.insideEndCol) {
-          scrollCtrl.moveHorizontalScroll({ direction: "R", colIdx: moveCol });
+          scrollCtrl.moveHorizontalScroll({ direction: 'R', colIdx: moveCol });
         }
 
         break;
@@ -260,11 +260,25 @@ export class KeydownEvent {
    * @private
    * @type {function (ctx, evtKey, evt, endCol, scrollInfo, moveRowIdx, moveColIdx)}
    */
-  private insideScrollCheck(evtKey: number, evt: UIEvent, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) {
+  private insideScrollCheck(
+    evtKey: number,
+    evt: UIEvent,
+    scrollInfo: ScrollInfo,
+    moveRowIdx: number,
+    moveColIdx: number,
+  ) {
     const cfg = this.grid.config();
     const opts = this.grid.getOptions();
 
-    if (utils.isFunction(opts.body.keyNavHandler) && opts.body.keyNavHandler(evt, { key: evtKey, moveCol: moveColIdx, moveRow: moveRowIdx, item: cfg.items[moveRowIdx] }) === false) {
+    if (
+      isFunction(opts.body.keyNavHandler) &&
+      opts.body.keyNavHandler(evt, {
+        key: evtKey,
+        moveCol: moveColIdx,
+        moveRow: moveRowIdx,
+        item: cfg.items[moveRowIdx],
+      }) === false
+    ) {
       return false;
     }
 
@@ -297,7 +311,11 @@ export class KeydownEvent {
       const scrollCtrl = this.gridMain.getScroll();
 
       if (horizontal > 0) {
-        scrollCtrl.moveHorizontalScroll({ direction: horizontal == 1 ? "L" : "R", colIdx: moveColIdx, drawFlag: vertical > 0 ? false : true });
+        scrollCtrl.moveHorizontalScroll({
+          direction: horizontal == 1 ? 'L' : 'R',
+          colIdx: moveColIdx,
+          drawFlag: vertical > 0 ? false : true,
+        });
       }
 
       if (vertical > 0) {

@@ -1,12 +1,12 @@
-import { FieldItem } from "@t/GridField";
+import { FieldItem } from '@t/GridField';
 
-import { ValidResult } from "@t/ValidResult";
-import * as utils from "@/util/utils";
-import { Renderer } from "./Renderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "@/util/domUtils";
-import { ROW_CUD_KEY } from "@/constants";
+import { ValidResult } from '@t/ValidResult';
+import * as utils from '@/util/utils';
+import { Renderer } from './Renderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { ROW_CUD_KEY } from '@/constants';
 
 export abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -36,7 +36,9 @@ export abstract class EditRenderer extends Renderer {
    * @public
    * @param {any[]} listItem list items dropdown,checkbox,radio value
    */
-  public setValueItems(listItem: any[]): void {}
+  public setValueItems(listItem: any[]): void {
+    // intentionally empty
+  }
 
   /**
    * 값 얻기
@@ -63,13 +65,13 @@ export abstract class EditRenderer extends Renderer {
     if (this.changeEventCall(e, item, value)) {
       if (item[this.fieldName] == value) return;
 
-      if (item[ROW_CUD_KEY] == "R") {
-        item[ROW_CUD_KEY] = "U";
+      if (item[ROW_CUD_KEY] == 'R') {
+        item[ROW_CUD_KEY] = 'U';
       }
       item[this.fieldName] = value;
 
       // 데이터 변경후 그리드 리프레시
-      this.gridMain.getBody().dataDraw("dataChange");
+      this.gridMain.getBody().dataDraw('dataChange');
     }
   }
   public isEnableView() {
@@ -80,14 +82,14 @@ export abstract class EditRenderer extends Renderer {
     let replaceFlag = false;
     const resultValue = label.replace(/\{\{([A-Za-z0-9_.]*)\}\}/g, (match, key) => {
       replaceFlag = true;
-      return val[key] || "";
+      return val[key] || '';
     });
 
     if (replaceFlag) {
       return resultValue;
     }
 
-    return val[label] || "";
+    return val[label] || '';
   }
 
   public changeEventCall(e: Event | null, item: any, value: any): boolean {
@@ -95,7 +97,7 @@ export abstract class EditRenderer extends Renderer {
     const fieldValue = value;
 
     if (field.renderer.change) {
-      let changeInfo: any = {
+      const changeInfo: any = {
         field: field,
         evt: e,
         item: utils.merge({}, item),
@@ -120,7 +122,7 @@ export abstract class EditRenderer extends Renderer {
       return this.validatorElement;
     }
 
-    const div = getLayerElement("div", "dg-validator-message", "validator");
+    const div = getLayerElement('div', 'dg-validator-message', 'validator');
 
     this.validatorElement = div;
 

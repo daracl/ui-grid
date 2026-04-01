@@ -1,23 +1,20 @@
-import { CellInfo, ScrollInfo, Selection, SelectionRange } from "@t/GridConfig";
+import { getCellInfo, isInputField } from '../../../util/gridUtils';
+import { DaraGrid } from '@/DaraGrid';
 
-import { dragVerticalMovePosition, getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField, createNewItems, isRowSelection, moveItem } from "../../../util/gridUtils";
-import { DaraGrid } from "@/DaraGrid";
-import * as utils from "@/util/utils";
-
-import { GridMain } from "../../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { eventKeyCode, eventOff, eventOn, eventPosition, isCtrlKey, isShiftKey, isSpacebar, stopPreventCancel } from "@/util/eventUtils";
-import { SelectionInfo } from "@/selection/selection";
-import { getElementRect, hasClass } from "@/util/domUtils";
-import { Body } from "./Body";
-import { HIDDEN_ELEMENT_SELECTOR, ROW_CHECK_NAME, POINTER_STATE } from "@/constants";
-import { PointerHandler } from "@/event/PointerHandler";
-import { CellClickHandler } from "./CellClickHandler";
-import { PointerSession } from "@/event/PointerSession";
-import { ClickManager } from "@/event/ClickManager";
-import { RowMoveHandler } from "./RowMoveHandler";
-import { PasteEvent } from "./PasteEventHandler";
-import { KeydownEvent } from "./KeydownEvent ";
+import { GridMain } from '../../GridMain';
+import { DaraElement } from '@/element/DaraElement';
+import { eventOff, eventOn, eventPosition } from '@/util/eventUtils';
+import { SelectionInfo } from '@/selection/selection';
+import { hasClass } from '@/util/domUtils';
+import { Body } from './Body';
+import { POINTER_STATE } from '@/constants';
+import { PointerHandler } from '@/event/PointerHandler';
+import { CellClickHandler } from './CellClickHandler';
+import { PointerSession } from '@/event/PointerSession';
+import { ClickManager } from '@/event/ClickManager';
+import { RowMoveHandler } from './RowMoveHandler';
+import { PasteEvent } from './PasteEventHandler';
+import { KeydownEvent } from './KeydownEvent ';
 
 /**
  * Body event class
@@ -73,11 +70,11 @@ export class BodyEvent {
     let session: PointerSession;
     const editable = opts.editable;
 
-    let clickManager = new ClickManager();
+    const clickManager = new ClickManager();
 
     eventOn(
       bodyElement,
-      "mousedown.cellclick touchstart.cellclick",
+      'mousedown.cellclick touchstart.cellclick',
       (e: UIEvent) => {
         if ((e as MouseEvent).button !== 0) {
           return true;
@@ -87,9 +84,9 @@ export class BodyEvent {
           return true;
         }
 
-        const cellElement = eventElement.closest(".dg-cell") as HTMLElement;
+        const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
 
-        if (cellElement == null || hasClass(cellElement, "$row-check $modify-info")) {
+        if (cellElement == null || hasClass(cellElement, '$row-check $modify-info')) {
           this.gridMain.hideLayer();
           return;
         }
@@ -99,7 +96,7 @@ export class BodyEvent {
         startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
         session = {
-          state: "PRESSED",
+          state: 'PRESSED',
           event: e,
           startPos: startEvtPosition,
           currentPos: startEvtPosition,
@@ -107,7 +104,7 @@ export class BodyEvent {
           startTime: Date.now(),
           lastClickTime: 0,
           cellEl: cellElement,
-          clickCount: 1,
+          clickManager: clickManager,
         };
 
         //clickManager.conserveClick(session.startPos);
@@ -129,12 +126,12 @@ export class BodyEvent {
 
         if (handler.onPointerMove) {
           let isMoveStarted = false;
-          eventOn(document, "touchmove.cellclick mousemove.cellclick", (moveEvt: Event) => {
+          eventOn(document, 'touchmove.cellclick mousemove.cellclick', (moveEvt: Event) => {
             if (!isMoveStarted) {
               cfg.isBodyDragging = true;
               isMoveStarted = true;
               if (handler.onActivate?.(session) === false) {
-                eventOff(document, "touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick");
+                eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
                 return;
               }
             }
@@ -144,12 +141,12 @@ export class BodyEvent {
             handler.onPointerMove?.(session);
           });
 
-          eventOn(document, "touchend.cellclick mouseup.cellclick", (moveEvt: Event) => {
-            eventOff(document, "touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick");
-            cfg.isBodyDragging = false;
+          eventOn(document, 'touchend.cellclick mouseup.cellclick', (moveEvt: Event) => {
+            eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
             session.state = POINTER_STATE.IDLE;
             session.currentPos = eventPosition(moveEvt);
             handler.onPointerUp?.(session);
+            cfg.isBodyDragging = false;
           });
         }
 
@@ -160,16 +157,12 @@ export class BodyEvent {
         }
 
         clickManager.processClick(session, handler);
-
-        if (startCellInfo.field.$isAside) {
-          return;
-        }
       },
-      ".dg-cell",
-      { passive: false }
+      '.dg-cell',
+      { passive: false },
     );
 
-    eventOn(bodyElement, "mouseup.cellclick touchend.cellclick", (e: UIEvent) => {
+    eventOn(bodyElement, 'mouseup.cellclick touchend.cellclick', (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });

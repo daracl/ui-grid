@@ -1,12 +1,12 @@
-import { LAYER_ATTR_NAME } from "@/constants";
-import { styleClassSplit } from "./styleUtils";
-import { isArray } from "./utils";
+import { LAYER_ATTR_NAME } from '@/constants';
+import { styleClassSplit } from './styleUtils';
+import { isArray } from './utils';
 
 export function hasClass(element: HTMLElement, styleClass: string) {
   const styleClassArr = styleClassSplit(styleClass);
 
   const classList = element.classList;
-  for (let styleClassItem of styleClassArr) {
+  for (const styleClassItem of styleClassArr) {
     if (classList.contains(styleClassItem)) {
       return true;
     }
@@ -28,7 +28,7 @@ export function eqAttributeValue(element: HTMLElement, attr: string, value: stri
  */
 export function getElementRect(
   el: Element,
-  includeScroll: boolean = false
+  includeScroll = false,
 ): {
   top: number;
   left: number;
@@ -38,7 +38,7 @@ export function getElementRect(
   height: number;
 } {
   if (!el) {
-    throw new Error("유효하지 않은 요소입니다.");
+    throw new Error('유효하지 않은 요소입니다.');
   }
 
   const rect = el.getBoundingClientRect();
@@ -61,7 +61,7 @@ export function getElementRect(
  * @returns DaraElement
  */
 export function addAttr(el: HTMLElement, attrs: any) {
-  for (let key in attrs) {
+  for (const key in attrs) {
     el.setAttribute(key, attrs[key]);
   }
 }
@@ -81,7 +81,7 @@ export function removeAttr(element: HTMLElement | NodeList, ...attrKey: string[]
   }
 
   elements.forEach((ele) => {
-    for (let attr of attrKey) {
+    for (const attr of attrKey) {
       (ele as HTMLElement).removeAttribute(attr);
     }
   });
@@ -107,7 +107,7 @@ export function $querySelector(el: Element | string | NodeList | Document | Elem
 
   const reval: Element[] = [];
 
-  for (let node of nodeList) {
+  for (const node of nodeList) {
     reval.push(node as Element);
   }
 
@@ -128,7 +128,12 @@ export function getLayerElement(tagName: string, className: string, layerName: s
   return layerElement;
 }
 
-export function innerLayerPosition(renderContainer: HTMLElement, targetElement: HTMLElement, layerElement: HTMLElement, margin: number = 2) {
+export function innerLayerPosition(
+  renderContainer: HTMLElement,
+  targetElement: HTMLElement,
+  layerElement: HTMLElement,
+  margin = 2,
+) {
   const rendererContainer = getElementRect(renderContainer);
   const elementRect = getElementRect(targetElement);
 
@@ -199,10 +204,10 @@ export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
   //console.log(`targetX : ${targetX}, targetY : ${targetY}, right : ${right}, bottom : ${bottom}, scrollTop : ${scrollTop}, windowHeight: ${windowHeight}, layerHeight:${layerHeight}, layerWidth:${layerWidth} `);
 
   let top = targetY + layerHeight + layerBottomMargin > bottom ? bottom - (layerHeight + layerBottomMargin) : targetY;
-  top = top < 0 ? 0 : top;
+  top = Math.max(top, 0);
 
   let left = targetX + layerWidth > right ? targetX - layerWidth : targetX;
-  left = left < 0 ? 0 : left;
+  left = Math.max(left, 0);
 
   return { top, left };
 }
@@ -213,7 +218,7 @@ export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
  *
  * @returns { width: number, height: number }
  */
-export function getBrowserSize(usableSize: boolean = true) {
+export function getBrowserSize(usableSize = true) {
   // 전체 뷰포트 크기 (스크롤바 포함)
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
@@ -240,9 +245,15 @@ export function getBrowserSize(usableSize: boolean = true) {
  * @returns { top: number, left: number }
  */
 export function getScrollPosition(): { top: number; left: number } {
-  const top = window.pageYOffset !== undefined ? window.pageYOffset : document.documentElement.scrollTop || document.body.scrollTop || 0;
+  const top =
+    window.pageYOffset !== undefined
+      ? window.pageYOffset
+      : document.documentElement.scrollTop || document.body.scrollTop || 0;
 
-  const left = window.pageXOffset !== undefined ? window.pageXOffset : document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+  const left =
+    window.pageXOffset !== undefined
+      ? window.pageXOffset
+      : document.documentElement.scrollLeft || document.body.scrollLeft || 0;
 
   return { top, left };
 }

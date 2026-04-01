@@ -1,9 +1,9 @@
-import { CellInfo, Config, HeaderCellInfo } from "@t/GridConfig";
-import { intValue, isArray, isEmpty, isNumber } from "./utils";
-import { GridOptions } from "@t/GridOptions";
-import { FieldItem } from "@t/GridField";
-import { RendererInfo } from "@t/RendererInfo";
-import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from "@/constants";
+import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
+import { intValue, isArray, isEmpty, isNumber } from './utils';
+import { GridOptions } from '@t/GridOptions';
+import { FieldItem } from '@t/GridField';
+import { RendererInfo } from '@t/RendererInfo';
+import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -28,7 +28,7 @@ export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
 };
 
 export const removeActiveColumnStyle = (element: HTMLElement) => {
-  element.classList.remove("selection");
+  element.classList.remove('selection');
 };
 
 /**
@@ -36,11 +36,11 @@ export const removeActiveColumnStyle = (element: HTMLElement) => {
  *
  * @type {string} selection mode
  */
-export const isMultipleSelection = (selectionMode: string): boolean => {
+export const isMultipleSelectionMode = (selectionMode: string): boolean => {
   return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.MULTIPLE_CELL;
 };
 
-export const isMultipleCellSelection = (selectionMode: string): boolean => {
+export const isMultipleCellSelectionMode = (selectionMode: string): boolean => {
   return selectionMode == SelectionMode.MULTIPLE_CELL;
 };
 
@@ -50,8 +50,17 @@ export const isMultipleCellSelection = (selectionMode: string): boolean => {
  * @param {string} selectionMode mode
  * @returns {boolean}
  */
-export const isRowSelection = (selectionMode: string): boolean => {
+export const isRowSelectionMode = (selectionMode: string): boolean => {
   return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.ROW;
+};
+
+/**
+ * cell selection check
+ * @param selectionMode  selection mode
+ * @returns boolean cell selection 여부
+ */
+export const isCellSelectionMode = (selectionMode: string): boolean => {
+  return selectionMode == SelectionMode.MULTIPLE_CELL || selectionMode == SelectionMode.CELL;
 };
 
 /**
@@ -81,7 +90,7 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
  * @returns {{ r: number; c: number; }}
  */
 export const getCellPosition = (cellElement: HTMLElement) => {
-  const posInfo = (getCellPositionAttr(cellElement) ?? "").split(",");
+  const posInfo = (getCellPositionAttr(cellElement) ?? '').split(',');
 
   return {
     r: intValue(posInfo[0]),
@@ -90,7 +99,7 @@ export const getCellPosition = (cellElement: HTMLElement) => {
 };
 
 export const getCellPositionAttr = (cellElement: HTMLElement) => {
-  return cellElement.getAttribute("data-cell-position");
+  return cellElement.getAttribute('data-cell-position');
 };
 
 /**
@@ -115,7 +124,7 @@ export const getHeaderCellInfo = (cfg: Config, cellElement: HTMLElement): Header
  * @returns
  */
 export const getHeaderCellPosition = (cellElement: HTMLElement) => {
-  return intValue(cellElement.getAttribute("data-header-cell-position") ?? "-1");
+  return intValue(cellElement.getAttribute('data-header-cell-position') ?? '-1');
 };
 
 /**
@@ -125,7 +134,7 @@ export const getHeaderCellPosition = (cellElement: HTMLElement) => {
  * @param {string} text text
  * @returns {*}
  */
-export const getTextWidth = (cfg: Config, text: string, padding: number = 10) => {
+export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
   const metrics = cfg.canvasContext?.measureText(text);
   return (metrics?.width ?? 0) + padding;
 };
@@ -153,7 +162,7 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
 
     if (isEmpty(tmpVal)) continue;
 
-    let metrics = context.measureText(tmpVal);
+    const metrics = context.measureText(tmpVal);
     checkWidth = Math.max(metrics.width, checkWidth);
 
     if (maxWidth > 0 && checkWidth >= maxWidth) {
@@ -177,7 +186,10 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
   if (scrollLeft < 1) {
     return 0;
   }
-  return (cfg.dimensions.mainCenterOverWidth * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) / 100;
+  return (
+    (cfg.dimensions.mainCenterOverWidth * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) /
+    100
+  );
 }
 
 /**
@@ -230,7 +242,14 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
  * @param {number} _b grid bottom position
  * @returns {{ scrollDirectionY: string; rowIdx: number;, viewRowIdx: number; }}
  */
-export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: number, startCellInfo: CellInfo, _t: number, _b: number) {
+export function dragVerticalMovePosition(
+  cfg: Config,
+  moveY: number,
+  rowHeight: number,
+  startCellInfo: CellInfo,
+  _t: number,
+  _b: number,
+) {
   const scroll = cfg.scroll;
   const dataInfo = cfg.dataInfo;
 
@@ -295,7 +314,14 @@ export function dragVerticalMovePosition(cfg: Config, moveY: number, rowHeight: 
  * @param {string} selectionMode selection mode
  * @returns {{ scrollDirectionX: string; overCell: number; }}
  */
-export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX: number, _l: number, _r: number, beforeEndCol: number) {
+export function dragHorizontalMovePosition(
+  cfg: Config,
+  moveX: number,
+  positionX: number,
+  _l: number,
+  _r: number,
+  beforeEndCol: number,
+) {
   let scrollDirectionX = null;
   let overCell = -1;
 
@@ -365,7 +391,9 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
 
   if (
     (scrollDirectionX == ScrollDirectionX.LEFT && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
-    (scrollDirectionX == ScrollDirectionX.RIGHT && (isFixedRightPostion(cfg, startCol) || totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
+    (scrollDirectionX == ScrollDirectionX.RIGHT &&
+      (isFixedRightPostion(cfg, startCol) ||
+        totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
   ) {
     scrollDirectionX = null;
   }
@@ -382,16 +410,16 @@ export function dragHorizontalMovePosition(cfg: Config, moveX: number, positionX
  * @param {number} [createCount=1] create count
  * @returns {any[]} result
  */
-export function createNewItems(headerItems: FieldItem[], createCount: number = 1): any[] {
+export function createNewItems(headerItems: FieldItem[], createCount = 1): any[] {
   const len = headerItems.length;
 
   const result = [];
   for (let i = 0; i < createCount; i++) {
-    let newItem: any = {};
-    newItem[ROW_CUD_KEY] = "C";
+    const newItem: any = {};
+    newItem[ROW_CUD_KEY] = 'C';
     for (let j = 0; j < len; j++) {
       const headerItem = headerItems[j];
-      newItem[headerItem.name] = headerItem.defaultValue ?? "";
+      newItem[headerItem.name] = headerItem.defaultValue ?? '';
     }
 
     result.push(newItem);
@@ -407,13 +435,13 @@ export function createNewItems(headerItems: FieldItem[], createCount: number = 1
  * @returns "all" (전체 선택), "partial" (일부 선택), "none" (선택 없음)
  */
 export function getCheckboxMode(checkLeneth: number, itemLength: number) {
-  if (checkLeneth == 0) return "none";
-  if (checkLeneth == itemLength) return "all";
-  return "partial";
+  if (checkLeneth == 0) return 'none';
+  if (checkLeneth == itemLength) return 'all';
+  return 'partial';
 }
 
 export function isImageType(renderType: string) {
-  return renderType == "image";
+  return renderType == 'image';
 }
 
 /**
@@ -424,7 +452,7 @@ export function isImageType(renderType: string) {
  * @returns {string} value key
  */
 export function valuesValueKey(rendererInfo: RendererInfo): string {
-  return rendererInfo?.listItem?.valueField ?? "value";
+  return rendererInfo?.listItem?.valueField ?? 'value';
 }
 
 /**
@@ -435,7 +463,7 @@ export function valuesValueKey(rendererInfo: RendererInfo): string {
  * @returns {string} label key
  */
 export function valuesLabelKey(rendererInfo: RendererInfo): string {
-  return rendererInfo?.listItem?.labelField ?? "label";
+  return rendererInfo?.listItem?.labelField ?? 'label';
 }
 
 const TEMPLATE_REGEX = /\{\{([A-Za-z0-9_.]*)\}\}/g;
@@ -443,14 +471,14 @@ export function valuesLabelValue(label: string, val: any) {
   let replaceFlag = false;
   const resultValue = label.replace(TEMPLATE_REGEX, (match, key) => {
     replaceFlag = true;
-    return val[key] || "";
+    return val[key] || '';
   });
 
   if (replaceFlag) {
     return resultValue;
   }
 
-  return val[label] || "";
+  return val[label] || '';
 }
 
 /**
@@ -486,4 +514,20 @@ export function moveItem(array: any[], fromIndex: number, toIndex: number): any[
   const item = array.splice(fromIndex, 1)[0];
   array.splice(toIndex, 0, item);
   return array;
+}
+
+/**
+ *  배열이 연속된 숫자로 이루어져 있는지 확인
+ *
+ * @param arr 확인할 숫자 배열
+ * @returns {boolean} 배열이 연속된 숫자로 이루어져 있으면 true, 그렇지 않으면 false
+ */
+export function isSequential(arr: number[]): boolean {
+  const set = new Set(arr);
+  if (set.size !== arr.length) return false;
+
+  const min = Math.min(...arr);
+  const max = Math.max(...arr);
+
+  return max - min + 1 === arr.length;
 }

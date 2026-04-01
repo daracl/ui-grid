@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * hidden renderer
@@ -15,5 +15,7 @@ export class HiddenRenderer extends ViewRenderer {
     super(field, gridMain);
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {}
+  public render(cellInfo: CellInfo, element: HTMLElement): void {
+    // intentionally empty
+  }
 }

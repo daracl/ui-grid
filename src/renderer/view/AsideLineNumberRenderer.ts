@@ -1,7 +1,7 @@
-import { FieldItem } from "@t/GridField";
-import { ViewRenderer } from "../ViewRenderer";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * Aside LineNumber renderer
@@ -16,6 +16,6 @@ export class AsideLineNumberRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.innerText = cellInfo.rowIndex + 1 + "";
+    element.innerText = cellInfo.rowIndex + 1 + '';
   }
 }

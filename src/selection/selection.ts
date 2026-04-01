@@ -1,13 +1,13 @@
-import { GridOptions } from "@t/GridOptions";
-import { Config, Selection, SelectionRange } from "@t/GridConfig";
-import * as utils from "@/util/utils";
-import { initSelectionInfo } from "../defaultGridConfig";
-import { isMultipleSelection, isRowSelection } from "@/util/gridUtils";
-import { GridMain } from "@/view/GridMain";
-import { removeClass } from "@/util/styleUtils";
-import { hasClass } from "@/util/domUtils";
-import { isShiftKey } from "@/util/eventUtils";
-import { SelectionMode } from "@/constants";
+import { GridOptions } from '@t/GridOptions';
+import { Config, Selection, SelectionRange } from '@t/GridConfig';
+import * as utils from '@/util/utils';
+import { initSelectionInfo } from '../defaultGridConfig';
+import { isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
+import { GridMain } from '@/view/GridMain';
+import { removeClass } from '@/util/styleUtils';
+import { hasClass } from '@/util/domUtils';
+import { isShiftKey } from '@/util/eventUtils';
+import { SelectionMode } from '@/constants';
 
 export class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -43,7 +43,7 @@ export class SelectionInfo {
     this.columnLine.clear();
   }
 
-  public setSelectionRangeInfo(changeSelection: Selection, initFlag: boolean = false, cellSelectFlag?: boolean) {
+  public setSelectionRangeInfo(changeSelection: Selection, initFlag: boolean, cellSelectFlag?: boolean) {
     if (initFlag !== true && this.isAllSelect()) {
       return;
     }
@@ -119,7 +119,7 @@ export class SelectionInfo {
     for (let i = 0; i < removeRangesLen; i++) {
       const range = ranges[i];
 
-      if (range.mode === "remove") {
+      if (range.mode === 'remove') {
         removeRanges.push(range);
         continue;
       }
@@ -183,7 +183,9 @@ export class SelectionInfo {
     const COL_MASK = (1 << COL_BITS) - 1;
     const ROW_OFFSET = 100_000; // wide-path: 열 0-99 999
 
-    const encode = NEED_WIDE ? (row: number, col: number) => row * ROW_OFFSET + col : (row: number, col: number) => (row << COL_BITS) | col;
+    const encode = NEED_WIDE
+      ? (row: number, col: number) => row * ROW_OFFSET + col
+      : (row: number, col: number) => (row << COL_BITS) | col;
 
     const decodeRow = NEED_WIDE ? (v: number) => (v / ROW_OFFSET) | 0 : (v: number) => v >>> COL_BITS;
 
@@ -204,7 +206,7 @@ export class SelectionInfo {
           if (processed.has(key)) continue; // 이미 확정된 셀은 스킵
           processed.add(key);
 
-          if (r.mode === "add") selected.add(key); // 첫 등장 = add ⇒ 선택 확정
+          if (r.mode === 'add') selected.add(key); // 첫 등장 = add ⇒ 선택 확정
           /* r.mode === "remove" 이면 선택하지 않음 → 이후 add 도 무시 */
         }
       }
@@ -249,15 +251,15 @@ export class SelectionInfo {
     selectionInfo.allRange = allRange;
 
     const newRange = changeSelection.range;
-    let mode = "";
+    let mode = '';
     if (!utils.isEmpty(newRange.startCol) && newRange.modifierKey != 2) {
       let selectionFlag = false;
-      if (newRange.type == "column") {
+      if (newRange.type == 'column') {
         selectionFlag = this.isColumnSelection(newRange);
       } else {
         selectionFlag = this.isSelection(newRange.startIdx, newRange.startCol);
       }
-      newRange.mode = initFlag || !selectionFlag ? "add" : "remove";
+      newRange.mode = initFlag || !selectionFlag ? 'add' : 'remove';
       mode = newRange.mode;
       selectionInfo.id = this.getSelectionId(mode);
       selectionInfo.range = utils.merge(selectionInfo.range, newRange);
@@ -296,11 +298,11 @@ export class SelectionInfo {
    * @method selectionData
    * @description select data 구하기.
    */
-  public selectionData(dataType: "text" | "json" = "text", isSummary: boolean = false): any {
+  public selectionData(dataType: 'text' | 'json' = 'text', isSummary = false): any {
     const { items, currentFields, selection, dataInfo } = this.config;
-    const isJson = dataType === "json";
+    const isJson = dataType === 'json';
 
-    if (dataInfo.rowLength < 1) return isJson ? {} : "";
+    if (dataInfo.rowLength < 1) return isJson ? {} : '';
 
     const isAll = this.isAllSelect();
     const startCol = isAll ? 0 : selection.minCol;
@@ -308,7 +310,7 @@ export class SelectionInfo {
     const startIdx = isAll ? 0 : selection.minIdx;
     const endIdx = isAll ? dataInfo.lastRow : selection.maxIdx;
 
-    if (startIdx < 0 || endIdx < 0) return isJson ? {} : "";
+    if (startIdx < 0 || endIdx < 0) return isJson ? {} : '';
 
     const result: any[] = [];
     const keyInfoMap = new Map<number, any>();
@@ -316,7 +318,7 @@ export class SelectionInfo {
 
     for (let i = startIdx; i <= endIdx; i++) {
       const item = items[i];
-      let rowOutput: any = isJson ? { _dgIdx: i } : [];
+      const rowOutput: any = isJson ? { _dgIdx: i } : [];
       let hasSelection = false;
 
       for (let j = startCol; j <= endCol; j++) {
@@ -326,7 +328,7 @@ export class SelectionInfo {
         const colName = col.name;
         const selected = isAll || this.isSelection(i, j);
 
-        let cellValue: any = "";
+        let cellValue: any = '';
         if (selected) {
           cellValue = col.$renderer.getValue(item);
           hasSelection = true;
@@ -349,11 +351,11 @@ export class SelectionInfo {
       }
 
       if (hasSelection) {
-        result.push(isJson ? rowOutput : rowOutput.join("\t"));
+        result.push(isJson ? rowOutput : rowOutput.join('\t'));
       }
     }
 
-    if (!isJson) return result.join("\n");
+    if (!isJson) return result.join('\n');
 
     const headers = Array.from(keyInfoMap.values());
 
@@ -363,7 +365,7 @@ export class SelectionInfo {
         numFieldCount: summary.numbers.length,
         min: -1,
         max: -1,
-        avg: "",
+        avg: '',
         sum: -1,
       };
       const nums = summary.numbers;
@@ -398,7 +400,7 @@ export class SelectionInfo {
     const reversedRanges = this.reversedAllRanges;
     for (const range of reversedRanges) {
       if (this.isCellSelectionRange(range, rowIdx, col)) {
-        return range.mode != "remove";
+        return range.mode != 'remove';
       }
     }
 
@@ -417,7 +419,7 @@ export class SelectionInfo {
     const { startIdx, startCol, endIdx, endCol } = chackRange;
     for (const range of reversedRanges) {
       if (this.isCellSelectionRange(range, startIdx, startCol) && this.isCellSelectionRange(range, endIdx, endCol)) {
-        return range.mode != "remove";
+        return range.mode != 'remove';
       }
     }
     return false;
@@ -444,7 +446,7 @@ export class SelectionInfo {
    * @returns {boolean} 여부
    */
   public isCellSelection(range: SelectionRange, rowIdx: number, col: number): boolean {
-    return range.minIdx == rowIdx && rowIdx == range.maxIdx && range.minCol == col && col == range.maxCol;
+    return range.minIdx <= rowIdx && rowIdx <= range.maxIdx && range.minCol == col && col == range.maxCol;
   }
 
   /**
@@ -466,7 +468,11 @@ export class SelectionInfo {
     const scrollStartIdx = scroll.startIdx;
     const scrollStartCol = scroll.startCol;
 
-    const { left: leftElements, center: centerElements, right: rightElements } = this.gridMain.getBody().getBodyCellElements();
+    const {
+      left: leftElements,
+      center: centerElements,
+      right: rightElements,
+    } = this.gridMain.getBody().getBodyCellElements();
 
     const enableLeftField = fixedLeftIndex > 0 && fixedLeftIndex > startCol;
     const enableRightField = fixedRightIndex > 0 && fixedRightIndex <= endCol;
@@ -518,11 +524,11 @@ export class SelectionInfo {
       const classList = headerEle.classList;
 
       if (isAll || this.columnLine.has(col)) {
-        if (!classList.contains("selection")) {
-          classList.add("selection");
+        if (!classList.contains('selection')) {
+          classList.add('selection');
         }
-      } else if (classList.contains("selection")) {
-        classList.remove("selection");
+      } else if (classList.contains('selection')) {
+        classList.remove('selection');
       }
     }
   }
@@ -545,11 +551,11 @@ export class SelectionInfo {
       const classList = lineNumberEle.classList;
 
       if (isAll || this.rowLine.has(i + startIdx)) {
-        if (!classList.contains("selection")) {
-          classList.add("selection");
+        if (!classList.contains('selection')) {
+          classList.add('selection');
         }
-      } else if (classList.contains("selection")) {
-        classList.remove("selection");
+      } else if (classList.contains('selection')) {
+        classList.remove('selection');
       }
     }
   }
@@ -563,27 +569,33 @@ export class SelectionInfo {
    * @param startCol start cell
    * @returns
    */
-  public setCellSelectionStyleClass(cellElement: HTMLElement, rowIdx: number, col: number, startIdx: number, startCol: number) {
+  public setCellSelectionStyleClass(
+    cellElement: HTMLElement,
+    rowIdx: number,
+    col: number,
+    startIdx: number,
+    startCol: number,
+  ) {
     const classList = cellElement.classList;
 
     if (startIdx == rowIdx && startCol == col) {
-      classList.add("start-cell");
+      classList.add('start-cell');
     }
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
-      if (!classList.contains("selection")) classList.add("selection");
+      if (!classList.contains('selection')) classList.add('selection');
 
       return true;
     }
 
-    if (classList.contains("selection")) classList.remove("selection");
+    if (classList.contains('selection')) classList.remove('selection');
 
     return false;
   }
 
   public clearHeaderSelection() {
     if (this.gridMain.getHeader()) {
-      removeClass(this.gridMain.getHeader().getHeaderCellElements(), "selection");
+      removeClass(this.gridMain.getHeader().getHeaderCellElements(), 'selection');
     }
   }
 
@@ -593,8 +605,8 @@ export class SelectionInfo {
    */
   public clearSelectionCell() {
     const bodyElement = this.gridMain.getBody().getBodyElement();
-    removeClass(bodyElement.finds(".dg-cell.start-cell"), "start-cell");
-    removeClass(bodyElement.finds(".dg-cell.selection"), "selection");
+    removeClass(bodyElement.finds('.dg-cell.start-cell'), 'start-cell');
+    removeClass(bodyElement.finds('.dg-cell.selection'), 'selection');
   }
 
   /**
@@ -605,9 +617,10 @@ export class SelectionInfo {
   public getSelectionRangeInfo() {
     const rangeInfo = this.config.selection.range;
 
-    let selectionStartIdx = rangeInfo.minIdx,
-      selectionEndIdx = rangeInfo.maxIdx,
-      startRow = -1,
+    const selectionStartIdx = rangeInfo.minIdx,
+      selectionEndIdx = rangeInfo.maxIdx;
+
+    let startRow = -1,
       endRow = -1;
 
     if (this.config.scroll.startIdx >= selectionStartIdx) {
@@ -640,17 +653,23 @@ export class SelectionInfo {
    * @param {boolean} isMouseDown
    * @returns {{ startCol: number; endCol: number; }}
    */
-  public getSelectionModeColInfo(selectionMode: string, col: number, cfg: Config, cellElement: HTMLElement, isMouseDown?: boolean) {
+  public getSelectionModeColInfo(
+    selectionMode: string,
+    col: number,
+    cfg: Config,
+    cellElement: HTMLElement,
+    isMouseDown?: boolean,
+  ) {
     let startCol = col,
       endCol = col;
 
-    if (isRowSelection(selectionMode)) {
+    if (isRowSelectionMode(selectionMode)) {
       startCol = cfg.dataInfo.startCol;
       endCol = cfg.dataInfo.colLength - 1;
     } else if (selectionMode == SelectionMode.MULTIPLE_CELL) {
       if (isMouseDown) {
         startCol = -1;
-      } else if (hasClass(cellElement, "line-number")) {
+      } else if (hasClass(cellElement, 'line-number')) {
         startCol = cfg.dataInfo.startCol;
         endCol = cfg.dataInfo.colLength - 1;
       } else {
@@ -674,12 +693,12 @@ export class SelectionInfo {
     let startCol = moveCol,
       endCol = moveCol;
 
-    if (isRowSelection(this.options.selectionMode)) {
+    if (isRowSelectionMode(this.options.selectionMode)) {
       startCol = 0;
       endCol = this.config.dataInfo.colLength - 1;
     }
 
-    let multipleFlag = isMultipleSelection(this.options.selectionMode);
+    const multipleFlag = isMultipleSelectionMode(this.options.selectionMode);
 
     if (multipleFlag && evtKey != 9 && isShiftKey(evt)) {
       this.setSelectionRangeInfo(
@@ -688,7 +707,7 @@ export class SelectionInfo {
           startCell: { startIdx: endIdx, startCol: moveCol },
         } as any,
         false,
-        true
+        true,
       );
     } else {
       this.setSelectionRangeInfo(
@@ -697,7 +716,7 @@ export class SelectionInfo {
           startCell: { startIdx: endIdx, startCol: moveCol },
         } as any,
         true,
-        true
+        true,
       );
     }
   }
@@ -714,7 +733,7 @@ export class SelectionInfo {
       return type + ++this.serialNumber;
     }
 
-    return "auto" + ++this.serialNumber;
+    return 'auto' + ++this.serialNumber;
   }
 
   /**

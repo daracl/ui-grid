@@ -1,11 +1,11 @@
-import { EditRenderer } from "../EditRenderer";
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { CellInfo } from "@t/GridConfig";
-import { getElementRect, getLayerElement } from "@/util/domUtils";
-import { eventOn } from "@/util/eventUtils";
-import { stringValidator } from "@/rule/stringValidator";
-import { TextEditAbstractRenderer } from "./TextEditAbstractRenderer";
+import { EditRenderer } from '../EditRenderer';
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { eventOn } from '@/util/eventUtils';
+import { stringValidator } from '@/rule/stringValidator';
+import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
 
 /**
  * date renderer
@@ -20,6 +20,6 @@ export class DateRenderer extends TextEditAbstractRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    this.textRender(cellInfo, element, "date");
+    this.textRender(cellInfo, element, 'date');
   }
 }

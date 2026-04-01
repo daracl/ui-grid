@@ -1,9 +1,9 @@
-import { FieldItem } from "@t/GridField";
-import { GridMain } from "@/view/GridMain";
-import { ViewRenderer } from "../ViewRenderer";
-import { eventOn } from "@/util/eventUtils";
-import { getCellInfo } from "@/util/gridUtils";
-import { CellInfo } from "@t/GridConfig";
+import { FieldItem } from '@t/GridField';
+import { GridMain } from '@/view/GridMain';
+import { ViewRenderer } from '../ViewRenderer';
+import { eventOn } from '@/util/eventUtils';
+import { getCellInfo } from '@/util/gridUtils';
+import { CellInfo } from '@t/GridConfig';
 
 /**
  * checkbox renderer
@@ -36,21 +36,21 @@ export class CheckboxRenderer extends ViewRenderer {
 
     // 최초 렌더링 시 구조 생성
     if (!label) {
-      label = document.createElement("label");
+      label = document.createElement('label');
 
-      const input = document.createElement("input");
-      input.type = "checkbox";
+      const input = document.createElement('input');
+      input.type = 'checkbox';
       input.name = inputName;
 
-      const mark = document.createElement("span");
-      mark.className = "dg-checkmark";
+      const mark = document.createElement('span');
+      mark.className = 'dg-checkmark';
 
       label.appendChild(input);
       label.appendChild(mark);
 
       if (this.showLabel) {
-        const textLabel = document.createElement("span");
-        textLabel.className = "dg-cell-content-label dg-cell-ellipsis";
+        const textLabel = document.createElement('span');
+        textLabel.className = 'dg-cell-content-label dg-cell-ellipsis';
         label.appendChild(textLabel);
       }
 
@@ -63,7 +63,7 @@ export class CheckboxRenderer extends ViewRenderer {
     input.checked = val === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = element.querySelector(".dg-cell-content-label");
+      const labelElement = element.querySelector('.dg-cell-content-label');
       if (labelElement) labelElement.textContent = val;
     }
   }
@@ -73,9 +73,9 @@ export class CheckboxRenderer extends ViewRenderer {
 
     eventOn(
       contentElement,
-      "click",
+      'click',
       (e: UIEvent) => {
-        const cellElement = contentElement.closest(".dg-cell") as HTMLElement;
+        const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
 
         const cellInfo = getCellInfo(cfg, cellElement);
 
@@ -87,7 +87,7 @@ export class CheckboxRenderer extends ViewRenderer {
 
         this.render(cellInfo, cellElement);
       },
-      { passive: false }
+      { passive: false },
     );
   }
 

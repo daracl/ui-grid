@@ -1,9 +1,9 @@
-import { ValidResult } from "@t/ValidResult";
-import { RULES } from "@/constants";
-import * as utils from "@/util/utils";
-import { validator } from "./validator";
-import { FieldItem } from "@t/GridField";
-import { Config } from "@t/GridConfig";
+import { ValidResult } from '@t/ValidResult';
+import { RULES } from '@/constants';
+import * as utils from '@/util/utils';
+import { validator } from './validator';
+import { FieldItem } from '@t/GridField';
+import { Config } from '@t/GridConfig';
 /**
  * string validator
  *
@@ -11,8 +11,13 @@ import { Config } from "@t/GridConfig";
  * @param {EditRenderer} field
  * @returns {(ValidResult | boolean)}
  */
-export const stringValidator = (value: string, field: FieldItem, rowItem: any, gridConfig: Config): ValidResult | null => {
-  let result: ValidResult = { name: field.name, constraints: [] };
+export const stringValidator = (
+  value: string,
+  field: FieldItem,
+  rowItem: any,
+  gridConfig: Config,
+): ValidResult | null => {
+  const result: ValidResult = { name: field.name, constraints: [] };
 
   const editRenderer = field.editRenderer;
   if (!editRenderer) {

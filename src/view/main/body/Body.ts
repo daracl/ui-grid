@@ -1,15 +1,15 @@
-import { CellInfo, HeaderCellInfo } from "@t/GridConfig";
+import { CellInfo, HeaderCellInfo } from '@t/GridConfig';
 
-import { removeClass } from "../../../util/styleUtils";
-import { getCheckboxMode } from "../../../util/gridUtils";
-import { DaraGrid } from "@/DaraGrid";
-import { FieldItem } from "@t/GridField";
-import * as utils from "@/util/utils";
-import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from "@/constants";
-import { GridMain } from "../../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { SelectionInfo } from "@/selection/selection";
-import { BodyEvent } from "./BodyEvent";
+import { removeClass } from '../../../util/styleUtils';
+import { getCheckboxMode } from '../../../util/gridUtils';
+import { DaraGrid } from '@/DaraGrid';
+import { FieldItem } from '@t/GridField';
+import * as utils from '@/util/utils';
+import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from '@/constants';
+import { GridMain } from '../../GridMain';
+import { DaraElement } from '@/element/DaraElement';
+import { SelectionInfo } from '@/selection/selection';
+import { BodyEvent } from './BodyEvent';
 
 /**
  * Body class
@@ -58,18 +58,18 @@ export class Body {
    * @description CUD모드 변경. (c = create , u = update , d =delete)
    */
   public setChangeValue(mode: string, rowItem: any, colInfo?: FieldItem, newValue?: any) {
-    if (mode == "new") {
-      rowItem[ROW_CUD_KEY] = "C";
+    if (mode == 'new') {
+      rowItem[ROW_CUD_KEY] = 'C';
       return rowItem;
     }
-    if (mode == "remove") {
-      rowItem[ROW_CUD_KEY] = "D";
+    if (mode == 'remove') {
+      rowItem[ROW_CUD_KEY] = 'D';
       return rowItem;
     }
 
-    if (mode == "modify" && colInfo) {
-      if (rowItem[ROW_CUD_KEY] == "_") {
-        rowItem[ROW_CUD_KEY] = "U";
+    if (mode == 'modify' && colInfo) {
+      if (rowItem[ROW_CUD_KEY] == '_') {
+        rowItem[ROW_CUD_KEY] = 'U';
       }
 
       rowItem[colInfo.name] = newValue;
@@ -78,10 +78,10 @@ export class Body {
 
       const cell = config.edit.cell;
 
-      const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + "," + cell.c + '"]');
+      const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + ',' + cell.c + '"]');
 
       this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
-      cell.field.$renderer.render(cell, cellEle.querySelector(".dg-cell") as HTMLElement);
+      cell.field.$renderer.render(cell, cellEle.querySelector('.dg-cell') as HTMLElement);
 
       return rowItem;
     }
@@ -100,7 +100,7 @@ export class Body {
       item[ROW_CHECK_KEY] = checked;
       if (checked) this.rowCheckSet.add(item[ROW_ID_KEY]);
     }
-    this.dataDraw("allCheck");
+    this.dataDraw('allCheck');
   }
 
   /**
@@ -135,7 +135,9 @@ export class Body {
       this.rowCheckSet.delete(item[ROW_ID_KEY]);
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, this.grid.config().items.length), cellInfo.c);
+    this.gridMain
+      .getHeader()
+      .setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, this.grid.config().items.length), cellInfo.c);
   }
 
   /**
@@ -152,7 +154,7 @@ export class Body {
 
     const result = [];
 
-    for (let item of cfg.items) {
+    for (const item of cfg.items) {
       if (item[ROW_CHECK_KEY]) {
         result.push(item[name]);
       }
@@ -173,9 +175,9 @@ export class Body {
     const cfg = this.grid.config();
     this.rowCheckSet.clear();
 
-    let checkValue = utils.isArray(values) ? values : [values];
+    const checkValue = utils.isArray(values) ? values : [values];
 
-    for (let item of cfg.items) {
+    for (const item of cfg.items) {
       item[ROW_CHECK_KEY] = false;
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = true;
@@ -187,7 +189,7 @@ export class Body {
 
     this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
 
-    this.dataDraw("setCheckedItemByValue");
+    this.dataDraw('setCheckedItemByValue');
   }
 
   /**
@@ -200,9 +202,9 @@ export class Body {
   public addCheckedItemByValue(name: string, values: any) {
     const cfg = this.grid.config();
 
-    let checkValue = utils.isArray(values) ? values : [values];
+    const checkValue = utils.isArray(values) ? values : [values];
 
-    for (let item of cfg.items) {
+    for (const item of cfg.items) {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = true;
         this.rowCheckSet.add(item[ROW_ID_KEY]);
@@ -211,7 +213,7 @@ export class Body {
 
     this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
 
-    this.dataDraw("addCheckedItemByValue");
+    this.dataDraw('addCheckedItemByValue');
   }
 
   /**
@@ -225,15 +227,15 @@ export class Body {
     const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
     const cfg = this.grid.config();
 
-    let checkValue = utils.isArray(values) ? values : [values];
+    const checkValue = utils.isArray(values) ? values : [values];
 
-    for (let item of cfg.items) {
+    for (const item of cfg.items) {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = false;
 
         if (isRowAllowMultiSelect) {
           this.rowCheckSet.clear();
-          this.dataDraw("unCheckedItemByValue");
+          this.dataDraw('unCheckedItemByValue');
           break;
         } else {
           this.rowCheckSet.delete(item[ROW_ID_KEY]);
@@ -243,7 +245,7 @@ export class Body {
 
     this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
 
-    this.dataDraw("unCheckedItemByValue");
+    this.dataDraw('unCheckedItemByValue');
   }
 
   /**
@@ -255,7 +257,7 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    rowItem["_dgRowCheck"] = checkFlag;
+    rowItem['_dgRowCheck'] = checkFlag;
     return rowItem;
   }
 
@@ -269,12 +271,12 @@ export class Body {
    * @public
    */
   public copyData() {
-    let selectData = this.selectionInfo.selectionData();
+    const selectData = this.selectionInfo.selectionData();
 
     try {
       utils.copyStringToClipboard(selectData);
     } catch (e) {
-      console.log("Unable to copy", e);
+      console.log('Unable to copy', e);
     }
   }
 
@@ -283,29 +285,29 @@ export class Body {
    *
    */
   public removeStartCellClass() {
-    const startCellElement = this.bodyElement.finds(".dg-cell.start-cell");
+    const startCellElement = this.bodyElement.finds('.dg-cell.start-cell');
 
     if (startCellElement) {
-      removeClass(startCellElement, "start-cell");
+      removeClass(startCellElement, 'start-cell');
     }
   }
 
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
-    this.leftElement.css({ width: mainLeftWidth + "px" });
-    this.centerElement.css({ "margin-left": mainLeftWidth + "px", width: mainCenterWidth + "px" });
-    this.rightElement.css({ width: mainRightWidth + "px" });
+    this.leftElement.css({ width: mainLeftWidth + 'px' });
+    this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
+    this.rightElement.css({ width: mainRightWidth + 'px' });
   }
 
   public createTemplate() {
-    const bodyElement = this.grid.element().findDaraElement(".dg-body");
+    const bodyElement = this.grid.element().findDaraElement('.dg-body');
     this.bodyElement = bodyElement;
-    this.leftElement = bodyElement.findDaraElement(".dg-left");
-    this.centerElement = bodyElement.findDaraElement(".dg-center");
-    this.rightElement = bodyElement.findDaraElement(".dg-right");
+    this.leftElement = bodyElement.findDaraElement('.dg-left');
+    this.centerElement = bodyElement.findDaraElement('.dg-center');
+    this.rightElement = bodyElement.findDaraElement('.dg-right');
 
-    this.leftElement.html(this.template("left"));
-    this.centerElement.html(this.template("center"));
-    this.rightElement.html(this.template("right"));
+    this.leftElement.html(this.template('left'));
+    this.centerElement.html(this.template('center'));
+    this.rightElement.html(this.template('right'));
   }
 
   /**
@@ -327,12 +329,12 @@ export class Body {
     const enableRightField = rightFields.length > 0;
 
     const fieldGroups = [
-      { name: "left", fields: leftFields, element: this.leftElement, startCol: 0 },
-      { name: "center", fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
-      { name: "right", fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
+      { name: 'left', fields: leftFields, element: this.leftElement, startCol: 0 },
+      { name: 'center', fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
+      { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
-    let viewRow = cfg.scroll.viewRow;
+    const viewRow = cfg.scroll.viewRow;
     let startIdx = cfg.scroll.startIdx;
 
     const maxRow = cfg.dataInfo.rowLength - startIdx;
@@ -365,7 +367,9 @@ export class Body {
 
       fieldGroups.forEach(({ fields, element, startCol }) => {
         if (fields.length === 0) return;
-        element.findDaraElement(".dg-body-table > tbody").append(this.rowTemplate(beforeViewRow, addRow, rowHeight, fields, startCol));
+        element
+          .findDaraElement('.dg-body-table > tbody')
+          .append(this.rowTemplate(beforeViewRow, addRow, rowHeight, fields, startCol));
       });
 
       const allCellMap: Record<string, HTMLElement[][]> = {};
@@ -374,14 +378,14 @@ export class Body {
         if (!fields.length) continue;
 
         const cellElements: HTMLElement[][] = Array.from({ length: viewRow }, () => []);
-        const cells = element.finds(".dg-cell");
+        const cells = element.finds('.dg-cell');
 
         for (const el of cells) {
           const cell = el;
-          const pos = cell.getAttribute("data-cell-position");
+          const pos = cell.getAttribute('data-cell-position');
           if (!pos) continue;
 
-          const [row, col] = pos.split(",").map(Number);
+          const [row, col] = pos.split(',').map(Number);
           cellElements[row][col] = cell;
         }
 
@@ -392,7 +396,7 @@ export class Body {
       cfg.scroll.before.viewRow = viewRow;
     }
 
-    this.bodyElement.setAttr({ "data-view-mode": items.length < 1 ? "empty" : "grid" });
+    this.bodyElement.setAttr({ 'data-view-mode': items.length < 1 ? 'empty' : 'grid' });
 
     if (currentViewRow < 1) {
       return;
@@ -405,12 +409,12 @@ export class Body {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
             if (i == hideRowIdx) {
-              element.find(`.dg-row[rowinfo="${hideRowIdx}"]`).style.display = "none";
+              element.find(`.dg-row[rowinfo="${hideRowIdx}"]`).style.display = 'none';
               continue;
             }
 
             const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
-            if (style.display == "none") style.removeProperty("display");
+            if (style.display == 'none') style.removeProperty('display');
           }
         }
       }
@@ -422,7 +426,7 @@ export class Body {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
             const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
-            if (style.display) style.removeProperty("display");
+            if (style.display) style.removeProperty('display');
           }
         }
       }
@@ -431,11 +435,11 @@ export class Body {
     const bodyClassList = this.bodyElement.getElement().classList;
 
     if (startIdx % 2 == 0) {
-      bodyClassList.remove("dg-body-odd");
-      bodyClassList.add("dg-body-even");
+      bodyClassList.remove('dg-body-odd');
+      bodyClassList.add('dg-body-even');
     } else {
-      bodyClassList.remove("dg-body-even");
-      bodyClassList.add("dg-body-odd");
+      bodyClassList.remove('dg-body-even');
+      bodyClassList.add('dg-body-odd');
     }
 
     const startCell = cfg.selection.startCell;
@@ -449,15 +453,15 @@ export class Body {
     const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.currPage - 1) * cfg.paging.countPerPage : 0;
 
     const leafAllFields = cfg.currentFields;
-    const leftElements = this.allCellElements["left"];
-    const centerElements = this.allCellElements["center"];
-    const rightElements = this.allCellElements["right"];
+    const leftElements = this.allCellElements['left'];
+    const centerElements = this.allCellElements['center'];
+    const rightElements = this.allCellElements['right'];
 
     const searchEnable = cfg.searchEnable;
 
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
-      let item = items[viewRowIdx];
+      const item = items[viewRowIdx];
 
       const rowIdx = pagingStartIdx + viewRowIdx;
 
@@ -468,7 +472,10 @@ export class Body {
           const field = leftFields[j];
           const cell = rowCells[j];
           this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable);
-          field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
+          field.$renderer.render(
+            { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
+            cell.firstElementChild,
+          );
         }
       }
 
@@ -478,7 +485,10 @@ export class Body {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
         this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable);
-        field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo, cell.firstElementChild);
+        field.$renderer.render(
+          { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
+          cell.firstElementChild,
+        );
       }
 
       // right panel
@@ -490,7 +500,10 @@ export class Body {
           const cell = rowCells[cellIdx];
           this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, searchEnable);
 
-          field.$renderer.render({ rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo, cell.firstElementChild);
+          field.$renderer.render(
+            { rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo,
+            cell.firstElementChild,
+          );
         }
       }
     }
@@ -510,7 +523,15 @@ export class Body {
    * @param {HTMLElement} addEle cell element
    * @returns {boolean}
    */
-  private setCellStyle(startCellInfo: any, rowIdx: number, col: number, cellElement: HTMLElement, field: FieldItem, item: any, searchEnable: boolean) {
+  private setCellStyle(
+    startCellInfo: any,
+    rowIdx: number,
+    col: number,
+    cellElement: HTMLElement,
+    field: FieldItem,
+    item: any,
+    searchEnable: boolean,
+  ) {
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
 
@@ -521,26 +542,32 @@ export class Body {
         for (const matchItem of item.$$matchedFields) {
           if (field.name == matchItem.fieldName) {
             highlightFlag = true;
-            if (!classList.contains("dg-search-highlight")) {
-              classList.add("dg-search-highlight");
+            if (!classList.contains('dg-search-highlight')) {
+              classList.add('dg-search-highlight');
             }
           }
         }
       }
 
-      if (!highlightFlag && classList.contains("dg-search-highlight")) {
-        classList.remove("dg-search-highlight");
+      if (!highlightFlag && classList.contains('dg-search-highlight')) {
+        classList.remove('dg-search-highlight');
       }
     }
 
     if (field.$isAside) return;
 
-    this.selectionInfo.setCellSelectionStyleClass(cellElement, rowIdx, col, startCellInfo.startIdx, startCellInfo.startCol);
+    this.selectionInfo.setCellSelectionStyleClass(
+      cellElement,
+      rowIdx,
+      col,
+      startCellInfo.startIdx,
+      startCellInfo.startCol,
+    );
   }
 
   public clearSearchHighlight() {
     const bodyElement = this.bodyElement;
-    removeClass(bodyElement.finds(".dg-cell.dg-search-highlight"), "dg-search-highlight");
+    removeClass(bodyElement.finds('.dg-cell.dg-search-highlight'), 'dg-search-highlight');
   }
 
   /**
@@ -555,7 +582,13 @@ export class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const renderType = field.renderer.type;
-    if (renderType == "image" || renderType == "html" || renderType == "bar" || renderType == "sparkline" || renderType == "sparklineBar") {
+    if (
+      renderType == 'image' ||
+      renderType == 'html' ||
+      renderType == 'bar' ||
+      renderType == 'sparkline' ||
+      renderType == 'sparklineBar'
+    ) {
       const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
       const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
       contentEleStyle.maxHeight = heightPixel;
@@ -567,10 +600,14 @@ export class Body {
     const { classList } = cellEle;
 
     // Determine new class to add
-    const newClass = utils.isFunction(field.styleClass) ? field.styleClass({ rowIdx, col, field, item }) : utils.isString(field.styleClass) ? field.styleClass : "";
+    const newClass = utils.isFunction(field.styleClass)
+      ? field.styleClass({ rowIdx, col, field, item })
+      : utils.isString(field.styleClass)
+      ? field.styleClass
+      : '';
 
     // Define base classes that should not be removed
-    const baseClasses = new Set(["dg-cell", "start-cell", "selection"]);
+    const baseClasses = new Set(['dg-cell', 'start-cell', 'selection']);
 
     if (newClass) {
       if (!classList.contains(newClass)) {
@@ -599,9 +636,9 @@ export class Body {
 
     let leafFields;
     let startGroupIdx = 0;
-    if (type == "left") {
+    if (type == 'left') {
       leafFields = cfg.fieldHeaderGroup.leafLeft;
-    } else if (type == "right") {
+    } else if (type == 'right') {
       startGroupIdx = cfg.fixedRightIndex;
       leafFields = cfg.fieldHeaderGroup.leafRight;
     } else {
@@ -612,22 +649,24 @@ export class Body {
     const viewRow = cfg.scroll.viewRow;
     const leafLength = leafFields.length;
 
-    if (viewRow < 1 || leafLength < 1) return "";
+    if (viewRow < 1 || leafLength < 1) return '';
 
-    let colGroupHtm = [];
+    const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;
     let tableWidth = 0;
-    for (let leafNode of leafFields) {
+    for (const leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
       tableWidth += nodeWidth;
-      colGroupHtm.push(`<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`);
+      colGroupHtm.push(
+        `<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`,
+      );
     }
 
     return `<table class="dg-body-table">
-      <thead><tr>${colGroupHtm.join("")}</tr></thead>
+      <thead><tr>${colGroupHtm.join('')}</tr></thead>
       <tbody></tbody>
     </table> 
-    ${type == "center" ? "" : '<div class="fixed-column-line"></div>'}`;
+    ${type == 'center' ? '' : '<div class="fixed-column-line"></div>'}`;
   }
 
   /**
@@ -639,23 +678,35 @@ export class Body {
    * @param {FieldItem[]} fields fields 정보
    * @returns {string} template
    */
-  private rowTemplate(viewRow: number, rowCount: number, rowHeight: number, fields: FieldItem[], startCol: number): any {
+  private rowTemplate(
+    viewRow: number,
+    rowCount: number,
+    rowHeight: number,
+    fields: FieldItem[],
+    startCol: number,
+  ): any {
     const returnTemplate = [];
 
     for (let i = 0; i < rowCount; i++) {
-      let rowIdx = viewRow + i;
+      const rowIdx = viewRow + i;
 
-      let cellTemplate = [];
+      const cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
-        let field = fields[j];
+        const field = fields[j];
         const renderType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils.camelToKebab(field.name).replace("$", "")}" data-cell-position="${rowIdx + "," + (startCol + j)}">
-          <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? "dg-checkbox" : ""} ${field.$alignStyle}"></div>
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils
+            .camelToKebab(field.name)
+            .replace('$', '')}" data-cell-position="${rowIdx + ',' + (startCol + j)}">
+          <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${
+            field.$alignStyle
+          }"></div>
         </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + "," + (startCol + j)}"><div role="presentation"
+          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${
+            rowIdx + ',' + (startCol + j)
+          }"><div role="presentation"
             class="dg-cell-renderer dg-cell-ellipsis 
             dg-${renderType} ${field.$alignStyle}"></div>
         </td>`);
@@ -663,10 +714,10 @@ export class Body {
       }
 
       returnTemplate.push(`<tr class="dg-row" rowinfo="${rowIdx}" style="height:${rowHeight}px">
-        ${cellTemplate.join("")}
+        ${cellTemplate.join('')}
       </tr>`);
     }
 
-    return returnTemplate.join("");
+    return returnTemplate.join('');
   }
 }

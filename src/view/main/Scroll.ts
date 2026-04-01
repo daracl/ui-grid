@@ -1,12 +1,12 @@
-import { GridOptions } from "@t/GridOptions";
-import { Config } from "@t/GridConfig";
-import * as utils from "@/util/utils";
-import { getCenterContentLeft, getHorizontalScrollPosition } from "@/util/gridUtils";
-import { eventOff, eventOn, eventPosition, isClickEvent, isShiftKey, stopPreventCancel } from "@/util/eventUtils";
-import { DaraGrid } from "@/DaraGrid";
-import { GridMain } from "../GridMain";
-import { DaraElement } from "@/element/DaraElement";
-import { eqAttributeValue, hasClass } from "@/util/domUtils";
+import { DaraGrid } from '@/DaraGrid';
+import { DaraElement } from '@/element/DaraElement';
+import { eqAttributeValue, hasClass } from '@/util/domUtils';
+import { eventOff, eventOn, eventPosition, isClickEvent, isShiftKey, stopPreventCancel } from '@/util/eventUtils';
+import { getCenterContentLeft, getHorizontalScrollPosition } from '@/util/gridUtils';
+import { isEmpty, isFunction, isNumber, isString } from '@/util/utils';
+import { Config } from '@t/GridConfig';
+import { GridOptions } from '@t/GridOptions';
+import { GridMain } from '../GridMain';
 
 const SCROLL_THUMB_MIN_SIZE = 18;
 
@@ -30,13 +30,13 @@ export class Scroll {
 
     this.opts = this.grid.getOptions();
 
-    this.horizontalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.dg-horizontal");
-    this.horizontalTrackElement = this.horizontalElement.findDaraElement(".dg-scroll-track");
-    this.horizontalThumbElement = this.horizontalElement.findDaraElement(".dg-scroll-thumb");
+    this.horizontalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-horizontal');
+    this.horizontalTrackElement = this.horizontalElement.findDaraElement('.dg-scroll-track');
+    this.horizontalThumbElement = this.horizontalElement.findDaraElement('.dg-scroll-thumb');
 
-    this.verticalElement = this.gridMain.mainElement().findDaraElement(".dg-scroll.dg-vertical");
-    this.verticalTrackElement = this.verticalElement.findDaraElement(".dg-scroll-track");
-    this.verticalThumbElement = this.verticalElement.findDaraElement(".dg-scroll-thumb");
+    this.verticalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-vertical');
+    this.verticalTrackElement = this.verticalElement.findDaraElement('.dg-scroll-track');
+    this.verticalThumbElement = this.verticalElement.findDaraElement('.dg-scroll-thumb');
 
     this.calculate();
 
@@ -68,8 +68,8 @@ export class Scroll {
       // row 보이기 기준으로 계산
       cfg.scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - cfg.scroll.insideViewRow);
 
-      this.verticalElement.css({ height: vHeight + "px" });
-      this.verticalThumbElement.css({ height: thumbHeight + "px" });
+      this.verticalElement.css({ height: vHeight + 'px' });
+      this.verticalThumbElement.css({ height: thumbHeight + 'px' });
 
       cfg.scroll.vHeight = vHeight;
       cfg.scroll.vTrackHeight = vTrackHeight;
@@ -95,8 +95,8 @@ export class Scroll {
       let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
       thumbWidth = Math.max(thumbWidth, SCROLL_THUMB_MIN_SIZE);
 
-      this.horizontalElement.css({ width: hWidth + "px" });
-      this.horizontalThumbElement.css({ width: thumbWidth + "px" });
+      this.horizontalElement.css({ width: hWidth + 'px' });
+      this.horizontalThumbElement.css({ width: thumbWidth + 'px' });
 
       cfg.scroll.oneColMove = totalColWidth / cfg.dataInfo.colLength;
       cfg.scroll.hWidth = hWidth;
@@ -133,20 +133,23 @@ export class Scroll {
 
     const enableWheelInContainer = opts.scroll.enableWheelInContainer;
 
-    this.gridMain.mainElement().eventOff("wheel DOMMouseScroll");
+    this.gridMain.mainElement().eventOff('wheel DOMMouseScroll');
     this.gridMain.mainElement().eventOn(
-      "wheel DOMMouseScroll",
+      'wheel DOMMouseScroll',
       (evt: WheelEvent) => {
-        let delta = evt.deltaY;
+        const delta = evt.deltaY;
 
-        if (utils.isEmpty(delta)) return;
+        if (isEmpty(delta)) return;
 
         const isShift = isShiftKey(evt);
 
         //delta > 0--up
         if (scroll.enableVertical && !isShift) {
-          const upDown = delta < 0 ? "U" : "D";
-          if ((upDown == "U" && scroll.startIdx == 0) || (upDown == "D" && scroll.startIdx + scroll.viewRow > dataInfo.rowLength)) {
+          const upDown = delta < 0 ? 'U' : 'D';
+          if (
+            (upDown == 'U' && scroll.startIdx == 0) ||
+            (upDown == 'D' && scroll.startIdx + scroll.viewRow > dataInfo.rowLength)
+          ) {
             if (enableWheelInContainer) stopPreventCancel(evt);
 
             return;
@@ -155,14 +158,20 @@ export class Scroll {
           requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
-            this.moveVerticalScroll({ direction: upDown, speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed });
+            this.moveVerticalScroll({
+              direction: upDown,
+              speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
+            });
           });
-          if (opts.scroll.enableWheelInContainer === true || (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)) {
+          if (
+            opts.scroll.enableWheelInContainer === true ||
+            (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)
+          ) {
             stopPreventCancel(evt);
           }
         } else if (scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
           requestAnimationFrame(() => {
-            this.moveHorizontalScroll({ direction: delta < 0 ? "L" : "R", speed: opts.scroll.horizontal.speed });
+            this.moveHorizontalScroll({ direction: delta < 0 ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
           });
 
           if (scroll.left != 0 && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth) {
@@ -173,7 +182,7 @@ export class Scroll {
         }
       },
       null,
-      { passive: false }
+      { passive: false },
     );
   }
 
@@ -209,10 +218,10 @@ export class Scroll {
 
     let verticalScrollTimer: any;
 
-    this.verticalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    this.verticalTrackElement.eventOff('mousedown touchstart mouseup touchend mouseleave');
     this.verticalTrackElement
       .eventOn(
-        "mousedown touchstart",
+        'mousedown touchstart',
         (e: MouseEvent) => {
           if (!isClickEvent(e)) {
             return;
@@ -227,15 +236,19 @@ export class Scroll {
           verticalScrollTimer = setInterval(() => {
             bgMoveMode = 2;
 
-            this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
+            this.moveVerticalScroll({
+              position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+            });
           }, 100);
         },
         null,
-        { passive: false }
+        { passive: false },
       )
-      .eventOn("mouseup touchend mouseleave", (e: Event) => {
+      .eventOn('mouseup touchend mouseleave', (e: Event) => {
         if (bgMoveMode == 1) {
-          this.moveVerticalScroll({ position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow) });
+          this.moveVerticalScroll({
+            position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+          });
         }
         clearTimeout(verticalScrollTimer);
         bgMoveMode = 0;
@@ -244,31 +257,31 @@ export class Scroll {
 
   private initVerticalButton() {
     let scrollBtnTimer: any;
-    let vBtnDelay = 100;
-    const scrollButtonElements = this.verticalElement.finds(".dg-scroll-button");
+    const vBtnDelay = 100;
+    const scrollButtonElements = this.verticalElement.finds('.dg-scroll-button');
     let buttonMoveMode = 0;
     //세로 방향키
-    eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
+    eventOff(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
     eventOn(
       scrollButtonElements,
-      "mousedown touchstart",
+      'mousedown touchstart',
       (e: Event) => {
-        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode", "up");
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
 
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
           buttonMoveMode = 2;
-          this.moveVerticalScroll({ direction: mode ? "U" : "D" });
+          this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
         }, vBtnDelay);
       },
       null,
-      { passive: false }
+      { passive: false },
     );
-    eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
+    eventOn(scrollButtonElements, 'mouseup touchend mouseleave', (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = hasClass(e.currentTarget as HTMLElement, "up");
-        this.moveVerticalScroll({ direction: mode ? "U" : "D" });
+        const mode = hasClass(e.currentTarget as HTMLElement, 'up');
+        this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
       }
       clearInterval(scrollBtnTimer);
       buttonMoveMode = 0;
@@ -280,7 +293,7 @@ export class Scroll {
     const cfg = this.grid.config();
     /* 스크롤 바 button drag */
     const tooltipFlag = opts.scroll.vertical.enableTooltip;
-    const tooltipEle = this.verticalElement.findDaraElement(".dg-vscroll-bar-tip");
+    const tooltipEle = this.verticalElement.findDaraElement('.dg-vscroll-bar-tip');
     const verticalThumbElement = this.verticalThumbElement;
 
     let dragging = false;
@@ -300,7 +313,7 @@ export class Scroll {
       if (!dragging) return;
 
       dragging = false;
-      verticalThumbElement.removeClass("active");
+      verticalThumbElement.removeClass('active');
 
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -310,8 +323,8 @@ export class Scroll {
       const endY = eventPosition(e).y;
       this.moveVerticalScroll({ position: initialTop + (endY - startY) });
 
-      eventOff(document, "touchmove mousemove");
-      eventOff(document, "touchend mouseup");
+      eventOff(document, 'touchmove mousemove');
+      eventOff(document, 'touchend mouseup');
 
       if (tooltipFlag) {
         tooltipEle.hide();
@@ -336,9 +349,9 @@ export class Scroll {
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    verticalThumbElement.eventOff("mousedown touchstart");
+    verticalThumbElement.eventOff('mousedown touchstart');
     verticalThumbElement.eventOn(
-      "mousedown touchstart",
+      'mousedown touchstart',
       (e: MouseEvent | TouchEvent) => {
         if (!isClickEvent(e)) {
           return;
@@ -350,11 +363,11 @@ export class Scroll {
         startY = eventPosition(e).y;
         lastY = startY;
 
-        verticalThumbElement.addClass("active");
+        verticalThumbElement.addClass('active');
 
         // 이벤트 바인딩
-        eventOn(document, "touchmove mousemove", onMove);
-        eventOn(document, "touchend mouseup", onEnd);
+        eventOn(document, 'touchmove mousemove', onMove);
+        eventOn(document, 'touchend mouseup', onEnd);
 
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId); // 중복 방지
@@ -364,7 +377,7 @@ export class Scroll {
         return true;
       },
       null,
-      { passive: false }
+      { passive: false },
     );
   }
 
@@ -377,7 +390,13 @@ export class Scroll {
    * @param bgMoveRow
    * @returns
    */
-  public getVerticalBgMovePostion(cfg: Config, startEventY: number, oneRowMove: number, upFlag: boolean, bgMoveRow: number) {
+  public getVerticalBgMovePostion(
+    cfg: Config,
+    startEventY: number,
+    oneRowMove: number,
+    upFlag: boolean,
+    bgMoveRow: number,
+  ) {
     let scrollTop = cfg.scroll.top + (upFlag ? -1 : 1) * bgMoveRow;
 
     if (upFlag) {
@@ -422,8 +441,8 @@ export class Scroll {
     const moveHorizontalScroll = this.moveHorizontalScroll.bind(this);
 
     const cleanup = () => {
-      eventOff(document, "touchmove mousemove");
-      eventOff(document, "touchend mouseup");
+      eventOff(document, 'touchmove mousemove');
+      eventOff(document, 'touchend mouseup');
     };
 
     const onMove = (e: MouseEvent | TouchEvent) => {
@@ -435,7 +454,7 @@ export class Scroll {
       if (!dragging) return;
       dragging = false;
 
-      horizontalThumbElement.removeClass("active");
+      horizontalThumbElement.removeClass('active');
 
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -458,11 +477,11 @@ export class Scroll {
     };
 
     // 먼저 기존 이벤트 제거
-    horizontalThumbElement.eventOff("mousedown touchstart touchend mouseup");
+    horizontalThumbElement.eventOff('mousedown touchstart touchend mouseup');
 
     // 이벤트 등록
     horizontalThumbElement.eventOn(
-      "mousedown touchstart",
+      'mousedown touchstart',
       (e: MouseEvent | TouchEvent) => {
         if (!isClickEvent(e)) {
           return;
@@ -474,10 +493,10 @@ export class Scroll {
         lastX = startX;
         initialLeft = cfg.scroll.left;
 
-        horizontalThumbElement.addClass("active");
+        horizontalThumbElement.addClass('active');
 
-        eventOn(document, "touchmove mousemove", onMove);
-        eventOn(document, "touchend mouseup", onEnd);
+        eventOn(document, 'touchmove mousemove', onMove);
+        eventOn(document, 'touchend mouseup', onEnd);
 
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId);
@@ -487,7 +506,7 @@ export class Scroll {
         return true;
       },
       null,
-      { passive: false }
+      { passive: false },
     );
   }
 
@@ -508,10 +527,10 @@ export class Scroll {
     let bgMoveCol = 0;
     let horizontalScrollTimer: any;
 
-    this.horizontalTrackElement.eventOff("mousedown touchstart mouseup touchend mouseleave");
+    this.horizontalTrackElement.eventOff('mousedown touchstart mouseup touchend mouseleave');
     this.horizontalTrackElement
       .eventOn(
-        "mousedown touchstart",
+        'mousedown touchstart',
         (e: MouseEvent) => {
           if (!isClickEvent(e)) {
             return;
@@ -527,15 +546,19 @@ export class Scroll {
           horizontalScrollTimer = setInterval(() => {
             bgMoveMode = 2;
 
-            this.moveHorizontalScroll({ position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol) });
+            this.moveHorizontalScroll({
+              position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
+            });
           }, 100);
         },
         null,
-        { passive: false }
+        { passive: false },
       )
-      .eventOn("mouseup touchend mouseleave", (e: Event) => {
+      .eventOn('mouseup touchend mouseleave', (e: Event) => {
         if (bgMoveMode == 1) {
-          this.moveHorizontalScroll({ position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol) });
+          this.moveHorizontalScroll({
+            position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
+          });
         }
         clearTimeout(horizontalScrollTimer);
         bgMoveMode = 0;
@@ -549,32 +572,32 @@ export class Scroll {
    */
   private initHorizontalButton() {
     let scrollBtnTimer: any;
-    let vBtnDelay = 100;
+    const vBtnDelay = 100;
     let buttonMoveMode = 0;
 
-    const scrollButtonElements = this.horizontalElement.finds(".dg-scroll-button");
+    const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button');
 
     //세로 방향키
-    eventOff(scrollButtonElements, "mousedown touchstart mouseup touchend mouseleave");
+    eventOff(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
     eventOn(
       scrollButtonElements,
-      "mousedown touchstart",
+      'mousedown touchstart',
       (e: Event) => {
-        const mode = eqAttributeValue(e.currentTarget as HTMLElement, "data-dg-mode", "left");
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
         buttonMoveMode = 1;
 
         scrollBtnTimer = setInterval(() => {
           buttonMoveMode = 2;
-          this.moveHorizontalScroll({ direction: mode ? "L" : "R" });
+          this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
         }, vBtnDelay);
       },
       null,
-      { passive: false }
+      { passive: false },
     );
-    eventOn(scrollButtonElements, "mouseup touchend mouseleave", (e: Event) => {
+    eventOn(scrollButtonElements, 'mouseup touchend mouseleave', (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = hasClass(e.currentTarget as HTMLElement, "left");
-        this.moveHorizontalScroll({ direction: mode ? "L" : "R" });
+        const mode = hasClass(e.currentTarget as HTMLElement, 'left');
+        this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
       }
       clearInterval(scrollBtnTimer);
       buttonMoveMode = 0;
@@ -590,7 +613,13 @@ export class Scroll {
    * @param bgMoveCol
    * @returns
    */
-  public getHorizontalBgMovePostion(cfg: Config, startEventX: number, oneColMove: number, leftFlag: boolean, bgMoveCol: number) {
+  public getHorizontalBgMovePostion(
+    cfg: Config,
+    startEventX: number,
+    oneColMove: number,
+    leftFlag: boolean,
+    bgMoveCol: number,
+  ) {
     let leftPosition = cfg.scroll.left + (leftFlag ? -1 : 1) * bgMoveCol;
 
     if (leftFlag) {
@@ -624,13 +653,13 @@ export class Scroll {
 
     let topVal = 0;
 
-    if (utils.isNumber(moveObj.position)) {
+    if (isNumber(moveObj.position)) {
       topVal = moveObj.position;
-    } else if (utils.isNumber(moveObj.rowIdx)) {
+    } else if (isNumber(moveObj.rowIdx)) {
       topVal = moveObj.rowIdx * cfg.scroll.oneRowMove;
-    } else if (utils.isString(moveObj.direction)) {
+    } else if (isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
-      topVal = cfg.scroll.top + (moveObj.direction == "U" ? -1 : 1) * speed * cfg.scroll.oneRowMove;
+      topVal = cfg.scroll.top + (moveObj.direction == 'U' ? -1 : 1) * speed * cfg.scroll.oneRowMove;
     }
 
     this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
@@ -656,7 +685,7 @@ export class Scroll {
 
     if (updateChkFlag !== false) {
       const onUpdateFn = this.grid.getOptions().scroll.vertical.onUpdate;
-      if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
+      if (drawFlag !== false && isFunction(onUpdateFn)) {
         if (onUpdateFn({ scrollTop: topVal, height: cfg.scroll.vTrackHeight }) === false) {
           return;
         }
@@ -669,7 +698,7 @@ export class Scroll {
 
     if (drawFlag === false || cfg.scroll.startIdx == beforeStartIdx) return;
 
-    this.gridMain.getBody().dataDraw("vscroll");
+    this.gridMain.getBody().dataDraw('vscroll');
   }
 
   /**
@@ -695,9 +724,9 @@ export class Scroll {
 
     let leftVal = 0;
 
-    if (utils.isNumber(moveObj.position)) {
+    if (isNumber(moveObj.position)) {
       leftVal = moveObj.position;
-    } else if (utils.isNumber(moveObj.colIdx)) {
+    } else if (isNumber(moveObj.colIdx)) {
       let colIdx = moveObj.colIdx;
 
       if (colIdx > 0) {
@@ -710,14 +739,14 @@ export class Scroll {
         leftVal += cfg.currentFields[i].$width;
       }
 
-      if (moveObj.direction == "R") {
+      if (moveObj.direction == 'R') {
         leftVal = leftVal + cfg.currentFields[colIdx].$width;
       }
 
       leftVal = getHorizontalScrollPosition(cfg, leftVal, moveObj.direction);
-    } else if (utils.isString(moveObj.direction)) {
+    } else if (isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
-      leftVal = cfg.scroll.left + (moveObj.direction == "L" ? -1 : 1) * speed * cfg.scroll.oneColMove;
+      leftVal = cfg.scroll.left + (moveObj.direction == 'L' ? -1 : 1) * speed * cfg.scroll.oneColMove;
     }
 
     this.moveHorizontalScrollPosition(leftVal, moveObj.drawFlag);
@@ -749,8 +778,14 @@ export class Scroll {
 
     if (updateChkFlag !== false) {
       const onUpdateFn = this.opts.scroll.horizontal.onUpdate;
-      if (drawFlag !== false && utils.isFunction(onUpdateFn)) {
-        if (onUpdateFn.call(null, { scrollLeft: leftVal, width: cfg.scroll.hTrackWidth, barPosition: cfg.scroll.hBarPosition }) === false) {
+      if (drawFlag !== false && isFunction(onUpdateFn)) {
+        if (
+          onUpdateFn({
+            scrollLeft: leftVal,
+            width: cfg.scroll.hTrackWidth,
+            barPosition: cfg.scroll.hBarPosition,
+          }) === false
+        ) {
           return;
         }
       }
@@ -762,7 +797,7 @@ export class Scroll {
       return;
     }
 
-    this.gridMain.getBody().dataDraw("hscroll");
+    this.gridMain.getBody().dataDraw('hscroll');
   }
 
   /**
@@ -777,7 +812,7 @@ export class Scroll {
 
     cfg.scroll.top = topVal;
 
-    this.verticalThumbElement.css({ top: topVal + "px" });
+    this.verticalThumbElement.css({ top: topVal + 'px' });
 
     let startIdx = 0;
 
@@ -796,13 +831,13 @@ export class Scroll {
    * @param {number} contLeftVal scroll position
    */
   private setHorizontalPosition(cfg: Config) {
-    let centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
+    const centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
     cfg.scroll.centerLeftPosition = centerLeftPosition;
     this.calcViewCol(cfg, centerLeftPosition);
 
-    this.horizontalThumbElement.css({ left: cfg.scroll.left + "px" });
+    this.horizontalThumbElement.css({ left: cfg.scroll.left + 'px' });
 
-    const leftCss = { left: "-" + centerLeftPosition + "px" };
+    const leftCss = { left: '-' + centerLeftPosition + 'px' };
 
     this.gridMain.getHeader().setCenterElementStyle(leftCss);
     this.gridMain.getBody().setCenterElementStyle(leftCss);
@@ -858,7 +893,8 @@ export class Scroll {
     cfg.scroll.endCol = cfg.fixedLeftIndex + Math.min(endCol, fields.length);
 
     // 화면에 다 보이는 col size
-    cfg.scroll.insideEndCol = cfg.scroll.endCol + (getHorizontalScrollPosition(cfg, itemLeftVal, "R") != cfg.scroll.left ? -1 : 0);
+    cfg.scroll.insideEndCol =
+      cfg.scroll.endCol + (getHorizontalScrollPosition(cfg, itemLeftVal, 'R') != cfg.scroll.left ? -1 : 0);
   }
 }
 
