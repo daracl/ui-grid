@@ -21,7 +21,7 @@ export class CustomEditRenderer extends EditRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = '<input type="text">';
+    element.innerHTML = '<input type="text">';
     const value = item[cellInfo.field.name];
 
     this.getValue(value);

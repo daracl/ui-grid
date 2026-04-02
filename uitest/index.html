@@ -234,6 +234,42 @@ SORT_ORDER</pre
     fn_init(true);
   });
 
+  function generateItems(itemCount, batchSize = 500) {
+    const items = [];
+    let i = 0;
+
+    function processBatch() {
+      const end = Math.min(i + batchSize, itemCount);
+      for (; i < end; i++) {
+        items.push({
+          a: 'aaasdfasdfasdfasdfasdfasdfa' + i,
+          b: 'ddd_' + i + 'asdf',
+          c: i * 10000,
+          d: i === 0 ? 'KOREA' : 'ddd_' + i,
+          e: `<div style="width:100px;height:150px;"><a href="#">test ${i}</a><br><span>${i}</span></div>`,
+          f: 'ffff' + i,
+          g: 'ggggg' + i,
+          h: i,
+          i: 'iiii' + i,
+          j: 'jjjj' + i,
+          k: i % 2 === 0 ? 'Y' : 'N',
+          m: '한글테스트 : ' + i,
+          s: generateRandomNumbers(1, 100, 6),
+          t: generateRandomNumbers(1, 100, 6),
+          z: Math.floor(Math.random() * 201) - 100,
+          idx: i,
+        });
+      }
+
+      if (i < itemCount) {
+        setTimeout(processBatch, 0); // 다음 배치 처리
+      }
+    }
+
+    processBatch();
+    return items;
+  }
+
   var itemIdx = 0;
   function getItem(type, itemCount, cellCount) {
     itemIdx++;
@@ -245,27 +281,7 @@ SORT_ORDER</pre
     itemCount = orginItemCount == 0 ? 1 : itemCount;
 
     if (type == 1) {
-      for (let i = 0; i < itemCount; i++) {
-        items.push({
-          a: 'aaasdfasdfasdfasdfasdfasdfa' + i,
-          b: 'ddd_' + i + 'asdf',
-          c: i * 10000,
-          d: i == 0 ? 'KOREA' : 'ddd_' + i,
-          e: `<div style="width:100px;height:150px;"><a href="#"> testasdfawefawefawef awfeawefawef</a><br><span>23r23f23f</span></div>`,
-          f: 'ffff' + i,
-          g: 'ggggg' + i,
-          h: i,
-          i: 'iiii' + i,
-          j: 'jjjj' + i,
-          k: i % 2 == 0 ? 'Y' : 'N',
-          m: '한글테스트 : ' + i,
-          s: generateRandomNumbers(1, 100, 6),
-          t: generateRandomNumbers(1, 100, 6),
-          z: Math.floor(Math.random() * 201) - 100,
-          //, z: -Math.floor(Math.random() * 101)
-          idx: i,
-        });
-      }
+      items = generateItems(itemCount, 1000);
       fields = [
         {
           label: 'a+b',

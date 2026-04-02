@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Dara Grid</title>
+    <title>Dara move row multiple cell</title>
   </head>
 
   <body>
@@ -244,11 +244,12 @@ SORT_ORDER</pre
             dragEnd(itemInfo) {
               console.log('dragEnd', itemInfo);
             },
-            dragTemplate1(itemInfo) {
-              const moveItem = itemInfo.moveItems[0];
+            dragTemplate(itemInfo) {
+              const moveItems = itemInfo.moveItems;
+              const moveItem = moveItems[0];
               const info = moveItem.item;
               console.log(moveItem);
-              return `${info.name} / ${info.age} / ${info.email} `;
+              return `${moveItem.name} / ${moveItem.age} / ${moveItem.email} 외 ${moveItems.length - 1}건`;
             },
           },
         },

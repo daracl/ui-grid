@@ -278,9 +278,8 @@ export class RowMoveHandler extends CellClickHandler {
     classlist.add('dg-success');
 
     this.isDropForbidden = false;
-
+    const moveRowIndexs = this.moveRowIndexs;
     if (this.isMoveRowSequential) {
-      const moveRowIndexs = this.moveRowIndexs;
       if (
         moveRowIndexs.includes(currentDropRowIdx) ||
         (moveRowIndexs[moveRowIndexs.length - 1] < currentDropRowIdx && moveRowIndexs.includes(currentDropRowIdx - 1))

@@ -10,6 +10,11 @@ export interface Config {
   // row id seq
   rowIdSeq: number;
   theme: string;
+  isTreeType: boolean;
+  tree?: {
+    idKey: string;
+    pidKey: string;
+  };
   dimensions: {
     // grid total width
     width: number;

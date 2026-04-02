@@ -21,20 +21,20 @@ export class AsideModifyInfoRenderer extends ViewRenderer {
 
     const cudValue = item[ROW_CUD_KEY];
     if (cudValue == 'C') {
-      element.innerText = 'C';
+      element.textContent = 'C';
       return;
     }
 
     if (cudValue == 'U') {
-      element.innerText = 'M';
+      element.textContent = 'M';
       return;
     }
 
     if (cudValue == 'D') {
-      element.innerText = 'D';
+      element.textContent = 'D';
       return;
     }
 
-    element.innerText = '';
+    element.textContent = '';
   }
 }

@@ -16,6 +16,6 @@ export class ViewCustomRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.innerText = '<input type="text">';
+    element.innerHTML = '<input type="text">';
   }
 }

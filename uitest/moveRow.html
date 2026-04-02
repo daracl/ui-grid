@@ -1,48 +1,50 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara move row</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara Grid</title>
-</head>
-
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-  <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-  <table style="width: 95%; height: 80vh">
-    <colgroup>
-      <col style="width: 60%" />
-      <col style="width: 40%" />
-    </colgroup>
-    <tr>
-      <td>
-        <div class="asdfasdfWrapper">
-          <pre id="textTest"
-            style="display: inline-block; white-space: pre; position: relative; padding: 0px; margin: 0px">SORT_ORDER</pre>
-          <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-        </div>
-      </td>
-      <td>
-        <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>
-        <div class="asdfasdfWrapper">
-          <div id="asdfasdf1" style="height: calc(100vh - 200px)"></div>
-        </div>
-      </td>
-    </tr>
-  </table>
-</body>
-
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
+    <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
+    <table style="width: 95%; height: 80vh">
+      <colgroup>
+        <col style="width: 60%" />
+        <col style="width: 40%" />
+      </colgroup>
+      <tr>
+        <td>
+          <div class="asdfasdfWrapper">
+            <pre
+              id="textTest"
+              style="display: inline-block; white-space: pre; position: relative; padding: 0px; margin: 0px"
+            >
+SORT_ORDER</pre
+            >
+            <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+          </div>
+        </td>
+        <td>
+          <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
+        </td>
+      </tr>
+      <tr>
+        <td></td>
+        <td>
+          <div class="asdfasdfWrapper">
+            <div id="asdfasdf1" style="height: calc(100vh - 200px)"></div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
@@ -57,7 +59,7 @@
     --bg-color: #070d19;
   }
 
-  body[data-dg-theme="dark"] {
+  body[data-dg-theme='dark'] {
     --bg: #070d19;
     --bg-color: #ffffff;
   }
@@ -73,7 +75,7 @@
 </style>
 <script>
   let gridObj;
-  const THEME_KEY = "grid-theme";
+  const THEME_KEY = 'grid-theme';
   const theme = localStorage.getItem(THEME_KEY);
 
   if (theme) setMainTheme(theme);
@@ -81,7 +83,7 @@
   function setMainTheme(theme, persist = false) {
     const bodyElement = document.body;
 
-    bodyElement.setAttribute("data-dg-theme", theme);
+    bodyElement.setAttribute('data-dg-theme', theme);
 
     if (gridObj) gridObj.setTheme(theme);
 
@@ -91,9 +93,9 @@
   }
 
   function fn_button() {
-    const themeElement = document.getElementById("theme");
+    const themeElement = document.getElementById('theme');
 
-    themeElement.addEventListener("change", (e) => {
+    themeElement.addEventListener('change', (e) => {
       const value = themeElement.value;
 
       if (value) {
@@ -103,16 +105,16 @@
   }
 
   function fn_init(initFlag) {
-    const themeElement = document.getElementById("theme");
+    const themeElement = document.getElementById('theme');
 
-    if (themeElement) themeElement.value = theme ?? "light";
+    if (themeElement) themeElement.value = theme ?? 'light';
 
     const jsonInfo = getItem();
 
-    gridDraw(document.getElementById("sample"), jsonInfo.items, jsonInfo.fields);
+    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener('DOMContentLoaded', function () {
     fn_button();
     fn_init(true);
   });
@@ -123,26 +125,26 @@
 
     fields = [
       {
-        name: "name",
-        label: "이름",
+        name: 'name',
+        label: '이름',
         width: 80,
       },
       {
-        name: "age",
-        label: "나이",
+        name: 'age',
+        label: '나이',
         width: 50,
       },
       {
-        name: "email",
-        label: "이메일",
+        name: 'email',
+        label: '이메일',
         width: 120,
       },
       {
-        name: "birth",
-        label: "생년월일",
+        name: 'birth',
+        label: '생년월일',
         width: 120,
         editRenderer: {
-          type: "date",
+          type: 'date',
           /*
           , rule: {
             minimum: -100
@@ -152,22 +154,22 @@
         },
       },
       {
-        name: "position",
-        label: "직책",
+        name: 'position',
+        label: '직책',
         width: 80,
       },
       {
-        name: "salary",
-        label: "월급",
+        name: 'salary',
+        label: '월급',
         width: 80,
         displayFormat: {
-          type: "number",
-          format: "₩ 0,0 원",
+          type: 'number',
+          format: '₩ 0,0 원',
         },
       },
       {
-        name: "desc",
-        label: "설명",
+        name: 'desc',
+        label: '설명',
         width: 200,
       },
     ];
@@ -183,11 +185,11 @@
       element,
       {
         editable: true,
-        styleClass: "striped",
-        selectionMode: "multiple-row", // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        styleClass: 'striped',
+        selectionMode: 'multiple-row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
-        theme: document.getElementById("theme").value,
+        theme: document.getElementById('theme').value,
         fixedLeftIndex: 2,
         fixedRightIndex: 0,
         height: 335,
@@ -196,7 +198,7 @@
           lineNumber: { enabled: true },
           rowCheckbox: {
             enabled: true,
-            key: "checkbox",
+            key: 'checkbox',
             width: 27,
             //, allowMultiSelect: false
           },
@@ -216,31 +218,31 @@
         body: {
           rowMove: {
             enabled: true,
-            dragHandle: "name",
+            dragHandle: 'name',
             // drag 시작 콜백
             dragStart(itemInfo) {
-              console.log("dragStart", itemInfo);
+              console.log('dragStart', itemInfo);
             },
             draggable(itemInfo) {
-              console.log("draggable", itemInfo);
+              console.log('draggable', itemInfo);
             }, // 기본 모든 row drag 가능
             // drag 중 위치 변경 콜백
             dragOver(dragInfo) {
               const { dropItemIdx, moveItems, position } = dragInfo;
-              console.log("dragOver", position, dropItemIdx, moveItems);
+              console.log('dragOver', position, dropItemIdx, moveItems);
 
-              const moveIdx = dropItemIdx + (position == "after" ? 1 : 0);
+              const moveIdx = dropItemIdx + (position == 'after' ? 1 : 0);
               if (moveIdx == 3) {
                 return false; // drop 금지
               }
             },
             // drop 완료 콜백
             drop(itemInfo) {
-              console.log("drop", itemInfo);
+              console.log('drop', itemInfo);
             },
             // drag 종료 콜백
             dragEnd(itemInfo) {
-              console.log("dragEnd", itemInfo);
+              console.log('dragEnd', itemInfo);
             },
             dragTemplate1(itemInfo) {
               const moveItem = itemInfo.moveItems[0];
@@ -263,78 +265,78 @@
           callback: function (item) {
             console.log(item.key, item);
 
-            if (item.key == "copy") {
+            if (item.key == 'copy') {
               gridObj.copyData();
             }
           },
           items: [
-            { key: "refresh", label: "새로고침" },
+            { key: 'refresh', label: '새로고침' },
             {
               divider: true,
             },
             {
-              key: "copy",
-              label: "복사",
-              hotkey: "Ctrl+C",
+              key: 'copy',
+              label: '복사',
+              hotkey: 'Ctrl+C',
               callback: function (item) {
-                console.log("direct copy callback : ", item.key, item);
+                console.log('direct copy callback : ', item.key, item);
 
-                if (item.key == "copy") {
+                if (item.key == 'copy') {
                   gridObj.copyData();
                 }
               },
             },
             {
-              key: "sql_create",
-              label: "sql생성",
+              key: 'sql_create',
+              label: 'sql생성',
               disabled: true,
               children: [
-                { key: "selectStar", label: "select *" },
-                { key: "select", label: "select column" },
-                { key: "insert", label: "insert" },
-                { key: "update", label: "update" },
-                { key: "delete", label: "delete" },
-                { key: "drop", label: "drop" },
+                { key: 'selectStar', label: 'select *' },
+                { key: 'select', label: 'select column' },
+                { key: 'insert', label: 'insert' },
+                { key: 'update', label: 'update' },
+                { key: 'delete', label: 'delete' },
+                { key: 'drop', label: 'drop' },
               ],
             },
             {
-              key: "download",
-              label: "download",
+              key: 'download',
+              label: 'download',
               children: [
-                { checkbox: true, label: "selet data", key: "sqlGridResultSelect" },
+                { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
                 { divider: true },
-                { key: "download_excel", label: "EXCEL" },
-                { key: "download_csv", label: "CSV" },
-                { key: "download_xml", label: "XML" },
-                { key: "download_json", label: "json" },
+                { key: 'download_excel', label: 'EXCEL' },
+                { key: 'download_csv', label: 'CSV' },
+                { key: 'download_xml', label: 'XML' },
+                { key: 'download_json', label: 'json' },
               ],
             },
             {
-              key: "create_ddl",
-              label: "DDL 보기",
-              hotkey: "Ctrl+shift+C",
+              key: 'create_ddl',
+              label: 'DDL 보기',
+              hotkey: 'Ctrl+shift+C',
             },
             {
-              key: "mybatis-sql_create",
-              label: "mybatis Sql생성",
+              key: 'mybatis-sql_create',
+              label: 'mybatis Sql생성',
               children: [
-                { key: "mybatis_insert", label: "insert", mode: "insert", param_yn: "Y" },
-                { key: "mybatis_update", label: "update", mode: "update", param_yn: "Y" },
-                { key: "mybatis_delete", label: "delete", mode: "delete", param_yn: "Y" },
+                { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
+                { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
+                { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
               ],
             },
             {
-              key: "export",
-              label: "내보내기",
+              key: 'export',
+              label: '내보내기',
               children: [
-                { key: "export_data", label: "데이타 내보내기" },
-                { key: "export_column", label: "컬럼정보 내보내기" },
+                { key: 'export_data', label: '데이타 내보내기' },
+                { key: 'export_column', label: '컬럼정보 내보내기' },
               ],
             },
           ],
         },
       },
-      message
+      message,
     );
   }
 </script>

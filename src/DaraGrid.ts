@@ -14,6 +14,7 @@ import { Language } from './util/Language';
 import * as utils from './util/utils';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
+import { createHTMLElement } from './util/domUtils';
 
 declare const APP_VERSION: string;
 
@@ -81,8 +82,7 @@ export class DaraGrid {
 
   initGlobalConfig() {
     if (HIDDEN_ELEMENT === null) {
-      const hiddenElement = document.createElement('div');
-      hiddenElement.className = HIDDEN_ELEMENT_SELECTOR.replace('.', '');
+      const hiddenElement = createHTMLElement('div', HIDDEN_ELEMENT_SELECTOR.replace('.', ''));
       document.body.appendChild(hiddenElement);
       HIDDEN_ELEMENT = hiddenElement;
     }

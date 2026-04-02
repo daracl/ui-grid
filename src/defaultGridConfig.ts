@@ -19,6 +19,11 @@ export function initConfig(opts: GridOptions): Config {
   return {
     rowIdSeq: 0,
     theme: 'light',
+    isTreeType: false,
+    tree: {
+      idKey: 'id',
+      pidKey: 'pid',
+    },
     dimensions: {
       width: 0,
       height: 0,

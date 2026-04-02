@@ -1,4 +1,4 @@
-import { getCellInfo, isInputField } from '../../../util/gridUtils';
+import { getCellInfo, isInputField, isMouseMoved } from '../../../util/gridUtils';
 import { DaraGrid } from '@/DaraGrid';
 
 import { GridMain } from '../../GridMain';
@@ -72,6 +72,8 @@ export class BodyEvent {
 
     const clickManager = new ClickManager();
 
+    const DRAG_THRESHOLD = 5; // px
+
     eventOn(
       bodyElement,
       'mousedown.cellclick touchstart.cellclick',
@@ -125,11 +127,17 @@ export class BodyEvent {
         handler.onPointerDown?.(session);
 
         if (handler.onPointerMove) {
-          let isMoveStarted = false;
+          let isStarted = false;
           eventOn(document, 'touchmove.cellclick mousemove.cellclick', (moveEvt: Event) => {
-            if (!isMoveStarted) {
+            session.currentPos = eventPosition(moveEvt);
+
+            if (!isStarted) {
+              if (!isMouseMoved(session.startPos, session.currentPos, DRAG_THRESHOLD)) {
+                return;
+              }
+
+              isStarted = true;
               cfg.isBodyDragging = true;
-              isMoveStarted = true;
               if (handler.onActivate?.(session) === false) {
                 eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
                 return;
@@ -137,7 +145,7 @@ export class BodyEvent {
             }
 
             session.state = POINTER_STATE.DRAGGING;
-            session.currentPos = eventPosition(moveEvt);
+
             handler.onPointerMove?.(session);
           });
 

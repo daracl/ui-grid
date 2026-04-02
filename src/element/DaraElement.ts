@@ -1,6 +1,6 @@
-import { eventOff, eventOn } from "@/util/eventUtils";
-import { styleClassSplit } from "../util/styleUtils";
-import { isBlank, isString, isUndefined } from "../util/utils";
+import { eventOff, eventOn } from '@/util/eventUtils';
+import { styleClassSplit } from '../util/styleUtils';
+import { hasOwnProp, isBlank, isString, isUndefined } from '../util/utils';
 
 export class DaraElement {
   private readonly element: HTMLElement;
@@ -24,19 +24,19 @@ export class DaraElement {
   }
 
   before(renderElements: HTMLElement | string) {
-    this.insertAdjacentHTML("beforebegin", renderElements);
+    this.insertAdjacentHTML('beforebegin', renderElements);
   }
 
   after(renderElements: HTMLElement | string) {
-    this.insertAdjacentHTML("afterend", renderElements);
+    this.insertAdjacentHTML('afterend', renderElements);
   }
 
   prepend(renderElements: HTMLElement | string) {
-    this.insertAdjacentHTML("afterbegin", renderElements);
+    this.insertAdjacentHTML('afterbegin', renderElements);
   }
 
   append(renderElements: HTMLElement | string) {
-    this.insertAdjacentHTML("beforeend", renderElements);
+    this.insertAdjacentHTML('beforeend', renderElements);
   }
 
   text(text: any) {
@@ -44,7 +44,7 @@ export class DaraElement {
       return this.element.textContent;
     }
 
-    this.element.innerText = text;
+    this.element.textContent = text;
   }
 
   html(text: string) {
@@ -81,7 +81,7 @@ export class DaraElement {
   }
 
   setHeight(height: number) {
-    this.element.style.height = height + "px";
+    this.element.style.height = height + 'px';
   }
 
   /**
@@ -94,12 +94,12 @@ export class DaraElement {
   }
 
   show() {
-    this.element.style.display = "block";
+    this.element.style.display = 'block';
     return this;
   }
 
   hide() {
-    this.element.style.display = "none";
+    this.element.style.display = 'none';
     return this;
   }
 
@@ -161,7 +161,7 @@ export class DaraElement {
   addClass(styleClass: string) {
     const classList = this.element.classList;
 
-    for (let className of styleClassSplit(styleClass)) {
+    for (const className of styleClassSplit(styleClass)) {
       if (!classList.contains(className)) {
         classList.add(className);
       }
@@ -176,7 +176,7 @@ export class DaraElement {
   removeClass(styleClass: string) {
     const classList = this.element.classList;
 
-    for (let className of styleClassSplit(styleClass)) {
+    for (const className of styleClassSplit(styleClass)) {
       if (classList.contains(className)) {
         classList.remove(className);
       }
@@ -217,7 +217,7 @@ export class DaraElement {
    * @returns DaraElement
    */
   setAttr(attrs: any) {
-    for (let key in attrs) {
+    for (const key in attrs) {
       this.element.setAttribute(key, attrs[key]);
     }
 
@@ -230,7 +230,7 @@ export class DaraElement {
    * @returns this
    */
   removeAttr(...attrKey: string[]) {
-    for (let key of attrKey) {
+    for (const key of attrKey) {
       this.element.removeAttribute(key);
     }
 
@@ -244,8 +244,8 @@ export class DaraElement {
    * @returns
    */
   css(attrs: any) {
-    for (let key in attrs) {
-      if (attrs.hasOwnProperty(key)) {
+    for (const key in attrs) {
+      if (hasOwnProp(attrs, key)) {
         this.element.style.setProperty(key, attrs[key]);
       }
     }
@@ -260,7 +260,7 @@ export class DaraElement {
    * @returns
    */
   removeCss(csskeys: string[]) {
-    for (let key in csskeys) {
+    for (const key of csskeys) {
       this.element.style.removeProperty(key);
     }
 

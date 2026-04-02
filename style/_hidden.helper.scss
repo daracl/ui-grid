@@ -20,6 +20,7 @@
     display: none;
     pointer-events: none; /* 마우스 이벤트 통과 */
     will-change: transform;
+    border-radius: 5px;
     border: 1px solid var(--border-thick-color);
 
     > .dg-row-move-content {
@@ -28,7 +29,7 @@
 
     > .dg-row-move-status {
       width: 15px;
-      height: 20px;
+      height: 26px;
       flex-shrink: 0; /* 아이콘 찌그러짐 방지 */
       margin-right: 10px;
     }
@@ -37,8 +38,6 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 15px;
-      height: 26px;
       font-size: 16px;
       font-weight: bold;
 

@@ -20,15 +20,7 @@ export class TextRenderer extends ViewRenderer {
     const renderValue = this.getValue(item);
 
     if (element.textContent != renderValue) {
-      const oldEl = element.firstChild;
-
-      const newTextElement = document.createTextNode(renderValue);
-
-      if (oldEl) {
-        element.replaceChild(newTextElement, oldEl);
-      } else {
-        element.appendChild(newTextElement);
-      }
+      element.textContent = renderValue;
     }
   }
 }

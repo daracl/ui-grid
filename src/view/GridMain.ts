@@ -15,6 +15,7 @@ import {
   ROW_CHECK_KEY,
   ROW_CHECK_NAME,
   ROW_CUD_KEY,
+  ROW_DEPTH_KEY,
   ROW_DRAG_HANDLE_NAME,
   ROW_HEIGHT_KEY,
   ROW_ID_KEY,
@@ -743,7 +744,7 @@ export class GridMain {
         fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
       }
 
-      field.$alignStyle = ALIGN_STYLE[field.align] ?? ALIGN_STYLE.center;
+      field.$alignStyle = ALIGN_STYLE[field.align] ?? (field.$renderer.alignStyle() || ALIGN_STYLE.left);
 
       if (field.$panel == 'left') {
         leftWidth += fieldWidth;
@@ -1174,10 +1175,19 @@ export class GridMain {
       const chunk = items.slice(i, end);
 
       for (const item of chunk) {
-        item[ROW_ID_KEY] = cfg.rowIdSeq++;
-        item[ROW_CUD_KEY] = 'R';
-        item[ROW_HEIGHT_KEY] = rowHeight;
+        this.setRowItemConfig(item, cfg, rowHeight, 0);
       }
+    }
+  }
+
+  private setRowItemConfig(item: any, cfg: Config, rowHeight: number, depth: number) {
+    item[ROW_ID_KEY] = cfg.rowIdSeq++;
+    item[ROW_DEPTH_KEY] = ++depth;
+    item[ROW_CUD_KEY] = 'R';
+    item[ROW_HEIGHT_KEY] = rowHeight;
+
+    for (const childItem of item.children ?? []) {
+      this.setRowItemConfig(childItem, cfg, rowHeight, depth);
     }
   }
 

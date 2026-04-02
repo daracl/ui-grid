@@ -17,7 +17,7 @@ export class RangeRenderer extends EditRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    element.innerText = '<input type="range">';
+    element.innerHTML = '<input type="range">';
     const value = item[cellInfo.field.name];
 
     this.getValue(value);

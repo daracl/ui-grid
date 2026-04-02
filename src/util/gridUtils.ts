@@ -4,6 +4,7 @@ import { GridOptions } from '@t/GridOptions';
 import { FieldItem } from '@t/GridField';
 import { RendererInfo } from '@t/RendererInfo';
 import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import { PointerPosition } from '@/event/PointerSession';
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -530,4 +531,19 @@ export function isSequential(arr: number[]): boolean {
   const max = Math.max(...arr);
 
   return max - min + 1 === arr.length;
+}
+
+/**
+ * 마우스가 이동했는지 확인
+ *
+ * @param startPos start position of mouse event
+ * @param currentPos current position of mouse event
+ * @param threshold 이동으로 간주할 최소 거리 (기본값: 5 픽셀)
+ * @returns
+ */
+export function isMouseMoved(startPos: PointerPosition, currentPos: PointerPosition, threshold = 5): boolean {
+  const dx = currentPos.x - startPos.x;
+  const dy = currentPos.y - startPos.y;
+
+  return dx * dx + dy * dy > threshold * threshold;
 }

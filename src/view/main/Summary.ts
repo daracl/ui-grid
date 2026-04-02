@@ -114,7 +114,7 @@ export class Summary {
             }
           }
 
-          cellElement.innerText = summaryValue;
+          cellElement.textContent = summaryValue;
         }
       }
       rowIdx++;

@@ -26,6 +26,7 @@ import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
 import { SwitchRenderer } from './renderer/view/SwitchRenderer';
 import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
 import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
+import { TreeRenderer } from './renderer/view/TreeRenderer';
 
 export type MODE = 'edit' | 'view';
 
@@ -76,6 +77,7 @@ export const VIEW_RENDERER: any = {
   password: PasswordRenderer,
   sparkline: SparklineRenderer,
   sparklineBar: SparklineRendererBar,
+  tree: TreeRenderer, // tree는 TextRenderer로 일단 처리. TreeRenderer는 별도 구현 필요
   custom: ViewCustomRenderer,
 };
 
@@ -134,6 +136,7 @@ export type RENDERER_TYPE =
   | 'datemonth'
   | 'datehour'
   | 'group'
+  | 'tree'
   | 'custom';
 
 export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
@@ -196,18 +199,25 @@ export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + '$rowid';
 export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + '$rowHeight';
 
 /**
- * row drag handle name
- *
- * @type {"$rowDragHandle"}
- */
-export const ROW_DRAG_HANDLE_NAME = '$rowDragHandle';
-
-/**
  * row cud name key
  *
  * @type {string}
  */
 export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + '$CUD';
+
+/**
+ * row depth key
+ *
+ * @type {"_dg$depth"}
+ */
+export const ROW_DEPTH_KEY = ROw_ITEM_PREFIX_NAME + '$depth';
+
+/**
+ * row drag handle name
+ *
+ * @type {"$rowDragHandle"}
+ */
+export const ROW_DRAG_HANDLE_NAME = '$rowDragHandle';
 
 /**
  * layer attribute name

@@ -16,6 +16,6 @@ export class AsideLineNumberRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.innerText = cellInfo.rowIndex + 1 + '';
+    element.textContent = cellInfo.rowIndex + 1 + '';
   }
 }

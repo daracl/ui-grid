@@ -1,8 +1,8 @@
 import { PointerPosition, PointerSession } from '@/event/PointerSession';
 import { PointerHandler } from '@/event/PointerHandler';
+import { isMouseMoved } from '@/util/gridUtils';
 
-const DBLCLICK_DELAY = 400; // ms
-const DRAG_THRESHOLD = 3; // px
+const DBLCLICK_DELAY = 300; // ms
 
 export class ClickManager {
   private lastClickTime = 0;
@@ -41,13 +41,8 @@ export class ClickManager {
 
     this.lastClickTime = now;
 
-    const dx = this.currentCellPosition.x - session.startPos.x;
-    const dy = this.currentCellPosition.y - session.startPos.y;
-
-    const moved = dx * dx + dy * dy > 2;
-
     if (this.clickCount === 2) {
-      if (!moved) {
+      if (!isMouseMoved(session.startPos, this.currentCellPosition, 5)) {
         handler.onDoubleClick?.(session);
         this.resetClick();
         return;

@@ -5,6 +5,7 @@ import { isFunction } from '@/util/utils';
 import { CellInfo, Config } from '@t/GridConfig';
 import { GridMain } from '@/view/GridMain';
 import { formatValue } from '@/util/formatUtils';
+import { ALIGN_STYLE } from '@/constants';
 
 export abstract class ViewRenderer extends Renderer {
   private readonly refValue: any;
@@ -85,5 +86,9 @@ export abstract class ViewRenderer extends Renderer {
    */
   public isEditRenderer() {
     return false;
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

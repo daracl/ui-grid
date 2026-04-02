@@ -115,6 +115,44 @@ export function $querySelector(el: Element | string | NodeList | Document | Elem
 }
 
 /**
+ * HTML 요소를 생성하고, 클래스와 속성을 설정하는 유틸 함수
+ *
+ * @param tagName - 생성할 HTML 요소의 태그 이름 (예: 'div', 'span')
+ * @param className - 요소에 적용할 클래스 이름 (선택 사항)
+ * @param attrs - 요소에 추가할 속성 객체 (예: { id: 'my-id', 'data-role': 'layer' })
+ * @returns 생성된 HTMLElement
+ */
+export function createHTMLElement(tagName: string, className?: string, attrs: any = {}): HTMLElement {
+  // 1. 지정된 태그 이름으로 HTML 요소 생성
+  const element = document.createElement(tagName);
+
+  // 2. className이 제공되면 요소에 클래스 설정
+  if (className) {
+    element.className = className;
+  }
+
+  for (const [key, value] of Object.entries(attrs)) {
+    if (typeof value === 'object' && value !== null) {
+      // style, dataset 등 객체인 경우
+      if (key === 'style') {
+        Object.assign(element.style, value);
+      } else if (key === 'dataset') {
+        Object.assign(element.dataset, value);
+      } else {
+        // 기타 객체는 JSON 문자열로 저장
+        element.setAttribute(key, JSON.stringify(value));
+      }
+    } else {
+      // 일반 문자열, 숫자 등
+      element.setAttribute(key, String(value));
+    }
+  }
+
+  // 4. 완성된 요소 반환
+  return element;
+}
+
+/**
  * get layer element
  * @param tagName layer tag
  * @param className class name
@@ -122,10 +160,7 @@ export function $querySelector(el: Element | string | NodeList | Document | Elem
  * @returns
  */
 export function getLayerElement(tagName: string, className: string, layerName: string): HTMLElement {
-  const layerElement = document.createElement(tagName);
-  layerElement.className = className;
-  layerElement.setAttribute(LAYER_ATTR_NAME, layerName);
-  return layerElement;
+  return createHTMLElement(tagName, className, { [LAYER_ATTR_NAME]: layerName });
 }
 
 export function innerLayerPosition(
