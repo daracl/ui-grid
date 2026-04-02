@@ -3,91 +3,23 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Dara Grid</title>
+  <title>Dara renderer</title>
 </head>
 
 <body>
   <div>
-    <div>
-      excel download시 <br />
-      <a href="https://github.com/eligrey/FileSaver.js/"> FileSaver.js </a> ,<a
-        href="https://github.com/exceljs/exceljs">exceljs.js</a>필요함.
-    </div>
-    row
-    <select id="itemCount">
-      <option value="0">0</option>
-      <option value="5">5</option>
-      <option value="10">10</option>
-      <option value="20">20</option>
-      <option value="30">30</option>
-      <option value="32">32</option>
-      <option value="38">38</option>
-      <option value="100" selected>100</option>
-      <option value="500">500</option>
-      <option value="1000">1,000</option>
-      <option value="10000">10,000</option>
-      <option value="100000">100,000</option>
-      <option value="1000000">1,000,000</option>
-    </select>
-
-    cell
-    <select id="cellCount">
-      <option value="1">1</option>
-      <option value="5">5</option>
-      <option value="10">10</option>
-      <option value="20" selected>20</option>
-      <option value="25">25</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
-      <option value="300">300</option>
-      <option value="500">500</option>
-    </select>
     theme
     <select id="theme">
       <option value="light" selected>light</option>
       <option value="dark">dark</option>
     </select>
-
-    타입
-    <select id="dataType">
-      <option value="1">헤더 2단</option>
-      <option value="2" selected>헤더 3단</option>
-      <option value="3">헤더 1단</option>
-      <option value="4">직원</option>
-    </select>
-    <button type="button" onclick="fn_init()">regrid</button>
-
-    <button type="button" class="set-data">setData</button>
-
-    <button class="exceldown" mode="all" type="button">excel download</button>
-    <button class="exceldown" mode="select" type="button">select data excel download</button>
-
-    <button class="pdfdown" type="button">pdf download</button>
   </div>
   <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-  <table style="width: 95%; height: 80vh">
-    <colgroup>
-      <col style="width: 60%" />
-      <col style="width: 40%" />
-    </colgroup>
+  <table style="width: 100%; height: 80vh">
     <tr>
-      <td>
+      <td style="vertical-align: top;">
         <div class="asdfasdfWrapper">
-          <pre id="textTest"
-            style="display: inline-block; white-space: pre; position: relative; padding: 0px; margin: 0px">
-SORT_ORDER</pre>
-          <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-        </div>
-      </td>
-      <td>
-        <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
-      </td>
-    </tr>
-    <tr>
-      <td></td>
-      <td>
-        <div class="asdfasdfWrapper">
-          <div id="asdfasdf1" style="height: calc(100vh - 200px)"></div>
+          <div id="sample" style="width: 100%"></div>
         </div>
       </td>
     </tr>
@@ -189,40 +121,9 @@ SORT_ORDER</pre>
 
     if (themeElement) themeElement.value = theme ?? 'light';
 
-    if (initFlag) {
-      const dgGridSampleConfig = localStorage.getItem('dgGridSampleConfig');
-
-      if (dgGridSampleConfig) {
-        try {
-          const cfg = JSON.parse(dgGridSampleConfig);
-
-          document.getElementById('dataType').value = cfg.itemType;
-          document.getElementById('itemCount').value = cfg.itemCount;
-          document.getElementById('cellCount').value = cfg.cellCount;
-        } catch (e) {
-          console.log('dgGridSampleConfig : ', dgGridSampleConfig, e);
-        }
-      }
-    }
-
-    const itemType = document.getElementById('dataType').value;
-    const itemCount = parseInt(document.getElementById('itemCount').value, 10);
-    const cellCount = parseInt(document.getElementById('cellCount').value, 10);
-
-    localStorage.setItem('dgGridSampleConfig', JSON.stringify({ itemType, itemCount, cellCount }));
-
-    const jsonInfo = getItem(itemType, itemCount, cellCount);
+    const jsonInfo = getItem(1, 500, 20);
 
     gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
-
-    /*
-    gridDraw(document.getElementById('sample2'), item.aaa, item.colItem, {
-      'asdf': ''
-      , "no.data": '데이타 없음'
-      //,empty: function (){ return '데이타 없음'}
-
-    });
-    */
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -273,9 +174,7 @@ SORT_ORDER</pre>
     let items = [];
     let fields = [];
 
-    const orginItemCount = itemCount;
-
-    itemCount = orginItemCount == 0 ? 1 : itemCount;
+    const orginItemCount = 500;
 
     if (type == 1) {
       items = generateItems(itemCount, 1000);
@@ -433,7 +332,7 @@ SORT_ORDER</pre>
         {
           name: 'k',
           label: 'switch',
-          width: 37,
+          width: 60,
           renderer: {
             type: 'switch',
             trueValue: 'Y',
@@ -533,322 +432,9 @@ SORT_ORDER</pre>
 
         //,{key :'d', label:'디', hidden:true}
       ];
-    } else if (type == 4) {
-      items = employeeList;
-      fields = [
-        {
-          name: 'name',
-          label: '이름',
-          width: 80,
-        },
-        {
-          name: 'age',
-          label: '나이',
-          width: 50,
-        },
-        {
-          name: 'email',
-          label: '이메일',
-          width: 120,
-        },
-        {
-          name: 'birth',
-          label: '생년월일',
-          width: 120,
-          editRenderer: {
-            type: 'date',
-            /*
-          , rule: {
-            minimum: -100
-            , maximum: 100
-          }
-            */
-          },
-        },
-        {
-          name: 'position',
-          label: '직책',
-          width: 80,
-        },
-        {
-          name: 'salary',
-          label: '월급',
-          width: 80,
-          displayFormat: {
-            type: 'number',
-            format: '₩ 0,0 원',
-          },
-        },
-        {
-          name: 'desc',
-          label: '설명',
-          width: 200,
-        },
-      ];
-    } else if (type == 2) {
-      for (let i = 0; i < itemCount; i++) {
-        let item = {};
-        item['sample'] = i + ' samplesample';
-
-        for (let j = 1; j <= 12; j++) {
-          var aRandomVal = getRandomFloatFromInput(1, 10);
-          if (aRandomVal % 4 == 0) {
-            item['a' + j] = aRandomVal;
-          } else {
-            item['a' + j] = aRandomVal % 3 == 0 ? null : aRandomVal + ' a --- 222222222';
-          }
-
-          item['b' + j] = getRandomFloatFromInput(1, 20) + ' b --- 222222222';
-        }
-
-        items.push(item);
-      }
-
-      fields = [
-        {
-          name: 'sample',
-          label: '지역',
-          width: 120,
-        },
-        {
-          label: '2022',
-          children: [
-            {
-              label: '1분기',
-              children: [
-                {
-                  name: 'a1',
-                  label: '1월월월월월월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a2',
-                  label: '2월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a3',
-                  label: '3월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-            {
-              label: '2분기',
-              children: [
-                {
-                  name: 'a4',
-                  label: '4월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a5',
-                  label: '5월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a6',
-                  label: '6월',
-                },
-              ],
-            },
-            {
-              label: '3분기',
-              children: [
-                {
-                  name: 'a7',
-                  label: '7월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a8',
-                  label: '8월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a9',
-                  label: '9월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-            {
-              label: '4분기',
-              children: [
-                {
-                  name: 'a10',
-                  label: '10월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a11',
-                  label: '11월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'a12',
-                  label: '12월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-          ],
-        },
-        {
-          label: '2025',
-          children: [
-            {
-              label: '1분기',
-              children: [
-                {
-                  name: 'b1',
-                  label: '1월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b2',
-                  label: '2월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b3',
-                  label: '3월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-            {
-              label: '2분기',
-              children: [
-                {
-                  name: 'b4',
-                  label: '4월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b5',
-                  label: '5월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b6',
-                  label: '6월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-            {
-              label: '3분기',
-              children: [
-                {
-                  name: 'b7',
-                  label: '7월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b8',
-                  label: '8월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b9',
-                  label: '9월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-            {
-              label: '4분기',
-              children: [
-                {
-                  name: 'b10',
-                  label: '10월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b11',
-                  label: '11월',
-                  dataType: 'numeric',
-                },
-                {
-                  name: 'b12',
-                  label: '12월',
-                  dataType: 'numeric',
-                },
-              ],
-            },
-          ],
-        },
-      ];
-    } else {
-      for (let i = 0; i < itemCount; i++) {
-        let tmpItem = {};
-
-        for (let j = 0; j < cellCount; j++) {
-          let colName = itemIdx + '_' + j;
-          if (j == 0) {
-            tmpItem[colName] = i + j;
-          } else {
-            tmpItem[colName] = 'cont' + i + ' _ ' + j;
-          }
-
-          //tmpItem[colName] = j< 30 ? ('cont'+i+" _ "+j) :'';
-        }
-
-        items.push(tmpItem);
-      }
-      let colFirstItem;
-      if (items.length > 0) {
-        colFirstItem = items[0];
-
-        let keyIdx = 0;
-        for (let key in colFirstItem) {
-          let addColItem = {
-            name: key,
-            //, label: '한글' + key
-            label: key,
-            width: 50,
-            type: keyIdx == 0 ? 'number' : 'string',
-            editor: true,
-          };
-
-          if (keyIdx == 1) {
-            addColItem.editor = {
-              type: 'text',
-            };
-            addColItem.width = 100;
-            addColItem.tooltip = {
-              formatter: function (obj) {
-                return 'asdfasdf';
-              },
-            };
-          } else if (keyIdx == 2) {
-            addColItem.editor = {
-              type: 'select',
-              items: [
-                { CODE: '111', LABEL: '파폭' },
-                { CODE: '2222', LABEL: '크롬' },
-              ],
-            };
-          } else if (keyIdx == 3) {
-            addColItem.editor = {
-              type: 'textarea',
-            };
-          } else if (keyIdx == 4) {
-            addColItem.editor = {
-              type: 'number',
-            };
-          }
-          fields.push(addColItem);
-
-          keyIdx++;
-        }
-      }
     }
 
     items = orginItemCount == 0 ? [] : items;
-
-    //console.log(JSON.stringify(aaa));
 
     return {
       items: items,
@@ -869,7 +455,6 @@ SORT_ORDER</pre>
         fixedLeftIndex: 2,
         fixedRightIndex: 0,
         height: 480,
-        width: 1000,
         aside: {
           lineNumber: { enabled: true },
           rowCheckbox: {
@@ -922,43 +507,6 @@ SORT_ORDER</pre>
             dropSelector: '#dropTextArea',
             dropCallback: (data) => { },
           },
-        },
-        summary: {
-          position: 'top',
-          height: [30, 40],
-          items: [
-            [
-              { name: 'name', label: '합계' },
-              { name: 'age', expression: 'sum' },
-              {
-                name: 'salary',
-                expression: 'sum',
-                displayFormat: {
-                  type: 'number',
-                  format: '₩ 0,0 원',
-                },
-              },
-            ],
-            [
-              { name: 'name', label: '평균' },
-              {
-                name: 'age',
-                expression: 'average',
-                displayFormat: {
-                  type: 'number',
-                  format: '0,0.00',
-                },
-              },
-              {
-                name: 'salary',
-                expression: 'average',
-                displayFormat: {
-                  type: 'number',
-                  format: '0,0',
-                },
-              },
-            ],
-          ],
         },
         search: {
           enabled: true,
@@ -1065,12 +613,6 @@ SORT_ORDER</pre>
               'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
           },
         },
-        // , paging: {
-        //   totalCount: 10000
-        //   , currPage: 500
-        //   , countPerPage: 10
-        //   , unitPage: 10
-        // }
         fields: colItem,
         items: aaa,
         body: {

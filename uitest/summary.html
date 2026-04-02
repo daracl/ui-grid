@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Dara summary</title>
+</head>
+
+<body>
+  <div>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+  </div>
+  <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
+  <table style="width: 100%; height: 80vh">
+    <tr>
+      <td style="vertical-align: top;">
+        <div class="asdfasdfWrapper">
+          <div id="sample" style="width: 100%"></div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
+
+<script type="module" src="/src/index.ts"></script>
+
+<style>
+  .form-button {
+    text-align: center;
+  }
+
+  :root {
+    --bg: #ffffff;
+    --bg-color: #070d19;
+  }
+
+  body[data-dg-theme='dark'] {
+    --bg: #070d19;
+    --bg-color: #ffffff;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--bg-color);
+  }
+
+  .header {
+    color: var(--bg-color);
+  }
+</style>
+<script>
+  const THEME_KEY = 'grid-theme';
+  const theme = localStorage.getItem(THEME_KEY);
+
+  if (theme) setMainTheme(theme);
+
+  function setMainTheme(theme, persist = false) {
+    const bodyElement = document.body;
+
+    bodyElement.setAttribute('data-dg-theme', theme);
+
+    if (persist) {
+      localStorage.setItem(THEME_KEY, theme);
+    }
+  }
+
+  function fn_button() {
+    const themeElement = document.getElementById('theme');
+
+    themeElement.addEventListener('change', (e) => {
+      const value = themeElement.value;
+
+      if (value) {
+        setMainTheme(value, true);
+      }
+    });
+  }
+
+  function fn_init(initFlag) {
+    const themeElement = document.getElementById('theme');
+
+    if (themeElement) themeElement.value = theme ?? 'light';
+
+
+    const jsonInfo = getItem(4, 100, 20);
+
+    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    Daracl.grid.message({ 'no.data': '데이터가 없습니다.', 'select.all': 'ALL' });
+    fn_button();
+    fn_init(true);
+  });
+
+
+
+  var itemIdx = 0;
+  function getItem(type, itemCount, cellCount) {
+    itemIdx++;
+    let items = [];
+    let fields = [];
+
+    const orginItemCount = itemCount;
+
+    itemCount = orginItemCount == 0 ? 1 : itemCount;
+
+    items = employeeList;
+    fields = [
+      {
+        name: 'name',
+        label: '이름',
+        width: 80,
+      },
+      {
+        name: 'age',
+        label: '나이',
+        width: 50,
+      },
+      {
+        name: 'email',
+        label: '이메일',
+        width: 120,
+      },
+      {
+        name: 'birth',
+        label: '생년월일',
+        width: 120,
+        editRenderer: {
+          type: 'date',
+          /*
+        , rule: {
+          minimum: -100
+          , maximum: 100
+        }
+          */
+        },
+      },
+      {
+        name: 'position',
+        label: '직책',
+        width: 80,
+      },
+      {
+        name: 'salary',
+        label: '월급',
+        width: 80,
+        displayFormat: {
+          type: 'number',
+          format: '₩ 0,0 원',
+        },
+      },
+      {
+        name: 'desc',
+        label: '설명',
+        width: 200,
+      },
+    ];
+
+    items = orginItemCount == 0 ? [] : items;
+
+    return {
+      items: items,
+      fields: fields,
+    };
+  } //test
+
+  function gridDraw(element, aaa, colItem, message) {
+    let gridObj = Daracl.grid.create(
+      element,
+      {
+        editable: true,
+        styleClass: 'striped',
+        selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        enableWidthFixed: false,
+        enableTooltip: true, // tooltip flag
+        theme: document.getElementById('theme').value,
+        fixedLeftIndex: 2,
+        fixedRightIndex: 0,
+        height: 480,
+        width: 1000,
+        aside: {
+          lineNumber: { enabled: true },
+          rowCheckbox: {
+            enabled: true,
+            key: 'checkbox',
+            width: 27,
+            //, allowMultiSelect: false
+          },
+          modifyInfo: { enabled: true },
+        },
+        colOptions: {
+          maxWidth: 1024,
+        },
+        valueFilter: function (colInfo, objValue) {
+          return objValue[colInfo.key];
+        },
+        header: {
+          view: true,
+          enableViewAllLabel_1: true,
+          //, heights: [20, 50, 50]
+          sort: {
+            //정렬 활성화 여부
+            enabled: false,
+            // null value 를 항상 끝으로 유지 할지 여부
+            nullsLast: true,
+            // custom sorting function
+            //,customSorting: ()=>{console.log(arguments)}
+          },
+          //,height :30
+          resize: {
+            enabled: true,
+            update: function (item) {
+              //console.log(item);
+            },
+            minWidth: 10,
+            maxWidth: 1000,
+          },
+          help: {
+            enabled: true, // header help btn 활성 여부.
+            tootip: (field) => {
+              return 'test';
+            },
+            click: (clickInfo) => {
+              // click event
+              console.log('clickInfo : ', clickInfo);
+            },
+          },
+          drag: {
+            enabled: true,
+            dropSelector: '#dropTextArea',
+            dropCallback: (data) => { },
+          },
+        },
+        summary: {
+          position: 'top',
+          height: [30, 40],
+          items: [
+            [
+              { name: 'name', label: '합계' },
+              { name: 'age', expression: 'sum' },
+              {
+                name: 'salary',
+                expression: 'sum',
+                displayFormat: {
+                  type: 'number',
+                  format: '₩ 0,0 원',
+                },
+              },
+            ],
+            [
+              { name: 'name', label: '평균' },
+              {
+                name: 'age',
+                expression: 'average',
+                displayFormat: {
+                  type: 'number',
+                  format: '0,0.00',
+                },
+              },
+              {
+                name: 'salary',
+                expression: 'average',
+                displayFormat: {
+                  type: 'number',
+                  format: '0,0',
+                },
+              },
+            ],
+          ],
+        },
+        search: {
+          enabled: true,
+          enableColumnFix: true,
+          click: false,
+          mode: 'simple', //'full'
+          width: 700,
+          height: 250,
+          onlyCloseButton: true,
+          useRememberValue: true,
+          callback: (data) => {
+            //console.log(data)
+          },
+          rememberValue: { field: '$all', val: 'asdf' },
+        },
+        toolbar: {
+          enabled: false,
+
+          items: [
+            {
+              search: true,
+              callback: (keyword) => { },
+            },
+
+            {
+              divider: true,
+            },
+            {
+              key: 'test',
+              renderType: 'dropdown',
+              style: {
+                valueWidth: '200px',
+              },
+              listItem: {
+                list: [
+                  { label: 'asdf', value: 1 },
+                  { label: 'asdf2', value: 2 },
+                  { label: 'asdf3', value: 3 },
+                ],
+              },
+              change: (aa) => {
+                console.log(aa);
+              },
+            },
+            {
+              key: 'test22',
+              renderType: 'text',
+              style: {
+                valueWidth: '150px',
+              },
+              change: (aa) => {
+                console.log(aa);
+              },
+            },
+            {
+              label: 'button',
+              renderType: 'button',
+              click: (aa) => {
+                console.log(aa);
+              },
+            },
+          ],
+        },
+        scroll: {
+          enableWheelInContainer: true,
+          vertical: {
+            enable1: false,
+            onUpdate: function (item) {
+              // 스크롤 업데이트.
+              //console.log(item);
+              //return true;
+            },
+          },
+          horizontal: {
+            enableWheel: true,
+          },
+        },
+        footer: {
+          enabled: true,
+
+          height: 35,
+          paging: {
+            enabled1: true,
+            /**
+             * 위치 값
+             */
+            position: 'center',
+            formatPosition: 'right',
+            /**
+             * 페이지 메시지 포멧
+             */
+            format: '{{start}} - {{end}} of {{total}}',
+
+            // 페이지 콜백
+            callback1: function (arg) {
+              console.log(arg);
+              //gridObj.setData(aaa);
+            },
+          },
+
+          selection: {
+            position: 'left',
+            format:
+              'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
+          },
+        },
+        // , paging: {
+        //   totalCount: 10000
+        //   , currPage: 500
+        //   , countPerPage: 10
+        //   , unitPage: 10
+        // }
+        fields: colItem,
+        items: aaa,
+        body: {
+          cellDblClick: function (itemInfo) {
+            //console.log('cellDblClick', itemInfo)
+          },
+          cellClick: function (itemInfo) {
+            //console.log('cellClick', itemInfo)
+          },
+          // 방향키 컨트롤 .
+          keyNavHandler: function (moveInfo) {
+            //console.log(moveInfo);
+          },
+          pasteBefore: function (a) {
+            console.log('pasteBefore', a);
+            return a;
+          },
+          pasteAfter: function (a) {
+            console.log('pasteAfter', a);
+          },
+          row: {
+            height: 30,
+            enableDblClickRowCheck: true,
+          },
+        },
+
+        contextMenu: {
+          enableHeader: true,
+          beforeActivate: function (info) {
+            const field = info.field;
+            const item = info.item;
+            if (item) {
+              gridObj.changeContextMenuHeader(item[field.name]);
+            }
+          },
+          callback: function (item) {
+            console.log(item.key, item);
+
+            if (item.key == 'copy') {
+              gridObj.copyData();
+            }
+          },
+          items: [
+            { key: 'refresh', label: '새로고침' },
+            {
+              divider: true,
+            },
+            {
+              key: 'copy',
+              label: '복사',
+              hotkey: 'Ctrl+C',
+              callback: function (item) {
+                console.log('direct copy callback : ', item.key, item);
+
+                if (item.key == 'copy') {
+                  gridObj.copyData();
+                }
+              },
+            },
+            {
+              key: 'sql_create',
+              label: 'sql생성',
+              disabled: true,
+              children: [
+                { key: 'selectStar', label: 'select *' },
+                { key: 'select', label: 'select column' },
+                { key: 'insert', label: 'insert' },
+                { key: 'update', label: 'update' },
+                { key: 'delete', label: 'delete' },
+                { key: 'drop', label: 'drop' },
+              ],
+            },
+            {
+              key: 'download',
+              label: 'download',
+              children: [
+                { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
+                { divider: true },
+                { key: 'download_excel', label: 'EXCEL' },
+                { key: 'download_csv', label: 'CSV' },
+                { key: 'download_xml', label: 'XML' },
+                { key: 'download_json', label: 'json' },
+              ],
+            },
+            {
+              key: 'create_ddl',
+              label: 'DDL 보기',
+              hotkey: 'Ctrl+shift+C',
+            },
+            {
+              key: 'mybatis-sql_create',
+              label: 'mybatis Sql생성',
+              children: [
+                { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
+                { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
+                { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
+              ],
+            },
+            {
+              key: 'export',
+              label: '내보내기',
+              children: [
+                { key: 'export_data', label: '데이타 내보내기' },
+                { key: 'export_column', label: '컬럼정보 내보내기' },
+              ],
+            },
+          ],
+        },
+      },
+      message,
+    );
+  }
+
+  function getRandomFloatFromInput(a, b) {
+    const min = Math.min(a, b);
+    const max = Math.max(a, b);
+    return Math.floor(Math.random() * (max - min) + min);
+  }
+
+  function generateRandomNumbers(start, end, count) {
+    if (start > end) {
+      throw new Error('시작 값은 끝 값보다 작거나 같아야 합니다.');
+    }
+    if (count <= 0) {
+      throw new Error('생성할 숫자의 개수는 1 이상이어야 합니다.');
+    }
+
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      const random = Math.floor(Math.random() * (end - start + 1)) + start;
+      result.push(random);
+    }
+    return result;
+  }
+</script>
+
+<script>
+  const employeeList = [
+    {
+      name: '김민수',
+      age: 34,
+      desc: '전략적으로 문제를 해결하는 데 능숙합니다.',
+      email: 'minsu.kim@example.com',
+      birth: '1990-08-22',
+      position: '프론트엔드 개발자',
+      salary: 4500000,
+    },
+    {
+      name: '이서연',
+      age: 29,
+      desc: '팀워크를 중요시하며 적극적인 성격입니다.',
+      email: 'seoyeon.lee@example.com',
+      birth: '1995-01-17',
+      position: 'UI/UX 디자이너',
+      salary: 4000000,
+    },
+    {
+      name: '박지훈',
+      age: 42,
+      desc: '복잡한 시스템 설계에 강점을 가지고 있습니다.',
+      email: 'jihun.park@example.com',
+      birth: '1982-12-03',
+      position: '백엔드 개발자',
+      salary: 6000000,
+    },
+    {
+      name: '최유진',
+      age: 31,
+      desc: '사용자 중심의 디자인에 열정을 가지고 있습니다.',
+      email: 'yujin.choi@example.com',
+      birth: '1993-04-09',
+      position: 'UX 리서처',
+      salary: 4300000,
+    },
+    {
+      name: '정우성',
+      age: 38,
+      desc: '끊임없이 배우고 도전하는 개발자입니다.',
+      email: 'woosung.jung@example.com',
+      birth: '1986-06-15',
+      position: '모바일 앱 개발자',
+      salary: 5500000,
+    },
+    {
+      name: '한지민',
+      age: 27,
+      desc: '꼼꼼한 성격으로 QA 업무에 적합합니다.',
+      email: 'jimin.han@example.com',
+      birth: '1997-03-02',
+      position: 'QA 엔지니어',
+      salary: 3700000,
+    },
+    {
+      name: '송지호',
+      age: 35,
+      desc: '효율적인 코드 작성에 집중하는 스타일입니다.',
+      email: 'jiho.song@example.com',
+      birth: '1989-07-21',
+      position: '풀스택 개발자',
+      salary: 5800000,
+    },
+    {
+      name: '배수지',
+      age: 30,
+      desc: '프로덕트의 전체 흐름을 고려하는 PM입니다.',
+      email: 'suji.bae@example.com',
+      birth: '1994-11-30',
+      position: '프로덕트 매니저',
+      salary: 5000000,
+    },
+    {
+      name: '윤도현',
+      age: 45,
+      desc: '대규모 시스템 운영 경험이 있습니다.',
+      email: 'dohyun.yoon@example.com',
+      birth: '1979-09-10',
+      position: '시스템 아키텍트',
+      salary: 7000000,
+    },
+    {
+      name: '서현우',
+      age: 26,
+      desc: '신기술을 빠르게 학습하는 능력이 뛰어납니다.',
+      email: 'hyunwoo.seo@example.com',
+      birth: '1998-01-27',
+      position: 'AI 엔지니어',
+      salary: 4700000,
+    },
+    {
+      name: '문채원',
+      age: 33,
+      desc: '커뮤니케이션 능력이 뛰어난 디자이너입니다.',
+      email: 'chaewon.moon@example.com',
+      birth: '1991-10-11',
+      position: '그래픽 디자이너',
+      salary: 3900000,
+    },
+    {
+      name: '장혁',
+      age: 36,
+      desc: '데이터 기반 의사결정을 중요시합니다.',
+      email: 'hyuk.jang@example.com',
+      birth: '1988-05-14',
+      position: '데이터 분석가',
+      salary: 5200000,
+    },
+    {
+      name: '권은비',
+      age: 28,
+      desc: '창의적인 콘텐츠 기획에 능합니다.',
+      email: 'eunbi.kwon@example.com',
+      birth: '1996-09-04',
+      position: '콘텐츠 마케터',
+      salary: 3800000,
+    },
+    {
+      name: '오세훈',
+      age: 40,
+      desc: '복잡한 문제를 체계적으로 해결합니다.',
+      email: 'sehun.oh@example.com',
+      birth: '1984-12-25',
+      position: '데브옵스 엔지니어',
+      salary: 5900000,
+    },
+    {
+      name: '김다은',
+      age: 24,
+      desc: '트렌디한 디자인 감각이 뛰어납니다.',
+      email: 'daeun.kim@example.com',
+      birth: '2000-08-07',
+      position: '웹 디자이너',
+      salary: 3400000,
+    },
+    {
+      name: '임지민',
+      age: 32,
+      desc: '유지보수와 문서화에 능숙한 개발자입니다.',
+      email: 'jimin.lim@example.com',
+      birth: '1992-06-06',
+      position: '백엔드 개발자',
+      salary: 5300000,
+    },
+    {
+      name: '노윤호',
+      age: 41,
+      desc: '협업과 조율 능력이 탁월한 리더입니다.',
+      email: 'yunho.noh@example.com',
+      birth: '1983-04-17',
+      position: '기술 리더',
+      salary: 6700000,
+    },
+    {
+      name: '이하늘',
+      age: 37,
+      desc: '사용자 경험을 최우선으로 합니다.',
+      email: 'haneul.lee@example.com',
+      birth: '1987-01-29',
+      position: 'UX 디자이너',
+      salary: 4400000,
+    },
+    {
+      name: '신예은',
+      age: 31,
+      desc: '글로벌 서비스를 운영한 경험이 있습니다.',
+      email: 'yeeun.shin@example.com',
+      birth: '1993-12-08',
+      position: '서비스 기획자',
+      salary: 4800000,
+    },
+    {
+      name: '황민재',
+      age: 39,
+      desc: '테스트 자동화에 전문성을 가지고 있습니다.',
+      email: 'minjae.hwang@example.com',
+      birth: '1985-03-13',
+      position: 'QA 매니저',
+      salary: 5000000,
+    },
+    {
+      name: '윤하늘',
+      age: 22,
+      desc: '학습 열정이 높은 신입 개발자입니다.',
+      email: 'haneul.yoon@example.com',
+      birth: '2002-07-01',
+      position: '주니어 프론트엔드 개발자',
+      salary: 3000000,
+    },
+    {
+      name: '백승훈',
+      age: 35,
+      desc: 'REST API 설계 경험이 풍부합니다.',
+      email: 'seunghoon.baek@example.com',
+      birth: '1989-10-20',
+      position: 'API 엔지니어',
+      salary: 5500000,
+    },
+    {
+      name: '안소희',
+      age: 30,
+      desc: '제품 출시부터 운영까지 경험이 많습니다.',
+      email: 'sohee.ahn@example.com',
+      birth: '1994-02-05',
+      position: '프로덕트 오너',
+      salary: 5000000,
+    },
+    {
+      name: '정지훈',
+      age: 27,
+      desc: '논리적인 사고를 기반으로 문제를 해결합니다.',
+      email: 'jihoon.jung@example.com',
+      birth: '1997-08-26',
+      position: '백엔드 개발자',
+      salary: 4600000,
+    },
+    {
+      name: '한예슬',
+      age: 44,
+      desc: '효율적인 운영 체계 설계에 강합니다.',
+      email: 'yesle.han@example.com',
+      birth: '1980-09-09',
+      position: '운영 매니저',
+      salary: 5800000,
+    },
+    {
+      name: '서진우',
+      age: 33,
+      desc: '마이크로서비스 아키텍처에 관심이 많습니다.',
+      email: 'jinwoo.seo@example.com',
+      birth: '1991-05-24',
+      position: '소프트웨어 엔지니어',
+      salary: 5100000,
+    },
+    {
+      name: '조민아',
+      age: 29,
+      desc: '사용자 데이터를 분석하여 인사이트를 도출합니다.',
+      email: 'mina.jo@example.com',
+      birth: '1995-11-14',
+      position: '데이터 사이언티스트',
+      salary: 5200000,
+    },
+    {
+      name: '홍시우',
+      age: 36,
+      desc: '클라우드 인프라 경험이 풍부합니다.',
+      email: 'siwoo.hong@example.com',
+      birth: '1988-02-18',
+      position: '클라우드 엔지니어',
+      salary: 5400000,
+    },
+    {
+      name: '강하늘',
+      age: 25,
+      desc: '문제 해결에 대한 열정이 강합니다.',
+      email: 'haneul.kang@example.com',
+      birth: '1999-06-30',
+      position: '프론트엔드 개발자',
+      salary: 4100000,
+    },
+    {
+      name: '김나현',
+      age: 23,
+      desc: '스타트업 환경에 잘 적응하는 성격입니다.',
+      email: 'nahyun.kim@example.com',
+      birth: '2001-03-11',
+      position: '인턴 개발자',
+      salary: 2800000,
+    },
+  ];
+</script>
