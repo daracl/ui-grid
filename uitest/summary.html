@@ -1,31 +1,29 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara summary</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara summary</title>
-</head>
-
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-  <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-  <table style="width: 100%; height: 80vh">
-    <tr>
-      <td style="vertical-align: top;">
-        <div class="asdfasdfWrapper">
-          <div id="sample" style="width: 100%"></div>
-        </div>
-      </td>
-    </tr>
-  </table>
-</body>
-
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
+    <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
+    <table style="width: 100%; height: 80vh">
+      <tr>
+        <td style="vertical-align: top">
+          <div class="asdfasdfWrapper">
+            <div id="sample" style="width: 100%"></div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </body>
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -87,7 +85,6 @@
 
     if (themeElement) themeElement.value = theme ?? 'light';
 
-
     const jsonInfo = getItem(4, 100, 20);
 
     gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
@@ -98,8 +95,6 @@
     fn_button();
     fn_init(true);
   });
-
-
 
   var itemIdx = 0;
   function getItem(type, itemCount, cellCount) {
@@ -235,7 +230,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => { },
+            dropCallback: (data) => {},
           },
         },
         summary: {
@@ -295,7 +290,7 @@
           items: [
             {
               search: true,
-              callback: (keyword) => { },
+              callback: (keyword) => {},
             },
 
             {
@@ -370,7 +365,7 @@
             // 페이지 콜백
             callback1: function (arg) {
               console.log(arg);
-              //gridObj.setData(aaa);
+              //gridObj.setItems(aaa);
             },
           },
 

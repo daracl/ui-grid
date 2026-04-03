@@ -1,7 +1,5 @@
 import { Config, FieldHeaderGroupInfo } from '@t/GridConfig';
 
-import { DaraGrid } from '@/DaraGrid';
-import { FieldItem } from '@t/GridField';
 import {
   ADD_ROW_POSITION,
   ALIGN,
@@ -23,16 +21,14 @@ import {
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
 } from '@/constants';
-import { Header } from './main/header/Header';
-import { Body } from './main/body/Body';
-import { DaraElement } from '@/element/DaraElement';
+import { DaraGrid } from '@/DaraGrid';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from '@/defaultGridOption';
-import { Scroll } from './main/Scroll';
+import { DaraElement } from '@/element/DaraElement';
+import { SelectionInfo } from '@/selection/selection';
+import { GridOptions } from '@/types/GridOptions';
 import { eventOn } from '@/util/eventUtils';
 import { getTextWidth, heightOptionValue, isInputField } from '@/util/gridUtils';
-import { SelectionInfo } from '@/selection/selection';
-import { Footer } from './Footer';
 import {
   arrayCopy,
   debounce,
@@ -47,9 +43,14 @@ import {
   isVisible,
   merge,
 } from '@/util/utils';
-import { DataSearch } from './main/DataSearch';
-import { Summary } from './main/Summary';
+import { FieldItem } from '@t/GridField';
+import { Footer } from './Footer';
+import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
+import { DataSearch } from './main/DataSearch';
+import { Header } from './main/header/Header';
+import { Scroll } from './main/Scroll';
+import { Summary } from './main/Summary';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -66,6 +67,8 @@ export class GridMain {
   private readonly grid: DaraGrid;
 
   private readonly _BODY_STYLE: string[] = ['default', 'striped', 'borderless'];
+
+  private readonly opts: GridOptions;
 
   private header: Header;
 
@@ -95,20 +98,24 @@ export class GridMain {
 
   private GRID_OFFSET: any;
 
-  private readonly initGridSize: any;
+  private initGridSize: any;
 
   private readonly openLayers: HTMLElement[] = [];
 
   constructor(grid: DaraGrid) {
-    this.grid = grid;
-
     const opts = grid.getOptions();
+
+    this.grid = grid;
+    this.opts = opts;
+
     const headerOpts = opts.header;
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
-
     this.cellMinWidth = headerOpts.resize.minWidth;
+  }
 
-    this.setDataInfo(opts.items);
+  public init() {
+    const opts = this.opts;
+    this.setDataInfo(this.opts.items);
     this.calcGridDimention();
 
     this.initTemplate();
@@ -764,8 +771,6 @@ export class GridMain {
     dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
     dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
     dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
-
-    dataInfo.colLength = fieldLength;
   }
 
   /**
@@ -861,6 +866,7 @@ export class GridMain {
     cfg.currentFields = cfg.fieldHeaderGroup.leaf;
     cfg.fixedLeftIndex = fixedLeftIndex + 1;
     cfg.fixedRightIndex = fixedRightIndex > cfg.currentFields.length ? 0 : fixedRightIndex;
+    cfg.dataInfo.colLength = cfg.currentFields.length;
 
     if (opts.header.view === false) {
       return;
@@ -1127,28 +1133,16 @@ export class GridMain {
    *
    * @param {any[]} items
    */
-  public setData = (items: any[]) => {
+  public setItems = (items: any[]) => {
     this.setDataInfo(items);
-
-    this.body.dataDraw('setdata');
+    this.body.dataDraw('setItems');
   };
 
   private setDataInfo(items: any[]) {
-    const cfg = this.grid.config();
-
-    cfg.orginItems = arrayCopy(items);
-
-    this.setRowId(cfg);
-
-    this.setViewDataInfo(cfg.orginItems);
+    this.grid.config().dataManager.setItems(items);
   }
 
-  public setViewDataInfo(items: any[]) {
-    const cfg = this.grid.config();
-    cfg.items = arrayCopy(items);
-    cfg.dataInfo.rowLength = cfg.items.length;
-    cfg.dataInfo.lastRow = cfg.dataInfo.rowLength > 0 ? cfg.dataInfo.rowLength - 1 : 0;
-
+  public refreshBody() {
     this.calcBody();
     if (this.scroll) {
       this.scroll.calculate();
@@ -1156,39 +1150,8 @@ export class GridMain {
       this.fieldResize();
       this.summary.drawData();
     }
-  }
 
-  /**
-   * set item row id
-   *
-   * @public
-   * @param {Config} cfg
-   */
-  public setRowId(cfg: Config) {
-    const items = cfg.orginItems;
-    const len = items.length;
-
-    const rowHeight = cfg.rowHeight;
-
-    for (let i = 0; i < len; i += CHUNK_SIZE) {
-      const end = Math.min(i + CHUNK_SIZE, len);
-      const chunk = items.slice(i, end);
-
-      for (const item of chunk) {
-        this.setRowItemConfig(item, cfg, rowHeight, 0);
-      }
-    }
-  }
-
-  private setRowItemConfig(item: any, cfg: Config, rowHeight: number, depth: number) {
-    item[ROW_ID_KEY] = cfg.rowIdSeq++;
-    item[ROW_DEPTH_KEY] = ++depth;
-    item[ROW_CUD_KEY] = 'R';
-    item[ROW_HEIGHT_KEY] = rowHeight;
-
-    for (const childItem of item.children ?? []) {
-      this.setRowItemConfig(childItem, cfg, rowHeight, depth);
-    }
+    this.getBody().dataDraw('refreshBody');
   }
 
   /**
@@ -1200,14 +1163,14 @@ export class GridMain {
    */
   public addRow = (items: any | any[], position: ADD_ROW_POSITION, rowIndex?: number) => {
     const cfg = this.grid.config();
-    const currentItems = cfg.orginItems;
+    const currentItems = cfg.dataManager.getOriginItems();
     const isBefore = position === 'before';
 
     const addItems = Array.isArray(items) ? items : [items];
 
     insertToArray(currentItems, items, isBefore, rowIndex);
 
-    this.setData(currentItems);
+    this.setItems(currentItems);
 
     if (isUndefined(rowIndex)) {
       if (isBefore) {
@@ -1227,7 +1190,7 @@ export class GridMain {
    */
   public removeRow = (ids: any[]) => {
     const cfg = this.grid.config();
-    const currentItems = cfg.orginItems;
+    const currentItems = cfg.dataManager.getOriginItems();
 
     for (const item of currentItems) {
       if (ids.length < 1) break;
@@ -1239,8 +1202,8 @@ export class GridMain {
         item[ROW_CUD_KEY] = 'D';
       }
     }
-    this.setViewDataInfo(currentItems);
-    this.getBody().dataDraw('remove_row');
+    this.grid.config().dataManager.setViewItems(currentItems);
+    this.refreshBody();
   };
 
   /**
@@ -1249,7 +1212,7 @@ export class GridMain {
    * @public
    */
   public clearData() {
-    this.setData([]);
+    this.setItems([]);
   }
 
   /**
@@ -1259,7 +1222,7 @@ export class GridMain {
    * @returns {array} checked item array
    */
   public getCheckedItems(names?: string | string[]) {
-    const items = this.grid.config().items;
+    const items = this.grid.config().dataManager.getViewItems();
     const checkItems = [];
 
     let exportNames: string[] = [];
@@ -1376,6 +1339,16 @@ export class GridMain {
     cfg.theme = theme;
 
     if (!classList.contains(theme)) classList.add(theme);
+  }
+
+  /**
+   * tree 확장
+   * @param id id
+   */
+  expandRow(id: any) {
+    const cfg = this.grid.config();
+    cfg.dataManager.expandRow(id);
+    this.body.dataDraw('expandRow');
   }
 
   /**

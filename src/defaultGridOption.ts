@@ -215,6 +215,14 @@ export const DEFAULT_OPTIONS: GridOptions = {
       '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>',
   },
   operators: {}, // setting condition operator
+  tree: {
+    idField: 'id',
+    parentIdField: 'pid',
+    childrenField: 'children',
+    expandDepth: 0,
+    defaultExpandedIds: [],
+    isFlatData: false,
+  },
 };
 
 export const DEFAULT_FIELD_INFO: FieldItem = {

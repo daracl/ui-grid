@@ -15,6 +15,7 @@ import * as utils from './util/utils';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
 import { createHTMLElement } from './util/domUtils';
+import { DataManager } from './service/DataManager';
 
 declare const APP_VERSION: string;
 
@@ -110,10 +111,12 @@ export class DaraGrid {
 
   private createGrid() {
     this.mainConfig = initConfig(this.options);
+    this.mainConfig.dataManager = new DataManager(this.options, this.mainConfig);
 
     this.initGlobalConfig();
 
     this.gridMain = new GridMain(this);
+    this.gridMain.init();
   }
 
   public getOptions(): GridOptions {
@@ -158,7 +161,7 @@ export class DaraGrid {
   };
 
   public getData = () => {
-    return this.mainConfig.items;
+    return this.mainConfig.dataManager.getViewItems();
   };
 
   /**
@@ -169,8 +172,9 @@ export class DaraGrid {
    */
   public getDataByIndexs = (indexs: number[]) => {
     const result = [];
+    const items = this.mainConfig.dataManager.getViewItems();
     for (const index of indexs) {
-      result.push(this.mainConfig.items[index]);
+      result.push(items[index]);
     }
     return result;
   };
@@ -186,8 +190,8 @@ export class DaraGrid {
    *
    * @param {any[]} items
    */
-  public setData = (items: any[]) => {
-    this.gridMain.setData(items);
+  public setItems = (items: any[]) => {
+    this.gridMain.setItems(items);
   };
 
   public clearData = () => {

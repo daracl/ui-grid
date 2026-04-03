@@ -75,7 +75,7 @@ export class Summary {
     if (!this._isActive) return;
 
     const cfg = this.config;
-    const items = cfg.items;
+    const items = cfg.dataManager.getViewItems();
 
     const summaryItems = this.summaryOpts.items;
 

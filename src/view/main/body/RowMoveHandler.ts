@@ -164,7 +164,7 @@ export class RowMoveHandler extends CellClickHandler {
     const moveItems: CellInfo[] = [];
 
     if (moveRowIndexs.length > 0) {
-      const items = cfg.items;
+      const items = cfg.dataManager.getViewItems();
       if (moveRowIndexs.includes(moveStartItem.rowIndex)) {
         moveRowIndexs.sort((a, b) => a - b);
         for (const rowIdx of moveRowIndexs) {
@@ -358,7 +358,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     const moveRowIndexs = this.moveRowIndexs;
 
-    const items = cfg.items;
+    const items = cfg.dataManager.getViewItems();
 
     for (let idx = moveRowIndexs.length - 1; idx >= 0; idx--) {
       const rowIndex = moveRowIndexs[idx];
@@ -372,7 +372,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     items.splice(dropRowIdx, 0, ...this.moveItems);
 
-    cfg.items = items;
+    cfg.dataManager.setViewItems(items);
 
     let startCol = cfg.dataInfo.startCol;
     let endCol = cfg.dataInfo.colLength - 1;

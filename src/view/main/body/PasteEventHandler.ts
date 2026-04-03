@@ -64,17 +64,17 @@ export class PasteEvent implements EventHandler {
 
         const startCellInfo = cfg.selection.startCell;
 
-        const { currentFields, items } = cfg;
+        const { currentFields, dataInfo } = cfg;
 
         const startIdx = startCellInfo.startIdx,
           startCol = startCellInfo.startCol,
           headerItemsLength = currentFields.length;
 
-        let itemLength = items.length;
+        let itemLength = dataInfo.rowLength;
 
         let maxCol = 0;
         const iLen = contentArr.length;
-        let pasteResultItems: any[] = items;
+        let pasteResultItems: any[] = cfg.dataManager.getViewItems();
         if (startCellInfo.startIdx + iLen > itemLength) {
           // 붙여 넣기 데이터가 더 많으면 추가 row 생성.
           pasteResultItems = pasteResultItems.concat(
@@ -112,7 +112,8 @@ export class PasteEvent implements EventHandler {
           }
         }
 
-        this.gridMain.setViewDataInfo(pasteResultItems);
+        cfg.dataManager.setViewItems(pasteResultItems);
+        this.gridMain.refreshBody();
 
         this.selectionInfo.setSelectionRangeInfo(
           {

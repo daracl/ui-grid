@@ -299,7 +299,8 @@ export class SelectionInfo {
    * @description select data 구하기.
    */
   public selectionData(dataType: 'text' | 'json' = 'text', isSummary = false): any {
-    const { items, currentFields, selection, dataInfo } = this.config;
+    const { dataManager, currentFields, selection, dataInfo } = this.config;
+    const items = dataManager.getViewItems();
     const isJson = dataType === 'json';
 
     if (dataInfo.rowLength < 1) return isJson ? {} : '';

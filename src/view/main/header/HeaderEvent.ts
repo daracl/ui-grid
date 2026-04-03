@@ -205,6 +205,7 @@ export class HeaderEvent {
    */
   initSortEvent() {
     const cfg = this.grid.config();
+    const dataManager = cfg.dataManager;
     const sortElements = this.headerElement.finds('.dg-sort-icon');
 
     const nullsLast = this.headerOpts.sort.nullsLast;
@@ -232,7 +233,7 @@ export class HeaderEvent {
 
         let sortItems;
         if (isShiftKey(e)) {
-          sortItems = cfg.items;
+          sortItems = dataManager.getViewItems();
         } else {
           removeAttr(this.headerElement.finds('[data-dg-sort]'), 'data-dg-sort');
 
@@ -242,7 +243,7 @@ export class HeaderEvent {
             });
             cfg.sort.orders = [];
           }
-          sortItems = arrayCopy(cfg.orginItems);
+          sortItems = arrayCopy(dataManager.getOriginItems());
         }
 
         const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);
@@ -278,9 +279,9 @@ export class HeaderEvent {
                 index + 1 + '';
             });
           }
-          cfg.items = multiSort(sortItems, cfg.sort.orders, nullsLast);
+          dataManager.setViewItems(multiSort(sortItems, cfg.sort.orders, nullsLast));
         } else {
-          cfg.items = cfg.orginItems;
+          dataManager.setViewItems(cfg.dataManager.getOriginItems());
         }
 
         this.gridMain.selectionInfo.initSelection();

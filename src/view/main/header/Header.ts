@@ -330,6 +330,6 @@ export class Header {
         <thead><tr>${colGroupHtml.join('')}</tr></thead>
         <tbody>${rowsHtml.join('')}</tbody>
       </table>
-      ${type !== 'center' ? '<div class="fixed-column-line"></div>' : ''}`;
+      ${type === 'center' ? '' : '<div class="fixed-column-line"></div>'}`;
   }
 }

@@ -213,6 +213,20 @@ export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + '$CUD';
 export const ROW_DEPTH_KEY = ROw_ITEM_PREFIX_NAME + '$depth';
 
 /**
+ * row haschild key
+ *
+ * @type {"_dg$haschild"}
+ */
+export const ROW_HAS_CHILD_KEY = ROw_ITEM_PREFIX_NAME + '$haschild';
+
+/**
+ * row has expanded key
+ *
+ * @type {"_dg$expanded"}
+ */
+export const ROW_EXPANDED_KEY = ROw_ITEM_PREFIX_NAME + '$expanded';
+
+/**
  * row drag handle name
  *
  * @type {"$rowDragHandle"}

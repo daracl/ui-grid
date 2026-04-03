@@ -147,6 +147,55 @@ export interface GridOptions {
    * @type {ContextMenuOptions}
    */
   contextMenu?: ContextMenuOptions;
+
+  tree?: TreeOptions;
+}
+
+export interface TreeOptions {
+  /**
+   * 각 row를 고유하게 식별하는 필드명
+   * 예: 'id'
+   * ⚠️ 모든 row는 반드시 unique 해야 함
+   */
+  idField: string;
+
+  /**
+   * 부모 row의 id를 참조하는 필드명
+   * 예: 'parentId'
+   * - 루트 노드는 null, undefined, '0' 등으로 처리 가능
+   */
+  parentIdField: string;
+
+  /**
+   * 자식 노드 배열이 저장되는 필드명
+   * 기본값: 'children'
+   * 예: 'nodes', 'items', 'childList'
+   * ⚠️ API마다 다르므로 옵션으로 분리하는 것이 중요
+   */
+  childrenField?: string;
+
+  /**
+   * 초기 렌더 시 자동으로 펼칠 depth
+   * 예: 0 = 루트만, 1 = 1단계까지 펼침
+   * ⚠️ defaultExpandedIds보다 우선순위 낮게 처리하는 것을 권장
+   */
+  expandDepth?: number;
+
+  /**
+   * 특정 row들을 초기 상태에서 펼칠 때 사용
+   * 예: ['A', 'B']
+   * - 서버에서 expand 상태를 내려줄 때 유용
+   * - expandDepth보다 우선 적용 권장
+   */
+  defaultExpandedIds?: RowId[];
+
+  /**
+   * flat 데이터 구조를 tree 구조로 변환할지 여부
+   * true: [{id, parentId}] → tree 변환
+   * false: 이미 children 구조를 가진 데이터로 간주
+   * ⚠️ 대용량 데이터에서는 변환 비용 고려 필요
+   */
+  isFlatData?: boolean;
 }
 
 /**

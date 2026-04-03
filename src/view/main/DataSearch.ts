@@ -172,7 +172,7 @@ export class DataSearch {
     searchParameter.searchText = searchText;
     searchParameter.searchFields = searchField;
 
-    const result = gridDataSearch(cfg.orginItems, searchText, {
+    const result = gridDataSearch(cfg.dataManager.getOriginItems(), searchText, {
       matchCase: searchParameter.matchCase,
       matchWholeWord: searchParameter.matchWholeWord,
       useRegex: searchParameter.useRegex,
@@ -185,8 +185,8 @@ export class DataSearch {
     } else {
       cfg.searchEnable = true;
     }
-    this.gridMain.setViewDataInfo(result);
-    this.gridMain.getBody().dataDraw('search');
+    cfg.dataManager.setViewItems(result);
+    this.gridMain.refreshBody();
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }
 }

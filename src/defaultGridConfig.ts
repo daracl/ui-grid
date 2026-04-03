@@ -2,6 +2,7 @@ import { GridOptions, PagingParam } from '@t/GridOptions';
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from './types/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { isPlainObject } from './util/utils';
+import { DataManager } from './service/DataManager';
 
 /**
  * 
@@ -18,12 +19,9 @@ export function initConfig(opts: GridOptions): Config {
 
   return {
     rowIdSeq: 0,
+    dataManager: {} as DataManager,
     theme: 'light',
     isTreeType: false,
-    tree: {
-      idKey: 'id',
-      pidKey: 'pid',
-    },
     dimensions: {
       width: 0,
       height: 0,
@@ -62,8 +60,6 @@ export function initConfig(opts: GridOptions): Config {
     toolbar: { height: 0, width: 0 },
     initSettingFlag: false,
     template: {},
-    items: [],
-    orginItems: [],
     isHeaderResize: false,
     isOpenLayer: false,
     currentFields: [],

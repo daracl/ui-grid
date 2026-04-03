@@ -356,9 +356,7 @@ var G_TREE_CHILD_DATA = [
 ];
 
 var G_TREE_LIST_DATA = [
-  { id: '1', pid: '0', name: '회사' },
-
-  { id: '1-1', pid: '1', name: '인사부' },
+  { id: '1-1', pid: '1', name: '인사부flat' },
   { id: '1-1-1', pid: '1-1', name: '인사팀' },
   { id: '1-1-1-1', pid: '1-1-1', name: '김철수', position: '팀장', age: 38, email: 'chulsoo.kim@company.com' },
   { id: '1-1-1-2', pid: '1-1-1', name: '박영희', position: '팀원', age: 29, email: 'younghee.park@company.com' },

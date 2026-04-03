@@ -276,7 +276,7 @@ export class KeydownEvent {
         key: evtKey,
         moveCol: moveColIdx,
         moveRow: moveRowIdx,
-        item: cfg.items[moveRowIdx],
+        item: cfg.dataManager.getViewItems()[moveRowIdx],
       }) === false
     ) {
       return false;

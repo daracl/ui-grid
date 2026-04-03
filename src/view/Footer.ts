@@ -99,7 +99,7 @@ export class Footer {
   public goPage(pageNum: number) {
     const pagingInfo = this.config.paging;
     pagingInfo.currPage = pageNum;
-    pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.config.items.length;
+    pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.config.dataInfo.rowLength;
 
     const pagingViewInfo = this.setPaging(pagingInfo);
 
@@ -107,9 +107,11 @@ export class Footer {
       const countPerPage = pagingViewInfo?.countPerPage;
       const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
-      this.gridMain.setViewDataInfo(utils.arrayCopy(this.config.orginItems, startIdx, startIdx + countPerPage));
+      this.config.dataManager.setViewItems(
+        utils.arrayCopy(this.config.dataManager.getOriginItems(), startIdx, startIdx + countPerPage),
+      );
       this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
-      this.gridMain.getBody().dataDraw('paging');
+      this.gridMain.refreshBody();
       this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
     }
   }

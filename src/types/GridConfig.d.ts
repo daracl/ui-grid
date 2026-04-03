@@ -2,6 +2,7 @@ import { AnyKeyMap } from './Common';
 import { FieldItem } from './GridField';
 import { DaraElement } from '@/element/DaraElement';
 import { PagingOptions } from './GridOptions';
+import { DataManager } from '@/service/DataManager';
 
 /**
  * grid config info
@@ -11,10 +12,7 @@ export interface Config {
   rowIdSeq: number;
   theme: string;
   isTreeType: boolean;
-  tree?: {
-    idKey: string;
-    pidKey: string;
-  };
+  dataManager: DataManager;
   dimensions: {
     // grid total width
     width: number;
@@ -87,8 +85,6 @@ export interface Config {
   toolbar: { height: number; width: number };
   initSettingFlag: boolean;
   template: AnyKeyMap;
-  orginItems: Array;
-  items: Array;
   dataInfo: {
     colLength: number;
     rowLength: number;

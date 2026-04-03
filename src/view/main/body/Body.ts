@@ -95,7 +95,7 @@ export class Body {
    */
   public setAllCheckItem(cellInfo: HeaderCellInfo, checked: boolean) {
     this.rowCheckSet.clear();
-    const items = this.grid.config().items;
+    const items = this.grid.config().dataManager.getViewItems();
     for (const item of items) {
       item[ROW_CHECK_KEY] = checked;
       if (checked) this.rowCheckSet.add(item[ROW_ID_KEY]);
@@ -112,7 +112,8 @@ export class Body {
    */
   public setCheckItem(cellInfo: CellInfo, checked: boolean) {
     const item = cellInfo.item;
-    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
+    const cfg = this.grid.config();
+    const isRowAllowMultiSelect = cfg.isRowAllowMultiSelect;
 
     if (!isRowAllowMultiSelect) {
       if (this.beforeRowCheckItem) {
@@ -137,7 +138,7 @@ export class Body {
 
     this.gridMain
       .getHeader()
-      .setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, this.grid.config().items.length), cellInfo.c);
+      .setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength), cellInfo.c);
   }
 
   /**
@@ -154,7 +155,9 @@ export class Body {
 
     const result = [];
 
-    for (const item of cfg.items) {
+    const items = cfg.dataManager.getViewItems();
+
+    for (const item of items) {
       if (item[ROW_CHECK_KEY]) {
         result.push(item[name]);
       }
@@ -177,7 +180,9 @@ export class Body {
 
     const checkValue = utils.isArray(values) ? values : [values];
 
-    for (const item of cfg.items) {
+    const items = cfg.dataManager.getViewItems();
+
+    for (const item of items) {
       item[ROW_CHECK_KEY] = false;
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = true;
@@ -187,7 +192,7 @@ export class Body {
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
 
     this.dataDraw('setCheckedItemByValue');
   }
@@ -203,15 +208,16 @@ export class Body {
     const cfg = this.grid.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
+    const items = cfg.dataManager.getViewItems();
 
-    for (const item of cfg.items) {
+    for (const item of items) {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = true;
         this.rowCheckSet.add(item[ROW_ID_KEY]);
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
 
     this.dataDraw('addCheckedItemByValue');
   }
@@ -228,8 +234,9 @@ export class Body {
     const cfg = this.grid.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
+    const items = cfg.dataManager.getViewItems();
 
-    for (const item of cfg.items) {
+    for (const item of items) {
       if (checkValue.includes(item[name])) {
         item[ROW_CHECK_KEY] = false;
 
@@ -243,7 +250,7 @@ export class Body {
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.items.length));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
 
     this.dataDraw('unCheckedItemByValue');
   }
@@ -317,7 +324,7 @@ export class Body {
     const opts = this.grid.getOptions();
     const cfg = this.grid.config();
 
-    const items = cfg.items;
+    const items = cfg.dataManager.getViewItems();
 
     const leftFields = cfg.fieldHeaderGroup.leafLeft;
     const centerFields = cfg.fieldHeaderGroup.leafCenter;

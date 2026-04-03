@@ -79,7 +79,7 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
     r: posInfo.r,
     c: col,
     rowIndex: rowIndex,
-    item: cfg.items[rowIndex],
+    item: cfg.dataManager.getViewItems()[rowIndex],
     field: cfg.currentFields[posInfo.c],
   };
 };
@@ -150,7 +150,7 @@ export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
  * @returns {number} max width size
  */
 export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
-  const items = cfg.items;
+  const items = cfg.dataManager.getViewItems();
   const maxWidth = opts.header.resize.maxWidth;
   let returnMaxWidth = 0;
 
