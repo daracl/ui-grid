@@ -243,7 +243,7 @@ export class HeaderEvent {
             });
             cfg.sort.orders = [];
           }
-          sortItems = arrayCopy(dataManager.getOriginItems());
+          sortItems = arrayCopy(dataManager.getViewItems());
         }
 
         const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);

@@ -1,5 +1,5 @@
-import { CHUNK_SIZE } from '@/constants';
-import { MatchedField, SearchMode } from '@t/Common';
+import { ALL_SELECT_VALUE, CHUNK_SIZE } from '@/constants';
+import { MatchedField, SearchFields, SearchMode } from '@t/Common';
 import { hasOwnProp, merge } from './utils';
 
 export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): any[] {
@@ -27,7 +27,7 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       matchCase: false,
       matchWholeWord: false,
       useRegex: false,
-      searchFields: '$all$',
+      searchFields: ALL_SELECT_VALUE,
       matchWholeRegex: /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g,
     },
     options,
@@ -86,8 +86,8 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
   return results;
 }
 
-function getSearchFields(searchList: any[], searchFields: string | string[] | '$all$'): string[] {
-  if (searchFields === '$all$') {
+function getSearchFields(searchList: any[], searchFields: SearchFields): string[] {
+  if (searchFields === ALL_SELECT_VALUE) {
     return searchList.length > 0 ? Object.keys(searchList[0]) : [];
   }
 

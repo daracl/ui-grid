@@ -1,3 +1,4 @@
+import { ALL_SELECT_VALUE } from '../constants';
 export interface OptionCallback {
   (...params: any[]): any;
 }
@@ -37,9 +38,11 @@ export type SearchMode = {
   matchCase?: boolean;
   matchWholeWord?: boolean;
   useRegex?: boolean;
-  searchFields?: string | string[] | '$all$';
+  searchFields?: SearchFields;
   matchWholeRegex?: RegExp;
 };
+
+export type SearchFields = string | string[] | ALL_SELECT_VALUE;
 
 export type MatchedField = {
   fieldName: string;

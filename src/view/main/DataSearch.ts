@@ -126,6 +126,7 @@ export class DataSearch {
     eventOff(searchTextElement, 'keydown');
     eventOn(searchTextElement, 'keydown', (e: KeyboardEvent) => {
       if (isEnter(e)) {
+        stopPreventCancel(e);
         this.simpleSearch();
       }
     });
@@ -172,7 +173,7 @@ export class DataSearch {
     searchParameter.searchText = searchText;
     searchParameter.searchFields = searchField;
 
-    const result = gridDataSearch(cfg.dataManager.getOriginItems(), searchText, {
+    cfg.dataManager.search(searchText, {
       matchCase: searchParameter.matchCase,
       matchWholeWord: searchParameter.matchWholeWord,
       useRegex: searchParameter.useRegex,
@@ -185,7 +186,7 @@ export class DataSearch {
     } else {
       cfg.searchEnable = true;
     }
-    cfg.dataManager.setViewItems(result);
+
     this.gridMain.refreshBody();
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }

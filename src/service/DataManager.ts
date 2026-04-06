@@ -5,9 +5,12 @@ import {
   ROW_EXPANDED_KEY,
   ROW_HEIGHT_KEY,
   ROW_ID_KEY,
+  ALL_SELECT_VALUE,
 } from '@/constants';
+import { SearchMode } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
+import { gridDataSearch } from '@/util/searchUtils';
 
 type RowId = string | number;
 
@@ -316,82 +319,101 @@ export class DataManager {
   public getRow(rowId: RowId) {
     return this.rowMap.get(rowId);
   }
-  /*
-  public search(keyword: string) {
-    if (!keyword) {
-      // 검색 초기화
-      this.initExpandedState();
-      this.buildViewItems();
+
+  search(keyword: string, options: SearchMode) {
+    const gridValue = [...this.rowMap.values()];
+
+    if (!keyword.trim()) {
+      this.setViewItems(gridValue);
       return;
     }
 
-    const lower = keyword.toLowerCase();
-
-    const matchedSet = new Set<RowId>();
-    const visibleSet = new Set<RowId>();
-
-    this.rowMap.entries();
-
-    // 1. match 찾기
-    for (const [rowId, item] of this.rowMap.entries()) {
-      const name = String(item.name ?? '').toLowerCase();
-
-      if (name.includes(lower)) {
-        matchedSet.add(rowId);
-
-        // 2. 부모 추적
-        let current = item;
-        while (current) {
-          const currentRowId = current[ROW_ID_KEY];
-          visibleSet.add(currentRowId);
-
-          const parentId = current[this.pidKey];
-          const parentRowId = this.idMap.get(parentId);
-
-          if (!parentRowId) break;
-
-          current = this.rowMap.get(parentRowId);
-        }
-      }
+    if (options.searchFields == ALL_SELECT_VALUE) {
+      options.searchFields = this.cfg.currentFields
+        .filter((item) => !item.$isAside)
+        .map((item) => {
+          return item.name;
+        });
     }
 
-    // 3. expandedSet 구성 (검색 결과는 자동 펼침)
-    this.expandedSet.clear();
+    const searchResults = gridDataSearch(gridValue, keyword, options);
 
-    for (const rowId of visibleSet) {
-      const children = this.childrenMap.get(rowId);
-      if (children?.length) {
-        this.expandedSet.add(rowId);
-      }
+    console.log('searchResults : ', this.isTreeType, searchResults);
+
+    if (!this.isTreeType) {
+      this.setViewItems(searchResults);
+      return;
     }
 
-    // 4. viewItems 생성 (필터 적용 DFS)
+    // 트리 형태로 다시 구성
+    const tree = this.buildSearchedTree(this.originItems, searchResults);
+
+    // flatten for view cache
     const result: any[] = [];
-
     const dfs = (list: any[]) => {
-      for (const item of list) {
-        const rowId = item[ROW_ID_KEY];
-
-        if (!visibleSet.has(rowId)) continue;
-
-        result.push(item);
-
-        if (this.expandedSet.has(rowId)) {
-          const children = this.childrenMap.get(rowId);
-          if (children) dfs(children);
+      for (const node of list) {
+        result.push(node);
+        if (node[this.childrenKey]?.length) {
+          dfs(node[this.childrenKey]);
         }
       }
     };
-
-    dfs(this.originItems);
-
-    // 5. item 상태 동기화
-    for (const item of this.rowMap.values()) {
-      const rowId = item[ROW_ID_KEY];
-      item[ROW_EXPANDED_KEY] = this.expandedSet.has(rowId);
-    }
+    dfs(tree);
 
     this.setViewItems(result);
   }
-    */
+
+  buildSearchedTree(originTree: any[], searchResults: any[]): any[] {
+    const idKey = this.idKey;
+    const parentKey = this.pidKey;
+    const childrenKey = this.childrenKey;
+
+    // 1) Flat index from origin tree
+    const nodeMap = new Map<any, any>();
+    const flatList: any[] = [];
+
+    const dfsFlat = (nodes: any[]) => {
+      for (const n of nodes) {
+        flatList.push(n);
+        nodeMap.set(n[idKey], n);
+        if (n[childrenKey]?.length) dfsFlat(n[childrenKey]);
+      }
+    };
+    dfsFlat(originTree);
+
+    // 2) 검색된 노드 ID set
+    const matchedIds = new Set(searchResults.map((item) => item[idKey]));
+
+    // 3) 검색된 노드의 모든 조상 포함
+    const visibleIds = new Set<any>();
+
+    const addWithParents = (id: any) => {
+      if (!id || visibleIds.has(id)) return;
+      visibleIds.add(id);
+
+      const node = nodeMap.get(id);
+      if (node && node[parentKey]) addWithParents(node[parentKey]);
+    };
+
+    for (const id of matchedIds) addWithParents(id);
+
+    // 4) 트리 재구성(O(n))
+    const rebuildTree = (nodes: any[]): any[] => {
+      const result: any[] = [];
+      for (const n of nodes) {
+        if (!visibleIds.has(n[idKey])) continue;
+
+        const clone = { ...n };
+        if (n[childrenKey]?.length) {
+          clone[childrenKey] = rebuildTree(n[childrenKey]);
+        } else {
+          clone[childrenKey] = [];
+        }
+        result.push(clone);
+      }
+      return result;
+    };
+
+    return rebuildTree(originTree);
+  }
 }

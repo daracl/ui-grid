@@ -542,9 +542,12 @@ export class Body {
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
 
+    if (field.$isAside) return;
+
     if (searchEnable) {
       const { classList } = cellElement;
       let highlightFlag = false;
+
       if (item.$$matchedFields && item.$$matchedFields.length > 0) {
         for (const matchItem of item.$$matchedFields) {
           if (field.name == matchItem.fieldName) {
@@ -560,8 +563,6 @@ export class Body {
         classList.remove('dg-search-highlight');
       }
     }
-
-    if (field.$isAside) return;
 
     this.selectionInfo.setCellSelectionStyleClass(
       cellElement,

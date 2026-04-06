@@ -3,6 +3,7 @@ import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, Selectio
 import { FieldItem } from '@t/GridField';
 import { isPlainObject } from './util/utils';
 import { DataManager } from './service/DataManager';
+import { ALL_SELECT_VALUE } from './constants';
 
 /**
  * 
@@ -51,7 +52,7 @@ export function initConfig(opts: GridOptions): Config {
       matchCase: false,
       matchWholeWord: false,
       useRegex: false,
-      searchFields: '$all$',
+      searchFields: ALL_SELECT_VALUE,
       searchText: '',
     },
     fieldHeaderGroup: defaultFieldGroupInfo(),

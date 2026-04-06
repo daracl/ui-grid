@@ -1,8 +1,9 @@
-import { AnyKeyMap } from './Common';
+import { AnyKeyMap, SearchFields } from './Common';
 import { FieldItem } from './GridField';
 import { DaraElement } from '@/element/DaraElement';
 import { PagingOptions } from './GridOptions';
 import { DataManager } from '@/service/DataManager';
+import { ALL_SELECT_VALUE } from '../constants';
 
 /**
  * grid config info
@@ -103,7 +104,7 @@ export interface Config {
     matchCase: boolean;
     matchWholeWord: boolean;
     useRegex: boolean;
-    searchFields: string | string[] | '$all$';
+    searchFields: SearchFields;
     searchText: string;
   };
   paging: PagingOptions;
