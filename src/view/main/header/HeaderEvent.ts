@@ -1,9 +1,13 @@
-import { HeaderOptions } from '@t/GridOptions';
 import { Config, Selection, SelectionRange } from '@t/GridConfig';
+import { HeaderOptions } from '@t/GridOptions';
 
+import { POINTER_STATE } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
-import { GridMain } from '../../GridMain';
+import { ClickManager } from '@/event/ClickManager';
+import { PointerSession } from '@/event/PointerSession';
+import { FieldSortInfo } from '@/types/Header';
+import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from '@/util/domUtils';
 import {
   eventOff,
   eventOn,
@@ -15,15 +19,17 @@ import {
 } from '@/util/eventUtils';
 import {
   dragHorizontalMovePosition,
-  getMaxColumnSize,
+  getHeaderResizeCellInfo,
   isFixedLeftPostion,
   isFixedRightPostion,
+  isMouseMoved,
   isMultipleCellSelectionMode,
   isRowSelectionMode,
 } from '@/util/gridUtils';
-import { addAttr, getElementRect, getLayerElement, innerLayerPosition, removeAttr } from '@/util/domUtils';
-import { Header } from './Header';
 import { arrayCopy, isFunction, multiSort } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { Header } from './Header';
+import { ResizeHandler } from './ResizeHandler';
 
 /**
  * Header class
@@ -43,8 +49,6 @@ export class HeaderEvent {
 
   private readonly headerCellElements: HTMLElement[];
 
-  private readonly resizerHelperElement: DaraElement;
-
   private drag: any;
 
   private toolTipElement: HTMLElement;
@@ -56,8 +60,6 @@ export class HeaderEvent {
     this.drag = {};
     this.headerElement = this.header.getHeaderElement();
     this.headerCellElements = this.header.getHeaderCellElements();
-
-    this.resizerHelperElement = this.grid.element().findDaraElement('.dg-resize-helper');
 
     this.headerOpts = grid.getOptions().header;
 
@@ -205,11 +207,12 @@ export class HeaderEvent {
    */
   initSortEvent() {
     const cfg = this.grid.config();
+    const sortOrders = cfg.sort.orders;
     const dataManager = cfg.dataManager;
     const sortElements = this.headerElement.finds('.dg-sort-icon');
 
     const nullsLast = this.headerOpts.sort.nullsLast;
-
+    let beforeSortOrderLength = 0;
     eventOff(sortElements, 'mousedown touchstart');
     eventOn(
       sortElements,
@@ -237,52 +240,52 @@ export class HeaderEvent {
         } else {
           removeAttr(this.headerElement.finds('[data-dg-sort]'), 'data-dg-sort');
 
-          if (cfg.sort.orders.length > 1 || !cfg.sort.orders.some((item: any) => item.key === sortName)) {
-            cfg.sort.orders.forEach((item: any, index: number) => {
+          if (sortOrders.length > 1 || !sortOrders.some((item: FieldSortInfo) => item.name === sortName)) {
+            sortOrders.forEach((item: FieldSortInfo) => {
               (this.headerCellElements[item.sortCell].querySelector('.dg-sort-num') as HTMLElement).textContent = '';
             });
-            cfg.sort.orders = [];
+            sortOrders.length = 0;
+            beforeSortOrderLength = 0;
           }
           sortItems = arrayCopy(dataManager.getViewItems());
         }
 
-        const currentSortItem = cfg.sort.orders.find((item: any) => item.key === sortName);
+        const currentSortItem = sortOrders.find((item: FieldSortInfo) => item.name === sortName);
 
-        let isNumModify = false;
         if (currentSortItem) {
           if (currentSortItem.ascOrder) {
             addAttr(currentElement, { 'data-dg-sort': 'desc' });
             currentSortItem.ascOrder = !currentSortItem.ascOrder;
           } else {
-            const index = cfg.sort.orders.findIndex((item: any) => item.key === sortName);
+            const index = sortOrders.findIndex((item: FieldSortInfo) => item.name === sortName);
 
             if (index !== -1) {
-              cfg.sort.orders.splice(index, 1);
+              sortOrders.splice(index, 1);
             }
-
-            isNumModify = true;
 
             (currentElement.querySelector('.dg-sort-num') as HTMLElement).textContent = '';
 
             removeAttr(currentElement, 'data-dg-sort');
           }
         } else {
-          isNumModify = true;
           addAttr(currentElement, { 'data-dg-sort': 'asc' });
-          cfg.sort.orders.push({ key: sortName, ascOrder: true, sortCell: sortCell });
+          sortOrders.push({ name: sortName, ascOrder: true, sortCell: sortCell });
         }
 
-        if (cfg.sort.orders.length > 0) {
-          if (cfg.sort.orders.length > 1 && isNumModify) {
-            cfg.sort.orders.forEach((item: any, index: number) => {
+        if (sortOrders.length > 0) {
+          if (beforeSortOrderLength >= 1 && beforeSortOrderLength != sortOrders.length) {
+            sortOrders.forEach((item: FieldSortInfo, index: number) => {
               (this.headerCellElements[item.sortCell].querySelector('.dg-sort-num') as HTMLElement).textContent =
                 index + 1 + '';
             });
           }
-          dataManager.setViewItems(multiSort(sortItems, cfg.sort.orders, nullsLast));
+
+          dataManager.setViewItems(multiSort(sortItems, sortOrders, nullsLast));
         } else {
-          dataManager.setViewItems(cfg.dataManager.getOriginItems());
+          dataManager.setViewItems(cfg.dataManager.getViewItems());
         }
+
+        beforeSortOrderLength = sortOrders.length;
 
         this.gridMain.selectionInfo.initSelection();
         this.gridMain.getBody().dataDraw('sort');
@@ -465,77 +468,86 @@ export class HeaderEvent {
 
     const resizerElements = this.headerElement.finds('.dg-header-resizer');
 
-    let clicks = 0;
-    let clickTimer: any;
-    const threshold = 200;
+    const resizeHandler = new ResizeHandler({ grid: this.grid, gridMain: this.gridMain, header: this.header }, this);
 
-    //header resize, dblclick or drag
-    eventOff(resizerElements, 'mousedown touchstart');
-    eventOn(
-      resizerElements,
-      'mousedown touchstart',
-      (e: UIEvent) => {
-        stopPreventCancel(e);
+    let session: PointerSession;
+    const editable = opts.editable;
 
-        this.gridMain.hideLayer();
+    const clickManager = new ClickManager();
 
-        const targetElement = e.currentTarget as HTMLElement;
-        this.calcColumnResize(targetElement);
-        clicks++;
-        // click drag
-        if (clicks === 1) {
-          clickTimer = setTimeout(() => {
-            clicks = 0;
-          }, threshold);
-        }
+    const DRAG_THRESHOLD = 5; // px
 
-        // dblclick
-        if (clicks === 2) {
-          const field = cfg.currentFields[this.drag.resizeIdx];
+    eventOn(resizerElements, 'mousedown.resizerclick touchstart.resizerclick', (e: UIEvent) => {
+      if ((e as MouseEvent).button !== 0) {
+        return true;
+      }
 
-          const resizeW = getMaxColumnSize(cfg, opts, field, 0);
+      stopPreventCancel(e);
 
-          this.header.setColumnWidth(this.drag.resizeIdx, resizeW);
+      this.gridMain.hideLayer();
 
-          clearTimeout(clickTimer);
-          clicks = 0;
+      const targetElement = e.currentTarget as HTMLElement;
 
-          return;
-        }
+      const startEvtPosition = eventPosition(e);
+      const startCellInfo = getHeaderResizeCellInfo(cfg, targetElement);
+      startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
-        let resizeMoveX = 0;
+      session = {
+        state: 'PRESSED',
+        event: e,
+        startPos: startEvtPosition,
+        currentPos: startEvtPosition,
+        cellInfo: startCellInfo,
+        startTime: Date.now(),
+        lastClickTime: 0,
+        cellEl: targetElement,
+        clickManager: clickManager,
+        handler: resizeHandler,
+      };
 
-        const startX = eventPosition(e).x;
+      const handler = session.handler!;
 
-        this.resizerHelperElement.css({ left: this.drag.positionLeft + 'px' });
-        this.resizerHelperElement.addClass('active');
+      handler.onPointerDown?.(session);
 
-        let isMouseMove = false;
+      if (handler.onPointerMove) {
+        let isStarted = false;
+        eventOn(document, 'touchmove.cellclick mousemove.cellclick', (moveEvt: Event) => {
+          session.currentPos = eventPosition(moveEvt);
 
-        eventOn(document, 'touchmove mousemove', (e1: Event) => {
-          isMouseMove = true;
-          document.documentElement.setAttribute('onselectstart', 'return false');
+          if (!isStarted) {
+            if (!isMouseMoved(session.startPos, session.currentPos, DRAG_THRESHOLD)) {
+              return;
+            }
 
-          const moveX = eventPosition(e1).x;
-
-          resizeMoveX = moveX - startX;
-          const moveLeftPosition = this.drag.positionLeft + resizeMoveX;
-          this.resizerHelperElement.css({ left: moveLeftPosition + 'px' });
-        });
-
-        eventOn(document, 'touchend mouseup', (e1: Event) => {
-          eventOff(document, 'touchmove mousemove touchend mouseup');
-          this.resizerHelperElement.removeClass('active');
-          if (isMouseMove) {
-            document.documentElement.removeAttribute('onselectstart');
-
-            this.headerColumnResize(this.drag.resizeIdx, resizeMoveX);
+            isStarted = true;
+            cfg.isBodyDragging = true;
+            if (handler.onActivate?.(session) === false) {
+              eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+              return;
+            }
           }
+
+          session.state = POINTER_STATE.DRAGGING;
+
+          handler.onPointerMove?.(session);
         });
-      },
-      null,
-      { passive: false },
-    );
+
+        eventOn(document, 'touchend.cellclick mouseup.cellclick', (moveEvt: Event) => {
+          eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+          session.state = POINTER_STATE.IDLE;
+          session.currentPos = eventPosition(moveEvt);
+          handler.onPointerUp?.(session);
+          cfg.isBodyDragging = false;
+        });
+      }
+
+      clickManager.processClick(session, handler);
+    });
+
+    eventOn(resizerElements, 'mouseup.resizerclick touchend.resizerclick', (e: UIEvent) => {
+      cfg.selection.isMouseDown = false;
+      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
+    });
   }
 
   /**
@@ -555,42 +567,6 @@ export class HeaderEvent {
     this.header.setColumnWidth(resizeIdx, w);
     if (isFunction(this.headerOpts.resize.update)) {
       this.headerOpts.resize.update.call(null, { index: this.drag.resizeIdx, width: w });
-    }
-  }
-
-  /**
-   *column resize calculate
-   *
-   * @param sEle
-   */
-  public calcColumnResize(sEle: HTMLElement) {
-    const cfg = this.grid.config();
-    this.drag = {};
-    const colIdx = (sEle as HTMLElement)?.getAttribute('data-resize-idx') ?? '0';
-
-    this.drag.resizeIdx = parseInt(colIdx, 10);
-
-    const isLeftContent = isFixedLeftPostion(cfg, this.drag.resizeIdx);
-    const isRightContent = isFixedRightPostion(cfg, this.drag.resizeIdx);
-
-    let posLeft = 0;
-    if (isRightContent) {
-      for (let i = cfg.fixedRightIndex; i <= this.drag.resizeIdx; i++) {
-        posLeft += cfg.currentFields[i].$width;
-      }
-      this.drag.positionLeft = cfg.dimensions.mainInsideWidth - cfg.dimensions.mainRightWidth + posLeft;
-    } else if (isLeftContent) {
-      for (let i = 0; i <= this.drag.resizeIdx; i++) {
-        posLeft += cfg.currentFields[i].$width;
-      }
-
-      this.drag.positionLeft = posLeft;
-    } else {
-      for (let i = 0; i <= this.drag.resizeIdx; i++) {
-        posLeft += cfg.currentFields[i].$width;
-      }
-
-      this.drag.positionLeft = posLeft - cfg.scroll.centerLeftPosition;
     }
   }
 

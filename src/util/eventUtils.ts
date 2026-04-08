@@ -1,4 +1,4 @@
-import { isEmpty, isString, isUndefined } from './utils';
+import { isEmpty, isObject, isString, isUndefined } from './utils';
 import { $querySelector } from './domUtils';
 import { PointerPosition } from '@/event/PointerSession';
 
@@ -71,7 +71,7 @@ export function allEventOff() {
 }
 
 /**
- * spacebar check
+ * enter key check
  *
  * @param {Event} evt event
  * @returns {boolean}
@@ -79,11 +79,25 @@ export function allEventOff() {
 export function isEnter(evt: Event): boolean {
   const event = evt as KeyboardEvent;
 
-  if (event.key === 'Enter' || event.code === 'Enter') {
-    return true;
-  }
-  return false;
+  return event.key === 'Enter' || event.code === 'Enter';
 }
+
+/**
+ * esc key check
+ *
+ * @param {Event} evt event
+ * @returns {boolean}
+ */
+export function isEsc(evt: Event): boolean {
+  const event = evt as KeyboardEvent;
+
+  return (
+    event.key === 'Escape' || // 표준
+    event.key === 'Esc' || // 구형 브라우저
+    event.code === 'Escape' // 물리 키 기준
+  );
+}
+
 /**
  * html element event 등록
  *
@@ -170,6 +184,7 @@ export const eventOn = (
       }
     };
   } else {
+    fnOpts = isObject(selector) ? selector : fnOpts;
     fn = (e: Event) => {
       if (listener(e, el) === false) {
         e.stopImmediatePropagation();
@@ -181,6 +196,9 @@ export const eventOn = (
   for (const eventType of eventTypes) {
     addEventInfo(el, eventType, fn);
     const event = eventType.split('.')[0];
+
+    //console.log('11111111111 ', event, elements.length);
+
     elements.forEach((el: Node) => {
       el.addEventListener(event, fn, fnOpts ?? {});
     });

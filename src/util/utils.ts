@@ -1,3 +1,4 @@
+import { FieldSortInfo } from '@/types/Header';
 import { FieldItem } from '@t/GridField';
 
 const xssFilter = {
@@ -266,16 +267,17 @@ export function camelToKebab(str: string) {
 /**
  * 다중 키 기준으로 JSON 배열 정렬 (null/undefined 처리 포함)
  * @param {Array<Object>} data - 정렬할 JSON 배열
- * @param {Array<{ key: string, ascOrder?: boolean }>} sortKeys - 정렬 기준 키 배열
+ * @param {Array<{ name: string, ascOrder?: boolean }>} sortKeys - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-export function multiSort(data: any[], sortKeys = [], emptyValueLast?: boolean) {
+
+export function multiSort(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean) {
   const sortArr = Array.from(sortKeys);
 
   return data.slice().sort((a, b) => {
-    for (const { key, ascOrder = true } of sortArr) {
-      const valA = a[key];
-      const valB = b[key];
+    for (const { name, ascOrder = true } of sortArr) {
+      const valA = a[name];
+      const valB = b[name];
 
       const isNullishA = valA === null || valA === undefined;
       const isNullishB = valB === null || valB === undefined;

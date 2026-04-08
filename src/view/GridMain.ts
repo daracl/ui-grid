@@ -267,13 +267,15 @@ export class GridMain {
    * @public
    * @param {Event} e event
    */
-  public setGridFocusIn(e: Event, focunInFlag = false) {
-    if (!focunInFlag) {
+  public setGridFocusIn(e?: Event, focunInFlag = false) {
+    if (!focunInFlag && e) {
       const targetElement = e.target as HTMLElement;
       if (targetElement.closest('.dg-body') == null && targetElement.closest('.dg-layer-container') == null) {
         this.hideLayer();
       }
     }
+
+    if (this._mainElement) this._mainElement.getElement().focus({ preventScroll: true });
 
     if (this.grid.config().focus) return;
     this.grid.config().focus = true;
@@ -330,6 +332,7 @@ export class GridMain {
         }
       }
       this.grid.config().isOpenLayer = this.openLayers.length > 0;
+      this.setGridFocusIn();
       return;
     }
 
@@ -343,11 +346,8 @@ export class GridMain {
       this.openLayers.splice(idx, 1);
     }
 
-    const mainElement = this._mainElement.getElement();
-
     this.grid.config().activeComponent = '';
-
-    mainElement.focus({ preventScroll: true });
+    this.setGridFocusIn();
   }
 
   /**

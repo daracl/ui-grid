@@ -119,6 +119,15 @@ export const getHeaderCellInfo = (cfg: Config, cellElement: HTMLElement): Header
   };
 };
 
+export const getHeaderResizeCellInfo = (cfg: Config, cellElement: HTMLElement): HeaderCellInfo => {
+  const col = intValue(cellElement.getAttribute('data-resize-idx') ?? '-1');
+
+  return {
+    c: col,
+    field: cfg.currentFields[col],
+  };
+};
+
 /**
  * cell element
  * @param cellElement cell element

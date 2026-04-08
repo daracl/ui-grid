@@ -1,9 +1,9 @@
+import { DaraElement } from '@/element/DaraElement';
+import { DataManager } from '@/service/DataManager';
 import { AnyKeyMap, SearchFields } from './Common';
 import { FieldItem } from './GridField';
-import { DaraElement } from '@/element/DaraElement';
 import { PagingOptions } from './GridOptions';
-import { DataManager } from '@/service/DataManager';
-import { ALL_SELECT_VALUE } from '../constants';
+import { FieldSortInfo } from '@/type/Header';
 
 /**
  * grid config info
@@ -98,7 +98,7 @@ export interface Config {
   cellWidths: Array;
   rowHeight: number;
   sort: {
-    orders: Array;
+    orders: FieldSortInfo[];
   };
   searchParameter: {
     matchCase: boolean;

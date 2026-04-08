@@ -104,7 +104,7 @@ export class CellClickHandler implements PointerHandler {
 
   onPointerDown(session: PointerSession): void {
     this.cellElement = session.cellEl!;
-    this.startCellInfo = session.cellInfo!;
+    this.startCellInfo = session.cellInfo as CellInfo;
     this.currentSelectionMode = this.selectionMode;
   }
 
@@ -303,7 +303,7 @@ export class CellClickHandler implements PointerHandler {
   onDoubleClick(session: PointerSession): void {
     if (!this.isCellDbClickEvent) return;
 
-    const cellInfo = session.cellInfo!;
+    const cellInfo = session.cellInfo as CellInfo;
     const field = cellInfo.field;
 
     if (

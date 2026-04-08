@@ -1,4 +1,4 @@
-import { CellInfo } from '@/types/GridConfig';
+import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
 import { PointerHandler } from '@/event/PointerHandler';
 import { ClickManager } from './ClickManager';
 
@@ -19,6 +19,6 @@ export interface PointerSession {
   clickManager: ClickManager;
 
   handler?: PointerHandler;
-  cellInfo?: CellInfo;
+  cellInfo?: CellInfo | HeaderCellInfo;
   cellEl?: HTMLElement;
 }

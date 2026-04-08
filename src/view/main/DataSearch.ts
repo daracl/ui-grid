@@ -3,7 +3,7 @@ import { Config } from '@t/GridConfig';
 import { ALL_SELECT_VALUE } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
-import { eventOff, eventOn, isEnter, stopPreventCancel } from '@/util/eventUtils';
+import { eventOff, eventOn, isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { gridDataSearch } from '@/util/searchUtils';
 import { SearchOptions } from '@t/GridOptions';
 import { toggleClass } from '../../util/styleUtils';
@@ -107,8 +107,8 @@ export class DataSearch {
 
     const openPosition = innerLayerPosition(rendererContainer, searchIconElement, searchElement);
 
-    searchStyle.top = `${openPosition.top + 3}px`;
-    searchStyle.left = `${openPosition.left + 3}px`;
+    searchStyle.top = `${openPosition.top - 5}px`;
+    searchStyle.left = `${openPosition.left + 12}px`;
 
     this.searchTextElement = this.searchElement.querySelector('.dg-search-text') as HTMLInputElement;
     this.searchFieldElement = this.searchElement.querySelector('.dg-search-field') as HTMLSelectElement;
@@ -123,11 +123,18 @@ export class DataSearch {
     const cfg = this.grid.config();
     const searchParameter = cfg.searchParameter;
     const searchTextElement = this.searchTextElement;
+
     eventOff(searchTextElement, 'keydown');
     eventOn(searchTextElement, 'keydown', (e: KeyboardEvent) => {
+      e.stopPropagation();
+      if (e.isComposing) return;
+
       if (isEnter(e)) {
-        stopPreventCancel(e);
+        e.preventDefault();
         this.simpleSearch();
+      } else if (isEsc(e)) {
+        cfg.searchEnable = false;
+        this.gridMain.hideLayer(this.searchElement);
       }
     });
 
