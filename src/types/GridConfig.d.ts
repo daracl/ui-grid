@@ -13,6 +13,8 @@ export interface Config {
   rowIdSeq: number;
   theme: string;
   isTreeType: boolean;
+  // header help button
+  enableHeaderHelpButton: boolean;
   dataManager: DataManager;
   dimensions: {
     // grid total width

@@ -82,18 +82,9 @@ export interface FieldItem {
     content?: OptionCallback;
   };
   /**
-   * header tooltip 설정
+   * header help 설정
    */
-  headerTooltip?: {
-    /**
-     * 툴팁 보일지 여부.
-     */
-    enabled: boolean;
-    /**
-     * 툴팁 내용
-     */
-    content?: string | OptionCallback;
-  };
+  headerHelp: string | OptionCallback | undefined;
   /**
    * 자식 컬럼 정보
    */
@@ -169,4 +160,9 @@ export interface FieldItem {
    * column seq
    */
   $colSeq: number;
+
+  /**
+   * enable help button
+   */
+  $enableHelp: boolean;
 }

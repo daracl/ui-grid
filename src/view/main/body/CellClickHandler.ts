@@ -1,5 +1,5 @@
 import { PointerContext } from '@/event/PointerContext';
-import { PointerHandler } from '@/event/PointerHandler';
+import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
 import { Config, SelectionRange, Selection, CellInfo } from '@/types/GridConfig';
@@ -25,13 +25,11 @@ import { DaraElement } from '@/element/DaraElement';
  * @class CellClickHandler
  * @typedef {CellClickHandler}
  */
-export class CellClickHandler implements PointerHandler {
+export class CellClickHandler extends BasePointerHandler {
   priority = 5;
   protected readonly rowHeight: number;
-  protected readonly context: PointerContext;
-  protected readonly cfg: Config;
+
   protected readonly selectionInfo: SelectionInfo;
-  protected readonly opts: GridOptions;
   private readonly bodyDragDelay = 150;
 
   protected readonly selectionMode: string;
@@ -75,12 +73,11 @@ export class CellClickHandler implements PointerHandler {
   private readonly bodyElement: HTMLElement;
 
   public constructor(context: PointerContext, bodyEvent: BodyEvent) {
-    this.context = context;
-    this.cfg = context.grid.config();
+    super(context);
+
     this.selectionInfo = context.gridMain.selectionInfo;
 
     this.bodyElement = context.body?.getBodyElement().getElement() as HTMLElement;
-    this.opts = context.grid.getOptions();
 
     this.selectionMode = this.opts.selectionMode;
 
@@ -96,10 +93,6 @@ export class CellClickHandler implements PointerHandler {
     this.cellDblClick = this.opts.body.cellDblClick;
 
     this.isCellDbClickEvent = this.editable || this.enableDblClickRowCheck || utils.isFunction(this.cellDblClick);
-  }
-
-  canHandle(session: PointerSession) {
-    return true;
   }
 
   onPointerDown(session: PointerSession): void {
@@ -159,6 +152,8 @@ export class CellClickHandler implements PointerHandler {
       this.beforeEndCol,
     );
 
+    //console.log('moveXInfomoveXInfo : ', moveXInfo);
+
     if (moveXInfo.overCell > -1) {
       hasMove = true;
       moveRange.endCol = this.selectionInfo.getSelectionModeColInfo(
@@ -208,7 +203,7 @@ export class CellClickHandler implements PointerHandler {
 
     const gridMain = this.context.gridMain;
     const scroll = gridMain.getScroll();
-    const body = this.context.body!;
+    const body = this.context.gridMain.getBody();
 
     const loop = (time: number) => {
       const scrollDirectionX = this.scrollDirectionX;
@@ -379,7 +374,7 @@ export class CellClickHandler implements PointerHandler {
     );
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
-      context.body?.removeStartCellClass();
+      gridMain.getBody().removeStartCellClass();
     }
 
     const rangeType = isRowSelectionMode(selectionMode) ? 'row' : 'cell';

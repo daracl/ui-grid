@@ -23,6 +23,7 @@ export function initConfig(opts: GridOptions): Config {
     dataManager: {} as DataManager,
     theme: 'light',
     isTreeType: false,
+    enableHeaderHelpButton: opts.header?.help?.enabled,
     dimensions: {
       width: 0,
       height: 0,

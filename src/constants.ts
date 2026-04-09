@@ -148,6 +148,11 @@ export type ORIENTATION_TYPE = 'horizontal' | 'vertical';
 export type ADD_ROW_POSITION = 'before' | 'after';
 
 /**
+ * mouse move threshold
+ */
+export const MOUSE_MOVE_THRESHOLD = 5;
+
+/**
  * default toolbar height
  *
  * @type {50}

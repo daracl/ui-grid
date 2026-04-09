@@ -47,9 +47,9 @@ export const DEFAULT_OPTIONS: GridOptions = {
     help: {
       //	header help btn 설정
       enabled: false, // header help btn 활성 여부.
-      tooltip: '', // tooltip
+      content: '', // content
       click: undefined, // click event
-      showDelay: 300, // tooltip delay
+      showDelay: 300, // delay
     },
     drag: {
       enabled: false, // 활성화여부
@@ -238,10 +238,7 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
     enabled: false,
     content: undefined,
   },
-  headerTooltip: {
-    enabled: false,
-    content: undefined,
-  },
+  headerHelp: undefined,
   $renderer: VIEW_RENDERER['text'],
   $editRenderer: EDIT_RENDERER['text'],
   $colspan: 0,
@@ -256,4 +253,5 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   $panel: 'center',
   $uid: '',
   $colSeq: 0,
+  $enableHelp: false,
 };

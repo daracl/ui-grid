@@ -240,25 +240,7 @@ export interface HeaderOptions {
   /**
    * header resize option
    */
-  resize: {
-    /**
-     *  resize 활성화 여부
-     */
-    enabled: boolean; // 활성화여부
-
-    /**
-     * 변경시 콜백 함수
-     */
-    update: boolean | OptionCallback;
-    /**
-     * 컬럼 최소 넓이
-     */
-    minWidth: number;
-    /**
-     * 컬럼 최대 넓이
-     */
-    maxWidth: number; // 컬럼 최대 넓이
-  };
+  resize: HeaderResize;
   /**
    * 전체 선택 활성화 여부
    */
@@ -281,15 +263,15 @@ export interface HeaderOptions {
      */
     enabled: boolean;
     /**
-     * tooltip title
+     * help content
      */
-    tooltip: string | OptionCallback;
+    content: string | OptionCallback;
     /**
      * click event
      */
     click?: OptionCallback;
     /**
-     * tooltip delay
+     * delay
      */
     showDelay: number;
   };
@@ -311,6 +293,26 @@ export interface HeaderOptions {
      */
     dropCallback?: boolean | OptionCallback;
   };
+}
+
+export interface HeaderResize {
+  /**
+   *  resize 활성화 여부
+   */
+  enabled: boolean; // 활성화여부
+
+  /**
+   * 변경시 콜백 함수
+   */
+  update: boolean | OptionCallback;
+  /**
+   * 컬럼 최소 넓이
+   */
+  minWidth: number;
+  /**
+   * 컬럼 최대 넓이
+   */
+  maxWidth: number; // 컬럼 최대 넓이
 }
 
 /**

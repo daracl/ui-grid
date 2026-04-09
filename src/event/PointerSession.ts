@@ -1,5 +1,5 @@
 import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
-import { PointerHandler } from '@/event/PointerHandler';
+import { BasePointerHandler } from '@/event/PointerHandler';
 import { ClickManager } from './ClickManager';
 
 export interface PointerPosition {
@@ -18,7 +18,7 @@ export interface PointerSession {
   lastClickTime: number;
   clickManager: ClickManager;
 
-  handler?: PointerHandler;
+  handler?: BasePointerHandler;
   cellInfo?: CellInfo | HeaderCellInfo;
   cellEl?: HTMLElement;
 }

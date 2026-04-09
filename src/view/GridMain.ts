@@ -916,6 +916,12 @@ export class GridMain {
       return field;
     }
 
+    field.$enableHelp = !isUndefined(field.headerHelp);
+
+    if (field.$enableHelp && !this.grid.config().enableHeaderHelpButton) {
+      this.grid.config().enableHeaderHelpButton = true;
+    }
+
     field.$depth = depth + 1;
 
     field.$uid = 'u_' + field.$depth + '_' + fieldIndex;

@@ -1,6 +1,9 @@
 import { isEmpty, isObject, isString, isUndefined } from './utils';
 import { $querySelector } from './domUtils';
-import { PointerPosition } from '@/event/PointerSession';
+import { PointerPosition, PointerSession } from '@/event/PointerSession';
+import { POINTER_STATE } from '@/constants';
+import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
+import { ClickManager } from '@/event/ClickManager';
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -265,4 +268,24 @@ export function isClickEvent(e: Event): boolean {
 
   // 그 외의 경우 (안전 장치)
   return false;
+}
+
+export function initPointerSession(
+  e: Event,
+  startCellInfo: CellInfo | HeaderCellInfo,
+  clickManager: ClickManager,
+): PointerSession {
+  const targetElement = e.currentTarget as HTMLElement;
+  const evtPosition = eventPosition(e);
+  return {
+    state: POINTER_STATE.PRESSED,
+    event: e,
+    startPos: evtPosition,
+    currentPos: evtPosition,
+    cellInfo: startCellInfo,
+    startTime: Date.now(),
+    lastClickTime: 0,
+    cellEl: targetElement,
+    clickManager: clickManager,
+  };
 }

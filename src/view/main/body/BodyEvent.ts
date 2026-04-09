@@ -3,12 +3,12 @@ import { DaraGrid } from '@/DaraGrid';
 
 import { GridMain } from '../../GridMain';
 import { DaraElement } from '@/element/DaraElement';
-import { eventOff, eventOn, eventPosition } from '@/util/eventUtils';
+import { eventOff, eventOn, eventPosition, initPointerSession } from '@/util/eventUtils';
 import { SelectionInfo } from '@/selection/selection';
 import { hasClass } from '@/util/domUtils';
 import { Body } from './Body';
-import { POINTER_STATE } from '@/constants';
-import { PointerHandler } from '@/event/PointerHandler';
+import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
+import { BasePointerHandler } from '@/event/PointerHandler';
 import { CellClickHandler } from './CellClickHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { ClickManager } from '@/event/ClickManager';
@@ -30,7 +30,7 @@ export class BodyEvent {
 
   private readonly bodyElement: DaraElement;
 
-  private readonly handlers: PointerHandler[];
+  private readonly handlers: BasePointerHandler[];
 
   constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.grid = grid;
@@ -72,7 +72,7 @@ export class BodyEvent {
 
     const clickManager = new ClickManager();
 
-    const DRAG_THRESHOLD = 5; // px
+    const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
     eventOn(
       bodyElement,
@@ -93,23 +93,10 @@ export class BodyEvent {
           return;
         }
 
-        const startEvtPosition = eventPosition(e);
         const startCellInfo = getCellInfo(cfg, cellElement);
         startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
-        session = {
-          state: 'PRESSED',
-          event: e,
-          startPos: startEvtPosition,
-          currentPos: startEvtPosition,
-          cellInfo: startCellInfo,
-          startTime: Date.now(),
-          lastClickTime: 0,
-          cellEl: cellElement,
-          clickManager: clickManager,
-        };
-
-        //clickManager.conserveClick(session.startPos);
+        session = initPointerSession(e, startCellInfo, clickManager);
 
         let handlerPriority = -1;
         for (const handler of this.handlers) {
@@ -124,6 +111,8 @@ export class BodyEvent {
 
         const handler = session.handler!;
 
+        if (!handler) return;
+
         handler.onPointerDown?.(session);
 
         if (handler.onPointerMove) {
@@ -132,7 +121,7 @@ export class BodyEvent {
             session.currentPos = eventPosition(moveEvt);
 
             if (!isStarted) {
-              if (!isMouseMoved(session.startPos, session.currentPos, DRAG_THRESHOLD)) {
+              if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
                 return;
               }
 

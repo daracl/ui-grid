@@ -9,6 +9,7 @@ import { eventKeyCode, eventOff, eventOn, isCtrlKey, isSpacebar, stopPreventCanc
 import { SelectionInfo } from '@/selection/selection';
 import { Body } from './Body';
 import { isFunction } from '@/util/utils';
+import { EventHandler } from '@/event/EventHandler';
 
 /**
  * keydown event class
@@ -16,7 +17,7 @@ import { isFunction } from '@/util/utils';
  * @class KeydownEvent
  * @typedef {KeydownEvent }
  */
-export class KeydownEvent {
+export class KeydownEvent implements EventHandler {
   private readonly grid: DaraGrid;
   private readonly body: Body;
   private readonly gridMain: GridMain;
@@ -297,10 +298,10 @@ export class KeydownEvent {
     if (!isFixedLeftPostion(cfg, moveColIdx) && !isFixedRightPostion(cfg, moveColIdx)) {
       if (moveColIdx < scrollInfo.insideStartCol) {
         // 'L'
-        checkCode = (checkCode > 0 ? checkCode : 0) + 10;
+        checkCode = Math.max(checkCode, 0) + 10;
       } else if (moveColIdx > scrollInfo.insideEndCol) {
         // 'R'
-        checkCode = (checkCode > 0 ? checkCode : 0) + 20;
+        checkCode = Math.max(checkCode, 0) + 20;
       }
     }
 
@@ -314,7 +315,7 @@ export class KeydownEvent {
         scrollCtrl.moveHorizontalScroll({
           direction: horizontal == 1 ? 'L' : 'R',
           colIdx: moveColIdx,
-          drawFlag: vertical > 0 ? false : true,
+          drawFlag: vertical < 1,
         });
       }
 

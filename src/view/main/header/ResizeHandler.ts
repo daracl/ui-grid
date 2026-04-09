@@ -1,14 +1,12 @@
-import { ScrollDirectionX, ScrollDirectionY } from '@/constants';
-import { PointerContext } from '@/event/PointerContext';
-import { PointerHandler } from '@/event/PointerHandler';
-import { PointerSession } from '@/event/PointerSession';
-import { SelectionInfo } from '@/selection/selection';
-import { Config, HeaderCellInfo, Selection, SelectionRange } from '@/types/GridConfig';
-import { GridOptions } from '@/types/GridOptions';
-import { getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion, isMultipleSelectionMode } from '@/util/gridUtils';
-import * as utils from '@/util/utils';
-import { HeaderEvent } from './HeaderEvent';
 import { DaraElement } from '@/element/DaraElement';
+import { PointerContext } from '@/event/PointerContext';
+import { BasePointerHandler } from '@/event/PointerHandler';
+import { PointerSession } from '@/event/PointerSession';
+import { Config } from '@/types/GridConfig';
+import { GridOptions, HeaderResize } from '@/types/GridOptions';
+import { getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from '@/util/gridUtils';
+import { isFunction } from '@/util/utils';
+import { HeaderEvent } from './HeaderEvent';
 
 /**
  * ResizeHandler class
@@ -16,99 +14,39 @@ import { DaraElement } from '@/element/DaraElement';
  * @class ResizeHandler
  * @typedef {ResizeHandler}
  */
-export class ResizeHandler implements PointerHandler {
-  priority = 5;
+export class ResizeHandler extends BasePointerHandler {
+  priority = 1;
   protected readonly rowHeight: number;
-  protected readonly context: PointerContext;
-  protected readonly cfg: Config;
-  protected readonly selectionInfo: SelectionInfo;
-  protected readonly opts: GridOptions;
-  private readonly bodyDragDelay = 150;
 
-  protected readonly selectionMode: string;
+  protected resizeOpts: HeaderResize;
 
-  protected bodyPosition: any;
-
-  private readonly moveRange: { endIdx: number; endCol: number } = { endIdx: -1, endCol: -1 };
-  private beforeEndIdx = -1;
-  private beforeEndCol = -1;
-
-  private readonly cellClickFn: ((cellInfo: any) => void) | undefined;
-
-  private readonly editable: boolean;
-
-  protected readonly multipleFlag: boolean;
-
-  protected gridBounds: {
-    gridLeft: number;
-    gridRight: number;
-    mainLeft: number;
-    mainRight: number;
-    top: number;
-    bottom: number;
-  };
-
-  protected startCellInfo: HeaderCellInfo;
-  private cellElement: HTMLElement;
-
-  protected scrollDirectionX: ScrollDirectionX | null = null;
-  protected scrollDirectionY: ScrollDirectionY | null = null;
-
-  protected dragAnimationId = 0;
-  private lastScrollTime = 0;
-
-  private currentSelectionMode: string;
-
-  private readonly enableDblClickRowCheck: boolean;
-  private readonly cellDblClick: ((cellInfo: any) => any) | undefined;
-  private readonly isCellDbClickEvent: boolean;
-
-  private readonly bodyElement: HTMLElement;
+  private readonly resizeUpdate;
 
   private readonly resizerHelperElement: DaraElement;
 
+  private resizeIdx = 0;
+  private resizeMoveX = 0;
   private positionLeft = 0;
 
   public constructor(context: PointerContext, headerEvent: HeaderEvent) {
-    this.context = context;
-    this.cfg = context.grid.config();
-    this.selectionInfo = context.gridMain.selectionInfo;
+    super(context);
 
-    this.bodyElement = context.body?.getBodyElement().getElement() as HTMLElement;
-    this.opts = context.grid.getOptions();
+    const resizeOpts = this.opts.header.resize;
+    this.resizeOpts = resizeOpts;
 
-    this.selectionMode = this.opts.selectionMode;
-
-    this.multipleFlag = isMultipleSelectionMode(this.selectionMode);
-
-    this.cellClickFn = this.opts.body.cellClick;
-    this.editable = this.opts.editable;
-    this.rowHeight = this.cfg.rowHeight;
-
-    const rowOptions = this.opts.body.row;
-
-    this.enableDblClickRowCheck = rowOptions.enableDblClickRowCheck === true;
-    this.cellDblClick = this.opts.body.cellDblClick;
-
-    this.isCellDbClickEvent = this.editable || this.enableDblClickRowCheck || utils.isFunction(this.cellDblClick);
+    this.resizeUpdate = isFunction(resizeOpts.update) ? resizeOpts.update : undefined;
 
     this.resizerHelperElement = context.grid.element().findDaraElement('.dg-resize-helper');
   }
 
-  canHandle(session: PointerSession) {
-    return true;
-  }
-
   onPointerDown(session: PointerSession): void {
-    this.cellElement = session.cellEl!;
-    this.startCellInfo = session.cellInfo!;
-    this.currentSelectionMode = this.selectionMode;
+    this.resizeIdx = session.cellInfo?.c || 0;
   }
 
   onActivate(session: PointerSession) {
     const cfg = this.cfg;
 
-    const resizeIdx = session.cellInfo?.c || 0;
+    const resizeIdx = this.resizeIdx;
 
     const isLeftContent = isFixedLeftPostion(cfg, resizeIdx);
     const isRightContent = isFixedRightPostion(cfg, resizeIdx);
@@ -133,116 +71,51 @@ export class ResizeHandler implements PointerHandler {
       this.positionLeft = posLeft - cfg.scroll.centerLeftPosition;
     }
 
-    this.scrollDirectionX = null;
-    this.scrollDirectionY = null;
-  }
-
-  onPointerMove(session: PointerSession) {
-    console.log('122');
-
-    this.resizerHelperElement.css({ left: this.positionLeft + 'px' });
     this.resizerHelperElement.addClass('active');
   }
 
-  protected startAutoScroll(selection = true) {
-    if (this.dragAnimationId) return;
+  onPointerMove(session: PointerSession) {
+    const resizeMoveX = session.currentPos.x - session.startPos.x;
+    const moveLeftPosition = this.positionLeft + resizeMoveX;
 
-    this.lastScrollTime = 0;
+    this.resizeMoveX = resizeMoveX;
 
-    const cfg = this.cfg;
-
-    const beforeMovePosition = { col: -1, rowIdx: -1 };
-
-    const gridMain = this.context.gridMain;
-    const scroll = gridMain.getScroll();
-    const body = this.context.body!;
-
-    const loop = (time: number) => {
-      const scrollDirectionX = this.scrollDirectionX;
-      const scrollDirectionY = this.scrollDirectionY;
-
-      if (scrollDirectionX === null && scrollDirectionY === null) {
-        this.stopAutoScroll();
-        return;
-      }
-
-      if (time - this.lastScrollTime < this.bodyDragDelay) {
-        this.dragAnimationId = requestAnimationFrame(loop);
-        return;
-      }
-
-      this.lastScrollTime = time;
-
-      let isDraw = false;
-
-      const moveRangeInfo = {} as SelectionRange;
-
-      if (scrollDirectionX !== null) {
-        const isRight = scrollDirectionX === ScrollDirectionX.RIGHT;
-
-        const endCol = isRight ? cfg.scroll.insideEndCol + 3 : cfg.scroll.insideStartCol - 3;
-
-        if (beforeMovePosition.col !== endCol) {
-          if ((isRight && cfg.fixedRightIndex === 0) || (!isRight && cfg.fixedLeftIndex === 0)) {
-            moveRangeInfo.endCol = endCol;
-          }
-
-          scroll.moveHorizontalScroll({ direction: scrollDirectionX, colIdx: endCol, drawFlag: false });
-
-          beforeMovePosition.col = endCol;
-          isDraw = true;
-        }
-      }
-
-      if (scrollDirectionY !== null) {
-        const endIdx =
-          scrollDirectionY === ScrollDirectionY.DOWN
-            ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1
-            : cfg.scroll.startIdx - 1;
-
-        if (beforeMovePosition.rowIdx !== endIdx) {
-          moveRangeInfo.endIdx = endIdx;
-
-          scroll.moveVerticalScroll({ direction: scrollDirectionY, drawFlag: false });
-
-          beforeMovePosition.rowIdx = endIdx;
-          isDraw = true;
-        }
-      }
-
-      if (isDraw) {
-        if (selection) {
-          this.selectionInfo.setSelectionRangeInfo({ range: moveRangeInfo } as Selection, false, false);
-        }
-
-        body.dataDraw('dragscroll');
-      }
-
-      this.dragAnimationId = requestAnimationFrame(loop);
-    };
-
-    this.dragAnimationId = requestAnimationFrame(loop);
-  }
-
-  protected stopAutoScroll() {
-    if (this.dragAnimationId !== 0) {
-      cancelAnimationFrame(this.dragAnimationId);
-      this.dragAnimationId = 0;
-    }
+    this.resizerHelperElement.css({ left: moveLeftPosition + 'px' });
   }
 
   onPointerUp(session: PointerSession) {
-    this.stopAutoScroll();
+    if (this.resizerHelperElement.hasClass('active')) {
+      this.resizerHelperElement.removeClass('active');
+      document.documentElement.removeAttribute('onselectstart');
+
+      this.headerColumnResize(this.resizeIdx, this.resizeMoveX);
+    }
   }
 
-  onClick(session: PointerSession): void {
-    console.log('1111');
+  /**
+   * header column resize
+   *
+   * @public
+   * @param {number} resizeIdx resize index
+   * @param {number} resizeWidth resize width
+   */
+  public headerColumnResize(resizeIdx: number, resizeWidth: number) {
+    const cfg = this.cfg;
+
+    const currentFireld = cfg.currentFields[resizeIdx];
+
+    const w = currentFireld.$width + resizeWidth;
+
+    const header = this.context.header;
+
+    header?.setColumnWidth(resizeIdx, w);
+    if (this.resizeUpdate) {
+      this.resizeUpdate.call(null, { index: this.resizeIdx, width: w });
+    }
   }
 
   onDoubleClick(session: PointerSession): void {
-    if (!this.isCellDbClickEvent) return;
-
-    const resizeIdx = session.cellInfo?.c || 0;
+    const resizeIdx = this.resizeIdx;
 
     const field = this.cfg.currentFields[resizeIdx];
 

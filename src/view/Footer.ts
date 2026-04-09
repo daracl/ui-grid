@@ -81,7 +81,7 @@ export class Footer {
       (e: UIEvent) => {
         const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
 
-        const pageNum = parseInt(pageNumElement?.getAttribute('pageno') ?? '1', 10);
+        const pageNum = utils.intValue(pageNumElement?.getAttribute('pageno') ?? '1');
 
         if (pagingCallback) {
           pagingCallback(pageNum);

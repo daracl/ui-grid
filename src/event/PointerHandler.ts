@@ -1,10 +1,31 @@
+import { Config } from '@/types/GridConfig';
+import { PointerContext } from './PointerContext';
 import { PointerSession } from './PointerSession';
+import { GridOptions } from '@/types/GridOptions';
 
 export interface PointerHandler {
   priority: number;
 
   /** 이 세션을 처리할 수 있는가 */
-  canHandle(session: PointerSession): boolean | void;
+  canHandle?(session: PointerSession): boolean | void;
+}
+
+export abstract class BasePointerHandler implements PointerHandler {
+  priority = 0;
+
+  protected readonly context: PointerContext;
+  protected readonly cfg: Config;
+  protected readonly opts: GridOptions;
+
+  public constructor(context: PointerContext) {
+    this.context = context;
+    this.cfg = context.grid.config();
+    this.opts = context.grid.getOptions();
+  }
+
+  canHandle(session: PointerSession): boolean | void {
+    return true;
+  }
 
   /** pointer down 시점 */
   onPointerDown?(session: PointerSession): boolean | void;

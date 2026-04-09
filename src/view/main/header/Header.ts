@@ -8,6 +8,7 @@ import { getHeaderCellInfo } from '@/util/gridUtils';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { HeaderEvent } from './HeaderEvent';
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
+import { intValue, isEmpty, isUndefined } from '@/util/utils';
 
 /**
  * Header class
@@ -39,6 +40,7 @@ export class Header {
     this.initHeader();
 
     this.headerEvent = new HeaderEvent(grid, gridMain, this);
+    this.headerEvent.init();
   }
 
   initHeader() {
@@ -191,7 +193,7 @@ export class Header {
     this.headerCellElements = [];
     this.headerElement.finds('.dg-header-cell').forEach((node) => {
       const ele = node as HTMLElement;
-      const cellIdx = parseInt(ele.getAttribute('data-header-cell-position') || '0', 10);
+      const cellIdx = intValue(ele.getAttribute('data-header-cell-position') || '0');
       this.headerCellElements[cellIdx] = node;
     });
   }
@@ -272,9 +274,9 @@ export class Header {
               </svg></div>`
             : '';
 
-        const isHeaderTooltip = headerItem.headerTooltip?.enabled ?? true;
+        const isheaderHelp = headerItem.$enableHelp;
         const helpIcon =
-          helpEnabled && isHeaderTooltip !== false && !headerItem.$isAside
+          helpEnabled || (isheaderHelp !== false && !headerItem.$isAside)
             ? `<div class="dg-header-help-button">
                <svg class="dg-header-help" viewBox="0 0 100 100">
                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
