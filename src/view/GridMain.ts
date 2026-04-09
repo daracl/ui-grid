@@ -290,8 +290,6 @@ export class GridMain {
   public setGridFocusOut(e: Event) {
     if (!this.grid.config().focus) return;
 
-    const targetElement = e.target as HTMLElement;
-
     if ((e as MouseEvent).button !== 2) {
       const mainElement = this._mainElement.getElement();
 

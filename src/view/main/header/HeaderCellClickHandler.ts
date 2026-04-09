@@ -257,7 +257,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
       {
         range: range as SelectionRange,
         isSelect: true,
-        startCell: { startIdx: 0, startCol: startCellIdx },
+        startCell: { startCol: startCellIdx },
       } as Selection,
       initFlag,
       true,

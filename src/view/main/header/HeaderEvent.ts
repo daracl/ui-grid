@@ -224,8 +224,6 @@ export class HeaderEvent {
         return true;
       }
 
-      stopPreventCancel(e);
-
       this.gridMain.hideLayer();
 
       const targetElement = e.currentTarget as HTMLElement;
