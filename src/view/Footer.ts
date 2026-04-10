@@ -101,9 +101,7 @@ export class Footer {
       const countPerPage = pagingViewInfo?.countPerPage;
       const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
-      this.config.dataManager.setViewItems(
-        utils.arrayCopy(this.config.dataManager.getOriginItems(), startIdx, startIdx + countPerPage),
-      );
+      this.config.dataManager.setViewItems(this.config.dataManager.getOriginItems(), startIdx, startIdx + countPerPage);
       this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
       this.gridMain.refreshBody();
       this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });

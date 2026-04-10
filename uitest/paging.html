@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Dara header help</title>
+    <title>Dara paging</title>
   </head>
 
   <body>
@@ -13,6 +13,7 @@
         <option value="dark">dark</option>
       </select>
     </div>
+
     <div class="grid-view-area">
       <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
     </div>
@@ -114,10 +115,6 @@
           type: 'number',
           format: '₩ 0,0 원',
         },
-        headerHelp(fieldInfo) {
-          const field = fieldInfo.field;
-          return field.label + ' // field 설정';
-        },
       },
       {
         name: 'desc',
@@ -167,42 +164,27 @@
         },
         fields: colItem,
         items: aaa,
-        header: {
-          view: true,
-          enableViewAllLabel_1: true,
-          //, heights: [20, 50, 50]
-          sort: {
-            //정렬 활성화 여부
-            enabled: false,
-            // null value 를 항상 끝으로 유지 할지 여부
-            nullsLast: true,
-            // custom sorting function
-            //,customSorting: ()=>{console.log(arguments)}
-          },
-          //,height :30
-          resize: {
+        footer: {
+          enabled: true,
+
+          height: 35,
+          paging: {
             enabled: true,
-            update: function (item) {
-              //console.log(item);
+            /**
+             * 위치 값
+             */
+            position: 'center',
+            formatPosition: 'right',
+            /**
+             * 페이지 메시지 포멧
+             */
+            format: '{{start}} - {{end}} of {{total}}',
+
+            // 페이지 콜백
+            callback1: function (arg) {
+              console.log(arg);
+              //gridObj.setItems(aaa);
             },
-            minWidth: 10,
-            maxWidth: 1000,
-          },
-          help: {
-            enabled: true, // header help btn 활성 여부.
-            content(fieldInfo) {
-              const field = fieldInfo.field;
-              return field.label;
-            },
-            click: (clickInfo) => {
-              // click event
-              console.log('clickInfo : ', clickInfo);
-            },
-          },
-          drag: {
-            enabled: true,
-            dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
           },
         },
       },

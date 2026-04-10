@@ -7,13 +7,6 @@
 
   <body>
     <div>
-      <div>
-        excel download시 <br />
-        <a href="https://github.com/eligrey/FileSaver.js/"> FileSaver.js </a> ,<a
-          href="https://github.com/exceljs/exceljs"
-          >exceljs.js</a
-        >필요함.
-      </div>
       row
       <select id="itemCount">
         <option value="0">0</option>
@@ -57,45 +50,11 @@
         <option value="4">직원</option>
       </select>
       <button type="button" onclick="fn_init()">regrid</button>
-
-      <button type="button" class="set-data">setItems</button>
-
-      <button class="exceldown" mode="all" type="button">excel download</button>
-      <button class="exceldown" mode="select" type="button">select data excel download</button>
-
-      <button class="pdfdown" type="button">pdf download</button>
     </div>
-    <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-    <table style="width: 95%; height: 80vh">
-      <colgroup>
-        <col style="width: 60%" />
-        <col style="width: 40%" />
-      </colgroup>
-      <tr>
-        <td>
-          <div class="asdfasdfWrapper">
-            <pre
-              id="textTest"
-              style="display: inline-block; white-space: pre; position: relative; padding: 0px; margin: 0px"
-            >
-SORT_ORDER</pre
-            >
-            <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-          </div>
-        </td>
-        <td>
-          <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
-        </td>
-      </tr>
-      <tr>
-        <td></td>
-        <td>
-          <div class="asdfasdfWrapper">
-            <div id="asdfasdf1" style="height: calc(100vh - 200px)"></div>
-          </div>
-        </td>
-      </tr>
-    </table>
+
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
   </body>
 </html>
 
@@ -126,6 +85,7 @@ SORT_ORDER</pre
   }
 </style>
 <script>
+  var gridObj;
   const koreanFoods = [
     { name: '김치찌개', cd: 'kimchi_stew' },
     { name: '비빔밥', cd: 'bibimbap' },
@@ -860,7 +820,7 @@ SORT_ORDER</pre
   } //test
 
   function gridDraw(element, aaa, colItem, message) {
-    let gridObj = Daracl.grid.create(
+    gridObj = Daracl.grid.create(
       element,
       {
         editable: true,

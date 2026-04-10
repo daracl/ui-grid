@@ -63,10 +63,9 @@ export class SortButtonEvent implements EventHandler {
 
       const sortName = sortField.name;
 
-      let sortItems;
-      if (isShiftKey(e)) {
-        sortItems = dataManager.getViewItems();
-      } else {
+      const isShift = isShiftKey(e);
+
+      if (!isShift) {
         removeAttr(headerElement.finds('[data-dg-sort]'), 'data-dg-sort');
 
         if (sortOrders.length > 1 || !sortOrders.some((item: FieldSortInfo) => item.name === sortName)) {
@@ -76,7 +75,6 @@ export class SortButtonEvent implements EventHandler {
           sortOrders.length = 0;
           beforeSortOrderLength = 0;
         }
-        sortItems = arrayCopy(dataManager.getViewItems());
       }
 
       const currentSortItem = sortOrders.find((item: FieldSortInfo) => item.name === sortName);
@@ -107,11 +105,9 @@ export class SortButtonEvent implements EventHandler {
             headerCellElements[item.sortCell].querySelector('.dg-sort-num')?.replaceChildren(index + 1 + '');
           });
         }
-
-        dataManager.setViewItems(multiSort(sortItems, sortOrders, nullsLast));
-      } else {
-        dataManager.setViewItems(cfg.dataManager.getViewItems());
       }
+
+      dataManager.dataSort(isShift, sortOrders, sortOpts);
 
       beforeSortOrderLength = sortOrders.length;
 

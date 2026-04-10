@@ -13,46 +13,17 @@
         <option value="dark">dark</option>
       </select>
     </div>
-    <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-    <table style="width: 100%; height: 80vh">
-      <tr>
-        <td style="vertical-align: top">
-          <div class="asdfasdfWrapper">
-            <div id="sample" style="width: 100%"></div>
-          </div>
-        </td>
-      </tr>
-    </table>
+
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
   </body>
 </html>
 
 <script type="module" src="/src/index.ts"></script>
 
-<style>
-  .form-button {
-    text-align: center;
-  }
-
-  :root {
-    --bg: #ffffff;
-    --bg-color: #070d19;
-  }
-
-  body[data-dg-theme='dark'] {
-    --bg: #070d19;
-    --bg-color: #ffffff;
-  }
-
-  body {
-    background-color: var(--bg);
-    color: var(--bg-color);
-  }
-
-  .header {
-    color: var(--bg-color);
-  }
-</style>
 <script>
+  var gridObj;
   const THEME_KEY = 'grid-theme';
   const theme = localStorage.getItem(THEME_KEY);
 
@@ -62,6 +33,8 @@
     const bodyElement = document.body;
 
     bodyElement.setAttribute('data-dg-theme', theme);
+
+    if (gridObj) gridObj.setTheme(theme);
 
     if (persist) {
       localStorage.setItem(THEME_KEY, theme);
@@ -167,7 +140,7 @@
   } //test
 
   function gridDraw(element, aaa, colItem, message) {
-    let gridObj = Daracl.grid.create(
+    gridObj = Daracl.grid.create(
       element,
       {
         editable: true,

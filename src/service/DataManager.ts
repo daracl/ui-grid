@@ -7,10 +7,13 @@ import {
   ROW_ID_KEY,
   ALL_SELECT_VALUE,
 } from '@/constants';
-import { SearchMode } from '@/types/Common';
+import { OptionCallback, SearchMode } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
+import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
+import { multiSort } from '@/util/utils';
+import { arrayCopy } from '../util/utils';
 
 type RowId = string | number;
 
@@ -21,6 +24,8 @@ export class DataManager {
   private readonly expandedSet = new Set<RowId>();
   private readonly idMap = new Map<RowId, RowId>();
   private viewItems: any[] = [];
+
+  private sortOrginItems: any[] = [];
 
   private rowHeight = 30;
 
@@ -42,7 +47,7 @@ export class DataManager {
     this.expandDepth = opts.tree?.expandDepth ?? this.expandDepth;
     this.defaultExpandedIds = opts.tree?.defaultExpandedIds ?? [];
 
-    this.rowHeight = cfg.rowHeight ?? 30;
+    this.rowHeight = cfg.rowHeight;
   }
 
   // ======================
@@ -64,6 +69,23 @@ export class DataManager {
     this.buildMaps();
     this.initExpandedState();
     this.buildViewItems();
+  }
+
+  dataSort(
+    isShift: boolean,
+    sortOrders: FieldSortInfo[],
+    sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
+  ) {
+    if (this.sortOrginItems.length == 0) {
+      this.sortOrginItems = arrayCopy(this.getViewItems());
+    }
+    if (sortOrders.length > 0) {
+      this.setViewItems(multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast));
+    } else {
+      console.log('this.sortOrginItems.length : ', this.sortOrginItems.length);
+      this.setViewItems(this.sortOrginItems);
+      this.sortOrginItems = [];
+    }
   }
 
   // ======================
@@ -174,7 +196,7 @@ export class DataManager {
   // ======================
   public buildViewItems(start = 0, end = Infinity) {
     if (!this.isTreeType) {
-      this.setViewItems(this.originItems.slice(start, end));
+      this.setViewItems(this.originItems, start, end);
       return;
     }
 
@@ -197,14 +219,15 @@ export class DataManager {
 
     dfs(this.originItems);
 
-    this.setViewItems(result.slice(start, end));
+    this.setViewItems(result, start, end);
   }
 
-  public setViewItems = (items: any[]) => {
-    this.viewItems = items;
+  public setViewItems = (items: any[], start?: number, end?: number) => {
+    const viewItems = arrayCopy(items, start, end);
+    this.viewItems = viewItems;
 
     const dataInfo = this.cfg.dataInfo;
-    dataInfo.rowLength = items.length;
+    dataInfo.rowLength = viewItems.length;
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
   };
 

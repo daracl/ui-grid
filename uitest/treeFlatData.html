@@ -6,60 +6,16 @@
   </head>
 
   <body>
-    <textarea id="dropTextArea" style="width: 100%" rows="2"></textarea>
-    <table style="width: 95%; height: 80vh">
-      <colgroup>
-        <col style="width: 60%" />
-        <col style="width: 40%" />
-      </colgroup>
-      <tr>
-        <td>
-          <div class="asdfasdfWrapper">
-            <pre
-              id="textTest"
-              style="display: inline-block; white-space: pre; position: relative; padding: 0px; margin: 0px"
-            >
-SORT_ORDER</pre
-            >
-            <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-          </div>
-        </td>
-        <td>
-          <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
-        </td>
-      </tr>
-    </table>
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
   </body>
 </html>
 <script src="./data/tree.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
-<style>
-  .form-button {
-    text-align: center;
-  }
-
-  :root {
-    --bg: #ffffff;
-    --bg-color: #070d19;
-  }
-
-  body[data-dg-theme='dark'] {
-    --bg: #070d19;
-    --bg-color: #ffffff;
-  }
-
-  body {
-    background-color: var(--bg);
-    color: var(--bg-color);
-  }
-
-  .header {
-    color: var(--bg-color);
-  }
-</style>
 <script>
-  let gridObj;
+  var gridObj;
   function fn_init(initFlag) {
     const jsonInfo = getItem();
 

@@ -307,7 +307,7 @@ export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
 
   if (start === undefined && end === undefined) {
     // 시작과 끝이 모두 없는 경우: 전체 복사
-    return Array.from(array);
+    return [...array];
   }
 
   // slice는 start, end가 undefined인 경우 자동으로 처리함
