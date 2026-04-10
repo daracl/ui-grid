@@ -98,7 +98,10 @@ export interface Config {
     asideLength: number;
   };
   cellWidths: Array;
+  // row height
   rowHeight: number;
+  // enable sort button
+  enableSortButton: boolean;
   sort: {
     orders: FieldSortInfo[];
   };

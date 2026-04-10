@@ -62,7 +62,7 @@ export class ContextMenu {
 
     this.contextElement = new DaraElement(contextElement);
 
-    eventOn(contextElement, 'contextmenu', (e: Event) => {
+    eventOn({ el: contextElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
     });
   }
@@ -78,7 +78,8 @@ export class ContextMenu {
     let selectElement: HTMLElement;
 
     eventOff(gridElement, 'contextmenu');
-    eventOn(gridElement, 'contextmenu', (e: Event) => {
+
+    eventOn({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
 
       removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
@@ -133,7 +134,8 @@ export class ContextMenu {
 
     // contextmenu item click
     eventOff(contextItemElements, 'click');
-    eventOn(contextItemElements, 'click', (e: Event) => {
+
+    eventOn({ el: contextItemElements, type: 'click' }, (e: Event) => {
       const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {
@@ -168,7 +170,8 @@ export class ContextMenu {
 
     // sub mouseenter
     eventOff(contextItemElements, 'mouseenter');
-    eventOn(contextItemElements, 'mouseenter', (e: Event) => {
+
+    eventOn({ el: contextItemElements, type: 'mouseenter' }, (e: Event) => {
       const targetElement = e.currentTarget as HTMLElement;
       const itemElement = targetElement.closest('.dg-contextmenu-item') as HTMLElement;
       const parentElement = itemElement.closest('.dg-contextmenu') as HTMLElement;

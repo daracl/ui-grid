@@ -50,7 +50,8 @@ export class KeydownEvent implements EventHandler {
     const mainElement = this.gridMain.mainElement().getElement();
 
     eventOff(mainElement, 'keydown');
-    eventOn(mainElement, 'keydown', (e: KeyboardEvent) => {
+
+    eventOn({ el: mainElement, type: 'keydown' }, (e: KeyboardEvent) => {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;

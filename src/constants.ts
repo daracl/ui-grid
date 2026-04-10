@@ -265,6 +265,8 @@ export const POINTER_STATE = {
   DRAGGING: 'DRAGGING',
 } as const;
 
+export const SCROLL_THUMB_MIN_SIZE = 18;
+
 /**
  * Scroll direction enum for X-axis
  */

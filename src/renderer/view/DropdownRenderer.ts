@@ -122,18 +122,13 @@ export class DropdownRenderer extends ViewRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    eventOn(
-      contentElement,
-      'click',
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
-        const cellInfo = getCellInfo(this.cfg, cellElement);
+    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+      const eventElement = e.target as HTMLElement;
+      const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
+      const cellInfo = getCellInfo(this.cfg, cellElement);
 
-        this.click(e, cellElement, cellInfo);
-      },
-      { passive: false },
-    );
+      this.click(e, cellElement, cellInfo);
+    });
   }
 
   public click(e: Event, cellElement: HTMLElement, cellInfo: CellInfo) {
@@ -229,66 +224,61 @@ export class DropdownRenderer extends ViewRenderer {
 
     const isMultiple = this.isMultiple;
 
-    eventOn(
-      items,
-      'click',
-      (e: UIEvent) => {
-        const target = e.target as HTMLElement;
-        const addValue = target.getAttribute('data-dg-value');
+    eventOn({ el: items, type: 'click' }, (e: UIEvent) => {
+      const target = e.target as HTMLElement;
+      const addValue = target.getAttribute('data-dg-value');
 
-        if (target.classList.contains('disabled')) {
-          return;
-        }
+      if (target.classList.contains('disabled')) {
+        return;
+      }
 
-        toggleClass(target, SELECTED_STYLE_CLASS);
+      toggleClass(target, SELECTED_STYLE_CLASS);
 
-        if (isMultiple) {
-          const notDisabledList = list.filter((item) => !item.disabled);
-          const allItemLength = notDisabledList.length;
-          const currentValue = cellInfo.item[this.fieldName] ?? '';
-          if (addValue == ALL_SELECT_VALUE) {
-            const allItemElement = menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
-            if (allItemLength == currentValue.split(this.valueDelimiter).length) {
-              cellInfo.item[this.fieldName] = '';
+      if (isMultiple) {
+        const notDisabledList = list.filter((item) => !item.disabled);
+        const allItemLength = notDisabledList.length;
+        const currentValue = cellInfo.item[this.fieldName] ?? '';
+        if (addValue == ALL_SELECT_VALUE) {
+          const allItemElement = menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
+          if (allItemLength == currentValue.split(this.valueDelimiter).length) {
+            cellInfo.item[this.fieldName] = '';
 
-              removeClass(allItemElement, SELECTED_STYLE_CLASS);
-            } else {
-              const valueKey = this.valueKey;
-              cellInfo.item[this.fieldName] = notDisabledList
-                .map((item) => {
-                  return item[valueKey];
-                })
-                .join(this.valueDelimiter);
-
-              addClass(allItemElement, SELECTED_STYLE_CLASS);
-            }
+            removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
-            const newValue = addValueIfMissing(cellInfo.item[this.fieldName], addValue, false, this.valueDelimiter);
+            const valueKey = this.valueKey;
+            cellInfo.item[this.fieldName] = notDisabledList
+              .map((item) => {
+                return item[valueKey];
+              })
+              .join(this.valueDelimiter);
 
-            cellInfo.item[this.fieldName] = newValue.join(this.valueDelimiter);
-
-            if (allItemLength == newValue.length) {
-              addClass(menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
-            } else {
-              removeClass(
-                menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'),
-                SELECTED_STYLE_CLASS,
-              );
-            }
+            addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
         } else {
-          cellInfo.item[this.fieldName] = addValue;
-        }
+          const newValue = addValueIfMissing(cellInfo.item[this.fieldName], addValue, false, this.valueDelimiter);
 
-        this.render(cellInfo, cellElement);
+          cellInfo.item[this.fieldName] = newValue.join(this.valueDelimiter);
 
-        if (!isMultiple) {
-          eventOff(items, 'click');
-          menuStyle.display = 'none';
+          if (allItemLength == newValue.length) {
+            addClass(menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
+          } else {
+            removeClass(
+              menuElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'),
+              SELECTED_STYLE_CLASS,
+            );
+          }
         }
-      },
-      { passive: false },
-    );
+      } else {
+        cellInfo.item[this.fieldName] = addValue;
+      }
+
+      this.render(cellInfo, cellElement);
+
+      if (!isMultiple) {
+        eventOff(items, 'click');
+        menuStyle.display = 'none';
+      }
+    });
   }
 
   private dropdownMenuTemplate(list: any[], value: string): string {

@@ -1,5 +1,5 @@
+import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerPosition, PointerSession } from '@/event/PointerSession';
-import { PointerHandler } from '@/event/PointerHandler';
 import { isMouseMoved } from '@/util/gridUtils';
 
 const DBLCLICK_DELAY = 300; // ms
@@ -32,7 +32,7 @@ export class ClickManager {
     this.clickTimer = setTimeout(() => this.resetClick(), this.clickDelay);
   }
 
-  processClick(session: PointerSession, handler: PointerHandler) {
+  processClick(session: PointerSession, handler: BasePointerHandler) {
     const now = Date.now();
 
     if (now - this.lastClickTime < DBLCLICK_DELAY) {

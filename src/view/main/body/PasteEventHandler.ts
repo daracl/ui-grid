@@ -46,7 +46,7 @@ export class PasteEvent implements EventHandler {
 
     const pasteElement = this.pasteElement.getElement();
 
-    eventOn(pasteElement, 'paste', (event: ClipboardEvent) => {
+    eventOn({ el: pasteElement, type: 'paste' }, (event: ClipboardEvent) => {
       const clipboardData = event.clipboardData; // ClipboardEvent에서 clipboardData 가져오기
 
       if (!clipboardData) {

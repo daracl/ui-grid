@@ -46,25 +46,20 @@ export class HelpButtonEvent implements EventHandler {
     if (isFunction(helpOpts.click)) {
       const helpClickFn = helpOpts.click ?? (() => void 0);
       eventOff(helpElements, 'mousedown touchstart');
-      eventOn(
-        helpElements,
-        'mousedown touchstart',
-        (e: UIEvent) => {
-          if (!isClickEvent(e)) {
-            return;
-          }
-          stopPreventCancel(e);
 
-          const currentElement = e.currentTarget as HTMLElement;
-          const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
+      eventOn({ el: helpElements, type: 'mousedown touchstart' }, (e: UIEvent) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
+        stopPreventCancel(e);
 
-          helpClickFn(cellInfo);
+        const currentElement = e.currentTarget as HTMLElement;
+        const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
 
-          return false;
-        },
-        null,
-        { passive: false },
-      );
+        helpClickFn(cellInfo);
+
+        return false;
+      });
     }
 
     let helpLayerElement: HTMLElement;
@@ -74,7 +69,7 @@ export class HelpButtonEvent implements EventHandler {
     const renderContainer = this.gridMain.getRendererContainer();
     let delayTimer: any;
     eventOff(helpElements, 'mouseenter');
-    eventOn(helpElements, 'mouseenter', (e: UIEvent) => {
+    eventOn({ el: helpElements, type: 'mouseenter' }, (e: UIEvent) => {
       const currentElement = e.currentTarget as HTMLElement;
       const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
 
@@ -116,7 +111,7 @@ export class HelpButtonEvent implements EventHandler {
       return false;
     });
 
-    eventOn(helpElements, 'mouseleave', (e: UIEvent) => {
+    eventOn({ el: helpElements, type: 'mouseleave' }, (e: UIEvent) => {
       clearTimeout(delayTimer);
 
       if (helpLayerElement?.style) {

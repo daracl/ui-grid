@@ -57,16 +57,12 @@ export class AsideRowCheckRenderer extends ViewRenderer {
 
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.getGrid().config();
-    eventOn(
-      contentElement,
-      'click',
-      (e: UIEvent) => {
-        const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
-        const cellInfo = getCellInfo(cfg, cellElement);
 
-        this.gridMain.getBody().setCheckItem(cellInfo, contentElement.checked);
-      },
-      { passive: false },
-    );
+    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+      const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
+      const cellInfo = getCellInfo(cfg, cellElement);
+
+      this.gridMain.getBody().setCheckItem(cellInfo, contentElement.checked);
+    });
   }
 }

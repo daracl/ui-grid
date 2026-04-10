@@ -73,23 +73,18 @@ export class TreeRenderer extends ViewRenderer {
   }
 
   initExpanderEvent(expander: HTMLSpanElement) {
-    eventOn(
-      expander,
-      'mousedown',
-      (e: UIEvent) => {
-        const eventElement = e.target as HTMLElement;
-        const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
-        const cellInfo = getCellInfo(this.cfg, cellElement);
+    eventOn({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
+      const eventElement = e.target as HTMLElement;
+      const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
+      const cellInfo = getCellInfo(this.cfg, cellElement);
 
-        this.cfg.dataManager.toggleRow(cellInfo.item[ROW_ID_KEY]);
-        this.gridMain.refreshBody();
+      this.cfg.dataManager.toggleRow(cellInfo.item[ROW_ID_KEY]);
+      this.gridMain.refreshBody();
 
-        //stopPreventCancel(e);
+      //stopPreventCancel(e);
 
-        //this.click(e, cellElement, cellInfo);
-      },
-      { passive: false },
-    );
+      //this.click(e, cellElement, cellInfo);
+    });
   }
 
   public alignStyle() {

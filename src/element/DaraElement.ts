@@ -1,6 +1,7 @@
 import { eventOff, eventOn } from '@/util/eventUtils';
 import { styleClassSplit } from '../util/styleUtils';
 import { hasOwnProp, isBlank, isString, isUndefined } from '../util/utils';
+import { EventOptions } from '../types/Event';
 
 export class DaraElement {
   private readonly element: HTMLElement;
@@ -188,8 +189,8 @@ export class DaraElement {
     return this;
   }
 
-  eventOn(type: string, listener: any, selector?: any, fnOpts?: any) {
-    eventOn(this.element, type, listener, selector, fnOpts);
+  eventOn(opts: EventOptions, listener: any, fnOpts?: any) {
+    eventOn(opts, listener, fnOpts);
     return this;
   }
 

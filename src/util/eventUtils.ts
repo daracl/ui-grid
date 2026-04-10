@@ -4,6 +4,7 @@ import { PointerPosition, PointerSession } from '@/event/PointerSession';
 import { POINTER_STATE } from '@/constants';
 import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
 import { ClickManager } from '@/event/ClickManager';
+import { EventOptions } from '../types/Event';
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -151,14 +152,13 @@ export const eventOff = (el: Element | string | NodeList | null | Document | Ele
  * @param {?*} [fnOpts] listener option
  * @returns {*}
  */
-export const eventOn = (
-  el: Element | string | NodeList | null | Document | Element[],
-  type: string,
-  listener?: any,
-  selector?: any,
-  fnOpts?: any,
-) => {
+export const eventOn = (opts: EventOptions, listener?: any, fnOpts?: any) => {
+  const el = opts.el;
+
   if (el == null) return;
+
+  const type = opts.type;
+  const selector = opts.selector;
 
   const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
 
@@ -187,7 +187,6 @@ export const eventOn = (
       }
     };
   } else {
-    fnOpts = isObject(selector) ? selector : fnOpts;
     fn = (e: Event) => {
       if (listener(e, el) === false) {
         e.stopImmediatePropagation();
@@ -199,8 +198,6 @@ export const eventOn = (
   for (const eventType of eventTypes) {
     addEventInfo(el, eventType, fn);
     const event = eventType.split('.')[0];
-
-    //console.log('11111111111 ', event, elements.length);
 
     elements.forEach((el: Node) => {
       el.addEventListener(event, fn, fnOpts ?? {});

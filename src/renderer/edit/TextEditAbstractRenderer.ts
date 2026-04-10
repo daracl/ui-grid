@@ -25,13 +25,13 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
   }
 
   initEvt(editElement: HTMLInputElement, item: any) {
-    eventOn(editElement, 'blur', (e: FocusEvent) => {
+    eventOn({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
       if (this.isShow) {
         this.setChangeValue(e);
       }
     });
 
-    eventOn(editElement, 'keydown', (e: KeyboardEvent) => {
+    eventOn({ el: editElement, type: 'keydown' }, (e: KeyboardEvent) => {
       const key = e.key;
 
       if (key === 'Enter') {

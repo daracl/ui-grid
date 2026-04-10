@@ -65,24 +65,19 @@ export class SwitchRenderer extends ViewRenderer {
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.getGrid().config();
 
-    eventOn(
-      contentElement,
-      'click',
-      (e: UIEvent) => {
-        const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
+    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+      const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
 
-        const cellInfo = getCellInfo(cfg, cellElement);
+      const cellInfo = getCellInfo(cfg, cellElement);
 
-        const checked = contentElement.checked;
+      const checked = contentElement.checked;
 
-        const item = cellInfo.item;
+      const item = cellInfo.item;
 
-        item[this.fieldName] = checked ? this.trueValue : this.falseValue;
+      item[this.fieldName] = checked ? this.trueValue : this.falseValue;
 
-        this.render(cellInfo, cellElement);
-      },
-      { passive: false },
-    );
+      this.render(cellInfo, cellElement);
+    });
   }
 
   public isEditRenderer() {

@@ -75,8 +75,7 @@ export class BodyEvent {
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
     eventOn(
-      bodyElement,
-      'mousedown.cellclick touchstart.cellclick',
+      { el: bodyElement, selector: '.dg-cell', type: 'mousedown.cellclick touchstart.cellclick' },
       (e: UIEvent) => {
         if ((e as MouseEvent).button !== 0) {
           return true;
@@ -117,7 +116,8 @@ export class BodyEvent {
 
         if (handler.onPointerMove) {
           let isStarted = false;
-          eventOn(document, 'touchmove.cellclick mousemove.cellclick', (moveEvt: Event) => {
+
+          eventOn({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
             session.currentPos = eventPosition(moveEvt);
 
             if (!isStarted) {
@@ -138,7 +138,7 @@ export class BodyEvent {
             handler.onPointerMove?.(session);
           });
 
-          eventOn(document, 'touchend.cellclick mouseup.cellclick', (moveEvt: Event) => {
+          eventOn({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
             eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
             session.state = POINTER_STATE.IDLE;
             session.currentPos = eventPosition(moveEvt);
@@ -155,11 +155,9 @@ export class BodyEvent {
 
         clickManager.processClick(session, handler);
       },
-      '.dg-cell',
-      { passive: false },
     );
 
-    eventOn(bodyElement, 'mouseup.cellclick touchend.cellclick', (e: UIEvent) => {
+    eventOn({ el: bodyElement, type: 'mouseup.cellclick touchend.cellclick' }, (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });

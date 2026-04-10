@@ -77,6 +77,7 @@ export function initConfig(opts: GridOptions): Config {
     },
     cellWidths: [],
     rowHeight: Math.max(opts.body.row.height ?? 30, 25),
+    enableSortButton: opts.header?.sort.enabled,
     sort: { orders: [] },
     paging: pagingInfo,
     selection: {} as Selection,

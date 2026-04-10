@@ -66,11 +66,13 @@ export class HeaderCellClickHandler extends BasePointerHandler {
   }
 
   canHandle(session: PointerSession): void | boolean {
-    this.startCellIdx = session.cellInfo?.c ?? 0;
-    const field = this.cfg.currentFields[this.startCellIdx];
-    if (field.$isAside) {
+    const field = session.cellInfo?.field;
+
+    if (field?.$isAside) {
       return false;
     }
+
+    this.startCellIdx = session.cellInfo?.c ?? 0;
 
     return true;
   }

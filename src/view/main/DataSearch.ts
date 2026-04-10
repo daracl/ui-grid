@@ -125,7 +125,7 @@ export class DataSearch {
     const searchTextElement = this.searchTextElement;
 
     eventOff(searchTextElement, 'keydown');
-    eventOn(searchTextElement, 'keydown', (e: KeyboardEvent) => {
+    eventOn({ el: searchTextElement, type: 'keydown' }, (e: KeyboardEvent) => {
       e.stopPropagation();
       if (e.isComposing) return;
 
@@ -141,7 +141,7 @@ export class DataSearch {
     const searchBtnElement = this.searchElement.querySelector('.dg-search-btn') as HTMLElement;
 
     eventOff(searchBtnElement, 'click');
-    eventOn(searchBtnElement, 'click', (e: UIEvent) => {
+    eventOn({ el: searchBtnElement, type: 'click' }, (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch();
     });
@@ -149,7 +149,7 @@ export class DataSearch {
     const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
 
     eventOff(searchIconElement, 'click');
-    eventOn(searchIconElement, 'click', (e: UIEvent) => {
+    eventOn({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       const evtElement = e.currentTarget as HTMLElement;

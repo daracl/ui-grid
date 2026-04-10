@@ -276,7 +276,7 @@ export class Header {
 
         const isheaderHelp = headerItem.$enableHelp;
         const helpIcon =
-          helpEnabled || (isheaderHelp !== false && !headerItem.$isAside)
+          !headerItem.$isAside && (helpEnabled || isheaderHelp !== false)
             ? `<div class="dg-header-help-button">
                <svg class="dg-header-help" viewBox="0 0 100 100">
                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>

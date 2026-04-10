@@ -75,25 +75,19 @@ export class Footer {
   initPagingEvent() {
     const pagingCallback = this.footerOpts.paging?.callback;
     const pagingElement = this.paingElement.getElement();
-    eventOn(
-      pagingElement,
-      'click',
-      (e: UIEvent) => {
-        const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
+    eventOn({ el: pagingElement, type: 'click', selector: '.dg-page-num' }, (e: UIEvent) => {
+      const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
 
-        const pageNum = utils.intValue(pageNumElement?.getAttribute('pageno') ?? '1');
+      const pageNum = utils.intValue(pageNumElement?.getAttribute('pageno') ?? '1');
 
-        if (pagingCallback) {
-          pagingCallback(pageNum);
-        } else {
-          this.goPage(pageNum);
-        }
+      if (pagingCallback) {
+        pagingCallback(pageNum);
+      } else {
+        this.goPage(pageNum);
+      }
 
-        return true;
-      },
-      '.dg-page-num',
-      { passive: false },
-    );
+      return true;
+    });
   }
 
   public goPage(pageNum: number) {

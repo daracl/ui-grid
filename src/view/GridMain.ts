@@ -49,7 +49,7 @@ import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
 import { DataSearch } from './main/DataSearch';
 import { Header } from './main/header/Header';
-import { Scroll } from './main/Scroll';
+import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
@@ -176,6 +176,8 @@ export class GridMain {
     }
 
     this.scroll = new Scroll(this.grid, this);
+    this.scroll.init();
+
     this.footer = new Footer(this.grid, this);
     this.contextMenu = new ContextMenu(this.grid, this);
 
@@ -207,12 +209,12 @@ export class GridMain {
     const mainElement = this._mainElement.getElement();
 
     // focus in, mousedown
-    eventOn(mainElement, 'mousedown', (e: UIEvent) => {
+    eventOn({ el: mainElement, type: 'mousedown' }, (e: UIEvent) => {
       this.setGridFocusIn(e);
     });
 
     // focus out // blur, focusout
-    eventOn(mainElement, 'blur', (e: FocusEvent) => {
+    eventOn({ el: mainElement, type: 'blur' }, (e: FocusEvent) => {
       const nextFocused = e.relatedTarget as HTMLElement;
 
       // container 바깥으로 포커스가 나간 경우에만 실행
@@ -237,7 +239,7 @@ export class GridMain {
 
     rendererElement.eventOff('wheel DOMMouseScroll');
     rendererElement.eventOn(
-      'wheel DOMMouseScroll',
+      { el: rendererElement.getElement(), type: 'wheel DOMMouseScroll' },
       (evt: WheelEvent) => {
         const targetElement = evt.target as HTMLElement;
         const el = targetElement.closest(layerSelector) as HTMLElement;
@@ -256,7 +258,6 @@ export class GridMain {
 
         return true;
       },
-      null,
       { passive: false },
     );
   }
@@ -916,8 +917,14 @@ export class GridMain {
 
     field.$enableHelp = !isUndefined(field.headerHelp);
 
+    // help button
     if (field.$enableHelp && !this.grid.config().enableHeaderHelpButton) {
       this.grid.config().enableHeaderHelpButton = true;
+    }
+
+    // sort button
+    if (field.sort && !this.grid.config().enableSortButton) {
+      this.grid.config().enableSortButton = true;
     }
 
     field.$depth = depth + 1;
