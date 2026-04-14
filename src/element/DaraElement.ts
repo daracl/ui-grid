@@ -1,7 +1,5 @@
-import { eventOff, eventOn } from '@/util/eventUtils';
 import { styleClassSplit } from '../util/styleUtils';
 import { hasOwnProp, isBlank, isString, isUndefined } from '../util/utils';
-import { EventOptions } from '../types/Event';
 
 export class DaraElement {
   private readonly element: HTMLElement;
@@ -182,16 +180,6 @@ export class DaraElement {
         classList.remove(className);
       }
     }
-  }
-
-  eventOff(type: string) {
-    eventOff(this.element, type);
-    return this;
-  }
-
-  eventOn(opts: EventOptions, listener: any, fnOpts?: any) {
-    eventOn(opts, listener, fnOpts);
-    return this;
   }
 
   insertAdjacentHTML(insertPosition: InsertPosition, renderElements: HTMLElement | string) {

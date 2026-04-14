@@ -1,13 +1,10 @@
-import { EditRenderer } from '../EditRenderer';
-import { FieldItem } from '@t/GridField';
+import { numberValidator } from '@/rule/numberValidator';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { getElementRect, getLayerElement } from '@/util/domUtils';
-import { eventOn } from '@/util/eventUtils';
+import { FieldItem } from '@t/GridField';
 import { EditRendererInfo } from '@t/RendererInfo';
-import { numberValidator } from '@/rule/numberValidator';
-import { ValidResult } from '@t/ValidResult';
-import { isBooleanObject } from 'util/types';
+import { EditRenderer } from '../EditRenderer';
 import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
 
 /**

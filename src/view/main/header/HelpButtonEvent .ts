@@ -5,7 +5,7 @@ import { DaraGrid } from '@/DaraGrid';
 import { EventHandler } from '@/event/EventHandler';
 import { HeaderOptions } from '@/types/GridOptions';
 import { getLayerElement, innerLayerPosition } from '@/util/domUtils';
-import { eventOff, eventOn, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
+import { isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { intValue, isFunction } from '@/util/utils';
 import { GridMain } from '../../GridMain';
 import { Header } from './Header';
@@ -40,14 +40,15 @@ export class HelpButtonEvent implements EventHandler {
     const helpOpts = this.helpOpts.help;
 
     const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
 
     const helpElements = this.header.getHeaderElement().finds('.dg-header-help');
 
     if (isFunction(helpOpts.click)) {
       const helpClickFn = helpOpts.click ?? (() => void 0);
-      eventOff(helpElements, 'mousedown touchstart');
+      eventManager.off(helpElements, 'mousedown touchstart');
 
-      eventOn({ el: helpElements, type: 'mousedown touchstart' }, (e: UIEvent) => {
+      eventManager.on({ el: helpElements, type: 'mousedown touchstart' }, (e: UIEvent) => {
         if (!isClickEvent(e)) {
           return;
         }
@@ -68,8 +69,8 @@ export class HelpButtonEvent implements EventHandler {
     const delay = helpOpts.showDelay;
     const renderContainer = this.gridMain.getRendererContainer();
     let delayTimer: any;
-    eventOff(helpElements, 'mouseenter');
-    eventOn({ el: helpElements, type: 'mouseenter' }, (e: UIEvent) => {
+    eventManager.off(helpElements, 'mouseenter');
+    eventManager.on({ el: helpElements, type: 'mouseenter' }, (e: UIEvent) => {
       const currentElement = e.currentTarget as HTMLElement;
       const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
 
@@ -111,7 +112,7 @@ export class HelpButtonEvent implements EventHandler {
       return false;
     });
 
-    eventOn({ el: helpElements, type: 'mouseleave' }, (e: UIEvent) => {
+    eventManager.on({ el: helpElements, type: 'mouseleave' }, (e: UIEvent) => {
       clearTimeout(delayTimer);
 
       if (helpLayerElement?.style) {

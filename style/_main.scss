@@ -1,10 +1,10 @@
 /**
 * main css
 */
-@use "./main/header" as _HEADER;
-@use "./main/body" as _BODY;
-@use "./main/summary" as _SUMMARY;
-@use "./main/scroll" as _SCROLL;
+@use './main/header' as _HEADER;
+@use './main/body' as _BODY;
+@use './main/summary' as _SUMMARY;
+@use './main/scroll' as _SCROLL;
 
 @mixin main {
   .dg-main {
@@ -24,13 +24,13 @@
     }
 
     /*scroll 처리*/
-    &[data-scroll="horizontal"] {
+    &[data-scroll='horizontal'] {
       .dg-scroll.dg-horizontal {
         display: block !important;
       }
     }
 
-    &[data-scroll="vertical"] {
+    &[data-scroll='vertical'] {
       .dg-scroll.dg-vertical {
         display: block !important;
       }
@@ -40,7 +40,7 @@
       }
     }
 
-    &[data-scroll="both"] {
+    &[data-scroll='both'] {
       .dg-scroll {
         display: block !important;
       }

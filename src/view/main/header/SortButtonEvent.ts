@@ -3,8 +3,8 @@ import { DaraGrid } from '@/DaraGrid';
 import { EventHandler } from '@/event/EventHandler';
 import { FieldSortInfo } from '@/types/Header';
 import { addAttr, removeAttr } from '@/util/domUtils';
-import { eventOff, eventOn, isClickEvent, isShiftKey, stopPreventCancel } from '@/util/eventUtils';
-import { arrayCopy, intValue, multiSort } from '@/util/utils';
+import { isClickEvent, isShiftKey, stopPreventCancel } from '@/util/eventUtils';
+import { intValue } from '@/util/utils';
 import { GridMain } from '../../GridMain';
 import { Header } from './Header';
 
@@ -37,6 +37,7 @@ export class SortButtonEvent implements EventHandler {
     const sortOpts = this.sortOpts;
 
     const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
     const sortOrders = cfg.sort.orders;
     const dataManager = cfg.dataManager;
 
@@ -44,10 +45,9 @@ export class SortButtonEvent implements EventHandler {
     const sortElements = headerElement.finds('.dg-sort-icon');
     const headerCellElements = this.header.getHeaderCellElements();
 
-    const nullsLast = sortOpts.nullsLast;
     let beforeSortOrderLength = 0;
-    eventOff(sortElements, 'mousedown touchstart');
-    eventOn({ el: sortElements, type: 'mousedown touchstart' }, (e: MouseEvent | TouchEvent) => {
+    eventManager.off(sortElements, 'mousedown touchstart');
+    eventManager.on({ el: sortElements, type: 'mousedown touchstart' }, (e: MouseEvent | TouchEvent) => {
       if (!isClickEvent(e)) {
         return;
       }

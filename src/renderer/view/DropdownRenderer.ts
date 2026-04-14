@@ -1,13 +1,12 @@
+import { ALL_SELECT_VALUE } from '@/constants';
+import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
+import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
+import { addValueIfMissing, isArray, isFunction, isString } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-import { addValueIfMissing, isArray, isFunction, isString } from '@/util/utils';
-import { CellInfo } from '@t/GridConfig';
-import { eventOff, eventOn } from '@/util/eventUtils';
-import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { GridMain } from '@/view/GridMain';
-import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
-import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
-import { ALL_SELECT_VALUE } from '@/constants';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
@@ -122,7 +121,7 @@ export class DropdownRenderer extends ViewRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+    this.cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(this.cfg, cellElement);
@@ -224,7 +223,7 @@ export class DropdownRenderer extends ViewRenderer {
 
     const isMultiple = this.isMultiple;
 
-    eventOn({ el: items, type: 'click' }, (e: UIEvent) => {
+    this.cfg.eventManager.on({ el: items, type: 'click' }, (e: UIEvent) => {
       const target = e.target as HTMLElement;
       const addValue = target.getAttribute('data-dg-value');
 
@@ -275,7 +274,7 @@ export class DropdownRenderer extends ViewRenderer {
       this.render(cellInfo, cellElement);
 
       if (!isMultiple) {
-        eventOff(items, 'click');
+        this.cfg.eventManager.off(items, 'click');
         menuStyle.display = 'none';
       }
     });

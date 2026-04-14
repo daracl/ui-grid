@@ -1,15 +1,15 @@
 import { ScrollInfo } from '@t/GridConfig';
 
-import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '../../../util/gridUtils';
 import { DaraGrid } from '@/DaraGrid';
+import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '../../../util/gridUtils';
 
-import { GridMain } from '../../GridMain';
 import { DaraElement } from '@/element/DaraElement';
-import { eventKeyCode, eventOff, eventOn, isCtrlKey, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
-import { SelectionInfo } from '@/selection/selection';
-import { Body } from './Body';
-import { isFunction } from '@/util/utils';
 import { EventHandler } from '@/event/EventHandler';
+import { SelectionInfo } from '@/selection/selection';
+import { eventKeyCode, isCtrlKey, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
+import { isFunction } from '@/util/utils';
+import { GridMain } from '../../GridMain';
+import { Body } from './Body';
 
 /**
  * keydown event class
@@ -49,9 +49,9 @@ export class KeydownEvent implements EventHandler {
     const pasteElement = this.pasteElement.getElement();
     const mainElement = this.gridMain.mainElement().getElement();
 
-    eventOff(mainElement, 'keydown');
+    cfg.eventManager.off(mainElement, 'keydown');
 
-    eventOn({ el: mainElement, type: 'keydown' }, (e: KeyboardEvent) => {
+    cfg.eventManager.on({ el: mainElement, type: 'keydown' }, (e: KeyboardEvent) => {
       if (!cfg.focus) return;
 
       const targetElement = e.target as HTMLElement;

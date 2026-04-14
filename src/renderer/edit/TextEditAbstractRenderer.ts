@@ -1,10 +1,9 @@
-import { EditRenderer } from '../EditRenderer';
-import { FieldItem } from '@t/GridField';
+import { stringValidator } from '@/rule/stringValidator';
+import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { getElementRect, getLayerElement } from '@/util/domUtils';
-import { eventOn } from '@/util/eventUtils';
-import { stringValidator } from '@/rule/stringValidator';
+import { FieldItem } from '@t/GridField';
+import { EditRenderer } from '../EditRenderer';
 
 /**
  * text renderer
@@ -25,13 +24,15 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
   }
 
   initEvt(editElement: HTMLInputElement, item: any) {
-    eventOn({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
+    const { eventManager } = this.gridMain.getGrid().config();
+
+    eventManager.on({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
       if (this.isShow) {
         this.setChangeValue(e);
       }
     });
 
-    eventOn({ el: editElement, type: 'keydown' }, (e: KeyboardEvent) => {
+    eventManager.on({ el: editElement, type: 'keydown' }, (e: KeyboardEvent) => {
       const key = e.key;
 
       if (key === 'Enter') {

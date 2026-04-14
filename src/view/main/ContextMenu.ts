@@ -1,13 +1,13 @@
-import { DaraGrid } from '@/DaraGrid';
-import { GridMain } from '../GridMain';
-import { DaraElement } from '@/element/DaraElement';
-import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
-import { isFunction, isUndefined } from '@/util/utils';
-import { eventOff, eventOn, eventPosition, stopPreventCancel } from '@/util/eventUtils';
-import { addClass, removeClass } from '@/util/styleUtils';
-import { outerLayerPosition, getElementRect, hasClass, getBrowserSize } from '@/util/domUtils';
-import { getCellInfo } from '@/util/gridUtils';
 import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
+import { DaraGrid } from '@/DaraGrid';
+import { DaraElement } from '@/element/DaraElement';
+import { getBrowserSize, getElementRect, hasClass, outerLayerPosition } from '@/util/domUtils';
+import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
+import { getCellInfo } from '@/util/gridUtils';
+import { addClass, removeClass } from '@/util/styleUtils';
+import { isFunction, isUndefined } from '@/util/utils';
+import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
+import { GridMain } from '../GridMain';
 
 /**
  * Body class
@@ -62,7 +62,7 @@ export class ContextMenu {
 
     this.contextElement = new DaraElement(contextElement);
 
-    eventOn({ el: contextElement, type: 'contextmenu' }, (e: Event) => {
+    this.grid.config().eventManager.on({ el: contextElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
     });
   }
@@ -77,9 +77,10 @@ export class ContextMenu {
 
     let selectElement: HTMLElement;
 
-    eventOff(gridElement, 'contextmenu');
+    const eventManager = this.grid.config().eventManager;
 
-    eventOn({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
+    eventManager.off(gridElement, 'contextmenu');
+    eventManager.on({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
 
       removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
@@ -132,10 +133,11 @@ export class ContextMenu {
 
     const isContextCallback = isFunction(fnContextCallback);
 
-    // contextmenu item click
-    eventOff(contextItemElements, 'click');
+    const eventManager = this.grid.config().eventManager;
 
-    eventOn({ el: contextItemElements, type: 'click' }, (e: Event) => {
+    // contextmenu item click
+    eventManager.off(contextItemElements, 'click');
+    eventManager.on({ el: contextItemElements, type: 'click' }, (e: Event) => {
       const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {
@@ -168,10 +170,11 @@ export class ContextMenu {
 
     let submenuTimer: any;
 
-    // sub mouseenter
-    eventOff(contextItemElements, 'mouseenter');
+    const eventManager = this.grid.config().eventManager;
 
-    eventOn({ el: contextItemElements, type: 'mouseenter' }, (e: Event) => {
+    // sub mouseenter
+    eventManager.off(contextItemElements, 'mouseenter');
+    eventManager.on({ el: contextItemElements, type: 'mouseenter' }, (e: Event) => {
       const targetElement = e.currentTarget as HTMLElement;
       const itemElement = targetElement.closest('.dg-contextmenu-item') as HTMLElement;
       const parentElement = itemElement.closest('.dg-contextmenu') as HTMLElement;

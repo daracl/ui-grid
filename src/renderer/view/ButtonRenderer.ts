@@ -1,9 +1,8 @@
+import { getCellInfo } from '@/util/gridUtils';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-import { GridMain } from '@/view/GridMain';
-import { eventOn } from '@/util/eventUtils';
-import { getCellInfo } from '@/util/gridUtils';
-import { CellInfo } from '@t/GridConfig';
 
 /**
  * button renderer
@@ -19,6 +18,7 @@ export class ButtonRenderer extends ViewRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = item[this.fieldName];
+    const refValue = this.getRefValue(value);
 
     let btnElement = element.firstElementChild as HTMLElement | null;
 
@@ -30,15 +30,17 @@ export class ButtonRenderer extends ViewRenderer {
       this.initEvent(btnElement);
     }
 
+    const buttonLabel = refValue.label ?? value;
+
     // 값이 바뀌었을 때만 갱신
-    if (btnElement.textContent !== value) {
-      btnElement.textContent = value;
+    if (btnElement.textContent !== buttonLabel) {
+      btnElement.textContent = buttonLabel;
     }
   }
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.getGrid().config();
-    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(cfg, cellElement);

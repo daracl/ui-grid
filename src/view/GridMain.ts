@@ -4,7 +4,6 @@ import {
   ADD_ROW_POSITION,
   ALIGN,
   ALIGN_STYLE,
-  CHUNK_SIZE,
   EDIT_RENDERER,
   FOOTER_HEIGHT,
   GRID_THEME,
@@ -13,9 +12,7 @@ import {
   ROW_CHECK_KEY,
   ROW_CHECK_NAME,
   ROW_CUD_KEY,
-  ROW_DEPTH_KEY,
   ROW_DRAG_HANDLE_NAME,
-  ROW_HEIGHT_KEY,
   ROW_ID_KEY,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
@@ -27,10 +24,8 @@ import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from '@/defaultGridOption';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { GridOptions } from '@/types/GridOptions';
-import { eventOn } from '@/util/eventUtils';
 import { getTextWidth, heightOptionValue, isInputField } from '@/util/gridUtils';
 import {
-  arrayCopy,
   debounce,
   deepCopy,
   insertToArray,
@@ -56,6 +51,11 @@ const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
 // main-body  margin = border top + border bottom+ 공백1
 const MAIN_MARGIN_BOTTOM = 3;
+
+interface GridSize {
+  height: number;
+  width: number;
+}
 
 /**
  * DaraGrid class
@@ -96,9 +96,9 @@ export class GridMain {
 
   public selectionInfo: SelectionInfo;
 
-  private GRID_OFFSET: any;
+  private currentSize: GridSize;
 
-  private initGridSize: any;
+  private initGridSize: GridSize;
 
   private readonly openLayers: HTMLElement[] = [];
 
@@ -115,8 +115,15 @@ export class GridMain {
 
   public init() {
     const opts = this.opts;
+
+    this.initGridSize = {
+      height: opts.height == 'auto' ? -1 : opts.height,
+      width: opts.width == 'auto' ? -1 : opts.width,
+    };
+
     this.setDataInfo(this.opts.items);
     this.calcGridDimention();
+    this.setSize(this.initGridSize.width, this.initGridSize.height, false);
 
     this.initTemplate();
     this.initElement();
@@ -127,11 +134,6 @@ export class GridMain {
     this.setElementDimentions();
 
     this.initEvent();
-
-    this.initGridSize = {
-      height: opts.height == 'auto' ? -1 : opts.height,
-      width: opts.width == 'auto' ? -1 : opts.width,
-    };
   }
 
   /**
@@ -202,6 +204,8 @@ export class GridMain {
   public initEvent() {
     const opts = this.grid.getOptions();
 
+    const cfg = this.grid.config();
+
     if (opts.width === 'auto' || opts.height === 'auto') {
       this.initResizeEvent();
     }
@@ -209,12 +213,12 @@ export class GridMain {
     const mainElement = this._mainElement.getElement();
 
     // focus in, mousedown
-    eventOn({ el: mainElement, type: 'mousedown' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: mainElement, type: 'mousedown' }, (e: UIEvent) => {
       this.setGridFocusIn(e);
     });
 
     // focus out // blur, focusout
-    eventOn({ el: mainElement, type: 'blur' }, (e: FocusEvent) => {
+    cfg.eventManager.on({ el: mainElement, type: 'blur' }, (e: FocusEvent) => {
       const nextFocused = e.relatedTarget as HTMLElement;
 
       // container 바깥으로 포커스가 나간 경우에만 실행
@@ -233,13 +237,13 @@ export class GridMain {
       }
     });
 
-    const rendererElement = this.mainElement().findDaraElement('.dg-layer-container');
+    const rendererElement = this.mainElement().findDaraElement('.dg-layer-container').getElement();
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
 
-    rendererElement.eventOff('wheel DOMMouseScroll');
-    rendererElement.eventOn(
-      { el: rendererElement.getElement(), type: 'wheel DOMMouseScroll' },
+    cfg.eventManager.off(rendererElement, 'wheel DOMMouseScroll');
+    cfg.eventManager.on(
+      { el: rendererElement, type: 'wheel DOMMouseScroll' },
       (evt: WheelEvent) => {
         const targetElement = evt.target as HTMLElement;
         const el = targetElement.closest(layerSelector) as HTMLElement;
@@ -360,8 +364,6 @@ export class GridMain {
 
     const el = this.grid.element();
 
-    this.GRID_OFFSET = { width: el.width(), height: el.height() };
-
     if (typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(
         debounce(() => {
@@ -386,17 +388,19 @@ export class GridMain {
    * @param el grid element
    */
   public resize(el: DaraElement) {
+    const initGridSize = this.initGridSize;
+
+    const isWidthResize = initGridSize.width < 0;
+    const isHeightResize = initGridSize.height < 0;
     requestAnimationFrame(() => {
       if (!isVisible(el.getElement())) return;
 
-      const initGridSize = this.initGridSize;
-
       const newOffset = {
-        width: initGridSize.width == -1 ? el.width() : initGridSize.width,
-        height: initGridSize.height == -1 ? el.height() : initGridSize.height,
+        width: isWidthResize ? el.width() : initGridSize.width,
+        height: isHeightResize ? el.height() : initGridSize.height,
       };
-      if (this.GRID_OFFSET.height != newOffset.height || this.GRID_OFFSET.width != newOffset.width) {
-        this.GRID_OFFSET = newOffset;
+
+      if (this.currentSize.height != newOffset.height || this.currentSize.width != newOffset.width) {
         this.setSize(newOffset.width, newOffset.height, true);
       }
     });
@@ -490,20 +494,15 @@ export class GridMain {
    * @param {?number} [width] 넓이
    * @param {?number} [height] 높이
    */
-  public setSize(width?: number | 'auto', height?: number | 'auto', drawFlag = false) {
-    const cfg = this.grid.config();
+  public setSize(width: number, height: number, drawFlag = false) {
+    const { dimensions } = this.grid.config();
 
-    if (!isNumber(width) && isNumber(this.grid.getOptions().width)) {
-      width = this.grid.getOptions().width;
-    }
+    dimensions.width = width < 0 ? this.grid.element().width() : width;
+    dimensions.height = height < 0 ? this.grid.element().height() : height;
 
-    if (!isNumber(height) && isNumber(this.grid.getOptions().height)) {
-      height = this.grid.getOptions().height;
-    }
+    this.currentSize = { width: dimensions.width, height: dimensions.height };
 
-    cfg.dimensions.width = isNumber(width) ? width : this.grid.element().width();
-    cfg.dimensions.height = isNumber(height) ? height : this.grid.element().height();
-    cfg.dimensions.mainHeight = cfg.dimensions.height - (cfg.dimensions.toolbarHeight + cfg.dimensions.footerHeight);
+    dimensions.mainHeight = dimensions.height - (dimensions.toolbarHeight + dimensions.footerHeight);
 
     if (drawFlag) {
       this.resizeDraw();
@@ -579,6 +578,17 @@ export class GridMain {
       height: dimensions.height + 'px',
     });
 
+    const mainSize: any = {};
+    if (this.initGridSize.width > 0) {
+      mainSize.width = dimensions.width + 'px';
+    }
+
+    if (this.initGridSize.height > 0) {
+      mainSize.height = dimensions.height + 'px';
+    }
+
+    this.grid.element().css(mainSize);
+
     const mainLeftWidth = dimensions.mainLeftWidth;
     const mainCenterWidth = dimensions.mainCenterWidth;
     const mainRightWidth = dimensions.mainRightWidth;
@@ -629,8 +639,6 @@ export class GridMain {
 
       dimensions.mainSummaryHeight = totalHeight + 3; // 2 border + 1 padding
     }
-
-    this.setSize(this.grid.getOptions().width, this.grid.getOptions().height, false);
   }
 
   /**

@@ -6,7 +6,8 @@ import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
-import { eventOff, eventOn, eventPosition, initPointerSession, stopPreventCancel } from '@/util/eventUtils';
+import { Config } from '@/types/GridConfig';
+import { eventPosition, initPointerSession, stopPreventCancel } from '@/util/eventUtils';
 import { getHeaderCellInfo, getHeaderResizeCellInfo, isMouseMoved, isRowSelectionMode } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
@@ -25,6 +26,8 @@ export class HeaderEvent {
   private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
+  private readonly cfg: Config;
+
   private readonly header: Header;
 
   private readonly headerOpts: HeaderOptions;
@@ -35,6 +38,7 @@ export class HeaderEvent {
 
   constructor(grid: DaraGrid, gridMain: GridMain, header: Header) {
     this.grid = grid;
+    this.cfg = grid.config();
     this.gridMain = gridMain;
     this.header = header;
     this.headerElement = this.header.getHeaderElement();
@@ -67,10 +71,10 @@ export class HeaderEvent {
    */
   initSearchButton() {
     const searchIconElement = this.headerElement.find('.dg-search-icon');
-
+    const eventManager = this.cfg.eventManager;
     // 검색 처리 추가 할것.
-    eventOff(searchIconElement, 'click');
-    eventOn({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
+    eventManager.off(searchIconElement, 'click');
+    eventManager.on({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       this.gridMain.getDataSearch().openSearch();
@@ -94,7 +98,8 @@ export class HeaderEvent {
 
     if (allHandlers.length < 1) return;
 
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
+    const eventManager = cfg.eventManager;
 
     const headerCellElements = this.headerCellElements;
     let session: PointerSession;
@@ -103,8 +108,8 @@ export class HeaderEvent {
 
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
-    eventOff(headerCellElements, 'mousedown.header.selection touchstart.header.selection');
-    eventOn(
+    eventManager.off(headerCellElements, 'mousedown.header.selection touchstart.header.selection');
+    eventManager.on(
       { el: headerCellElements, type: 'mousedown.header.selection touchstart.header.selection' },
       (e: UIEvent) => {
         if ((e as MouseEvent).button !== 0) {
@@ -138,40 +143,46 @@ export class HeaderEvent {
         if (handler.onPointerMove) {
           let isStarted = false;
 
-          eventOn({ el: document, type: 'touchmove.header.selection mousemove.header.selection' }, (moveEvt: Event) => {
-            session.currentPos = eventPosition(moveEvt);
+          eventManager.on(
+            { el: document, type: 'touchmove.header.selection mousemove.header.selection' },
+            (moveEvt: Event) => {
+              session.currentPos = eventPosition(moveEvt);
 
-            if (!isStarted) {
-              if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
-                return;
+              if (!isStarted) {
+                if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
+                  return;
+                }
+
+                isStarted = true;
+
+                if (handler.onActivate?.(session) === false) {
+                  eventManager.off(
+                    document,
+                    'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
+                  );
+                  return;
+                }
               }
 
-              isStarted = true;
+              session.state = POINTER_STATE.DRAGGING;
 
-              if (handler.onActivate?.(session) === false) {
-                eventOff(
-                  document,
-                  'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
-                );
-                return;
-              }
-            }
+              handler.onPointerMove?.(session);
+            },
+          );
 
-            session.state = POINTER_STATE.DRAGGING;
+          eventManager.on(
+            { el: document, type: 'touchend.header.selection mouseup.header.selection' },
+            (moveEvt: Event) => {
+              eventManager.off(
+                document,
+                'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
+              );
 
-            handler.onPointerMove?.(session);
-          });
-
-          eventOn({ el: document, type: 'touchend.header.selection mouseup.header.selection' }, (moveEvt: Event) => {
-            eventOff(
-              document,
-              'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
-            );
-
-            session.state = POINTER_STATE.IDLE;
-            session.currentPos = eventPosition(moveEvt);
-            handler.onPointerUp?.(session);
-          });
+              session.state = POINTER_STATE.IDLE;
+              session.currentPos = eventPosition(moveEvt);
+              handler.onPointerUp?.(session);
+            },
+          );
         }
 
         clickManager.processClick(session, handler);
@@ -189,7 +200,8 @@ export class HeaderEvent {
 
     if (opts.header.resize.enabled === false) return;
 
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
+    const eventManager = cfg.eventManager;
     const resizerElements = this.headerElement.finds('.dg-header-resizer');
 
     const resizeHandler = new ResizeHandler({ grid: this.grid, gridMain: this.gridMain, header: this.header }, this);
@@ -200,8 +212,8 @@ export class HeaderEvent {
 
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
-    eventOff(resizerElements, 'mousedown.resizerclick touchstart.resizerclick');
-    eventOn({ el: resizerElements, type: 'mousedown.resizerclick touchstart.resizerclick' }, (e: UIEvent) => {
+    eventManager.off(resizerElements, 'mousedown.resizerclick touchstart.resizerclick');
+    eventManager.on({ el: resizerElements, type: 'mousedown.resizerclick touchstart.resizerclick' }, (e: UIEvent) => {
       if ((e as MouseEvent).button !== 0) {
         return true;
       }
@@ -223,7 +235,7 @@ export class HeaderEvent {
       if (resizeHandler.onPointerMove) {
         let isStarted = false;
 
-        eventOn({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
+        eventManager.on({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
           session.currentPos = eventPosition(moveEvt);
 
           if (!isStarted) {
@@ -241,8 +253,8 @@ export class HeaderEvent {
           resizeHandler.onPointerMove?.(session);
         });
 
-        eventOn({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
-          eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+        eventManager.on({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
+          eventManager.off(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
 
           session.state = POINTER_STATE.IDLE;
           session.currentPos = eventPosition(moveEvt);
@@ -261,7 +273,7 @@ export class HeaderEvent {
   private initHeaderCheckbox() {
     const dgRowAllCheckElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]');
 
-    eventOn({ el: dgRowAllCheckElement, type: 'click' }, (e: UIEvent) => {
+    this.cfg.eventManager.on({ el: dgRowAllCheckElement, type: 'click' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLInputElement;
       this.header.setAllCheckItem(eventElement.checked, eventElement);
     });

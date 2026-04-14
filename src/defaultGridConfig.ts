@@ -1,9 +1,10 @@
 import { GridOptions, PagingParam } from '@t/GridOptions';
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from './types/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { isPlainObject } from './util/utils';
-import { DataManager } from './service/DataManager';
-import { ALL_SELECT_VALUE } from './constants';
+import { isPlainObject } from '@/util/utils';
+import { DataManager } from '@/service/DataManager';
+import { ALL_SELECT_VALUE } from '@/constants';
+import { EventManager } from '@/event/EventManager';
 
 /**
  * 
@@ -21,6 +22,7 @@ export function initConfig(opts: GridOptions): Config {
   return {
     rowIdSeq: 0,
     dataManager: {} as DataManager,
+    eventManager: new EventManager(),
     theme: 'light',
     isTreeType: false,
     enableHeaderHelpButton: opts.header?.help?.enabled,

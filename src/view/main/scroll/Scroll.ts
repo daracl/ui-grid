@@ -59,16 +59,16 @@ export class Scroll {
   }
 
   private initMouseWheel() {
-    const { scroll, dataInfo } = this.grid.config();
+    const { scroll, dataInfo, eventManager } = this.grid.config();
     const opts = this.opts;
 
     const enableWheelInContainer = opts.scroll.enableWheelInContainer;
 
-    const mainElement = this.gridMain.mainElement();
+    const mainElement = this.gridMain.mainElement().getElement();
 
-    mainElement.eventOff('wheel DOMMouseScroll');
-    mainElement.eventOn(
-      { el: mainElement.getElement(), type: 'wheel DOMMouseScroll' },
+    eventManager.off(mainElement, 'wheel DOMMouseScroll');
+    eventManager.on(
+      { el: mainElement, type: 'wheel DOMMouseScroll' },
       (evt: WheelEvent) => {
         const delta = evt.deltaY;
 

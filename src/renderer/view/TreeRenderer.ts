@@ -1,11 +1,10 @@
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_KEY } from '@/constants';
+import { createHTMLElement } from '@/util/domUtils';
+import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { ALIGN_STYLE, ROW_HAS_CHILD_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_ID_KEY } from '@/constants';
-import { createHTMLElement } from '@/util/domUtils';
-import { eventOn, stopPreventCancel } from '@/util/eventUtils';
-import { getCellInfo } from '@/util/gridUtils';
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
 
 /**
  * tree renderer
@@ -73,7 +72,7 @@ export class TreeRenderer extends ViewRenderer {
   }
 
   initExpanderEvent(expander: HTMLSpanElement) {
-    eventOn({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
+    this.cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(this.cfg, cellElement);

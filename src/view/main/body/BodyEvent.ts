@@ -1,20 +1,20 @@
-import { getCellInfo, isInputField, isMouseMoved } from '../../../util/gridUtils';
 import { DaraGrid } from '@/DaraGrid';
+import { getCellInfo, isInputField, isMouseMoved } from '../../../util/gridUtils';
 
-import { GridMain } from '../../GridMain';
+import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
-import { eventOff, eventOn, eventPosition, initPointerSession } from '@/util/eventUtils';
+import { ClickManager } from '@/event/ClickManager';
+import { BasePointerHandler } from '@/event/PointerHandler';
+import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
 import { hasClass } from '@/util/domUtils';
+import { eventPosition, initPointerSession } from '@/util/eventUtils';
+import { GridMain } from '../../GridMain';
 import { Body } from './Body';
-import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
-import { BasePointerHandler } from '@/event/PointerHandler';
 import { CellClickHandler } from './CellClickHandler';
-import { PointerSession } from '@/event/PointerSession';
-import { ClickManager } from '@/event/ClickManager';
-import { RowMoveHandler } from './RowMoveHandler';
-import { PasteEvent } from './PasteEventHandler';
 import { KeydownEvent } from './KeydownEvent ';
+import { PasteEvent } from './PasteEventHandler';
+import { RowMoveHandler } from './RowMoveHandler';
 
 /**
  * Body event class
@@ -67,6 +67,8 @@ export class BodyEvent {
     const opts = this.grid.getOptions();
     const bodyElement = this.bodyElement.getElement();
 
+    const eventManager = cfg.eventManager;
+
     let session: PointerSession;
     const editable = opts.editable;
 
@@ -74,7 +76,7 @@ export class BodyEvent {
 
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
-    eventOn(
+    eventManager.on(
       { el: bodyElement, selector: '.dg-cell', type: 'mousedown.cellclick touchstart.cellclick' },
       (e: UIEvent) => {
         if ((e as MouseEvent).button !== 0) {
@@ -117,7 +119,7 @@ export class BodyEvent {
         if (handler.onPointerMove) {
           let isStarted = false;
 
-          eventOn({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
+          eventManager.on({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
             session.currentPos = eventPosition(moveEvt);
 
             if (!isStarted) {
@@ -128,7 +130,10 @@ export class BodyEvent {
               isStarted = true;
               cfg.isBodyDragging = true;
               if (handler.onActivate?.(session) === false) {
-                eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+                eventManager.off(
+                  document,
+                  'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick',
+                );
                 return;
               }
             }
@@ -138,8 +143,8 @@ export class BodyEvent {
             handler.onPointerMove?.(session);
           });
 
-          eventOn({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
-            eventOff(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+          eventManager.on({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
+            eventManager.off(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
             session.state = POINTER_STATE.IDLE;
             session.currentPos = eventPosition(moveEvt);
             handler.onPointerUp?.(session);
@@ -157,7 +162,7 @@ export class BodyEvent {
       },
     );
 
-    eventOn({ el: bodyElement, type: 'mouseup.cellclick touchend.cellclick' }, (e: UIEvent) => {
+    eventManager.on({ el: bodyElement, type: 'mouseup.cellclick touchend.cellclick' }, (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });

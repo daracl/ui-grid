@@ -1,12 +1,12 @@
-@use "../common/common" as comm;
-@use "./body.renderer.scss" as _RENDERER;
+@use '../common/common' as comm;
+@use './body.renderer.scss' as _RENDERER;
 
 @mixin body {
   .dg-body {
     position: relative;
     z-index: 0;
 
-    &[data-view-mode="empty"] {
+    &[data-view-mode='empty'] {
       .dg-empty-msg-area {
         display: -webkit-box;
         display: -ms-flexbox;
@@ -50,14 +50,15 @@
         height: 45px;
 
         &:after {
-          content: "";
+          content: '';
           position: absolute;
           top: 10px; /* 7px → 10px 으로 조정 */
           left: 50%;
           width: 6px; /* 4px → 6px로 확대 */
           height: 5px; /* 3px → 5px로 확대 */
           pointer-events: none;
-          box-shadow: inset 0 0 0 48px, /* 32px → 48px (비율 맞게 확대) */ 0 5px, /* 3px → 5px */ 0 8px, /* 5px → 8px */ 0 16px; /* 10px → 16px */
+          box-shadow: inset 0 0 0 48px, /* 32px → 48px (비율 맞게 확대) */ 0 5px, /* 3px → 5px */ 0 8px,
+            /* 5px → 8px */ 0 16px; /* 10px → 16px */
           transform: translateX(-50%);
           -webkit-transform: translateX(-50%);
           -ms-transform: translateX(-50%);
@@ -105,6 +106,7 @@
         }
 
         .dg-row > .dg-cell {
+          vertical-align: middle;
           border: 1px solid var(--border-color);
           border-top: none !important;
           border-left: none !important;

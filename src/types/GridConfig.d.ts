@@ -4,6 +4,7 @@ import { AnyKeyMap, SearchFields } from './Common';
 import { FieldItem } from './GridField';
 import { PagingOptions } from './GridOptions';
 import { FieldSortInfo } from '@/type/Header';
+import { EventManager } from '@/event/EventManager';
 
 /**
  * grid config info
@@ -15,7 +16,10 @@ export interface Config {
   isTreeType: boolean;
   // header help button
   enableHeaderHelpButton: boolean;
+  // data manager
   dataManager: DataManager;
+  // event manager
+  eventManager: EventManager;
   dimensions: {
     // grid total width
     width: number;

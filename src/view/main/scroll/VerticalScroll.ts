@@ -2,7 +2,7 @@ import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue, hasClass } from '@/util/domUtils';
-import { eventOff, eventOn, eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
+import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction, isNumber, isString } from '@/util/utils';
 import { Config, ScrollInfo } from '@t/GridConfig';
 import { GridOptions } from '@t/GridOptions';
@@ -100,6 +100,7 @@ export class VerticalScroll {
   private initVerticalTrack() {
     const opts = this.opts;
     const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
 
     let bgMoveMode = 0;
     let upFlag = false;
@@ -108,50 +109,51 @@ export class VerticalScroll {
     let startEventY = 0;
 
     let verticalScrollTimer: any;
+    const verticalTrackElement = this.verticalTrackElement.getElement();
 
-    this.verticalTrackElement.eventOff('mousedown touchstart mouseup touchend mouseleave');
+    eventManager.off(verticalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.on({ el: verticalTrackElement, type: 'mousedown touchstart' }, (e: MouseEvent) => {
+      if (!isClickEvent(e)) {
+        return;
+      }
+      bgMoveMode = 1;
+      startEventY = e.offsetY;
+      oneRowMove = cfg.scroll.oneRowMove;
+      bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
 
-    this.verticalTrackElement
-      .eventOn({ el: this.verticalTrackElement.getElement(), type: 'mousedown touchstart' }, (e: MouseEvent) => {
-        if (!isClickEvent(e)) {
-          return;
-        }
-        bgMoveMode = 1;
-        startEventY = e.offsetY;
-        oneRowMove = cfg.scroll.oneRowMove;
-        bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
+      upFlag = startEventY < cfg.scroll.top;
 
-        upFlag = startEventY < cfg.scroll.top;
+      verticalScrollTimer = setInterval(() => {
+        bgMoveMode = 2;
 
-        verticalScrollTimer = setInterval(() => {
-          bgMoveMode = 2;
+        this.moveVerticalScroll({
+          position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+        });
+      }, 100);
+    });
 
-          this.moveVerticalScroll({
-            position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
-          });
-        }, 100);
-      })
-
-      .eventOn({ el: this.verticalTrackElement.getElement(), type: 'mouseup touchend mouseleave' }, (e: Event) => {
-        if (bgMoveMode == 1) {
-          this.moveVerticalScroll({
-            position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
-          });
-        }
-        clearTimeout(verticalScrollTimer);
-        bgMoveMode = 0;
-      });
+    eventManager.on({ el: verticalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+      if (bgMoveMode == 1) {
+        this.moveVerticalScroll({
+          position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+        });
+      }
+      clearTimeout(verticalScrollTimer);
+      bgMoveMode = 0;
+    });
   }
 
   private initVerticalButton() {
+    const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
+
     let scrollBtnTimer: any;
     const vBtnDelay = 100;
     const scrollButtonElements = this.verticalElement.finds('.dg-scroll-button');
     let buttonMoveMode = 0;
     //세로 방향키
-    eventOff(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
-
-    eventOn({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
+    eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
       const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
 
       buttonMoveMode = 1;
@@ -162,7 +164,7 @@ export class VerticalScroll {
       }, vBtnDelay);
     });
 
-    eventOn({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+    eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
         const mode = hasClass(e.currentTarget as HTMLElement, 'up');
         this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
@@ -207,7 +209,7 @@ export class VerticalScroll {
       const endY = eventPosition(e).y;
       this.moveVerticalScroll({ position: initialTop + (endY - startY) });
 
-      eventOff(document, 'touchmove mousemove touchend mouseup');
+      cfg.eventManager.off(document, 'touchmove mousemove touchend mouseup');
 
       if (tooltipFlag) {
         tooltipEle.hide();
@@ -232,9 +234,10 @@ export class VerticalScroll {
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    verticalThumbElement.eventOff('mousedown touchstart');
-    verticalThumbElement.eventOn(
-      { el: verticalThumbElement.getElement(), type: 'mousedown touchstart' },
+    const orginVerticalThumbElement = this.verticalThumbElement.getElement();
+    cfg.eventManager.off(orginVerticalThumbElement, 'mousedown touchstart');
+    cfg.eventManager.on(
+      { el: orginVerticalThumbElement, type: 'mousedown touchstart' },
       (e: MouseEvent | TouchEvent) => {
         if (!isClickEvent(e)) {
           return;
@@ -249,8 +252,8 @@ export class VerticalScroll {
         verticalThumbElement.addClass('active');
 
         // 이벤트 바인딩
-        eventOn({ el: document, type: 'touchmove mousemove' }, onMove);
-        eventOn({ el: document, type: 'touchend mouseup' }, onEnd);
+        cfg.eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
+        cfg.eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
 
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId); // 중복 방지

@@ -2,13 +2,13 @@
 * grid css
 */
 
-@use "./common/common" as comm;
-@use "./toolbar" as _TOOLBAR;
-@use "./main" as _MAIN;
-@use "./footer" as _FOOTER;
-@use "./hidden.component" as _HIDDEN;
-@use "./main/contextmenu" as _CONTEXT;
-@use "./hidden.helper" as _HIDDEN_HELPER;
+@use './common/common' as comm;
+@use './toolbar' as _TOOLBAR;
+@use './main' as _MAIN;
+@use './footer' as _FOOTER;
+@use './hidden.component' as _HIDDEN;
+@use './main/contextmenu' as _CONTEXT;
+@use './hidden.helper' as _HIDDEN_HELPER;
 
 .daracl-noselect {
   -webkit-touch-callout: none;
@@ -20,8 +20,8 @@
 }
 
 body {
-  &[data-dg-theme="light"] .daracl-grid,
-  &[data-dg-theme="light"] .dg-hidden-container,
+  &[data-dg-theme='light'] .daracl-grid,
+  &[data-dg-theme='light'] .dg-hidden-container,
   .daracl-grid > .dg-light,
   .dg-hidden-container,
   .dg-hidden-container.dg-light {
@@ -84,8 +84,8 @@ body {
     --bar-negative-bg: #ff8989;
   }
 
-  &[data-dg-theme="dark"] .daracl-grid,
-  &[data-dg-theme="dark"] .dg-hidden-container,
+  &[data-dg-theme='dark'] .daracl-grid,
+  &[data-dg-theme='dark'] .dg-hidden-container,
   .daracl-grid > .dg-dark,
   .dg-hidden-container.dg-dark {
     --border-color: #3a3a3a;
@@ -198,7 +198,7 @@ body {
     padding: 0px 3px 0px 3px;
     display: inline-block;
 
-    &[type="checkbox"] {
+    &[type='checkbox'] {
       margin: auto;
     }
   }
@@ -243,7 +243,7 @@ body {
     font-size: 14px;
     margin-bottom: 10px;
 
-    input[type="radio"] {
+    input[type='radio'] {
       display: none;
 
       &:checked + .radiomark {
@@ -251,7 +251,7 @@ body {
         background-color: var(--radio-color);
 
         &::after {
-          content: "";
+          content: '';
           position: absolute;
           top: 4px;
           left: 4px;
@@ -282,7 +282,7 @@ body {
     min-width: 45px;
     height: 23px;
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       display: none;
     }
 
@@ -302,7 +302,7 @@ body {
       display: inline-flex;
 
       &::before {
-        content: "";
+        content: '';
         position: absolute;
         height: 17px;
         width: 17px;
@@ -352,7 +352,7 @@ body {
     position: relative;
 
     &.dg-all {
-      input[type="checkbox"] {
+      input[type='checkbox'] {
         &:checked + .dg-checkmark {
           &::after {
             border-width: 0 2px 2px 0;
@@ -361,7 +361,7 @@ body {
       }
     }
 
-    input[type="checkbox"] {
+    input[type='checkbox'] {
       display: none;
 
       &:checked + .dg-checkmark {
@@ -369,7 +369,7 @@ body {
         border-color: var(--checkbox-bg);
 
         &::after {
-          content: "";
+          content: '';
           position: absolute;
           left: 4px;
           top: 1px;
@@ -396,7 +396,7 @@ body {
     &.indeterminate {
       .dg-checkmark {
         &::after {
-          content: "";
+          content: '';
           position: absolute;
           top: 50%;
           left: 50%;
@@ -448,6 +448,7 @@ body {
 
 .dg-hidden-container {
   position: initial;
+  height: 0px;
   @include _CONTEXT.contextMenu;
   @include _HIDDEN_HELPER.hiddenHelper;
 }

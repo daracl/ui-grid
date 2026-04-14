@@ -1,9 +1,8 @@
-import { FieldItem } from '@t/GridField';
-import { GridMain } from '@/view/GridMain';
-import { ViewRenderer } from '../ViewRenderer';
-import { eventOn } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
+import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
 
 /**
  * checkbox renderer
@@ -71,7 +70,7 @@ export class CheckboxRenderer extends ViewRenderer {
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.getGrid().config();
 
-    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
 
       const cellInfo = getCellInfo(cfg, cellElement);

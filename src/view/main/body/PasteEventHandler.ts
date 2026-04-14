@@ -1,14 +1,13 @@
 import { Selection } from '@t/GridConfig';
 
-import { createNewItems } from '@/util/gridUtils';
 import { DaraGrid } from '@/DaraGrid';
+import { createNewItems } from '@/util/gridUtils';
 
-import { GridMain } from '@/view/GridMain';
 import { DaraElement } from '@/element/DaraElement';
-import { eventOn } from '@/util/eventUtils';
-import { SelectionInfo } from '@/selection/selection';
 import { EventHandler } from '@/event/EventHandler';
+import { SelectionInfo } from '@/selection/selection';
 import { isFunction } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
 
 /**
  * paste event class
@@ -46,7 +45,7 @@ export class PasteEvent implements EventHandler {
 
     const pasteElement = this.pasteElement.getElement();
 
-    eventOn({ el: pasteElement, type: 'paste' }, (event: ClipboardEvent) => {
+    cfg.eventManager.on({ el: pasteElement, type: 'paste' }, (event: ClipboardEvent) => {
       const clipboardData = event.clipboardData; // ClipboardEvent에서 clipboardData 가져오기
 
       if (!clipboardData) {

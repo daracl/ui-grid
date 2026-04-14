@@ -1,10 +1,10 @@
-import { isEmpty, isObject, isString, isUndefined } from './utils';
-import { $querySelector } from './domUtils';
-import { PointerPosition, PointerSession } from '@/event/PointerSession';
 import { POINTER_STATE } from '@/constants';
-import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
 import { ClickManager } from '@/event/ClickManager';
+import { PointerPosition, PointerSession } from '@/event/PointerSession';
+import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
 import { EventOptions } from '../types/Event';
+import { $querySelector } from './domUtils';
+import { isEmpty, isString } from './utils';
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -15,18 +15,6 @@ const EVENT_KEY_CODE = {
   ArrowLeft: 37,
   ArrowRight: 39,
 };
-
-const EVENT_HANDLER_MAP = new Map();
-
-function addEventInfo(el: any, eventType: string, listener: any) {
-  if (!EVENT_HANDLER_MAP.has(el)) {
-    EVENT_HANDLER_MAP.set(el, {});
-  }
-  const evtObj = EVENT_HANDLER_MAP.get(el);
-  if (!evtObj[eventType]) {
-    EVENT_HANDLER_MAP.get(el)[eventType] = listener;
-  }
-}
 
 /**
  * shift key check
@@ -64,17 +52,6 @@ export function isSpacebar(evt: Event): boolean {
 }
 
 /**
- * 모든 이벤트 취소
- */
-export function allEventOff() {
-  for (const [element, events] of EVENT_HANDLER_MAP) {
-    for (const event in events) {
-      eventOff(element, event);
-    }
-  }
-}
-
-/**
  * enter key check
  *
  * @param {Event} evt event
@@ -101,109 +78,6 @@ export function isEsc(evt: Event): boolean {
     event.code === 'Escape' // 물리 키 기준
   );
 }
-
-/**
- * html element event 등록
- *
- * @param {(Element | string | NodeList | null | Document)} el html element
- * @param {string} type event type "click mousedown" space split
- * @returns {*}
- */
-export const eventOff = (el: Element | string | NodeList | null | Document | Element[], type: string) => {
-  if (el == null) return el;
-
-  const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
-
-  const elements = $querySelector(el);
-
-  const evtInfo = EVENT_HANDLER_MAP.get(el);
-
-  if (isEmpty(evtInfo)) {
-    return;
-  }
-
-  // 각 요소별로 WeakMap에서 이벤트 정보를 읽어와 제거
-  for (const eventType of eventTypes) {
-    const event = eventType.split('.')[0];
-    elements.forEach((target) => {
-      const elementEvents = EVENT_HANDLER_MAP.get(target);
-
-      if (isEmpty(elementEvents) || isEmpty(elementEvents[eventType])) {
-        return;
-      }
-
-      target.removeEventListener(event, elementEvents[eventType]);
-      delete elementEvents[eventType];
-
-      if (Object.keys(elementEvents).length < 1) {
-        EVENT_HANDLER_MAP.delete(target);
-      }
-    });
-  }
-};
-
-/**
- * html element event 등록
- *
- * @param {(Element | string | NodeList | null | Document)} el html element
- * @param {string} type event type "click mousedown" space split
- * @param {?*} [listener] 이벤트 리스너
- * @param {?*} [selector] 상위 셀럭터
- * @param {?*} [fnOpts] listener option
- * @returns {*}
- */
-export const eventOn = (opts: EventOptions, listener?: any, fnOpts?: any) => {
-  const el = opts.el;
-
-  if (el == null) return;
-
-  const type = opts.type;
-  const selector = opts.selector;
-
-  const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
-
-  const elements = $querySelector(el);
-
-  let fn: any;
-  if (!isEmpty(selector) && isString(selector)) {
-    fn = (e: Event) => {
-      const evtTarget = e.target as Element;
-      const selectorEle = evtTarget.closest(selector);
-
-      if (!selectorEle) return;
-
-      let containsFlag = false;
-      for (const el of elements) {
-        if (el.contains(selectorEle)) {
-          containsFlag = true;
-        }
-      }
-
-      if (!containsFlag) return;
-
-      if (listener(e, selectorEle) === false) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      }
-    };
-  } else {
-    fn = (e: Event) => {
-      if (listener(e, el) === false) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      }
-    };
-  }
-
-  for (const eventType of eventTypes) {
-    addEventInfo(el, eventType, fn);
-    const event = eventType.split('.')[0];
-
-    elements.forEach((el: Node) => {
-      el.addEventListener(event, fn, fnOpts ?? {});
-    });
-  }
-};
 
 /**
  * event stop

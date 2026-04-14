@@ -1,4 +1,4 @@
-@use "../common/common" as comm;
+@use '../common/common' as comm;
 
 @mixin header {
   .dg-header {
@@ -40,6 +40,7 @@
         tr > {
           .dg-header-cell,
           .dg-header-group-cell {
+            vertical-align: middle;
             border: 1px solid var(--border-color);
             border-top: none !important;
             border-left: none !important;
@@ -107,13 +108,13 @@
               display: block;
             }
 
-            &[data-dg-sort="asc"] > svg {
+            &[data-dg-sort='asc'] > svg {
               top: 6px;
               .dg-desc {
                 display: none;
               }
             }
-            &[data-dg-sort="desc"] > svg {
+            &[data-dg-sort='desc'] > svg {
               top: -1px;
               .dg-asc {
                 display: none;

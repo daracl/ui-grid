@@ -1,10 +1,7 @@
-import { EditRenderer } from '../EditRenderer';
-import { FieldItem } from '@t/GridField';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { getElementRect, getLayerElement } from '@/util/domUtils';
-import { eventOn } from '@/util/eventUtils';
-import { stringValidator } from '@/rule/stringValidator';
+import { FieldItem } from '@t/GridField';
+import { EditRenderer } from '../EditRenderer';
 import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
 
 /**

@@ -3,8 +3,7 @@ import { Config } from '@t/GridConfig';
 import { ALL_SELECT_VALUE } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
-import { eventOff, eventOn, isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
-import { gridDataSearch } from '@/util/searchUtils';
+import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { SearchOptions } from '@t/GridOptions';
 import { toggleClass } from '../../util/styleUtils';
 import { GridMain } from '../GridMain';
@@ -121,11 +120,13 @@ export class DataSearch {
    */
   initSimpleModeEvent() {
     const cfg = this.grid.config();
+
+    const eventManager = cfg.eventManager;
     const searchParameter = cfg.searchParameter;
     const searchTextElement = this.searchTextElement;
 
-    eventOff(searchTextElement, 'keydown');
-    eventOn({ el: searchTextElement, type: 'keydown' }, (e: KeyboardEvent) => {
+    eventManager.off(searchTextElement, 'keydown');
+    eventManager.on({ el: searchTextElement, type: 'keydown' }, (e: KeyboardEvent) => {
       e.stopPropagation();
       if (e.isComposing) return;
 
@@ -140,16 +141,16 @@ export class DataSearch {
 
     const searchBtnElement = this.searchElement.querySelector('.dg-search-btn') as HTMLElement;
 
-    eventOff(searchBtnElement, 'click');
-    eventOn({ el: searchBtnElement, type: 'click' }, (e: UIEvent) => {
+    eventManager.off(searchBtnElement, 'click');
+    eventManager.on({ el: searchBtnElement, type: 'click' }, (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch();
     });
 
     const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
 
-    eventOff(searchIconElement, 'click');
-    eventOn({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
+    eventManager.off(searchIconElement, 'click');
+    eventManager.on({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       const evtElement = e.currentTarget as HTMLElement;

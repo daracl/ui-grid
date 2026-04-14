@@ -2,7 +2,7 @@ import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue, hasClass } from '@/util/domUtils';
-import { eventOff, eventOn, eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
+import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { getCenterContentLeft, getHorizontalScrollPosition } from '@/util/gridUtils';
 import { isFunction, isNumber, isString } from '@/util/utils';
 import { Config } from '@t/GridConfig';
@@ -93,6 +93,7 @@ export class HorizontalScroll {
    */
   private initHorizontalThumb() {
     const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
 
     let dragging = false;
     let lastX = 0;
@@ -104,7 +105,7 @@ export class HorizontalScroll {
     const moveHorizontalScroll = this.moveHorizontalScroll.bind(this);
 
     const cleanup = () => {
-      eventOff(document, 'touchmove mousemove touchend mouseup');
+      cfg.eventManager.off(document, 'touchmove mousemove touchend mouseup');
     };
 
     const onMove = (e: MouseEvent | TouchEvent) => {
@@ -138,33 +139,32 @@ export class HorizontalScroll {
       animationFrameId = requestAnimationFrame(loop);
     };
 
-    horizontalThumbElement.eventOff('mousedown touchstart touchend mouseup');
-    horizontalThumbElement.eventOn(
-      { el: horizontalThumbElement.getElement(), type: 'mousedown touchstart' },
-      (e: MouseEvent | TouchEvent) => {
-        if (!isClickEvent(e)) {
-          return;
-        }
-        stopPreventCancel(e);
+    const orginHorizontalThumbElement = horizontalThumbElement.getElement();
 
-        dragging = true;
-        startX = eventPosition(e).x;
-        lastX = startX;
-        initialLeft = cfg.scroll.left;
+    eventManager.off(orginHorizontalThumbElement, 'mousedown touchstart touchend mouseup');
+    eventManager.on({ el: orginHorizontalThumbElement, type: 'mousedown touchstart' }, (e: MouseEvent | TouchEvent) => {
+      if (!isClickEvent(e)) {
+        return;
+      }
+      stopPreventCancel(e);
 
-        horizontalThumbElement.addClass('active');
+      dragging = true;
+      startX = eventPosition(e).x;
+      lastX = startX;
+      initialLeft = cfg.scroll.left;
 
-        eventOn({ el: document, type: 'touchmove mousemove' }, onMove);
-        eventOn({ el: document, type: 'touchend mouseup' }, onEnd);
+      horizontalThumbElement.addClass('active');
 
-        if (animationFrameId !== null) {
-          cancelAnimationFrame(animationFrameId);
-        }
-        animationFrameId = requestAnimationFrame(loop);
+      eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
+      eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
 
-        return true;
-      },
-    );
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      animationFrameId = requestAnimationFrame(loop);
+
+      return true;
+    });
   }
 
   /**
@@ -173,8 +173,9 @@ export class HorizontalScroll {
    * @private
    */
   private initHorizontalTrack() {
-    const cfg = this.grid.config();
     const opts = this.opts;
+    const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
 
     let bgMoveMode = 0;
     let leftFlag = false;
@@ -184,37 +185,39 @@ export class HorizontalScroll {
     let bgMoveCol = 0;
     let horizontalScrollTimer: any;
 
-    this.horizontalTrackElement.eventOff('mousedown touchstart mouseup touchend mouseleave');
-    this.horizontalTrackElement
-      .eventOn({ el: this.horizontalTrackElement.getElement(), type: 'mousedown touchstart' }, (e: MouseEvent) => {
-        if (!isClickEvent(e)) {
-          return;
-        }
-        bgMoveMode = 1;
-        startEventX = e.offsetX;
+    const horizontalTrackElement = this.horizontalTrackElement.getElement();
 
-        oneColMove = cfg.scroll.oneColMove;
-        bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
+    eventManager.off(horizontalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.on({ el: horizontalTrackElement, type: 'mousedown touchstart' }, (e: MouseEvent) => {
+      if (!isClickEvent(e)) {
+        return;
+      }
+      bgMoveMode = 1;
+      startEventX = e.offsetX;
 
-        leftFlag = startEventX < cfg.scroll.left;
+      oneColMove = cfg.scroll.oneColMove;
+      bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
 
-        horizontalScrollTimer = setInterval(() => {
-          bgMoveMode = 2;
+      leftFlag = startEventX < cfg.scroll.left;
 
-          this.moveHorizontalScroll({
-            position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
-          });
-        }, 100);
-      })
-      .eventOn({ el: this.horizontalTrackElement.getElement(), type: 'mouseup touchend mouseleave' }, (e: Event) => {
-        if (bgMoveMode == 1) {
-          this.moveHorizontalScroll({
-            position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
-          });
-        }
-        clearTimeout(horizontalScrollTimer);
-        bgMoveMode = 0;
-      });
+      horizontalScrollTimer = setInterval(() => {
+        bgMoveMode = 2;
+
+        this.moveHorizontalScroll({
+          position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
+        });
+      }, 100);
+    });
+
+    eventManager.on({ el: horizontalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+      if (bgMoveMode == 1) {
+        this.moveHorizontalScroll({
+          position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
+        });
+      }
+      clearTimeout(horizontalScrollTimer);
+      bgMoveMode = 0;
+    });
   }
 
   /**
@@ -227,11 +230,14 @@ export class HorizontalScroll {
     const vBtnDelay = 100;
     let buttonMoveMode = 0;
 
+    const cfg = this.grid.config();
+    const eventManager = cfg.eventManager;
+
     const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button');
 
     //세로 방향키
-    eventOff(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
-    eventOn({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
+    eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
       const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
       buttonMoveMode = 1;
 
@@ -241,7 +247,7 @@ export class HorizontalScroll {
       }, vBtnDelay);
     });
 
-    eventOn({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+    eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
         const mode = hasClass(e.currentTarget as HTMLElement, 'left');
         this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });

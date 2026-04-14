@@ -2,7 +2,7 @@
 * hidden component css
 */
 
-@use "./common/common" as comm;
+@use './common/common' as comm;
 
 @mixin hiddenComponent {
   /*search-simple*/
@@ -55,6 +55,7 @@
 
         .dg-icon-button {
           width: 15px;
+          min-width: 15px;
           height: 20px;
           display: flex;
           align-items: center;
@@ -87,7 +88,7 @@
 
             &::before,
             &::after {
-              content: "";
+              content: '';
               position: absolute;
               left: 0;
               right: 0;
@@ -192,7 +193,7 @@
         position: relative;
 
         &::before {
-          content: "✔";
+          content: '✔';
           position: absolute;
           left: 3px;
           color: #1a73e8;

@@ -9,13 +9,12 @@ import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
 import { PagingInfo } from '@t/PagingInfo';
 import { DaraElement } from './element/DaraElement';
-import { allEventOff } from './util/eventUtils';
+import { DataManager } from './service/DataManager';
+import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import * as utils from './util/utils';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
-import { createHTMLElement } from './util/domUtils';
-import { DataManager } from './service/DataManager';
 
 declare const APP_VERSION: string;
 
@@ -56,6 +55,8 @@ export class DaraGrid {
 
   private gridMain: GridMain;
 
+  private orginStyle: string;
+
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     this.options = utils.merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
@@ -72,6 +73,8 @@ export class DaraGrid {
     this.$uid = beforeUid ?? `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
 
     gridElement.setAttribute(SEQ_ATTR_KEY, this.$uid);
+
+    this.orginStyle = gridElement.style.cssText;
 
     this.uidAttrSelector = `[${SEQ_ATTR_KEY}="${this.$uid}"]`;
 
@@ -139,7 +142,7 @@ export class DaraGrid {
    * @param {(HTMLElement | string)} eleOrId grid element, grid uid
    * @returns {DaraGrid} 그리드 object
    */
-  public static instance(eleOrId: HTMLElement | string): DaraGrid {
+  public static instance(eleOrId: HTMLElement | string): DaraGrid | null {
     let id;
     if (utils.isString(eleOrId)) {
       id = eleOrId;
@@ -151,7 +154,7 @@ export class DaraGrid {
       return ALL_INSTANCE[id];
     }
 
-    throw new Error(`instance not found : [${eleOrId}]`);
+    return null;
   }
   /**
    * 모든 field 얻기
@@ -218,7 +221,7 @@ export class DaraGrid {
     this.gridMain.removeRow(ids);
   };
 
-  public setSize = (width?: number, height?: number) => {
+  public setSize = (width: number, height: number) => {
     this.gridMain.setSize(width, height, true);
   };
 
@@ -344,9 +347,10 @@ export class DaraGrid {
     const currentUid = this.gridElement.getAttr(SEQ_ATTR_KEY);
 
     if (currentUid && ALL_INSTANCE[currentUid]) {
-      allEventOff();
+      this.config().eventManager.destroy();
       this.gridElement.removeAttr(SEQ_ATTR_KEY);
       const el = this.gridElement.getElement();
+      el.style.cssText = this.orginStyle;
       while (el.firstChild) {
         if (typeof el.firstChild.remove === 'function') {
           el.firstChild.remove(); // DOM에서 제거

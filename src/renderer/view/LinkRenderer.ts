@@ -1,9 +1,8 @@
+import { getCellInfo } from '@/util/gridUtils';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-import { GridMain } from '@/view/GridMain';
-import { eventOn } from '@/util/eventUtils';
-import { getCellInfo } from '@/util/gridUtils';
-import { CellInfo } from '@t/GridConfig';
 
 /**
  * link renderer
@@ -50,7 +49,7 @@ export class LinkRenderer extends ViewRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.getGrid().config();
-    eventOn({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       e.preventDefault();
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;

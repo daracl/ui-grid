@@ -4,7 +4,6 @@ import { FooterOptions, PagingParam } from '@t/GridOptions';
 import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
-import { eventOn } from '@/util/eventUtils';
 import { getPagingInfo } from '@/util/pagingUtil';
 import * as utils from '@/util/utils';
 import { PagingInfo } from '@t/PagingInfo';
@@ -33,7 +32,7 @@ export class Footer {
 
   private selectionInfo: SelectionInfo;
 
-  private config: Config;
+  private cfg: Config;
 
   private isSelectionInfo: boolean;
 
@@ -45,7 +44,7 @@ export class Footer {
     this.grid = grid;
     this.gridMain = gridMain;
     this.selectionInfo = gridMain.selectionInfo;
-    this.config = this.grid.config();
+    this.cfg = this.grid.config();
 
     this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
 
@@ -75,7 +74,7 @@ export class Footer {
   initPagingEvent() {
     const pagingCallback = this.footerOpts.paging?.callback;
     const pagingElement = this.paingElement.getElement();
-    eventOn({ el: pagingElement, type: 'click', selector: '.dg-page-num' }, (e: UIEvent) => {
+    this.cfg.eventManager.on({ el: pagingElement, type: 'click', selector: '.dg-page-num' }, (e: UIEvent) => {
       const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
 
       const pageNum = utils.intValue(pageNumElement?.getAttribute('pageno') ?? '1');
@@ -91,9 +90,9 @@ export class Footer {
   }
 
   public goPage(pageNum: number) {
-    const pagingInfo = this.config.paging;
+    const pagingInfo = this.cfg.paging;
     pagingInfo.currPage = pageNum;
-    pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.config.dataInfo.rowLength;
+    pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.cfg.dataInfo.rowLength;
 
     const pagingViewInfo = this.setPaging(pagingInfo);
 
@@ -101,7 +100,7 @@ export class Footer {
       const countPerPage = pagingViewInfo?.countPerPage;
       const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
-      this.config.dataManager.setViewItems(this.config.dataManager.getOriginItems(), startIdx, startIdx + countPerPage);
+      this.cfg.dataManager.setViewItems(this.cfg.dataManager.getOriginItems(), startIdx, startIdx + countPerPage);
       this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
       this.gridMain.refreshBody();
       this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
@@ -187,7 +186,7 @@ export class Footer {
 
     this.setPagingInfo(pagingInfo);
 
-    this.config.paging = pagingInfo;
+    this.cfg.paging = pagingInfo;
 
     let currP = pagingInfo.currPage;
     if (currP == 0) currP = 1;
