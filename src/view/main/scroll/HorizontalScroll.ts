@@ -355,7 +355,7 @@ export class HorizontalScroll {
       return;
     }
 
-    this.gridMain.hideLayer();
+    //this.gridMain.hideLayer();
 
     scroll.left = leftVal;
 

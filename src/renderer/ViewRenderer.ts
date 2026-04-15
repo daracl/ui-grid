@@ -1,16 +1,16 @@
 import { FieldItem } from '@t/GridField';
 
 import { Renderer } from './Renderer';
-import { isFunction } from '@/util/utils';
+import { isFunction, isString } from '@/util/utils';
 import { CellInfo, Config } from '@t/GridConfig';
 import { GridMain } from '@/view/GridMain';
 import { formatValue } from '@/util/formatUtils';
 import { ALIGN_STYLE } from '@/constants';
 
 export abstract class ViewRenderer extends Renderer {
-  private readonly refValue: any;
   private readonly isRefFunction: boolean;
-
+  private readonly isRefString: boolean;
+  protected readonly refValue: any;
   protected isClick = false;
   protected eventStyleClass = '';
   protected readonly cfg: Config;
@@ -18,8 +18,16 @@ export abstract class ViewRenderer extends Renderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
     this.cfg = this.gridMain.config();
-    this.refValue = this.field.renderer.refValue ?? {};
-    this.isRefFunction = isFunction(this.refValue);
+    const refValue = this.field.renderer.refValue;
+    this.isRefFunction = isFunction(refValue);
+    this.isRefString = isString(refValue);
+
+    if (this.isRefString || this.isRefFunction) {
+      this.refValue = refValue;
+    } else {
+      this.refValue = refValue ?? {};
+    }
+
     this.isClick = isFunction(this.field.renderer.click);
     this.initEventClass();
   }
@@ -61,6 +69,9 @@ export abstract class ViewRenderer extends Renderer {
     if (this.isRefFunction) {
       return this.refValue.call(null, this.field, value, rowItem);
     }
+
+    if (this.isRefString) return { label: this.refValue };
+
     return this.refValue[value];
   }
 

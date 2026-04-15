@@ -150,7 +150,7 @@ export class DropdownRenderer extends ViewRenderer {
 
     let menuElement = this.menuElement;
     if (!menuElement) {
-      menuElement = getLayerElement('div', 'dg-dropdown-menu', cellPosition);
+      menuElement = getLayerElement('div', 'dg-dropdown-menu dg-field-layer', cellPosition);
 
       this.rendererContainer.appendChild(menuElement);
       this.menuElement = menuElement;

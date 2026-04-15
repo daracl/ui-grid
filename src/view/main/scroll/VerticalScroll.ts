@@ -344,7 +344,7 @@ export class VerticalScroll {
       return;
     }
 
-    this.gridMain.hideLayer();
+    //this.gridMain.hideLayer();
 
     if (updateChkFlag !== false) {
       const onUpdateFn = this.gridMain.options().scroll.vertical.onUpdate;

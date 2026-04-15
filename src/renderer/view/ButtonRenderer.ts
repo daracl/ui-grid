@@ -16,10 +16,6 @@ export class ButtonRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-    const value = item[this.fieldName];
-    const refValue = this.getRefValue(value);
-
     let btnElement = element.firstElementChild as HTMLElement | null;
 
     // 최초 렌더링 시만 생성
@@ -30,7 +26,11 @@ export class ButtonRenderer extends ViewRenderer {
       this.initEvent(btnElement);
     }
 
-    const buttonLabel = refValue.label ?? value;
+    const item = cellInfo.item;
+    const value = item[this.fieldName];
+    const refValue = this.getRefValue(value);
+
+    const buttonLabel = refValue?.label ?? value;
 
     // 값이 바뀌었을 때만 갱신
     if (btnElement.textContent !== buttonLabel) {

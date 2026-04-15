@@ -6,16 +6,17 @@ import { GridMain } from '../../GridMain';
 import { HorizontalScroll } from './HorizontalScroll';
 import { VerticalScroll } from './VerticalScroll';
 
+/**
+ * body scroll
+ */
 export class Scroll {
   private readonly gridMain: GridMain;
 
   private readonly opts: GridOptions;
 
   private readonly horizontalElement: DaraElement;
-  private readonly horizontalThumbElement: DaraElement;
 
   private readonly verticalElement: DaraElement;
-  private readonly verticalThumbElement: DaraElement;
 
   private verticalScroll: VerticalScroll;
   private horizontalScroll: HorizontalScroll;
@@ -26,10 +27,8 @@ export class Scroll {
     this.opts = this.gridMain.options();
 
     this.horizontalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-horizontal');
-    this.horizontalThumbElement = this.horizontalElement.findDaraElement('.dg-scroll-thumb');
 
     this.verticalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-vertical');
-    this.verticalThumbElement = this.verticalElement.findDaraElement('.dg-scroll-thumb');
   }
 
   /**

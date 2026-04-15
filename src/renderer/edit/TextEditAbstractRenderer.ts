@@ -76,7 +76,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = getLayerElement('input', 'dg-edit-input', cellInfo.c + '') as HTMLInputElement;
+      editElement = getLayerElement('input', 'dg-edit-input dg-field-layer', cellInfo.c + '') as HTMLInputElement;
       editElement.type = type;
       editElement.name = this.fieldName;
       editElement.setAttribute('autocomplete', 'off');

@@ -122,7 +122,7 @@ export abstract class EditRenderer extends Renderer {
       return this.validatorElement;
     }
 
-    const div = getLayerElement('div', 'dg-validator-message', 'validator');
+    const div = getLayerElement('div', 'dg-validator-message dg-field-layer', 'validator');
 
     this.validatorElement = div;
 
