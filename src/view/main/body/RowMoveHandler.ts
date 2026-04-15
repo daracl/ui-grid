@@ -41,13 +41,13 @@ export class RowMoveHandler extends CellClickHandler {
   public constructor(context: PointerContext, bodyEvent: BodyEvent) {
     super(context, bodyEvent);
 
-    this.language = context.gridMain.getGrid().i18n();
+    this.language = context.gridMain.i18n();
 
     this.rowMoveOptions = this.opts.body.rowMove as RowMoveOptions;
 
     this.isSelectionRowMode = isRowSelectionMode(this.selectionMode);
 
-    this.rowMoveDropHelperElement = context.grid.element().findDaraElement('.dg-movedrop-helper').getElement();
+    this.rowMoveDropHelperElement = context.gridMain.element().findDaraElement('.dg-movedrop-helper').getElement();
     this.initTemplate();
   }
 

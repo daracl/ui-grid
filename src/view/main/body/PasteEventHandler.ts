@@ -1,6 +1,5 @@
 import { Selection } from '@t/GridConfig';
 
-import { DaraGrid } from '@/DaraGrid';
 import { createNewItems } from '@/util/gridUtils';
 
 import { DaraElement } from '@/element/DaraElement';
@@ -16,14 +15,12 @@ import { GridMain } from '@/view/GridMain';
  * @typedef {PasteEvent}
  */
 export class PasteEvent implements EventHandler {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
   private readonly selectionInfo: SelectionInfo;
 
   private pasteElement: DaraElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, selectionInfo: SelectionInfo) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, selectionInfo: SelectionInfo) {
     this.gridMain = gridMain;
     this.selectionInfo = selectionInfo;
   }
@@ -34,9 +31,9 @@ export class PasteEvent implements EventHandler {
    * @private
    */
   public init() {
-    this.pasteElement = new DaraElement(this.grid.element().find('.dg-paste-area'));
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    this.pasteElement = new DaraElement(this.gridMain.element().find('.dg-paste-area'));
+    const cfg = this.gridMain.config();
+    const opts = this.gridMain.options();
     const pasteBeforeFn = opts.body.pasteBefore;
     const pasteBeforeFnFlag = isFunction(pasteBeforeFn);
 

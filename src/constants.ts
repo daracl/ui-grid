@@ -28,6 +28,9 @@ import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
 import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
 import { TreeRenderer } from './renderer/view/TreeRenderer';
 
+// grid instance id attr key
+export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
+
 export type MODE = 'edit' | 'view';
 
 // copy type

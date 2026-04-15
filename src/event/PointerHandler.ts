@@ -19,8 +19,8 @@ export abstract class BasePointerHandler implements PointerHandler {
 
   public constructor(context: PointerContext) {
     this.context = context;
-    this.cfg = context.grid.config();
-    this.opts = context.grid.getOptions();
+    this.cfg = context.gridMain.config();
+    this.opts = context.gridMain.options();
   }
 
   canHandle(session: PointerSession): boolean | void {

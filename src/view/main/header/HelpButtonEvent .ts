@@ -1,7 +1,5 @@
 import { Config } from '@t/GridConfig';
 
-import { DaraGrid } from '@/DaraGrid';
-
 import { EventHandler } from '@/event/EventHandler';
 import { HeaderOptions } from '@/types/GridOptions';
 import { getLayerElement, innerLayerPosition } from '@/util/domUtils';
@@ -17,19 +15,17 @@ import { Header } from './Header';
  * @typedef {HelpButtonEvent }
  */
 export class HelpButtonEvent implements EventHandler {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly header: Header;
 
   private readonly helpOpts: HeaderOptions;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, header: Header) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, header: Header) {
     this.gridMain = gridMain;
     this.header = header;
 
-    this.helpOpts = grid.getOptions().header;
+    this.helpOpts = gridMain.options().header;
   }
 
   /**
@@ -39,7 +35,7 @@ export class HelpButtonEvent implements EventHandler {
   public init() {
     const helpOpts = this.helpOpts.help;
 
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     const helpElements = this.header.getHeaderElement().finds('.dg-header-help');

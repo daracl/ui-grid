@@ -2,8 +2,7 @@ import { DaraElement } from '@/element/DaraElement';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
-import { Config } from '@/types/GridConfig';
-import { GridOptions, HeaderResize } from '@/types/GridOptions';
+import { HeaderResize } from '@/types/GridOptions';
 import { getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from '@/util/gridUtils';
 import { isFunction } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
@@ -36,7 +35,7 @@ export class ResizeHandler extends BasePointerHandler {
 
     this.resizeUpdate = isFunction(resizeOpts.update) ? resizeOpts.update : undefined;
 
-    this.resizerHelperElement = context.grid.element().findDaraElement('.dg-resize-helper');
+    this.resizerHelperElement = context.gridMain.element().findDaraElement('.dg-resize-helper');
   }
 
   onPointerDown(session: PointerSession): void {

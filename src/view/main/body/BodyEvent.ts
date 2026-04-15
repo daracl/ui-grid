@@ -1,4 +1,3 @@
-import { DaraGrid } from '@/DaraGrid';
 import { getCellInfo, isInputField, isMouseMoved } from '../../../util/gridUtils';
 
 import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
@@ -23,7 +22,6 @@ import { RowMoveHandler } from './RowMoveHandler';
  * @typedef {BodyEvent}
  */
 export class BodyEvent {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
   private readonly body: Body;
   private readonly selectionInfo: SelectionInfo;
@@ -32,8 +30,7 @@ export class BodyEvent {
 
   private readonly handlers: BasePointerHandler[];
 
-  constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.gridMain = gridMain;
     this.body = body;
     this.selectionInfo = selectionInfo;
@@ -42,29 +39,29 @@ export class BodyEvent {
 
     this.handlers = [];
 
-    const rowMoveOptions = grid.getOptions().body.rowMove;
+    const rowMoveOptions = gridMain.options().body.rowMove;
 
     if (rowMoveOptions?.enabled === true) {
-      this.handlers.push(new RowMoveHandler({ grid, gridMain, body }, this));
+      this.handlers.push(new RowMoveHandler({ gridMain, body }, this));
     }
-    this.handlers.push(new CellClickHandler({ grid, gridMain, body }, this));
+    this.handlers.push(new CellClickHandler({ gridMain, body }, this));
   }
 
   init() {
     this.initPointerEvent();
 
-    if (this.grid.getOptions().editable !== false) {
-      new PasteEvent(this.grid, this.gridMain, this.selectionInfo).init();
+    if (this.gridMain.options().editable !== false) {
+      new PasteEvent(this.gridMain, this.selectionInfo).init();
     }
 
-    if (this.grid.getOptions().body.disableKeydown !== true) {
-      new KeydownEvent(this.grid, this.gridMain, this.body, this.selectionInfo).init();
+    if (this.gridMain.options().body.disableKeydown !== true) {
+      new KeydownEvent(this.gridMain, this.body, this.selectionInfo).init();
     }
   }
 
   initPointerEvent() {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    const cfg = this.gridMain.config();
+    const opts = this.gridMain.options();
     const bodyElement = this.bodyElement.getElement();
 
     const eventManager = cfg.eventManager;
@@ -97,7 +94,7 @@ export class BodyEvent {
         const startCellInfo = getCellInfo(cfg, cellElement);
         startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
-        session = initPointerSession(e, startCellInfo, clickManager);
+        session = initPointerSession(e, startCellInfo, clickManager, cellElement);
 
         let handlerPriority = -1;
         for (const handler of this.handlers) {

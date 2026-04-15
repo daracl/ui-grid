@@ -69,7 +69,7 @@ export class NumberEditRenderer extends TextEditAbstractRenderer {
   }
 
   valid(value: string): boolean {
-    const result = numberValidator(value, this.field, this.item, this.gridMain.getGrid().config());
+    const result = numberValidator(value, this.field, this.item, this.gridMain.config());
 
     if (result == null) {
       return true;

@@ -139,7 +139,7 @@ export abstract class EditRenderer extends Renderer {
    * @returns
    */
   public showInvalidMessage(result: ValidResult, cellElement: HTMLElement) {
-    if (!this.gridMain.getGrid().config().isOpenLayer) return true;
+    if (!this.gridMain.config().isOpenLayer) return true;
 
     const message = this.language.validMessage(this.field, result);
 

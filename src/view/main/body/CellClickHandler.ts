@@ -15,7 +15,7 @@ import {
 import { BodyEvent } from './BodyEvent';
 import * as utils from '@/util/utils';
 import { GridOptions } from '@/types/GridOptions';
-import { ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
 import { isCtrlKey, isShiftKey } from '@/util/eventUtils';
 import { DaraElement } from '@/element/DaraElement';
 
@@ -99,6 +99,10 @@ export class CellClickHandler extends BasePointerHandler {
     this.cellElement = session.cellEl!;
     this.startCellInfo = session.cellInfo as CellInfo;
     this.currentSelectionMode = this.selectionMode;
+
+    if (this.multipleFlag && session.cellInfo?.field.name == LINE_NUMBER_NAME) {
+      this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
+    }
   }
 
   onActivate(session: PointerSession) {
@@ -124,10 +128,6 @@ export class CellClickHandler extends BasePointerHandler {
 
     this.beforeEndIdx = -1;
     this.beforeEndCol = -1;
-
-    if (this.multipleFlag && hasClass(session.cellEl!, 'line-number')) {
-      this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
-    }
   }
 
   onPointerMove(session: PointerSession) {
@@ -323,7 +323,7 @@ export class CellClickHandler extends BasePointerHandler {
    * @param {CellInfo} cellInfo
    */
   private setRowCheckItemClick(cellInfo: CellInfo) {
-    const cfg = this.context.grid.config();
+    const cfg = this.context.gridMain.config();
     const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
     if (!utils.isEmpty(rowCheckCol)) {
       (
@@ -343,7 +343,7 @@ export class CellClickHandler extends BasePointerHandler {
     cellElement: HTMLElement,
   ) {
     const context = this.context;
-    const cfg = context.grid.config();
+    const cfg = context.gridMain.config();
     const gridMain = context.gridMain;
 
     gridMain.setGridFocusIn(e, true);

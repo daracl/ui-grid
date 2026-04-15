@@ -1,5 +1,4 @@
 import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { getBrowserSize, getElementRect, hasClass, outerLayerPosition } from '@/util/domUtils';
 import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
@@ -16,20 +15,18 @@ import { GridMain } from '../GridMain';
  * @typedef {Body}
  */
 export class ContextMenu {
-  private grid: DaraGrid;
-  private gridMain: GridMain;
+  private readonly gridMain: GridMain;
 
-  private contextOpts: ContextMenuOptions;
+  private readonly contextOpts: ContextMenuOptions;
 
   private contextElement: DaraElement;
 
-  private contextData: Map<string, ContextMenuItem> = new Map();
+  private readonly contextData: Map<string, ContextMenuItem> = new Map();
 
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
+  constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
 
-    const contextOpts = this.grid.getOptions().contextMenu;
+    const contextOpts = this.gridMain.options().contextMenu;
 
     if (!contextOpts) {
       return;
@@ -43,7 +40,7 @@ export class ContextMenu {
 
   create() {
     const contextElement = document.createElement('ul');
-    contextElement.setAttribute('data-grid-id', this.grid.instanceId());
+    contextElement.setAttribute('data-grid-id', this.gridMain.uid());
     contextElement.className = 'dg-contextmenu dg-contextmenu-top dg-outer-layer';
     contextElement.setAttribute('draggable', 'false');
     contextElement.setAttribute('onselectstart', 'return false');
@@ -62,13 +59,13 @@ export class ContextMenu {
 
     this.contextElement = new DaraElement(contextElement);
 
-    this.grid.config().eventManager.on({ el: contextElement, type: 'contextmenu' }, (e: Event) => {
+    this.gridMain.config().eventManager.on({ el: contextElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
     });
   }
 
   private initEvent() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const contextOpts = this.contextOpts;
     const gridElement = this.gridMain.mainElement().getElement();
 
@@ -77,11 +74,13 @@ export class ContextMenu {
 
     let selectElement: HTMLElement;
 
-    const eventManager = this.grid.config().eventManager;
+    const eventManager = this.gridMain.config().eventManager;
 
     eventManager.off(gridElement, 'contextmenu');
     eventManager.on({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
+
+      this.gridMain.hideLayer();
 
       removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
 
@@ -133,7 +132,7 @@ export class ContextMenu {
 
     const isContextCallback = isFunction(fnContextCallback);
 
-    const eventManager = this.grid.config().eventManager;
+    const eventManager = this.gridMain.config().eventManager;
 
     // contextmenu item click
     eventManager.off(contextItemElements, 'click');
@@ -170,7 +169,7 @@ export class ContextMenu {
 
     let submenuTimer: any;
 
-    const eventManager = this.grid.config().eventManager;
+    const eventManager = this.gridMain.config().eventManager;
 
     // sub mouseenter
     eventManager.off(contextItemElements, 'mouseenter');

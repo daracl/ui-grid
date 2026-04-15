@@ -39,7 +39,7 @@ export class ButtonRenderer extends ViewRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    const cfg = this.gridMain.getGrid().config();
+    const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;

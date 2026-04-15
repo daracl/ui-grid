@@ -1,14 +1,13 @@
 import { CellInfo, HeaderCellInfo } from '@t/GridConfig';
 
-import { removeClass } from '../../../util/styleUtils';
-import { getCheckboxMode } from '../../../util/gridUtils';
-import { DaraGrid } from '@/DaraGrid';
-import { FieldItem } from '@t/GridField';
-import * as utils from '@/util/utils';
 import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from '@/constants';
-import { GridMain } from '../../GridMain';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
+import * as utils from '@/util/utils';
+import { FieldItem } from '@t/GridField';
+import { getCheckboxMode } from '../../../util/gridUtils';
+import { removeClass } from '../../../util/styleUtils';
+import { GridMain } from '../../GridMain';
 import { BodyEvent } from './BodyEvent';
 
 /**
@@ -18,7 +17,6 @@ import { BodyEvent } from './BodyEvent';
  * @typedef {Body}
  */
 export class Body {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly selectionInfo: SelectionInfo;
@@ -35,13 +33,12 @@ export class Body {
 
   private beforeRowCheckItem: any;
 
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
+  constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
     this.createTemplate();
     this.selectionInfo = gridMain.selectionInfo;
 
-    const bodyEvent = new BodyEvent(grid, gridMain, this, this.selectionInfo);
+    const bodyEvent = new BodyEvent(gridMain, this, this.selectionInfo);
     bodyEvent.init();
   }
 
@@ -74,7 +71,7 @@ export class Body {
 
       rowItem[colInfo.name] = newValue;
 
-      const config = this.grid.config();
+      const config = this.gridMain.config();
 
       const cell = config.edit.cell;
 
@@ -95,7 +92,7 @@ export class Body {
    */
   public setAllCheckItem(cellInfo: HeaderCellInfo, checked: boolean) {
     this.rowCheckSet.clear();
-    const items = this.grid.config().dataManager.getViewItems();
+    const items = this.gridMain.config().dataManager.getViewItems();
     for (const item of items) {
       item[ROW_CHECK_KEY] = checked;
       if (checked) this.rowCheckSet.add(item[ROW_ID_KEY]);
@@ -112,7 +109,7 @@ export class Body {
    */
   public setCheckItem(cellInfo: CellInfo, checked: boolean) {
     const item = cellInfo.item;
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const isRowAllowMultiSelect = cfg.isRowAllowMultiSelect;
 
     if (!isRowAllowMultiSelect) {
@@ -151,7 +148,7 @@ export class Body {
    * - name이 "id"인 경우 → 체크된 row들의 id만 추출하여 배열로 반환
    */
   public getCheckedItemByName(name: string) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     const result = [];
 
@@ -174,8 +171,8 @@ export class Body {
    *
    */
   public setCheckedItemByValue(name: string, values: any) {
-    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
-    const cfg = this.grid.config();
+    const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
+    const cfg = this.gridMain.config();
     this.rowCheckSet.clear();
 
     const checkValue = utils.isArray(values) ? values : [values];
@@ -205,7 +202,7 @@ export class Body {
    * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public addCheckedItemByValue(name: string, values: any) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
     const items = cfg.dataManager.getViewItems();
@@ -230,8 +227,8 @@ export class Body {
    * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public unCheckedItemByValue(name: string, values: any) {
-    const isRowAllowMultiSelect = this.grid.config().isRowAllowMultiSelect;
-    const cfg = this.grid.config();
+    const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
+    const cfg = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
     const items = cfg.dataManager.getViewItems();
@@ -306,7 +303,7 @@ export class Body {
   }
 
   public createTemplate() {
-    const bodyElement = this.grid.element().findDaraElement('.dg-body');
+    const bodyElement = this.gridMain.element().findDaraElement('.dg-body');
     this.bodyElement = bodyElement;
     this.leftElement = bodyElement.findDaraElement('.dg-left');
     this.centerElement = bodyElement.findDaraElement('.dg-center');
@@ -321,8 +318,8 @@ export class Body {
    * body 데이터 그리기
    */
   public dataDraw(mode?: string) {
-    const opts = this.grid.getOptions();
-    const cfg = this.grid.config();
+    const opts = this.gridMain.options();
+    const cfg = this.gridMain.config();
 
     const items = cfg.dataManager.getViewItems();
 
@@ -640,7 +637,7 @@ export class Body {
    * @returns {string} template string
    */
   public template(type: string) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     let leafFields;
     let startGroupIdx = 0;

@@ -1,7 +1,6 @@
 import { Config, Selection } from '@t/GridConfig';
 import { FooterOptions, PagingParam } from '@t/GridOptions';
 
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { getPagingInfo } from '@/util/pagingUtil';
@@ -16,39 +15,36 @@ import { GridMain } from './GridMain';
  * @typedef {Footer}
  */
 export class Footer {
-  private grid: DaraGrid;
+  private readonly gridMain: GridMain;
 
-  private gridMain: GridMain;
+  private readonly footerOpts: FooterOptions;
 
-  private footerOpts: FooterOptions;
+  private readonly selectionStatusElement: DaraElement;
 
-  private selectionStatusElement: DaraElement;
+  private readonly footerElement: DaraElement;
+
+  private readonly selectionInfo: SelectionInfo;
+
+  private readonly cfg: Config;
+
+  private readonly isSelectionInfo: boolean;
 
   private pagingInfoElement: DaraElement;
 
   private paingElement: DaraElement;
 
-  private footerElement: DaraElement;
-
-  private selectionInfo: SelectionInfo;
-
-  private cfg: Config;
-
-  private isSelectionInfo: boolean;
-
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.footerOpts = grid.getOptions().footer;
+  constructor(gridMain: GridMain) {
+    this.footerOpts = gridMain.options().footer;
 
     if (!this.footerOpts.enabled) return;
 
-    this.grid = grid;
     this.gridMain = gridMain;
     this.selectionInfo = gridMain.selectionInfo;
-    this.cfg = this.grid.config();
+    this.cfg = this.gridMain.config();
 
     this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
 
-    const footerElement = grid.element().findDaraElement('.dg-footer');
+    const footerElement = gridMain.element().findDaraElement('.dg-footer');
     this.footerElement = footerElement;
     this.selectionStatusElement = footerElement.findDaraElement('.dg-selection-status');
 
@@ -64,7 +60,7 @@ export class Footer {
       this.pagingInfoElement = this.footerElement.findDaraElement('.dg-paging-info');
       this.initPagingEvent();
 
-      this.goPage(this.grid.config().paging.currPage);
+      this.goPage(this.gridMain.config().paging.currPage);
     }
   }
 

@@ -1,7 +1,6 @@
 import { HeaderOptions } from '@t/GridOptions';
 
 import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -23,7 +22,6 @@ import { SortButtonEvent } from './SortButtonEvent';
  * @typedef {Header}
  */
 export class HeaderEvent {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly cfg: Config;
@@ -36,28 +34,27 @@ export class HeaderEvent {
 
   private readonly headerCellElements: HTMLElement[];
 
-  constructor(grid: DaraGrid, gridMain: GridMain, header: Header) {
-    this.grid = grid;
-    this.cfg = grid.config();
+  constructor(gridMain: GridMain, header: Header) {
+    this.cfg = gridMain.config();
     this.gridMain = gridMain;
     this.header = header;
     this.headerElement = this.header.getHeaderElement();
     this.headerCellElements = this.header.getHeaderCellElements();
 
-    this.headerOpts = grid.getOptions().header;
+    this.headerOpts = gridMain.options().header;
   }
 
   init() {
-    if (this.grid.getOptions().search.enabled === true) {
+    if (this.gridMain.options().search.enabled === true) {
       this.initSearchButton();
     }
 
-    if (this.grid.config().enableHeaderHelpButton) {
-      new HelpButtonEvent(this.grid, this.gridMain, this.header).init();
+    if (this.gridMain.config().enableHeaderHelpButton) {
+      new HelpButtonEvent(this.gridMain, this.header).init();
     }
 
-    if (this.grid.config().enableSortButton) {
-      new SortButtonEvent(this.grid, this.gridMain, this.header).init();
+    if (this.gridMain.config().enableSortButton) {
+      new SortButtonEvent(this.gridMain, this.header).init();
     }
 
     this.initPointerEvent();
@@ -86,14 +83,12 @@ export class HeaderEvent {
    * init header selection event
    */
   private initPointerEvent() {
-    const selectionMode = this.grid.getOptions().selectionMode;
+    const selectionMode = this.gridMain.options().selectionMode;
 
     const allHandlers: BasePointerHandler[] = [];
 
     if (this.headerOpts.enableAllColumnSelection && !isRowSelectionMode(selectionMode)) {
-      allHandlers.push(
-        new HeaderCellClickHandler({ grid: this.grid, gridMain: this.gridMain, header: this.header }, this),
-      );
+      allHandlers.push(new HeaderCellClickHandler({ gridMain: this.gridMain, header: this.header }, this));
     }
 
     if (allHandlers.length < 1) return;
@@ -196,7 +191,7 @@ export class HeaderEvent {
    * @private
    */
   private initResizeEvent() {
-    const opts = this.grid.getOptions();
+    const opts = this.gridMain.options();
 
     if (opts.header.resize.enabled === false) return;
 
@@ -204,7 +199,7 @@ export class HeaderEvent {
     const eventManager = cfg.eventManager;
     const resizerElements = this.headerElement.finds('.dg-header-resizer');
 
-    const resizeHandler = new ResizeHandler({ grid: this.grid, gridMain: this.gridMain, header: this.header }, this);
+    const resizeHandler = new ResizeHandler({ gridMain: this.gridMain, header: this.header }, this);
 
     let session: PointerSession;
 

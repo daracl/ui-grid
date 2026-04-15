@@ -48,7 +48,7 @@ export class LinkRenderer extends ViewRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    const cfg = this.gridMain.getGrid().config();
+    const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       e.preventDefault();
       const eventElement = e.target as HTMLElement;

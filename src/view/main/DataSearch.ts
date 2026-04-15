@@ -1,7 +1,6 @@
 import { Config } from '@t/GridConfig';
 
 import { ALL_SELECT_VALUE } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { SearchOptions } from '@t/GridOptions';
@@ -15,22 +14,20 @@ import { GridMain } from '../GridMain';
  * @typedef {DataSearch}
  */
 export class DataSearch {
-  private grid: DaraGrid;
-  private gridMain: GridMain;
+  private readonly gridMain: GridMain;
 
-  private cfg: Config;
+  private readonly cfg: Config;
 
-  private searchOpts: SearchOptions;
+  private readonly searchOpts: SearchOptions;
 
   private searchElement: HTMLElement;
 
   private searchTextElement: HTMLInputElement;
   private searchFieldElement: HTMLSelectElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
-    this.cfg = grid.config();
-    this.searchOpts = this.grid.getOptions().search;
+  constructor(gridMain: GridMain) {
+    this.cfg = gridMain.config();
+    this.searchOpts = gridMain.options().search;
     this.gridMain = gridMain;
     this.createTemplate();
   }
@@ -66,7 +63,7 @@ export class DataSearch {
       searchElement = getLayerElement('div', 'dg-search-simple', 'help-tooltip');
 
       template.push('<select class="dg-search-field">');
-      template.push(`<option value="${ALL_SELECT_VALUE}">${this.gridMain.getGrid().i18n().getMessage('all')}</option>`);
+      template.push(`<option value="${ALL_SELECT_VALUE}">${this.gridMain.i18n().getMessage('all')}</option>`);
       for (const field of fields) {
         if (field.$isAside) continue;
         template.push(`<option value="${field.name}">${field.label}</option>`);
@@ -85,8 +82,8 @@ export class DataSearch {
         </div>
       `);
       template.push(`<span class="dg-search-btn">
-          <span class="search-nav-up" title="${this.gridMain.getGrid().i18n().getMessage('prev')}"></span>
-          <span class="search-nav-down" title="${this.gridMain.getGrid().i18n().getMessage('next')}"></span>
+          <span class="search-nav-up" title="${this.gridMain.i18n().getMessage('prev')}"></span>
+          <span class="search-nav-down" title="${this.gridMain.i18n().getMessage('next')}"></span>
         </span>`);
 
       searchElement.innerHTML = template.join('');
@@ -119,7 +116,7 @@ export class DataSearch {
    *  init simple search event
    */
   initSimpleModeEvent() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     const eventManager = cfg.eventManager;
     const searchParameter = cfg.searchParameter;
@@ -175,7 +172,7 @@ export class DataSearch {
     const searchText = this.searchTextElement.value;
     const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
 
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const searchParameter = cfg.searchParameter;
 
     searchParameter.searchText = searchText;

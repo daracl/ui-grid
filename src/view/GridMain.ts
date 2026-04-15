@@ -5,8 +5,10 @@ import {
   ALIGN,
   ALIGN_STYLE,
   EDIT_RENDERER,
+  FIELD_PREFIX,
   FOOTER_HEIGHT,
   GRID_THEME,
+  INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   LINE_NUMBER_NAME,
   ROW_CHECK_KEY,
@@ -19,12 +21,16 @@ import {
   VIEW_RENDERER,
 } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
-import { defaultFieldGroupInfo } from '@/defaultGridConfig';
+import { defaultFieldGroupInfo, initConfig } from '@/defaultGridConfig';
 import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from '@/defaultGridOption';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
+import { DataManager } from '@/service/DataManager';
 import { GridOptions } from '@/types/GridOptions';
+import { Message } from '@/types/Message';
+import { PagingInfo } from '@/types/PagingInfo';
 import { getTextWidth, heightOptionValue, isInputField } from '@/util/gridUtils';
+import { Language } from '@/util/Language';
 import {
   debounce,
   deepCopy,
@@ -57,18 +63,25 @@ interface GridSize {
   width: number;
 }
 
+let DARA_GRID_SEQ = 0;
+
+// all instance
+const ALL_INSTANCE = new Map<string, DaraGrid>();
 /**
- * DaraGrid class
+ * GridMain class
  *
- * @class DaraGrid
- * @typedef {DaraGrid}
+ * @class GridMain
+ * @typedef {GridMain}
  */
 export class GridMain {
-  private readonly grid: DaraGrid;
-
   private readonly _BODY_STYLE: string[] = ['default', 'striped', 'borderless'];
 
   private readonly opts: GridOptions;
+
+  private language: Language;
+
+  // grid 설정
+  private cfg: Config;
 
   private header: Header;
 
@@ -100,13 +113,38 @@ export class GridMain {
 
   private initGridSize: GridSize;
 
+  /**
+   * unique id
+   */
+  private readonly $uid: string;
+
+  private readonly gridElement: DaraElement;
+
+  private readonly orginStyle: string;
+
   private readonly openLayers: HTMLElement[] = [];
 
-  constructor(grid: DaraGrid) {
-    const opts = grid.getOptions();
+  constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
+    const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
-    this.grid = grid;
+    this.language = new Language();
+
+    if (message) this.language.setMessage(message);
+
+    this.cfg = initConfig(opts);
+    this.cfg.dataManager = new DataManager(opts, this.cfg);
+
     this.opts = opts;
+
+    const beforeUid = element.getAttribute(INSTANCE_ATTR_KEY);
+    this.$uid = beforeUid ?? `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
+    this.orginStyle = element.style.cssText;
+
+    element.setAttribute(INSTANCE_ATTR_KEY, this.$uid);
+
+    this.gridElement = new DaraElement(element);
+
+    GridMain.setInstance(this.$uid, grid);
 
     const headerOpts = opts.header;
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
@@ -136,18 +174,57 @@ export class GridMain {
     this.initEvent();
   }
 
+  public static setInstance(instanceID: string, daraGrid: DaraGrid) {
+    ALL_INSTANCE.set(instanceID, daraGrid);
+  }
+
+  public static getInstance(eleOrId: HTMLElement | string): DaraGrid | null {
+    let id;
+    if (isString(eleOrId)) {
+      id = eleOrId;
+    } else {
+      id = eleOrId instanceof HTMLElement ? eleOrId?.getAttribute(INSTANCE_ATTR_KEY) : '';
+    }
+
+    if (id) {
+      return ALL_INSTANCE.get(id) ?? null;
+    }
+
+    return null;
+  }
+
+  public static allInstance() {
+    return ALL_INSTANCE;
+  }
+
+  public element() {
+    return this.gridElement;
+  }
+
+  public config() {
+    return this.cfg;
+  }
+
+  public options() {
+    return this.opts;
+  }
+
+  public i18n() {
+    return this.language;
+  }
+
   /**
    * init grid element
    */
   private initElement() {
-    const cfg = this.grid.config();
-    this._mainElement = new DaraElement(this.grid.element().find('.dg-main'));
+    const cfg = this.cfg;
+    this._mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
-    this.containerElement = new DaraElement(this.grid.element().find('.daracl-grid > div'));
+    this.containerElement = new DaraElement(this.gridElement.find('.daracl-grid > div'));
 
-    this.rendererContainer = this.grid.element().find('.dg-layer-container');
+    this.rendererContainer = this.gridElement.find('.dg-layer-container');
 
-    this.setTheme(this.grid.getOptions().theme);
+    this.setTheme(this.opts.theme);
 
     const style = window.getComputedStyle(this._mainElement.getElement());
 
@@ -166,22 +243,22 @@ export class GridMain {
    * @private
    */
   private initMainView() {
-    const opts = this.grid.getOptions();
-    this.selectionInfo = new SelectionInfo(this, opts, this.grid.config());
-    this.header = new Header(this.grid, this);
-    this.body = new Body(this.grid, this);
+    const opts = this.opts;
+    this.selectionInfo = new SelectionInfo(this, opts, this.cfg);
+    this.header = new Header(this);
+    this.body = new Body(this);
 
-    this.summary = new Summary(this.grid, this);
+    this.summary = new Summary(this);
 
     if (opts.search.enabled) {
-      this.dataSearch = new DataSearch(this.grid, this);
+      this.dataSearch = new DataSearch(this);
     }
 
-    this.scroll = new Scroll(this.grid, this);
+    this.scroll = new Scroll(this);
     this.scroll.init();
 
-    this.footer = new Footer(this.grid, this);
-    this.contextMenu = new ContextMenu(this.grid, this);
+    this.footer = new Footer(this);
+    this.contextMenu = new ContextMenu(this);
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
@@ -192,8 +269,8 @@ export class GridMain {
     return this.rendererContainer;
   }
 
-  public getGrid() {
-    return this.grid;
+  public uid() {
+    return this.$uid;
   }
 
   /**
@@ -202,9 +279,9 @@ export class GridMain {
    * @public
    */
   public initEvent() {
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
 
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
 
     if (opts.width === 'auto' || opts.height === 'auto') {
       this.initResizeEvent();
@@ -223,7 +300,7 @@ export class GridMain {
 
       // container 바깥으로 포커스가 나간 경우에만 실행
       if (!nextFocused || !mainElement?.contains(nextFocused)) {
-        if (!this.grid.config().focus) {
+        if (!this.cfg.focus) {
           return true;
         }
 
@@ -282,8 +359,8 @@ export class GridMain {
 
     if (this._mainElement) this._mainElement.getElement().focus({ preventScroll: true });
 
-    if (this.grid.config().focus) return;
-    this.grid.config().focus = true;
+    if (this.cfg.focus) return;
+    this.cfg.focus = true;
   }
 
   /**
@@ -293,7 +370,7 @@ export class GridMain {
    * @param {Event} e event
    */
   public setGridFocusOut(e: Event) {
-    if (!this.grid.config().focus) return;
+    if (!this.cfg.focus) return;
 
     if ((e as MouseEvent).button !== 2) {
       const mainElement = this._mainElement.getElement();
@@ -303,25 +380,38 @@ export class GridMain {
       if (relatedTarget?.closest('.dg-hidden-container') != null) {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
-        if (outerLayerElement?.getAttribute('data-grid-id') == this.grid.instanceId()) {
+        if (outerLayerElement?.getAttribute('data-grid-id') == this.$uid) {
           mainElement.focus({ preventScroll: true });
           return;
         }
       }
 
-      this.grid.config().focus = false;
+      this.cfg.focus = false;
+
       this.hideLayer();
     }
   }
 
   public openLayer(layerElement: HTMLElement) {
     layerElement.style.display = 'block';
-    this.grid.config().isOpenLayer = true;
+    this.cfg.isOpenLayer = true;
 
     this.openLayers.push(layerElement);
   }
 
-  public hideLayer(hideElement?: HTMLElement) {
+  public hideLayer(hideElement?: HTMLElement | string) {
+    console.log('1111hideLayer111 ', hideElement);
+
+    if (hideElement != 'all') {
+      if (ALL_INSTANCE.size > 1) {
+        ALL_INSTANCE.forEach((grid, id) => {
+          if (id != this.$uid) {
+            grid.hideLayer();
+          }
+        });
+      }
+    }
+
     if (this.openLayers.length < 1) return;
 
     if (hideElement) {
@@ -334,12 +424,12 @@ export class GridMain {
           break;
         }
       }
-      this.grid.config().isOpenLayer = this.openLayers.length > 0;
+      this.cfg.isOpenLayer = this.openLayers.length > 0;
       this.setGridFocusIn();
       return;
     }
 
-    this.grid.config().isOpenLayer = false;
+    this.cfg.isOpenLayer = false;
 
     for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
       const layerElement = this.openLayers[idx];
@@ -349,7 +439,7 @@ export class GridMain {
       this.openLayers.splice(idx, 1);
     }
 
-    this.grid.config().activeComponent = '';
+    this.cfg.activeComponent = '';
     this.setGridFocusIn();
   }
 
@@ -359,10 +449,10 @@ export class GridMain {
    * @private
    */
   private initResizeEvent() {
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
     const threshold = opts.windowResizeDelay ?? 50;
 
-    const el = this.grid.element();
+    const el = this.gridElement;
 
     if (typeof ResizeObserver !== 'undefined') {
       const resizeObserver = new ResizeObserver(
@@ -495,10 +585,10 @@ export class GridMain {
    * @param {?number} [height] 높이
    */
   public setSize(width: number, height: number, drawFlag = false) {
-    const { dimensions } = this.grid.config();
+    const { dimensions } = this.cfg;
 
-    dimensions.width = width < 0 ? this.grid.element().width() : width;
-    dimensions.height = height < 0 ? this.grid.element().height() : height;
+    dimensions.width = width < 0 ? this.gridElement.width() : width;
+    dimensions.height = height < 0 ? this.gridElement.height() : height;
 
     this.currentSize = { width: dimensions.width, height: dimensions.height };
 
@@ -509,8 +599,12 @@ export class GridMain {
     }
   }
 
+  public getCurrentSize() {
+    return this.currentSize;
+  }
+
   resizeDraw() {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     this.calcBody();
 
     if (!isUndefined(this._mainElement)) {
@@ -534,7 +628,7 @@ export class GridMain {
    */
   public fieldResize() {
     this.updateFieldWidth(
-      this.grid.config().currentFields,
+      this.cfg.currentFields,
       this.header.getHeaderElement(),
       this.body.getBodyElement(),
       this.summary.getElement(),
@@ -569,7 +663,7 @@ export class GridMain {
   }
 
   setElementDimentions() {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const dimensions = cfg.dimensions;
     this._mainElement.setHeight(dimensions.mainHeight);
     this._mainElement.findDaraElement('.dg-body').setHeight(dimensions.mainBodyHeight);
@@ -587,7 +681,7 @@ export class GridMain {
       mainSize.height = dimensions.height + 'px';
     }
 
-    this.grid.element().css(mainSize);
+    this.gridElement.css(mainSize);
 
     const mainLeftWidth = dimensions.mainLeftWidth;
     const mainCenterWidth = dimensions.mainCenterWidth;
@@ -604,10 +698,10 @@ export class GridMain {
    * 사이즈 계산 후
    */
   calcGridDimention() {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const dimensions = cfg.dimensions;
 
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
 
     if (opts.toolbar.enabled) {
       dimensions.toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
@@ -647,9 +741,9 @@ export class GridMain {
    * @public
    */
   public calcBody(isInit?: boolean) {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const { dimensions, rowHeight, dataInfo, currentFields: fields } = cfg;
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
 
     const fieldLength = fields.length;
 
@@ -785,8 +879,8 @@ export class GridMain {
    * @description 헤더 정보 계산
    */
   public calcHeader() {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    const cfg = this.cfg;
+    const opts = this.opts;
     const fields = deepCopy(opts.fields);
 
     cfg.fieldHeaderGroup = defaultFieldGroupInfo();
@@ -926,13 +1020,13 @@ export class GridMain {
     field.$enableHelp = !isUndefined(field.headerHelp);
 
     // help button
-    if (field.$enableHelp && !this.grid.config().enableHeaderHelpButton) {
-      this.grid.config().enableHeaderHelpButton = true;
+    if (field.$enableHelp && !this.cfg.enableHeaderHelpButton) {
+      this.cfg.enableHeaderHelpButton = true;
     }
 
     // sort button
-    if (field.sort && !this.grid.config().enableSortButton) {
-      this.grid.config().enableSortButton = true;
+    if (field.sort && !this.cfg.enableSortButton) {
+      this.cfg.enableSortButton = true;
     }
 
     field.$depth = depth + 1;
@@ -1067,7 +1161,7 @@ export class GridMain {
 
       field.$colSeq = fieldGroupInfo.leaf.length - 1;
 
-      this.grid.config().allFieldMap.set(field.name, field);
+      this.cfg.allFieldMap.set(field.name, field);
     }
 
     return field;
@@ -1080,7 +1174,7 @@ export class GridMain {
    * @returns {FieldItem} 필드 item
    */
   public setRendererInfo(field: FieldItem): FieldItem {
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
     let renderInfo = { type: 'text' };
 
     if (isPlainObject(field.renderer)) {
@@ -1123,8 +1217,8 @@ export class GridMain {
    * @param mode scroll mode
    */
   private changeScrollMode() {
-    const cfg = this.grid.config();
-    const scrollWidth = this.grid.getOptions().scroll.width;
+    const cfg = this.cfg;
+    const scrollWidth = this.opts.scroll.width;
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
     const mainContainerStyle = this._mainElement.find('.dg-main-container').style;
@@ -1158,7 +1252,7 @@ export class GridMain {
   };
 
   private setDataInfo(items: any[]) {
-    this.grid.config().dataManager.setItems(items);
+    this.cfg.dataManager.setItems(items);
   }
 
   public refreshBody() {
@@ -1181,7 +1275,7 @@ export class GridMain {
    * @param {?number} [rowIndex] row index
    */
   public addRow = (items: any | any[], position: ADD_ROW_POSITION, rowIndex?: number) => {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const currentItems = cfg.dataManager.getOriginItems();
     const isBefore = position === 'before';
 
@@ -1208,7 +1302,7 @@ export class GridMain {
    * @param {any[]} ids row positions
    */
   public removeRow = (ids: any[]) => {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const currentItems = cfg.dataManager.getOriginItems();
 
     for (const item of currentItems) {
@@ -1221,7 +1315,7 @@ export class GridMain {
         item[ROW_CUD_KEY] = 'D';
       }
     }
-    this.grid.config().dataManager.setViewItems(currentItems);
+    this.cfg.dataManager.setViewItems(currentItems);
     this.refreshBody();
   };
 
@@ -1241,7 +1335,7 @@ export class GridMain {
    * @returns {array} checked item array
    */
   public getCheckedItems(names?: string | string[]) {
-    const items = this.grid.config().dataManager.getViewItems();
+    const items = this.cfg.dataManager.getViewItems();
     const checkItems = [];
 
     let exportNames: string[] = [];
@@ -1295,8 +1389,7 @@ export class GridMain {
    * @param {boolean} checked
    */
   public setAllCheckedItems(checked: boolean) {
-    if (!this.grid.config().isRowAllowMultiSelect)
-      throw new Error('The allowMultiSelect option does not support methods.');
+    if (!this.cfg.isRowAllowMultiSelect) throw new Error('The allowMultiSelect option does not support methods.');
     this.getHeader().setAllCheckItem(checked);
   }
 
@@ -1319,8 +1412,7 @@ export class GridMain {
    * @param {*} values field value
    */
   public addCheckedItemByValue(name: string, values: any) {
-    if (!this.grid.config().isRowAllowMultiSelect)
-      throw new Error('The allowMultiSelect option does not support methods.');
+    if (!this.cfg.isRowAllowMultiSelect) throw new Error('The allowMultiSelect option does not support methods.');
     this.getBody().addCheckedItemByValue(name, values);
   }
 
@@ -1341,13 +1433,13 @@ export class GridMain {
    * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
    */
   public setTheme(themeName: THEME_TYPE) {
-    const dgElement = this.grid.element().find('.daracl-grid > div');
+    const dgElement = this.gridElement.find('.daracl-grid > div');
 
     const theme = GRID_THEME[themeName];
 
     if (!theme) return;
 
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
 
     if (cfg.theme == theme) return;
 
@@ -1365,7 +1457,7 @@ export class GridMain {
    * @param id id
    */
   expandRow(id: any) {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     cfg.dataManager.expandRow(id);
     this.body.dataDraw('expandRow');
   }
@@ -1376,9 +1468,9 @@ export class GridMain {
    * @private
    */
   private initTemplate() {
-    const cfg = this.grid.config();
+    const cfg = this.cfg;
     const dimensions = cfg.dimensions;
-    const opts = this.grid.getOptions();
+    const opts = this.opts;
     const { footer, summary, scroll } = opts;
 
     const pagingAlign = ALIGN[footer.paging?.position ?? 'center'];
@@ -1427,9 +1519,9 @@ export class GridMain {
                       <div class="dg-left"></div>
                       <div class="dg-center"></div>
                       <div class="dg-right"></div>
-                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.grid
-                        .i18n()
-                        .getMessage('no.data')}</span></span></div>
+                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.i18n().getMessage(
+                        'no.data',
+                      )}</span></span></div>
                       <div class="dg-movedrop-helper"></div>
                   </div>
                   ${!isSummaryTop ? summaryTemplate : ''}
@@ -1470,9 +1562,38 @@ export class GridMain {
     </div>
     `;
 
-    this.grid.element().html(templateHtml);
+    this.gridElement.html(templateHtml);
+  }
+
+  public setPaging(paging: PagingInfo) {
+    this.opts.paging = paging;
+    this.config().paging = paging;
+    this.getFooter().setPaging(paging);
+  }
+
+  public destroy() {
+    const gridElement = this.gridElement;
+    const uid = this.$uid;
+
+    const cfg = this.cfg;
+
+    if (ALL_INSTANCE.get(uid)) {
+      cfg.eventManager.destroy();
+      gridElement.removeAttr(INSTANCE_ATTR_KEY);
+      const el = gridElement.getElement();
+      el.style.cssText = this.orginStyle;
+      while (el.firstChild) {
+        if (typeof el.firstChild.remove === 'function') {
+          el.firstChild.remove(); // DOM에서 제거
+        } else {
+          el.removeChild(el.firstChild);
+        }
+      }
+      ALL_INSTANCE.delete(uid);
+    }
   }
 }
+
 function fieldCopy(field: any): any {
   const result: any = {};
 

@@ -1,4 +1,3 @@
-import { DaraGrid } from '@/DaraGrid';
 import { $querySelector } from './domUtils';
 
 /**
@@ -6,12 +5,9 @@ import { $querySelector } from './domUtils';
  * @param options {Object} - 데이터 .
  * @description  add style tab
  */
-export const addStyleTag = (grid: DaraGrid) => {
-  const options = grid.getOptions();
-
+export const addStyleTag = (instanceId: string) => {
   const cssStr: string[] = [];
 
-  const instanceId = grid.instanceId();
   let styleTag = document.querySelector(`[dg-style-id="${instanceId}"]`) as HTMLStyleElement;
 
   if (!styleTag) {

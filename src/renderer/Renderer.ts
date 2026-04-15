@@ -11,6 +11,6 @@ export abstract class Renderer {
     this.field = field;
     this.fieldName = field.name;
     this.gridMain = gridMain;
-    this.language = this.gridMain.getGrid().i18n();
+    this.language = this.gridMain.i18n();
   }
 }

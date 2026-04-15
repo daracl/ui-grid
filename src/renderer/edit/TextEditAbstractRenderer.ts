@@ -24,7 +24,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
   }
 
   initEvt(editElement: HTMLInputElement, item: any) {
-    const { eventManager } = this.gridMain.getGrid().config();
+    const { eventManager } = this.gridMain.config();
 
     eventManager.on({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
       if (this.isShow) {
@@ -58,7 +58,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
   }
 
   valid(value: string): any {
-    const result = stringValidator(value, this.field, this.item, this.gridMain.getGrid().config());
+    const result = stringValidator(value, this.field, this.item, this.gridMain.config());
 
     if (result == null) {
       return true;

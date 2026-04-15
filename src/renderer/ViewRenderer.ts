@@ -17,7 +17,7 @@ export abstract class ViewRenderer extends Renderer {
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
-    this.cfg = this.gridMain.getGrid().config();
+    this.cfg = this.gridMain.config();
     this.refValue = this.field.renderer.refValue ?? {};
     this.isRefFunction = isFunction(this.refValue);
     this.isClick = isFunction(this.field.renderer.click);

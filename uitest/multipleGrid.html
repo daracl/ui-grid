@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
     <title>Dara Grid</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   </head>
 
   <body>
@@ -69,6 +70,9 @@
 <script type="module" src="/src/index.ts"></script>
 
 <style>
+  .grid-view-area {
+    margin: 20px 0px;
+  }
   .form-button {
     text-align: center;
   }
@@ -93,7 +97,6 @@
   }
 </style>
 <script>
-  var gridObj;
   const koreanFoods = [
     { name: '김치찌개', cd: 'kimchi_stew' },
     { name: '비빔밥', cd: 'bibimbap' },
@@ -189,15 +192,6 @@
     gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields);
 
     gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields);
-
-    /*
-    gridDraw(document.getElementById('sample2'), item.aaa, item.colItem, {
-      'asdf': ''
-      , "no.data": '데이타 없음'
-      //,empty: function (){ return '데이타 없음'}
-
-    });
-    */
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -832,246 +826,34 @@
   } //test
 
   function gridDraw(element, aaa, colItem, message) {
-    gridObj = Daracl.grid.create(
+    try {
+      Daracl.grid.instance(element)?.destroy();
+    } catch (e) {
+      console.log(e);
+    }
+
+    const gridObj = Daracl.grid.create(
       element,
       {
         editable: true,
         styleClass: 'striped',
         selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
-        enableTooltip: true, // tooltip flag
-        theme: document.getElementById('theme').value,
-        fixedLeftIndex: 2,
-        fixedRightIndex: 0,
-        height: 480,
-        width: 1000,
-        aside: {
-          lineNumber: { enabled: true },
-          rowCheckbox: {
-            enabled: true,
-            key: 'checkbox',
-            width: 27,
-            //, allowMultiSelect: false
-          },
-          modifyInfo: { enabled: true },
-        },
+        height: 200,
         colOptions: {
           maxWidth: 1024,
         },
         valueFilter: function (colInfo, objValue) {
           return objValue[colInfo.key];
         },
-        header: {
-          view: true,
-          enableViewAllLabel_1: true,
-          //, heights: [20, 50, 50]
-          sort: {
-            //정렬 활성화 여부
-            enabled: false,
-            // null value 를 항상 끝으로 유지 할지 여부
-            nullsLast: true,
-            // custom sorting function
-            //,customSorting: ()=>{console.log(arguments)}
-          },
-          //,height :30
-          resize: {
-            enabled: true,
-            update: function (item) {
-              //console.log(item);
-            },
-            minWidth: 10,
-            maxWidth: 1000,
-          },
-          help: {
-            enabled: true, // header help btn 활성 여부.
-            tootip: (field) => {
-              return 'test';
-            },
-            click: (clickInfo) => {
-              // click event
-              console.log('clickInfo : ', clickInfo);
-            },
-          },
-          drag: {
-            enabled: true,
-            dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
-          },
-        },
-        summary: {
-          position: 'top',
-          height: [30, 40],
-          items: [
-            [
-              { name: 'name', label: '합계' },
-              { name: 'age', expression: 'sum' },
-              {
-                name: 'salary',
-                expression: 'sum',
-                displayFormat: {
-                  type: 'number',
-                  format: '₩ 0,0 원',
-                },
-              },
-            ],
-            [
-              { name: 'name', label: '평균' },
-              {
-                name: 'age',
-                expression: 'average',
-                displayFormat: {
-                  type: 'number',
-                  format: '0,0.00',
-                },
-              },
-              {
-                name: 'salary',
-                expression: 'average',
-                displayFormat: {
-                  type: 'number',
-                  format: '0,0',
-                },
-              },
-            ],
-          ],
-        },
+
         search: {
           enabled: true,
-          enableColumnFix: true,
-          click: false,
           mode: 'simple', //'full'
-          width: 700,
-          height: 250,
-          onlyCloseButton: true,
-          useRememberValue: true,
-          callback: (data) => {
-            //console.log(data)
-          },
-          rememberValue: { field: '$all', val: 'asdf' },
         },
-        toolbar: {
-          enabled: false,
 
-          items: [
-            {
-              search: true,
-              callback: (keyword) => {},
-            },
-
-            {
-              divider: true,
-            },
-            {
-              key: 'test',
-              renderType: 'dropdown',
-              style: {
-                valueWidth: '200px',
-              },
-              listItem: {
-                list: [
-                  { label: 'asdf', value: 1 },
-                  { label: 'asdf2', value: 2 },
-                  { label: 'asdf3', value: 3 },
-                ],
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              key: 'test22',
-              renderType: 'text',
-              style: {
-                valueWidth: '150px',
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              label: 'button',
-              renderType: 'button',
-              click: (aa) => {
-                console.log(aa);
-              },
-            },
-          ],
-        },
-        scroll: {
-          enableWheelInContainer: true,
-          vertical: {
-            enable1: false,
-            onUpdate: function (item) {
-              // 스크롤 업데이트.
-              //console.log(item);
-              //return true;
-            },
-          },
-          horizontal: {
-            enableWheel: true,
-          },
-        },
-        footer: {
-          enabled: true,
-
-          height: 35,
-          paging: {
-            enabled1: true,
-            /**
-             * 위치 값
-             */
-            position: 'center',
-            formatPosition: 'right',
-            /**
-             * 페이지 메시지 포멧
-             */
-            format: '{{start}} - {{end}} of {{total}}',
-
-            // 페이지 콜백
-            callback1: function (arg) {
-              console.log(arg);
-              //gridObj.setItems(aaa);
-            },
-          },
-
-          selection: {
-            position: 'left',
-            format:
-              'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
-          },
-        },
-        // , paging: {
-        //   totalCount: 10000
-        //   , currPage: 500
-        //   , countPerPage: 10
-        //   , unitPage: 10
-        // }
         fields: colItem,
         items: aaa,
-        body: {
-          cellDblClick: function (itemInfo) {
-            //console.log('cellDblClick', itemInfo)
-          },
-          cellClick: function (itemInfo) {
-            //console.log('cellClick', itemInfo)
-          },
-          // 방향키 컨트롤 .
-          keyNavHandler: function (moveInfo) {
-            //console.log(moveInfo);
-          },
-          pasteBefore: function (a) {
-            console.log('pasteBefore', a);
-            return a;
-          },
-          pasteAfter: function (a) {
-            console.log('pasteAfter', a);
-          },
-          row: {
-            height: 30,
-            enableDblClickRowCheck: true,
-          },
-        },
-
         contextMenu: {
           enableHeader: true,
           beforeActivate: function (info) {

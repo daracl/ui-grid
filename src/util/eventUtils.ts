@@ -145,9 +145,11 @@ export function initPointerSession(
   e: Event,
   startCellInfo: CellInfo | HeaderCellInfo,
   clickManager: ClickManager,
+  el?: HTMLElement,
 ): PointerSession {
   const targetElement = e.currentTarget as HTMLElement;
   const evtPosition = eventPosition(e);
+
   return {
     state: POINTER_STATE.PRESSED,
     event: e,
@@ -156,7 +158,7 @@ export function initPointerSession(
     cellInfo: startCellInfo,
     startTime: Date.now(),
     lastClickTime: 0,
-    cellEl: targetElement,
+    cellEl: el ?? targetElement,
     clickManager: clickManager,
   };
 }

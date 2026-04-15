@@ -7,7 +7,7 @@
 
     & > div {
       position: absolute;
-      background: linear-gradient(var(--gradient1), var(--gradient2));
+      background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
 
       &.dg-left {
         left: 0px;

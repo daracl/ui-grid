@@ -1,6 +1,5 @@
 import { ScrollInfo } from '@t/GridConfig';
 
-import { DaraGrid } from '@/DaraGrid';
 import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '../../../util/gridUtils';
 
 import { DaraElement } from '@/element/DaraElement';
@@ -18,15 +17,13 @@ import { Body } from './Body';
  * @typedef {KeydownEvent }
  */
 export class KeydownEvent implements EventHandler {
-  private readonly grid: DaraGrid;
   private readonly body: Body;
   private readonly gridMain: GridMain;
   private readonly selectionInfo: SelectionInfo;
 
   private pasteElement: DaraElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.gridMain = gridMain;
     this.body = body;
     this.selectionInfo = selectionInfo;
@@ -37,9 +34,9 @@ export class KeydownEvent implements EventHandler {
    *
    */
   public init() {
-    this.pasteElement = new DaraElement(this.grid.element().find('.dg-paste-area'));
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    this.pasteElement = new DaraElement(this.gridMain.element().find('.dg-paste-area'));
+    const cfg = this.gridMain.config();
+    const opts = this.gridMain.options();
     const editable = opts.editable;
     const selectionMode = opts.selectionMode;
     // window keydown 처리.  tabindex 처리 확인 해볼것.
@@ -144,7 +141,7 @@ export class KeydownEvent implements EventHandler {
    * @param {number} evtKey key code
    */
   private arrowKeydownEvent(evt: UIEvent, evtKey: number) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scrollCtrl = this.gridMain.getScroll();
 
     const scrollInfo = cfg.scroll,
@@ -269,8 +266,8 @@ export class KeydownEvent implements EventHandler {
     moveRowIdx: number,
     moveColIdx: number,
   ) {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    const cfg = this.gridMain.config();
+    const opts = this.gridMain.options();
 
     if (
       isFunction(opts.body.keyNavHandler) &&

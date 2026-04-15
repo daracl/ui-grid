@@ -1,5 +1,4 @@
 import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue, hasClass } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
@@ -14,7 +13,6 @@ import { Scroll } from './Scroll';
  * horizontal scroll event
  */
 export class HorizontalScroll {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly opts: GridOptions;
@@ -23,11 +21,10 @@ export class HorizontalScroll {
   private readonly horizontalTrackElement: DaraElement;
   private readonly horizontalThumbElement: DaraElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, scroll: Scroll, horizontalElement: DaraElement) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, scroll: Scroll, horizontalElement: DaraElement) {
     this.gridMain = gridMain;
 
-    this.opts = this.grid.getOptions();
+    this.opts = this.gridMain.options();
 
     this.horizontalElement = horizontalElement;
     this.horizontalTrackElement = horizontalElement.findDaraElement('.dg-scroll-track');
@@ -49,7 +46,7 @@ export class HorizontalScroll {
    * @returns
    */
   calculate() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
     if (!scroll.enableHorizontal) {
@@ -59,7 +56,7 @@ export class HorizontalScroll {
     }
 
     const dimensions = cfg.dimensions;
-    const opts = this.grid.getOptions();
+    const opts = this.gridMain.options();
     const arrowButtonSize = opts.scroll.width * 2;
 
     const totalColWidth = dimensions.mainTotalWidth;
@@ -92,7 +89,7 @@ export class HorizontalScroll {
    * @private
    */
   private initHorizontalThumb() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     let dragging = false;
@@ -174,7 +171,7 @@ export class HorizontalScroll {
    */
   private initHorizontalTrack() {
     const opts = this.opts;
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     let bgMoveMode = 0;
@@ -230,7 +227,7 @@ export class HorizontalScroll {
     const vBtnDelay = 100;
     let buttonMoveMode = 0;
 
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button');
@@ -295,7 +292,7 @@ export class HorizontalScroll {
    * @description 가로 스크롤 이동.
    */
   public moveHorizontalScroll(moveObj: any) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     if (!cfg.scroll.enableHorizontal) {
       if (cfg.scroll.left > 0) {
@@ -345,7 +342,7 @@ export class HorizontalScroll {
    * @description 가로 스크롤바 위치 이동
    */
   public moveHorizontalScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
     if (leftVal >= scroll.hTrackWidth - scroll.hThumbWidth) {

@@ -361,7 +361,7 @@ export class DataManager {
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
-    console.log('searchResults : ', this.isTreeType, searchResults);
+    //console.log('searchResults : ', this.isTreeType, searchResults);
 
     if (!this.isTreeType) {
       this.setViewItems(searchResults);

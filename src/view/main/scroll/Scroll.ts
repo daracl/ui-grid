@@ -1,4 +1,3 @@
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';
 import { isEmpty } from '@/util/utils';
@@ -8,7 +7,6 @@ import { HorizontalScroll } from './HorizontalScroll';
 import { VerticalScroll } from './VerticalScroll';
 
 export class Scroll {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly opts: GridOptions;
@@ -22,11 +20,10 @@ export class Scroll {
   private verticalScroll: VerticalScroll;
   private horizontalScroll: HorizontalScroll;
 
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
+  constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
 
-    this.opts = this.grid.getOptions();
+    this.opts = this.gridMain.options();
 
     this.horizontalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-horizontal');
     this.horizontalThumbElement = this.horizontalElement.findDaraElement('.dg-scroll-thumb');
@@ -39,8 +36,8 @@ export class Scroll {
    * init scroll
    */
   public init() {
-    this.verticalScroll = new VerticalScroll(this.grid, this.gridMain, this, this.verticalElement);
-    this.horizontalScroll = new HorizontalScroll(this.grid, this.gridMain, this, this.horizontalElement);
+    this.verticalScroll = new VerticalScroll(this.gridMain, this, this.verticalElement);
+    this.horizontalScroll = new HorizontalScroll(this.gridMain, this, this.horizontalElement);
 
     this.calculate();
 
@@ -59,7 +56,7 @@ export class Scroll {
   }
 
   private initMouseWheel() {
-    const { scroll, dataInfo, eventManager } = this.grid.config();
+    const { scroll, dataInfo, eventManager } = this.gridMain.config();
     const opts = this.opts;
 
     const enableWheelInContainer = opts.scroll.enableWheelInContainer;

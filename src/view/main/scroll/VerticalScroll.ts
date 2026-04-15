@@ -1,5 +1,4 @@
 import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue, hasClass } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
@@ -13,7 +12,6 @@ import { Scroll } from './Scroll';
  * vertical event
  */
 export class VerticalScroll {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly opts: GridOptions;
@@ -22,10 +20,9 @@ export class VerticalScroll {
   private readonly verticalTrackElement: DaraElement;
   private readonly verticalThumbElement: DaraElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, scroll: Scroll, verticalElement: DaraElement) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, scroll: Scroll, verticalElement: DaraElement) {
     this.gridMain = gridMain;
-    this.opts = this.grid.getOptions();
+    this.opts = this.gridMain.options();
 
     this.verticalElement = verticalElement;
     this.verticalTrackElement = verticalElement.findDaraElement('.dg-scroll-track');
@@ -47,7 +44,7 @@ export class VerticalScroll {
    * @returns
    */
   calculate() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
     if (!scroll.enableVertical) {
@@ -56,7 +53,7 @@ export class VerticalScroll {
     }
 
     const dimensions = cfg.dimensions;
-    const opts = this.grid.getOptions();
+    const opts = this.gridMain.options();
     const arrowButtonSize = opts.scroll.width * 2;
 
     const rowHeight = cfg.rowHeight;
@@ -99,7 +96,7 @@ export class VerticalScroll {
    */
   private initVerticalTrack() {
     const opts = this.opts;
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     let bgMoveMode = 0;
@@ -144,7 +141,7 @@ export class VerticalScroll {
   }
 
   private initVerticalButton() {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
     let scrollBtnTimer: any;
@@ -176,7 +173,7 @@ export class VerticalScroll {
 
   private initVerticalThumb() {
     const opts = this.opts;
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     /* 스크롤 바 button drag */
     const tooltipFlag = opts.scroll.vertical.enableTooltip;
     const tooltipEle = this.verticalElement.findDaraElement('.dg-vscroll-bar-tip');
@@ -308,7 +305,7 @@ export class VerticalScroll {
    * @param  moveObj.rowIdx {Integer} move row idx
    */
   moveVerticalScroll(moveObj: any) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
     if (!scroll.enableVertical && moveObj.resizeFlag !== true) {
@@ -334,7 +331,7 @@ export class VerticalScroll {
    *세로 스크롤 위치 이동.
    */
   private moveVerticalScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
     if (topVal >= scroll.vTrackHeight - scroll.vThumbHeight) {
@@ -350,7 +347,7 @@ export class VerticalScroll {
     this.gridMain.hideLayer();
 
     if (updateChkFlag !== false) {
-      const onUpdateFn = this.grid.getOptions().scroll.vertical.onUpdate;
+      const onUpdateFn = this.gridMain.options().scroll.vertical.onUpdate;
       if (drawFlag !== false && isFunction(onUpdateFn)) {
         if (onUpdateFn({ scrollTop: topVal, height: scroll.vTrackHeight }) === false) {
           return;

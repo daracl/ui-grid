@@ -55,7 +55,7 @@ export class AsideRowCheckRenderer extends ViewRenderer {
   }
 
   initClick(contentElement: HTMLInputElement) {
-    const cfg = this.gridMain.getGrid().config();
+    const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const cellElement = contentElement.closest('.dg-cell') as HTMLElement;

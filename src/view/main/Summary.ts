@@ -2,7 +2,6 @@ import { Config } from '@t/GridConfig';
 import { SummaryOptions } from '@t/GridOptions';
 
 import { ROW_CHECK_NAME } from '@/constants';
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
@@ -17,13 +16,13 @@ import { GridMain } from '../GridMain';
  * @typedef {Summary}
  */
 export class Summary {
-  private grid: DaraGrid;
+  private readonly gridMain: GridMain;
 
-  private config: Config;
+  private readonly config: Config;
 
-  private summaryOpts: SummaryOptions;
+  private readonly summaryOpts: SummaryOptions;
 
-  private _isActive: boolean;
+  private readonly _isActive: boolean;
 
   private summaryElement: DaraElement;
 
@@ -31,11 +30,11 @@ export class Summary {
   private centerElement: DaraElement;
   private rightElement: DaraElement;
 
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
-    this.config = grid.config();
+  constructor(gridMain: GridMain) {
+    this.gridMain = gridMain;
+    this.config = gridMain.config();
 
-    const opts = grid.getOptions();
+    const opts = gridMain.options();
 
     this._isActive = opts.summary && opts.summary?.items?.length > 0 ? true : false;
 
@@ -125,7 +124,7 @@ export class Summary {
 
   private createTemplate() {
     const cfg = this.config;
-    const summaryElement = this.grid.element().findDaraElement('.dg-summary');
+    const summaryElement = this.gridMain.element().findDaraElement('.dg-summary');
     this.summaryElement = summaryElement;
     this.leftElement = summaryElement.findDaraElement('.dg-left');
     this.centerElement = summaryElement.findDaraElement('.dg-center');
@@ -169,7 +168,7 @@ export class Summary {
    * @returns {string} template string
    */
   public template(type: string) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
 
     let leafFields;
     let startGroupIdx = 0;

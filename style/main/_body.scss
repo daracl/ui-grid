@@ -129,7 +129,7 @@
 
           &.line-number {
             //background-color: var(--cell-bg-linenumber) !important;
-            background: linear-gradient(var(--gradient1), var(--gradient2));
+            background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
             border-right: 1px solid var(--border-color) !important;
           }
           /*

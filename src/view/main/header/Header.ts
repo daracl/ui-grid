@@ -1,14 +1,13 @@
 import { HeaderOptions } from '@t/GridOptions';
 
-import { DaraGrid } from '@/DaraGrid';
 import { DaraElement } from '@/element/DaraElement';
 import { GridMain } from '../../GridMain';
 
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
 import { getHeaderCellInfo } from '@/util/gridUtils';
 import { addClass, removeClass } from '@/util/styleUtils';
+import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
-import { intValue, isEmpty, isUndefined } from '@/util/utils';
 
 /**
  * Header class
@@ -17,10 +16,11 @@ import { intValue, isEmpty, isUndefined } from '@/util/utils';
  * @typedef {Header}
  */
 export class Header {
-  private grid: DaraGrid;
-  private gridMain: GridMain;
+  private readonly gridMain: GridMain;
 
-  private headerOpts: HeaderOptions;
+  private readonly headerOpts: HeaderOptions;
+
+  private readonly headerEvent: HeaderEvent;
 
   private headerElement: DaraElement;
   private leftElement: DaraElement;
@@ -29,24 +29,21 @@ export class Header {
 
   private headerCellElements: HTMLElement[];
 
-  private headerEvent: HeaderEvent;
-
-  constructor(grid: DaraGrid, gridMain: GridMain) {
-    this.grid = grid;
+  constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
 
-    this.headerOpts = grid.getOptions().header;
+    this.headerOpts = gridMain.options().header;
 
     this.initHeader();
 
-    this.headerEvent = new HeaderEvent(grid, gridMain, this);
+    this.headerEvent = new HeaderEvent(gridMain, this);
     this.headerEvent.init();
   }
 
   initHeader() {
     this.createTemplate();
 
-    this.setHeight(this.grid.config().dimensions.mainHeaderHeight);
+    this.setHeight(this.gridMain.config().dimensions.mainHeaderHeight);
   }
 
   public getHeaderCellElements() {
@@ -65,7 +62,7 @@ export class Header {
    * @param {?HTMLInputElement} [allCheckedElement]
    */
   public setAllCheckItem(checked: boolean, allCheckedElement?: HTMLInputElement) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     if (!allCheckedElement) {
       allCheckedElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement;
     }
@@ -93,7 +90,7 @@ export class Header {
    * @param {("all" | "none" | "partial")} mode
    */
   public setCheckboxStyle(mode: 'all' | 'none' | 'partial', idx?: number) {
-    if (!this.grid.config().isRowAllowMultiSelect) return;
+    if (!this.gridMain.config().isRowAllowMultiSelect) return;
 
     let headerCellElement;
     if (!idx) {
@@ -124,7 +121,7 @@ export class Header {
    * @param {number} w  column width
    */
   public setColumnWidth(idx: number, w: number) {
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     cfg.isHeaderResize = true;
 
     const minWidth = this.headerOpts.resize.minWidth,
@@ -181,7 +178,7 @@ export class Header {
   }
 
   public createTemplate() {
-    this.headerElement = this.grid.element().findDaraElement('.dg-header');
+    this.headerElement = this.gridMain.element().findDaraElement('.dg-header');
     this.leftElement = this.headerElement.findDaraElement('.dg-header>.dg-left');
     this.centerElement = this.headerElement.findDaraElement('.dg-header>.dg-center');
     this.rightElement = this.headerElement.findDaraElement('.dg-header>.dg-right');
@@ -206,8 +203,8 @@ export class Header {
    * @returns {string} template string
    */
   public template(type: string) {
-    const cfg = this.grid.config();
-    const opts = this.grid.getOptions();
+    const cfg = this.gridMain.config();
+    const opts = this.gridMain.options();
 
     let headerGroups, leafGroup;
     let startGroupIdx = 0;

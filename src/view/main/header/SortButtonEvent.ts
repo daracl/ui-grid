@@ -1,5 +1,3 @@
-import { DaraGrid } from '@/DaraGrid';
-
 import { EventHandler } from '@/event/EventHandler';
 import { FieldSortInfo } from '@/types/Header';
 import { addAttr, removeAttr } from '@/util/domUtils';
@@ -15,18 +13,16 @@ import { Header } from './Header';
  * @typedef {SortButtonEvent }
  */
 export class SortButtonEvent implements EventHandler {
-  private readonly grid: DaraGrid;
   private readonly gridMain: GridMain;
 
   private readonly header: Header;
   private readonly sortOpts;
 
-  constructor(grid: DaraGrid, gridMain: GridMain, header: Header) {
-    this.grid = grid;
+  constructor(gridMain: GridMain, header: Header) {
     this.gridMain = gridMain;
     this.header = header;
 
-    this.sortOpts = grid.getOptions().header.sort;
+    this.sortOpts = gridMain.options().header.sort;
   }
 
   /**
@@ -36,7 +32,7 @@ export class SortButtonEvent implements EventHandler {
   public init() {
     const sortOpts = this.sortOpts;
 
-    const cfg = this.grid.config();
+    const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
     const sortOrders = cfg.sort.orders;
     const dataManager = cfg.dataManager;
