@@ -1,4 +1,4 @@
-import { ALL_SELECT_VALUE } from '@/constants';
+import { ALIGN_STYLE, ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
@@ -150,7 +150,7 @@ export class DropdownRenderer extends ViewRenderer {
 
     let menuElement = this.menuElement;
     if (!menuElement) {
-      menuElement = getLayerElement('div', 'dg-dropdown-menu dg-field-layer', cellPosition);
+      menuElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, cellPosition);
 
       this.rendererContainer.appendChild(menuElement);
       this.menuElement = menuElement;
@@ -324,5 +324,9 @@ export class DropdownRenderer extends ViewRenderer {
 
   public isEditRenderer() {
     return true;
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

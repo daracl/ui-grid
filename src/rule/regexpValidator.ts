@@ -30,8 +30,6 @@ export const regexpValidator = (value: string, field: FieldItem, result: ValidRe
 
   const regexpType = field.editRenderer?.regexpType;
 
-  console.log('regexpValidator ', regexpType, value);
-
   if (regexpType) {
     if (!regexp[regexpType].test(value)) {
       result.regexp = regexpType;

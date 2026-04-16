@@ -100,6 +100,6 @@ export abstract class ViewRenderer extends Renderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return ALIGN_STYLE.left;
   }
 }

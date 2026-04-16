@@ -27,6 +27,7 @@ import { SwitchRenderer } from './renderer/view/SwitchRenderer';
 import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
 import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
 import { TreeRenderer } from './renderer/view/TreeRenderer';
+import { NumberRenderer } from './renderer/view/NumberRenderer';
 
 // grid instance id attr key
 export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
@@ -76,6 +77,7 @@ export const VIEW_RENDERER: any = {
   html: HtmlRenderer,
   image: ImageRenderer,
   link: LinkRenderer,
+  number: NumberRenderer,
   text: TextRenderer,
   password: PasswordRenderer,
   sparkline: SparklineRenderer,
@@ -247,6 +249,13 @@ export const ROW_DRAG_HANDLE_NAME = '$rowDragHandle';
  * @type {"data-dg-grid-layer"}
  */
 export const LAYER_ATTR_NAME = 'data-dg-grid-layer';
+
+/**
+ * field layer class
+ *
+ * @type {"dg-field-layer"}
+ */
+export const FIELD_LAYER_CLASS = 'dg-field-layer';
 
 /**
  * 전체 선택 value

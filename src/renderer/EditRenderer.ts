@@ -6,7 +6,7 @@ import { Renderer } from './Renderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
-import { ROW_CUD_KEY } from '@/constants';
+import { FIELD_LAYER_CLASS, ROW_CUD_KEY } from '@/constants';
 
 export abstract class EditRenderer extends Renderer {
   private readonly enableView: boolean = true;
@@ -122,7 +122,7 @@ export abstract class EditRenderer extends Renderer {
       return this.validatorElement;
     }
 
-    const div = getLayerElement('div', 'dg-validator-message dg-field-layer', 'validator');
+    const div = getLayerElement('div', 'dg-validator-message ' + FIELD_LAYER_CLASS, 'validator');
 
     this.validatorElement = div;
 

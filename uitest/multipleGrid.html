@@ -187,11 +187,11 @@
 
     const jsonInfo = getItem(itemType, itemCount, cellCount);
 
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields, 1000);
 
-    gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields);
+    gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields, 'auto');
 
-    gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields);
+    gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields, 800);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -352,10 +352,6 @@
           renderer: {
             type: 'link',
             //,url : 'http://localhost?aaa={{a}}'
-            refValue: (field, value, rowItem) => {
-              //console.log(field, value, rowItem);
-              return { href: '/flags/south_korea.png', label: value };
-            },
             click: function (item) {
               console.log('link ', item);
             },
@@ -825,120 +821,117 @@
     };
   } //test
 
-  function gridDraw(element, aaa, colItem, message) {
+  function gridDraw(element, aaa, colItem, width) {
     try {
       Daracl.grid.instance(element)?.destroy();
     } catch (e) {
       console.log(e);
     }
 
-    const gridObj = Daracl.grid.create(
-      element,
-      {
-        editable: true,
-        styleClass: 'striped',
-        selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
-        enableWidthFixed: false,
-        height: 200,
-        colOptions: {
-          maxWidth: 1024,
-        },
-        valueFilter: function (colInfo, objValue) {
-          return objValue[colInfo.key];
-        },
-
-        search: {
-          enabled: true,
-          mode: 'simple', //'full'
-        },
-
-        fields: colItem,
-        items: aaa,
-        contextMenu: {
-          enableHeader: true,
-          beforeActivate: function (info) {
-            const field = info.field;
-            const item = info.item;
-            if (item) {
-              gridObj.changeContextMenuHeader(item[field.name]);
-            }
-          },
-          callback: function (item) {
-            console.log(item.key, item);
-
-            if (item.key == 'copy') {
-              gridObj.copyData();
-            }
-          },
-          items: [
-            { key: 'refresh', label: '새로고침' },
-            {
-              divider: true,
-            },
-            {
-              key: 'copy',
-              label: '복사',
-              hotkey: 'Ctrl+C',
-              callback: function (item) {
-                console.log('direct copy callback : ', item.key, item);
-
-                if (item.key == 'copy') {
-                  gridObj.copyData();
-                }
-              },
-            },
-            {
-              key: 'sql_create',
-              label: 'sql생성',
-              disabled: true,
-              children: [
-                { key: 'selectStar', label: 'select *' },
-                { key: 'select', label: 'select column' },
-                { key: 'insert', label: 'insert' },
-                { key: 'update', label: 'update' },
-                { key: 'delete', label: 'delete' },
-                { key: 'drop', label: 'drop' },
-              ],
-            },
-            {
-              key: 'download',
-              label: 'download',
-              children: [
-                { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
-                { divider: true },
-                { key: 'download_excel', label: 'EXCEL' },
-                { key: 'download_csv', label: 'CSV' },
-                { key: 'download_xml', label: 'XML' },
-                { key: 'download_json', label: 'json' },
-              ],
-            },
-            {
-              key: 'create_ddl',
-              label: 'DDL 보기',
-              hotkey: 'Ctrl+shift+C',
-            },
-            {
-              key: 'mybatis-sql_create',
-              label: 'mybatis Sql생성',
-              children: [
-                { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
-                { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
-                { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
-              ],
-            },
-            {
-              key: 'export',
-              label: '내보내기',
-              children: [
-                { key: 'export_data', label: '데이타 내보내기' },
-                { key: 'export_column', label: '컬럼정보 내보내기' },
-              ],
-            },
-          ],
-        },
+    const gridObj = Daracl.grid.create(element, {
+      editable: true,
+      styleClass: 'striped',
+      selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+      enableWidthFixed: false,
+      width: width,
+      height: 205,
+      colOptions: {
+        maxWidth: 1024,
       },
-      message,
-    );
+      valueFilter: function (colInfo, objValue) {
+        return objValue[colInfo.key];
+      },
+
+      search: {
+        enabled: true,
+        mode: 'simple', //'full'
+      },
+
+      fields: colItem,
+      items: aaa,
+      contextMenu: {
+        enableHeader: true,
+        beforeActivate: function (info) {
+          const field = info.field;
+          const item = info.item;
+          if (item) {
+            gridObj.changeContextMenuHeader(item[field.name]);
+          }
+        },
+        callback: function (item) {
+          console.log(item.key, item);
+
+          if (item.key == 'copy') {
+            gridObj.copyData();
+          }
+        },
+        items: [
+          { key: 'refresh', label: '새로고침' },
+          {
+            divider: true,
+          },
+          {
+            key: 'copy',
+            label: '복사',
+            hotkey: 'Ctrl+C',
+            callback: function (item) {
+              console.log('direct copy callback : ', item.key, item);
+
+              if (item.key == 'copy') {
+                gridObj.copyData();
+              }
+            },
+          },
+          {
+            key: 'sql_create',
+            label: 'sql생성',
+            disabled: true,
+            children: [
+              { key: 'selectStar', label: 'select *' },
+              { key: 'select', label: 'select column' },
+              { key: 'insert', label: 'insert' },
+              { key: 'update', label: 'update' },
+              { key: 'delete', label: 'delete' },
+              { key: 'drop', label: 'drop' },
+            ],
+          },
+          {
+            key: 'download',
+            label: 'download',
+            children: [
+              { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
+              { divider: true },
+              { key: 'download_excel', label: 'EXCEL' },
+              { key: 'download_csv', label: 'CSV' },
+              { key: 'download_xml', label: 'XML' },
+              { key: 'download_json', label: 'json' },
+            ],
+          },
+          {
+            key: 'create_ddl',
+            label: 'DDL 보기',
+            hotkey: 'Ctrl+shift+C',
+          },
+          {
+            key: 'mybatis-sql_create',
+            label: 'mybatis Sql생성',
+            children: [
+              { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
+              { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
+              { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
+            ],
+          },
+          {
+            key: 'export',
+            label: '내보내기',
+            children: [
+              { key: 'export_data', label: '데이타 내보내기' },
+              { key: 'export_column', label: '컬럼정보 내보내기' },
+            ],
+          },
+        ],
+      },
+    });
   }
 
   function getRandomFloatFromInput(a, b) {

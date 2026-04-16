@@ -48,6 +48,7 @@ export class SortButtonEvent implements EventHandler {
         return;
       }
       stopPreventCancel(e);
+      this.gridMain.hideLayer();
 
       const currentElement = e.currentTarget as HTMLElement;
 

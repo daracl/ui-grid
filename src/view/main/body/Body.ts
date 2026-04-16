@@ -406,6 +406,8 @@ export class Body {
       return;
     }
 
+    this.gridMain.hideLayer(mode);
+
     // 마지막 라인 처리
     if (currentViewRow < viewRow) {
       const hideRowIdx = viewRow - 1;

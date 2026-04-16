@@ -4,6 +4,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
+import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
  * text renderer
@@ -76,7 +77,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = getLayerElement('input', 'dg-edit-input dg-field-layer', cellInfo.c + '') as HTMLInputElement;
+      editElement = getLayerElement('input', 'dg-edit-input ' + FIELD_LAYER_CLASS, cellInfo.c + '') as HTMLInputElement;
       editElement.type = type;
       editElement.name = this.fieldName;
       editElement.setAttribute('autocomplete', 'off');

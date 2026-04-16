@@ -72,15 +72,17 @@ export class Scroll {
 
         const isShift = isShiftKey(evt);
 
-        //delta > 0--up
-        if (scroll.enableVertical && !isShift) {
-          const upDown = delta < 0 ? 'U' : 'D';
-          if (
-            (upDown == 'U' && scroll.startIdx == 0) ||
-            (upDown == 'D' && scroll.startIdx + scroll.viewRow > dataInfo.rowLength)
-          ) {
-            if (enableWheelInContainer) stopPreventCancel(evt);
+        const startIdx = scroll.startIdx;
 
+        if (enableWheelInContainer) stopPreventCancel(evt);
+
+        //delta < 0 --up
+        const upFlag = delta < 0;
+
+        if (scroll.enableVertical && !isShift) {
+          if ((upFlag && startIdx != 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
+            stopPreventCancel(evt);
+          } else {
             return;
           }
 
@@ -88,26 +90,20 @@ export class Scroll {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
             this.moveVerticalScroll({
-              direction: upDown,
+              direction: upFlag ? 'U' : 'D',
               speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
             });
           });
-          if (
-            opts.scroll.enableWheelInContainer === true ||
-            (scroll.top != 0 && scroll.top != scroll.vTrackHeight - scroll.vThumbHeight)
-          ) {
-            stopPreventCancel(evt);
-          }
         } else if (scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
-          requestAnimationFrame(() => {
-            this.moveHorizontalScroll({ direction: delta < 0 ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
-          });
-
-          if (scroll.left != 0 && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth) {
+          if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
             stopPreventCancel(evt);
+          } else {
+            return;
           }
 
-          if (enableWheelInContainer) stopPreventCancel(evt);
+          requestAnimationFrame(() => {
+            this.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
+          });
         }
       },
       { passive: false },

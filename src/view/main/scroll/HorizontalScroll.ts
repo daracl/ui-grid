@@ -144,6 +144,7 @@ export class HorizontalScroll {
         return;
       }
       stopPreventCancel(e);
+      this.gridMain.hideLayer();
 
       dragging = true;
       startX = eventPosition(e).x;
@@ -189,6 +190,7 @@ export class HorizontalScroll {
       if (!isClickEvent(e)) {
         return;
       }
+      this.gridMain.hideLayer();
       bgMoveMode = 1;
       startEventX = e.offsetX;
 
@@ -237,6 +239,7 @@ export class HorizontalScroll {
     eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
       const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
       buttonMoveMode = 1;
+      this.gridMain.hideLayer();
 
       scrollBtnTimer = setInterval(() => {
         buttonMoveMode = 2;
@@ -354,8 +357,6 @@ export class HorizontalScroll {
     if (scroll.left == leftVal) {
       return;
     }
-
-    //this.gridMain.hideLayer();
 
     scroll.left = leftVal;
 

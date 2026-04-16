@@ -250,10 +250,10 @@
           editable: false,
           renderer: {
             type: 'link',
-            //,url : 'http://localhost?aaa={{a}}'
+
             refValue: (field, value, rowItem) => {
               //console.log(field, value, rowItem);
-              return { href: '/flags/south_korea.png', label: value };
+              return { label: value };
             },
             click: function (item) {
               console.log('link ', item);
@@ -394,7 +394,7 @@
             type: 'image',
             refValue: (field, value, rowItem) => {
               //console.log(field, value, rowItem);
-              return { src: '/flags/south_korea.png', label: value };
+              return { src: '/asset/flags/south_korea.png', label: value };
             },
           },
         },
@@ -415,7 +415,6 @@
     gridObj = Daracl.grid.create(
       element,
       {
-        editable: true,
         styleClass: 'striped',
         selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,

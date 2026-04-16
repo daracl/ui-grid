@@ -113,6 +113,7 @@ export class VerticalScroll {
       if (!isClickEvent(e)) {
         return;
       }
+      this.gridMain.hideLayer();
       bgMoveMode = 1;
       startEventY = e.offsetY;
       oneRowMove = cfg.scroll.oneRowMove;
@@ -152,7 +153,7 @@ export class VerticalScroll {
     eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
     eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
       const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
-
+      this.gridMain.hideLayer();
       buttonMoveMode = 1;
 
       scrollBtnTimer = setInterval(() => {
@@ -240,6 +241,7 @@ export class VerticalScroll {
           return;
         }
         stopPreventCancel(e);
+        this.gridMain.hideLayer();
 
         dragging = true;
         initialTop = cfg.scroll.top;
@@ -343,8 +345,6 @@ export class VerticalScroll {
     if (scroll.top == topVal) {
       return;
     }
-
-    //this.gridMain.hideLayer();
 
     if (updateChkFlag !== false) {
       const onUpdateFn = this.gridMain.options().scroll.vertical.onUpdate;

@@ -5,6 +5,7 @@ import {
   ALIGN,
   ALIGN_STYLE,
   EDIT_RENDERER,
+  FIELD_LAYER_CLASS,
   FIELD_PREFIX,
   FOOTER_HEIGHT,
   GRID_THEME,
@@ -400,7 +401,10 @@ export class GridMain {
   }
 
   public hideLayer(hideElement?: HTMLElement | string) {
-    console.log('1111hideLayer111 ', hideElement);
+    let checkLayerClass;
+    if (hideElement == 'vscroll' || hideElement == 'hscroll') {
+      checkLayerClass = FIELD_LAYER_CLASS;
+    }
 
     if (hideElement != 'all') {
       if (ALL_INSTANCE.size > 1) {
@@ -418,7 +422,10 @@ export class GridMain {
       for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
         const layerElement = this.openLayers[idx];
 
-        if (hideElement == layerElement) {
+        if (checkLayerClass && layerElement.classList.contains(checkLayerClass)) {
+          layerElement.style.display = 'none';
+          this.openLayers.splice(idx, 1);
+        } else if (hideElement == layerElement) {
           layerElement.style.display = 'none';
           this.openLayers.splice(idx, 1);
           break;

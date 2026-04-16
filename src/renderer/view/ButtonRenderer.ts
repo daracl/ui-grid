@@ -3,6 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
+import { ALIGN_STYLE } from '@/constants';
 
 /**
  * button renderer
@@ -30,7 +31,12 @@ export class ButtonRenderer extends ViewRenderer {
     const value = item[this.fieldName];
     const refValue = this.getRefValue(value);
 
-    const buttonLabel = refValue?.label ?? value;
+    let buttonLabel;
+    if (refValue) {
+      buttonLabel = refValue?.label ?? refValue;
+    } else {
+      buttonLabel = value;
+    }
 
     // 값이 바뀌었을 때만 갱신
     if (btnElement.textContent !== buttonLabel) {
@@ -47,5 +53,9 @@ export class ButtonRenderer extends ViewRenderer {
 
       this.click(e, cellElement, cellInfo);
     });
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

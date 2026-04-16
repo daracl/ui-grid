@@ -6,6 +6,7 @@ import { FieldItem } from '@t/GridField';
 import { EditRendererInfo } from '@t/RendererInfo';
 import { EditRenderer } from '../EditRenderer';
 import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
+import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
  * number renderer
@@ -31,7 +32,7 @@ export class NumberEditRenderer extends TextEditAbstractRenderer {
 
     let editElement = this.editElement;
     if (!editElement) {
-      editElement = getLayerElement('input', 'dg-edit-input dg-field-layer', cellInfo.c + '') as HTMLInputElement;
+      editElement = getLayerElement('input', 'dg-edit-input ' + FIELD_LAYER_CLASS, cellInfo.c + '') as HTMLInputElement;
       editElement.type = 'number';
       editElement.name = this.fieldName;
       editElement.setAttribute('autocomplete', 'off');

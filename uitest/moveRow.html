@@ -82,6 +82,9 @@
         name: 'age',
         label: '나이',
         width: 50,
+        renderer: {
+          type: 'number',
+        },
       },
       {
         name: 'email',
@@ -91,6 +94,7 @@
       {
         name: 'birth',
         label: '생년월일',
+        align: 'center',
         width: 120,
         editRenderer: {
           type: 'date',

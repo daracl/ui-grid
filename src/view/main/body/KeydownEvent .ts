@@ -70,8 +70,7 @@ export class KeydownEvent implements EventHandler {
         const field = cfg.currentFields[startCell.startCol];
 
         if (editable === true && field.editable !== false && !field.$renderer.isEditRenderer()) {
-          // 스크롤 이동하고 움직일것
-
+          // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 
           const startElement = this.gridMain.getBody().getBodyElement().find('.dg-cell.start-cell');
