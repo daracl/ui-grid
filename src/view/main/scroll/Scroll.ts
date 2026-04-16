@@ -61,7 +61,8 @@ export class Scroll {
     const enableWheelInContainer = opts.scroll.enableWheelInContainer;
 
     const mainElement = this.gridMain.mainElement().getElement();
-
+    let animationId: number;
+    let beforeStartIdx = -1;
     eventManager.off(mainElement, 'wheel DOMMouseScroll');
     eventManager.on(
       { el: mainElement, type: 'wheel DOMMouseScroll' },
@@ -70,7 +71,7 @@ export class Scroll {
 
         if (isEmpty(delta)) return;
 
-        const isShift = isShiftKey(evt);
+        const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
 
         const startIdx = scroll.startIdx;
 
@@ -79,14 +80,19 @@ export class Scroll {
         //delta < 0 --up
         const upFlag = delta < 0;
 
-        if (scroll.enableVertical && !isShift) {
+        if (scroll.enableVertical && !isHorizontal) {
+          if (beforeStartIdx == startIdx) return;
+
           if ((upFlag && startIdx != 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
             stopPreventCancel(evt);
           } else {
+            cancelAnimationFrame(animationId);
+            animationId = 0;
             return;
           }
+          beforeStartIdx = startIdx;
 
-          requestAnimationFrame(() => {
+          animationId = requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
             const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
             this.moveVerticalScroll({
@@ -94,14 +100,16 @@ export class Scroll {
               speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
             });
           });
-        } else if (scroll.enableHorizontal && (opts.scroll.horizontal.enableWheel === true || isShift)) {
+        } else if (isHorizontal) {
           if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
             stopPreventCancel(evt);
           } else {
+            cancelAnimationFrame(animationId);
+            animationId = 0;
             return;
           }
 
-          requestAnimationFrame(() => {
+          animationId = requestAnimationFrame(() => {
             this.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
           });
         }
