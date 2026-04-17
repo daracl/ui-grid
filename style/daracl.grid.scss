@@ -43,7 +43,7 @@ body {
     --invalid-border-color: #ffb6b4;
     --invalid-bg: #fdd;
     --button-bg: #e8ecef;
-    --button-bg-hover: #f2f3f4;
+    --button-bg-hover: #cdcdcd;
     --button-bg-active: #d7d7d7;
     --tab-bg: #f6f6f6;
     --tab-bg-hover: #ebebeb;
@@ -108,8 +108,8 @@ body {
     --invalid-border-color: #ff5e5e;
     --invalid-bg: #3a1f1f;
 
-    --button-bg: #2e2e2e;
-    --button-bg-hover: #3a3a3a;
+    --button-bg: #5a5a5a;
+    --button-bg-hover: #727272;
     --button-bg-active: #616161;
 
     --tab-bg: #2c2c2c;
@@ -279,8 +279,10 @@ body {
   .dg-switch > label {
     position: relative;
     display: inline-block;
-    min-width: 45px;
-    height: 23px;
+    min-width: 38px;
+    width: 38px;
+    height: 19px;
+    margin-top: 2px !important;
 
     input[type='checkbox'] {
       display: none;
@@ -304,8 +306,8 @@ body {
       &::before {
         content: '';
         position: absolute;
-        height: 17px;
-        width: 17px;
+        height: 13px;
+        width: 14px;
         left: 3px;
         top: 3px;
         background-color: var(--body-bg);
@@ -383,7 +385,6 @@ body {
     }
 
     .dg-checkmark {
-      margin-top: 3px;
       width: 16px;
       height: 16px;
       border: 1.5px solid #999;

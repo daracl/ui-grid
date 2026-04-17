@@ -58,6 +58,7 @@
   </body>
 </html>
 
+<script src="./data/dropdwon.js" type="text/javascript"></script>
 <script src="./data/employee2.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
@@ -87,39 +88,30 @@
 </style>
 <script>
   var gridObj;
-  const koreanFoods = [
-    { name: '김치찌개', cd: 'kimchi_stew' },
-    { name: '비빔밥', cd: 'bibimbap' },
-    { name: '불고기', cd: 'bulgogi' },
-    { name: '된장찌개', cd: 'doenjang_stew' },
-    { name: '잡채', cd: 'japchae' },
-  ];
 
-  const americanFoods = [
-    { name: '햄버거', cd: 'hamburger' },
-    { name: '핫도그', cd: 'hotdog' },
-    { name: '바비큐 립', cd: 'bbq_ribs' },
-    { name: '클램 차우더', cd: 'clam_chowder' },
-    { name: '치킨 윙', cd: 'chicken_wings' },
-  ];
+  const foodMap = {
+    ko: KOREAN_FOODS,
+    en: AMERICAN_FOODS,
+    zh: CHINESE_FOODS,
+    jp: JAPANESE_FOODS,
+  };
 
-  const chineseFoods = [
-    { name: '짜장면', cd: 'zhajiangmian' },
-    { name: '탕수육', cd: 'tangsuyuk' },
-    { name: '마파두부', cd: 'mapo_tofu' },
-    { name: '양장피', cd: 'yangjangpi' },
-    { name: '깐풍기', cd: 'kanpunggi' },
-  ];
+  function getRandomFoods(foodList, count = 2) {
+    const shuffled = [...foodList].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count).map((f) => f.cd);
+  }
 
-  const japaneseFoods = [
-    { name: '스시', cd: 'sushi', disabled: true },
-    { name: '라멘', cd: 'ramen' },
-    { name: '돈카츠', cd: 'tonkatsu' },
-    { name: '우동', cd: 'udon' },
-    { name: '오코노미야키', cd: 'okonomiyaki' },
-  ];
+  GRID_EMPLOYEE_DATA.forEach((emp) => {
+    if (!emp.food) {
+      const foods = foodMap[emp.country];
 
-  const allFoods = [...koreanFoods, ...americanFoods, ...chineseFoods, ...japaneseFoods];
+      if (foods) {
+        emp.food = getRandomFoods(foods);
+      } else {
+        emp.food = [];
+      }
+    }
+  });
 
   const THEME_KEY = 'grid-theme';
   const theme = localStorage.getItem(THEME_KEY);
@@ -128,6 +120,8 @@
 
   function setMainTheme(theme, persist = false) {
     const bodyElement = document.body;
+
+    if (gridObj) gridObj.setTheme(theme);
 
     bodyElement.setAttribute('data-dg-theme', theme);
 
@@ -191,11 +185,6 @@
     itemIdx++;
     let items = [];
     let fields = [];
-
-    const orginItemCount = itemCount;
-
-    itemCount = orginItemCount == 0 ? 1 : itemCount;
-
     items = GRID_EMPLOYEE_DATA;
 
     fields = [
@@ -281,12 +270,12 @@
         editable: false,
         renderer: {
           type: 'link',
-          refValue: (field, value) => ({ label: value }),
-          click: function (cellInfo) {
+          refValue: (field, value) => ({ href: 'https://tool.daracl.com?v=' + value, label: value }),
+          click1: function (cellInfo) {
             console.log(cellInfo);
             const field = cellInfo.field;
             const rowItem = cellInfo.item;
-            alert('http://www.daracl.com/' + rowItem[field.name]);
+            alert('https://tool.daracl.comv=' + rowItem[field.name]);
             return '';
           },
         },
@@ -358,6 +347,43 @@
         },
       },
       {
+        name: 'food',
+        label: '음식',
+        width: 100,
+        type: 'text',
+        renderer: {
+          type: 'dropdown',
+          listItem: {
+            labelField: 'name',
+            valueField: 'cd',
+            multiple: true,
+            list: (cellInfo, callback) => {
+              const item = cellInfo.item;
+
+              if (typeof item === 'undefined') {
+                callback(ALL_FOODS);
+                return;
+              }
+              const dValue = item.country;
+
+              let foods = [];
+
+              if (dValue == 'en') {
+                foods = AMERICAN_FOODS;
+              } else if (dValue == 'zh') {
+                foods = CHINESE_FOODS;
+              } else if (dValue == 'jp') {
+                foods = JAPANESE_FOODS;
+              } else {
+                foods = KOREAN_FOODS;
+              }
+
+              callback(foods);
+            },
+          },
+        },
+      },
+      {
         name: 'profileHtml',
         label: 'html',
         width: 150,
@@ -379,8 +405,6 @@
       },
     ];
 
-    items = orginItemCount == 0 ? [] : items;
-
     //console.log(JSON.stringify(aaa));
 
     return {
@@ -399,7 +423,6 @@
       fixedLeftIndex: 2,
       fixedRightIndex: 0,
       height: 480,
-      width: 1000,
       aside: {
         lineNumber: { enabled: true },
         modifyInfo: { enabled: true },
@@ -442,7 +465,7 @@
       items: aaa,
       body: {
         row: {
-          height: 30,
+          height: 50,
         },
       },
     });

@@ -79,10 +79,16 @@ export class BodyEvent {
         if ((e as MouseEvent).button !== 0) {
           return true;
         }
+
         const eventElement = e.target as HTMLElement;
+
+        if (eventElement.closest('a')) return;
+
         if (isInputField(eventElement.tagName)) {
           return true;
         }
+
+        console.log('111');
 
         const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
 

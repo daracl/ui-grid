@@ -28,6 +28,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
     const { eventManager } = this.gridMain.config();
 
     eventManager.on({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
+      console.log('editElement : ', editElement);
       if (this.isShow) {
         this.setChangeValue(e);
       }
@@ -103,6 +104,10 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
 
     setTimeout(() => {
       editElement.focus();
+
+      //
+      // 처리할것.
+      //
     }, 100);
   }
 }

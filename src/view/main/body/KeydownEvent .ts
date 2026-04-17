@@ -69,7 +69,7 @@ export class KeydownEvent implements EventHandler {
 
         const field = cfg.currentFields[startCell.startCol];
 
-        if (editable === true && field.editable !== false && !field.$renderer.isEditRenderer()) {
+        if (editable === true && field.editable !== false && field.$renderer.canEdit()) {
           // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 

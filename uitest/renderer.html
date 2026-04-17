@@ -66,6 +66,8 @@
   function setMainTheme(theme, persist = false) {
     const bodyElement = document.body;
 
+    if (gridObj) gridObj.setTheme(theme);
+
     bodyElement.setAttribute('data-dg-theme', theme);
 
     if (persist) {

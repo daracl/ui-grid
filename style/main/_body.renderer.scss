@@ -21,9 +21,18 @@
 
   /* button */
   .dg-button {
-    .dg-cell-content {
+    height: calc(100% - 4px);
+    > .dg-cell-content {
+      padding: 1px 10px;
+      border: 1px solid var(--border-color);
       border-radius: 3px;
       background-color: var(--button-bg);
+      cursor: pointer;
+      text-decoration: none;
+
+      &:hover {
+        background-color: var(--button-bg-hover);
+      }
     }
   }
 
@@ -70,7 +79,9 @@
 
   /*dg-switch */
   .dg-switch {
-    display: flex;
+    display: block;
+    width: 100%;
+    margin: 0px 0px 1px 0px !important;
   }
 
   /* dropdown */

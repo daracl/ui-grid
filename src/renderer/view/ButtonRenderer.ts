@@ -4,6 +4,7 @@ import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { ALIGN_STYLE } from '@/constants';
+import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
  * button renderer
@@ -21,7 +22,7 @@ export class ButtonRenderer extends ViewRenderer {
 
     // 최초 렌더링 시만 생성
     if (!btnElement) {
-      btnElement = document.createElement('div');
+      btnElement = document.createElement('span');
       btnElement.className = this.getRendererStyleClass('dg-cell-content');
       element.appendChild(btnElement);
       this.initEvent(btnElement);
@@ -46,7 +47,8 @@ export class ButtonRenderer extends ViewRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
+      stopPreventCancel(e);
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(cfg, cellElement);
@@ -57,5 +59,9 @@ export class ButtonRenderer extends ViewRenderer {
 
   public alignStyle(): string {
     return ALIGN_STYLE.center;
+  }
+
+  public canEdit() {
+    return false;
   }
 }

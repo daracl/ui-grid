@@ -3,6 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
+import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
  * link renderer
@@ -49,8 +50,8 @@ export class LinkRenderer extends ViewRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      e.preventDefault();
+    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
+      stopPreventCancel(e);
       const eventElement = e.target as HTMLElement;
       const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(cfg, cellElement);

@@ -322,8 +322,8 @@ export class DropdownRenderer extends ViewRenderer {
     return templateParts.join('');
   }
 
-  public isEditRenderer() {
-    return true;
+  public canEdit() {
+    return false;
   }
 
   public alignStyle(): string {

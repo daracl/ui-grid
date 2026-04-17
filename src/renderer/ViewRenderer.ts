@@ -95,8 +95,8 @@ export abstract class ViewRenderer extends Renderer {
    *
    * @returns {boolean}
    */
-  public isEditRenderer() {
-    return false;
+  public canEdit() {
+    return true;
   }
 
   public alignStyle(): string {

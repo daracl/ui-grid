@@ -86,8 +86,8 @@ export class CheckboxRenderer extends ViewRenderer {
     });
   }
 
-  public isEditRenderer() {
-    return true;
+  public canEdit() {
+    return false;
   }
 
   public alignStyle(): string {

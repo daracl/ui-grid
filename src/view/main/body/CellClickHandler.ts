@@ -303,7 +303,7 @@ export class CellClickHandler extends BasePointerHandler {
 
     if (
       !field.$isAside &&
-      !field.$renderer.isEditRenderer() &&
+      field.$renderer.canEdit() &&
       (field.editable === true || (this.editable === true && field.editable !== false))
     ) {
       field.$editRenderer.render(cellInfo, session.cellEl!);

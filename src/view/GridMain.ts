@@ -401,6 +401,11 @@ export class GridMain {
   }
 
   public hideLayer(hideElement?: HTMLElement | string) {
+    try {
+      throw new Error('asfd');
+    } catch (e) {
+      console.log(e);
+    }
     let checkLayerClass;
     if (hideElement == 'vscroll' || hideElement == 'hscroll') {
       checkLayerClass = FIELD_LAYER_CLASS;
