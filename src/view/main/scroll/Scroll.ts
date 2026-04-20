@@ -81,8 +81,6 @@ export class Scroll {
         const upFlag = delta < 0;
 
         if (scroll.enableVertical && !isHorizontal) {
-          if (beforeStartIdx == startIdx) return;
-
           if ((upFlag && startIdx != 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
             stopPreventCancel(evt);
           } else {
@@ -90,6 +88,9 @@ export class Scroll {
             animationId = 0;
             return;
           }
+
+          if (beforeStartIdx == startIdx) return;
+
           beforeStartIdx = startIdx;
 
           animationId = requestAnimationFrame(() => {

@@ -82,6 +82,9 @@ body {
 
     --bar-positive-bg: #77c0fc;
     --bar-negative-bg: #ff8989;
+
+    --item-selected: #e9faff;
+    --item-check-color: #1a73e8;
   }
 
   &[data-dg-theme='dark'] .daracl-grid,
@@ -153,6 +156,9 @@ body {
 
     --bar-positive-bg: #77c0fc;
     --bar-negative-bg: #ff8989;
+
+    --item-selected: #264f78;
+    --item-check-color: #68a9ff;
   }
 }
 

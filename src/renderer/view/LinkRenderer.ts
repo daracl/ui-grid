@@ -20,7 +20,7 @@ export class LinkRenderer extends ViewRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = item[this.fieldName];
-    const refValue = this.getRefValue(value);
+    const refValue = this.getRefValue(value, item);
 
     let aElement = element.firstElementChild as HTMLAnchorElement | null;
 

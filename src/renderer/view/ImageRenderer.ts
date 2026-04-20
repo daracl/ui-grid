@@ -17,7 +17,7 @@ export class ImageRenderer extends ViewRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = item[this.fieldName];
-    const refValue = this.getRefValue(value);
+    const refValue = this.getRefValue(value, item);
     const labelText = refValue?.label ?? null;
     const src = refValue?.src ?? value;
     const alt = refValue?.alt ?? '';

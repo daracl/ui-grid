@@ -177,6 +177,7 @@
       cursor: pointer;
       padding: 2px 16px;
       text-align: center;
+      opacity: 0.8;
 
       &.disabled {
         background-color: var(--disabled-bg) !important;
@@ -188,7 +189,7 @@
       }
 
       &.selected {
-        background-color: #e6f0ff;
+        background-color: var(--item-selected);
         font-weight: bold;
         position: relative;
 
@@ -196,13 +197,13 @@
           content: '✔';
           position: absolute;
           left: 3px;
-          color: #1a73e8;
+          color: var(--item-check-color);
           font-size: 0.9em;
         }
       }
 
       &:hover {
-        background-color: var(--body-bg-hover);
+        opacity: 1;
       }
     }
   }

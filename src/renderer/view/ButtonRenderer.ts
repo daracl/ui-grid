@@ -30,7 +30,7 @@ export class ButtonRenderer extends ViewRenderer {
 
     const item = cellInfo.item;
     const value = item[this.fieldName];
-    const refValue = this.getRefValue(value);
+    const refValue = this.getRefValue(value, item);
 
     let buttonLabel;
     if (refValue) {

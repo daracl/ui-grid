@@ -66,8 +66,10 @@ interface GridSize {
 
 let DARA_GRID_SEQ = 0;
 
+let INIT_GRID_GLOBAL_EVNET = false;
+
 // all instance
-const ALL_INSTANCE = new Map<string, DaraGrid>();
+const ALL_INSTANCE = new Map<string, GridMain>();
 /**
  * GridMain class
  *
@@ -76,6 +78,8 @@ const ALL_INSTANCE = new Map<string, DaraGrid>();
  */
 export class GridMain {
   private readonly _BODY_STYLE: string[] = ['default', 'striped', 'borderless'];
+
+  private grid: DaraGrid;
 
   private readonly opts: GridOptions;
 
@@ -128,6 +132,7 @@ export class GridMain {
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
     const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
+    this.grid = grid;
     this.language = new Language();
 
     if (message) this.language.setMessage(message);
@@ -145,7 +150,7 @@ export class GridMain {
 
     this.gridElement = new DaraElement(element);
 
-    GridMain.setInstance(this.$uid, grid);
+    GridMain.setInstance(this.$uid, this);
 
     const headerOpts = opts.header;
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
@@ -173,10 +178,31 @@ export class GridMain {
     this.setElementDimentions();
 
     this.initEvent();
+
+    this.initDocumentGlobalEvent();
+  }
+  /**
+   * grid 전체 이벤트
+   */
+  initDocumentGlobalEvent() {
+    if (INIT_GRID_GLOBAL_EVNET) return;
+    INIT_GRID_GLOBAL_EVNET = true;
+
+    document.addEventListener('pointerdown', (e: Event) => {
+      ALL_INSTANCE.forEach((grid, id) => {
+        const gridElement = grid.gridElement.getElement();
+
+        const path = e.composedPath();
+
+        if (!path.includes(gridElement)) {
+          grid.setGridFocusOut();
+        }
+      });
+    });
   }
 
-  public static setInstance(instanceID: string, daraGrid: DaraGrid) {
-    ALL_INSTANCE.set(instanceID, daraGrid);
+  public static setInstance(instanceID: string, gridMain: GridMain) {
+    ALL_INSTANCE.set(instanceID, gridMain);
   }
 
   public static getInstance(eleOrId: HTMLElement | string): DaraGrid | null {
@@ -188,7 +214,7 @@ export class GridMain {
     }
 
     if (id) {
-      return ALL_INSTANCE.get(id) ?? null;
+      return ALL_INSTANCE.get(id)?.grid ?? null;
     }
 
     return null;
@@ -295,26 +321,6 @@ export class GridMain {
       this.setGridFocusIn(e);
     });
 
-    // focus out // blur, focusout
-    cfg.eventManager.on({ el: mainElement, type: 'blur' }, (e: FocusEvent) => {
-      const nextFocused = e.relatedTarget as HTMLElement;
-
-      // container 바깥으로 포커스가 나간 경우에만 실행
-      if (!nextFocused || !mainElement?.contains(nextFocused)) {
-        if (!this.cfg.focus) {
-          return true;
-        }
-
-        this.setGridFocusOut(e);
-
-        return;
-      }
-
-      if (!isInputField(nextFocused.tagName)) {
-        mainElement.focus({ preventScroll: true });
-      }
-    });
-
     const rendererElement = this.mainElement().findDaraElement('.dg-layer-container').getElement();
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
@@ -358,9 +364,10 @@ export class GridMain {
       }
     }
 
+    if (this.cfg.focus) return;
+
     if (this._mainElement) this._mainElement.getElement().focus({ preventScroll: true });
 
-    if (this.cfg.focus) return;
     this.cfg.focus = true;
   }
 
@@ -370,8 +377,14 @@ export class GridMain {
    * @public
    * @param {Event} e event
    */
-  public setGridFocusOut(e: Event) {
+  public setGridFocusOut(e?: Event) {
     if (!this.cfg.focus) return;
+
+    if (!e) {
+      this.cfg.focus = false;
+      this.hideLayer();
+      return;
+    }
 
     if ((e as MouseEvent).button !== 2) {
       const mainElement = this._mainElement.getElement();
@@ -388,7 +401,6 @@ export class GridMain {
       }
 
       this.cfg.focus = false;
-
       this.hideLayer();
     }
   }
@@ -401,21 +413,11 @@ export class GridMain {
   }
 
   public hideLayer(hideElement?: HTMLElement | string) {
-    try {
-      throw new Error('asfd');
-    } catch (e) {
-      console.log(e);
-    }
-    let checkLayerClass;
-    if (hideElement == 'vscroll' || hideElement == 'hscroll') {
-      checkLayerClass = FIELD_LAYER_CLASS;
-    }
-
     if (hideElement != 'all') {
       if (ALL_INSTANCE.size > 1) {
         ALL_INSTANCE.forEach((grid, id) => {
           if (id != this.$uid) {
-            grid.hideLayer();
+            grid.setGridFocusOut();
           }
         });
       }
@@ -424,6 +426,11 @@ export class GridMain {
     if (this.openLayers.length < 1) return;
 
     if (hideElement) {
+      let checkLayerClass;
+      if (hideElement == 'vscroll' || hideElement == 'hscroll') {
+        checkLayerClass = FIELD_LAYER_CLASS;
+      }
+
       for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
         const layerElement = this.openLayers[idx];
 

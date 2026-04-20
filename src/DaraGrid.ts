@@ -92,6 +92,10 @@ export class DaraGrid {
     this.gridMain.hideLayer('all');
   }
 
+  public setFocusOut() {
+    this.gridMain.setGridFocusOut();
+  }
+
   /**
    * item index 값으로 item 얻기
    *
