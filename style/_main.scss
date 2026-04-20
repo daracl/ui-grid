@@ -99,6 +99,10 @@
             border: 1px solid transparent !important;
           }
         }
+
+        .fixed-column-line {
+          background-color: transparent !important;
+        }
       }
       &striped {
         .dg-body {

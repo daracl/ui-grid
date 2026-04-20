@@ -1,4 +1,4 @@
-@use "../common/common";
+@use '../common/common';
 
 @mixin summary {
   .dg-summary {
@@ -69,8 +69,8 @@
           overflow: hidden;
           font-weight: bold;
 
-          &.line-number {
-            border-right: 1px solid var(--border-color) !important;
+          > .dg-cell-renderer {
+            padding: 0px 5px;
           }
         }
       }

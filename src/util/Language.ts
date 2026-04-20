@@ -106,9 +106,9 @@ export class Language {
         messageFormats.push(messageFormat);
       }
 
-      const renderType = field.editRenderer?.type;
+      const rendererType = field.editRenderer?.type;
 
-      if (renderType == 'number' || renderType == 'range') {
+      if (rendererType == 'number' || rendererType == 'range') {
         messageFormat = (this.lang.number as any)[constraint];
         messageFormats.push(messageFormat);
       } else {

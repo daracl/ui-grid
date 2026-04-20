@@ -2,6 +2,8 @@ import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } fro
 import { DisplayFormatOptions, OptionCallback } from './Common';
 import { FieldItem } from './GridField';
 import { CellInfo } from './GridConfig';
+import { Renderer } from '@/renderer/Render';
+import { RendererInfo } from './RendererInfo';
 
 /**
  * grid options
@@ -435,9 +437,9 @@ export interface ToolbarItem {
    */
   divider?: true;
   /**
-   * item key
+   * item name
    */
-  key?: string;
+  name: string;
   /**
    * label
    */
@@ -453,34 +455,11 @@ export interface ToolbarItem {
   /**
    * render type
    */
-  renderType?: RENDER_TYPE;
-  /**
-   * render item
-   */
-  renderItem?: {
-    list: RenderItem[];
-  };
+  renderer?: RendererInfo;
   /**
    * 값 변경시 callback
    */
   change?: OptionCallback;
-}
-
-/**
- * Render item
- *
- * @interface RenderItem
- * @typedef {RenderItem}
- */
-export interface RenderItem {
-  /**
-   * label
-   */
-  label: string;
-  /**
-   * value
-   */
-  value: any;
 }
 
 /**

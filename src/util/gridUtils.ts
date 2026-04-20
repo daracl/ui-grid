@@ -450,8 +450,8 @@ export function getCheckboxMode(checkLeneth: number, itemLength: number) {
   return 'partial';
 }
 
-export function isImageType(renderType: string) {
-  return renderType == 'image';
+export function isImageType(type: string) {
+  return type == 'image';
 }
 
 /**

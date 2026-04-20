@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara summary</title>
-  </head>
 
-  <body>
-    <div>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara summary</title>
+</head>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+<body>
+  <div>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+  </div>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -85,11 +87,13 @@
         name: 'name',
         label: '이름',
         width: 80,
+        align: 'center',
       },
       {
         name: 'age',
         label: '나이',
         width: 50,
+        renderer: { type: 'number' }
       },
       {
         name: 'email',
@@ -118,7 +122,8 @@
       {
         name: 'salary',
         label: '월급',
-        width: 80,
+        width: 100,
+        renderer: { type: 'number' },
         displayFormat: {
           type: 'number',
           format: '₩ 0,0 원',
@@ -203,7 +208,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
+            dropCallback: (data) => { },
           },
         },
         summary: {
@@ -256,54 +261,6 @@
             //console.log(data)
           },
           rememberValue: { field: '$all', val: 'asdf' },
-        },
-        toolbar: {
-          enabled: false,
-
-          items: [
-            {
-              search: true,
-              callback: (keyword) => {},
-            },
-
-            {
-              divider: true,
-            },
-            {
-              key: 'test',
-              renderType: 'dropdown',
-              style: {
-                valueWidth: '200px',
-              },
-              listItem: {
-                list: [
-                  { label: 'asdf', value: 1 },
-                  { label: 'asdf2', value: 2 },
-                  { label: 'asdf3', value: 3 },
-                ],
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              key: 'test22',
-              renderType: 'text',
-              style: {
-                valueWidth: '150px',
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              label: 'button',
-              renderType: 'button',
-              click: (aa) => {
-                console.log(aa);
-              },
-            },
-          ],
         },
         scroll: {
           enableWheelInContainer: true,

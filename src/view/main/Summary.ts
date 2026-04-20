@@ -229,7 +229,7 @@ export class Summary {
       const cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
         const field = fields[j];
-        const renderType = field.renderer.type;
+        const rendererType = field.renderer.type;
 
         if (field.$isAside) {
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace(
@@ -245,7 +245,7 @@ export class Summary {
             startCol + j
           }"><div role="presentation"
               class="dg-cell-renderer dg-cell-ellipsis 
-              dg-${renderType} ${field.$alignStyle}"></div>
+              dg-${rendererType} ${field.$alignStyle}"></div>
           </td>`);
         }
       }

@@ -588,13 +588,13 @@ export class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    const renderType = field.renderer.type;
+    const rendererType = field.renderer.type;
     if (
-      renderType == 'image' ||
-      renderType == 'html' ||
-      renderType == 'bar' ||
-      renderType == 'sparkline' ||
-      renderType == 'sparklineBar'
+      rendererType == 'image' ||
+      rendererType == 'html' ||
+      rendererType == 'bar' ||
+      rendererType == 'sparkline' ||
+      rendererType == 'sparklineBar'
     ) {
       const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
       const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
@@ -700,7 +700,7 @@ export class Body {
       const cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
         const field = fields[j];
-        const renderType = field.renderer.type;
+        const rendererType = field.renderer.type;
 
         if (field.$isAside) {
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils
@@ -715,7 +715,7 @@ export class Body {
             rowIdx + ',' + (startCol + j)
           }"><div role="presentation"
             class="dg-cell-renderer dg-cell-ellipsis 
-            dg-${renderType} ${field.$alignStyle}"></div>
+            dg-${rendererType} ${field.$alignStyle}"></div>
         </td>`);
         }
       }
