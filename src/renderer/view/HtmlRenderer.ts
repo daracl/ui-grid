@@ -1,8 +1,8 @@
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { isHTMLElement } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { isString } from '@/util/utils';
+import { FieldItem } from '@t/GridField';
+import { ViewRenderer } from '../ViewRenderer';
 
 /**
  * html renderer
@@ -23,16 +23,17 @@ export class HtmlRenderer extends ViewRenderer {
     const refValue = this.getRefValue(value, item);
 
     if (refValue) {
-      const template = refValue.template;
-      if (isString(refValue.template)) {
-        element.innerHTML = refValue.template;
-      } else {
+      const template = refValue;
+
+      if (isHTMLElement(template)) {
         const oldEl = element.firstChild;
         if (oldEl) {
           element.replaceChild(template, oldEl);
         } else {
           element.appendChild(template);
         }
+      } else {
+        element.innerHTML = template;
       }
     } else {
       element.innerHTML = value;

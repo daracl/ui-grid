@@ -10,6 +10,7 @@ import { ALIGN_STYLE } from '@/constants';
 export abstract class ViewRenderer extends Renderer {
   private readonly isRefFunction: boolean;
   private readonly isRefString: boolean;
+  private readonly isVauleFunction: boolean;
   protected readonly refValue: any;
   protected isClick = false;
   protected eventStyleClass = '';
@@ -18,9 +19,10 @@ export abstract class ViewRenderer extends Renderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
     this.cfg = this.gridMain.config();
-    const refValue = this.field.renderer.refValue;
+    const refValue = field.renderer.refValue;
     this.isRefFunction = isFunction(refValue);
     this.isRefString = isString(refValue);
+    this.isVauleFunction = isFunction(field.getValue);
 
     if (this.isRefString || this.isRefFunction) {
       this.refValue = refValue;
@@ -77,6 +79,10 @@ export abstract class ViewRenderer extends Renderer {
 
   public getValue(rowItem: any): any {
     const val = rowItem[this.fieldName];
+    if (this.isVauleFunction) {
+      return this.field.getValue?.({ field: this.field, item: rowItem }) ?? val;
+    }
+
     if (this.field.displayFormat) {
       return formatValue(val, this.field.displayFormat);
     }

@@ -21,7 +21,7 @@ export class BarRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    const fieldValue = item[this.fieldName];
+    const fieldValue = this.getValue(item);
     const refValue = this.getRefValue(fieldValue, item);
 
     const min = this.min;

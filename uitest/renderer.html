@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara renderer</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara renderer</title>
-</head>
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
 
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -117,7 +115,7 @@
           b: 'ddd_' + i + 'asdf',
           c: i * 10000,
           d: i === 0 ? 'KOREA' : 'ddd_' + i,
-          e: `<div style="width:100px;height:150px;"><a href="#">test ${i}</a><br><span>${i}</span></div>`,
+          e: `<span style="width:100px;height:150px;"><a href="javascript:alert('row'+ ${i});">test ${i}</a><br><span>${i}</span></span>`,
           f: 'ffff' + i,
           g: 'ggggg' + i,
           h: i,
@@ -377,6 +375,18 @@
           },
         },
         {
+          name: 'eeee',
+          label: 'html22',
+          width: 100,
+          renderer: {
+            type: 'html',
+            refValue(field, value, rowItem) {
+              console.log(rowItem);
+              return 'aaffe' + rowItem['e'];
+            },
+          },
+        },
+        {
           name: 'f',
           label: 'button',
           width: 100,
@@ -477,7 +487,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => { },
+            dropCallback: (data) => {},
           },
         },
         search: {

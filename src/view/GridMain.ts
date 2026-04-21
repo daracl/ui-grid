@@ -129,6 +129,8 @@ export class GridMain {
 
   private readonly openLayers: HTMLElement[] = [];
 
+  private resizeObserver: ResizeObserver;
+
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
     const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
 
@@ -479,8 +481,8 @@ export class GridMain {
           this.resize(el);
         }, threshold),
       );
-
       resizeObserver.observe(el.getElement());
+      this.resizeObserver = resizeObserver;
     } else {
       window.addEventListener(
         'resize',
@@ -646,27 +648,18 @@ export class GridMain {
    * cell size 설정
    */
   public fieldResize() {
-    this.updateFieldWidth(
-      this.cfg.currentFields,
-      this.header.getHeaderElement(),
-      this.body.getBodyElement(),
-      this.summary.getElement(),
-    );
+    this.updateFieldWidth();
   }
 
   /**
    * update field width
-   *
-   * @param fields field resize
-   * @param headerElement header html element
-   * @param bodyElement body html element
    */
-  private updateFieldWidth(
-    fields: FieldItem[],
-    headerElement: DaraElement,
-    bodyElement: DaraElement,
-    summaryElement: DaraElement,
-  ) {
+  private updateFieldWidth() {
+    const fields = this.cfg.currentFields;
+    const headerElement = this.header.getHeaderElement();
+    const bodyElement = this.body.getBodyElement();
+    const summaryElement = this.summary.getElement();
+
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
 
@@ -1343,7 +1336,7 @@ export class GridMain {
    *
    * @public
    */
-  public clearData() {
+  public clearItems() {
     this.setItems([]);
   }
 
@@ -1600,6 +1593,10 @@ export class GridMain {
       cfg.eventManager.destroy();
       gridElement.removeAttr(INSTANCE_ATTR_KEY);
       const el = gridElement.getElement();
+
+      this.resizeObserver.unobserve(el);
+      this.resizeObserver.disconnect();
+
       el.style.cssText = this.orginStyle;
       while (el.firstChild) {
         if (typeof el.firstChild.remove === 'function') {

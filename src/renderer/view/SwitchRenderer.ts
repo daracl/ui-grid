@@ -30,7 +30,7 @@ export class SwitchRenderer extends ViewRenderer {
     const item = cellInfo.item;
     const inputName = this.fieldName;
 
-    const val = item[inputName];
+    const val = this.getValue(item);
 
     let label = element.firstElementChild as HTMLLabelElement;
 

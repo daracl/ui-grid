@@ -148,6 +148,15 @@ export function isHiddenField(field: FieldItem): boolean {
 }
 
 /**
+ * html 인지 여부 체크
+ * @param target html element
+ * @returns
+ */
+export function isHTMLElement(target: any): target is HTMLElement {
+  return target instanceof HTMLElement;
+}
+
+/**
  * 값있는지 여부 체크.
  *
  * @param {*} value

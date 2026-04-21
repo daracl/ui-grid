@@ -21,6 +21,10 @@ export interface FieldItem {
    */
   label: string;
   /**
+   * value callback;
+   */
+  getValue?: OptionCallback;
+  /**
    * 컬럼 넓이
    */
   width: number;

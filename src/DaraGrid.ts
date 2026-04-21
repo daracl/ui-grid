@@ -84,7 +84,7 @@ export class DaraGrid {
     return this.gridMain.config().currentFields;
   }
 
-  public getData() {
+  public getItems() {
     return this.gridMain.config().dataManager.getViewItems();
   }
 
@@ -102,7 +102,7 @@ export class DaraGrid {
    * @param {number[]} indexs index
    * @returns {{}}
    */
-  public getDataByIndexs(indexs: number[]) {
+  public getItemsByIndexs(indexs: number[]) {
     const result = [];
     const items = this.gridMain.config().dataManager.getViewItems();
     for (const index of indexs) {
@@ -116,7 +116,7 @@ export class DaraGrid {
   }
 
   /**
-   * set data
+   * set items
    *
    * @param {any[]} items
    */
@@ -124,8 +124,8 @@ export class DaraGrid {
     this.gridMain.setItems(items);
   }
 
-  public clearData() {
-    this.gridMain.clearData();
+  public clearItems() {
+    this.gridMain.clearItems();
   }
 
   /**
@@ -140,7 +140,7 @@ export class DaraGrid {
   }
 
   /**
-   * remove row data
+   * remove row item
    *
    * @param {any[]} ids row positions
    */
