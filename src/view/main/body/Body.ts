@@ -261,7 +261,7 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    rowItem['_dgRowCheck'] = checkFlag;
+    rowItem[ROW_CHECK_KEY] = checkFlag;
     return rowItem;
   }
 

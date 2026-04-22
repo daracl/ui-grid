@@ -23,7 +23,6 @@ export class AsideRowCheckRenderer extends ViewRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const isMulti = this.allowMultiSelect;
-    const inputName = ROW_CHECK_KEY;
 
     let label = element.firstElementChild as HTMLLabelElement;
 
@@ -47,7 +46,7 @@ export class AsideRowCheckRenderer extends ViewRenderer {
       this.initClick(input);
     }
     const input = label.firstChild as HTMLInputElement;
-    input.checked = item[inputName];
+    input.checked = item[ROW_CHECK_KEY];
   }
 
   public isAllowMultiSelect(): boolean {

@@ -324,12 +324,11 @@ export class CellClickHandler extends BasePointerHandler {
    */
   private setRowCheckItemClick(cellInfo: CellInfo) {
     const cfg = this.context.gridMain.config();
-    const rowCheckCol = cfg.allFieldMap.get(ROW_CHECK_NAME)?.$colSeq;
-    if (!utils.isEmpty(rowCheckCol)) {
+    const rowCheckField = cfg.allFieldMap.get(ROW_CHECK_NAME);
+
+    if (rowCheckField) {
       (
-        this.bodyElement.querySelector(
-          `[data-cell-position="${cellInfo.r},${rowCheckCol}"] [name="dgRowCheck"]`,
-        ) as HTMLElement
+        this.bodyElement.querySelector(`.dg-row[rowinfo="${cellInfo.r}"] [name="${rowCheckField.$uid}"]`) as HTMLElement
       ).click();
     }
   }
