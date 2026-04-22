@@ -236,10 +236,15 @@ export class DropdownRenderer extends ViewRenderer {
       if (isMultiple) {
         const notDisabledList = list.filter((item) => !item.disabled);
         const allItemLength = notDisabledList.length;
-        const currentValue = cellInfo.item[this.fieldName] ?? '';
+        let currentValue = this.getValue(cellInfo.item) ?? '';
+
+        if (isString(currentValue)) {
+          currentValue = currentValue.split(this.valueDelimiter);
+        }
+
         if (addValue == ALL_SELECT_VALUE) {
           const allItemElement = menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
-          if (allItemLength == currentValue.split(this.valueDelimiter).length) {
+          if (allItemLength == currentValue.length) {
             cellInfo.item[this.fieldName] = '';
 
             removeClass(allItemElement, SELECTED_STYLE_CLASS);

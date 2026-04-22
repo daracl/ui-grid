@@ -102,8 +102,9 @@
 
       .dg-cell-content-label {
         flex: 1;
-        padding: 0px 15px 0px 5px;
+        padding: 0px 0px 0px 5px;
         text-align: center;
+        overflow: hidden; /* (선택) 넘칠 때 대비 */
         white-space: nowrap;
         z-index: 1;
 
@@ -121,13 +122,9 @@
       }
 
       .dg-cell-content-icon {
-        font-size: 0.8em;
-        position: absolute;
-        height: calc(100% - 2px);
-        right: 1px;
-        padding: 2px 5px;
-        background-color: var(--body-bg);
-        z-index: 1;
+        width: 20px; /* 고정 크기 */
+        flex-shrink: 0; /* 줄어들지 않게 */
+        text-align: center;
         &::after {
           content: '▼';
 

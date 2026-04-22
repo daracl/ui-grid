@@ -88,8 +88,6 @@ export class BodyEvent {
           return true;
         }
 
-        console.log('111');
-
         const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
 
         if (cellElement == null || hasClass(cellElement, '$row-check $modify-info')) {
