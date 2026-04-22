@@ -29,7 +29,7 @@ export const stringValidator = (
     return result;
   }
   const validResult = validator(value, field, rowItem, gridConfig, result);
-  if (validResult != null) {
+  if (validResult !== null) {
     return validResult;
   }
 

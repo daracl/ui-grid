@@ -118,7 +118,16 @@ export const GRID_THEME = {
   dark: 'dg-dark',
 } as const;
 
-export type TEXT_ALIGN_TYPE = (typeof ALIGN)[keyof typeof ALIGN];
+export const WHITE_SPACE = {
+  pre: 'pre',
+  wrap: 'pre-wrap',
+  line: 'pre-line',
+  normal: 'normal',
+} as const;
+
+export type WHITE_SPACE_TYPE = keyof typeof WHITE_SPACE;
+
+export type TEXT_ALIGN_TYPE = keyof typeof ALIGN_STYLE;
 
 export type POSITION_TYPE = 'left' | 'center' | 'right';
 

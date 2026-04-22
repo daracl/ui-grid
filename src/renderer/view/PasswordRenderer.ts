@@ -16,21 +16,10 @@ export class PasswordRenderer extends ViewRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
+    const masked = '********';
 
-    const raw = String(this.getValue(item) ?? '');
-    const masked = '*'.repeat(raw.length);
-
-    if (element.textContent != masked) {
-      const oldEl = element.firstChild;
-
-      const newTextElement = document.createTextNode(masked);
-
-      if (oldEl) {
-        element.replaceChild(newTextElement, oldEl);
-      } else {
-        element.appendChild(newTextElement);
-      }
+    if (element.textContent !== masked) {
+      element.textContent = masked;
     }
   }
 

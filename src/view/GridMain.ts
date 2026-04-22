@@ -119,9 +119,9 @@ export class GridMain {
   private initGridSize: GridSize;
 
   /**
-   * unique id
+   * grid id
    */
-  private readonly $uid: string;
+  private readonly $instanceId: string;
 
   private readonly gridElement: DaraElement;
 
@@ -145,14 +145,14 @@ export class GridMain {
     this.opts = opts;
 
     const beforeUid = element.getAttribute(INSTANCE_ATTR_KEY);
-    this.$uid = beforeUid ?? `${FIELD_PREFIX}_${++DARA_GRID_SEQ}`;
+    this.$instanceId = beforeUid ?? `${FIELD_PREFIX}${++DARA_GRID_SEQ}`;
     this.orginStyle = element.style.cssText;
 
-    element.setAttribute(INSTANCE_ATTR_KEY, this.$uid);
+    element.setAttribute(INSTANCE_ATTR_KEY, this.$instanceId);
 
     this.gridElement = new DaraElement(element);
 
-    GridMain.setInstance(this.$uid, this);
+    GridMain.setInstance(this.$instanceId, this);
 
     const headerOpts = opts.header;
     this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
@@ -299,7 +299,7 @@ export class GridMain {
   }
 
   public uid() {
-    return this.$uid;
+    return this.$instanceId;
   }
 
   /**
@@ -393,10 +393,10 @@ export class GridMain {
 
       const relatedTarget = (e as any).relatedTarget as HTMLElement;
 
-      if (relatedTarget?.closest('.dg-hidden-container') != null) {
+      if (relatedTarget?.closest('.dg-hidden-container') !== null) {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
-        if (outerLayerElement?.getAttribute('data-grid-id') == this.$uid) {
+        if (outerLayerElement?.getAttribute('data-grid-id') == this.$instanceId) {
           mainElement.focus({ preventScroll: true });
           return;
         }
@@ -418,7 +418,7 @@ export class GridMain {
     if (hideElement != 'all') {
       if (ALL_INSTANCE.size > 1) {
         ALL_INSTANCE.forEach((grid, id) => {
-          if (id != this.$uid) {
+          if (id != this.$instanceId) {
             grid.setGridFocusOut();
           }
         });
@@ -511,7 +511,7 @@ export class GridMain {
         height: isHeightResize ? el.height() : initGridSize.height,
       };
 
-      if (this.currentSize.height != newOffset.height || this.currentSize.width != newOffset.width) {
+      if (this.currentSize.height !== newOffset.height || this.currentSize.width !== newOffset.width) {
         this.setSize(newOffset.width, newOffset.height, true);
       }
     });
@@ -634,10 +634,10 @@ export class GridMain {
       this.fieldResize();
 
       if (
-        cfg.scroll.before.startIdx != cfg.scroll.startIdx ||
-        cfg.scroll.before.viewRow != cfg.scroll.viewRow ||
-        cfg.scroll.before.startCol != cfg.scroll.startCol ||
-        cfg.scroll.before.endCol != cfg.scroll.endCol
+        cfg.scroll.before.startIdx !== cfg.scroll.startIdx ||
+        cfg.scroll.before.viewRow !== cfg.scroll.viewRow ||
+        cfg.scroll.before.startCol !== cfg.scroll.startCol ||
+        cfg.scroll.before.endCol !== cfg.scroll.endCol
       ) {
         this.body.dataDraw('resize');
       }
@@ -1043,7 +1043,7 @@ export class GridMain {
 
     field.$depth = depth + 1;
 
-    field.$uid = 'u_' + field.$depth + '_' + fieldIndex;
+    field.$uid = this.$instanceId + '_' + field.$depth + '_' + fieldIndex;
     field.$isLeaf = true;
     field.$colspan = field.colspan ?? 1;
     field.$rowspan = field.rowspan ?? 1;
@@ -1585,7 +1585,7 @@ export class GridMain {
 
   public destroy() {
     const gridElement = this.gridElement;
-    const uid = this.$uid;
+    const uid = this.$instanceId;
 
     const cfg = this.cfg;
 

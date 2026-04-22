@@ -55,7 +55,7 @@ export class PasteEvent implements EventHandler {
         pastedText = pasteBeforeFn(pastedText);
       }
 
-      if (pastedText != '') {
+      if (pastedText !== '') {
         const contentArr = pastedText.split(/\r\n|\r|\n/);
 
         const startCellInfo = cfg.selection.startCell;

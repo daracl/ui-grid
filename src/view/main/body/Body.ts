@@ -1,6 +1,6 @@
 import { CellInfo, HeaderCellInfo } from '@t/GridConfig';
 
-import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY } from '@/constants';
+import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY, WHITE_SPACE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import * as utils from '@/util/utils';
@@ -589,18 +589,11 @@ export class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const rendererType = field.renderer.type;
-    if (
-      rendererType == 'image' ||
-      rendererType == 'html' ||
-      rendererType == 'bar' ||
-      rendererType == 'sparkline' ||
-      rendererType == 'sparklineBar'
-    ) {
-      const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
-      const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
-      contentEleStyle.maxHeight = heightPixel;
-      contentEleStyle.height = heightPixel;
-    }
+
+    const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
+    const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
+    contentEleStyle.maxHeight = heightPixel;
+    contentEleStyle.height = heightPixel;
 
     if (!field.styleClass) return;
 
@@ -702,6 +695,14 @@ export class Body {
         const field = fields[j];
         const rendererType = field.renderer.type;
 
+        let whiteSpaceStyle = '';
+        if (field.whiteSpace) {
+          const fieldWhiteStyle = WHITE_SPACE[field.whiteSpace];
+          if (fieldWhiteStyle) {
+            whiteSpaceStyle = 'overflow-wrap: break-word;white-space: ' + fieldWhiteStyle;
+          }
+        }
+
         if (field.$isAside) {
           cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils
             .camelToKebab(field.name)
@@ -715,7 +716,7 @@ export class Body {
             rowIdx + ',' + (startCol + j)
           }"><div role="presentation"
             class="dg-cell-renderer dg-cell-ellipsis 
-            dg-${rendererType} ${field.$alignStyle}"></div>
+            dg-${rendererType} ${field.$alignStyle}" style="${whiteSpaceStyle}"></div>
         </td>`);
         }
       }

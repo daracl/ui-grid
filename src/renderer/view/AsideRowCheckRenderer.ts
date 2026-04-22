@@ -33,7 +33,7 @@ export class AsideRowCheckRenderer extends ViewRenderer {
 
       const input = document.createElement('input');
       input.type = isMulti ? 'checkbox' : 'radio';
-      input.name = 'dgRowCheck';
+      input.name = this.field.$uid;
       if (!isMulti) input.classList.add('childRadio');
 
       const mark = document.createElement('span');

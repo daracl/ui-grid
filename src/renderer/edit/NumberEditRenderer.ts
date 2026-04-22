@@ -5,7 +5,7 @@ import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRendererInfo } from '@t/RendererInfo';
 import { EditRenderer } from '../EditRenderer';
-import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
+import { TextAbstractRenderer } from './TextAbstractRenderer';
 import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
@@ -15,7 +15,7 @@ import { FIELD_LAYER_CLASS } from '@/constants';
  * @typedef {NumberEditRenderer}
  * @extends {EditRenderer}
  */
-export class NumberEditRenderer extends TextEditAbstractRenderer {
+export class NumberEditRenderer extends TextAbstractRenderer {
   private readonly editRendererInfo: EditRendererInfo;
 
   constructor(field: FieldItem, gridMain: GridMain) {
@@ -34,7 +34,7 @@ export class NumberEditRenderer extends TextEditAbstractRenderer {
     if (!editElement) {
       editElement = getLayerElement('input', 'dg-edit-input ' + FIELD_LAYER_CLASS, cellInfo.c + '') as HTMLInputElement;
       editElement.type = 'number';
-      editElement.name = this.fieldName;
+      editElement.name = this.field.$uid;
       editElement.setAttribute('autocomplete', 'off');
 
       if (this.editRendererInfo.rule?.minimum) {

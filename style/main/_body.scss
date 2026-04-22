@@ -124,7 +124,8 @@
             margin: 0px 3px 1px 3px !important;
             min-height: 23px;
             height: 23px;
-            line-height: 23px;
+            display: grid;
+            align-items: center;
           }
 
           &.line-number {

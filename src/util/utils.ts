@@ -283,10 +283,16 @@ export function camelToKebab(str: string) {
 export function multiSort(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean) {
   const sortArr = Array.from(sortKeys);
 
+  sortArr.forEach((item) => {
+    if (item.field.getValue) {
+      item.isValue = true;
+    }
+  });
+
   return data.slice().sort((a, b) => {
-    for (const { name, ascOrder = true } of sortArr) {
-      const valA = a[name];
-      const valB = b[name];
+    for (const { name, ascOrder = true, field, isValue = false } of sortArr) {
+      const valA = isValue ? field.getValue?.({ field: field, item: a }) : a[name];
+      const valB = isValue ? field.getValue?.({ field: field, item: b }) : b[name];
 
       const isNullishA = valA === null || valA === undefined;
       const isNullishB = valB === null || valB === undefined;

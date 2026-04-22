@@ -18,7 +18,7 @@ export class SparklineRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    const value = item[this.fieldName];
+    const value = this.getValue(item);
     const refValue = this.getRefValue(value, item);
 
     const data = refValue.value;

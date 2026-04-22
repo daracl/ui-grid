@@ -105,7 +105,7 @@ export abstract class EditRenderer extends Renderer {
         value: fieldValue,
       };
 
-      if (changeInfo.oldValue != changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
+      if (changeInfo.oldValue !== changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
         return false;
       }
     }

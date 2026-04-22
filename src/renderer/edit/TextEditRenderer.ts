@@ -2,7 +2,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
-import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
+import { TextAbstractRenderer } from './TextAbstractRenderer';
 
 /**
  * text edit renderer
@@ -10,7 +10,7 @@ import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
  * @typedef {TextEditRenderer}
  * @extends {EditRenderer}
  */
-export class TextEditRenderer extends TextEditAbstractRenderer {
+export class TextEditRenderer extends TextAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

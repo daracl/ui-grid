@@ -27,7 +27,7 @@ export class DataManager {
 
   private sortOrginItems: any[] = [];
 
-  private rowHeight = 30;
+  private rowHeight;
 
   private isTreeType = false;
   private idKey = 'id';
@@ -82,7 +82,6 @@ export class DataManager {
     if (sortOrders.length > 0) {
       this.setViewItems(multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast));
     } else {
-      console.log('this.sortOrginItems.length : ', this.sortOrginItems.length);
       this.setViewItems(this.sortOrginItems);
       this.sortOrginItems = [];
     }

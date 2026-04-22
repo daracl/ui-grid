@@ -40,7 +40,7 @@ export class SwitchRenderer extends ViewRenderer {
 
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.name = inputName;
+      input.name = this.field.$uid;
 
       const mark = document.createElement('span');
       mark.className = 'dg-slider';

@@ -20,7 +20,7 @@ export class NumberRenderer extends ViewRenderer {
 
     const renderValue = this.getValue(item);
 
-    if (element.textContent != renderValue) {
+    if (element.textContent !== renderValue) {
       element.textContent = renderValue;
     }
   }

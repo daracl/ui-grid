@@ -187,7 +187,7 @@
                 enabled: true,
                 content: (header) => {
                   const field = header.field;
-                  console.log(field);
+                  //console.log(field);
                   return `<div>name : ${field.name}</div><div>label : ${field.label}</div>`;
                 },
               },
@@ -381,7 +381,7 @@
           renderer: {
             type: 'html',
             refValue(field, value, rowItem) {
-              console.log(rowItem);
+              //console.log(rowItem);
               return 'aaffe' + rowItem['e'];
             },
           },
@@ -410,6 +410,17 @@
               //console.log(field, value, rowItem);
               return { src: '/asset/flags/south_korea.png', label: value };
             },
+          },
+        },
+
+        {
+          name: 'z1',
+          label: 'custom value',
+          width: 100,
+          align: 'left',
+          visible: false,
+          getValue(rowItem) {
+            return rowItem.item['h'];
           },
         },
 
@@ -459,7 +470,7 @@
           //, heights: [20, 50, 50]
           sort: {
             //정렬 활성화 여부
-            enabled: false,
+            enabled: true,
             // null value 를 항상 끝으로 유지 할지 여부
             nullsLast: true,
             // custom sorting function
@@ -536,7 +547,7 @@
 
             // 페이지 콜백
             callback1: function (arg) {
-              console.log(arg);
+              //console.log(arg);
               //gridObj.setItems(aaa);
             },
           },

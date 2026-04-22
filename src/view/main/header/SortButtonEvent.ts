@@ -26,7 +26,7 @@ export class SortButtonEvent implements EventHandler {
   }
 
   /**
-   * keydown event
+   * init
    *
    */
   public init() {
@@ -93,7 +93,7 @@ export class SortButtonEvent implements EventHandler {
         }
       } else {
         addAttr(currentElement, { 'data-dg-sort': 'asc' });
-        sortOrders.push({ name: sortName, ascOrder: true, sortCell: sortCell });
+        sortOrders.push({ name: sortName, field: sortField, ascOrder: true, sortCell: sortCell });
       }
 
       if (sortOrders.length > 0) {

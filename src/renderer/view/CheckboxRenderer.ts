@@ -28,9 +28,8 @@ export class CheckboxRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    const inputName = this.fieldName;
 
-    const val = item[inputName];
+    const val = this.getValue(item);
 
     let label = element.firstElementChild as HTMLLabelElement;
 
@@ -40,7 +39,7 @@ export class CheckboxRenderer extends ViewRenderer {
 
       const input = document.createElement('input');
       input.type = 'checkbox';
-      input.name = inputName;
+      input.name = this.field.$uid;
 
       const mark = document.createElement('span');
       mark.className = 'dg-checkmark';

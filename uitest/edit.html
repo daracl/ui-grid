@@ -213,23 +213,12 @@
             },
           },
           {
-            name: 'score',
-            label: '점수',
-            width: 60,
-            sort: true,
-            renderer: {
-              type: 'bar',
-              rule: {
-                minimum: 0,
-                maximum: 100,
-              },
-            },
+            name: 'desc',
+            label: '설명',
+            width: 100,
+            whiteSpace: 'wrap',
             editRenderer: {
-              type: 'number',
-              rule: {
-                minimum: 0,
-                maximum: 100,
-              },
+              type: 'textarea',
             },
           },
         ],
@@ -275,7 +264,7 @@
             console.log(cellInfo);
             const field = cellInfo.field;
             const rowItem = cellInfo.item;
-            alert('https://tool.daracl.comv=' + rowItem[field.name]);
+            alert('https://tool.daracl.com?v=' + rowItem[field.name]);
             return '';
           },
         },
@@ -390,6 +379,9 @@
         renderer: {
           type: 'html',
         },
+        editRenderer: {
+          type: 'textarea',
+        },
       },
       {
         name: 'username',
@@ -420,7 +412,7 @@
       selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
       enableTooltip: true, // tooltip flag
       theme: document.getElementById('theme').value,
-      fixedLeftIndex: 2,
+      fixedLeftIndex: 3,
       fixedRightIndex: 0,
       height: 480,
       aside: {

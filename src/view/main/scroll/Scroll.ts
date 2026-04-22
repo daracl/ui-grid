@@ -81,7 +81,7 @@ export class Scroll {
         const upFlag = delta < 0;
 
         if (scroll.enableVertical && !isHorizontal) {
-          if ((upFlag && startIdx != 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
+          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
             stopPreventCancel(evt);
           } else {
             cancelAnimationFrame(animationId);

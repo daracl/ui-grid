@@ -36,7 +36,7 @@ export const numberValidator = (
     return result;
   }
 
-  if (validator(value, field, rowItem, gridConfig, result) != null) {
+  if (validator(value, field, rowItem, gridConfig, result) !== null) {
     return result;
   }
 

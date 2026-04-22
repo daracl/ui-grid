@@ -374,7 +374,6 @@ body {
 
       &:checked + .dg-checkmark {
         background-color: var(--checkbox-bg);
-        border-color: var(--checkbox-bg);
 
         &::after {
           content: '';

@@ -80,7 +80,7 @@ export abstract class ViewRenderer extends Renderer {
   public getValue(rowItem: any): any {
     const val = rowItem[this.fieldName];
     if (this.isVauleFunction) {
-      return this.field.getValue?.({ field: this.field, item: rowItem }) ?? val;
+      return this.field.getValue?.({ field: this.field, item: rowItem });
     }
 
     if (this.field.displayFormat) {

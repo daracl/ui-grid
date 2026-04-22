@@ -12,7 +12,7 @@ import { FIELD_LAYER_CLASS } from '@/constants';
  * @typedef {TextRenderer}
  * @extends {EditRenderer}
  */
-export abstract class TextEditAbstractRenderer extends EditRenderer {
+export abstract class TextAbstractRenderer extends EditRenderer {
   protected editElement: HTMLInputElement;
   protected item: any;
   protected cellElement: HTMLElement;
@@ -24,7 +24,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
     super(field, gridMain);
   }
 
-  initEvt(editElement: HTMLInputElement, item: any) {
+  initEvt(editElement: HTMLElement, item: any) {
     const { eventManager } = this.gridMain.config();
 
     eventManager.on({ el: editElement, type: 'blur' }, (e: FocusEvent) => {
@@ -36,7 +36,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
     eventManager.on({ el: editElement, type: 'keydown' }, (e: KeyboardEvent) => {
       const key = e.key;
 
-      if (key === 'Enter') {
+      if (key === 'Enter' && this.field.editRenderer?.type !== 'textarea') {
         this.setChangeValue(e);
       } else if (key === 'Escape') {
         this.setChangeValue(e, true);
@@ -79,7 +79,7 @@ export abstract class TextEditAbstractRenderer extends EditRenderer {
     if (!editElement) {
       editElement = getLayerElement('input', 'dg-edit-input ' + FIELD_LAYER_CLASS, cellInfo.c + '') as HTMLInputElement;
       editElement.type = type;
-      editElement.name = this.fieldName;
+      editElement.name = this.field.$uid;
       editElement.setAttribute('autocomplete', 'off');
 
       this.rendererContainer.appendChild(editElement);

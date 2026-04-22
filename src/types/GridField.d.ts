@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { TEXT_ALIGN_TYPE } from '@/constants';
+import { TEXT_ALIGN_TYPE, WHITE_SPACE_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback } from './Common';
 import { EditRendererInfo, RendererInfo } from './RendererInfo';
 import { ViewRenderer } from '@/renderer/ViewRenderer';
@@ -52,6 +52,11 @@ export interface FieldItem {
    * 글자 정렬
    */
   align: TEXT_ALIGN_TYPE;
+
+  /**
+   * word warp
+   */
+  whiteSpace?: WHITE_SPACE_TYPE;
   /**
    * renderer info
    */

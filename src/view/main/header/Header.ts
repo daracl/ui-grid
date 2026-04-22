@@ -126,9 +126,9 @@ export class Header {
 
     const minWidth = this.headerOpts.resize.minWidth,
       maxWidth = this.headerOpts.resize.maxWidth;
-    if (minWidth != -1 && w < minWidth) {
+    if (minWidth !== -1 && w < minWidth) {
       w = minWidth;
-    } else if (maxWidth != -1 && w > maxWidth) {
+    } else if (maxWidth !== -1 && w > maxWidth) {
       w = maxWidth;
     }
     if (cfg.isHeaderResize) {

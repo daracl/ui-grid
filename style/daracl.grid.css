@@ -373,7 +373,6 @@ body .dg-hidden-container.dg-dark {
 .dg-hidden-container .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
 .dg-hidden-container .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark {
   background-color: var(--checkbox-bg);
-  border-color: var(--checkbox-bg);
 }
 .daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
 .daracl-grid .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark::after,
@@ -494,6 +493,9 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-main.dg-style-borderless .dg-body-table tr > td {
   border: 1px solid transparent !important;
+}
+.daracl-grid .dg-main.dg-style-borderless .fixed-column-line {
+  background-color: transparent !important;
 }
 .daracl-grid .dg-main.dg-style-striped .dg-body.dg-body-odd .dg-row:nth-child(odd) {
   background-color: var(--row-bg);
@@ -812,7 +814,6 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.line-number {
   background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
-  border-right: 1px solid var(--border-color) !important;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell:hover {
   background-color: var(--cell-bg-hover) !important;
@@ -1021,8 +1022,8 @@ body .dg-hidden-container.dg-dark {
   overflow: hidden;
   font-weight: bold;
 }
-.daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table .dg-row > .dg-cell.line-number {
-  border-right: 1px solid var(--border-color) !important;
+.daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table .dg-row > .dg-cell > .dg-cell-renderer {
+  padding: 0px 5px;
 }
 .daracl-grid .dg-resize-helper {
   width: 0;

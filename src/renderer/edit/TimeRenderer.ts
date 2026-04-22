@@ -2,7 +2,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
-import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
+import { TextAbstractRenderer } from './TextAbstractRenderer';
 
 /**
  * time renderer
@@ -10,7 +10,7 @@ import { TextEditAbstractRenderer } from './TextEditAbstractRenderer';
  * @typedef {TimeRenderer}
  * @extends {EditRenderer}
  */
-export class TimeRenderer extends TextEditAbstractRenderer {
+export class TimeRenderer extends TextAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
