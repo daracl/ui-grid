@@ -588,8 +588,6 @@ export class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    const rendererType = field.renderer.type;
-
     const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
     const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
     contentEleStyle.maxHeight = heightPixel;

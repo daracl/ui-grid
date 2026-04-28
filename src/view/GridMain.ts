@@ -23,14 +23,14 @@ import {
 } from '@/constants';
 import { DaraGrid } from '@/DaraGrid';
 import { defaultFieldGroupInfo, initConfig } from '@/defaultGridConfig';
-import { DEFAULT_FIELD_INFO, DEFAULT_OPTIONS } from '@/defaultGridOption';
+import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { DataManager } from '@/service/DataManager';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
-import { getTextWidth, heightOptionValue, isInputField } from '@/util/gridUtils';
+import { getTextWidth, heightOptionValue } from '@/util/gridUtils';
 import { Language } from '@/util/Language';
 import {
   debounce,
@@ -53,6 +53,7 @@ import { DataSearch } from './main/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
+import { EditRenderer } from '@/renderer/EditRenderer';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -901,7 +902,7 @@ export class GridMain {
     // linenumber
     if (opts.aside.lineNumber.enabled === true) {
       opts.aside.lineNumber.order = opts.aside.lineNumber.order ?? 0;
-      const fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.lineNumber, {
+      const fieldItem = merge({}, opts.aside.lineNumber, {
         name: LINE_NUMBER_NAME,
         renderer: { type: 'lineNumber' },
         $isAside: true,
@@ -912,7 +913,7 @@ export class GridMain {
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
       opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
-      const fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.rowCheckbox, {
+      const fieldItem = merge({}, opts.aside.rowCheckbox, {
         name: ROW_CHECK_NAME,
         renderer: { type: 'rowCheckbox', customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } },
         $isAside: true,
@@ -922,20 +923,23 @@ export class GridMain {
 
     // rowDragHandle
     if (opts.body.rowMove?.enabled === true && opts.body.rowMove?.enableDragHandle !== false) {
-      const fieldItem = merge({}, DEFAULT_FIELD_INFO, {
-        name: ROW_DRAG_HANDLE_NAME,
-        width: 32,
-        order: 2,
-        renderer: { type: 'rowDragHandle' },
-        $isAside: true,
-      });
+      const fieldItem = merge(
+        {},
+        {
+          name: ROW_DRAG_HANDLE_NAME,
+          width: 32,
+          order: 2,
+          renderer: { type: 'rowDragHandle' },
+          $isAside: true,
+        },
+      );
       asideOrder.push(fieldItem);
     }
 
     // modifyInfo 추가.
     if (opts.aside.modifyInfo.enabled === true) {
       opts.aside.modifyInfo.order = opts.aside.modifyInfo.order ?? 2;
-      const fieldItem = merge({}, DEFAULT_FIELD_INFO, opts.aside.modifyInfo, {
+      const fieldItem = merge({}, opts.aside.modifyInfo, {
         name: '$modifyInfo',
         renderer: { type: 'modifyInfo' },
         $isAside: true,
@@ -1187,24 +1191,36 @@ export class GridMain {
    */
   public setRendererInfo(field: FieldItem): FieldItem {
     const opts = this.opts;
-    let renderInfo = { type: 'text' };
 
-    if (isPlainObject(field.renderer)) {
-      renderInfo = merge({}, field.renderer);
-    } else if (isString(field.renderer)) {
-      renderInfo = { type: field.renderer };
+    if (!field.$isAside) {
+      let renderInfo = { type: 'text' };
+
+      if (isPlainObject(field.renderer)) {
+        renderInfo = merge({}, field.renderer);
+      } else if (isString(field.renderer)) {
+        renderInfo = { type: field.renderer };
+      }
+
+      const render = VIEW_RENDERER[renderInfo.type];
+
+      if (isUndefined(render)) {
+        renderInfo.type = 'text';
+      }
+
+      field.renderer = merge({}, DEFAULT_RENDERER_INFO, renderInfo);
+
+      if (opts.editable || field.editable) {
+        field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, field.editRenderer);
+      }
     }
 
-    const render = VIEW_RENDERER[renderInfo.type];
+    const rendererType = field.renderer.type;
 
-    if (isUndefined(render)) {
-      renderInfo.type = 'text';
-    }
+    field.$renderer = new VIEW_RENDERER[rendererType](field, this);
 
-    field.renderer = renderInfo;
-    field.$renderer = new VIEW_RENDERER[renderInfo.type](field, this);
+    console.log('field.$renderer instanceof EditRenderer ', field.$renderer instanceof EditRenderer);
 
-    if (opts.editable && field.editable !== false) {
+    if ((opts.editable && field.editable !== false) || field.$renderer instanceof EditRenderer) {
       let editRendererInfo = field.editRenderer;
 
       if (isString(editRendererInfo)) {
@@ -1216,8 +1232,8 @@ export class GridMain {
 
       if (editType && EDIT_RENDERER[editType]) {
         type = editType;
-      } else if (EDIT_RENDERER[renderInfo.type]) {
-        type = renderInfo.type;
+      } else if (EDIT_RENDERER[rendererType]) {
+        type = rendererType;
       }
 
       field.$editRenderer = new EDIT_RENDERER[type](field, this);

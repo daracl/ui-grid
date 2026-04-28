@@ -426,29 +426,45 @@ export const merge = (...value: any[]): any => {
   return reval;
 };
 
+export const stringSplit = (value: string, delimiter: string): string[] => {
+  return (value || '').split(delimiter);
+};
+
 /**
  * 문자열을 delimiter로 분리하여 특정 값을 포함하지 않으면 추가하고,
  * 필요 시 정렬 후 다시 문자열로 반환합니다.
  *
- * @param {string} pValue - 원본 문자열 (예: "a,b,c")
+ * @param {string} currentValue - 원본 문자열 (예: "a,b,c")
  * @param {string} addValue - 추가할 값 (중복되면 추가하지 않음)
  * @param {boolean} shouldSort - true일 경우 정렬함 (기본값: false)
  * @param {string} delimiter - 분리 기준 문자 (기본값: ',')
  * @returns {string} 결과 문자열
  */
-export function addValueIfMissing(pValue: string, addValue: string | null, shouldSort = false, delimiter = ',') {
+export const addValueIfMissing = (
+  currentValue: string,
+  addValue: string | null,
+  shouldSort = false,
+  delimiter = ',',
+  originValues: string[] = [],
+) => {
   if (!addValue) return [];
 
-  const value = (pValue || '') + '';
+  const value = (currentValue || '') + '';
 
   // 1. split + trim + filter out empty values
-  const items = (value || '')
-    .split(delimiter)
+  let items = stringSplit(value, delimiter)
     .map((item) => item.trim())
-    .filter((item) => item); // 빈 문자열 제거
+    .filter((item) => item);
+
+  // 2. originValues 기준으로 필터링
+  if (originValues.length > 0) {
+    const originSet = new Set(originValues.map((v) => v.trim()));
+    items = items.filter((item) => originSet.has(item));
+  }
 
   const uniqueItems = new Set(items);
 
+  // 3. toggle 로직
   if (uniqueItems.has(addValue)) {
     uniqueItems.delete(addValue);
   } else {
@@ -456,16 +472,17 @@ export function addValueIfMissing(pValue: string, addValue: string | null, shoul
   }
 
   const result = Array.from(uniqueItems);
+
   if (shouldSort) {
     result.sort();
   }
 
   return result;
-}
+};
 
-export function trim(s: string): string {
+export const trim = (s: string): string => {
   return s.replace(/^\s+|\s+$/g, '');
-}
+};
 
 function cloneDeep(dst: any, src: any): any {
   if (isArray(src)) {

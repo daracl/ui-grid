@@ -3,7 +3,7 @@ import { ValidResult } from '@/types/ValidResult';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
-import { addValueIfMissing, isArray, isFunction, isString } from '@/util/utils';
+import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -26,45 +26,20 @@ export class DropdownEditRenderer extends EditRenderer {
   private readonly isMultiple: boolean;
   private readonly valueDelimiter: string;
 
-  private valueLabelMap: Map<string, any>;
-
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.renderer;
+    const rendererInfo = this.field.editRenderer;
     this.labelKey = valuesLabelKey(rendererInfo);
     this.valueKey = valuesValueKey(rendererInfo);
-    this.isMultiple = rendererInfo.listItem?.multiple ?? false;
 
-    this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ',';
-
-    const list = rendererInfo.listItem?.list;
-    if (isArray(list)) {
-      this.initListItem(list);
-    } else if (isFunction(list)) {
-      list({ init: true }, (result: any[]) => {
-        this.initListItem(result);
-      });
+    if (rendererInfo?.listItem) {
+      this.isMultiple = rendererInfo.listItem?.multiple ?? false;
+      this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ',';
+    } else {
+      this.valueDelimiter = ',';
+      this.isMultiple = false;
     }
-  }
-  private initListItem(list: any[]) {
-    const valueLabelMap = new Map<string, any>();
-    const isStringValue = isString(list[0]);
-    for (const item of list) {
-      let val: string;
-      let label: string;
-
-      if (isStringValue) {
-        val = item;
-        label = item;
-      } else {
-        val = item?.[this.valueKey] ?? '';
-        label = item?.[this.labelKey] ?? '';
-      }
-      valueLabelMap.set(val, label);
-    }
-
-    this.valueLabelMap = valueLabelMap;
   }
 
   public valid(value: any): ValidResult | boolean {
@@ -99,7 +74,7 @@ export class DropdownEditRenderer extends EditRenderer {
       this.menuElement = menuElement;
     }
 
-    let list = this.field.renderer.listItem?.list;
+    let list = this.field.editRenderer.listItem?.list;
 
     const value = cellInfo.item[this.fieldName];
 
@@ -125,10 +100,6 @@ export class DropdownEditRenderer extends EditRenderer {
       return true;
     });
     return uniqueArr;
-  }
-
-  private valueSplit(val: string) {
-    return ((val || '') + '').split(this.valueDelimiter);
   }
 
   /**
@@ -184,8 +155,10 @@ export class DropdownEditRenderer extends EditRenderer {
         let currentValue = this.getValue(cellInfo.item) ?? '';
 
         if (isString(currentValue)) {
-          currentValue = currentValue.split(this.valueDelimiter);
+          currentValue = stringSplit(currentValue, this.valueDelimiter);
         }
+
+        const valueKey = this.valueKey;
 
         if (addValue == ALL_SELECT_VALUE) {
           const allItemElement = menuElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
@@ -194,7 +167,6 @@ export class DropdownEditRenderer extends EditRenderer {
 
             removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
-            const valueKey = this.valueKey;
             const newValue = notDisabledList
               .map((item) => {
                 return item[valueKey];
@@ -206,7 +178,17 @@ export class DropdownEditRenderer extends EditRenderer {
             addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
         } else {
-          const newValue = addValueIfMissing(cellInfo.item[this.fieldName], addValue, false, this.valueDelimiter);
+          const validValues = notDisabledList.map((item) => {
+            return item[valueKey];
+          });
+
+          const newValue = addValueIfMissing(
+            cellInfo.item[this.fieldName],
+            addValue,
+            false,
+            this.valueDelimiter,
+            validValues,
+          );
 
           this.setValue(e, cellInfo.item, newValue.join(this.valueDelimiter));
 
@@ -230,12 +212,17 @@ export class DropdownEditRenderer extends EditRenderer {
     });
   }
 
-  private dropdownMenuTemplate(list: any[], value: string): string {
+  private dropdownMenuTemplate(list: any[], value: string | string[]): string {
     if (!isArray(list) || list.length === 0) return '';
 
     const templateParts: string[] = [];
 
-    const valueSet = new Set(this.valueSplit(value));
+    let valueSet;
+    if (isString(value)) {
+      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
+    } else {
+      valueSet = new Set(value);
+    }
 
     const isStringValue = isString(list[0]);
     const isMultiple = this.isMultiple;

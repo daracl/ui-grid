@@ -22,7 +22,8 @@ export class CheckboxRenderer extends EditRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.renderer;
+    const rendererInfo = this.field.editRenderer;
+
     this.trueValue = rendererInfo.trueValue ?? true;
     this.falseValue = rendererInfo.falseValue ?? false;
     this.showLabel = rendererInfo.showLabel ?? false;

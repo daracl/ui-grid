@@ -68,7 +68,7 @@ export abstract class EditRenderer extends Renderer {
     const field = this.field;
     const fieldValue = value;
 
-    if (field.renderer.change) {
+    if (field.editRenderer.change) {
       const changeInfo: any = {
         field: field,
         evt: e,
@@ -77,7 +77,7 @@ export abstract class EditRenderer extends Renderer {
         value: fieldValue,
       };
 
-      if (changeInfo.oldValue !== changeInfo.value && field.renderer.change.call(null, changeInfo) === false) {
+      if (changeInfo.oldValue !== changeInfo.value && field.editRenderer.change.call(null, changeInfo) === false) {
         return false;
       }
     }
@@ -132,5 +132,9 @@ export abstract class EditRenderer extends Renderer {
     }
 
     return false;
+  }
+
+  public isEditRenderer() {
+    return true;
   }
 }

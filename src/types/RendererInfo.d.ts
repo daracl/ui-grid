@@ -29,17 +29,8 @@ export interface RendererInfo {
   };
   tooltip?: string; // 툴팁 문구
   refValue?: OptionCallback | any; // value에 대한 참조값 {key: {}} 참조값
-  defaultValue?: string; // 기본값
-  listItem?: ValuesInfo; // dropdown, radio, checkbox
-  validator?: OptionCallback; // custom validator
-  change?: OptionCallback; //  입력값 변경시 체크 function
   click?: OptionCallback; // button onclick function
   conditional?: ConditionInfo; // 보이기 여부
-  // checkbox, Switch true or false 값
-  trueValue?: string;
-  falseValue?: string;
-  //label 보이기 여부
-  showLabel?: boolean;
 }
 
 export interface EditRendererInfo {
@@ -75,8 +66,8 @@ export interface EditRendererInfo {
   editRender?: EditRenderer;
   conditional?: ConditionInfo; // 보이기 여부
   // checkbox, Switch true or false 값
-  trueValue?: string;
-  falseValue?: string;
+  trueValue?: string | boolean;
+  falseValue?: string | boolean;
   //label 보이기 여부
   showLabel?: boolean;
 }

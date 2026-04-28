@@ -1,6 +1,7 @@
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionMode, TOOLBAR_HEIGHT, VIEW_RENDERER } from './constants';
+import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
 
 /**
  * grid default option
@@ -218,6 +219,17 @@ export const DEFAULT_OPTIONS: GridOptions = {
   tree: undefined,
 };
 
+export const DEFAULT_RENDERER_INFO: RendererInfo = {
+  type: 'text',
+};
+
+export const DEFAULT_EDIT_RENDERER_INFO: EditRendererInfo = {
+  type: 'text',
+  trueValue: true,
+  falseValue: false,
+  showLabel: false,
+};
+
 export const DEFAULT_FIELD_INFO: FieldItem = {
   name: '',
   label: '',
@@ -239,6 +251,12 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
     content: undefined,
   },
   headerHelp: undefined,
+  editRenderer: {
+    type: 'text',
+    trueValue: true,
+    falseValue: false,
+    showLabel: false,
+  },
   $renderer: VIEW_RENDERER['text'],
   $editRenderer: EDIT_RENDERER['text'],
   $colspan: 0,

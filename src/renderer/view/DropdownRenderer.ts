@@ -1,14 +1,10 @@
-import { ALIGN_STYLE, ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
-import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
+import { ALIGN_STYLE } from '@/constants';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
-import { addValueIfMissing, isArray, isFunction, isString } from '@/util/utils';
+import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-
-const SELECTED_STYLE_CLASS = 'selected';
 
 /**
  * dropdown renderer
@@ -20,10 +16,6 @@ const SELECTED_STYLE_CLASS = 'selected';
 export class DropdownRenderer extends ViewRenderer {
   private menuElement: HTMLElement;
   private currentEditRow: number;
-  private readonly labelKey: string;
-  private readonly valueKey: string;
-  private readonly rendererContainer: HTMLElement;
-  private readonly isMultiple: boolean;
   private readonly valueDelimiter: string;
 
   private valueLabelMap: Map<string, any>;
@@ -31,26 +23,28 @@ export class DropdownRenderer extends ViewRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.renderer;
-    this.labelKey = valuesLabelKey(rendererInfo);
-    this.valueKey = valuesValueKey(rendererInfo);
-    this.isMultiple = rendererInfo.listItem?.multiple ?? false;
+    const editInfo = this.field.editRenderer;
+    const labelKey = valuesLabelKey(editInfo);
+    const valueKey = valuesValueKey(editInfo);
 
-    this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ',';
+    if (editInfo?.listItem) {
+      this.valueDelimiter = editInfo.listItem?.delimiter ?? ',';
 
-    this.rendererContainer = this.gridMain.getRendererContainer();
-
-    const list = rendererInfo.listItem?.list;
-    if (isArray(list)) {
-      this.initListItem(list);
-    } else if (isFunction(list)) {
-      list({ init: true }, (result: any[]) => {
-        this.initListItem(result);
-      });
+      const list = editInfo.listItem?.list;
+      if (isArray(list)) {
+        this.initListItem(list, labelKey, valueKey);
+      } else if (isFunction(list)) {
+        list({ init: true }, (result: any[]) => {
+          this.initListItem(result, labelKey, valueKey);
+        });
+      }
+    } else {
+      this.valueDelimiter = ',';
+      this.valueLabelMap = new Map<string, any>();
     }
   }
 
-  private initListItem(list: any[]) {
+  private initListItem(list: any[], labelKey: string, valueKey: string) {
     const valueLabelMap = new Map<string, any>();
     const isStringValue = isString(list[0]);
     for (const item of list) {
@@ -61,8 +55,8 @@ export class DropdownRenderer extends ViewRenderer {
         val = item;
         label = item;
       } else {
-        val = item?.[this.valueKey] ?? '';
-        label = item?.[this.labelKey] ?? '';
+        val = item?.[valueKey] ?? '';
+        label = item?.[labelKey] ?? '';
       }
       valueLabelMap.set(val, label);
     }
@@ -99,26 +93,41 @@ export class DropdownRenderer extends ViewRenderer {
     const textElement = contentElement.querySelector('.dg-cell-content-label') as HTMLElement;
 
     if (refValue) {
-      textElement.textContent = refValue.label ?? value;
+      textElement.textContent = refValue.label ?? refValue;
     } else {
       let viewLabel = value;
       if (this.valueLabelMap.size > 0) {
-        const valueSet = new Set(this.valueSplit(value));
-        const values = Array.from(valueSet);
+        let labels = this.getLabel(value);
 
-        const labels: string[] = [];
-
-        const valueLabelMap = this.valueLabelMap;
-
-        for (const val of values) {
-          if (valueLabelMap.has(val)) {
-            labels.push(valueLabelMap.get(val));
-          }
+        if (labels.length < 1 && this.field.defaultValue) {
+          labels = this.getLabel(this.field.defaultValue);
         }
         viewLabel = labels.join(this.valueDelimiter);
       }
       textElement.textContent = viewLabel;
     }
+  }
+
+  public getLabel(value: string | string[]) {
+    let valueSet;
+    if (isString(value)) {
+      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
+    } else {
+      valueSet = new Set(value);
+    }
+
+    const values = Array.from(valueSet);
+
+    const labels: string[] = [];
+
+    const valueLabelMap = this.valueLabelMap;
+
+    for (const val of values) {
+      if (valueLabelMap.has(val)) {
+        labels.push(valueLabelMap.get(val));
+      }
+    }
+    return labels;
   }
 
   initEvent(contentElement: HTMLElement) {
@@ -131,9 +140,14 @@ export class DropdownRenderer extends ViewRenderer {
     });
   }
 
+  /**
+   * click
+   * @param e event
+   * @param cellElement cell element
+   * @param cellInfo cell info
+   * @returns
+   */
   public click(e: Event, cellElement: HTMLElement, cellInfo: CellInfo) {
-    console.log('1111111111111111 : ', cellInfo, this.currentEditRow, cellInfo.rowIndex);
-
     if (this.currentEditRow == cellInfo.rowIndex) {
       if (window.getComputedStyle(this.menuElement).display == 'block') {
         this.menuElement.style.display = 'none';
@@ -142,10 +156,6 @@ export class DropdownRenderer extends ViewRenderer {
     }
 
     this.field.$editRenderer.render(cellInfo, cellElement);
-  }
-
-  private valueSplit(val: string) {
-    return ((val || '') + '').split(this.valueDelimiter);
   }
 
   public canEdit() {

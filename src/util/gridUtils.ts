@@ -2,7 +2,7 @@ import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '
 import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
-import { RendererInfo } from '@t/RendererInfo';
+import { EditRendererInfo, RendererInfo } from '@t/RendererInfo';
 import { intValue, isArray, isEmpty, isNumber } from './utils';
 import { PointerPosition } from '@/event/PointerSession';
 
@@ -416,20 +416,20 @@ export const dragHorizontalMovePosition = (
 /**
  * create new item
  *
- * @param {FieldItem[]} headerItems field items
+ * @param {FieldItem[]} fields field items
  * @param {number} [createCount=1] create count
  * @returns {any[]} result
  */
-export const createNewItems = (headerItems: FieldItem[], createCount = 1): any[] => {
-  const len = headerItems.length;
+export const createNewItems = (fields: FieldItem[], createCount = 1): any[] => {
+  const len = fields.length;
 
   const result = [];
   for (let i = 0; i < createCount; i++) {
     const newItem: any = {};
     newItem[ROW_CUD_KEY] = 'C';
     for (let j = 0; j < len; j++) {
-      const headerItem = headerItems[j];
-      newItem[headerItem.name] = headerItem.defaultValue ?? '';
+      const field = fields[j];
+      newItem[field.name] = field.defaultValue ?? '';
     }
 
     result.push(newItem);
@@ -458,10 +458,10 @@ export const isImageType = (type: string) => {
  * list item value key
  *
  * @export
- * @param {RendererInfo} rendererInfo renderer info
+ * @param {EditRendererInfo} rendererInfo renderer info
  * @returns {string} value key
  */
-export const valuesValueKey = (rendererInfo: RendererInfo): string => {
+export const valuesValueKey = (rendererInfo: EditRendererInfo): string => {
   return rendererInfo?.listItem?.valueField ?? 'value';
 };
 
@@ -469,10 +469,10 @@ export const valuesValueKey = (rendererInfo: RendererInfo): string => {
  * list item label key
  *
  * @export
- * @param {RendererInfo} rendererInfo renderer info
+ * @param {EditRendererInfo} rendererInfo renderer info
  * @returns {string} label key
  */
-export const valuesLabelKey = (rendererInfo: RendererInfo): string => {
+export const valuesLabelKey = (rendererInfo: EditRendererInfo): string => {
   return rendererInfo?.listItem?.labelField ?? 'label';
 };
 

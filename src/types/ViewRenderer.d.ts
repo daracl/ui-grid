@@ -41,7 +41,7 @@ export interface EditRenderer {
     field: string;
     message: string;
   };
-  defaultValue: string; // 기본값
+  defaultValue: string | boolean | number; // 기본값
   listItem: ValuesInfo; // dropdown, radio, checkbox
   validator?: OptionCallback; // custom validator
   onChange: OptionCallback; //  입력값 변경시 체크 function

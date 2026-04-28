@@ -64,7 +64,7 @@ export interface FieldItem {
   /**
    * edit renderer info
    */
-  editRenderer?: EditRendererInfo;
+  editRenderer: EditRendererInfo;
   /**
    * 포멧터
    */

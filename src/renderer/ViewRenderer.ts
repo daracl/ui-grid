@@ -6,6 +6,7 @@ import { CellInfo, Config } from '@t/GridConfig';
 import { GridMain } from '@/view/GridMain';
 import { formatValue } from '@/util/formatUtils';
 import { ALIGN_STYLE } from '@/constants';
+import { isBlank } from '../util/utils';
 
 export abstract class ViewRenderer extends Renderer {
   private readonly isRefFunction: boolean;
@@ -80,12 +81,17 @@ export abstract class ViewRenderer extends Renderer {
    */
   public getValue(rowItem: any): any {
     const val = rowItem[this.fieldName];
+
     if (this.isVauleFunction) {
       return this.field.getValue?.({ field: this.field, item: rowItem });
     }
 
     if (this.field.displayFormat) {
       return formatValue(val, this.field.displayFormat);
+    }
+
+    if (!val && !isBlank(this.field.defaultValue)) {
+      return this.field.defaultValue;
     }
 
     return val;

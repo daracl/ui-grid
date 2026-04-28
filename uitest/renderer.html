@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara renderer</title>
-  </head>
 
-  <body>
-    <div>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara renderer</title>
+</head>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+<body>
+  <div>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+  </div>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -293,7 +295,8 @@
           name: 'k',
           label: 'checkbox',
           width: 100,
-          renderer: {
+          renderer: 'checkbox',
+          editRenderer: {
             type: 'checkbox',
             trueValue: 'Y',
             falseValue: 'N',
@@ -305,6 +308,9 @@
           label: 'switch',
           width: 60,
           renderer: {
+            type: 'switch',
+          },
+          editRenderer: {
             type: 'switch',
             trueValue: 'Y',
             falseValue: 'N',
@@ -498,7 +504,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
+            dropCallback: (data) => { },
           },
         },
         search: {
