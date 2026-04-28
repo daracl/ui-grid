@@ -4,18 +4,20 @@ import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { ALIGN_STYLE } from '@/constants';
+import { EditRenderer } from '../EditRenderer';
+import { ValidResult } from '@/types/ValidResult';
 
 /**
- * Switch renderer
+ * checkbox renderer
  *
- * @class SwitchRenderer
- * @typedef {SwitchRenderer}
+ * @class CheckboxRenderer
+ * @typedef {CheckboxRenderer}
  * @extends {ViewRenderer}
  */
-export class SwitchRenderer extends ViewRenderer {
-  private trueValue: string | boolean;
-  private falseValue: string | boolean;
-  private showLabel: boolean;
+export class CheckboxRenderer extends EditRenderer {
+  private readonly trueValue: string | boolean;
+  private readonly falseValue: string | boolean;
+  private readonly showLabel: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -28,7 +30,6 @@ export class SwitchRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
-    const inputName = this.fieldName;
 
     const val = this.getValue(item);
 
@@ -43,10 +44,16 @@ export class SwitchRenderer extends ViewRenderer {
       input.name = this.field.$uid;
 
       const mark = document.createElement('span');
-      mark.className = 'dg-slider';
+      mark.className = 'dg-checkmark';
 
       label.appendChild(input);
       label.appendChild(mark);
+
+      if (this.showLabel) {
+        const textLabel = document.createElement('span');
+        textLabel.className = 'dg-cell-content-label dg-cell-ellipsis';
+        label.appendChild(textLabel);
+      }
 
       element.appendChild(label);
 
@@ -57,8 +64,8 @@ export class SwitchRenderer extends ViewRenderer {
     input.checked = val === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = element.querySelector('.dg-slider');
-      if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
+      const labelElement = element.querySelector('.dg-cell-content-label');
+      if (labelElement) labelElement.textContent = val;
     }
   }
 
@@ -74,10 +81,14 @@ export class SwitchRenderer extends ViewRenderer {
 
       const item = cellInfo.item;
 
-      item[this.fieldName] = checked ? this.trueValue : this.falseValue;
+      this.setValue(e, item, checked ? this.trueValue : this.falseValue);
 
       this.render(cellInfo, cellElement);
     });
+  }
+
+  public valid(value: any): ValidResult | boolean {
+    return true;
   }
 
   public canEdit() {

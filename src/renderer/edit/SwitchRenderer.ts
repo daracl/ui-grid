@@ -1,21 +1,22 @@
+import { ALIGN_STYLE } from '@/constants';
+import { ValidResult } from '@/types/ValidResult';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
-import { ALIGN_STYLE } from '@/constants';
+import { EditRenderer } from '../EditRenderer';
 
 /**
- * checkbox renderer
+ * Switch renderer
  *
- * @class CheckboxRenderer
- * @typedef {CheckboxRenderer}
- * @extends {ViewRenderer}
+ * @class SwitchRenderer
+ * @typedef {SwitchRenderer}
+ * @extends {EditRenderer}
  */
-export class CheckboxRenderer extends ViewRenderer {
-  private readonly trueValue: string | boolean;
-  private readonly falseValue: string | boolean;
-  private readonly showLabel: boolean;
+export class SwitchRenderer extends EditRenderer {
+  private trueValue: string | boolean;
+  private falseValue: string | boolean;
+  private showLabel: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -42,16 +43,10 @@ export class CheckboxRenderer extends ViewRenderer {
       input.name = this.field.$uid;
 
       const mark = document.createElement('span');
-      mark.className = 'dg-checkmark';
+      mark.className = 'dg-slider';
 
       label.appendChild(input);
       label.appendChild(mark);
-
-      if (this.showLabel) {
-        const textLabel = document.createElement('span');
-        textLabel.className = 'dg-cell-content-label dg-cell-ellipsis';
-        label.appendChild(textLabel);
-      }
 
       element.appendChild(label);
 
@@ -62,8 +57,8 @@ export class CheckboxRenderer extends ViewRenderer {
     input.checked = val === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = element.querySelector('.dg-cell-content-label');
-      if (labelElement) labelElement.textContent = val;
+      const labelElement = element.querySelector('.dg-slider');
+      if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
     }
   }
 
@@ -79,14 +74,14 @@ export class CheckboxRenderer extends ViewRenderer {
 
       const item = cellInfo.item;
 
-      item[this.fieldName] = checked ? this.trueValue : this.falseValue;
+      this.setValue(e, item, checked ? this.trueValue : this.falseValue);
 
       this.render(cellInfo, cellElement);
     });
   }
 
-  public canEdit() {
-    return false;
+  public valid(value: any): ValidResult | boolean {
+    return true;
   }
 
   public alignStyle(): string {

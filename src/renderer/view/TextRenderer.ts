@@ -23,4 +23,8 @@ export class TextRenderer extends ViewRenderer {
       element.textContent = renderValue;
     }
   }
+
+  public canEdit() {
+    return true;
+  }
 }

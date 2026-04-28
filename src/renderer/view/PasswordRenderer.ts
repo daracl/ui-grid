@@ -26,4 +26,8 @@ export class PasswordRenderer extends ViewRenderer {
   public alignStyle() {
     return ALIGN_STYLE.center;
   }
+
+  public canEdit() {
+    return true;
+  }
 }

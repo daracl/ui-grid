@@ -1,33 +1,34 @@
-import { CheckboxRenderer } from './renderer/view/CheckboxRenderer';
+import { CheckboxRenderer } from './renderer/edit/CheckboxRenderer';
 import { CustomEditRenderer } from './renderer/edit/CustomEditRenderer';
 import { DateRenderer } from './renderer/edit/DateRenderer';
 
 import { NumberEditRenderer } from './renderer/edit/NumberEditRenderer';
-import { PasswordRenderer } from './renderer/view/PasswordRenderer';
 import { RangeRenderer } from './renderer/edit/RangeRenderer';
 import { TextAreaRenderer } from './renderer/edit/TextAreaRenderer';
 import { TextEditRenderer } from './renderer/edit/TextEditRenderer';
+import { PasswordRenderer } from './renderer/view/PasswordRenderer';
 
 import { AsideLineNumberRenderer } from './renderer/view/AsideLineNumberRenderer';
 import { AsideModifyInfoRenderer } from './renderer/view/AsideModifyInfoRenderer';
 import { AsideRowCheckRenderer } from './renderer/view/AsideRowCheckRenderer';
 
+import { DropdownEditRenderer } from './renderer/edit/DropdownEditRenderer';
+import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
+import { SwitchRenderer } from './renderer/edit/SwitchRenderer';
+import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
 import { BarRenderer } from './renderer/view/BarRenderer';
 import { ButtonRenderer } from './renderer/view/ButtonRenderer';
+import { DropdownRenderer } from './renderer/view/DropdownRenderer';
 import { HiddenRenderer } from './renderer/view/HiddenRenderer';
 import { HtmlRenderer } from './renderer/view/HtmlRenderer';
 import { ImageRenderer } from './renderer/view/ImageRenderer';
-import { DropdownRenderer } from './renderer/view/DropdownRenderer';
 import { LinkRenderer } from './renderer/view/LinkRenderer';
-import { TextRenderer } from './renderer/view/TextRenderer';
-import { ViewCustomRenderer } from './renderer/view/ViewCustomRenderer';
+import { NumberRenderer } from './renderer/view/NumberRenderer';
 import { SparklineRenderer } from './renderer/view/SparklineRenderer';
 import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
-import { SwitchRenderer } from './renderer/view/SwitchRenderer';
-import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
-import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
+import { TextRenderer } from './renderer/view/TextRenderer';
 import { TreeRenderer } from './renderer/view/TreeRenderer';
-import { NumberRenderer } from './renderer/view/NumberRenderer';
+import { ViewCustomRenderer } from './renderer/view/ViewCustomRenderer';
 
 // grid instance id attr key
 export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
@@ -92,7 +93,8 @@ export const EDIT_RENDERER: any = {
   custom: CustomEditRenderer,
   text: TextEditRenderer,
   number: NumberEditRenderer,
-  dropdown: DropdownRenderer,
+  dropdown: DropdownEditRenderer,
+  checkbox: CheckboxRenderer,
   password: PasswordEditRenderer,
   range: RangeRenderer,
   textarea: TextAreaRenderer,

@@ -63,10 +63,6 @@ export abstract class ViewRenderer extends Renderer {
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
-  public isWrapper(): boolean {
-    return true;
-  }
-
   public getRefValue(value: any, rowItem?: any): any {
     if (this.isRefFunction) {
       return this.refValue.call(null, this.field, value, rowItem);
@@ -77,6 +73,11 @@ export abstract class ViewRenderer extends Renderer {
     return this.refValue[value];
   }
 
+  /**
+   * 값 얻기
+   * @param rowItem row item
+   * @returns
+   */
   public getValue(rowItem: any): any {
     const val = rowItem[this.fieldName];
     if (this.isVauleFunction) {
@@ -90,6 +91,12 @@ export abstract class ViewRenderer extends Renderer {
     return val;
   }
 
+  /**
+   * cell click event
+   * @param e click event object
+   * @param eventElement  event element
+   * @param cellInfo  cell info
+   */
   public click(e: Event, eventElement: HTMLElement, cellInfo: CellInfo) {
     if (this.isClick) {
       this.field.renderer.click?.call(null, cellInfo);
@@ -102,9 +109,13 @@ export abstract class ViewRenderer extends Renderer {
    * @returns {boolean}
    */
   public canEdit() {
-    return true;
+    return false;
   }
 
+  /**
+   *  값 정렬 스타일
+   * @returns {string} align style
+   */
   public alignStyle(): string {
     return ALIGN_STYLE.left;
   }

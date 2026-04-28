@@ -1211,10 +1211,13 @@ export class GridMain {
         editRendererInfo = { type: editRendererInfo };
       }
 
-      let type = editRendererInfo?.type;
+      let type = 'text';
+      const editType = editRendererInfo?.type;
 
-      if (!type || (type && isUndefined(EDIT_RENDERER[type]))) {
-        type = 'text';
+      if (editType && EDIT_RENDERER[editType]) {
+        type = editType;
+      } else if (EDIT_RENDERER[renderInfo.type]) {
+        type = renderInfo.type;
       }
 
       field.$editRenderer = new EDIT_RENDERER[type](field, this);

@@ -20,4 +20,8 @@ export class AsideRowDragHandleRenderer extends ViewRenderer {
       element.classList.add('dg-row-drag-handle');
     }
   }
+
+  public canEdit() {
+    return false;
+  }
 }

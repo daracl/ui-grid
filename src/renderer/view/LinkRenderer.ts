@@ -59,4 +59,8 @@ export class LinkRenderer extends ViewRenderer {
       this.click(e, cellElement, cellInfo);
     });
   }
+
+  public canEdit() {
+    return true;
+  }
 }

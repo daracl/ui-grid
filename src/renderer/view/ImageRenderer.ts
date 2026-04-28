@@ -54,7 +54,7 @@ export class ImageRenderer extends ViewRenderer {
     }
   }
 
-  public isWrapper() {
-    return false;
+  public canEdit() {
+    return true;
   }
 }

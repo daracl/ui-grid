@@ -28,4 +28,8 @@ export class NumberRenderer extends ViewRenderer {
   public alignStyle(): string {
     return ALIGN_STYLE.right;
   }
+
+  public canEdit() {
+    return true;
+  }
 }

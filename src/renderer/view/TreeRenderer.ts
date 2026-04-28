@@ -89,4 +89,8 @@ export class TreeRenderer extends ViewRenderer {
   public alignStyle() {
     return ALIGN_STYLE.left;
   }
+
+  public canEdit() {
+    return true;
+  }
 }
