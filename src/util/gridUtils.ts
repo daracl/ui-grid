@@ -1,9 +1,9 @@
-import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
-import { intValue, isArray, isEmpty, isNumber } from './utils';
-import { GridOptions } from '@t/GridOptions';
-import { FieldItem } from '@t/GridField';
-import { RendererInfo } from '@t/RendererInfo';
 import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { GridOptions } from '@t/GridOptions';
+import { RendererInfo } from '@t/RendererInfo';
+import { intValue, isArray, isEmpty, isNumber } from './utils';
 import { PointerPosition } from '@/event/PointerSession';
 
 /**
@@ -192,7 +192,7 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
  * @param scrollLeft scroll left 값
  * @returns {number}
  */
-export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
+export const getCenterContentLeft = (cfg: Config, scrollLeft: number): number => {
   if (scrollLeft < 1) {
     return 0;
   }
@@ -200,7 +200,7 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
     (cfg.dimensions.mainCenterOverWidth * ((scrollLeft / (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) * 100)) /
     100
   );
-}
+};
 
 /**
  * 센터 포지션 값 - > 스크롤 left postion
@@ -209,7 +209,7 @@ export function getCenterContentLeft(cfg: Config, scrollLeft: number): number {
  * @param {number} centerGridLeft center content left 값
  * @returns {number}
  */
-export function getHorizontalScrollPosition(cfg: Config, centerGridLeft: number, direction?: string): number {
+export const getHorizontalScrollPosition = (cfg: Config, centerGridLeft: number, direction?: string): number => {
   if (centerGridLeft < 1) {
     return 0;
   }
@@ -226,20 +226,20 @@ export function getHorizontalScrollPosition(cfg: Config, centerGridLeft: number,
   }
 
   return ((left / cfg.dimensions.mainCenterOverWidth) * 100 * (cfg.scroll.hTrackWidth - cfg.scroll.hThumbWidth)) / 100;
-}
+};
 
 /**
  * input field check
  * @param tagName html tag name
  * @returns
  */
-export function isInputField(tagName: string): boolean {
+export const isInputField = (tagName: string): boolean => {
   return tagName.search(/(input|select|textarea)/i) > -1;
-}
+};
 
-export function getOverCellPosition(cellInfo: CellInfo): string {
+export const getOverCellPosition = (cellInfo: CellInfo): string => {
   return `${cellInfo.r}_${cellInfo.c}_${cellInfo.rowIndex}`;
-}
+};
 
 /**
  * get mouse darg vertical postion
@@ -252,14 +252,14 @@ export function getOverCellPosition(cellInfo: CellInfo): string {
  * @param {number} _b grid bottom position
  * @returns {{ scrollDirectionY: string; rowIdx: number;, viewRowIdx: number; }}
  */
-export function dragVerticalMovePosition(
+export const dragVerticalMovePosition = (
   cfg: Config,
   moveY: number,
   rowHeight: number,
   startCellInfo: CellInfo,
   _t: number,
   _b: number,
-) {
+) => {
   const scroll = cfg.scroll;
   const dataInfo = cfg.dataInfo;
 
@@ -308,7 +308,7 @@ export function dragVerticalMovePosition(
   }
 
   return { scrollDirectionY, rowIdx, viewRowIdx };
-}
+};
 
 /**
  * 마우스 drag 시 좌우 스크롤 이동 처리
@@ -324,14 +324,14 @@ export function dragVerticalMovePosition(
  * @param {string} selectionMode selection mode
  * @returns {{ scrollDirectionX: string; overCell: number; }}
  */
-export function dragHorizontalMovePosition(
+export const dragHorizontalMovePosition = (
   cfg: Config,
   moveX: number,
   positionX: number,
   _l: number,
   _r: number,
   beforeEndCol: number,
-) {
+) => {
   let scrollDirectionX = null;
   let overCell = -1;
 
@@ -411,7 +411,7 @@ export function dragHorizontalMovePosition(
   overCell = Math.max(overCell, cfg.dataInfo.startCol);
 
   return { scrollDirectionX, overCell };
-}
+};
 
 /**
  * create new item
@@ -420,7 +420,7 @@ export function dragHorizontalMovePosition(
  * @param {number} [createCount=1] create count
  * @returns {any[]} result
  */
-export function createNewItems(headerItems: FieldItem[], createCount = 1): any[] {
+export const createNewItems = (headerItems: FieldItem[], createCount = 1): any[] => {
   const len = headerItems.length;
 
   const result = [];
@@ -436,7 +436,7 @@ export function createNewItems(headerItems: FieldItem[], createCount = 1): any[]
   }
 
   return result;
-}
+};
 /**
  * 체크박스 상태(mode)를 반환합니다.
  *
@@ -444,15 +444,15 @@ export function createNewItems(headerItems: FieldItem[], createCount = 1): any[]
  * @param itemLength - 전체 항목 수
  * @returns "all" (전체 선택), "partial" (일부 선택), "none" (선택 없음)
  */
-export function getCheckboxMode(checkLeneth: number, itemLength: number) {
+export const getCheckboxMode = (checkLeneth: number, itemLength: number) => {
   if (checkLeneth == 0) return 'none';
   if (checkLeneth == itemLength) return 'all';
   return 'partial';
-}
+};
 
-export function isImageType(type: string) {
+export const isImageType = (type: string) => {
   return type == 'image';
-}
+};
 
 /**
  * list item value key
@@ -461,9 +461,9 @@ export function isImageType(type: string) {
  * @param {RendererInfo} rendererInfo renderer info
  * @returns {string} value key
  */
-export function valuesValueKey(rendererInfo: RendererInfo): string {
+export const valuesValueKey = (rendererInfo: RendererInfo): string => {
   return rendererInfo?.listItem?.valueField ?? 'value';
-}
+};
 
 /**
  * list item label key
@@ -472,12 +472,12 @@ export function valuesValueKey(rendererInfo: RendererInfo): string {
  * @param {RendererInfo} rendererInfo renderer info
  * @returns {string} label key
  */
-export function valuesLabelKey(rendererInfo: RendererInfo): string {
+export const valuesLabelKey = (rendererInfo: RendererInfo): string => {
   return rendererInfo?.listItem?.labelField ?? 'label';
-}
+};
 
 const TEMPLATE_REGEX = /\{\{([A-Za-z0-9_.]*)\}\}/g;
-export function valuesLabelValue(label: string, val: any) {
+export const valuesLabelValue = (label: string, val: any) => {
   let replaceFlag = false;
   const resultValue = label.replace(TEMPLATE_REGEX, (match, key) => {
     replaceFlag = true;
@@ -489,7 +489,7 @@ export function valuesLabelValue(label: string, val: any) {
   }
 
   return val[label] || '';
-}
+};
 
 /**
  * get height option value first value
@@ -499,7 +499,7 @@ export function valuesLabelValue(label: string, val: any) {
  * @param {number} defaultHeight default height
  * @returns {{ height: number; heights: {}; }}
  */
-export function heightOptionValue(heightOption: number | number[] | undefined, defaultHeight: number) {
+export const heightOptionValue = (heightOption: number | number[] | undefined, defaultHeight: number) => {
   let height: number;
   let heights: number[] = [];
   if (isArray(heightOption) && heightOption.length > 0) {
@@ -510,7 +510,7 @@ export function heightOptionValue(heightOption: number | number[] | undefined, d
   }
 
   return { height, heights };
-}
+};
 
 /**
  * 배열 아이템 이동
@@ -520,11 +520,11 @@ export function heightOptionValue(heightOption: number | number[] | undefined, d
  * @param {number} toIndex 이동할 아이템의 새로운 인덱스
  * @returns {any[]} 이동된 아이템이 반영된 새로운 배열
  */
-export function moveItem(array: any[], fromIndex: number, toIndex: number): any[] {
+export const moveItem = (array: any[], fromIndex: number, toIndex: number): any[] => {
   const item = array.splice(fromIndex, 1)[0];
   array.splice(toIndex, 0, item);
   return array;
-}
+};
 
 /**
  *  배열이 연속된 숫자로 이루어져 있는지 확인
@@ -532,7 +532,7 @@ export function moveItem(array: any[], fromIndex: number, toIndex: number): any[
  * @param arr 확인할 숫자 배열
  * @returns {boolean} 배열이 연속된 숫자로 이루어져 있으면 true, 그렇지 않으면 false
  */
-export function isSequential(arr: number[]): boolean {
+export const isSequential = (arr: number[]): boolean => {
   const set = new Set(arr);
   if (set.size !== arr.length) return false;
 
@@ -540,7 +540,7 @@ export function isSequential(arr: number[]): boolean {
   const max = Math.max(...arr);
 
   return max - min + 1 === arr.length;
-}
+};
 
 /**
  * 마우스가 이동했는지 확인
@@ -550,9 +550,72 @@ export function isSequential(arr: number[]): boolean {
  * @param threshold 이동으로 간주할 최소 거리 (기본값: 5 픽셀)
  * @returns
  */
-export function isMouseMoved(startPos: PointerPosition, currentPos: PointerPosition, threshold = 5): boolean {
+export const isMouseMoved = (startPos: PointerPosition, currentPos: PointerPosition, threshold = 5): boolean => {
   const dx = currentPos.x - startPos.x;
   const dy = currentPos.y - startPos.y;
 
   return dx * dx + dy * dy > threshold * threshold;
-}
+};
+
+/*
+ * 셀 값 이스케이프 처리
+ * - 셀 값에 줄바꿈(\n, \n\r)이나 탭(\t)이 포함된 경우, 값 전체를 큰따옴표로 감싸고, 기존의 큰따옴표는 두 개로 이스케이프 처리
+ * - 예: Hello\nWorld -> "Hello\nWorld", She said "Hi" -> "She said ""Hi"""
+ */
+export const escapeCellValue = (value: any) => {
+  if (typeof value !== 'string') return value;
+
+  const hasSpecial = /["\n\r\t]/.test(value);
+
+  if (hasSpecial) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+
+  return value;
+};
+
+/**
+ * Parses clipboard text into a 2D array of strings
+ * @param text The clipboard text to parse
+ * @returns A 2D array representing the parsed rows and cells
+ */
+export const parseClipboard = (text: string): string[][] => {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  text = text.replace(/(\r?\n){2}$/, '\n');
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        cell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (!inQuotes && char === '\t') {
+      row.push(cell);
+      cell = '';
+    } else if (!inQuotes && (char === '\n' || char === '\r')) {
+      if (char === '\r' && next === '\n') i++;
+
+      row.push(cell);
+      rows.push(row);
+
+      row = [];
+      cell = '';
+    } else {
+      cell += char;
+    }
+  }
+
+  row.push(cell);
+  rows.push(row);
+
+  return rows;
+};

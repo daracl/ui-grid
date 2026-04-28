@@ -126,6 +126,12 @@
             height: 23px;
             display: grid;
             align-items: center;
+
+            &.dg-white-space {
+              line-height: 1.4;
+              overflow-wrap: break-word;
+              white-space: pre-wrap;
+            }
           }
 
           &.line-number {

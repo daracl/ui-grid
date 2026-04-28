@@ -1,13 +1,13 @@
 import { ScrollInfo } from '@t/GridConfig';
 
-import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '../../../util/gridUtils';
+import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '@/util/gridUtils';
 
 import { DaraElement } from '@/element/DaraElement';
 import { EventHandler } from '@/event/EventHandler';
 import { SelectionInfo } from '@/selection/selection';
 import { eventKeyCode, isCtrlKey, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction } from '@/util/utils';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Body } from './Body';
 
 /**

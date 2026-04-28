@@ -1,7 +1,7 @@
 import { HeaderOptions } from '@t/GridOptions';
 
 import { DaraElement } from '@/element/DaraElement';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
 import { getHeaderCellInfo } from '@/util/gridUtils';

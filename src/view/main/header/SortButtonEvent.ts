@@ -3,7 +3,7 @@ import { FieldSortInfo } from '@/types/Header';
 import { addAttr, removeAttr } from '@/util/domUtils';
 import { isClickEvent, isShiftKey, stopPreventCancel } from '@/util/eventUtils';
 import { intValue } from '@/util/utils';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 
 /**

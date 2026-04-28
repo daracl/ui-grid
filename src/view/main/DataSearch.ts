@@ -4,8 +4,8 @@ import { ALL_SELECT_VALUE } from '@/constants';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { SearchOptions } from '@t/GridOptions';
-import { toggleClass } from '../../util/styleUtils';
-import { GridMain } from '../GridMain';
+import { toggleClass } from '@/util/styleUtils';
+import { GridMain } from '@/view/GridMain';
 
 /**
  * DataSearch class

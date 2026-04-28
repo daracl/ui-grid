@@ -1,6 +1,6 @@
 import { Selection } from '@t/GridConfig';
 
-import { createNewItems } from '@/util/gridUtils';
+import { createNewItems, parseClipboard } from '@/util/gridUtils';
 
 import { DaraElement } from '@/element/DaraElement';
 import { EventHandler } from '@/event/EventHandler';
@@ -43,7 +43,7 @@ export class PasteEvent implements EventHandler {
     const pasteElement = this.pasteElement.getElement();
 
     cfg.eventManager.on({ el: pasteElement, type: 'paste' }, (event: ClipboardEvent) => {
-      const clipboardData = event.clipboardData; // ClipboardEvent에서 clipboardData 가져오기
+      const clipboardData = event.clipboardData;
 
       if (!clipboardData) {
         throw new Error('paste clipboard not found');
@@ -55,81 +55,89 @@ export class PasteEvent implements EventHandler {
         pastedText = pasteBeforeFn(pastedText);
       }
 
-      if (pastedText !== '') {
-        const contentArr = pastedText.split(/\r\n|\r|\n/);
+      if (!pastedText) return;
 
-        const startCellInfo = cfg.selection.startCell;
+      // ✅ 핵심: CSV 안전 파싱
+      const parsed = parseClipboard(pastedText);
 
-        const { currentFields, dataInfo } = cfg;
+      const startCellInfo = cfg.selection.startCell;
+      const { currentFields, dataInfo } = cfg;
 
-        const startIdx = startCellInfo.startIdx,
-          startCol = startCellInfo.startCol,
-          headerItemsLength = currentFields.length;
+      const startIdx = startCellInfo.startIdx;
+      const startCol = startCellInfo.startCol;
+      const headerItemsLength = currentFields.length;
 
-        let itemLength = dataInfo.rowLength;
+      let itemLength = dataInfo.rowLength;
+      let maxCol = 0;
 
-        let maxCol = 0;
-        const iLen = contentArr.length;
-        let pasteResultItems: any[] = cfg.dataManager.getViewItems();
-        if (startCellInfo.startIdx + iLen > itemLength) {
-          // 붙여 넣기 데이터가 더 많으면 추가 row 생성.
-          pasteResultItems = pasteResultItems.concat(
-            createNewItems(currentFields, startCellInfo.startIdx + iLen - itemLength),
-          );
-          itemLength = pasteResultItems.length;
-        }
+      let pasteResultItems: any[] = cfg.dataManager.getViewItems();
 
-        for (let i = 0; i < iLen; i++) {
-          const addCont = contentArr[i];
-
-          const addRowIdx = startIdx + i;
-
-          if (addRowIdx >= itemLength) {
-            break;
-          }
-
-          const rowItem = pasteResultItems[addRowIdx];
-
-          const addContArr = addCont.split(/\t/);
-          const jLen = addContArr.length;
-
-          for (let j = 0; j < jLen; j++) {
-            const addColIdx = startCol + j;
-
-            if (addColIdx < headerItemsLength) {
-              maxCol = Math.max(maxCol, addColIdx);
-
-              if (currentFields[addColIdx].$editRenderer.setValue(event, rowItem, addContArr[j]) === false) {
-                return;
-              }
-
-              rowItem[currentFields[addColIdx].name] = addContArr[j];
-            }
-          }
-        }
-
-        cfg.dataManager.setViewItems(pasteResultItems);
-        this.gridMain.refreshBody();
-
-        this.selectionInfo.setSelectionRangeInfo(
-          {
-            range: {
-              startIdx: startCellInfo.startIdx,
-              endIdx: startCellInfo.startIdx + iLen - 1,
-              startCol: startCellInfo.startCol,
-              endCol: maxCol,
-            },
-            startCell: startCellInfo,
-          } as Selection,
-          true,
-          false,
+      // row 부족하면 추가
+      if (startIdx + parsed.length > itemLength) {
+        pasteResultItems = pasteResultItems.concat(
+          createNewItems(currentFields, startIdx + parsed.length - itemLength),
         );
+        itemLength = pasteResultItems.length;
+      }
 
-        this.gridMain.getBody().dataDraw('reDraw_paste');
+      // ✅ 데이터 적용
+      for (let i = 0; i < parsed.length; i++) {
+        const rowIdx = startIdx + i;
+        if (rowIdx >= itemLength) break;
 
-        if (pasteAfterFnFlag) {
-          pasteAfterFn(pastedText);
+        const rowItem = pasteResultItems[rowIdx];
+        const row = parsed[i];
+
+        for (let j = 0; j < row.length; j++) {
+          const colIdx = startCol + j;
+          if (colIdx >= headerItemsLength) continue;
+
+          maxCol = Math.max(maxCol, colIdx);
+
+          let value = row[j];
+
+          // "" → " 복원
+          if (value.startsWith('"') && value.endsWith('"')) {
+            value = value.slice(1, -1).replace(/""/g, '"');
+          }
+
+          // ✅ Excel 수식 방지
+          if (/^=/.test(value)) {
+            value = "'" + value;
+          }
+
+          const field = currentFields[colIdx];
+
+          if (field.$editRenderer?.setValue(event, rowItem, value) === false) {
+            return;
+          }
+
+          rowItem[field.name] = value;
         }
+      }
+
+      cfg.dataManager.setViewItems(pasteResultItems);
+      this.gridMain.refreshBody();
+
+      // selection 갱신
+      this.selectionInfo.setSelectionRangeInfo(
+        {
+          range: {
+            startIdx,
+            endIdx: startIdx + parsed.length - 1,
+            startCol,
+            endCol: maxCol,
+          },
+          startCell: startCellInfo,
+        } as Selection,
+        true,
+        false,
+      );
+
+      this.gridMain.getBody().dataDraw('reDraw_paste');
+
+      if (pasteAfterFnFlag) {
+        pasteAfterFn(pastedText);
       }
     });
   }

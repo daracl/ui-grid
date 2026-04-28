@@ -1,4 +1,4 @@
-import { getCellInfo, isInputField, isMouseMoved } from '../../../util/gridUtils';
+import { getCellInfo, isInputField, isMouseMoved } from '@/util/gridUtils';
 
 import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
@@ -8,7 +8,7 @@ import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
 import { hasClass } from '@/util/domUtils';
 import { eventPosition, initPointerSession } from '@/util/eventUtils';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Body } from './Body';
 import { CellClickHandler } from './CellClickHandler';
 import { KeydownEvent } from './KeydownEvent ';

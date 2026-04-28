@@ -2,7 +2,7 @@ import { DaraElement } from '@/element/DaraElement';
 import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';
 import { isEmpty } from '@/util/utils';
 import { GridOptions } from '@t/GridOptions';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { HorizontalScroll } from './HorizontalScroll';
 import { VerticalScroll } from './VerticalScroll';
 

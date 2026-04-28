@@ -5,9 +5,9 @@ import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import * as utils from '@/util/utils';
 import { FieldItem } from '@t/GridField';
-import { getCheckboxMode } from '../../../util/gridUtils';
-import { removeClass } from '../../../util/styleUtils';
-import { GridMain } from '../../GridMain';
+import { getCheckboxMode } from '@/util/gridUtils';
+import { removeClass } from '@/util/styleUtils';
+import { GridMain } from '@/view/GridMain';
 import { BodyEvent } from './BodyEvent';
 
 /**
@@ -696,10 +696,12 @@ export class Body {
         const rendererType = field.renderer.type;
 
         let whiteSpaceStyle = '';
+        let whiteSpaceClass = '';
         if (field.whiteSpace) {
           const fieldWhiteStyle = WHITE_SPACE[field.whiteSpace];
           if (fieldWhiteStyle) {
-            whiteSpaceStyle = 'overflow-wrap: break-word;white-space: ' + fieldWhiteStyle;
+            whiteSpaceStyle = 'white-space: ' + fieldWhiteStyle;
+            whiteSpaceClass = 'dg-white-space';
           }
         }
 
@@ -716,7 +718,7 @@ export class Body {
             rowIdx + ',' + (startCol + j)
           }"><div role="presentation"
             class="dg-cell-renderer dg-cell-ellipsis 
-            dg-${rendererType} ${field.$alignStyle}" style="${whiteSpaceStyle}"></div>
+            dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass}" style="${whiteSpaceStyle}"></div>
         </td>`);
         }
       }

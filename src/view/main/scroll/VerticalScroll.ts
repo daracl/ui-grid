@@ -5,7 +5,7 @@ import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtil
 import { isFunction, isNumber, isString } from '@/util/utils';
 import { Config, ScrollInfo } from '@t/GridConfig';
 import { GridOptions } from '@t/GridOptions';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Scroll } from './Scroll';
 
 /**

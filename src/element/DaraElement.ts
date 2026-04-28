@@ -1,5 +1,5 @@
-import { styleClassSplit } from '../util/styleUtils';
-import { hasOwnProp, isBlank, isString, isUndefined } from '../util/utils';
+import { styleClassSplit } from '@/util/styleUtils';
+import { hasOwnProp, isBlank, isString, isUndefined } from '@/util/utils';
 
 export class DaraElement {
   private readonly element: HTMLElement;

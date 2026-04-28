@@ -8,6 +8,7 @@ import { removeClass } from '@/util/styleUtils';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
 import { SelectionMode } from '@/constants';
+import { escapeCellValue } from '@/util/gridUtils';
 
 export class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -347,7 +348,7 @@ export class SelectionInfo {
         if (isJson) {
           rowOutput[colName] = cellValue;
         } else {
-          rowOutput.push(cellValue);
+          rowOutput.push(escapeCellValue(cellValue));
         }
       }
 

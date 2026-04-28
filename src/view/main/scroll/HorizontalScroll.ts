@@ -6,7 +6,7 @@ import { getCenterContentLeft, getHorizontalScrollPosition } from '@/util/gridUt
 import { isFunction, isNumber, isString } from '@/util/utils';
 import { Config } from '@t/GridConfig';
 import { GridOptions } from '@t/GridOptions';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Scroll } from './Scroll';
 
 /**

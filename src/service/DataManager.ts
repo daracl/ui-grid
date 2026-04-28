@@ -12,8 +12,7 @@ import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { multiSort } from '@/util/utils';
-import { arrayCopy } from '../util/utils';
+import { multiSort, arrayCopy } from '@/util/utils';
 
 type RowId = string | number;
 

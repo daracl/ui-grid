@@ -5,7 +5,7 @@ import { HeaderOptions } from '@/types/GridOptions';
 import { getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { intValue, isFunction } from '@/util/utils';
-import { GridMain } from '../../GridMain';
+import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 
 /**
