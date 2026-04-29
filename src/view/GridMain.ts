@@ -1218,8 +1218,6 @@ export class GridMain {
 
     field.$renderer = new VIEW_RENDERER[rendererType](field, this);
 
-    console.log('field.$renderer instanceof EditRenderer ', field.$renderer instanceof EditRenderer);
-
     if ((opts.editable && field.editable !== false) || field.$renderer instanceof EditRenderer) {
       let editRendererInfo = field.editRenderer;
 

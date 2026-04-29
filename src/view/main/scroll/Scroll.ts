@@ -41,6 +41,7 @@ export class Scroll {
     this.calculate();
 
     this.initMouseWheel();
+    this.initMobileTouch();
 
     if (this.opts.scroll.vertical.enable !== false) {
       this.verticalScroll.init();
@@ -52,6 +53,84 @@ export class Scroll {
   public calculate() {
     this.verticalScroll.calculate();
     this.horizontalScroll.calculate();
+  }
+
+  initMobileTouch() {
+    const { scroll, rowHeight, dataInfo, eventManager } = this.gridMain.config();
+    const opts = this.opts;
+
+    const bodyElement = this.gridMain.mainElement().getElement().querySelector('.dg-body') as HTMLElement;
+    let animationId: number;
+    let lastX: number;
+    let lastY: number;
+    eventManager.off(bodyElement, 'touchstart');
+    eventManager.on({ el: bodyElement, type: 'touchstart' }, (evt: TouchEvent) => {
+      lastX = evt.touches[0].clientX;
+      lastY = evt.touches[0].clientY;
+    });
+
+    const TOUCH_MOVE_DELAY = 50; // 터치 이동으로 간주되는 최소 거리
+    let lastTouchTime = 0;
+
+    eventManager.off(bodyElement, 'touchmove');
+    eventManager.on(
+      { el: bodyElement, type: 'touchmove' },
+      (evt: TouchEvent) => {
+        const x = evt.touches[0].clientX;
+        const y = evt.touches[0].clientY;
+
+        const dx = lastX - x;
+        const dy = lastY - y;
+
+        const now = Date.now();
+
+        if (now - lastTouchTime < TOUCH_MOVE_DELAY) {
+          return;
+        }
+
+        lastTouchTime = now;
+
+        // ✔ 더 크게 움직인 방향만 선택
+        if (scroll.enableHorizontal && Math.abs(dx) > Math.abs(dy)) {
+          const upFlag = dx > 0;
+          if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
+            cancelAnimationFrame(animationId);
+            stopPreventCancel(evt);
+          } else {
+            cancelAnimationFrame(animationId);
+            animationId = 0;
+            return;
+          }
+          animationId = requestAnimationFrame(() => {
+            this.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
+          });
+        } else if (scroll.enableVertical) {
+          const startIdx = scroll.startIdx;
+          const upFlag = dy > 0;
+          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
+            cancelAnimationFrame(animationId);
+            stopPreventCancel(evt);
+          } else {
+            cancelAnimationFrame(animationId);
+            animationId = 0;
+            return;
+          }
+
+          animationId = requestAnimationFrame(() => {
+            const speed = Math.abs(dy) / rowHeight;
+            const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
+            this.moveVerticalScroll({
+              direction: upFlag ? 'U' : 'D',
+              speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
+            });
+          });
+        }
+
+        lastX = x;
+        lastY = y;
+      },
+      { passive: false },
+    );
   }
 
   private initMouseWheel() {

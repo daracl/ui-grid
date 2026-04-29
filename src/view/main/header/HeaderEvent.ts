@@ -230,7 +230,7 @@ export class HeaderEvent {
       if (resizeHandler.onPointerMove) {
         let isStarted = false;
 
-        eventManager.on({ el: document, type: 'touchmove.cellclick mousemove.cellclick' }, (moveEvt: Event) => {
+        eventManager.on({ el: document, type: 'touchmove.resizerclick mousemove.resizerclick' }, (moveEvt: Event) => {
           session.currentPos = eventPosition(moveEvt);
 
           if (!isStarted) {
@@ -248,8 +248,11 @@ export class HeaderEvent {
           resizeHandler.onPointerMove?.(session);
         });
 
-        eventManager.on({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
-          eventManager.off(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
+        eventManager.on({ el: document, type: 'touchend.resizerclick mouseup.resizerclick' }, (moveEvt: Event) => {
+          eventManager.off(
+            document,
+            'touchmove.resizerclick mousemove.resizerclick touchend.resizerclick mouseup.resizerclick',
+          );
 
           session.state = POINTER_STATE.IDLE;
           session.currentPos = eventPosition(moveEvt);
