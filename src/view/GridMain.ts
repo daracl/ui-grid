@@ -1523,7 +1523,7 @@ export class GridMain {
 
     const templateHtml = `
       <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
-        <div style="position:absolute;">
+        <div style="position:absolute;user-select: none; touch-action: manipulation;">
           ${
             opts.toolbar.enabled
               ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>`
@@ -1611,8 +1611,10 @@ export class GridMain {
       gridElement.removeAttr(INSTANCE_ATTR_KEY);
       const el = gridElement.getElement();
 
-      this.resizeObserver.unobserve(el);
-      this.resizeObserver.disconnect();
+      if (this.resizeObserver) {
+        this.resizeObserver.unobserve(el);
+        this.resizeObserver.disconnect();
+      }
 
       el.style.cssText = this.orginStyle;
       while (el.firstChild) {

@@ -186,13 +186,13 @@ export class HorizontalScroll {
     const horizontalTrackElement = this.horizontalTrackElement.getElement();
 
     eventManager.off(horizontalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: horizontalTrackElement, type: 'mousedown touchstart' }, (e: MouseEvent) => {
+    eventManager.on({ el: horizontalTrackElement, type: 'mousedown touchstart' }, (e: Event) => {
       if (!isClickEvent(e)) {
         return;
       }
       this.gridMain.hideLayer();
       bgMoveMode = 1;
-      startEventX = e.offsetX;
+      startEventX = eventPosition(e).clientX - horizontalTrackElement.getBoundingClientRect().left;
 
       oneColMove = cfg.scroll.oneColMove;
       bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
@@ -209,12 +209,16 @@ export class HorizontalScroll {
     });
 
     eventManager.on({ el: horizontalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+      if (bgMoveMode == 0) return;
+
+      stopPreventCancel(e);
+      clearTimeout(horizontalScrollTimer);
       if (bgMoveMode == 1) {
         this.moveHorizontalScroll({
           position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
         });
       }
-      clearTimeout(horizontalScrollTimer);
+
       bgMoveMode = 0;
     });
   }

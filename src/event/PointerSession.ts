@@ -5,6 +5,8 @@ import { ClickManager } from './ClickManager';
 export interface PointerPosition {
   x: number;
   y: number;
+  clientX: number;
+  clientY: number;
 }
 
 export type PointerState = 'IDLE' | 'PRESSED' | 'DRAGGING';

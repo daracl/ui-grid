@@ -69,9 +69,6 @@ export class Scroll {
       lastY = evt.touches[0].clientY;
     });
 
-    const TOUCH_MOVE_DELAY = 50; // 터치 이동으로 간주되는 최소 거리
-    let lastTouchTime = 0;
-
     eventManager.off(bodyElement, 'touchmove');
     eventManager.on(
       { el: bodyElement, type: 'touchmove' },
@@ -82,22 +79,13 @@ export class Scroll {
         const dx = lastX - x;
         const dy = lastY - y;
 
-        const now = Date.now();
-
-        if (now - lastTouchTime < TOUCH_MOVE_DELAY) {
-          return;
-        }
-
-        lastTouchTime = now;
-
         // ✔ 더 크게 움직인 방향만 선택
         if (scroll.enableHorizontal && Math.abs(dx) > Math.abs(dy)) {
           const upFlag = dx > 0;
+          cancelAnimationFrame(animationId);
           if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
-            cancelAnimationFrame(animationId);
             stopPreventCancel(evt);
           } else {
-            cancelAnimationFrame(animationId);
             animationId = 0;
             return;
           }
@@ -106,12 +94,14 @@ export class Scroll {
           });
         } else if (scroll.enableVertical) {
           const startIdx = scroll.startIdx;
-          const upFlag = dy > 0;
+          const upFlag = dy < 0;
+          cancelAnimationFrame(animationId);
+
           if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
-            cancelAnimationFrame(animationId);
-            stopPreventCancel(evt);
+            if (evt.cancelable) {
+              stopPreventCancel(evt);
+            }
           } else {
-            cancelAnimationFrame(animationId);
             animationId = 0;
             return;
           }

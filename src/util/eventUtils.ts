@@ -110,10 +110,12 @@ export const eventPosition = (e: Event): PointerPosition => {
     return {
       x: e.pageX,
       y: e.pageY,
+      clientX: e.clientX,
+      clientY: e.clientY,
     };
   }
 
-  // 2. TouchEvent (fallback)
+  // 2. TouchEvent
   if (typeof TouchEvent !== 'undefined' && e instanceof TouchEvent) {
     const touch = e.changedTouches?.[0] || e.touches?.[0] || e.targetTouches?.[0];
 
@@ -121,20 +123,29 @@ export const eventPosition = (e: Event): PointerPosition => {
       return {
         x: touch.pageX,
         y: touch.pageY,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
       };
     }
   }
 
-  // 3. MouseEvent (fallback)
+  // 3. MouseEvent
   if (e instanceof MouseEvent) {
     return {
       x: e.pageX,
       y: e.pageY,
+      clientX: e.clientX,
+      clientY: e.clientY,
     };
   }
 
-  // 4. 안전 fallback
-  return { x: 0, y: 0 };
+  // 4. fallback
+  return {
+    x: 0,
+    y: 0,
+    clientX: 0,
+    clientY: 0,
+  };
 };
 
 /**

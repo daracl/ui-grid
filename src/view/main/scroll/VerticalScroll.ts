@@ -109,34 +109,44 @@ export class VerticalScroll {
     const verticalTrackElement = this.verticalTrackElement.getElement();
 
     eventManager.off(verticalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: verticalTrackElement, type: 'mousedown touchstart' }, (e: MouseEvent) => {
+    eventManager.on({ el: verticalTrackElement, type: 'mousedown touchstart' }, (e: Event) => {
       if (!isClickEvent(e)) {
         return;
       }
       this.gridMain.hideLayer();
       bgMoveMode = 1;
-      startEventY = e.offsetY;
+      startEventY = eventPosition(e).clientY - verticalTrackElement.getBoundingClientRect().top;
       oneRowMove = cfg.scroll.oneRowMove;
       bgMoveRow = oneRowMove * opts.scroll.vertical.speed * 5;
 
       upFlag = startEventY < cfg.scroll.top;
 
+      const vthumHeightHalf = cfg.scroll.vThumbHeight / 2;
+
       verticalScrollTimer = setInterval(() => {
         bgMoveMode = 2;
 
         this.moveVerticalScroll({
-          position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+          position: this.getVerticalBgMovePostion(
+            cfg,
+            startEventY - (upFlag ? vthumHeightHalf : 0),
+            oneRowMove,
+            upFlag,
+            bgMoveRow,
+          ),
         });
       }, 100);
     });
 
     eventManager.on({ el: verticalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
-      const currentPosition = eventPosition(e).y;
+      if (bgMoveMode == 0) return;
       clearInterval(verticalScrollTimer);
-      console.log(currentPosition);
+
+      stopPreventCancel(e);
+
       if (bgMoveMode == 1) {
         this.moveVerticalScroll({
-          position: this.getVerticalBgMovePostion(cfg, currentPosition, oneRowMove, upFlag, bgMoveRow),
+          position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
         });
       }
 

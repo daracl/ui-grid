@@ -12,7 +12,7 @@
     width: 100%;
     height: 100px;
     position: relative;
-    touch-action: none;
+    overscroll-behavior: contain;
 
     .fixed-column-line {
       position: absolute;
