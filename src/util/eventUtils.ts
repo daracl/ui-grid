@@ -105,18 +105,36 @@ export const eventKeyCode = (e: any) => {
  * @returns
  */
 export const eventPosition = (e: Event): PointerPosition => {
-  let evt;
-  if (typeof TouchEvent !== 'undefined' && e instanceof TouchEvent && e.touches.length > 0) {
-    evt = e.touches[0];
-  } else if (e instanceof MouseEvent) {
-    evt = e;
-  } else {
-    evt = { pageX: 0, pageY: 0 };
+  // 1. PointerEvent (가장 우선)
+  if (typeof PointerEvent !== 'undefined' && e instanceof PointerEvent) {
+    return {
+      x: e.pageX,
+      y: e.pageY,
+    };
   }
-  return {
-    x: evt.pageX,
-    y: evt.pageY,
-  };
+
+  // 2. TouchEvent (fallback)
+  if (typeof TouchEvent !== 'undefined' && e instanceof TouchEvent) {
+    const touch = e.changedTouches?.[0] || e.touches?.[0] || e.targetTouches?.[0];
+
+    if (touch) {
+      return {
+        x: touch.pageX,
+        y: touch.pageY,
+      };
+    }
+  }
+
+  // 3. MouseEvent (fallback)
+  if (e instanceof MouseEvent) {
+    return {
+      x: e.pageX,
+      y: e.pageY,
+    };
+  }
+
+  // 4. 안전 fallback
+  return { x: 0, y: 0 };
 };
 
 /**

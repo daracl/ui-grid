@@ -131,12 +131,15 @@ export class VerticalScroll {
     });
 
     eventManager.on({ el: verticalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+      const currentPosition = eventPosition(e).y;
+      clearInterval(verticalScrollTimer);
+      console.log(currentPosition);
       if (bgMoveMode == 1) {
         this.moveVerticalScroll({
-          position: this.getVerticalBgMovePostion(cfg, startEventY, oneRowMove, upFlag, bgMoveRow),
+          position: this.getVerticalBgMovePostion(cfg, currentPosition, oneRowMove, upFlag, bgMoveRow),
         });
       }
-      clearTimeout(verticalScrollTimer);
+
       bgMoveMode = 0;
     });
   }
@@ -167,6 +170,7 @@ export class VerticalScroll {
         const mode = hasClass(e.currentTarget as HTMLElement, 'up');
         this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
       }
+
       clearInterval(scrollBtnTimer);
       buttonMoveMode = 0;
     });
