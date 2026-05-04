@@ -21,6 +21,8 @@ export class Body {
 
   private readonly selectionInfo: SelectionInfo;
 
+  private readonly bodyEvent: BodyEvent;
+
   private bodyElement: DaraElement;
 
   private leftElement: DaraElement;
@@ -38,8 +40,11 @@ export class Body {
     this.createTemplate();
     this.selectionInfo = gridMain.selectionInfo;
 
-    const bodyEvent = new BodyEvent(gridMain, this, this.selectionInfo);
-    bodyEvent.init();
+    this.bodyEvent = new BodyEvent(gridMain, this, this.selectionInfo);
+  }
+
+  init() {
+    this.bodyEvent.init();
   }
 
   public getBodyElement() {

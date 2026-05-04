@@ -6,7 +6,7 @@ import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { Config } from '@/types/GridConfig';
-import { eventPosition, initPointerSession, stopPreventCancel } from '@/util/eventUtils';
+import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { getHeaderCellInfo, getHeaderResizeCellInfo, isMouseMoved, isRowSelectionMode } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
@@ -107,7 +107,7 @@ export class HeaderEvent {
     eventManager.on(
       { el: headerCellElements, type: 'mousedown.header.selection touchstart.header.selection' },
       (e: UIEvent) => {
-        if ((e as MouseEvent).button !== 0) {
+        if (!isPrimaryPointer(e)) {
           return true;
         }
 
@@ -209,11 +209,13 @@ export class HeaderEvent {
 
     eventManager.off(resizerElements, 'mousedown.resizerclick touchstart.resizerclick');
     eventManager.on({ el: resizerElements, type: 'mousedown.resizerclick touchstart.resizerclick' }, (e: UIEvent) => {
-      if ((e as MouseEvent).button !== 0) {
+      if (!isPrimaryPointer(e)) {
         return true;
       }
 
-      stopPreventCancel(e);
+      if (e.cancelable) {
+        stopPreventCancel(e);
+      }
 
       this.gridMain.hideLayer();
 

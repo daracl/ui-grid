@@ -84,6 +84,7 @@ export function initConfig(opts: GridOptions): Config {
     paging: pagingInfo,
     selection: {} as Selection,
     focus: false,
+    isMoveRow: false,
     isBodyDragging: false,
     isHeaderDragging: false,
     mouseEnter: false,

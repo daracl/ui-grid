@@ -17,7 +17,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
   editable: false, // 편집 모드 활성화
-  selectionMode: SelectionMode.MULTIPLE_CELL, //cell 선택 모드 row, cell, multiple-row, multiple-cell
+  selectionMode: SelectionMode.ROW, //cell 선택 모드 row, cell, multiple-row, multiple-cell
   enableTooltip: false, // tooltip flag
   addLimitRow: -1, // add시 item max로 유지할 카운트
   valueFilter: false, // value filter function (colItem, objectValue)

@@ -1,74 +1,72 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Dara Grid</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  </head>
 
-<head>
-  <title>Dara Grid</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-</head>
+  <body>
+    <div>
+      row
+      <select id="itemCount">
+        <option value="0">0</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="32">32</option>
+        <option value="38">38</option>
+        <option value="100" selected>100</option>
+        <option value="500">500</option>
+        <option value="1000">1,000</option>
+        <option value="10000">10,000</option>
+        <option value="100000">100,000</option>
+        <option value="1000000">1,000,000</option>
+      </select>
 
-<body>
-  <div>
-    row
-    <select id="itemCount">
-      <option value="0">0</option>
-      <option value="5">5</option>
-      <option value="10">10</option>
-      <option value="20">20</option>
-      <option value="30">30</option>
-      <option value="32">32</option>
-      <option value="38">38</option>
-      <option value="100" selected>100</option>
-      <option value="500">500</option>
-      <option value="1000">1,000</option>
-      <option value="10000">10,000</option>
-      <option value="100000">100,000</option>
-      <option value="1000000">1,000,000</option>
-    </select>
+      cell
+      <select id="cellCount">
+        <option value="1">1</option>
+        <option value="5">5</option>
+        <option value="10">10</option>
+        <option value="20" selected>20</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+        <option value="300">300</option>
+        <option value="500">500</option>
+      </select>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
 
-    cell
-    <select id="cellCount">
-      <option value="1">1</option>
-      <option value="5">5</option>
-      <option value="10">10</option>
-      <option value="20" selected>20</option>
-      <option value="25">25</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
-      <option value="300">300</option>
-      <option value="500">500</option>
-    </select>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
+      타입
+      <select id="dataType">
+        <option value="1">헤더 2단</option>
+        <option value="2" selected>헤더 3단</option>
+        <option value="3">헤더 1단</option>
+        <option value="4">직원</option>
+      </select>
+      <button type="button" onclick="fn_init()">regrid</button>
+    </div>
 
-    타입
-    <select id="dataType">
-      <option value="1">헤더 2단</option>
-      <option value="2" selected>헤더 3단</option>
-      <option value="3">헤더 1단</option>
-      <option value="4">직원</option>
-    </select>
-    <button type="button" onclick="fn_init()">regrid</button>
-  </div>
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
 
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
+    <div class="grid-view-area">
+      <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
 
-  <div class="grid-view-area">
-    <div id="sample2" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
+    <div class="grid-view-area">
+      <div id="sample3" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
 
-  <div class="grid-view-area">
-    <div id="sample3" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-
-  <div style="height:600px;background:#979daa"></div>
-</body>
-
+    <div style="height: 600px; background: #979daa"></div>
+  </body>
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -163,6 +161,7 @@
     });
   }
 
+  let initFlag = false;
   function fn_init(initFlag) {
     const themeElement = document.getElementById('theme');
 
@@ -192,10 +191,12 @@
 
     const jsonInfo = getItem(itemType, itemCount, cellCount);
 
-
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields, 1000, 'default');
-    gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields, 'auto', 'striped');
-    gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields, 800, 'borderless');
+    if (!initFlag) {
+      initFlag = true;
+    }
+    gridDraw(document.getElementById('sample'), initFlag ? [] : jsonInfo.items, jsonInfo.fields, 'auto', 'default');
+    //gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields, 'auto', 'striped');
+    //gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields, 800, 'borderless');
   }
 
   document.addEventListener('DOMContentLoaded', function () {

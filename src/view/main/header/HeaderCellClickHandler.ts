@@ -26,7 +26,6 @@ export class HeaderCellClickHandler extends BasePointerHandler {
 
   protected headerPosition: any;
 
-  private readonly moveRange: { endIdx: number; endCol: number } = { endIdx: -1, endCol: -1 };
   private beforeEndCol = -1;
 
   private startCellIdx = 0;

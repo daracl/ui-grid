@@ -22,7 +22,7 @@ export class ClickManager {
 
   resetClick() {
     this.clickCount = 0;
-    this.currentCellPosition = { x: 0, y: 0 };
+    this.currentCellPosition = { x: 0, y: 0, clientX: 0, clientY: 0 };
   }
 
   conserveClick(cellPosition: PointerPosition) {

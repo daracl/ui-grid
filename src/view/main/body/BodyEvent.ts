@@ -7,7 +7,7 @@ import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
 import { hasClass } from '@/util/domUtils';
-import { eventPosition, initPointerSession } from '@/util/eventUtils';
+import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from './Body';
 import { CellClickHandler } from './CellClickHandler';
@@ -49,6 +49,7 @@ export class BodyEvent {
 
   init() {
     this.initPointerEvent();
+    this.initMobileTouch();
 
     if (this.gridMain.options().editable !== false) {
       new PasteEvent(this.gridMain, this.selectionInfo).init();
@@ -59,6 +60,88 @@ export class BodyEvent {
     }
   }
 
+  /**
+   * init mobile touch event
+   */
+  initMobileTouch() {
+    const cfg = this.gridMain.config();
+    const { scroll, rowHeight, dataInfo, eventManager } = cfg;
+    const opts = this.gridMain.options();
+    const scrollInfo = this.gridMain.getScroll();
+
+    const bodyElement = this.gridMain.mainElement().getElement().querySelector('.dg-body') as HTMLElement;
+    let animationId: number;
+    let lastX: number;
+    let lastY: number;
+
+    eventManager.off(bodyElement, 'touchstart');
+    eventManager.on({ el: bodyElement, type: 'touchstart' }, (evt: TouchEvent) => {
+      lastX = evt.touches[0].clientX;
+      lastY = evt.touches[0].clientY;
+    });
+
+    eventManager.off(bodyElement, 'touchmove');
+    eventManager.on(
+      { el: bodyElement, type: 'touchmove' },
+      (evt: TouchEvent) => {
+        const x = evt.touches[0].clientX;
+        const y = evt.touches[0].clientY;
+
+        const dx = lastX - x;
+        const dy = lastY - y;
+
+        if (cfg.isMoveRow) {
+          return;
+        }
+
+        // ✔ 더 크게 움직인 방향만 선택
+        if (scroll.enableHorizontal && Math.abs(dx) > Math.abs(dy)) {
+          const upFlag = dx > 0;
+          cancelAnimationFrame(animationId);
+          if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
+            stopPreventCancel(evt);
+          } else {
+            animationId = 0;
+            return;
+          }
+          animationId = requestAnimationFrame(() => {
+            scrollInfo.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
+          });
+        } else if (scroll.enableVertical) {
+          const startIdx = scroll.startIdx;
+          const upFlag = dy < 0;
+          cancelAnimationFrame(animationId);
+
+          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
+            if (evt.cancelable) {
+              stopPreventCancel(evt);
+            }
+          } else {
+            animationId = 0;
+            return;
+          }
+
+          animationId = requestAnimationFrame(() => {
+            const speed = Math.abs(dy) / rowHeight;
+            const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
+            scrollInfo.moveVerticalScroll({
+              direction: upFlag ? 'U' : 'D',
+              speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
+            });
+          });
+        }
+
+        lastX = x;
+        lastY = y;
+      },
+      { passive: false },
+    );
+  }
+
+  /**
+   * init pointer event
+   * cell click , cell drag, row move event
+   */
   initPointerEvent() {
     const cfg = this.gridMain.config();
     const opts = this.gridMain.options();
@@ -76,7 +159,7 @@ export class BodyEvent {
     eventManager.on(
       { el: bodyElement, selector: '.dg-cell', type: 'mousedown.cellclick touchstart.cellclick' },
       (e: UIEvent) => {
-        if ((e as MouseEvent).button !== 0) {
+        if (!isPrimaryPointer(e)) {
           return true;
         }
 
@@ -115,6 +198,11 @@ export class BodyEvent {
 
         if (!handler) return;
 
+        if (handler instanceof RowMoveHandler) {
+          e.preventDefault();
+          cfg.isMoveRow = true;
+        }
+
         handler.onPointerDown?.(session);
 
         if (handler.onPointerMove) {
@@ -130,6 +218,7 @@ export class BodyEvent {
 
               isStarted = true;
               cfg.isBodyDragging = true;
+
               if (handler.onActivate?.(session) === false) {
                 eventManager.off(
                   document,
@@ -150,6 +239,7 @@ export class BodyEvent {
             session.currentPos = eventPosition(moveEvt);
             handler.onPointerUp?.(session);
             cfg.isBodyDragging = false;
+            cfg.isMoveRow = false;
           });
         }
 
@@ -161,10 +251,13 @@ export class BodyEvent {
 
         clickManager.processClick(session, handler);
       },
+      { passive: false },
     );
 
     eventManager.on({ el: bodyElement, type: 'mouseup.cellclick touchend.cellclick' }, (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
+      cfg.isBodyDragging = false;
+      cfg.isMoveRow = false;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
   }

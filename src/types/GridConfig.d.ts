@@ -120,7 +120,7 @@ export interface Config {
   selection: Selection;
   isHeaderResize: boolean;
   focus: boolean;
-
+  isMoveRow: boolean;
   isBodyDragging: boolean;
   isHeaderDragging: boolean;
   mouseEnter: boolean;

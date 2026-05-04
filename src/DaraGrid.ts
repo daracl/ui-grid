@@ -23,8 +23,6 @@ let HIDDEN_ELEMENT: HTMLElement | null = null;
 export class DaraGrid {
   public static VERSION = `${APP_VERSION}`;
 
-  public static MATCH_WHOLE_REGEX = /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;
-
   private gridMain: GridMain;
 
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {

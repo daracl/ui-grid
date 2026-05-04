@@ -285,10 +285,12 @@ export class GridMain {
     }
 
     this.scroll = new Scroll(this);
-    this.scroll.init();
 
     this.footer = new Footer(this);
     this.contextMenu = new ContextMenu(this);
+
+    this.body.init();
+    this.scroll.init();
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
@@ -661,6 +663,8 @@ export class GridMain {
     const bodyElement = this.body.getBodyElement();
     const summaryElement = this.summary.getElement();
 
+    const isBodyReisze = this.cfg.dataInfo.rowLength > 0;
+
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
 
@@ -668,7 +672,10 @@ export class GridMain {
       const width = `${field.$width}px`;
 
       headerElement.find(selector).style.width = width;
-      bodyElement.find(selector).style.width = width;
+
+      if (isBodyReisze) {
+        bodyElement.find(selector).style.width = width;
+      }
       if (summaryElement) {
         summaryElement.find(selector).style.width = width;
       }

@@ -191,3 +191,24 @@ export function initPointerSession(
     clickManager: clickManager,
   };
 }
+
+/**
+ *  마우스 이벤트가 왼쪽 클릭인지 또는 터치 이벤트인지 확인하는 유틸 함수 - 오른쪽 클릭이나 휠 클릭 등은 무시하기 위함
+ * @param e   Event 객체 (MouseEvent 또는 TouchEvent)
+ * @returns
+ */
+export const isPrimaryPointer = (e: Event): boolean => {
+  if (e instanceof PointerEvent) {
+    return e.isPrimary && e.button === 0;
+  }
+
+  if (e instanceof MouseEvent) {
+    return e.button === 0;
+  }
+
+  if (e instanceof TouchEvent) {
+    return true;
+  }
+
+  return false;
+};
