@@ -277,7 +277,6 @@ export class GridMain {
     this.selectionInfo = new SelectionInfo(this, opts, this.cfg);
     this.header = new Header(this);
     this.body = new Body(this);
-
     this.summary = new Summary(this);
 
     if (opts.search.enabled) {
@@ -285,10 +284,10 @@ export class GridMain {
     }
 
     this.scroll = new Scroll(this);
-
     this.footer = new Footer(this);
     this.contextMenu = new ContextMenu(this);
 
+    this.selectionInfo.initSelection();
     this.body.init();
     this.scroll.init();
 
@@ -663,20 +662,24 @@ export class GridMain {
     const bodyElement = this.body.getBodyElement();
     const summaryElement = this.summary.getElement();
 
-    const isBodyReisze = this.cfg.dataInfo.rowLength > 0;
+    const shouldResizeHeader = this.header.isEnabled();
+    const shouldResizeBody = this.cfg.dataInfo.rowLength > 0;
+    const shouldResizeSummary = this.summary.isEnabled();
 
     for (let j = 0; j < fields.length; j++) {
       const field = fields[j];
 
       const selector = `th[data-col-idx="${j}"]`;
       const width = `${field.$width}px`;
+      if (shouldResizeHeader) {
+        headerElement.find(selector).style.width = width;
+      }
 
-      headerElement.find(selector).style.width = width;
-
-      if (isBodyReisze) {
+      if (shouldResizeBody) {
         bodyElement.find(selector).style.width = width;
       }
-      if (summaryElement) {
+
+      if (shouldResizeSummary) {
         summaryElement.find(selector).style.width = width;
       }
     }
@@ -920,7 +923,7 @@ export class GridMain {
     // rowCheckbox
     if (opts.aside.rowCheckbox.enabled === true) {
       opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
-      const fieldItem = merge({}, opts.aside.rowCheckbox, {
+      const fieldItem = merge({ width: 27 }, opts.aside.rowCheckbox, {
         name: ROW_CHECK_NAME,
         renderer: { type: 'rowCheckbox', customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } },
         $isAside: true,
@@ -1373,6 +1376,12 @@ export class GridMain {
   public getCheckedItems(names?: string | string[]) {
     const items = this.cfg.dataManager.getViewItems();
     const checkItems = [];
+
+    //
+    //
+    //처리할것.
+    //
+    //
 
     let exportNames: string[] = [];
     let isAll = false;

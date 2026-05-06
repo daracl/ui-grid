@@ -2,6 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
+import { ALIGN_STYLE } from '@/constants';
 
 /**
  * rowDragHandle renderer
@@ -19,6 +20,10 @@ export class AsideRowDragHandleRenderer extends ViewRenderer {
     if (!element.classList.contains('dg-row-drag-handle')) {
       element.classList.add('dg-row-drag-handle');
     }
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 
   public canEdit() {

@@ -14,7 +14,7 @@
     position: relative;
     overscroll-behavior: contain;
 
-    .fixed-column-line {
+    .dg-fixed-column-line {
       position: absolute;
       right: 0px;
       top: 0px;
@@ -101,7 +101,7 @@
           }
         }
 
-        .fixed-column-line {
+        .dg-fixed-column-line {
           background-color: transparent !important;
         }
       }

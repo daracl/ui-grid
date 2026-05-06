@@ -95,7 +95,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
       label: '', //  컬럼명
       order: 0, // 순서
       width: 40, // 넓이
-      enableRowSelection: true, // 선택 여부
     },
     rowCheckbox: {
       // 체크 박스
@@ -127,7 +126,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       height: 25, // cell 높이
       addStyle: false, // 추가할 style method
       dblClick: false, // row dblclick event
-      enableDblClickRowCheck: false, // double click row checkbox checked true 여부.
+      selectRowOnCellClick: false, // double click row checkbox checked true 여부.
     },
     // row 이동 옵션
     rowMove: {

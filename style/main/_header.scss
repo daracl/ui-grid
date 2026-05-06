@@ -13,7 +13,7 @@
         left: 0px;
         z-index: 1;
 
-        .fixed-column-line {
+        .dg-fixed-column-line {
           right: 0px;
         }
       }
@@ -26,7 +26,7 @@
         right: -1px;
         z-index: 1;
 
-        .fixed-column-line {
+        .dg-fixed-column-line {
           left: 0px;
         }
       }
@@ -50,11 +50,11 @@
           }
         }
 
-        .dg-header-cell.selection {
+        .dg-header-cell.dg-selection {
           background-color: var(--header-bg-selection) !important;
         }
 
-        .label-wrapper {
+        .dg-label-wrapper {
           position: relative;
           padding: 0;
           width: 100%;

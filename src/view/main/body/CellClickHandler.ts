@@ -1,9 +1,11 @@
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
-import { Config, SelectionRange, Selection, CellInfo } from '@/types/GridConfig';
-import { getElementRect, hasClass } from '@/util/domUtils';
+import { CellInfo, Selection, SelectionRange } from '@/types/GridConfig';
+import { getElementRect } from '@/util/domUtils';
+import { isCtrlKey, isShiftKey } from '@/util/eventUtils';
 import {
   dragHorizontalMovePosition,
   dragVerticalMovePosition,
@@ -12,12 +14,8 @@ import {
   isMultipleSelectionMode,
   isRowSelectionMode,
 } from '@/util/gridUtils';
-import { BodyEvent } from './BodyEvent';
 import * as utils from '@/util/utils';
-import { GridOptions } from '@/types/GridOptions';
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
-import { isCtrlKey, isShiftKey } from '@/util/eventUtils';
-import { DaraElement } from '@/element/DaraElement';
+import { BodyEvent } from './BodyEvent';
 
 /**
  * CellClickHandler class
@@ -66,7 +64,6 @@ export class CellClickHandler extends BasePointerHandler {
 
   private currentSelectionMode: string;
 
-  private readonly enableDblClickRowCheck: boolean;
   private readonly cellDblClick: ((cellInfo: any) => any) | undefined;
   private readonly isCellDbClickEvent: boolean;
 
@@ -87,12 +84,9 @@ export class CellClickHandler extends BasePointerHandler {
     this.editable = this.opts.editable;
     this.rowHeight = this.cfg.rowHeight;
 
-    const rowOptions = this.opts.body.row;
-
-    this.enableDblClickRowCheck = rowOptions.enableDblClickRowCheck === true;
     this.cellDblClick = this.opts.body.cellDblClick;
 
-    this.isCellDbClickEvent = this.editable || this.enableDblClickRowCheck || utils.isFunction(this.cellDblClick);
+    this.isCellDbClickEvent = this.editable || utils.isFunction(this.cellDblClick);
   }
 
   onPointerDown(session: PointerSession): void {
@@ -309,10 +303,6 @@ export class CellClickHandler extends BasePointerHandler {
       field.$editRenderer.render(cellInfo, session.cellEl!);
     }
 
-    if (this.enableDblClickRowCheck) {
-      this.setRowCheckItemClick(cellInfo);
-    }
-
     if (this.cellDblClick?.(cellInfo) === false) return;
   }
 
@@ -328,7 +318,9 @@ export class CellClickHandler extends BasePointerHandler {
 
     if (rowCheckField) {
       (
-        this.bodyElement.querySelector(`.dg-row[rowinfo="${cellInfo.r}"] [name="${rowCheckField.$uid}"]`) as HTMLElement
+        this.bodyElement.querySelector(
+          `.dg-row[data-row="${cellInfo.r}"] [name="${rowCheckField.$uid}"]`,
+        ) as HTMLElement
       ).click();
     }
   }

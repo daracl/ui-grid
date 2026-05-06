@@ -74,11 +74,11 @@
         left: 0px;
         z-index: 1;
 
-        .fixed-column-line {
+        .dg-fixed-column-line {
           right: 0px;
         }
 
-        .dg-row > .dg-cell.dg-aside.selection:first-child {
+        .dg-row > .dg-cell.dg-aside.dg-selection:first-child {
           background: var(--header-bg-selection) !important;
         }
       }
@@ -91,7 +91,7 @@
         right: -1px;
         z-index: 1;
 
-        .fixed-column-line {
+        .dg-fixed-column-line {
           left: 0px;
         }
       }
@@ -121,7 +121,7 @@
 
           .dg-cell-renderer {
             position: relative;
-            margin: 0px 3px 1px 3px !important;
+            margin: 0px 5px 1px 5px !important;
             min-height: 23px;
             height: 23px;
             display: grid;
@@ -134,7 +134,7 @@
             }
           }
 
-          &.line-number {
+          &.dg-line-number {
             //background-color: var(--cell-bg-linenumber) !important;
             background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
           }
@@ -146,11 +146,11 @@
             background-color: var(--cell-bg-hover) !important;
           }
 
-          &.selection {
+          &.dg-selection {
             background-color: var(--cell-bg-selection) !important;
           }
 
-          &.start-cell {
+          &.dg-start-cell {
             -webkit-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
             -moz-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
             box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);

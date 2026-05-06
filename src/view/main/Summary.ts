@@ -1,7 +1,6 @@
 import { Config } from '@t/GridConfig';
 import { SummaryOptions } from '@t/GridOptions';
 
-import { ROW_CHECK_NAME } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
@@ -47,6 +46,10 @@ export class Summary {
     this.drawData();
 
     //처리할것.
+  }
+
+  public isEnabled() {
+    return this._isActive;
   }
 
   public getElement() {
@@ -202,7 +205,7 @@ export class Summary {
         <thead><tr>${colGroupHtm.join('')}</tr></thead>
         <tbody></tbody>
       </table> 
-      ${type != 'center' ? '<div class="fixed-column-line"></div>' : ''}`;
+      ${type != 'center' ? '<div class="dg-fixed-column-line"></div>' : ''}`;
   }
 
   /**
@@ -232,13 +235,11 @@ export class Summary {
         const rendererType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${camelToKebab(field.name).replace(
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside dg-${camelToKebab(field.name).replace(
             '$',
             '',
           )}" data-cell-position="${rowIdx},${startCol + j}">
-            <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${
-            field.$alignStyle
-          }"></div>
+            <div role="presentation" class="dg-cell-renderer ${field.$alignStyle}"></div>
           </td>`);
         } else {
           cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${
@@ -250,7 +251,7 @@ export class Summary {
         }
       }
 
-      returnTemplate.push(`<tr class="dg-row" rowinfo="${rowIdx}" style="height:${rowHeight[i]}px">
+      returnTemplate.push(`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight[i]}px">
           ${cellTemplate.join('')}
         </tr>`);
     }

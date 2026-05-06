@@ -2,6 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
+import { ALIGN_STYLE } from '@/constants';
 
 /**
  * Aside LineNumber renderer
@@ -17,5 +18,9 @@ export class AsideLineNumberRenderer extends ViewRenderer {
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     element.textContent = cellInfo.rowIndex + 1 + '';
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

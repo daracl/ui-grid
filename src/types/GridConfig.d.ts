@@ -119,10 +119,19 @@ export interface Config {
   paging: PagingOptions;
   selection: Selection;
   isHeaderResize: boolean;
+
   focus: boolean;
+  // row 이동 여부
   isMoveRow: boolean;
+
+  // body dragging 여부
   isBodyDragging: boolean;
+
+  // header dragging 여부
   isHeaderDragging: boolean;
+
+  // cell click 시 row 체크 여부
+  selectRowOnCellClick: boolean;
   mouseEnter: boolean;
   currentClickInfo: AnyKeyMap;
   allCheck: boolean;

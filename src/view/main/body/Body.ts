@@ -1,13 +1,20 @@
-import { CellInfo, HeaderCellInfo } from '@t/GridConfig';
+import { CellInfo } from '@t/GridConfig';
 
-import { ROW_CHECK_KEY, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, ROW_ID_KEY, WHITE_SPACE } from '@/constants';
+import {
+  ROW_CHECK_KEY,
+  ROW_CHECK_NAME,
+  ROW_CUD_KEY,
+  ROW_HEIGHT_KEY,
+  SELECTION_STYLE_CLASS,
+  WHITE_SPACE,
+} from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
-import * as utils from '@/util/utils';
-import { FieldItem } from '@t/GridField';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { removeClass } from '@/util/styleUtils';
+import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
+import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
 
 /**
@@ -32,8 +39,6 @@ export class Body {
   private allCellElements: any;
 
   private readonly rowCheckSet = new Set<number>();
-
-  private beforeRowCheckItem: any;
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -95,13 +100,13 @@ export class Body {
    * @public
    * @param {boolean} checked
    */
-  public setAllCheckItem(cellInfo: HeaderCellInfo, checked: boolean) {
-    this.rowCheckSet.clear();
-    const items = this.gridMain.config().dataManager.getViewItems();
-    for (const item of items) {
-      item[ROW_CHECK_KEY] = checked;
-      if (checked) this.rowCheckSet.add(item[ROW_ID_KEY]);
+  public setAllCheckItem(checked: boolean) {
+    if (checked) {
+      this.gridMain.config().dataManager.setAllCheck();
+    } else {
+      this.gridMain.config().dataManager.clearAllCheck();
     }
+
     this.dataDraw('allCheck');
   }
 
@@ -112,35 +117,16 @@ export class Body {
    * @param {boolean} checked check flag
    * @param {*} item row item
    */
-  public setCheckItem(cellInfo: CellInfo, checked: boolean) {
-    const item = cellInfo.item;
-    const cfg = this.gridMain.config();
-    const isRowAllowMultiSelect = cfg.isRowAllowMultiSelect;
+  public setItemChecked(item: any, checked: boolean) {
+    const { isRowAllowMultiSelect, dataManager, dataInfo } = this.gridMain.config();
+
+    dataManager.setItemChecked(item, checked);
 
     if (!isRowAllowMultiSelect) {
-      if (this.beforeRowCheckItem) {
-        this.beforeRowCheckItem[ROW_CHECK_KEY] = false;
-      }
-      item[ROW_CHECK_KEY] = true;
-      this.rowCheckSet.clear();
-      this.rowCheckSet.add(item[ROW_ID_KEY]);
-
-      this.beforeRowCheckItem = item;
-
       return;
     }
 
-    item[ROW_CHECK_KEY] = checked;
-
-    if (checked) {
-      if (!this.rowCheckSet.has(item[ROW_ID_KEY])) this.rowCheckSet.add(item[ROW_ID_KEY]);
-    } else if (this.rowCheckSet.has(item[ROW_ID_KEY])) {
-      this.rowCheckSet.delete(item[ROW_ID_KEY]);
-    }
-
-    this.gridMain
-      .getHeader()
-      .setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength), cellInfo.c);
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
   }
 
   /**
@@ -153,14 +139,14 @@ export class Body {
    * - name이 "id"인 경우 → 체크된 row들의 id만 추출하여 배열로 반환
    */
   public getCheckedItemByName(name: string) {
-    const cfg = this.gridMain.config();
+    const { dataManager } = this.gridMain.config();
 
     const result = [];
 
-    const items = cfg.dataManager.getViewItems();
+    const items = dataManager.getViewItems();
 
     for (const item of items) {
-      if (item[ROW_CHECK_KEY]) {
+      if (dataManager.isItemChecked(item)) {
         result.push(item[name]);
       }
     }
@@ -177,24 +163,24 @@ export class Body {
    */
   public setCheckedItemByValue(name: string, values: any) {
     const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
-    const cfg = this.gridMain.config();
+    const { dataManager, dataInfo } = this.gridMain.config();
     this.rowCheckSet.clear();
 
     const checkValue = utils.isArray(values) ? values : [values];
 
-    const items = cfg.dataManager.getViewItems();
+    const items = dataManager.getViewItems();
+
+    dataManager.clearAllCheck();
 
     for (const item of items) {
-      item[ROW_CHECK_KEY] = false;
       if (checkValue.includes(item[name])) {
-        item[ROW_CHECK_KEY] = true;
-        this.rowCheckSet.add(item[ROW_ID_KEY]);
+        dataManager.setItemChecked(item, true);
 
         if (isRowAllowMultiSelect) break;
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
 
     this.dataDraw('setCheckedItemByValue');
   }
@@ -207,19 +193,18 @@ export class Body {
    * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public addCheckedItemByValue(name: string, values: any) {
-    const cfg = this.gridMain.config();
+    const { dataManager, dataInfo } = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
-    const items = cfg.dataManager.getViewItems();
+    const items = dataManager.getViewItems();
 
     for (const item of items) {
       if (checkValue.includes(item[name])) {
-        item[ROW_CHECK_KEY] = true;
-        this.rowCheckSet.add(item[ROW_ID_KEY]);
+        dataManager.setItemChecked(item, true);
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
 
     this.dataDraw('addCheckedItemByValue');
   }
@@ -232,27 +217,18 @@ export class Body {
    * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public unCheckedItemByValue(name: string, values: any) {
-    const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
-    const cfg = this.gridMain.config();
+    const { dataManager, dataInfo } = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
-    const items = cfg.dataManager.getViewItems();
+    const items = dataManager.getViewItems();
 
     for (const item of items) {
       if (checkValue.includes(item[name])) {
-        item[ROW_CHECK_KEY] = false;
-
-        if (isRowAllowMultiSelect) {
-          this.rowCheckSet.clear();
-          this.dataDraw('unCheckedItemByValue');
-          break;
-        } else {
-          this.rowCheckSet.delete(item[ROW_ID_KEY]);
-        }
+        dataManager.setItemChecked(item, false);
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(this.rowCheckSet.size, cfg.dataInfo.rowLength));
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
 
     this.dataDraw('unCheckedItemByValue');
   }
@@ -266,8 +242,7 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    rowItem[ROW_CHECK_KEY] = checkFlag;
-    return rowItem;
+    this.gridMain.config().dataManager.setItemChecked(rowItem, checkFlag);
   }
 
   public setCenterElementStyle(styleCss: any) {
@@ -294,10 +269,10 @@ export class Body {
    *
    */
   public removeStartCellClass() {
-    const startCellElement = this.bodyElement.finds('.dg-cell.start-cell');
+    const startCellElement = this.bodyElement.finds('.dg-cell.dg-start-cell');
 
     if (startCellElement) {
-      removeClass(startCellElement, 'start-cell');
+      removeClass(startCellElement, 'dg-start-cell');
     }
   }
 
@@ -362,7 +337,7 @@ export class Body {
       for (let i = viewRow; i < beforeViewRow; i++) {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
-            const rowEl = element.find(`.dg-row[rowinfo="${i}"]`);
+            const rowEl = element.find(`.dg-row[data-row="${i}"]`);
             rowEl?.parentNode?.removeChild(rowEl);
           }
         }
@@ -420,11 +395,11 @@ export class Body {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
             if (i == hideRowIdx) {
-              element.find(`.dg-row[rowinfo="${hideRowIdx}"]`).style.display = 'none';
+              element.find(`.dg-row[data-row="${hideRowIdx}"]`).style.display = 'none';
               continue;
             }
 
-            const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
+            const style = element.find(`.dg-row[data-row="${i}"]`).style;
             if (style.display == 'none') style.removeProperty('display');
           }
         }
@@ -436,7 +411,7 @@ export class Body {
       for (let i = 0; i < viewRow; i++) {
         for (const { fields, element } of fieldGroups) {
           if (fields.length > 0) {
-            const style = element.find(`.dg-row[rowinfo="${i}"]`).style;
+            const style = element.find(`.dg-row[data-row="${i}"]`).style;
             if (style.display) style.removeProperty('display');
           }
         }
@@ -519,7 +494,7 @@ export class Body {
       }
     }
 
-    this.selectionInfo.setRowLineSelection();
+    this.selectRowAnchorCell();
     //const end = performance.now();
     //console.log(`실행 시간: ${end - start} ms`);
   }
@@ -610,7 +585,7 @@ export class Body {
       : '';
 
     // Define base classes that should not be removed
-    const baseClasses = new Set(['dg-cell', 'start-cell', 'selection']);
+    const baseClasses = new Set(['dg-cell', 'dg-start-cell', SELECTION_STYLE_CLASS]);
 
     if (newClass) {
       if (!classList.contains(newClass)) {
@@ -625,6 +600,33 @@ export class Body {
         classList.remove(cls);
       }
     });
+  }
+
+  selectRowAnchorCell() {
+    const cfg = this.gridMain.config();
+
+    const leafLeft = cfg.fieldHeaderGroup.leafLeft;
+
+    if (leafLeft && !leafLeft[0].$isAside) return;
+
+    const { left: leftElements } = this.gridMain.getBody().getBodyCellElements();
+
+    const startIdx = cfg.scroll.startIdx;
+    const isAll = this.selectionInfo.isAllSelect();
+    const rowLine = this.selectionInfo.getRowLine();
+
+    for (let i = 0; i < cfg.scroll.viewRow; i++) {
+      const lineNumberEle = leftElements[i][0];
+      const classList = lineNumberEle.classList;
+
+      if (isAll || rowLine.has(i + startIdx)) {
+        if (!classList.contains(SELECTION_STYLE_CLASS)) {
+          classList.add(SELECTION_STYLE_CLASS);
+        }
+      } else if (classList.contains(SELECTION_STYLE_CLASS)) {
+        classList.remove(SELECTION_STYLE_CLASS);
+      }
+    }
   }
 
   /**
@@ -669,7 +671,7 @@ export class Body {
       <thead><tr>${colGroupHtm.join('')}</tr></thead>
       <tbody></tbody>
     </table> 
-    ${type == 'center' ? '' : '<div class="fixed-column-line"></div>'}`;
+    ${type == 'center' ? '' : '<div class="dg-fixed-column-line"></div>'}`;
   }
 
   /**
@@ -709,7 +711,7 @@ export class Body {
         }
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside ${utils
+          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside dg-${utils
             .camelToKebab(field.name)
             .replace('$', '')}" data-cell-position="${rowIdx + ',' + (startCol + j)}">
           <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${
@@ -726,7 +728,7 @@ export class Body {
         }
       }
 
-      returnTemplate.push(`<tr class="dg-row" rowinfo="${rowIdx}" style="height:${rowHeight}px">
+      returnTemplate.push(`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight}px">
         ${cellTemplate.join('')}
       </tr>`);
     }

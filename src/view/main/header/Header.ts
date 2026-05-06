@@ -3,7 +3,7 @@ import { HeaderOptions } from '@t/GridOptions';
 import { DaraElement } from '@/element/DaraElement';
 import { GridMain } from '@/view/GridMain';
 
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME, SELECTION_STYLE_CLASS } from '@/constants';
 import { getHeaderCellInfo } from '@/util/gridUtils';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { intValue } from '@/util/utils';
@@ -29,10 +29,17 @@ export class Header {
 
   private headerCellElements: HTMLElement[];
 
+  private enabled = true;
+
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
 
     this.headerOpts = gridMain.options().header;
+
+    if (this.headerOpts.view === false) {
+      this.enabled = false;
+      return;
+    }
 
     this.initHeader();
 
@@ -44,6 +51,10 @@ export class Header {
     this.createTemplate();
 
     this.setHeight(this.gridMain.config().dimensions.mainHeaderHeight);
+  }
+
+  public isEnabled() {
+    return this.enabled;
   }
 
   public getHeaderCellElements() {
@@ -62,7 +73,6 @@ export class Header {
    * @param {?HTMLInputElement} [allCheckedElement]
    */
   public setAllCheckItem(checked: boolean, allCheckedElement?: HTMLInputElement) {
-    const cfg = this.gridMain.config();
     if (!allCheckedElement) {
       allCheckedElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement;
     }
@@ -73,13 +83,11 @@ export class Header {
 
     const headerCellElement = allCheckedElement.closest('.dg-header-cell');
 
-    const cellInfo = getHeaderCellInfo(cfg, headerCellElement as HTMLElement);
-
     const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
 
     removeClass(checkEle as HTMLElement, 'indeterminate');
 
-    this.gridMain.getBody().setAllCheckItem(cellInfo, allCheckedElement.checked);
+    this.gridMain.getBody().setAllCheckItem(allCheckedElement.checked);
   }
 
   /**
@@ -89,17 +97,12 @@ export class Header {
    * @param {number} idx
    * @param {("all" | "none" | "partial")} mode
    */
-  public setCheckboxStyle(mode: 'all' | 'none' | 'partial', idx?: number) {
+  public setCheckboxStyle(mode: 'all' | 'none' | 'partial') {
     if (!this.gridMain.config().isRowAllowMultiSelect) return;
 
-    let headerCellElement;
-    if (!idx) {
-      headerCellElement = (
-        this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement
-      ).closest('.dg-header-cell');
-    } else {
-      headerCellElement = this.headerElement.getElement().querySelector(`[data-header-cell-position="${idx}"]`);
-    }
+    const headerCellElement = (
+      this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement
+    ).closest('.dg-header-cell');
 
     const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
 
@@ -158,12 +161,14 @@ export class Header {
    * @param {number} mainRightWidth
    */
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
+    if (!this.enabled) return;
     this.leftElement.css({ width: mainLeftWidth + 'px' });
     this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
     this.rightElement.css({ width: mainRightWidth + 'px' });
   }
 
   public setCenterElementStyle(styleCss: any) {
+    if (!this.enabled) return;
     this.centerElement.css(styleCss);
   }
 
@@ -193,6 +198,40 @@ export class Header {
       const cellIdx = intValue(ele.getAttribute('data-header-cell-position') || '0');
       this.headerCellElements[cellIdx] = node;
     });
+  }
+
+  /**
+   *  set column line selection style
+   * @param columnLine  selected column line set
+   * @param isAll all select flag
+   * @returns
+   */
+  public selectColumnAnchorCell() {
+    if (!this.enabled) return;
+
+    const dataInfo = this.gridMain.config().dataInfo;
+    const headerObj = this.gridMain.getHeader();
+    const headerCellElements = headerObj.getHeaderCellElements();
+
+    const isAll = this.gridMain.selectionInfo.isAllSelect();
+    const columnLine = this.gridMain.selectionInfo.getColumnLine();
+
+    for (let col = dataInfo.startCol; col < dataInfo.colLength; col++) {
+      const headerEle = headerCellElements[col];
+      const classList = headerEle.classList;
+
+      if (isAll || columnLine.has(col)) {
+        if (!classList.contains(SELECTION_STYLE_CLASS)) {
+          classList.add(SELECTION_STYLE_CLASS);
+        }
+      } else if (classList.contains(SELECTION_STYLE_CLASS)) {
+        classList.remove(SELECTION_STYLE_CLASS);
+      }
+    }
+  }
+
+  clearAnchorCell() {
+    removeClass(this.getHeaderCellElements(), SELECTION_STYLE_CLASS);
   }
 
   /**
@@ -283,14 +322,16 @@ export class Header {
 
         const label =
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
-            ? '<label class="dg-checkbox dg-all"><input type="checkbox" name="dgRowAllCheck" /><span class="checkmark"></span></label>'
-            : `<div class="centered">${headerItem.label}</div>`;
+            ? `<label class="dg-checkbox dg-all">${
+                headerItem.label ?? ''
+              }<input type="checkbox" name="dgRowAllCheck" /><span class="dg-checkmark"></span></label>`
+            : `<div class="centered">${headerItem.label ?? ''}</div>`;
 
         const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : '';
 
         const labelHtml = `
           ${helpIcon}
-          <div class="label-wrapper">
+          <div class="dg-label-wrapper">
             <div class="dg-header-label ${headerItem.sort ? 'sort-header' : ''}">
              <div class="dg-inner"> ${label}</div>
               ${sortIcons}
@@ -329,6 +370,6 @@ export class Header {
         <thead><tr>${colGroupHtml.join('')}</tr></thead>
         <tbody>${rowsHtml.join('')}</tbody>
       </table>
-      ${type === 'center' ? '' : '<div class="fixed-column-line"></div>'}`;
+      ${type === 'center' ? '' : '<div class="dg-fixed-column-line"></div>'}`;
   }
 }

@@ -1,4 +1,4 @@
-import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SELECTION_STYLE_CLASS, SelectionMode } from '@/constants';
 import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
@@ -26,10 +26,6 @@ export const isFixedLeftPostion = (cfg: Config, idx: number): boolean => {
  */
 export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
   return cfg.fixedRightIndex > 0 && idx >= cfg.fixedRightIndex;
-};
-
-export const removeActiveColumnStyle = (element: HTMLElement) => {
-  element.classList.remove('selection');
 };
 
 /**

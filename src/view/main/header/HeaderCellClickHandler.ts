@@ -102,7 +102,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
     this.scrollDirectionX = null;
     this.beforeEndCol = -1;
 
-    if (this.multipleFlag && hasClass(session.cellEl!, 'line-number')) {
+    if (this.multipleFlag && hasClass(session.cellEl!, 'dg-line-number')) {
       this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
     }
   }

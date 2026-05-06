@@ -1,4 +1,4 @@
-import { ROW_CHECK_KEY } from '@/constants';
+import { ALIGN_STYLE } from '@/constants';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -13,7 +13,8 @@ import { ViewRenderer } from '../ViewRenderer';
  * @extends {ViewRenderer}
  */
 export class AsideRowCheckRenderer extends ViewRenderer {
-  private allowMultiSelect: boolean;
+  private readonly allowMultiSelect: boolean;
+
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
@@ -46,7 +47,7 @@ export class AsideRowCheckRenderer extends ViewRenderer {
       this.initClick(input);
     }
     const input = label.firstChild as HTMLInputElement;
-    input.checked = item[ROW_CHECK_KEY];
+    input.checked = this.cfg.dataManager.isItemChecked(item);
   }
 
   public isAllowMultiSelect(): boolean {
@@ -60,7 +61,11 @@ export class AsideRowCheckRenderer extends ViewRenderer {
       const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      this.gridMain.getBody().setCheckItem(cellInfo, contentElement.checked);
+      this.gridMain.getBody().setItemChecked(cellInfo.item, contentElement.checked);
     });
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

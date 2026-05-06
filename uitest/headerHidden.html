@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Dara header help</title>
+    <title>Dara header hidden</title>
   </head>
 
   <body>
@@ -142,16 +142,14 @@
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
         theme: document.getElementById('theme').value,
-        fixedLeftIndex: 2,
-        fixedRightIndex: 0,
         height: 335,
-        width: 1000,
         aside: {
           lineNumber: { enabled: true },
           rowCheckbox: {
             enabled: true,
-            //allowMultiSelect: false,
-            width: 100,
+            key: 'checkbox',
+            width: 27,
+            //, allowMultiSelect: false
           },
           modifyInfo: { enabled: true },
         },
@@ -167,42 +165,7 @@
         fields: colItem,
         items: aaa,
         header: {
-          view: true,
-          enableViewAllLabel_1: true,
-          //, heights: [20, 50, 50]
-          sort: {
-            //정렬 활성화 여부
-            enabled: false,
-            // null value 를 항상 끝으로 유지 할지 여부
-            nullsLast: true,
-            // custom sorting function
-            //,customSorting: ()=>{console.log(arguments)}
-          },
-          //,height :30
-          resize: {
-            enabled: true,
-            update: function (item) {
-              //console.log(item);
-            },
-            minWidth: 10,
-            maxWidth: 1000,
-          },
-          help: {
-            enabled: true, // header help btn 활성 여부.
-            content(fieldInfo) {
-              const field = fieldInfo.field;
-              return field.label;
-            },
-            click: (clickInfo) => {
-              // click event
-              console.log('clickInfo : ', clickInfo);
-            },
-          },
-          drag: {
-            enabled: true,
-            dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
-          },
+          view: false,
         },
       },
       message,

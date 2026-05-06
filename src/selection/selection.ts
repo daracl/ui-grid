@@ -7,7 +7,7 @@ import { GridMain } from '@/view/GridMain';
 import { removeClass } from '@/util/styleUtils';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
-import { SelectionMode } from '@/constants';
+import { SELECTION_STYLE_CLASS, SelectionMode } from '@/constants';
 import { escapeCellValue } from '@/util/gridUtils';
 
 export class SelectionInfo {
@@ -33,13 +33,12 @@ export class SelectionInfo {
     this.gridMain = gridMain;
     this.options = options;
     this.config = config;
-    this.initSelection();
   }
 
   public initSelection() {
     this.config.selection = initSelectionInfo();
     this.setReverseAllRange();
-    this.clearHeaderSelection();
+    this.gridMain.getHeader().clearAnchorCell();
     this.rowLine.clear();
     this.columnLine.clear();
   }
@@ -77,8 +76,7 @@ export class SelectionInfo {
       this.setCellSelection();
     }
 
-    this.setColumnLineSelection();
-    this.setRowLineSelection();
+    this.selectAnchorCell();
 
     this.gridMain.getFooter().setSelectionStatus();
   }
@@ -291,8 +289,22 @@ export class SelectionInfo {
     this.config.selection.all = flag;
     this.setCellSelection();
     this.gridMain.getFooter().setSelectionStatus();
-    this.setColumnLineSelection();
-    this.setRowLineSelection();
+    this.selectAnchorCell();
+  }
+
+  /**
+   * clear anchor cell
+   *
+   */
+  public clearAnchorCell() {
+    const bodyElement = this.gridMain.getBody().getBodyElement();
+    removeClass(bodyElement.finds('.dg-cell.dg-start-cell'), 'dg-start-cell');
+    removeClass(bodyElement.finds('.dg-cell.' + SELECTION_STYLE_CLASS), SELECTION_STYLE_CLASS);
+  }
+
+  public selectAnchorCell() {
+    this.gridMain.getHeader().selectColumnAnchorCell();
+    this.gridMain.getBody().selectRowAnchorCell();
   }
 
   /**
@@ -483,7 +495,7 @@ export class SelectionInfo {
     const minFixedLeftCol = Math.min(fixedLeftIndex - 1, endCol);
     const minScrollEndCol = Math.min(scroll.endCol, endCol);
 
-    this.clearSelectionCell();
+    this.clearAnchorCell();
 
     //console.log(fixedRightIndex, endCol, dataInfo.colLength, "  setCellSelection22222222222 : ", startRow, endRow, minFixedLeftCol, minScrollEndCol, selection);
 
@@ -512,54 +524,14 @@ export class SelectionInfo {
   }
 
   /**
-   * column line selection
-   *
-   * @private
+   
    */
-  private setColumnLineSelection() {
-    const dataInfo = this.config.dataInfo;
-    const headerCellElements = this.gridMain.getHeader().getHeaderCellElements();
-
-    const isAll = this.isAllSelect();
-    for (let col = dataInfo.startCol; col < dataInfo.colLength; col++) {
-      const headerEle = headerCellElements[col];
-      const classList = headerEle.classList;
-
-      if (isAll || this.columnLine.has(col)) {
-        if (!classList.contains('selection')) {
-          classList.add('selection');
-        }
-      } else if (classList.contains('selection')) {
-        classList.remove('selection');
-      }
-    }
+  public getColumnLine() {
+    return this.columnLine;
   }
 
-  public setRowLineSelection() {
-    const cfg = this.config;
-
-    const leafLeft = cfg.fieldHeaderGroup.leafLeft;
-
-    if (leafLeft && !leafLeft[0].$isAside) return;
-
-    const { left: leftElements } = this.gridMain.getBody().getBodyCellElements();
-
-    const isAll = this.isAllSelect();
-
-    const startIdx = cfg.scroll.startIdx;
-
-    for (let i = 0; i < cfg.scroll.viewRow; i++) {
-      const lineNumberEle = leftElements[i][0];
-      const classList = lineNumberEle.classList;
-
-      if (isAll || this.rowLine.has(i + startIdx)) {
-        if (!classList.contains('selection')) {
-          classList.add('selection');
-        }
-      } else if (classList.contains('selection')) {
-        classList.remove('selection');
-      }
-    }
+  public getRowLine() {
+    return this.rowLine;
   }
 
   /**
@@ -581,34 +553,18 @@ export class SelectionInfo {
     const classList = cellElement.classList;
 
     if (startIdx == rowIdx && startCol == col) {
-      classList.add('start-cell');
+      classList.add('dg-start-cell');
     }
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
-      if (!classList.contains('selection')) classList.add('selection');
+      if (!classList.contains(SELECTION_STYLE_CLASS)) classList.add(SELECTION_STYLE_CLASS);
 
       return true;
     }
 
-    if (classList.contains('selection')) classList.remove('selection');
+    if (classList.contains(SELECTION_STYLE_CLASS)) classList.remove(SELECTION_STYLE_CLASS);
 
     return false;
-  }
-
-  public clearHeaderSelection() {
-    if (this.gridMain.getHeader()) {
-      removeClass(this.gridMain.getHeader().getHeaderCellElements(), 'selection');
-    }
-  }
-
-  /**
-   * clear selection cell
-   *
-   */
-  public clearSelectionCell() {
-    const bodyElement = this.gridMain.getBody().getBodyElement();
-    removeClass(bodyElement.finds('.dg-cell.start-cell'), 'start-cell');
-    removeClass(bodyElement.finds('.dg-cell.selection'), 'selection');
   }
 
   /**
@@ -671,7 +627,7 @@ export class SelectionInfo {
     } else if (selectionMode == SelectionMode.MULTIPLE_CELL) {
       if (isMouseDown) {
         startCol = -1;
-      } else if (hasClass(cellElement, 'line-number')) {
+      } else if (hasClass(cellElement, 'dg-line-number')) {
         startCol = cfg.dataInfo.startCol;
         endCol = cfg.dataInfo.colLength - 1;
       } else {

@@ -1,9 +1,6 @@
-@use "../common/common";
-
+@use '../common/common';
 
 @mixin scroll {
-
-
   .dg-scroll-thumb {
     z-index: 1;
     position: absolute;
@@ -24,11 +21,12 @@
     width: 100%;
   }
 
-  .dg-scroll-edge{
-    bottom:0px;
-    right:0px;
-    position:absolute;
-    z-index:1;
+  .dg-scroll-edge {
+    bottom: 0px;
+    right: 0px;
+    display: none;
+    position: absolute;
+    z-index: 1;
     background-color: var(--scroll-track-bg);
   }
 

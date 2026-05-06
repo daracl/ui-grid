@@ -273,6 +273,8 @@ export const FIELD_LAYER_CLASS = 'dg-field-layer';
  */
 export const ALL_SELECT_VALUE = '$all$';
 
+export const SELECTION_STYLE_CLASS = 'dg-selection';
+
 /**
  * item chunk size
  *

@@ -25,6 +25,7 @@ export function initConfig(opts: GridOptions): Config {
     eventManager: new EventManager(),
     theme: 'light',
     isTreeType: false,
+    selectRowOnCellClick: opts.body?.row?.selectRowOnCellClick === true,
     enableHeaderHelpButton: opts.header?.help?.enabled,
     dimensions: {
       width: 0,

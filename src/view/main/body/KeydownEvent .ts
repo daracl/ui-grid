@@ -73,7 +73,7 @@ export class KeydownEvent implements EventHandler {
           // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 
-          const startElement = this.gridMain.getBody().getBodyElement().find('.dg-cell.start-cell');
+          const startElement = this.gridMain.getBody().getBodyElement().find('.dg-cell.dg-start-cell');
 
           const cellInfo = getCellInfo(cfg, startElement);
 

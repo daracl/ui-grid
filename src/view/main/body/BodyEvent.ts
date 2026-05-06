@@ -1,6 +1,6 @@
 import { getCellInfo, isInputField, isMouseMoved } from '@/util/gridUtils';
 
-import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
+import { LINE_NUMBER_NAME, MOUSE_MOVE_THRESHOLD, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -173,12 +173,21 @@ export class BodyEvent {
 
         const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
 
-        if (cellElement == null || hasClass(cellElement, '$row-check $modify-info')) {
+        if (cellElement == null) {
           this.gridMain.hideLayer();
           return;
         }
 
         const startCellInfo = getCellInfo(cfg, cellElement);
+        if (
+          startCellInfo.field.$isAside &&
+          startCellInfo.field.name !== LINE_NUMBER_NAME &&
+          startCellInfo.field.name !== ROW_DRAG_HANDLE_NAME
+        ) {
+          this.gridMain.hideLayer();
+          return;
+        }
+
         startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
         session = initPointerSession(e, startCellInfo, clickManager, cellElement);

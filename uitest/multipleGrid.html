@@ -161,7 +161,6 @@
     });
   }
 
-  let initFlag = false;
   function fn_init(initFlag) {
     const themeElement = document.getElementById('theme');
 
@@ -191,12 +190,9 @@
 
     const jsonInfo = getItem(itemType, itemCount, cellCount);
 
-    if (!initFlag) {
-      initFlag = true;
-    }
-    gridDraw(document.getElementById('sample'), initFlag ? [] : jsonInfo.items, jsonInfo.fields, 'auto', 'default');
-    //gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields, 'auto', 'striped');
-    //gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields, 800, 'borderless');
+    gridDraw(document.getElementById('sample'), initFlag ? jsonInfo.items : [], jsonInfo.fields, 'auto', 'default');
+    gridDraw(document.getElementById('sample2'), jsonInfo.items, jsonInfo.fields, 'auto', 'striped');
+    gridDraw(document.getElementById('sample3'), jsonInfo.items, jsonInfo.fields, 800, 'borderless');
   }
 
   document.addEventListener('DOMContentLoaded', function () {

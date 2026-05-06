@@ -2,7 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { ROW_CUD_KEY } from '@/constants';
+import { ALIGN_STYLE, ROW_CUD_KEY } from '@/constants';
 
 /**
  * aside modify info
@@ -36,5 +36,9 @@ export class AsideModifyInfoRenderer extends ViewRenderer {
     }
 
     element.textContent = '';
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 }

@@ -13,6 +13,7 @@ import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
 import { multiSort, arrayCopy } from '@/util/utils';
+import { CellInfo } from '../types/GridConfig';
 
 type RowId = string | number;
 
@@ -36,6 +37,8 @@ export class DataManager {
   private expandDepth = 1;
   private defaultExpandedIds: RowId[] = [];
 
+  private readonly rowCheckSet = new Set<RowId>();
+
   constructor(private opts: GridOptions, private cfg: Config) {
     this.isTreeType = !!opts.tree;
 
@@ -55,6 +58,49 @@ export class DataManager {
   private generateUUID(): string {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => ((Math.random() * 16) | 0).toString(16));
+  }
+
+  /**
+   * 전체 체크 설정
+   */
+  public setAllCheck() {
+    for (const item of this.getViewItems()) {
+      this.rowCheckSet.add(item[ROW_ID_KEY]);
+    }
+  }
+
+  /**
+   * 체크된 아이템 초기화
+   */
+  public clearAllCheck() {
+    this.rowCheckSet.clear();
+  }
+
+  /**
+   *  체크된 아이템 설정
+   * @param cellInfo 체크된 셀 정보
+   * @param checked 체크 여부
+   */
+  public setItemChecked(item: any, checked: boolean) {
+    const rowId = item[ROW_ID_KEY];
+    if (checked) {
+      this.rowCheckSet.add(rowId);
+    } else {
+      this.rowCheckSet.delete(rowId);
+    }
+  }
+
+  /**
+   * 특정 아이템이 체크되어 있는지 여부 반환
+   * @param item 체크 여부를 확인할 아이템
+   * @returns 체크 여부
+   */
+  public isItemChecked(item: any): boolean {
+    return this.rowCheckSet.has(item[ROW_ID_KEY]);
+  }
+
+  getCheckedCount(): number {
+    return this.rowCheckSet.size;
   }
 
   // ======================

@@ -489,10 +489,6 @@ export interface AsideOptions {
      * 순서
      */
     order?: number;
-    /**
-     * click시 row 전체 선택여부
-     */
-    enableRowSelection?: boolean; // 선택 여부
   };
   /**
    * 체크 박스
@@ -609,7 +605,7 @@ export interface BodyOptions {
     /**
      * double click 시 row checkbox 체크 여부
      */
-    enableDblClickRowCheck: boolean;
+    selectRowOnCellClick: boolean;
   };
 }
 
