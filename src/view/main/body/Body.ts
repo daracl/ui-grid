@@ -1,13 +1,6 @@
 import { CellInfo } from '@t/GridConfig';
 
-import {
-  ROW_CHECK_KEY,
-  ROW_CHECK_NAME,
-  ROW_CUD_KEY,
-  ROW_HEIGHT_KEY,
-  SELECTION_STYLE_CLASS,
-  WHITE_SPACE,
-} from '@/constants';
+import { BodyCellStyle, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, WHITE_SPACE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { getCheckboxMode } from '@/util/gridUtils';
@@ -264,16 +257,8 @@ export class Body {
     }
   }
 
-  /**
-   * remove start cell style class
-   *
-   */
-  public removeStartCellClass() {
-    const startCellElement = this.bodyElement.finds('.dg-cell.dg-start-cell');
-
-    if (startCellElement) {
-      removeClass(startCellElement, 'dg-start-cell');
-    }
+  public getStartCellElement() {
+    return this.bodyElement.find('.dg-cell.' + BodyCellStyle.START_CELL);
   }
 
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
@@ -434,7 +419,7 @@ export class Body {
 
     //const start = performance.now();
 
-    this.removeStartCellClass();
+    this.selectionInfo.removeStartAnchorCell();
 
     const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.currPage - 1) * cfg.paging.countPerPage : 0;
 
@@ -585,7 +570,7 @@ export class Body {
       : '';
 
     // Define base classes that should not be removed
-    const baseClasses = new Set(['dg-cell', 'dg-start-cell', SELECTION_STYLE_CLASS]);
+    const baseClasses: Set<string> = new Set([BodyCellStyle.CELL, BodyCellStyle.START_CELL, BodyCellStyle.SELECTION]);
 
     if (newClass) {
       if (!classList.contains(newClass)) {
@@ -620,11 +605,11 @@ export class Body {
       const classList = lineNumberEle.classList;
 
       if (isAll || rowLine.has(i + startIdx)) {
-        if (!classList.contains(SELECTION_STYLE_CLASS)) {
-          classList.add(SELECTION_STYLE_CLASS);
+        if (!classList.contains(BodyCellStyle.SELECTION)) {
+          classList.add(BodyCellStyle.SELECTION);
         }
-      } else if (classList.contains(SELECTION_STYLE_CLASS)) {
-        classList.remove(SELECTION_STYLE_CLASS);
+      } else if (classList.contains(BodyCellStyle.SELECTION)) {
+        classList.remove(BodyCellStyle.SELECTION);
       }
     }
   }

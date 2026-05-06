@@ -74,7 +74,7 @@ export class TreeRenderer extends ViewRenderer {
   initExpanderEvent(expander: HTMLSpanElement) {
     this.cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
-      const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
+      const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(this.cfg, cellElement);
 
       this.cfg.dataManager.toggleRow(cellInfo.item[ROW_ID_KEY]);

@@ -1,14 +1,13 @@
-import { GridOptions } from '@t/GridOptions';
-import { Config, Selection, SelectionRange } from '@t/GridConfig';
-import * as utils from '@/util/utils';
-import { initSelectionInfo } from '../defaultGridConfig';
-import { isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
-import { GridMain } from '@/view/GridMain';
-import { removeClass } from '@/util/styleUtils';
+import { BodyCellStyle, SelectionMode } from '@/constants';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
-import { SELECTION_STYLE_CLASS, SelectionMode } from '@/constants';
-import { escapeCellValue } from '@/util/gridUtils';
+import { escapeCellValue, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
+import { removeClass } from '@/util/styleUtils';
+import * as utils from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { Config, Selection, SelectionRange } from '@t/GridConfig';
+import { GridOptions } from '@t/GridOptions';
+import { initSelectionInfo } from '../defaultGridConfig';
 
 export class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -298,13 +297,18 @@ export class SelectionInfo {
    */
   public clearAnchorCell() {
     const bodyElement = this.gridMain.getBody().getBodyElement();
-    removeClass(bodyElement.finds('.dg-cell.dg-start-cell'), 'dg-start-cell');
-    removeClass(bodyElement.finds('.dg-cell.' + SELECTION_STYLE_CLASS), SELECTION_STYLE_CLASS);
+    this.removeStartAnchorCell();
+    removeClass(bodyElement.finds('.dg-cell.' + BodyCellStyle.SELECTION), BodyCellStyle.SELECTION);
   }
 
   public selectAnchorCell() {
     this.gridMain.getHeader().selectColumnAnchorCell();
     this.gridMain.getBody().selectRowAnchorCell();
+  }
+
+  public removeStartAnchorCell() {
+    const bodyElement = this.gridMain.getBody().getStartCellElement();
+    removeClass(bodyElement, BodyCellStyle.START_CELL);
   }
 
   /**
@@ -553,16 +557,16 @@ export class SelectionInfo {
     const classList = cellElement.classList;
 
     if (startIdx == rowIdx && startCol == col) {
-      classList.add('dg-start-cell');
+      classList.add(BodyCellStyle.START_CELL);
     }
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
-      if (!classList.contains(SELECTION_STYLE_CLASS)) classList.add(SELECTION_STYLE_CLASS);
+      if (!classList.contains(BodyCellStyle.SELECTION)) classList.add(BodyCellStyle.SELECTION);
 
       return true;
     }
 
-    if (classList.contains(SELECTION_STYLE_CLASS)) classList.remove(SELECTION_STYLE_CLASS);
+    if (classList.contains(BodyCellStyle.SELECTION)) classList.remove(BodyCellStyle.SELECTION);
 
     return false;
   }

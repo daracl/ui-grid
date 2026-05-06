@@ -1,4 +1,12 @@
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ScrollDirectionX, ScrollDirectionY, SelectionMode } from '@/constants';
+import {
+  LINE_NUMBER_NAME,
+  ROW_CHECK_NAME,
+  ScrollDirectionX,
+  ScrollDirectionXMap,
+  ScrollDirectionY,
+  ScrollDirectionYMap,
+  SelectionMode,
+} from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
@@ -220,7 +228,7 @@ export class CellClickHandler extends BasePointerHandler {
       const moveRangeInfo = {} as SelectionRange;
 
       if (scrollDirectionX !== null) {
-        const isRight = scrollDirectionX === ScrollDirectionX.RIGHT;
+        const isRight = scrollDirectionX === ScrollDirectionXMap.RIGHT;
 
         const endCol = isRight ? cfg.scroll.insideEndCol + 3 : cfg.scroll.insideStartCol - 3;
 
@@ -238,7 +246,7 @@ export class CellClickHandler extends BasePointerHandler {
 
       if (scrollDirectionY !== null) {
         const endIdx =
-          scrollDirectionY === ScrollDirectionY.DOWN
+          scrollDirectionY === ScrollDirectionYMap.DOWN
             ? cfg.scroll.startIdx + cfg.scroll.insideViewRow + 1
             : cfg.scroll.startIdx - 1;
 
@@ -365,7 +373,7 @@ export class CellClickHandler extends BasePointerHandler {
     );
 
     if ((multipleFlag && keyMode != 2) || !multipleFlag) {
-      gridMain.getBody().removeStartCellClass();
+      gridMain.selectionInfo.removeStartAnchorCell();
     }
 
     const rangeType = isRowSelectionMode(selectionMode) ? 'row' : 'cell';

@@ -273,8 +273,6 @@ export const FIELD_LAYER_CLASS = 'dg-field-layer';
  */
 export const ALL_SELECT_VALUE = '$all$';
 
-export const SELECTION_STYLE_CLASS = 'dg-selection';
-
 /**
  * item chunk size
  *
@@ -295,28 +293,45 @@ export const SCROLL_THUMB_MIN_SIZE = 18;
 /**
  * Scroll direction enum for X-axis
  */
-export enum ScrollDirectionX {
-  LEFT = 'L',
-  RIGHT = 'R',
-}
+export const ScrollDirectionXMap = {
+  LEFT: 'L',
+  RIGHT: 'R',
+} as const;
+
+export type ScrollDirectionX = (typeof ScrollDirectionXMap)[keyof typeof ScrollDirectionXMap];
 
 /**
  * Scroll direction enum for Y-axis
  */
-export enum ScrollDirectionY {
-  UP = 'U',
-  DOWN = 'D',
-}
+export const ScrollDirectionYMap = {
+  UP: 'U',
+  DOWN: 'D',
+} as const;
 
-export enum SelectionMode {
-  MULTIPLE_ROW = 'multiple-row',
-  MULTIPLE_CELL = 'multiple-cell',
-  ROW = 'row',
-  CELL = 'cell',
-}
+export type ScrollDirectionY = (typeof ScrollDirectionYMap)[keyof typeof ScrollDirectionYMap];
 
-export enum MovePosition {
-  BEFORE = 'before',
-  AFTER = 'after',
-  INSIDE = 'inside',
-}
+export const SelectionMode = {
+  MULTIPLE_ROW: 'multiple-row',
+  MULTIPLE_CELL: 'multiple-cell',
+  ROW: 'row',
+  CELL: 'cell',
+} as const;
+
+export const MovePositionMap = {
+  BEFORE: 'before',
+  AFTER: 'after',
+  INSIDE: 'inside',
+} as const;
+
+export type MovePosition = (typeof MovePositionMap)[keyof typeof MovePositionMap];
+
+/**
+ * body cell style class
+ *
+ * @type {{CELL: string, SELECTION: string, START_CELL: string}}
+ */
+export const BodyCellStyle = {
+  CELL: 'dg-cell',
+  SELECTION: 'dg-selection',
+  START_CELL: 'dg-start-cell',
+} as const;

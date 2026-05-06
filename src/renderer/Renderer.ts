@@ -13,4 +13,8 @@ export abstract class Renderer {
     this.gridMain = gridMain;
     this.language = this.gridMain.i18n();
   }
+
+  public getClosestCellElement(target: HTMLElement) {
+    return target.closest('.dg-cell') as HTMLElement;
+  }
 }

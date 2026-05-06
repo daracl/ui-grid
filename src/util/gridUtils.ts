@@ -1,10 +1,11 @@
-import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionY, SELECTION_STYLE_CLASS, SelectionMode } from '@/constants';
+import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionXMap, ScrollDirectionY, SelectionMode } from '@/constants';
+import { PointerPosition } from '@/event/PointerSession';
 import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
-import { EditRendererInfo, RendererInfo } from '@t/RendererInfo';
+import { EditRendererInfo } from '@t/RendererInfo';
 import { intValue, isArray, isEmpty, isNumber } from './utils';
-import { PointerPosition } from '@/event/PointerSession';
+import { ScrollDirectionYMap } from '../constants';
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -215,7 +216,7 @@ export const getHorizontalScrollPosition = (cfg: Config, centerGridLeft: number,
   }
 
   let left;
-  if (direction == ScrollDirectionX.RIGHT) {
+  if (direction === ScrollDirectionXMap.RIGHT) {
     left = centerGridLeft - cfg.dimensions.mainCenterViewWidth;
   } else {
     left = centerGridLeft - 2;
@@ -264,13 +265,13 @@ export const dragVerticalMovePosition = (
   const viewRow = scroll.viewRow;
   const rowLength = dataInfo.rowLength;
 
-  let scrollDirectionY: ScrollDirectionY.UP | ScrollDirectionY.DOWN | null = null;
+  let scrollDirectionY: ScrollDirectionY | null = null;
   let rowIdx = -1;
 
   // 위
   if (moveY < _t) {
     if (startIdx > 0) {
-      scrollDirectionY = ScrollDirectionY.UP;
+      scrollDirectionY = ScrollDirectionYMap.UP;
       rowIdx = startIdx - 1;
     } else {
       rowIdx = 0;
@@ -282,7 +283,7 @@ export const dragVerticalMovePosition = (
   // 아래
   if (moveY > _b) {
     if (startIdx + insideViewRow < rowLength) {
-      scrollDirectionY = ScrollDirectionY.DOWN;
+      scrollDirectionY = ScrollDirectionYMap.DOWN;
       rowIdx = startIdx + insideViewRow + 1;
     } else {
       rowIdx = rowLength - 1;
@@ -348,7 +349,7 @@ export const dragHorizontalMovePosition = (
     centerMovePageX = moveX - positionX;
     endCellIdx = fixedLeftIndex;
 
-    scrollDirectionX = ScrollDirectionX.LEFT;
+    scrollDirectionX = ScrollDirectionXMap.LEFT;
   } else if (moveX > _r) {
     // 오른쪽으로 드래그
     startCellIdx = fixedRightIndex;
@@ -359,7 +360,7 @@ export const dragHorizontalMovePosition = (
       overCell = totalCells - 1;
     }
 
-    scrollDirectionX = ScrollDirectionX.RIGHT;
+    scrollDirectionX = ScrollDirectionXMap.RIGHT;
   } else {
     // 중앙 영역
     centerMovePageX = moveX - _l;
@@ -367,7 +368,7 @@ export const dragHorizontalMovePosition = (
     contentLeftVal = getCenterContentLeft(cfg, cfg.scroll.left);
   }
 
-  if (!(startCellIdx < 1 && scrollDirectionX === ScrollDirectionX.RIGHT)) {
+  if (!(startCellIdx < 1 && scrollDirectionX === ScrollDirectionXMap.RIGHT)) {
     if (centerMovePageX <= 0) {
       overCell = 0;
     } else if (overCell === -1) {
@@ -396,8 +397,8 @@ export const dragHorizontalMovePosition = (
   }
 
   if (
-    (scrollDirectionX == ScrollDirectionX.LEFT && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
-    (scrollDirectionX == ScrollDirectionX.RIGHT &&
+    (scrollDirectionX === ScrollDirectionXMap.LEFT && (isFixedLeftPostion(cfg, startCol) || cfg.scroll.left == 0)) ||
+    (scrollDirectionX === ScrollDirectionXMap.RIGHT &&
       (isFixedRightPostion(cfg, startCol) ||
         totalCells - (fixedRightIndex > 0 ? totalCells - fixedRightIndex : 0) - 1 == cfg.scroll.insideEndCol))
   ) {

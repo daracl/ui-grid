@@ -3,8 +3,7 @@ import { HeaderOptions } from '@t/GridOptions';
 import { DaraElement } from '@/element/DaraElement';
 import { GridMain } from '@/view/GridMain';
 
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME, SELECTION_STYLE_CLASS } from '@/constants';
-import { getHeaderCellInfo } from '@/util/gridUtils';
+import { BodyCellStyle, LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
@@ -221,17 +220,17 @@ export class Header {
       const classList = headerEle.classList;
 
       if (isAll || columnLine.has(col)) {
-        if (!classList.contains(SELECTION_STYLE_CLASS)) {
-          classList.add(SELECTION_STYLE_CLASS);
+        if (!classList.contains(BodyCellStyle.SELECTION)) {
+          classList.add(BodyCellStyle.SELECTION);
         }
-      } else if (classList.contains(SELECTION_STYLE_CLASS)) {
-        classList.remove(SELECTION_STYLE_CLASS);
+      } else if (classList.contains(BodyCellStyle.SELECTION)) {
+        classList.remove(BodyCellStyle.SELECTION);
       }
     }
   }
 
   clearAnchorCell() {
-    removeClass(this.getHeaderCellElements(), SELECTION_STYLE_CLASS);
+    removeClass(this.getHeaderCellElements(), BodyCellStyle.SELECTION);
   }
 
   /**

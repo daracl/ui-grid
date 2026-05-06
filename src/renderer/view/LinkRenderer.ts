@@ -53,7 +53,7 @@ export class LinkRenderer extends ViewRenderer {
     cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
       const eventElement = e.target as HTMLElement;
-      const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
+      const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(cfg, cellElement);
 
       this.click(e, cellElement, cellInfo);

@@ -66,7 +66,7 @@ export class SwitchRenderer extends EditRenderer {
     const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      const cellElement = contentElement.closest('.dg-cell') as HTMLElement;
+      const cellElement = this.getClosestCellElement(contentElement);
 
       const cellInfo = getCellInfo(cfg, cellElement);
 

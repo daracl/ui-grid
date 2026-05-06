@@ -1,4 +1,10 @@
-import { HIDDEN_ELEMENT_SELECTOR, MovePosition, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import {
+  HIDDEN_ELEMENT_SELECTOR,
+  MovePosition,
+  MovePositionMap,
+  POINTER_STATE,
+  ROW_DRAG_HANDLE_NAME,
+} from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { PointerSession } from '@/event/PointerSession';
 import { CellInfo, Selection, SelectionRange } from '@/types/GridConfig';
@@ -295,10 +301,10 @@ export class RowMoveHandler extends CellClickHandler {
 
     const moveStartItem = this.moveStartItem;
 
-    let position = MovePosition.BEFORE;
+    let position: MovePosition = MovePositionMap.BEFORE;
     let dropItemIdx = currentDropRowIdx;
     if (moveStartItem.rowIndex < currentDropRowIdx) {
-      position = MovePosition.AFTER;
+      position = MovePositionMap.AFTER;
       dropItemIdx = currentDropRowIdx - 1;
     }
 
@@ -340,16 +346,16 @@ export class RowMoveHandler extends CellClickHandler {
     const moveItems = this.moveItems;
     const moveStartItem = this.moveStartItem;
 
-    let position = MovePosition.BEFORE;
+    let position: MovePosition = MovePositionMap.BEFORE;
 
     if (moveStartItem.rowIndex < dropRowIdx) {
-      position = MovePosition.AFTER;
+      position = MovePositionMap.AFTER;
     }
 
     if (
       rowMoveOptions?.drop?.({
         moveItems: moveItems,
-        dropItemIdx: position == MovePosition.AFTER ? dropRowIdx - 1 : dropRowIdx,
+        dropItemIdx: position == MovePositionMap.AFTER ? dropRowIdx - 1 : dropRowIdx,
         position: position,
       }) === false
     ) {

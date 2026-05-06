@@ -1,4 +1,4 @@
-import { ScrollDirectionX, SelectionMode } from '@/constants';
+import { ScrollDirectionX, ScrollDirectionXMap, SelectionMode } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
@@ -193,7 +193,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
       const moveRangeInfo = {} as SelectionRange;
 
       if (scrollDirectionX !== null) {
-        const isRight = scrollDirectionX === ScrollDirectionX.RIGHT;
+        const isRight = scrollDirectionX === ScrollDirectionXMap.RIGHT;
 
         const endCol = isRight ? cfg.scroll.insideEndCol + 1 : cfg.scroll.insideStartCol - 1;
 

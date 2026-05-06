@@ -133,7 +133,7 @@ export class DropdownRenderer extends ViewRenderer {
   initEvent(contentElement: HTMLElement) {
     this.cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
-      const cellElement = eventElement.closest('.dg-cell') as HTMLElement;
+      const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(this.cfg, cellElement);
 
       this.click(e, cellElement, cellInfo);
