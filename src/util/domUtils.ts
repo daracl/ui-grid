@@ -38,7 +38,7 @@ export function getElementRect(
   height: number;
 } {
   if (!el) {
-    throw new Error('유효하지 않은 요소입니다.');
+    throw new Error('Invalid element.');
   }
 
   const rect = el.getBoundingClientRect();

@@ -28,7 +28,6 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       matchWholeWord: false,
       useRegex: false,
       searchFields: ALL_SELECT_VALUE,
-      matchWholeRegex: /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g,
     },
     options,
   );

@@ -1,12 +1,20 @@
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
-import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionMode, TOOLBAR_HEIGHT, VIEW_RENDERER } from './constants';
+import {
+  EDIT_RENDERER,
+  FOOTER_HEIGHT,
+  ROW_ID_FIELD_NAME,
+  SelectionMode,
+  TOOLBAR_HEIGHT,
+  VIEW_RENDERER,
+} from './constants';
 import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
 
 /**
  * grid default option
  */
 export const DEFAULT_OPTIONS: GridOptions = {
+  rowIdField: ROW_ID_FIELD_NAME, // 고유 아이디 키값
   theme: 'light', // 테마 값
   height: 'auto', // 높이 값
   width: 'auto', // 넓이값
@@ -202,11 +210,11 @@ export const DEFAULT_OPTIONS: GridOptions = {
   }, // paging info
   i18n: {
     empty: 'no data',
-    'search.label': '설정',
+    'search.label': 'Find',
     'search.button': 'Search',
-    'setting.speed.label': '스크롤속도',
-    'setting.column.fixed.label': '고정컬럼',
-    'setting.column.fixed.notused': '사용안함',
+    'setting.speed.label': 'Scroll Speed',
+    'setting.column.fixed.label': 'Fixed Column',
+    'setting.column.fixed.notused': 'Not Used',
   },
   icon: {
     sortup:

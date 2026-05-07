@@ -1,14 +1,13 @@
-import { Config } from '@t/GridConfig';
-import { ROW_ID_KEY } from '@/constants';
-
 const workerCode = `
 self.onmessage = function (e) {
-    const items = e.data;
+    const data = e.data;
+    const items = data.items;
+    const ROW_ID_FIELD_NAME = data.rowIdField;
     const len = items.length;
     const result = new Array(len);
 
     for (let i = 0; i < len; i++) {
-        items[i]["${ROW_ID_KEY}"] = i;
+        items[i]["\${ROW_ID_FIELD_NAME}"] = i;
     }
     self.postMessage(items);
 };

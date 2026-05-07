@@ -3,7 +3,7 @@ import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, Selectio
 import { FieldItem } from '@t/GridField';
 import { isPlainObject } from '@/util/utils';
 import { DataManager } from '@/service/DataManager';
-import { ALL_SELECT_VALUE } from '@/constants';
+import { ALL_SELECT_VALUE, ROW_ID_FIELD_NAME } from '@/constants';
 import { EventManager } from '@/event/EventManager';
 
 /**
@@ -20,7 +20,7 @@ export function initConfig(opts: GridOptions): Config {
   const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
   return {
-    rowIdSeq: 0,
+    rowIdField: opts.rowIdField || ROW_ID_FIELD_NAME,
     dataManager: {} as DataManager,
     eventManager: new EventManager(),
     theme: 'light',

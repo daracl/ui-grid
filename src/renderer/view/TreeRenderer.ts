@@ -1,4 +1,4 @@
-import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_KEY } from '@/constants';
+import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
@@ -72,12 +72,13 @@ export class TreeRenderer extends ViewRenderer {
   }
 
   initExpanderEvent(expander: HTMLSpanElement) {
-    this.cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
+    const cfg = this.cfg;
+    cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = this.getClosestCellElement(eventElement);
-      const cellInfo = getCellInfo(this.cfg, cellElement);
+      const cellInfo = getCellInfo(cfg, cellElement);
 
-      this.cfg.dataManager.toggleRow(cellInfo.item[ROW_ID_KEY]);
+      cfg.dataManager.toggleRow(cellInfo.item[cfg.rowIdField]);
       this.gridMain.refreshBody();
 
       //stopPreventCancel(e);

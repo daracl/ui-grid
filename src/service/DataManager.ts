@@ -1,19 +1,17 @@
 import {
-  ROW_HAS_CHILD_KEY,
+  ALL_SELECT_VALUE,
   ROW_CUD_KEY,
   ROW_DEPTH_KEY,
   ROW_EXPANDED_KEY,
+  ROW_HAS_CHILD_KEY,
   ROW_HEIGHT_KEY,
-  ROW_ID_KEY,
-  ALL_SELECT_VALUE,
 } from '@/constants';
 import { OptionCallback, SearchMode } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { multiSort, arrayCopy } from '@/util/utils';
-import { CellInfo } from '../types/GridConfig';
+import { arrayCopy, multiSort } from '@/util/utils';
 
 type RowId = string | number;
 
@@ -27,8 +25,11 @@ export class DataManager {
 
   private sortOrginItems: any[] = [];
 
+  private matchWholeRegex: RegExp;
+
   private rowHeight;
 
+  private readonly rowIdField: string;
   private isTreeType = false;
   private idKey = 'id';
   private pidKey = 'pid';
@@ -50,6 +51,9 @@ export class DataManager {
     this.defaultExpandedIds = opts.tree?.defaultExpandedIds ?? [];
 
     this.rowHeight = cfg.rowHeight;
+    this.rowIdField = cfg.rowIdField;
+
+    this.matchWholeRegex = opts.search?.matchWholeRegex ?? /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;
   }
 
   // ======================
@@ -65,7 +69,7 @@ export class DataManager {
    */
   public setAllCheck() {
     for (const item of this.getViewItems()) {
-      this.rowCheckSet.add(item[ROW_ID_KEY]);
+      this.rowCheckSet.add(item[this.rowIdField]);
     }
   }
 
@@ -82,7 +86,7 @@ export class DataManager {
    * @param checked 체크 여부
    */
   public setItemChecked(item: any, checked: boolean) {
-    const rowId = item[ROW_ID_KEY];
+    const rowId = item[this.rowIdField];
     if (checked) {
       this.rowCheckSet.add(rowId);
     } else {
@@ -96,7 +100,7 @@ export class DataManager {
    * @returns 체크 여부
    */
   public isItemChecked(item: any): boolean {
-    return this.rowCheckSet.has(item[ROW_ID_KEY]);
+    return this.rowCheckSet.has(item[this.rowIdField]);
   }
 
   getCheckedCount(): number {
@@ -159,7 +163,7 @@ export class DataManager {
   // ======================
   private initItems(items: any[], depth = 0): any[] {
     return items.map((item) => {
-      item[ROW_ID_KEY] = item[ROW_ID_KEY] ?? this.generateUUID();
+      item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
       item[ROW_DEPTH_KEY] = depth;
       item[ROW_CUD_KEY] = 'R';
       item[ROW_HEIGHT_KEY] = this.rowHeight;
@@ -185,7 +189,7 @@ export class DataManager {
 
     const traverse = (list: any[]) => {
       for (const item of list) {
-        const rowId = item[ROW_ID_KEY];
+        const rowId = item[this.rowIdField];
         const idValue = item[this.idKey];
 
         this.rowMap.set(rowId, item);
@@ -221,7 +225,7 @@ export class DataManager {
     if (this.expandDepth > 0) {
       for (const item of this.rowMap.values()) {
         const depth = item[ROW_DEPTH_KEY];
-        const id = item[ROW_ID_KEY];
+        const id = item[this.rowIdField];
 
         if (depth < this.expandDepth) {
           this.expandedSet.add(id);
@@ -230,7 +234,7 @@ export class DataManager {
     }
 
     for (const item of this.rowMap.values()) {
-      const id = item[ROW_ID_KEY];
+      const id = item[this.rowIdField];
       item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
     }
   }
@@ -252,7 +256,7 @@ export class DataManager {
 
         result.push(item);
 
-        const id = item[ROW_ID_KEY];
+        const id = item[this.rowIdField];
 
         if (this.expandedSet.has(id)) {
           const children = this.childrenMap.get(id);
@@ -311,7 +315,7 @@ export class DataManager {
     }
 
     for (const item of this.rowMap.values()) {
-      const id = item[ROW_ID_KEY];
+      const id = item[this.rowIdField];
       item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
     }
 
@@ -357,7 +361,7 @@ export class DataManager {
   public removeRow(rowId: RowId) {
     const remove = (list: any[]): any[] =>
       list.filter((item) => {
-        if (item[ROW_ID_KEY] === rowId) return false;
+        if (item[this.rowIdField] === rowId) return false;
 
         const children = item[this.childrenKey];
         if (children) item[this.childrenKey] = remove(children);
@@ -403,6 +407,7 @@ export class DataManager {
         });
     }
 
+    options.matchWholeRegex = this.matchWholeRegex;
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
     //console.log('searchResults : ', this.isTreeType, searchResults);

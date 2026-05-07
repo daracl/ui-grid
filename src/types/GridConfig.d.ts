@@ -11,7 +11,7 @@ import { EventManager } from '@/event/EventManager';
  */
 export interface Config {
   // row id seq
-  rowIdSeq: number;
+  rowIdField: string;
   theme: string;
   isTreeType: boolean;
   // header help button

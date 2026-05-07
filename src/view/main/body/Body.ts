@@ -31,8 +31,6 @@ export class Body {
 
   private allCellElements: any;
 
-  private readonly rowCheckSet = new Set<number>();
-
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
     this.createTemplate();
@@ -157,19 +155,18 @@ export class Body {
   public setCheckedItemByValue(name: string, values: any) {
     const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
     const { dataManager, dataInfo } = this.gridMain.config();
-    this.rowCheckSet.clear();
 
-    const checkValue = utils.isArray(values) ? values : [values];
+    const checkValues = utils.isArray(values) ? values : [values];
 
     const items = dataManager.getViewItems();
 
     dataManager.clearAllCheck();
 
     for (const item of items) {
-      if (checkValue.includes(item[name])) {
+      if (checkValues.includes(item[name])) {
         dataManager.setItemChecked(item, true);
 
-        if (isRowAllowMultiSelect) break;
+        if (!isRowAllowMultiSelect) break;
       }
     }
 

@@ -210,7 +210,7 @@ export const ROW_CHECK_KEY = ROw_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
  *
  * @type {"_dg$rowid"}
  */
-export const ROW_ID_KEY = ROw_ITEM_PREFIX_NAME + '$rowid';
+export const ROW_ID_FIELD_NAME = ROw_ITEM_PREFIX_NAME + '$rowid';
 
 /**
  * row height key
@@ -291,7 +291,7 @@ export const POINTER_STATE = {
 export const SCROLL_THUMB_MIN_SIZE = 18;
 
 /**
- * Scroll direction enum for X-axis
+ * Scroll direction for X-axis
  */
 export const ScrollDirectionXMap = {
   LEFT: 'L',
@@ -301,7 +301,7 @@ export const ScrollDirectionXMap = {
 export type ScrollDirectionX = (typeof ScrollDirectionXMap)[keyof typeof ScrollDirectionXMap];
 
 /**
- * Scroll direction enum for Y-axis
+ * Scroll direction for Y-axis
  */
 export const ScrollDirectionYMap = {
   UP: 'U',

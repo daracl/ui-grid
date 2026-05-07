@@ -36,7 +36,7 @@ let localeMessage: Message = {
     'upper-char-special': '대문자,소문자,특수문자 각각 하나 이상 포함 되어야 합니다.',
     'upper-char-special-number': '대문자,소문자,특수문자,숫자 각각 하나 이상 포함 되어야합니다.',
   },
-  'search.label': '찾기',
+  'search.label': 'Find',
 
   'no.data': 'No Data',
   'select.all': '전체선택',

@@ -1,8 +1,7 @@
-import { FORM_MODE, POSITION_TYPE, RENDER_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
+import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback } from './Common';
-import { FieldItem } from './GridField';
 import { CellInfo } from './GridConfig';
-import { Renderer } from '@/renderer/Render';
+import { FieldItem } from './GridField';
 import { RendererInfo } from './RendererInfo';
 
 /**
@@ -12,6 +11,10 @@ import { RendererInfo } from './RendererInfo';
  * @typedef {GridOptions}
  */
 export interface GridOptions {
+  /**
+   * 고유 아이디 키값
+   */
+  rowIdField: string;
   /**
    *  테마 값
    */
@@ -328,6 +331,11 @@ export interface SearchOptions {
    * 활성화 여부
    */
   enabled?: boolean;
+
+  /**
+   * 검색어 완전 일치 여부 (정규식)
+   */
+  matchWholeRegex?: RegExp;
 
   /**
    * find mode

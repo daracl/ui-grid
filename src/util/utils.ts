@@ -99,7 +99,7 @@ export const copyStringToClipboard = (copyText: string) => {
       .writeText(copyText)
       .then(() => void 0)
       .catch((err) => {
-        console.log(err);
+        //console.log(err);
         fallbackCopyToClipboard(copyText);
       });
   } else {

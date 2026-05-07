@@ -12,11 +12,10 @@ import {
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   LINE_NUMBER_NAME,
-  ROW_CHECK_KEY,
   ROW_CHECK_NAME,
   ROW_CUD_KEY,
   ROW_DRAG_HANDLE_NAME,
-  ROW_ID_KEY,
+  ROW_ID_FIELD_NAME,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
@@ -25,6 +24,7 @@ import { DaraGrid } from '@/DaraGrid';
 import { defaultFieldGroupInfo, initConfig } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { DaraElement } from '@/element/DaraElement';
+import { EditRenderer } from '@/renderer/EditRenderer';
 import { SelectionInfo } from '@/selection/selection';
 import { DataManager } from '@/service/DataManager';
 import { GridOptions } from '@/types/GridOptions';
@@ -53,7 +53,6 @@ import { DataSearch } from './main/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
-import { EditRenderer } from '@/renderer/EditRenderer';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -1347,7 +1346,7 @@ export class GridMain {
     for (const item of currentItems) {
       if (ids.length < 1) break;
 
-      const index = ids.findIndex((el) => el === item[ROW_ID_KEY]);
+      const index = ids.findIndex((item) => item === item[cfg.rowIdField]);
 
       if (index !== -1) {
         ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
@@ -1373,28 +1372,23 @@ export class GridMain {
    * @param names filed names
    * @returns {array} checked item array
    */
-  public getCheckedItems(names?: string | string[]) {
-    const items = this.cfg.dataManager.getViewItems();
+  public getCheckedItems(names?: string | string[] | undefined) {
+    const { dataManager } = this.cfg;
+    const items = dataManager.getViewItems();
     const checkItems = [];
-
-    //
-    //
-    //처리할것.
-    //
-    //
 
     let exportNames: string[] = [];
     let isAll = false;
     if (isUndefined(names)) {
       isAll = true;
-    } else if (!isArray(names)) {
-      exportNames = [names];
-    } else {
+    } else if (isArray(names)) {
       exportNames = names;
+    } else {
+      exportNames = [names];
     }
 
     for (const item of items) {
-      if (item[ROW_CHECK_KEY]) {
+      if (dataManager.isItemChecked(item)) {
         let checkItem;
         if (isAll) {
           checkItem = item;
@@ -1424,7 +1418,7 @@ export class GridMain {
   }
 
   public getCheckedIds() {
-    return this.getBody().getCheckedItemByName(ROW_ID_KEY);
+    return this.getBody().getCheckedItemByName(this.cfg.rowIdField);
   }
 
   /**
