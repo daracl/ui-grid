@@ -4,9 +4,9 @@ import { eqAttributeValue, hasClass } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { getCenterContentLeft, getHorizontalScrollPosition } from '@/util/gridUtils';
 import { isFunction, isNumber, isString } from '@/util/utils';
-import { Config } from '@t/GridConfig';
-import { GridOptions } from '@t/GridOptions';
 import { GridMain } from '@/view/GridMain';
+import { Config } from '@t/GridConfig';
+import { ScrollOptions } from '@t/GridOptions';
 import { Scroll } from './Scroll';
 
 /**
@@ -15,7 +15,7 @@ import { Scroll } from './Scroll';
 export class HorizontalScroll {
   private readonly gridMain: GridMain;
 
-  private readonly opts: GridOptions;
+  private readonly scrollOpts: ScrollOptions;
 
   private readonly horizontalElement: DaraElement;
   private readonly horizontalTrackElement: DaraElement;
@@ -24,7 +24,7 @@ export class HorizontalScroll {
   constructor(gridMain: GridMain, scroll: Scroll, horizontalElement: DaraElement) {
     this.gridMain = gridMain;
 
-    this.opts = this.gridMain.options();
+    this.scrollOpts = this.gridMain.options().scroll;
 
     this.horizontalElement = horizontalElement;
     this.horizontalTrackElement = horizontalElement.findDaraElement('.dg-scroll-track');
@@ -36,6 +36,15 @@ export class HorizontalScroll {
    *
    */
   init() {
+    const scrollSize = this.scrollOpts.width;
+    this.horizontalElement.css({ height: `${scrollSize}px` });
+    this.horizontalThumbElement.css({ height: `${scrollSize - 3}px`, margin: `0px ${scrollSize}px` });
+    const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button > svg');
+    scrollButtonElements.forEach((el) => {
+      el.style.width = `${scrollSize}px`;
+      el.style.height = `${scrollSize}px`;
+    });
+
     this.initHorizontalTrack();
     this.initHorizontalThumb();
     this.initHorizontalButton();
@@ -171,7 +180,7 @@ export class HorizontalScroll {
    * @private
    */
   private initHorizontalTrack() {
-    const opts = this.opts;
+    const scrollOpts = this.scrollOpts;
     const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
@@ -195,7 +204,7 @@ export class HorizontalScroll {
       startEventX = eventPosition(e).clientX - horizontalTrackElement.getBoundingClientRect().left;
 
       oneColMove = cfg.scroll.oneColMove;
-      bgMoveCol = oneColMove * opts.scroll.horizontal.speed * 2;
+      bgMoveCol = oneColMove * scrollOpts.horizontal.speed * 2;
 
       leftFlag = startEventX < cfg.scroll.left;
 
@@ -365,7 +374,7 @@ export class HorizontalScroll {
     scroll.left = leftVal;
 
     if (updateChkFlag !== false) {
-      const onUpdateFn = this.opts.scroll.horizontal.onUpdate;
+      const onUpdateFn = this.scrollOpts.horizontal.onUpdate;
       if (drawFlag !== false && isFunction(onUpdateFn)) {
         if (
           onUpdateFn({

@@ -6,7 +6,9 @@ import { SelectionInfo } from '@/selection/selection';
 import { getPagingInfo } from '@/util/pagingUtil';
 import * as utils from '@/util/utils';
 import { PagingInfo } from '@t/PagingInfo';
-import { GridMain } from './GridMain';
+import { GridMain } from '../GridMain';
+import { ALIGN } from '@/constants';
+import { html } from '@/util/htmlTemplate';
 
 /**
  * Footer class
@@ -19,9 +21,9 @@ export class Footer {
 
   private readonly footerOpts: FooterOptions;
 
-  private readonly selectionStatusElement: DaraElement;
+  private selectionStatusElement: DaraElement;
 
-  private readonly footerElement: DaraElement;
+  private footerElement: DaraElement;
 
   private readonly selectionInfo: SelectionInfo;
 
@@ -35,31 +37,36 @@ export class Footer {
 
   constructor(gridMain: GridMain) {
     this.footerOpts = gridMain.options().footer;
-
-    if (!this.footerOpts.enabled) return;
-
     this.gridMain = gridMain;
     this.selectionInfo = gridMain.selectionInfo;
     this.cfg = this.gridMain.config();
-
     this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
-
-    const footerElement = gridMain.element().findDaraElement('.dg-footer');
-    this.footerElement = footerElement;
-    this.selectionStatusElement = footerElement.findDaraElement('.dg-selection-status');
-
-    this.initPaging();
   }
 
   /**
    * init footer event
    */
-  initPaging() {
-    if (this.footerOpts.paging?.enabled) {
-      this.paingElement = this.footerElement.findDaraElement('.dg-paging');
-      this.pagingInfoElement = this.footerElement.findDaraElement('.dg-paging-info');
-      this.initPagingEvent();
+  init() {
+    const footerElement = this.gridMain.element().findDaraElement('.dg-footer');
 
+    if (!this.footerOpts.enabled) {
+      footerElement.getElement().remove();
+      return;
+    }
+
+    this.footerElement = footerElement;
+
+    this.selectionStatusElement = footerElement.findDaraElement('.dg-selection-status');
+
+    footerElement.css({ height: `${this.cfg.dimensions.footerHeight}px` });
+    footerElement.findDaraElement('.dg-status').addClass(ALIGN[this.footerOpts.selection?.position ?? 'center']);
+
+    if (this.footerOpts.paging?.enabled) {
+      this.paingElement = footerElement.findDaraElement('.dg-paging');
+      this.pagingInfoElement = footerElement.findDaraElement('.dg-paging-info');
+      this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
+      this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
+      this.initPagingEvent();
       this.goPage(this.gridMain.config().paging.currPage);
     }
   }
@@ -110,7 +117,7 @@ export class Footer {
    * @param {string} info selection info
    */
   public setSelectionStatus(dataInfo?: any) {
-    if (this.isSelectionInfo) {
+    if (this.isSelectionInfo && this.footerOpts.enabled) {
       const dataInfo = this.selectionInfo.selectionData('json', true);
 
       if (!utils.isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
@@ -217,18 +224,16 @@ export class Footer {
 
     if (currS + pagingInfo.unitPage < pagingInfo.totalPage) {
       strHTML.push(
-        ' <li class="dg-page-num" pageno="' +
-          pagingInfo.totalPage +
-          '">...<a href="javascript:" >' +
-          pagingInfo.totalPage +
-          '</a></li>',
+        html`<li class="dg-page-num" pageno="${pagingInfo.totalPage}">
+          ...<a href="javascript:">${pagingInfo.totalPage}</a>
+        </li>`,
       );
     }
 
     if (currP == currE) {
       strHTML.push(' <li class="disabled"><a href="javascript:">&raquo;</a></li>');
     } else {
-      strHTML.push(' <li><a href="javascript:" class="dg-page-num page-icon" pageno="' + nextO + '">&raquo;</a></li>');
+      strHTML.push(` <li><a href="javascript:" class="dg-page-num page-icon" pageno="${nextO}">&raquo;</a></li>`);
     }
 
     strHTML.push('</ul>');

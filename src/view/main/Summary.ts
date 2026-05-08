@@ -7,6 +7,7 @@ import { calcSummary } from '@/util/mathUtils';
 import { camelToKebab, isFunction } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '../GridMain';
+import { html } from '@/util/htmlTemplate';
 
 /**
  * Summary class
@@ -35,9 +36,14 @@ export class Summary {
 
     const opts = gridMain.options();
 
+    this.summaryElement = gridMain.element().findDaraElement('.dg-summary');
+
     this._isActive = opts.summary && opts.summary?.items?.length > 0 ? true : false;
 
-    if (!this._isActive) return;
+    if (!this._isActive) {
+      this.summaryElement.getElement().remove();
+      return;
+    }
 
     this.summaryOpts = opts.summary ?? ({} as SummaryOptions);
 
@@ -127,8 +133,17 @@ export class Summary {
 
   private createTemplate() {
     const cfg = this.config;
-    const summaryElement = this.gridMain.element().findDaraElement('.dg-summary');
-    this.summaryElement = summaryElement;
+
+    const summaryElement = this.summaryElement;
+
+    summaryElement.css({ height: `${cfg.dimensions.mainSummaryHeight}px` });
+
+    if (this.summaryOpts.position === 'top') {
+      summaryElement.addClass('dg-top');
+      const container = this.gridMain.element().find('.dg-main-container');
+      container?.insertBefore(summaryElement.getElement(), container.querySelector('.dg-body'));
+    }
+
     this.leftElement = summaryElement.findDaraElement('.dg-left');
     this.centerElement = summaryElement.findDaraElement('.dg-center');
     this.rightElement = summaryElement.findDaraElement('.dg-right');
@@ -192,20 +207,23 @@ export class Summary {
 
     const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;
-    let tableWidth = 0;
     for (const leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
-      tableWidth += nodeWidth;
+
       colGroupHtm.push(
         `<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`,
       );
     }
 
-    return `<table class="dg-body-table">
-        <thead><tr>${colGroupHtm.join('')}</tr></thead>
+    return html`<table class="dg-body-table">
+        <thead>
+          <tr>
+            ${colGroupHtm.join('')}
+          </tr>
+        </thead>
         <tbody></tbody>
-      </table> 
-      ${type != 'center' ? '<div class="dg-fixed-column-line"></div>' : ''}`;
+      </table>
+      ${type == 'center' ? '' : '<div class="dg-fixed-column-line"></div>'}`;
   }
 
   /**
@@ -235,25 +253,27 @@ export class Summary {
         const rendererType = field.renderer.type;
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside dg-${camelToKebab(field.name).replace(
-            '$',
-            '',
-          )}" data-cell-position="${rowIdx},${startCol + j}">
+          cellTemplate.push(html`<td
+            scope="col"
+            class="dg-cell dg-aside dg-${camelToKebab(field.name).replace('$', '')}"
+            data-cell-position="${rowIdx},${startCol + j}"
+          >
             <div role="presentation" class="dg-cell-renderer ${field.$alignStyle}"></div>
           </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${
-            startCol + j
-          }"><div role="presentation"
+          cellTemplate.push(html`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${startCol + j}">
+            <div
+              role="presentation"
               class="dg-cell-renderer dg-cell-ellipsis 
-              dg-${rendererType} ${field.$alignStyle}"></div>
+              dg-${rendererType} ${field.$alignStyle}"
+            ></div>
           </td>`);
         }
       }
 
-      returnTemplate.push(`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight[i]}px">
-          ${cellTemplate.join('')}
-        </tr>`);
+      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight[i]}px">
+        ${cellTemplate.join('')}
+      </tr>`);
     }
 
     return returnTemplate.join('');

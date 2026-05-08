@@ -7,6 +7,7 @@ import { addClass, removeClass } from '@/util/styleUtils';
 import { isFunction, isUndefined } from '@/util/utils';
 import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
 import { GridMain } from '../GridMain';
+import { html } from '@/util/htmlTemplate';
 
 /**
  * Body class
@@ -258,9 +259,12 @@ export class ContextMenu {
       }
 
       if (item.checkbox === true) {
-        htmlTemplate.push(`<li class="dg-contextmenu-check ${styleClass}"><a tabindex="-1">
-          <label for="dgcontext_${item.key}"><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
-          </label></a>
+        htmlTemplate.push(html`<li class="dg-contextmenu-check ${styleClass}">
+          <a tabindex="-1">
+            <label for="dgcontext_${item.key}"
+              ><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
+            </label></a
+          >
         </li>`);
         continue;
       }
@@ -268,21 +272,21 @@ export class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-item-key="${itemKey}">
+        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-item-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
-          </a>`);
+          </a>
+        </li>`);
 
         htmlTemplate.push(
           `<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`,
         );
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : '';
-        htmlTemplate.push(`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
-          <a tabindex="-1">
-            <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm}
-          </a>`);
+        htmlTemplate.push(html`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
+          <a tabindex="-1"> <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm} </a>
+        </li>`);
       }
       htmlTemplate.push('</li>');
     }

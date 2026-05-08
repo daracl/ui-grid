@@ -1,12 +1,17 @@
-import { defineConfig } from 'vite';
 import path from 'path';
-import { commonConfig, MODULE_NAME, createAssetFileNames } from './vite.common.js';
+import { defineConfig } from 'vite';
+import { fileURLToPath } from 'url';
+import { createAssetFileNames, createCommonConfig, MODULE_NAME } from './vite.common.js';
+
+// __dirname 대체
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
 
   return {
-    ...commonConfig,
+    ...createCommonConfig(isProd),
 
     build: {
       outDir: isProd ? 'dist' : 'dist/unmin',
@@ -26,6 +31,8 @@ export default defineConfig(({ mode }) => {
               drop_console: false,
               drop_debugger: true,
               unsafe: true,
+
+              pure_funcs: ['html'],
             },
 
             mangle: {

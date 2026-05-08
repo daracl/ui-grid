@@ -15,7 +15,6 @@ import {
   ROW_CHECK_NAME,
   ROW_CUD_KEY,
   ROW_DRAG_HANDLE_NAME,
-  ROW_ID_FIELD_NAME,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
   VIEW_RENDERER,
@@ -45,14 +44,16 @@ import {
   isVisible,
   merge,
 } from '@/util/utils';
+import { Toolbar } from '@/view/toolbar/Toolbar';
 import { FieldItem } from '@t/GridField';
-import { Footer } from './Footer';
+import { Footer } from './footer/Footer';
 import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
 import { DataSearch } from './main/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
+import { html } from '@/util/htmlTemplate';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -70,6 +71,8 @@ let INIT_GRID_GLOBAL_EVNET = false;
 
 // all instance
 const ALL_INSTANCE = new Map<string, GridMain>();
+
+const GRID_TEMPLATE = getGridTemplate();
 /**
  * GridMain class
  *
@@ -87,6 +90,8 @@ export class GridMain {
 
   // grid 설정
   private cfg: Config;
+
+  private toolbar: Toolbar;
 
   private header: Header;
 
@@ -247,11 +252,18 @@ export class GridMain {
    */
   private initElement() {
     const cfg = this.cfg;
+    const opts = this.opts;
     this._mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
     this.containerElement = new DaraElement(this.gridElement.find('.daracl-grid > div'));
 
     this.rendererContainer = this.gridElement.find('.dg-layer-container');
+
+    this._mainElement.addClass(
+      `dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'} ${
+        opts.selectionMode === 'none' ? '' : 'daracl-noselect'
+      }`,
+    );
 
     this.setTheme(this.opts.theme);
 
@@ -273,7 +285,11 @@ export class GridMain {
    */
   private initMainView() {
     const opts = this.opts;
+
+    this.toolbar = new Toolbar(this);
+
     this.selectionInfo = new SelectionInfo(this, opts, this.cfg);
+
     this.header = new Header(this);
     this.body = new Body(this);
     this.summary = new Summary(this);
@@ -284,11 +300,15 @@ export class GridMain {
 
     this.scroll = new Scroll(this);
     this.footer = new Footer(this);
+
     this.contextMenu = new ContextMenu(this);
 
+    this.toolbar.init();
     this.selectionInfo.initSelection();
+
     this.body.init();
     this.scroll.init();
+    this.footer.init();
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();
@@ -733,7 +753,7 @@ export class GridMain {
       dimensions.footerHeight = isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
     }
 
-    if (!isUndefined(opts.summary)) {
+    if (!isUndefined(opts.summary) && opts.summary.items.length > 0) {
       const heightOption = heightOptionValue(opts.summary.height, 28);
       const { height, heights } = heightOption;
 
@@ -753,7 +773,7 @@ export class GridMain {
         cfg.summary.heights[i] = summaryHeight;
       }
 
-      dimensions.mainSummaryHeight = totalHeight + 3; // 2 border + 1 padding
+      dimensions.mainSummaryHeight = totalHeight + Math.min(totalHeight, 3); // 2 border + 1 padding
     }
   }
 
@@ -1507,101 +1527,17 @@ export class GridMain {
    * @private
    */
   private initTemplate() {
-    const cfg = this.cfg;
-    const dimensions = cfg.dimensions;
-    const opts = this.opts;
-    const { footer, summary, scroll } = opts;
+    const gridElement = GRID_TEMPLATE.content.firstElementChild!.cloneNode(true) as HTMLElement;
 
-    const pagingAlign = ALIGN[footer.paging?.position ?? 'center'];
-    const selectionAlign = ALIGN[footer.selection?.position ?? 'center'];
-    const pagingInfoAlign = ALIGN[footer.paging?.formatPosition ?? 'center'];
+    // empty text
+    const emptyText = gridElement.querySelector('.empty-text');
 
-    let summaryTemplate = '';
-    let isSummaryTop = false;
-    if (dimensions.mainSummaryHeight > 0) {
-      isSummaryTop = summary?.position === 'top';
-      summaryTemplate = `<div class="dg-panel dg-summary ${isSummaryTop ? 'dg-top' : ''}" style="height:${
-        dimensions.mainSummaryHeight
-      }px;">
-          <div class="dg-left"></div>
-          <div class="dg-center"></div>
-          <div class="dg-right"></div>
-      </div>`;
+    if (emptyText) {
+      emptyText.textContent = this.i18n().getMessage('no.data');
     }
 
-    const scrollSize = scroll.width;
-
-    const templateHtml = `
-      <div class="daracl-grid" tabindex="-1"  style="outline:none !important;">
-        <div style="position:absolute;user-select: none; touch-action: manipulation;">
-          ${
-            opts.toolbar.enabled
-              ? `<div class="dg-toolbar" role="presentation" style="height:${dimensions.toolbarHeight}px;"></div>`
-              : ''
-          }
-          <div tabindex="-1" style="outline:none !important;" class="dg-main ${
-            opts.selectionMode != 'none' ? 'daracl-noselect' : ''
-          } dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'}" data-scroll="none">
-              <div class="dg-main-container">
-                  ${
-                    opts.header.view
-                      ? `<div class="dg-panel dg-header" style="height:${dimensions.mainHeaderHeight}px;">
-                        <div class="dg-left"></div>
-                        <div class="dg-center"></div>
-                        <div class="dg-right"></div>
-                    </div>`
-                      : ''
-                  }
-                  
-                  ${isSummaryTop ? summaryTemplate : ''}
-                  <div class="dg-panel dg-body">
-                      <div class="dg-left"></div>
-                      <div class="dg-center"></div>
-                      <div class="dg-right"></div>
-                      <div class="dg-empty-msg-area"><span class="dg-empty-msg"><i class="dg-icon-info"></i><span class="empty-text">${this.i18n().getMessage(
-                        'no.data',
-                      )}</span></span></div>
-                      <div class="dg-movedrop-helper"></div>
-                  </div>
-                  ${!isSummaryTop ? summaryTemplate : ''}
-              </div>
-              <div class="dg-resize-helper"></div>
-              <div class="dg-scroll-container">
-                  <div class="dg-scroll dg-vertical" style="width:${scrollSize}px">
-                    <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb" style="width:${scrollSize - 3}px;margin:${scrollSize}px 0px;"></div>
-                    <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"/></svg></div>
-                    <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024"><path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"/></svg></div>
-                  </div>
-                  <div class="dg-scroll dg-horizontal" style="height:${scrollSize}px">
-                    <div class="dg-scroll-track"></div>
-                    <div class="dg-scroll-thumb" style="height:${scrollSize - 3}px;margin:0px ${scrollSize}px"></div>
-                    <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"/></svg></div>
-                    <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;"><svg style="width: ${scrollSize}px; height: ${scrollSize}px;fill: currentColor;" viewBox="0 0 1024 1024" version="1.1"><path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"/></svg></div>
-                  </div>
-                  <div class="dg-scroll-edge" style="width:${scrollSize}px;height:${scrollSize}px;"></div>
-              </div>
-              <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
-                <textarea class="dg-paste-area"></textarea>
-              </div>
-              <div class="dg-layer-container"></div>
-          </div>
-          ${
-            footer.enabled
-              ? `<div class="dg-footer" role="presentation" style="height:${dimensions.footerHeight}px;">
-            <span class="dg-status ${selectionAlign}">
-              <span class="dg-selection-status"></span>
-            </span>
-            <span class="dg-paging ${pagingAlign}"></span>
-            <span class="dg-paging-info ${pagingInfoAlign}"></span>
-          </div>`
-              : ''
-          }
-        </div>
-    </div>
-    `;
-
-    this.gridElement.html(templateHtml);
+    // append
+    this.gridElement.getElement().appendChild(gridElement);
   }
 
   public setPaging(paging: PagingInfo) {
@@ -1637,6 +1573,107 @@ export class GridMain {
       ALL_INSTANCE.delete(uid);
     }
   }
+}
+
+function getGridTemplate() {
+  // 파일 상단 추가
+  const GRID_TEMPLATE = document.createElement('template');
+
+  GRID_TEMPLATE.innerHTML = html`
+    <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
+      <div style="position:absolute;user-select:none;touch-action:manipulation;">
+        <div class="dg-toolbar" role="presentation"></div>
+
+        <div tabindex="-1" class="dg-main" data-scroll="none" style="outline:none !important;">
+          <div class="dg-main-container">
+            <div class="dg-panel dg-header">
+              <div class="dg-left"></div>
+              <div class="dg-center"></div>
+              <div class="dg-right"></div>
+            </div>
+
+            <div class="dg-panel dg-body">
+              <div class="dg-left"></div>
+              <div class="dg-center"></div>
+              <div class="dg-right"></div>
+
+              <div class="dg-empty-msg-area">
+                <span class="dg-empty-msg">
+                  <i class="dg-icon-info"></i>
+                  <span class="empty-text"></span>
+                </span>
+              </div>
+
+              <div class="dg-movedrop-helper"></div>
+            </div>
+
+            <div class="dg-panel dg-summary">
+              <div class="dg-left"></div>
+              <div class="dg-center"></div>
+              <div class="dg-right"></div>
+            </div>
+          </div>
+
+          <div class="dg-resize-helper"></div>
+
+          <div class="dg-scroll-container">
+            <div class="dg-scroll dg-vertical">
+              <div class="dg-scroll-track"></div>
+              <div class="dg-scroll-thumb"></div>
+
+              <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">
+                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
+                  <path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"></path>
+                </svg>
+              </div>
+
+              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;">
+                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
+                  <path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="dg-scroll dg-horizontal">
+              <div class="dg-scroll-track"></div>
+              <div class="dg-scroll-thumb"></div>
+
+              <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">
+                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
+                  <path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"></path>
+                </svg>
+              </div>
+
+              <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">
+                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
+                  <path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="dg-scroll-edge"></div>
+          </div>
+
+          <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
+            <textarea class="dg-paste-area"></textarea>
+          </div>
+
+          <div class="dg-layer-container"></div>
+        </div>
+
+        <div class="dg-footer" role="presentation">
+          <span class="dg-status">
+            <span class="dg-selection-status"></span>
+          </span>
+
+          <span class="dg-paging"></span>
+
+          <span class="dg-paging-info"></span>
+        </div>
+      </div>
+    </div>
+  `;
+  return GRID_TEMPLATE;
 }
 
 function fieldCopy(field: any): any {

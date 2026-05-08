@@ -25,7 +25,7 @@ export class DataManager {
 
   private sortOrginItems: any[] = [];
 
-  private matchWholeRegex: RegExp;
+  private matchWholeRegex?: RegExp;
 
   private rowHeight;
 
@@ -53,7 +53,7 @@ export class DataManager {
     this.rowHeight = cfg.rowHeight;
     this.rowIdField = cfg.rowIdField;
 
-    this.matchWholeRegex = opts.search?.matchWholeRegex ?? /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;
+    this.matchWholeRegex = opts.search?.matchWholeRegex;
   }
 
   // ======================
@@ -407,7 +407,8 @@ export class DataManager {
         });
     }
 
-    options.matchWholeRegex = this.matchWholeRegex;
+    if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
+
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
     //console.log('searchResults : ', this.isTreeType, searchResults);

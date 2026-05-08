@@ -38,6 +38,11 @@ export class Scroll {
     this.verticalScroll = new VerticalScroll(this.gridMain, this, this.verticalElement);
     this.horizontalScroll = new HorizontalScroll(this.gridMain, this, this.horizontalElement);
 
+    const scrollSize = this.opts.scroll.width;
+    const edge = this.gridMain.mainElement().findDaraElement('.dg-scroll-edge');
+
+    edge.css({ width: `${scrollSize}px`, height: `${scrollSize}px` });
+
     this.calculate();
 
     this.initMouseWheel();

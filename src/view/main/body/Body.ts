@@ -9,6 +9,7 @@ import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
+import { html } from '@/util/htmlTemplate';
 
 /**
  * Body class
@@ -640,20 +641,22 @@ export class Body {
 
     const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;
-    let tableWidth = 0;
     for (const leafNode of leafFields) {
       const nodeWidth = leafNode.$width;
-      tableWidth += nodeWidth;
       colGroupHtm.push(
         `<th data-col-idx="${colGroupIdx++}" style="border:0px;margin: 0px !important; padding: 0px !important; font-size: 0px !important; line-height: 0 !important; height: 0px;width:${nodeWidth}px;"></th>`,
       );
     }
 
-    return `<table class="dg-body-table">
-      <thead><tr>${colGroupHtm.join('')}</tr></thead>
-      <tbody></tbody>
-    </table> 
-    ${type == 'center' ? '' : '<div class="dg-fixed-column-line"></div>'}`;
+    return html`<table class="dg-body-table">
+        <thead>
+          <tr>
+            ${colGroupHtm.join('')}
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      ${type == 'center' ? '' : '<div class="dg-fixed-column-line"></div>'}`;
   }
 
   /**
@@ -693,24 +696,29 @@ export class Body {
         }
 
         if (field.$isAside) {
-          cellTemplate.push(`<td scope="col" class="dg-cell dg-aside dg-${utils
-            .camelToKebab(field.name)
-            .replace('$', '')}" data-cell-position="${rowIdx + ',' + (startCol + j)}">
-          <div role="presentation" class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${
-            field.$alignStyle
-          }"></div>
-        </td>`);
+          cellTemplate.push(html`<td
+            scope="col"
+            class="dg-cell dg-aside dg-${utils.camelToKebab(field.name).replace('$', '')}"
+            data-cell-position="${rowIdx + ',' + (startCol + j)}"
+          >
+            <div
+              role="presentation"
+              class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${field.$alignStyle}"
+            ></div>
+          </td>`);
         } else {
-          cellTemplate.push(`<td scope="col" class="dg-cell" data-cell-position="${
-            rowIdx + ',' + (startCol + j)
-          }"><div role="presentation"
-            class="dg-cell-renderer dg-cell-ellipsis 
-            dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass}" style="${whiteSpaceStyle}"></div>
-        </td>`);
+          cellTemplate.push(html`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + ',' + (startCol + j)}">
+            <div
+              role="presentation"
+              class="dg-cell-renderer dg-cell-ellipsis 
+            dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass}"
+              style="${whiteSpaceStyle}"
+            ></div>
+          </td>`);
         }
       }
 
-      returnTemplate.push(`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight}px">
+      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight}px">
         ${cellTemplate.join('')}
       </tr>`);
     }

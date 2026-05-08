@@ -6,6 +6,7 @@ import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { SearchOptions } from '@t/GridOptions';
 import { toggleClass } from '@/util/styleUtils';
 import { GridMain } from '@/view/GridMain';
+import { html } from '@/util/htmlTemplate';
 
 /**
  * DataSearch class
@@ -70,8 +71,8 @@ export class DataSearch {
       }
       template.push('</select>');
 
-      template.push(`<div class="dg-search-container">
-          <input type="text" class="dg-search-text" placeholder="Search">
+      template.push(html`<div class="dg-search-container">
+          <input type="text" class="dg-search-text" placeholder="Search" />
           <div class="dg-search-icons">
             <button class="dg-icon-button" type="button" data-search-type="mc" title="Match Case">Aa</button>
             <button class="dg-icon-button" type="button" data-search-type="mww" title="Match Whole Word">
@@ -80,8 +81,7 @@ export class DataSearch {
             <button class="dg-icon-button" type="button" data-search-type="regex" title="Use Regex">.*</button>
           </div>
         </div>
-      `);
-      template.push(`<span class="dg-search-btn">
+        <span class="dg-search-btn">
           <span class="search-nav-up" title="${this.gridMain.i18n().getMessage('prev')}"></span>
           <span class="search-nav-down" title="${this.gridMain.i18n().getMessage('next')}"></span>
         </span>`);
