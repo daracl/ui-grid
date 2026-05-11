@@ -1,5 +1,5 @@
-import { Config } from '@t/GridConfig';
-import { SummaryOptions } from '@t/GridOptions';
+import { CellInfo, Config, SummaryConfig } from '@t/GridConfig';
+import { SummaryItem, SummaryOptions } from '@t/GridOptions';
 
 import { DaraElement } from '@/element/DaraElement';
 import { formatValue } from '@/util/formatUtils';
@@ -30,6 +30,8 @@ export class Summary {
   private centerElement: DaraElement;
   private rightElement: DaraElement;
 
+  private summaryItems: SummaryItem[][];
+
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
     this.config = gridMain.config();
@@ -38,20 +40,22 @@ export class Summary {
 
     this.summaryElement = gridMain.element().findDaraElement('.dg-summary');
 
-    this._isActive = opts.summary && opts.summary?.items?.length > 0 ? true : false;
+    const summaryItems = opts.summary?.items ?? [];
+
+    this._isActive = summaryItems?.length > 0 ? true : false;
 
     if (!this._isActive) {
       this.summaryElement.getElement().remove();
       return;
     }
 
+    for (const items of summaryItems) this.summaryItems = summaryItems;
     this.summaryOpts = opts.summary ?? ({} as SummaryOptions);
+  }
 
+  public init() {
     this.createTemplate();
-
     this.drawData();
-
-    //처리할것.
   }
 
   public isEnabled() {
@@ -85,7 +89,7 @@ export class Summary {
     const cfg = this.config;
     const items = cfg.dataManager.getViewItems();
 
-    const summaryItems = this.summaryOpts.items;
+    const summaryItems = this.summaryItems;
 
     const allFieldMap = cfg.allFieldMap;
 
@@ -99,7 +103,7 @@ export class Summary {
 
           const displayFormat = item.displayFormat ?? field?.displayFormat;
 
-          const col = allFieldMap.get(fieldName)?.$colSeq;
+          const col = field?.$colSeq;
           const cellElement = this.summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
             .firstChild as HTMLElement;
 
@@ -123,6 +127,7 @@ export class Summary {
           }
 
           cellElement.textContent = summaryValue;
+          //field?.$renderer.render({ rowIndex: rowIdx, r: rowIdx, c: col, item: item } as CellInfo, cellElement);
         }
       }
       rowIdx++;
@@ -152,12 +157,11 @@ export class Summary {
     this.centerElement.html(this.template('center'));
     this.rightElement.html(this.template('right'));
 
-    const leftFields = cfg.fieldHeaderGroup.leafLeft;
-    const centerFields = cfg.fieldHeaderGroup.leafCenter;
-    const rightFields = cfg.fieldHeaderGroup.leafRight;
+    const { fieldHeaderGroup, fixedLeftIndex, fixedRightIndex, summary } = cfg;
 
-    const fixedLeftIndex = cfg.fixedLeftIndex;
-    const fixedRightIndex = cfg.fixedRightIndex;
+    const leftFields = fieldHeaderGroup.leafLeft;
+    const centerFields = fieldHeaderGroup.leafCenter;
+    const rightFields = fieldHeaderGroup.leafRight;
 
     const fieldGroups = [
       { name: 'left', fields: leftFields, element: this.leftElement, startCol: 0 },
@@ -165,16 +169,14 @@ export class Summary {
       { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
-    const heights = cfg.summary.heights;
-
-    const heightsLength = heights.length;
+    const summaryItems = this.summaryOpts.items;
 
     fieldGroups.forEach(({ fields, element, startCol }) => {
       if (fields.length === 0) return;
 
       element
         .findDaraElement('.dg-body-table > tbody')
-        .append(this.rowTemplate(0, heightsLength, heights, fields, startCol));
+        .append(this.rowTemplate(summary, summaryItems, fields, startCol));
     });
   }
 
@@ -236,42 +238,61 @@ export class Summary {
    * @returns {string} template
    */
   private rowTemplate(
-    viewRow: number,
-    rowCount: number,
-    rowHeight: number[],
+    summaryConfig: SummaryConfig,
+    items: SummaryItem[][],
     fields: FieldItem[],
     startCol: number,
   ): any {
     const returnTemplate = [];
 
+    const rowCount = items.length;
+    const rowHeights = summaryConfig.heights;
+
     for (let i = 0; i < rowCount; i++) {
-      const rowIdx = viewRow + i;
+      const rowIdx = i;
+
+      const summaryItems = items[i];
 
       const cellTemplate = [];
       for (let j = 0; j < fields.length; j++) {
         const field = fields[j];
-        const rendererType = field.renderer.type;
+
+        const summaryItem = summaryItems.find((item) => item.name === field.name) ?? { colspan: 0, rowspan: 0 };
+        const spanAttr = [];
+        if (summaryItem.colspan) {
+          spanAttr.push(` colspan="${summaryItem.colspan}" `);
+        }
+
+        if (summaryItem.rowspan) {
+          spanAttr.push(` rowspan="${summaryItem.rowspan}" `);
+        }
 
         if (field.$isAside) {
           cellTemplate.push(html`<td
             scope="col"
-            class="dg-cell dg-aside dg-${camelToKebab(field.name).replace('$', '')}"
+            class="dg-cell dg-aside"
+            ${spanAttr.join('')}
             data-cell-position="${rowIdx},${startCol + j}"
           >
             <div role="presentation" class="dg-cell-renderer ${field.$alignStyle}"></div>
           </td>`);
         } else {
-          cellTemplate.push(html`<td scope="col" class="dg-cell" data-cell-position="${rowIdx},${startCol + j}">
+          cellTemplate.push(html`<td
+            scope="col"
+            class="dg-cell"
+            ${spanAttr.join(' ')}
+            data-cell-position="${rowIdx},${startCol + j}"
+          >
             <div
               role="presentation"
               class="dg-cell-renderer dg-cell-ellipsis 
-              dg-${rendererType} ${field.$alignStyle}"
+              dg-text ${field.$alignStyle}"
             ></div>
           </td>`);
         }
       }
 
-      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight[i]}px">
+      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeights[i]}px">
         ${cellTemplate.join('')}
       </tr>`);
     }

@@ -209,6 +209,10 @@ export class GridMain {
   }
 
   public static setInstance(instanceID: string, gridMain: GridMain) {
+    if (ALL_INSTANCE.get(instanceID)) {
+      ALL_INSTANCE.get(instanceID)?.destroy();
+    }
+
     ALL_INSTANCE.set(instanceID, gridMain);
   }
 
@@ -307,8 +311,10 @@ export class GridMain {
     this.selectionInfo.initSelection();
 
     this.body.init();
-    this.scroll.init();
+    this.summary.init();
     this.footer.init();
+
+    this.scroll.init();
 
     if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
       this.body.dataDraw();

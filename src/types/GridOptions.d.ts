@@ -787,6 +787,11 @@ export interface SummaryItem {
    * 표시명
    */
   label: string;
+
+  colspan: number;
+
+  rowspan: number;
+
   /**
    * sum, avg 연산
    */

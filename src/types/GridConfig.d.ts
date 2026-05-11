@@ -55,9 +55,7 @@ export interface Config {
   };
 
   // summary info
-  summary: {
-    heights: number[];
-  };
+  summary: SummaryConfig;
 
   currentFields: FieldItem[];
 
@@ -147,6 +145,10 @@ export interface Config {
   scroll: ScrollInfo;
   edit: EditInfo;
   canvasContext?: CanvasRenderingContext2D;
+}
+
+export interface SummaryConfig {
+  heights: number[];
 }
 
 export interface HeaderCellInfo {
