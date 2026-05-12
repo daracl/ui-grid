@@ -24,6 +24,10 @@ export class Toolbar {
   }
 
   public init() {
+    if (!this.toolbarOpts.enabled) {
+      return;
+    }
+
     // toolbar
     const toolbarElement = this.gridMain.element().findDaraElement('.dg-toolbar');
 

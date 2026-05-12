@@ -55,8 +55,8 @@ export class Scroll {
   }
 
   public calculate() {
-    this.verticalScroll.calculate();
     this.horizontalScroll.calculate();
+    this.verticalScroll.calculate();
   }
 
   private initMouseWheel() {

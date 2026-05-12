@@ -38,14 +38,11 @@ export class Summary {
 
     const opts = gridMain.options();
 
-    this.summaryElement = gridMain.element().findDaraElement('.dg-summary');
-
     const summaryItems = opts.summary?.items ?? [];
 
-    this._isActive = summaryItems?.length > 0 ? true : false;
+    this._isActive = summaryItems?.length > 0;
 
     if (!this._isActive) {
-      this.summaryElement.getElement().remove();
       return;
     }
 
@@ -54,6 +51,12 @@ export class Summary {
   }
 
   public init() {
+    this.summaryElement = this.gridMain.element().findDaraElement('.dg-summary');
+
+    if (!this.isEnabled()) {
+      this.summaryElement.getElement().remove();
+      return;
+    }
     this.createTemplate();
     this.drawData();
   }

@@ -35,9 +35,17 @@ export class Footer {
 
   private paingElement: DaraElement;
 
+  private readonly _isActive: boolean;
+
   constructor(gridMain: GridMain) {
     this.footerOpts = gridMain.options().footer;
     this.gridMain = gridMain;
+    this._isActive = this.footerOpts?.enabled ?? false;
+
+    if (!this._isActive) {
+      return;
+    }
+
     this.selectionInfo = gridMain.selectionInfo;
     this.cfg = this.gridMain.config();
     this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
@@ -49,7 +57,7 @@ export class Footer {
   init() {
     const footerElement = this.gridMain.element().findDaraElement('.dg-footer');
 
-    if (!this.footerOpts.enabled) {
+    if (!this.isEnabled()) {
       footerElement.getElement().remove();
       return;
     }
@@ -67,8 +75,12 @@ export class Footer {
       this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
       this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
       this.initPagingEvent();
-      this.goPage(this.gridMain.config().paging.currPage);
+      this.goPage(this.gridMain.config().paging.currPage, false);
     }
+  }
+
+  public isEnabled() {
+    return this._isActive;
   }
 
   /**
@@ -85,14 +97,14 @@ export class Footer {
       if (pagingCallback) {
         pagingCallback(pageNum);
       } else {
-        this.goPage(pageNum);
+        this.goPage(pageNum, true);
       }
 
       return true;
     });
   }
 
-  public goPage(pageNum: number) {
+  public goPage(pageNum: number, drawFlag = true) {
     const pagingInfo = this.cfg.paging;
     pagingInfo.currPage = pageNum;
     pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.cfg.dataInfo.rowLength;
@@ -104,9 +116,12 @@ export class Footer {
       const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
       this.cfg.dataManager.setViewItems(this.cfg.dataManager.getOriginItems(), startIdx, startIdx + countPerPage);
-      this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
-      this.gridMain.refreshBody();
-      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
+
+      if (drawFlag) {
+        this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
+        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0, drawFlag: drawFlag });
+        this.gridMain.refreshBody();
+      }
     }
   }
 

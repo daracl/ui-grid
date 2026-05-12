@@ -176,13 +176,11 @@ export class GridMain {
     this.calcGridDimention();
     this.setSize(this.initGridSize.width, this.initGridSize.height, false);
 
-    this.initTemplate();
     this.initElement();
+
     this.calculation();
 
     this.initMainView();
-
-    this.setElementDimentions();
 
     this.initEvent();
 
@@ -198,6 +196,15 @@ export class GridMain {
     document.addEventListener('pointerdown', (e: Event) => {
       ALL_INSTANCE.forEach((grid, id) => {
         const gridElement = grid.gridElement.getElement();
+
+        console.log('1111pointerdown111', grid.$instanceId);
+
+        //
+
+        // 처리할 것.
+        //
+        //
+        //document.querySelector(`[data-grid-id="dg1"]`);
 
         const path = e.composedPath();
 
@@ -257,11 +264,26 @@ export class GridMain {
   private initElement() {
     const cfg = this.cfg;
     const opts = this.opts;
+
+    const gridElement = GRID_TEMPLATE.content.firstElementChild!.cloneNode(true) as HTMLElement;
+
+    // empty text
+    const emptyText = gridElement.querySelector('.empty-text');
+
+    if (emptyText) {
+      emptyText.textContent = this.i18n().getMessage('no.data');
+    }
+
+    // append
+    this.gridElement.getElement().appendChild(gridElement);
+
     this._mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
     this.containerElement = new DaraElement(this.gridElement.find('.daracl-grid > div'));
 
     this.rendererContainer = this.gridElement.find('.dg-layer-container');
+
+    console.log(this.rendererContainer);
 
     this._mainElement.addClass(
       `dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'} ${
@@ -303,6 +325,7 @@ export class GridMain {
     }
 
     this.scroll = new Scroll(this);
+
     this.footer = new Footer(this);
 
     this.contextMenu = new ContextMenu(this);
@@ -311,14 +334,16 @@ export class GridMain {
     this.selectionInfo.initSelection();
 
     this.body.init();
+
     this.summary.init();
+
     this.footer.init();
 
     this.scroll.init();
 
-    if (!opts.footer.enabled || !opts.footer.paging?.enabled) {
-      this.body.dataDraw();
-    }
+    this.contextMenu.init();
+
+    this.refreshBody();
   }
 
   public getRendererContainer() {
@@ -652,22 +677,17 @@ export class GridMain {
   }
 
   resizeDraw() {
-    const cfg = this.cfg;
-    this.calcBody();
+    const scroll = this.cfg.scroll;
 
-    if (!isUndefined(this._mainElement)) {
-      this.setElementDimentions();
-      this.scroll.calculate();
-      this.fieldResize();
-
-      if (
-        cfg.scroll.before.startIdx !== cfg.scroll.startIdx ||
-        cfg.scroll.before.viewRow !== cfg.scroll.viewRow ||
-        cfg.scroll.before.startCol !== cfg.scroll.startCol ||
-        cfg.scroll.before.endCol !== cfg.scroll.endCol
-      ) {
-        this.body.dataDraw('resize');
-      }
+    if (
+      scroll.before.startIdx !== scroll.startIdx ||
+      scroll.before.viewRow !== scroll.viewRow ||
+      scroll.before.startCol !== scroll.startCol ||
+      scroll.before.endCol !== scroll.endCol
+    ) {
+      this.refreshBody(true);
+    } else {
+      this.refreshBody(false);
     }
   }
 
@@ -817,7 +837,7 @@ export class GridMain {
     for (const field of fields) {
       if (!isHeaderResize && this.enableViewAllLabel) {
         const labelWidth = getTextWidth(cfg, field.label, 20);
-        field.width = field.width > labelWidth ? field.width : labelWidth;
+        field.width = Math.max(field.width, labelWidth);
       }
 
       mainTotalWidth += isHeaderResize ? field.$width : field.width;
@@ -826,7 +846,6 @@ export class GridMain {
     cfg.scroll.enableHorizontal = mainTotalWidth > dimensions.width;
 
     //세로 스크롭 계산 start
-
     const verticalEnable = opts.scroll.vertical.enable;
 
     if (verticalEnable === false) {
@@ -892,7 +911,7 @@ export class GridMain {
         fieldWidth = fieldWidth + remainderWidth;
 
         if (lastSpaceW > 0) {
-          const addSpaceW = lastSpaceW > 1 ? 1 : lastSpaceW;
+          const addSpaceW = Math.min(lastSpaceW, 1);
           fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1) * addSpaceW;
           lastSpaceW = lastSpaceW - 1;
         }
@@ -913,6 +932,8 @@ export class GridMain {
       field.$width = fieldWidth;
     }
 
+    //console.log('222222 ', dimensions.width - verticalScrollWidth);
+
     dimensions.mainLeftWidth = leftWidth;
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
@@ -920,6 +941,19 @@ export class GridMain {
     dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
     dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
     dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
+
+    console.log(
+      'calcBody ',
+      fieldLength,
+      dimensions.width,
+      dimensions.mainHeight,
+      mainBodyHeight,
+      rowLength,
+      rowHeight,
+      cfg.scroll.insideViewRow,
+      cfg.scroll.viewRow,
+      JSON.stringify(dimensions),
+    );
   }
 
   /**
@@ -1055,7 +1089,7 @@ export class GridMain {
    * @param {Config} cfg 설정정보
    * @returns {FieldItem} 필드 정보
    */
-  public headerGroupInfo(
+  private headerGroupInfo(
     field: FieldItem,
     depth: number,
     fieldGroupInfo: FieldHeaderGroupInfo,
@@ -1224,7 +1258,7 @@ export class GridMain {
    * @param {FieldItem} field 필드 정보
    * @returns {FieldItem} 필드 item
    */
-  public setRendererInfo(field: FieldItem): FieldItem {
+  private setRendererInfo(field: FieldItem): FieldItem {
     const opts = this.opts;
 
     if (!field.$isAside) {
@@ -1319,16 +1353,17 @@ export class GridMain {
     this.cfg.dataManager.setItems(items);
   }
 
-  public refreshBody() {
+  public refreshBody(drawFlag = true) {
     this.calcBody();
-    if (this.scroll) {
-      this.scroll.calculate();
-      this.setElementDimentions();
-      this.fieldResize();
-      this.summary.drawData();
-    }
 
-    this.getBody().dataDraw('refreshBody');
+    this.scroll.calculate();
+    this.setElementDimentions();
+    this.fieldResize();
+    this.summary.drawData();
+
+    if (drawFlag) {
+      this.getBody().dataDraw('refreshBody');
+    }
   }
 
   /**
@@ -1525,25 +1560,6 @@ export class GridMain {
     const cfg = this.cfg;
     cfg.dataManager.expandRow(id);
     this.body.dataDraw('expandRow');
-  }
-
-  /**
-   * int grid html tempate
-   *
-   * @private
-   */
-  private initTemplate() {
-    const gridElement = GRID_TEMPLATE.content.firstElementChild!.cloneNode(true) as HTMLElement;
-
-    // empty text
-    const emptyText = gridElement.querySelector('.empty-text');
-
-    if (emptyText) {
-      emptyText.textContent = this.i18n().getMessage('no.data');
-    }
-
-    // append
-    this.gridElement.getElement().appendChild(gridElement);
   }
 
   public setPaging(paging: PagingInfo) {

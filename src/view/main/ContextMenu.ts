@@ -1,7 +1,7 @@
 import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { getBrowserSize, getElementRect, hasClass, outerLayerPosition } from '@/util/domUtils';
-import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
+import { eventPosition, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { isFunction, isUndefined } from '@/util/utils';
@@ -22,6 +22,8 @@ export class ContextMenu {
 
   private contextElement: DaraElement;
 
+  private _isActive = false;
+
   private readonly contextData: Map<string, ContextMenuItem> = new Map();
 
   constructor(gridMain: GridMain) {
@@ -33,8 +35,13 @@ export class ContextMenu {
       return;
     }
 
-    this.contextOpts = contextOpts;
+    this._isActive = true;
 
+    this.contextOpts = contextOpts;
+  }
+
+  init() {
+    if (!this._isActive) return;
     this.create();
     this.initEvent();
   }
@@ -80,6 +87,8 @@ export class ContextMenu {
     eventManager.off(gridElement, 'contextmenu');
     eventManager.on({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
+
+      console.log(e.target, gridElement);
 
       this.gridMain.hideLayer();
 
@@ -138,6 +147,11 @@ export class ContextMenu {
     // contextmenu item click
     eventManager.off(contextItemElements, 'click');
     eventManager.on({ el: contextItemElements, type: 'click' }, (e: Event) => {
+      if (!isPrimaryPointer(e)) {
+        stopPreventCancel(e);
+        return;
+      }
+
       const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {
@@ -277,11 +291,10 @@ export class ContextMenu {
             <span class="dg-contextmenu-label">${item.label}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>
+          <ul class="dg-contextmenu dg-contextmenu-submenu">
+            ${this.template(item.children, id, depth + 1)}
+          </ul>
         </li>`);
-
-        htmlTemplate.push(
-          `<ul class="dg-contextmenu dg-contextmenu-submenu">${this.template(item.children, id, depth + 1)}</ul>`,
-        );
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : '';
         htmlTemplate.push(html`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
