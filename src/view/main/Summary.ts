@@ -1,13 +1,15 @@
-import { CellInfo, Config, SummaryConfig } from '@t/GridConfig';
+import { Config, SummaryConfig } from '@t/GridConfig';
 import { SummaryItem, SummaryOptions } from '@t/GridOptions';
 
 import { DaraElement } from '@/element/DaraElement';
+import { SummaryTextRenderer } from '@/renderer/summary/SummaryTextRenderer';
+import { SummaryRenderer } from '@/renderer/SummaryRenderer';
 import { formatValue } from '@/util/formatUtils';
+import { html } from '@/util/htmlTemplate';
 import { calcSummary } from '@/util/mathUtils';
-import { camelToKebab, isFunction } from '@/util/utils';
+import { isFunction, merge } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '../GridMain';
-import { html } from '@/util/htmlTemplate';
 
 /**
  * Summary class
@@ -18,7 +20,7 @@ import { html } from '@/util/htmlTemplate';
 export class Summary {
   private readonly gridMain: GridMain;
 
-  private readonly config: Config;
+  private readonly cfg: Config;
 
   private readonly summaryOpts: SummaryOptions;
 
@@ -30,11 +32,11 @@ export class Summary {
   private centerElement: DaraElement;
   private rightElement: DaraElement;
 
-  private summaryItems: SummaryItem[][];
+  private allSummaryRenders: SummaryRenderer[][];
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
-    this.config = gridMain.config();
+    this.cfg = gridMain.config();
 
     const opts = gridMain.options();
 
@@ -46,7 +48,6 @@ export class Summary {
       return;
     }
 
-    for (const items of summaryItems) this.summaryItems = summaryItems;
     this.summaryOpts = opts.summary ?? ({} as SummaryOptions);
   }
 
@@ -57,6 +58,29 @@ export class Summary {
       this.summaryElement.getElement().remove();
       return;
     }
+
+    const allSummaryRenders: SummaryRenderer[][] = [];
+
+    const allFieldMap = this.cfg.allFieldMap;
+
+    for (const items of this.summaryOpts.items) {
+      const summaryRenders: SummaryRenderer[] = [];
+      for (const item of items) {
+        const fieldName = item.name;
+        let fileInfo;
+        if (allFieldMap.has(fieldName)) {
+          fileInfo = allFieldMap.get(fieldName)!;
+        } else {
+          fileInfo = merge({}, item) as FieldItem;
+        }
+
+        summaryRenders.push(new SummaryTextRenderer(fileInfo, this.gridMain, item));
+      }
+      allSummaryRenders.push(summaryRenders);
+    }
+
+    this.allSummaryRenders = allSummaryRenders;
+
     this.createTemplate();
     this.drawData();
   }
@@ -89,49 +113,18 @@ export class Summary {
   public drawData() {
     if (!this._isActive) return;
 
-    const cfg = this.config;
-    const items = cfg.dataManager.getViewItems();
-
-    const summaryItems = this.summaryItems;
-
-    const allFieldMap = cfg.allFieldMap;
+    const summaryItems = this.allSummaryRenders;
+    const summaryElement = this.summaryElement;
 
     let rowIdx = 0;
     for (const groupItem of summaryItems) {
-      for (const item of groupItem) {
-        const fieldName = item.name;
+      for (const renderer of groupItem) {
+        const col = renderer.getCol();
 
-        if (allFieldMap.has(fieldName)) {
-          const field = allFieldMap.get(fieldName);
+        console.log('renderer : ', renderer);
+        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`).firstChild as HTMLElement;
 
-          const displayFormat = item.displayFormat ?? field?.displayFormat;
-
-          const col = field?.$colSeq;
-          const cellElement = this.summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
-            .firstChild as HTMLElement;
-
-          const expression = item.expression;
-
-          let summaryValue: any = '';
-
-          if (items.length > 0) {
-            if (expression) {
-              if (isFunction(expression)) {
-                summaryValue = expression(items);
-              } else {
-                summaryValue = calcSummary(items, expression, item.name);
-              }
-              if (displayFormat) {
-                summaryValue = formatValue(summaryValue, displayFormat);
-              }
-            } else if (item.label) {
-              summaryValue = item.label;
-            }
-          }
-
-          cellElement.textContent = summaryValue;
-          //field?.$renderer.render({ rowIndex: rowIdx, r: rowIdx, c: col, item: item } as CellInfo, cellElement);
-        }
+        renderer.render(cellElement);
       }
       rowIdx++;
     }
@@ -140,7 +133,7 @@ export class Summary {
   }
 
   private createTemplate() {
-    const cfg = this.config;
+    const cfg = this.cfg;
 
     const summaryElement = this.summaryElement;
 

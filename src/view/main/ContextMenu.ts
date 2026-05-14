@@ -1,13 +1,13 @@
 import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { getBrowserSize, getElementRect, hasClass, outerLayerPosition } from '@/util/domUtils';
-import { eventPosition, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
+import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
+import { html } from '@/util/htmlTemplate';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { isFunction, isUndefined } from '@/util/utils';
 import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
 import { GridMain } from '../GridMain';
-import { html } from '@/util/htmlTemplate';
 
 /**
  * Body class
@@ -88,8 +88,6 @@ export class ContextMenu {
     eventManager.on({ el: gridElement, type: 'contextmenu' }, (e: Event) => {
       stopPreventCancel(e);
 
-      console.log(e.target, gridElement);
-
       this.gridMain.hideLayer();
 
       removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
@@ -147,11 +145,6 @@ export class ContextMenu {
     // contextmenu item click
     eventManager.off(contextItemElements, 'click');
     eventManager.on({ el: contextItemElements, type: 'click' }, (e: Event) => {
-      if (!isPrimaryPointer(e)) {
-        stopPreventCancel(e);
-        return;
-      }
-
       const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {

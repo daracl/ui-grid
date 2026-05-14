@@ -9,6 +9,7 @@ import {
   FIELD_PREFIX,
   FOOTER_HEIGHT,
   GRID_THEME,
+  HIDDEN_ELEMENT_SELECTOR,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   LINE_NUMBER_NAME,
@@ -197,16 +198,13 @@ export class GridMain {
       ALL_INSTANCE.forEach((grid, id) => {
         const gridElement = grid.gridElement.getElement();
 
-        console.log('1111pointerdown111', grid.$instanceId);
-
-        //
-
-        // 처리할 것.
-        //
-        //
-        //document.querySelector(`[data-grid-id="dg1"]`);
-
         const path = e.composedPath();
+
+        for (const el of document.querySelectorAll(`${HIDDEN_ELEMENT_SELECTOR} [data-grid-id="dg1"]`)) {
+          if (path.includes(el)) {
+            return;
+          }
+        }
 
         if (!path.includes(gridElement)) {
           grid.setGridFocusOut();
@@ -1162,7 +1160,7 @@ export class GridMain {
     }
 
     if (field.$isLeaf) {
-      field = this.setRendererInfo(field);
+      field = this.getRendererInfo(field);
     }
 
     // left 고정 컬럼
@@ -1258,7 +1256,7 @@ export class GridMain {
    * @param {FieldItem} field 필드 정보
    * @returns {FieldItem} 필드 item
    */
-  private setRendererInfo(field: FieldItem): FieldItem {
+  private getRendererInfo(field: FieldItem): FieldItem {
     const opts = this.opts;
 
     if (!field.$isAside) {

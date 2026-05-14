@@ -6,6 +6,8 @@ import { Renderer } from './Renderer';
 import { SummaryItem } from '../types/GridOptions';
 import { ALIGN_STYLE } from '@/constants';
 import { isFunction } from '@/util/utils';
+import { calcSummary } from '@/util/mathUtils';
+import { formatValue } from '@/util/formatUtils';
 
 /**
  * summary Render
@@ -39,17 +41,43 @@ export abstract class SummaryRenderer extends Renderer {
    * @param {CellInfo} cellInfo cell info
    * @param {HTMLElement} element cell element
    */
-  public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
+  public abstract render(element: HTMLElement): void;
+
+  public getCol() {
+    return this.field.$colSeq;
+  }
 
   /**
    * 값 얻기
    * @param rowItem row item
    * @returns
    */
-  public getValue(rowItem: any): any {
-    const val = rowItem[this.fieldName];
+  public getValue(): any {
+    const summaryItem = this.summaryItem;
+    const displayFormat = summaryItem.displayFormat ?? this.field?.displayFormat;
 
-    return val;
+    const items = this.cfg.dataManager.getViewItems();
+
+    const expression = summaryItem.expression;
+
+    let summaryValue: any = '';
+
+    if (items.length > 0) {
+      if (expression) {
+        if (isFunction(expression)) {
+          summaryValue = expression(items);
+        } else {
+          summaryValue = calcSummary(items, expression, summaryItem.name);
+        }
+        if (displayFormat) {
+          summaryValue = formatValue(summaryValue, displayFormat);
+        }
+      } else if (summaryItem.label) {
+        summaryValue = summaryItem.label;
+      }
+    }
+
+    return summaryValue;
   }
 
   /**

@@ -22,24 +22,11 @@ export class SummaryTextRenderer extends SummaryRenderer {
     super(field, gridMain, summaryItem);
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-
-    const renderValue = this.getValue(item);
+  public render(element: HTMLElement): void {
+    const renderValue = this.getValue();
 
     if (element.textContent !== renderValue) {
       element.textContent = renderValue;
     }
-  }
-
-  /**
-   * 값 얻기
-   * @param rowItem row item
-   * @returns
-   */
-  public getValue(rowItem: any): any {
-    const val = rowItem[this.fieldName];
-
-    return val;
   }
 }
