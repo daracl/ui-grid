@@ -5,7 +5,7 @@ import { CellInfo, Config } from '@t/GridConfig';
 import { Renderer } from './Renderer';
 import { SummaryItem } from '../types/GridOptions';
 import { ALIGN_STYLE } from '@/constants';
-import { isFunction } from '@/util/utils';
+import { isFunction, isString } from '@/util/utils';
 import { calcSummary } from '@/util/mathUtils';
 import { formatValue } from '@/util/formatUtils';
 
@@ -47,6 +47,14 @@ export abstract class SummaryRenderer extends Renderer {
     return this.field.$colSeq;
   }
 
+  public getFieldInfo() {
+    return this.field;
+  }
+
+  public getSummaryItem() {
+    return this.summaryItem;
+  }
+
   /**
    * 값 얻기
    * @param rowItem row item
@@ -60,24 +68,38 @@ export abstract class SummaryRenderer extends Renderer {
 
     const expression = summaryItem.expression;
 
-    let summaryValue: any = '';
+    const summaryValue: any = { foramtValue: '' };
 
     if (items.length > 0) {
       if (expression) {
         if (isFunction(expression)) {
-          summaryValue = expression(items);
+          summaryValue.value = expression(items);
         } else {
-          summaryValue = calcSummary(items, expression, summaryItem.name);
+          summaryValue.value = calcSummary(items, expression, summaryItem.name);
         }
+        summaryValue.foramtValue = summaryValue.value;
         if (displayFormat) {
-          summaryValue = formatValue(summaryValue, displayFormat);
+          summaryValue.foramtValue = formatValue(summaryValue.value, displayFormat);
         }
       } else if (summaryItem.label) {
-        summaryValue = summaryItem.label;
+        summaryValue.foramtValue = summaryItem.label;
       }
     }
 
     return summaryValue;
+  }
+
+  public setStyleClassValue(renderValue: any, element: HTMLElement) {
+    let styleClass = '';
+    if (isFunction(this.summaryItem.styleClass)) {
+      styleClass = this.summaryItem.styleClass(renderValue);
+    } else {
+      styleClass = isString(this.summaryItem.styleClass) ? this.summaryItem.styleClass : '';
+    }
+
+    if (styleClass) {
+      element.classList.add(styleClass);
+    }
   }
 
   /**

@@ -778,20 +778,7 @@ export interface SummaryOptions {
   items: SummaryItem[][];
 }
 
-export interface SummaryItem {
-  /**
-   * field name
-   */
-  name: string;
-  /**
-   * 표시명
-   */
-  label: string;
-
-  colspan: number;
-
-  rowspan: number;
-
+export interface SummaryItem extends FieldItem {
   /**
    * sum, avg 연산
    */

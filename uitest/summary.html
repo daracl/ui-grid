@@ -216,8 +216,17 @@
               { name: 'name', label: '합계' },
               { name: 'age', expression: 'sum' },
               {
+                name: 'birth',
+                rowspan: 2,
+                colspan: 2,
+              },
+              {
                 name: 'salary',
                 colspan: 2,
+                align: 'center',
+                styleClass: function (val) {
+                  return 'custom-class';
+                },
                 expression: 'sum',
                 displayFormat: {
                   type: 'number',

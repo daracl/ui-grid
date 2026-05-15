@@ -405,11 +405,12 @@ export class HorizontalScroll {
    * @param {number} contLeftVal scroll position
    */
   setHorizontalPosition(cfg: Config) {
-    const centerLeftPosition = getCenterContentLeft(cfg, cfg.scroll.left);
+    const scroll = cfg.scroll;
+    const centerLeftPosition = getCenterContentLeft(cfg, scroll.left);
     cfg.scroll.centerLeftPosition = centerLeftPosition;
     this.calcViewCol(cfg, centerLeftPosition);
 
-    this.horizontalThumbElement.css({ left: cfg.scroll.left + 'px' });
+    this.horizontalThumbElement.css({ left: scroll.left + 'px' });
 
     const leftCss = { left: '-' + centerLeftPosition + 'px' };
 

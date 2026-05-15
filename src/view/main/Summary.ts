@@ -1,13 +1,12 @@
 import { Config, SummaryConfig } from '@t/GridConfig';
 import { SummaryItem, SummaryOptions } from '@t/GridOptions';
 
+import { ALIGN_STYLE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SummaryTextRenderer } from '@/renderer/summary/SummaryTextRenderer';
 import { SummaryRenderer } from '@/renderer/SummaryRenderer';
-import { formatValue } from '@/util/formatUtils';
 import { html } from '@/util/htmlTemplate';
-import { calcSummary } from '@/util/mathUtils';
-import { isFunction, merge } from '@/util/utils';
+import { merge } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '../GridMain';
 
@@ -59,6 +58,13 @@ export class Summary {
       return;
     }
 
+    this.initRenderer();
+
+    this.createTemplate();
+    this.drawData();
+  }
+
+  private initRenderer() {
     const allSummaryRenders: SummaryRenderer[][] = [];
 
     const allFieldMap = this.cfg.allFieldMap;
@@ -67,12 +73,9 @@ export class Summary {
       const summaryRenders: SummaryRenderer[] = [];
       for (const item of items) {
         const fieldName = item.name;
-        let fileInfo;
-        if (allFieldMap.has(fieldName)) {
-          fileInfo = allFieldMap.get(fieldName)!;
-        } else {
-          fileInfo = merge({}, item) as FieldItem;
-        }
+        const fileInfo = allFieldMap.get(fieldName) ?? (merge({}, item) as FieldItem);
+
+        item.$alignStyle = ALIGN_STYLE[item.align] ?? (fileInfo.$alignStyle || ALIGN_STYLE.left);
 
         summaryRenders.push(new SummaryTextRenderer(fileInfo, this.gridMain, item));
       }
@@ -80,9 +83,6 @@ export class Summary {
     }
 
     this.allSummaryRenders = allSummaryRenders;
-
-    this.createTemplate();
-    this.drawData();
   }
 
   public isEnabled() {
@@ -121,15 +121,15 @@ export class Summary {
       for (const renderer of groupItem) {
         const col = renderer.getCol();
 
-        console.log('renderer : ', renderer);
-        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`).firstChild as HTMLElement;
+        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
+          ?.firstElementChild as HTMLElement;
 
-        renderer.render(cellElement);
+        if (cellElement) {
+          renderer.render(cellElement);
+        }
       }
       rowIdx++;
     }
-
-    //console.log('summary draw data ', this._isActive);
   }
 
   private createTemplate() {
@@ -165,14 +165,10 @@ export class Summary {
       { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
-    const summaryItems = this.summaryOpts.items;
-
     fieldGroups.forEach(({ fields, element, startCol }) => {
       if (fields.length === 0) return;
 
-      element
-        .findDaraElement('.dg-body-table > tbody')
-        .append(this.rowTemplate(summary, summaryItems, fields, startCol));
+      element.findDaraElement('.dg-body-table > tbody').append(this.rowTemplate(summary, fields, startCol));
     });
   }
 
@@ -233,34 +229,50 @@ export class Summary {
    * @param {FieldItem[]} fields fields 정보
    * @returns {string} template
    */
-  private rowTemplate(
-    summaryConfig: SummaryConfig,
-    items: SummaryItem[][],
-    fields: FieldItem[],
-    startCol: number,
-  ): any {
+  private rowTemplate(summaryConfig: SummaryConfig, fields: FieldItem[], startCol: number): string {
     const returnTemplate = [];
 
-    const rowCount = items.length;
     const rowHeights = summaryConfig.heights;
 
+    const allSummaryRenders = this.allSummaryRenders;
+    const rowCount = allSummaryRenders.length;
+
+    const rowspan: Record<number, number> = {};
     for (let i = 0; i < rowCount; i++) {
       const rowIdx = i;
 
-      const summaryItems = items[i];
+      const rendererItems = allSummaryRenders[i];
 
       const cellTemplate = [];
+      let colspan = 0;
       for (let j = 0; j < fields.length; j++) {
-        const field = fields[j];
+        let field = fields[j];
 
-        const summaryItem = summaryItems.find((item) => item.name === field.name) ?? { colspan: 0, rowspan: 0 };
-        const spanAttr = [];
-        if (summaryItem.colspan) {
-          spanAttr.push(` colspan="${summaryItem.colspan}" `);
+        const rendererItem = rendererItems.find((renderer) => renderer.getFieldInfo().name === field.name);
+
+        if (rendererItem) {
+          field = rendererItem.getSummaryItem();
         }
 
-        if (summaryItem.rowspan) {
-          spanAttr.push(` rowspan="${summaryItem.rowspan}" `);
+        if (colspan > 0) {
+          --colspan;
+          continue;
+        }
+
+        if (rowspan[j] > 0) {
+          rowspan[j] = rowspan[j] - 1;
+          continue;
+        }
+
+        const spanAttr = [];
+        if (field.colspan) {
+          colspan = field.colspan - 1;
+          spanAttr.push(` colspan="${field.colspan}" scope="colgroup" `);
+        }
+
+        if (field.rowspan) {
+          rowspan[j] = field.rowspan - 1;
+          spanAttr.push(` rowspan="${field.rowspan}" `);
         }
 
         if (field.$isAside) {

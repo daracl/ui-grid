@@ -281,7 +281,6 @@ export class Body {
    * body 데이터 그리기
    */
   public dataDraw(mode?: string) {
-    console.log('mode : ', mode);
     const opts = this.gridMain.options();
     const cfg = this.gridMain.config();
 

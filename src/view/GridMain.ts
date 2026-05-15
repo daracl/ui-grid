@@ -281,8 +281,6 @@ export class GridMain {
 
     this.rendererContainer = this.gridElement.find('.dg-layer-container');
 
-    console.log(this.rendererContainer);
-
     this._mainElement.addClass(
       `dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'} ${
         opts.selectionMode === 'none' ? '' : 'daracl-noselect'

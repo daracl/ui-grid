@@ -23,10 +23,12 @@ export class SummaryTextRenderer extends SummaryRenderer {
   }
 
   public render(element: HTMLElement): void {
-    const renderValue = this.getValue();
+    const summaryValue = this.getValue();
 
-    if (element.textContent !== renderValue) {
-      element.textContent = renderValue;
+    this.setStyleClassValue(summaryValue.value, element);
+
+    if (element.textContent !== summaryValue.foramtValue) {
+      element.textContent = summaryValue.foramtValue;
     }
   }
 }
