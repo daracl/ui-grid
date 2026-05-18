@@ -11,25 +11,15 @@ import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, multiSort, sortTreeByLevel } from '@/util/utils';
+import { arrayCopy, sortTreeByLevel } from '@/util/utils';
+import { DataManager, RowId } from './DataManager';
 
-type RowId = string | number;
-
-export class TreeDataManager {
-  private readonly rowMap = new Map<RowId, any>();
+export class TreeDataManager extends DataManager {
   private readonly childrenMap = new Map<RowId, any[]>();
   private readonly expandedSet = new Set<RowId>();
   private readonly idMap = new Map<RowId, RowId>();
-  private viewItems: any[] = [];
-
-  private sortOrginItems: any[] = [];
-
-  private readonly matchWholeRegex?: RegExp;
-
-  private readonly rowHeight;
 
   private readonly rowIdField: string;
-  private isTreeType = false;
   private readonly idKey: string;
   private readonly pidKey: string;
   private readonly childrenKey: string;
@@ -37,14 +27,10 @@ export class TreeDataManager {
   private readonly expandDepth: number;
   private defaultExpandedIds: RowId[] = [];
 
-  private originItems: any[] = [];
   private orginTreeItems: any[] = [];
-  private currentItems: any[] = [];
 
-  private readonly rowCheckSet = new Set<RowId>();
-
-  constructor(private opts: GridOptions, private cfg: Config) {
-    this.isTreeType = !!opts.tree;
+  constructor(opts: GridOptions, cfg: Config) {
+    super(opts, cfg);
 
     this.idKey = opts.tree?.idField ?? 'id';
     this.pidKey = opts.tree?.parentIdField ?? 'pid';
@@ -53,71 +39,17 @@ export class TreeDataManager {
     this.expandDepth = opts.tree?.expandDepth ?? 1;
     this.defaultExpandedIds = opts.tree?.defaultExpandedIds ?? [];
 
-    this.rowHeight = cfg.rowHeight;
     this.rowIdField = cfg.rowIdField;
-
-    this.matchWholeRegex = opts.search?.matchWholeRegex;
-  }
-
-  // ======================
-  // UUID
-  // ======================
-  private generateUUID(): string {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-    return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => ((Math.random() * 16) | 0).toString(16));
-  }
-
-  /**
-   * 전체 체크 설정
-   */
-  public setAllCheck() {
-    for (const item of this.getViewItems()) {
-      this.rowCheckSet.add(item[this.rowIdField]);
-    }
-  }
-
-  /**
-   * 체크된 아이템 초기화
-   */
-  public clearAllCheck() {
-    this.rowCheckSet.clear();
-  }
-
-  /**
-   *  체크된 아이템 설정
-   * @param cellInfo 체크된 셀 정보
-   * @param checked 체크 여부
-   */
-  public setItemChecked(item: any, checked: boolean) {
-    const rowId = item[this.rowIdField];
-    if (checked) {
-      this.rowCheckSet.add(rowId);
-    } else {
-      this.rowCheckSet.delete(rowId);
-    }
-  }
-
-  /**
-   * 특정 아이템이 체크되어 있는지 여부 반환
-   * @param item 체크 여부를 확인할 아이템
-   * @returns 체크 여부
-   */
-  public isItemChecked(item: any): boolean {
-    return this.rowCheckSet.has(item[this.rowIdField]);
-  }
-
-  getCheckedCount(): number {
-    return this.rowCheckSet.size;
   }
 
   // ======================
   // 데이터 세팅
   // ======================
   public setItems(items: any[]) {
+    super.setItems(items);
+
     const processedItems = this.opts.tree?.isFlatData ? this.buildTree(items) : items;
     this.orginTreeItems = processedItems;
-    this.originItems = items;
-    this.currentItems = this.initItems(processedItems);
 
     this.buildMaps();
     this.initExpandedState();
@@ -129,9 +61,7 @@ export class TreeDataManager {
     sortOrders: FieldSortInfo[],
     sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
   ) {
-    if (this.sortOrginItems.length == 0) {
-      this.sortOrginItems = arrayCopy(this.getViewItems());
-    }
+    const sortOrginItems = this.getSortBaseItems();
 
     if (sortOrders.length > 0) {
       const sortArr = Array.from(sortOrders);
@@ -142,19 +72,14 @@ export class TreeDataManager {
         }
       });
 
-      if (this.isTreeType) {
-        const sortTreeData = sortTreeByLevel(this.orginTreeItems, sortArr, sortOpts.nullsLast);
+      const sortTreeData = sortTreeByLevel(this.orginTreeItems, sortArr, sortOpts.nullsLast);
 
-        const treeData = this.getTreeToList(sortTreeData);
-        console.log(sortTreeData);
+      const treeData = this.getTreeToList(sortTreeData);
 
-        this.setViewItems(treeData);
-      } else {
-        this.setViewItems(multiSort(this.getViewItems(), sortArr, sortOpts.nullsLast));
-      }
+      this.setViewItems(treeData);
     } else {
-      this.setViewItems(this.sortOrginItems);
-      this.sortOrginItems = [];
+      this.setViewItems(sortOrginItems);
+      this.setSortBaseItems([]);
     }
   }
 
@@ -226,7 +151,7 @@ export class TreeDataManager {
       }
     };
 
-    traverse(this.currentItems);
+    traverse(this.getCurrentItems());
   }
 
   // ======================
@@ -265,12 +190,7 @@ export class TreeDataManager {
   // viewItems
   // ======================
   public buildViewItems(start = 0, end = Infinity) {
-    if (!this.isTreeType) {
-      this.setViewItems(this.currentItems, start, end);
-      return;
-    }
-
-    this.setViewItems(this.getTreeToList(this.currentItems), start, end);
+    this.setViewItems(this.getTreeToList(this.getCurrentItems()), start, end);
   }
 
   private getTreeToList(list: any, start = 0, end = Infinity) {
@@ -294,15 +214,6 @@ export class TreeDataManager {
 
     return result;
   }
-
-  public setViewItems = (items: any[], start?: number, end?: number) => {
-    const viewItems = arrayCopy(items, start, end);
-    this.viewItems = viewItems;
-
-    const dataInfo = this.cfg.dataInfo;
-    dataInfo.rowLength = viewItems.length;
-    dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
-  };
 
   // ======================
   // toggle
@@ -333,8 +244,6 @@ export class TreeDataManager {
   }
 
   public expandAll() {
-    if (!this.isTreeType) return;
-
     for (const key of this.childrenMap.keys()) {
       this.expandedSet.add(key);
     }
@@ -361,12 +270,12 @@ export class TreeDataManager {
   // ======================
   // row 추가
   // ======================
-  public addRow(parentId: RowId | null, newItem: any) {
+  public addRow(newItem: any, parentId: RowId | null) {
     const item = this.initItems([newItem])[0];
 
     item[ROW_EXPANDED_KEY] = false;
 
-    if (!parentId || !this.isTreeType) {
+    if (!parentId) {
       this.currentItems.push(item);
     } else {
       const parent = this.rowMap.get(parentId);
@@ -405,23 +314,8 @@ export class TreeDataManager {
     this.buildViewItems();
   }
 
-  // ======================
-  // getter
-  // ======================
-  public getViewItems() {
-    return this.viewItems;
-  }
-
-  public getOriginItems() {
-    return this.originItems;
-  }
-
-  public getCurrentItems() {
-    return this.currentItems;
-  }
-
-  public getRow(rowId: RowId) {
-    return this.rowMap.get(rowId);
+  public removeRows(ids: RowId[]): RowId[] {
+    throw new Error('Method not implemented.');
   }
 
   search(keyword: string, options: SearchMode) {
@@ -444,15 +338,8 @@ export class TreeDataManager {
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
-    //console.log('searchResults : ', this.isTreeType, searchResults);
-
-    if (!this.isTreeType) {
-      this.setViewItems(searchResults);
-      return;
-    }
-
     // 트리 형태로 다시 구성
-    const tree = this.buildSearchedTree(this.currentItems, searchResults);
+    const tree = this.buildSearchedTree(this.getCurrentItems(), searchResults);
 
     // flatten for view cache
     const result: any[] = [];

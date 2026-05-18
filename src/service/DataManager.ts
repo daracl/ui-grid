@@ -1,36 +1,29 @@
-import {
-  ALL_SELECT_VALUE,
-  ROW_CUD_KEY,
-  ROW_DEPTH_KEY,
-  ROW_EXPANDED_KEY,
-  ROW_HAS_CHILD_KEY,
-  ROW_HEIGHT_KEY,
-} from '@/constants';
+import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY } from '@/constants';
 import { OptionCallback, SearchMode } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, multiSort, sortTreeByLevel } from '@/util/utils';
+import { arrayCopy, multiSort } from '@/util/utils';
 
-type RowId = string | number;
+export type RowId = string | number;
 
 export abstract class DataManager {
   private viewItems: any[] = [];
 
-  private readonly matchWholeRegex?: RegExp;
+  protected readonly matchWholeRegex?: RegExp;
 
-  private readonly rowHeight;
-  private readonly rowIdField;
+  protected readonly rowHeight;
+  protected readonly rowIdField;
 
-  private originItems: any[] = [];
+  private originalItems: any[] = [];
   private currentItems: any[] = [];
 
-  private sortOrginItems: any[] = [];
+  private sortBaseItems: any[] = [];
 
+  private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
-  constructor(opts: GridOptions, cfg: Config) {
+  constructor(protected opts: GridOptions, protected cfg: Config) {
     this.rowHeight = cfg.rowHeight;
     this.rowIdField = cfg.rowIdField;
     this.matchWholeRegex = opts.search?.matchWholeRegex;
@@ -91,8 +84,16 @@ export abstract class DataManager {
   // 데이터 세팅
   // ======================
   public setItems(items: any[]) {
-    this.originItems = items;
+    this.originalItems = items;
     this.currentItems = items;
+  }
+
+  protected getSortBaseItems() {
+    return this.sortBaseItems;
+  }
+
+  protected setSortBaseItems(items: any[]) {
+    this.sortBaseItems = items;
   }
 
   dataSort(
@@ -100,8 +101,8 @@ export abstract class DataManager {
     sortOrders: FieldSortInfo[],
     sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
   ) {
-    if (this.sortOrginItems.length == 0) {
-      this.sortOrginItems = arrayCopy(this.getViewItems());
+    if (this.sortBaseItems.length == 0) {
+      this.setSortBaseItems(arrayCopy(this.getViewItems()));
     }
 
     if (sortOrders.length > 0) {
@@ -115,27 +116,20 @@ export abstract class DataManager {
 
       this.setViewItems(multiSort(this.getViewItems(), sortArr, sortOpts.nullsLast));
     } else {
-      this.setViewItems(this.sortOrginItems);
-      this.sortOrginItems = [];
+      this.setViewItems(this.getSortBaseItems());
+      this.setSortBaseItems([]);
     }
   }
 
   // ======================
   // 초기화
   // ======================
-  private initItems(items: any[], depth = 0): any[] {
+  protected initItems(items: any[], depth = 0): any[] {
     return items.map((item) => {
       item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
       item[ROW_DEPTH_KEY] = depth;
       item[ROW_CUD_KEY] = 'R';
       item[ROW_HEIGHT_KEY] = this.rowHeight;
-
-      const children = item[this.childrenKey];
-
-      if (children?.length) {
-        item[ROW_HAS_CHILD_KEY] = true;
-        item[this.childrenKey] = this.initItems(children, depth + 1);
-      }
 
       return item;
     });
@@ -153,49 +147,12 @@ export abstract class DataManager {
   // ======================
   // row 추가
   // ======================
-  public addRow(parentId: RowId | null, newItem: any) {
-    const item = this.initItems([newItem])[0];
-
-    item[ROW_EXPANDED_KEY] = false;
-
-    if (!parentId || !this.isTreeType) {
-      this.currentItems.push(item);
-    } else {
-      const parent = this.rowMap.get(parentId);
-      if (!parent) return;
-
-      parent[this.childrenKey] = parent[this.childrenKey] || [];
-      parent[this.childrenKey].push(item);
-    }
-
-    this.buildMaps();
-    this.buildViewItems();
-  }
+  public abstract addRow(newItem: any): void;
 
   // ======================
   // row 삭제
   // ======================
-  public removeRow(ids: RowId[]) {
-    const cfg = this.cfg;
-
-    const currentItems = this.currentItems;
-    for (const item of currentItems) {
-      if (ids.length < 1) break;
-
-      const index = ids.indexOf(item[cfg.rowIdField]);
-
-      if (index !== -1) {
-        this.expandedSet.delete(ids[index]);
-        ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
-        item[ROW_CUD_KEY] = 'D';
-      }
-    }
-
-    this.currentItems = currentItems;
-
-    this.buildMaps();
-    this.buildViewItems();
-  }
+  public abstract removeRows(ids: RowId[]): RowId[];
 
   // ======================
   // getter
@@ -204,17 +161,17 @@ export abstract class DataManager {
     return this.viewItems;
   }
 
-  public getOriginItems() {
-    return this.originItems;
+  public getOriginalItems() {
+    return this.originalItems;
   }
 
   public getCurrentItems() {
     return this.currentItems;
   }
 
-  public getRow(rowId: RowId) {
+  public getRowItem(rowId: RowId) {
     return this.rowMap.get(rowId);
   }
 
-  abstract search(keyword: string, options: SearchMode);
+  abstract search(keyword: string, options: SearchMode): any[];
 }
