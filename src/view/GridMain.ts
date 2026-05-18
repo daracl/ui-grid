@@ -1371,7 +1371,7 @@ export class GridMain {
    */
   public addRow = (items: any | any[], position: ADD_ROW_POSITION, rowIndex?: number) => {
     const cfg = this.cfg;
-    const currentItems = cfg.dataManager.getOriginItems();
+    const currentItems = cfg.dataManager.getCurrentItems();
     const isBefore = position === 'before';
 
     const addItems = Array.isArray(items) ? items : [items];
@@ -1398,19 +1398,8 @@ export class GridMain {
    */
   public removeRow = (ids: any[]) => {
     const cfg = this.cfg;
-    const currentItems = cfg.dataManager.getOriginItems();
 
-    for (const item of currentItems) {
-      if (ids.length < 1) break;
-
-      const index = ids.findIndex((item) => item === item[cfg.rowIdField]);
-
-      if (index !== -1) {
-        ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
-        item[ROW_CUD_KEY] = 'D';
-      }
-    }
-    this.cfg.dataManager.setViewItems(currentItems);
+    cfg.dataManager.removeRow(ids);
     this.refreshBody();
   };
 

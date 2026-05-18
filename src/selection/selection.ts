@@ -340,18 +340,18 @@ export class SelectionInfo {
       let hasSelection = false;
 
       for (let j = startCol; j <= endCol; j++) {
-        const col = currentFields[j];
-        if (col.hidden || col.$isAside) continue;
+        const field = currentFields[j];
+        if (field.hidden || field.$isAside) continue;
 
-        const colName = col.name;
+        const colName = field.name;
         const selected = isAll || this.isSelection(i, j);
 
         let cellValue: any = '';
         if (selected) {
-          cellValue = col.$renderer.getValue(item);
+          cellValue = field.$renderer.getValue(item);
           hasSelection = true;
 
-          if (!keyInfoMap.has(j)) keyInfoMap.set(j, col);
+          if (!keyInfoMap.has(j)) keyInfoMap.set(j, field);
 
           if (!utils.isBlank(cellValue)) {
             summary.count++;

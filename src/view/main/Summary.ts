@@ -1,5 +1,5 @@
 import { Config, SummaryConfig } from '@t/GridConfig';
-import { SummaryItem, SummaryOptions } from '@t/GridOptions';
+import { SummaryOptions } from '@t/GridOptions';
 
 import { ALIGN_STYLE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
@@ -99,6 +99,7 @@ export class Summary {
 
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
     if (!this._isActive) return;
+
     this.leftElement.css({ width: mainLeftWidth + 'px' });
     this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
     this.rightElement.css({ width: mainRightWidth + 'px' });

@@ -279,42 +279,90 @@ export function camelToKebab(str: string) {
  * @param {Array<{ name: string, ascOrder?: boolean }>} sortKeys - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-
 export function multiSort(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean) {
-  const sortArr = Array.from(sortKeys);
+  return [...data].sort((a: any, b: any): number => {
+    for (const col of sortKeys) {
+      const result = compareValue(a, b, col, emptyValueLast);
 
-  sortArr.forEach((item) => {
-    if (item.field.getValue) {
-      item.isValue = true;
-    }
-  });
-
-  return data.slice().sort((a, b) => {
-    for (const { name, ascOrder = true, field, isValue = false } of sortArr) {
-      const valA = isValue ? field.getValue?.({ field: field, item: a }) : a[name];
-      const valB = isValue ? field.getValue?.({ field: field, item: b }) : b[name];
-
-      const isNullishA = valA === null || valA === undefined;
-      const isNullishB = valB === null || valB === undefined;
-
-      // null/undefined 우선 정렬 처리
-      if (isNullishA && !isNullishB) return ascOrder ? 1 : -1;
-      if (!isNullishA && isNullishB) return ascOrder ? -1 : 1;
-      if (isNullishA && isNullishB) continue;
-
-      let comparison;
-      if (typeof valA === 'number' && typeof valB === 'number') {
-        comparison = valA - valB;
-      } else {
-        comparison = String(valA).localeCompare(String(valB));
-      }
-
-      if (comparison !== 0) {
-        return ascOrder ? comparison : -comparison;
+      if (result !== 0) {
+        return result;
       }
     }
+
     return 0;
   });
+}
+
+/**
+ * 값 비교
+ */
+const compareValue = (a: any, b: any, sortInfo: FieldSortInfo, emptyValueLast?: boolean): number => {
+  const { name, ascOrder = true, field, isValue = false } = sortInfo;
+  const valA = isValue ? field.$renderer.getValue({ field: field, item: a }) : a[name];
+  const valB = isValue ? field.$renderer.getValue({ field: field, item: b }) : b[name];
+
+  const isNullishA = valA === null || valA === undefined;
+  const isNullishB = valB === null || valB === undefined;
+
+  // null/undefined 우선 정렬 처리
+  if (isNullishA && !isNullishB) return ascOrder ? 1 : -1;
+  if (!isNullishA && isNullishB) return ascOrder ? -1 : 1;
+  if (isNullishA && isNullishB) return 0;
+
+  let comparison;
+  if (typeof valA === 'number' && typeof valB === 'number') {
+    comparison = valA - valB;
+  } else {
+    comparison = String(valA).localeCompare(String(valB));
+  }
+
+  if (comparison === 0) {
+    return 0;
+  }
+
+  return ascOrder ? comparison : -comparison;
+};
+
+/**
+ * 트리 데이터를 level 별로 정렬
+ * - children 재귀 정렬
+ * - 다중 컬럼 정렬 지원
+ * - 원본 데이터 변경 없음
+ */
+export function sortTreeByLevel(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean): any[] {
+  /**
+   * 다중 컬럼 정렬
+   */
+  const sortFn = (a: any, b: any): number => {
+    for (const col of sortKeys) {
+      const result = compareValue(a, b, col, emptyValueLast);
+
+      if (result !== 0) {
+        return result;
+      }
+    }
+
+    return 0;
+  };
+
+  /**
+   * 재귀 정렬
+   */
+  const recursiveSort = (nodes: any[]): any[] => {
+    return [...nodes].sort(sortFn).map((node) => {
+      const newNode: any = {
+        ...node,
+      };
+
+      if (Array.isArray(newNode.children)) {
+        newNode.children = recursiveSort(newNode.children) as any[];
+      }
+
+      return newNode;
+    });
+  };
+
+  return recursiveSort(data);
 }
 
 export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {

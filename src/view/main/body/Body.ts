@@ -330,13 +330,13 @@ export class Body {
     } else if (beforeViewRow < viewRow) {
       const rowHeight = cfg.rowHeight;
 
-      const addRow = viewRow - beforeViewRow;
+      const addRowTemplateCount = viewRow - beforeViewRow;
 
       fieldGroups.forEach(({ fields, element, startCol }) => {
         if (fields.length === 0) return;
         element
           .findDaraElement('.dg-body-table > tbody')
-          .append(this.rowTemplate(beforeViewRow, addRow, rowHeight, fields, startCol));
+          .append(this.rowTemplate(beforeViewRow, addRowTemplateCount, rowHeight, fields, startCol));
       });
 
       const allCellMap: Record<string, HTMLElement[][]> = {};
@@ -670,14 +670,14 @@ export class Body {
    */
   private rowTemplate(
     viewRow: number,
-    rowCount: number,
+    rowTemplateCount: number,
     rowHeight: number,
     fields: FieldItem[],
     startCol: number,
   ): any {
     const returnTemplate = [];
 
-    for (let i = 0; i < rowCount; i++) {
+    for (let i = 0; i < rowTemplateCount; i++) {
       const rowIdx = viewRow + i;
 
       const cellTemplate = [];

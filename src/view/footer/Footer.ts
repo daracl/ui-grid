@@ -115,7 +115,7 @@ export class Footer {
       const countPerPage = pagingViewInfo?.countPerPage;
       const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
-      this.cfg.dataManager.setViewItems(this.cfg.dataManager.getOriginItems(), startIdx, startIdx + countPerPage);
+      this.cfg.dataManager.setViewItems(this.cfg.dataManager.getCurrentItems(), startIdx, startIdx + countPerPage);
 
       if (drawFlag) {
         this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
