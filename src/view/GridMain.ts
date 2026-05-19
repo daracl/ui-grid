@@ -1,8 +1,7 @@
 import { Config, FieldHeaderGroupInfo } from '@t/GridConfig';
 
 import {
-  ADD_ROW_POSITION,
-  ALIGN,
+  ADD_ITEM_POSITION,
   ALIGN_STYLE,
   EDIT_RENDERER,
   FIELD_LAYER_CLASS,
@@ -14,7 +13,6 @@ import {
   LAYER_ATTR_NAME,
   LINE_NUMBER_NAME,
   ROW_CHECK_NAME,
-  ROW_CUD_KEY,
   ROW_DRAG_HANDLE_NAME,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
@@ -26,16 +24,18 @@ import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } fr
 import { DaraElement } from '@/element/DaraElement';
 import { EditRenderer } from '@/renderer/EditRenderer';
 import { SelectionInfo } from '@/selection/selection';
-import { DataManager } from '@/service/DataManager';
+import { ListDataManager } from '@/service/ListDataManager';
+import { TreeDataManager } from '@/service/TreeDataManager';
+import { AddRowOptions } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
 import { getTextWidth, heightOptionValue } from '@/util/gridUtils';
+import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
 import {
   debounce,
   deepCopy,
-  insertToArray,
   isArray,
   isNumber,
   isObject,
@@ -54,7 +54,6 @@ import { DataSearch } from './main/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
-import { html } from '@/util/htmlTemplate';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -146,7 +145,11 @@ export class GridMain {
     if (message) this.language.setMessage(message);
 
     this.cfg = initConfig(opts);
-    this.cfg.dataManager = new DataManager(opts, this.cfg);
+    if (opts.tree) {
+      this.cfg.dataManager = new TreeDataManager(opts, this.cfg);
+    } else {
+      this.cfg.dataManager = new ListDataManager(opts, this.cfg);
+    }
 
     this.opts = opts;
 
@@ -1366,29 +1369,15 @@ export class GridMain {
    * add row
    *
    * @param {any[]} items items
-   * @param {ADD_ROW_POSITION} position before , after
+   * @param {ADD_ITEM_POSITION} position before , after
    * @param {?number} [rowIndex] row index
    */
-  public addRow = (items: any | any[], position: ADD_ROW_POSITION, rowIndex?: number) => {
+  public addRows = (addOpts: AddRowOptions) => {
     const cfg = this.cfg;
-    const currentItems = cfg.dataManager.getCurrentItems();
-    const isBefore = position === 'before';
 
-    const addItems = Array.isArray(items) ? items : [items];
+    const rowIdx = cfg.dataManager.addRows(addOpts);
 
-    insertToArray(currentItems, items, isBefore, rowIndex);
-
-    this.setItems(currentItems);
-
-    if (isUndefined(rowIndex)) {
-      if (isBefore) {
-        this.scroll.moveVerticalScroll({ rowIdx: 0 });
-      } else {
-        this.scroll.moveVerticalScroll({ rowIdx: cfg.dataInfo.rowLength });
-      }
-    } else {
-      this.scroll.moveVerticalScroll({ rowIdx: rowIndex + (isBefore ? -addItems.length : -1) });
-    }
+    this.scroll.moveVerticalScroll({ rowIdx: rowIdx });
   };
 
   /**
@@ -1396,10 +1385,10 @@ export class GridMain {
    *
    * @param {any[]} ids row positions
    */
-  public removeRow = (ids: any[]) => {
+  public removeRows = (ids: any[]) => {
     const cfg = this.cfg;
 
-    cfg.dataManager.removeRow(ids);
+    cfg.dataManager.removeRows(ids);
     this.refreshBody();
   };
 

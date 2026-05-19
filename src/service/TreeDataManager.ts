@@ -1,25 +1,17 @@
-import {
-  ALL_SELECT_VALUE,
-  ROW_CUD_KEY,
-  ROW_DEPTH_KEY,
-  ROW_EXPANDED_KEY,
-  ROW_HAS_CHILD_KEY,
-  ROW_HEIGHT_KEY,
-} from '@/constants';
-import { OptionCallback, SearchMode } from '@/types/Common';
+import { ALL_SELECT_VALUE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, sortTreeByLevel } from '@/util/utils';
-import { DataManager, RowId } from './DataManager';
+import { sortTreeByLevel } from '@/util/utils';
+import { DataManager } from './DataManager';
 
 export class TreeDataManager extends DataManager {
   private readonly childrenMap = new Map<RowId, any[]>();
   private readonly expandedSet = new Set<RowId>();
   private readonly idMap = new Map<RowId, RowId>();
 
-  private readonly rowIdField: string;
   private readonly idKey: string;
   private readonly pidKey: string;
   private readonly childrenKey: string;
@@ -38,8 +30,10 @@ export class TreeDataManager extends DataManager {
 
     this.expandDepth = opts.tree?.expandDepth ?? 1;
     this.defaultExpandedIds = opts.tree?.defaultExpandedIds ?? [];
+  }
 
-    this.rowIdField = cfg.rowIdField;
+  public addRows(addOpts: AddRowOptions): void {
+    throw new Error('Method not implemented.');
   }
 
   // ======================
@@ -108,18 +102,15 @@ export class TreeDataManager extends DataManager {
   // ======================
   // 초기화
   // ======================
-  private initItems(items: any[], depth = 0): any[] {
+  private initTreeItems(items: any[], depth = 0): any[] {
     return items.map((item) => {
-      item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
-      item[ROW_DEPTH_KEY] = depth;
-      item[ROW_CUD_KEY] = 'R';
-      item[ROW_HEIGHT_KEY] = this.rowHeight;
+      super.createRowItem(item, depth);
 
       const children = item[this.childrenKey];
 
       if (children?.length) {
         item[ROW_HAS_CHILD_KEY] = true;
-        item[this.childrenKey] = this.initItems(children, depth + 1);
+        item[this.childrenKey] = this.initTreeItems(children, depth + 1);
       }
 
       return item;
@@ -130,7 +121,7 @@ export class TreeDataManager extends DataManager {
   // Map 구성
   // ======================
   private buildMaps() {
-    this.rowMap.clear();
+    this.clearRowMap();
     this.childrenMap.clear();
     this.idMap.clear();
 
@@ -139,7 +130,7 @@ export class TreeDataManager extends DataManager {
         const rowId = item[this.rowIdField];
         const idValue = item[this.idKey];
 
-        this.rowMap.set(rowId, item);
+        this.setRowItem(rowId, item);
         this.idMap.set(idValue, rowId);
 
         const children = item[this.childrenKey];
@@ -168,9 +159,11 @@ export class TreeDataManager extends DataManager {
       }
     }
 
+    const rowMap = this.getRowMap();
+
     // 2. depth 기반 자동 expand
     if (this.expandDepth > 0) {
-      for (const item of this.rowMap.values()) {
+      for (const item of rowMap.values()) {
         const depth = item[ROW_DEPTH_KEY];
         const id = item[this.rowIdField];
 
@@ -180,7 +173,7 @@ export class TreeDataManager extends DataManager {
       }
     }
 
-    for (const item of this.rowMap.values()) {
+    for (const item of rowMap.values()) {
       const id = item[this.rowIdField];
       item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
     }
@@ -228,7 +221,7 @@ export class TreeDataManager extends DataManager {
       this.expandedSet.add(rowId);
     }
 
-    this.rowMap.get(rowId)[ROW_EXPANDED_KEY] = isExpand;
+    this.getRowItem(rowId)[ROW_EXPANDED_KEY] = isExpand;
 
     this.buildViewItems();
   }
@@ -236,7 +229,7 @@ export class TreeDataManager extends DataManager {
   public collapseAll() {
     this.expandedSet.clear();
 
-    for (const item of this.rowMap.values()) {
+    for (const item of this.getRowMap().values()) {
       item[ROW_EXPANDED_KEY] = false;
     }
 
@@ -248,7 +241,7 @@ export class TreeDataManager extends DataManager {
       this.expandedSet.add(key);
     }
 
-    for (const item of this.rowMap.values()) {
+    for (const item of this.getRowMap().values()) {
       const id = item[this.rowIdField];
       item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
     }
@@ -262,55 +255,8 @@ export class TreeDataManager extends DataManager {
 
     this.expandedSet.add(rowId);
 
-    this.rowMap.get(rowId)[ROW_EXPANDED_KEY] = true;
+    this.getRowItem(rowId)[ROW_EXPANDED_KEY] = true;
 
-    this.buildViewItems();
-  }
-
-  // ======================
-  // row 추가
-  // ======================
-  public addRow(newItem: any, parentId: RowId | null) {
-    const item = this.initItems([newItem])[0];
-
-    item[ROW_EXPANDED_KEY] = false;
-
-    if (!parentId) {
-      this.currentItems.push(item);
-    } else {
-      const parent = this.rowMap.get(parentId);
-      if (!parent) return;
-
-      parent[this.childrenKey] = parent[this.childrenKey] || [];
-      parent[this.childrenKey].push(item);
-    }
-
-    this.buildMaps();
-    this.buildViewItems();
-  }
-
-  // ======================
-  // row 삭제
-  // ======================
-  public removeRow(ids: RowId[]) {
-    const cfg = this.cfg;
-
-    const currentItems = this.currentItems;
-    for (const item of currentItems) {
-      if (ids.length < 1) break;
-
-      const index = ids.indexOf(item[cfg.rowIdField]);
-
-      if (index !== -1) {
-        this.expandedSet.delete(ids[index]);
-        ids.splice(index, 1); // 인덱스 위치에서 1개 요소 삭제
-        item[ROW_CUD_KEY] = 'D';
-      }
-    }
-
-    this.currentItems = currentItems;
-
-    this.buildMaps();
     this.buildViewItems();
   }
 
@@ -318,13 +264,8 @@ export class TreeDataManager extends DataManager {
     throw new Error('Method not implemented.');
   }
 
-  search(keyword: string, options: SearchMode) {
-    const gridValue = [...this.rowMap.values()];
-
-    if (!keyword.trim()) {
-      this.setViewItems(gridValue);
-      return;
-    }
+  getSearchData(keyword: string, options: SearchMode) {
+    const gridValue = [...this.getRowMap().values()];
 
     if (options.searchFields == ALL_SELECT_VALUE) {
       options.searchFields = this.cfg.currentFields
@@ -333,8 +274,6 @@ export class TreeDataManager extends DataManager {
           return item.name;
         });
     }
-
-    if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
@@ -353,7 +292,7 @@ export class TreeDataManager extends DataManager {
     };
     dfs(tree);
 
-    this.setViewItems(result);
+    return result;
   }
 
   buildSearchedTree(originTree: any[], searchResults: any[]): any[] {

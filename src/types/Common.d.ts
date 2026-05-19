@@ -1,4 +1,4 @@
-import { ALL_SELECT_VALUE } from '../constants';
+import { ADD_ITEM_POSITION, ALL_SELECT_VALUE } from '../constants';
 export interface OptionCallback {
   (...params: any[]): any;
 }
@@ -58,4 +58,12 @@ export type DisplayFormatOptions = {
   prefix: string;
   suffix: string;
   locale: string;
+};
+
+export type RowId = string | number;
+
+export type AddRowOptions = {
+  rowId?: RowId;
+  items: any | any[];
+  position?: ADD_ITEM_POSITION;
 };

@@ -1,11 +1,9 @@
 import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY } from '@/constants';
-import { OptionCallback, SearchMode } from '@/types/Common';
+import { OptionCallback, RowId, SearchMode, AddRowOptions } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, multiSort } from '@/util/utils';
-
-export type RowId = string | number;
 
 export abstract class DataManager {
   private viewItems: any[] = [];
@@ -41,6 +39,7 @@ export abstract class DataManager {
    * 전체 체크 설정
    */
   public setAllCheck() {
+    console.log('setAllCheck :  : : setAllCheck');
     for (const item of this.getViewItems()) {
       this.rowCheckSet.add(item[this.rowIdField]);
     }
@@ -60,6 +59,8 @@ export abstract class DataManager {
    */
   public setItemChecked(item: any, checked: boolean) {
     const rowId = item[this.rowIdField];
+
+    console.log(rowId);
     if (checked) {
       this.rowCheckSet.add(rowId);
     } else {
@@ -73,16 +74,27 @@ export abstract class DataManager {
    * @returns 체크 여부
    */
   public isItemChecked(item: any): boolean {
-    return this.rowCheckSet.has(item[this.rowIdField]);
+    return item[this.rowIdField] && this.rowCheckSet.has(item[this.rowIdField]);
   }
 
   getCheckedCount(): number {
     return this.rowCheckSet.size;
   }
 
-  // ======================
-  // 데이터 세팅
-  // ======================
+  /**
+   * init item
+   * @param items items
+   * @param depth depth
+   * @returns
+   */
+  protected initItems(items: any[], depth = 0): any[] {
+    return items.map((item) => this.createRowItem(item, depth));
+  }
+
+  /**
+   * 데이터 세팅
+   * @param items
+   */
   public setItems(items: any[]) {
     this.originalItems = items;
     this.currentItems = items;
@@ -121,18 +133,13 @@ export abstract class DataManager {
     }
   }
 
-  // ======================
-  // 초기화
-  // ======================
-  protected initItems(items: any[], depth = 0): any[] {
-    return items.map((item) => {
-      item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
-      item[ROW_DEPTH_KEY] = depth;
-      item[ROW_CUD_KEY] = 'R';
-      item[ROW_HEIGHT_KEY] = this.rowHeight;
+  protected createRowItem(item: any, depth: number): any {
+    item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
+    item[ROW_DEPTH_KEY] = depth;
+    item[ROW_CUD_KEY] = 'R';
+    item[ROW_HEIGHT_KEY] = this.rowHeight;
 
-      return item;
-    });
+    return item;
   }
 
   public setViewItems = (items: any[], start?: number, end?: number) => {
@@ -147,12 +154,14 @@ export abstract class DataManager {
   // ======================
   // row 추가
   // ======================
-  public abstract addRow(newItem: any): void;
+  public abstract addRows(addOpts: AddRowOptions): void;
 
   // ======================
   // row 삭제
   // ======================
   public abstract removeRows(ids: RowId[]): RowId[];
+
+  public abstract expandRow(id: RowId): void;
 
   // ======================
   // getter
@@ -169,9 +178,32 @@ export abstract class DataManager {
     return this.currentItems;
   }
 
-  public getRowItem(rowId: RowId) {
+  protected clearRowMap() {
+    this.rowMap.clear();
+  }
+
+  protected getRowItem(rowId: RowId) {
     return this.rowMap.get(rowId);
   }
 
-  abstract search(keyword: string, options: SearchMode): any[];
+  protected getRowMap() {
+    return this.rowMap;
+  }
+
+  protected setRowItem(rowId: RowId, item: any) {
+    this.rowMap.set(rowId, item);
+  }
+
+  public search(keyword: string, options: SearchMode) {
+    if (!keyword.trim()) {
+      this.setViewItems(this.currentItems);
+      return;
+    }
+
+    if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
+
+    this.setViewItems(this.getSearchData(keyword, options));
+  }
+
+  abstract getSearchData(keyword: string, options: SearchMode): any[];
 }

@@ -161,7 +161,15 @@ export type PASSWORD_TYPE = 'number' | 'upper' | 'upper-special' | 'upper-specia
 
 export type ORIENTATION_TYPE = 'horizontal' | 'vertical';
 
-export type ADD_ROW_POSITION = 'before' | 'after';
+export type ADD_ITEM_POSITION = 'before' | 'after' | 'inside';
+
+export const MovePositionMap = {
+  BEFORE: 'before',
+  AFTER: 'after',
+  INSIDE: 'inside',
+} as const;
+
+export type MovePosition = (typeof MovePositionMap)[keyof typeof MovePositionMap];
 
 /**
  * mouse move threshold
@@ -316,14 +324,6 @@ export const SelectionMode = {
   ROW: 'row',
   CELL: 'cell',
 } as const;
-
-export const MovePositionMap = {
-  BEFORE: 'before',
-  AFTER: 'after',
-  INSIDE: 'inside',
-} as const;
-
-export type MovePosition = (typeof MovePositionMap)[keyof typeof MovePositionMap];
 
 /**
  * body cell style class

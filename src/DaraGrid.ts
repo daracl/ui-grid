@@ -1,6 +1,6 @@
 import { GridOptions } from '@t/GridOptions';
 
-import { ADD_ROW_POSITION, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
+import { ADD_ITEM_POSITION, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
@@ -9,6 +9,7 @@ import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
+import { AddRowOptions } from './types/Common';
 
 declare const APP_VERSION: string;
 
@@ -133,8 +134,8 @@ export class DaraGrid {
    * @param position add position
    * @param addRowIndex add row index
    */
-  public addRow(items: any[], position: ADD_ROW_POSITION, addRowIndex?: number) {
-    this.gridMain.addRow(items, position, addRowIndex);
+  public addRows(addOpts: AddRowOptions) {
+    this.gridMain.addRows(addOpts);
   }
 
   /**
@@ -142,8 +143,8 @@ export class DaraGrid {
    *
    * @param {any[]} ids row positions
    */
-  public removeRow = (ids: any[]) => {
-    this.gridMain.removeRow(ids);
+  public removeRows = (ids: any[]) => {
+    this.gridMain.removeRows(ids);
   };
 
   public setSize(width: number, height: number) {
