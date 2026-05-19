@@ -192,7 +192,7 @@ export class DataSearch {
       cfg.searchEnable = true;
     }
 
-    this.gridMain.refreshBody();
+    this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
   }
 }

@@ -342,7 +342,7 @@ export class GridMain {
 
     this.contextMenu.init();
 
-    this.refreshBody();
+    this.refreshBody(true, 'init');
   }
 
   public getRendererContainer() {
@@ -678,15 +678,17 @@ export class GridMain {
   resizeDraw() {
     const scroll = this.cfg.scroll;
 
+    this.calcBody();
+
     if (
       scroll.before.startIdx !== scroll.startIdx ||
       scroll.before.viewRow !== scroll.viewRow ||
       scroll.before.startCol !== scroll.startCol ||
       scroll.before.endCol !== scroll.endCol
     ) {
-      this.refreshBody(true);
+      this.refreshBody(true, 'resizeDraw');
     } else {
-      this.refreshBody(false);
+      this.refreshBody(false, 'resizeDraw');
     }
   }
 
@@ -1345,23 +1347,23 @@ export class GridMain {
    */
   public setItems = (items: any[]) => {
     this.setDataInfo(items);
-    this.body.dataDraw('setItems');
+    this.scroll.moveVerticalScroll({ rowIdx: 0 });
+    this.calcBody();
+    this.refreshBody(true, 'setItems');
   };
 
   private setDataInfo(items: any[]) {
     this.cfg.dataManager.setItems(items);
   }
 
-  public refreshBody(drawFlag = true) {
-    this.calcBody();
-
+  public refreshBody(drawFlag: boolean, mode: string) {
     this.scroll.calculate();
     this.setElementDimentions();
     this.fieldResize();
     this.summary.drawData();
 
     if (drawFlag) {
-      this.getBody().dataDraw('refreshBody');
+      this.getBody().dataDraw(mode);
     }
   }
 
@@ -1389,7 +1391,7 @@ export class GridMain {
     const cfg = this.cfg;
 
     cfg.dataManager.removeRows(ids);
-    this.refreshBody();
+    this.refreshBody(true, 'removeRows');
   };
 
   /**

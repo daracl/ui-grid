@@ -53,7 +53,7 @@ export class Summary {
   public init() {
     this.summaryElement = this.gridMain.element().findDaraElement('.dg-summary');
 
-    if (!this.isEnabled()) {
+    if (!this._isActive) {
       this.summaryElement.getElement().remove();
       return;
     }
@@ -61,6 +61,7 @@ export class Summary {
     this.initRenderer();
 
     this.createTemplate();
+
     this.drawData();
   }
 
@@ -93,12 +94,8 @@ export class Summary {
     return this.summaryElement;
   }
 
-  public isActive() {
-    return this._isActive;
-  }
-
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
-    if (!this._isActive) return;
+    if (!this.isEnabled()) return;
 
     this.leftElement.css({ width: mainLeftWidth + 'px' });
     this.centerElement.css({ 'margin-left': mainLeftWidth + 'px', width: mainCenterWidth + 'px' });
@@ -106,13 +103,13 @@ export class Summary {
   }
 
   public setCenterElementStyle(styleCss: any) {
-    if (!this._isActive) return;
+    if (!this.isEnabled()) return;
 
     this.centerElement.css(styleCss);
   }
 
   public drawData() {
-    if (!this._isActive) return;
+    if (!this.isEnabled()) return;
 
     const summaryItems = this.allSummaryRenders;
     const summaryElement = this.summaryElement;
@@ -194,11 +191,6 @@ export class Summary {
       startGroupIdx = cfg.fixedLeftIndex;
       leafFields = cfg.fieldHeaderGroup.leafCenter;
     }
-
-    const viewRow = cfg.scroll.viewRow;
-    const leafLength = leafFields.length;
-
-    if (viewRow < 1 || leafLength < 1) return '';
 
     const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;

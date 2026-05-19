@@ -119,8 +119,8 @@ export class Footer {
 
       if (drawFlag) {
         this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
-        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0, drawFlag: drawFlag });
-        this.gridMain.refreshBody();
+        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
+        this.gridMain.refreshBody(drawFlag, 'footer draw');
       }
     }
   }

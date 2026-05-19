@@ -47,9 +47,9 @@ export const createCommonConfig = (isProd) => ({
   },
 
   server: {
-    host: '0.0.0.0',
+    host: '127.0.0.1',
 
-    port: 4178,
+    port: 5178,
 
     open: '/uitest/index.html',
 

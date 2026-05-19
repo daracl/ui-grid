@@ -365,6 +365,8 @@ export class Body {
 
     this.bodyElement.setAttr({ 'data-view-mode': items.length < 1 ? 'empty' : 'grid' });
 
+    console.log('currentViewRow', mode, beforeViewRow, viewRow, maxRow, currentViewRow);
+
     if (currentViewRow < 1) {
       return;
     }
@@ -633,11 +635,6 @@ export class Body {
       startGroupIdx = cfg.fixedLeftIndex;
       leafFields = cfg.fieldHeaderGroup.leafCenter;
     }
-
-    const viewRow = cfg.scroll.viewRow;
-    const leafLength = leafFields.length;
-
-    if (viewRow < 1 || leafLength < 1) return '';
 
     const colGroupHtm = [];
     let colGroupIdx = startGroupIdx;
