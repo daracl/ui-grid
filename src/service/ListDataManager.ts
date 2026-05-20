@@ -1,13 +1,13 @@
 import { ALL_SELECT_VALUE } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
-import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { gridDataSearch } from '@/util/searchUtils';
+import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
-  constructor(opts: GridOptions, cfg: Config) {
-    super(opts, cfg);
+  constructor(opts: GridOptions, gridMain: GridMain) {
+    super(opts, gridMain);
   }
 
   public setItems(items: any[]) {
@@ -17,7 +17,7 @@ export class ListDataManager extends DataManager {
   }
 
   getSearchData(keyword: string, options: SearchMode): any[] {
-    const items = this.getViewItems();
+    const items = this.getCurrentItems();
 
     if (options.searchFields == ALL_SELECT_VALUE) {
       options.searchFields = this.cfg.currentFields

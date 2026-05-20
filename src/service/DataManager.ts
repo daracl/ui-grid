@@ -4,6 +4,7 @@ import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, multiSort } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
 
 export abstract class DataManager {
   private viewItems: any[] = [];
@@ -13,6 +14,8 @@ export abstract class DataManager {
   protected readonly rowHeight;
   protected readonly rowIdField;
 
+  protected readonly cfg;
+
   private originalItems: any[] = [];
   private currentItems: any[] = [];
 
@@ -21,9 +24,10 @@ export abstract class DataManager {
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
-  constructor(protected opts: GridOptions, protected cfg: Config) {
-    this.rowHeight = cfg.rowHeight;
-    this.rowIdField = cfg.rowIdField;
+  constructor(protected opts: GridOptions, protected gridMain: GridMain) {
+    this.cfg = gridMain.config();
+    this.rowHeight = this.cfg.rowHeight;
+    this.rowIdField = this.cfg.rowIdField;
     this.matchWholeRegex = opts.search?.matchWholeRegex;
   }
 
@@ -147,8 +151,15 @@ export abstract class DataManager {
     this.viewItems = viewItems;
 
     const dataInfo = this.cfg.dataInfo;
+
+    const beforeDataRowLength = dataInfo.rowLength;
+
     dataInfo.rowLength = viewItems.length;
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
+
+    if (beforeDataRowLength !== dataInfo.rowLength) {
+      this.gridMain.calcBody();
+    }
   };
 
   // ======================

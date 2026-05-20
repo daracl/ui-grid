@@ -6,6 +6,7 @@ import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
 import { sortTreeByLevel } from '@/util/utils';
 import { DataManager } from './DataManager';
+import { GridMain } from '../view/GridMain';
 
 export class TreeDataManager extends DataManager {
   private readonly childrenMap = new Map<RowId, any[]>();
@@ -21,8 +22,8 @@ export class TreeDataManager extends DataManager {
 
   private orginTreeItems: any[] = [];
 
-  constructor(opts: GridOptions, cfg: Config) {
-    super(opts, cfg);
+  constructor(opts: GridOptions, gridMain: GridMain) {
+    super(opts, gridMain);
 
     this.idKey = opts.tree?.idField ?? 'id';
     this.pidKey = opts.tree?.parentIdField ?? 'pid';
