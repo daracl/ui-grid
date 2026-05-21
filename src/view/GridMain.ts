@@ -553,10 +553,10 @@ export class GridMain {
    */
   public calculation() {
     this.gridStructureBuilder.buildFields();
-    this.calcBody(true);
+    this.calcBody();
   }
 
-  public calcBody(initFlag = false) {
+  public calcBody() {
     this.gridStructureBuilder.calculateBodyLayout();
   }
 

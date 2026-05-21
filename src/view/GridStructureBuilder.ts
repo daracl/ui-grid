@@ -65,11 +65,6 @@ export class GridStructureBuilder {
 
     let fieldTotalWidth = 0;
     for (const field of fields) {
-      if (!isHeaderResize && this.enableViewAllLabel) {
-        const labelWidth = getTextWidth(cfg, field.label, 20);
-        field.width = Math.max(field.width, labelWidth);
-      }
-
       fieldTotalWidth += isHeaderResize ? field.$width : field.width;
     }
 
@@ -330,20 +325,8 @@ export class GridStructureBuilder {
       return field;
     }
 
-    this.initFieldMeta(field, depth, fieldIndex);
-
-    // help button
-    if (field.$enableHelp && !this.cfg.enableHeaderHelpButton) {
-      this.cfg.enableHeaderHelpButton = true;
-    }
-
-    // sort button
-    if (field.sort && !this.cfg.enableSortButton) {
-      this.cfg.enableSortButton = true;
-    }
-
     const children = field.children;
-    if (!field.$isLeaf && children) {
+    if (children && children.length > 0) {
       let colspan = 0;
       let childFieldIndex = 0;
       for (const childNode of children) {
@@ -359,10 +342,9 @@ export class GridStructureBuilder {
       }
 
       field.$colspan = colspan;
-      field.$resizeIdx = fieldGroupInfo.leaf.length - 1;
-    } else {
-      field.$resizeIdx = fieldGroupInfo.leaf.length;
     }
+
+    field = this.initFieldMeta(field, depth, fieldIndex, fieldGroupInfo);
 
     if (isUndefined(fieldGroupInfo.left[depth])) {
       fieldGroupInfo.left[depth] = [];
@@ -443,7 +425,50 @@ export class GridStructureBuilder {
       if (field.$isLeaf) fieldGroupInfo.leafCenter.push(field);
     }
 
-    if (field.$isLeaf) {
+    return field;
+  }
+
+  /**
+   * field 메타 정보 초기화
+   *
+   * @param {FieldItem} field field 정보
+   * @param {number} depth 현재 depth
+   * @param {string} fieldIndex field index path
+   *
+   * @returns {void}
+   */
+  private initFieldMeta(field: FieldItem, depth: number, fieldIndex: string, fieldGroupInfo: FieldHeaderGroupInfo) {
+    const enableHelp = !isUndefined(field.headerHelp);
+    // help button
+    if (!this.cfg.enableHeaderHelpButton && enableHelp) {
+      this.cfg.enableHeaderHelpButton = true;
+    }
+
+    // sort button
+    if (!this.cfg.enableSortButton && field.sort) {
+      this.cfg.enableSortButton = true;
+    }
+
+    const children = field.children;
+    const childrenLen = isArray(children) ? children.length : 0;
+
+    let isLeaf = false;
+    if (childrenLen < 1) {
+      isLeaf = true;
+      field.$colspan = field.colspan ?? 1;
+    } else {
+      field.$colspan = field.$colspan ?? 1;
+    }
+
+    field.$isLeaf = isLeaf;
+    field.$resizeIdx = fieldGroupInfo.leaf.length - (isLeaf ? 0 : 1);
+    field.$childLength = childrenLen;
+    field.$rowspan = field.rowspan ?? 1;
+    field.$depth = depth;
+    field.$uid = this.gridMain.uid() + '_' + field.$depth + '_' + fieldIndex;
+    field.$enableHelp = enableHelp;
+
+    if (isLeaf) {
       let width = isNumber(field.width) ? field.width : this.cellMinWidth;
 
       if (this.enableViewAllLabel) {
@@ -468,30 +493,6 @@ export class GridStructureBuilder {
   }
 
   /**
-   * field 메타 정보 초기화
-   *
-   * @param {FieldItem} field field 정보
-   * @param {number} depth 현재 depth
-   * @param {string} fieldIndex field index path
-   *
-   * @returns {void}
-   */
-  private initFieldMeta(field: FieldItem, depth: number, fieldIndex: string) {
-    field.$depth = depth + 1;
-    field.$uid = this.gridMain.uid() + '_' + field.$depth + '_' + fieldIndex;
-
-    field.$colspan = field.colspan ?? 1;
-    field.$rowspan = field.rowspan ?? 1;
-
-    field.$enableHelp = !isUndefined(field.headerHelp);
-
-    const children = field.children;
-    const childrenLen = isArray(children) ? children.length : 0;
-    field.$childLength = childrenLen;
-    field.$isLeaf = childrenLen < 1;
-  }
-
-  /**
    * field renderer 생성
    *
    * @param {FieldItem} field field 정보
@@ -501,33 +502,34 @@ export class GridStructureBuilder {
   private createRenderer(field: FieldItem): FieldItem {
     const opts = this.opts;
 
-    if (!field.$isAside) {
-      let renderInfo = { type: 'text' };
-
-      if (isPlainObject(field.renderer)) {
-        renderInfo = merge({}, field.renderer);
-      } else if (isString(field.renderer)) {
-        renderInfo = { type: field.renderer };
-      }
-
-      const render = VIEW_RENDERER[renderInfo.type];
-
-      if (isUndefined(render)) {
-        renderInfo.type = 'text';
-      }
-
-      field.renderer = merge({}, DEFAULT_RENDERER_INFO, renderInfo);
-
-      if (opts.editable || field.editable) {
-        field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, field.editRenderer);
-      }
+    if (field.$isAside) {
+      field.$renderer = new VIEW_RENDERER[field.renderer.type](field, this.gridMain);
+      return field;
     }
+
+    let renderInfo = { type: 'text' };
+
+    if (isPlainObject(field.renderer)) {
+      renderInfo = merge({}, field.renderer);
+    } else if (isString(field.renderer)) {
+      renderInfo = { type: field.renderer };
+    }
+
+    const render = VIEW_RENDERER[renderInfo.type];
+
+    if (isUndefined(render)) {
+      renderInfo.type = 'text';
+    }
+
+    field.renderer = merge({}, DEFAULT_RENDERER_INFO, renderInfo);
 
     const rendererType = field.renderer.type;
 
     field.$renderer = new VIEW_RENDERER[rendererType](field, this.gridMain);
 
     if ((opts.editable && field.editable !== false) || field.$renderer instanceof EditRenderer) {
+      field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, field.editRenderer);
+
       let editRendererInfo = field.editRenderer;
 
       if (isString(editRendererInfo)) {
@@ -563,11 +565,6 @@ function cloneFieldMeta(field: any): any {
   const cloneKeys = [
     'name',
     'label',
-    'colspan',
-    'rowspan',
-    'hidden',
-    'sort',
-    'headerHelp',
     '$colspan',
     '$rowspan',
     '$depth',

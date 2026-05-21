@@ -251,18 +251,15 @@ export class Header {
     const opts = this.gridMain.options();
 
     let headerGroups, leafGroup;
-    let startGroupIdx = 0;
     const currentFields = cfg.currentFields;
 
     if (type == 'left') {
       headerGroups = cfg.fieldHeaderGroup.left;
       leafGroup = cfg.fieldHeaderGroup.leafLeft;
     } else if (type == 'right') {
-      startGroupIdx = cfg.fixedRightIndex;
       headerGroups = cfg.fieldHeaderGroup.right;
       leafGroup = cfg.fieldHeaderGroup.leafRight;
     } else {
-      startGroupIdx = cfg.fixedLeftIndex;
       headerGroups = cfg.fieldHeaderGroup.center;
       leafGroup = cfg.fieldHeaderGroup.leafCenter;
     }
@@ -301,7 +298,7 @@ export class Header {
 
       headerGroup.forEach((headerItem, colIndex: number) => {
         if (headerItem.$isLeaf && headerItem.$depth < headerGroupLength) {
-          headerItem.$rowspan = headerGroupLength - headerItem.$depth + 1;
+          headerItem.$rowspan = headerGroupLength - headerItem.$depth;
         }
         let classes = '';
         let cellIdx = '';
@@ -377,12 +374,11 @@ export class Header {
     });
 
     const colGroupHtml = [];
-    let colGroupIdx = startGroupIdx;
 
-    for (let i = 0; i < leafGroup.length; i++) {
-      const idx = colGroupIdx++;
+    for (const leaf of leafGroup) {
+      const colSeq = leaf.$colSeq;
       colGroupHtml.push(
-        `<th data-col-idx="${idx}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${currentFields[idx].$width}px;"></th>`,
+        `<th data-col-idx="${colSeq}" style="border:0;margin:0;padding:0;font-size:0;line-height:0;height:0;width:${currentFields[colSeq].$width}px;"></th>`,
       );
     }
 
