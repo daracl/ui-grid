@@ -75,7 +75,7 @@ export class Footer {
       this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
       this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
       this.initPagingEvent();
-      this.goPage(this.gridMain.config().paging.currPage, false);
+      //this.goPage(this.gridMain.config().paging.currPage, false);
     }
   }
 

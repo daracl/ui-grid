@@ -146,7 +146,7 @@ export abstract class DataManager {
     return item;
   }
 
-  public setViewItems = (items: any[], start?: number, end?: number) => {
+  public setViewItems(items: any[], start?: number, end?: number) {
     const viewItems = arrayCopy(items, start, end);
     this.viewItems = viewItems;
 
@@ -160,7 +160,7 @@ export abstract class DataManager {
     if (beforeDataRowLength !== dataInfo.rowLength) {
       this.gridMain.calcBody();
     }
-  };
+  }
 
   // ======================
   // row 추가

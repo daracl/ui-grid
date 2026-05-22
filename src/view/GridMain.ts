@@ -156,7 +156,6 @@ export class GridMain {
       width: opts.width == 'auto' ? -1 : opts.width,
     };
 
-    this.setDataInfo(this.opts.items);
     this.calcGridDimention();
     this.setSize(this.initGridSize.width, this.initGridSize.height, false);
 
@@ -553,7 +552,8 @@ export class GridMain {
    */
   public calculation() {
     this.gridStructureBuilder.buildFields();
-    this.calcBody();
+    this.cfg.dataManager.setItems(this.opts.items);
+    //this.calcBody();
   }
 
   public calcBody() {
@@ -823,14 +823,10 @@ export class GridMain {
    *
    * @param {any[]} items
    */
-  public setItems = (items: any[]) => {
-    this.setDataInfo(items);
+  public setItems(items: any[]) {
+    this.cfg.dataManager.setItems(items);
     this.scroll.moveVerticalScroll({ rowIdx: 0 });
     this.refreshBody(true, 'setItems');
-  };
-
-  private setDataInfo(items: any[]) {
-    this.cfg.dataManager.setItems(items);
   }
 
   public refreshBody(drawFlag: boolean, mode: string) {
@@ -851,25 +847,25 @@ export class GridMain {
    * @param {ADD_ITEM_POSITION} position before , after
    * @param {?number} [rowIndex] row index
    */
-  public addRows = (addOpts: AddRowOptions) => {
+  public addRows(addOpts: AddRowOptions) {
     const cfg = this.cfg;
 
     const rowIdx = cfg.dataManager.addRows(addOpts);
 
     this.scroll.moveVerticalScroll({ rowIdx: rowIdx });
-  };
+  }
 
   /**
    * remove row data
    *
    * @param {any[]} ids row positions
    */
-  public removeRows = (ids: any[]) => {
+  public removeRows(ids: any[]) {
     const cfg = this.cfg;
 
     cfg.dataManager.removeRows(ids);
     this.refreshBody(true, 'removeRows');
-  };
+  }
 
   /**
    * all data clear
