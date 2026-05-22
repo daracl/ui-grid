@@ -152,8 +152,6 @@ export class GridStructureBuilder {
       field.$width = fieldWidth;
     }
 
-    //console.log('222222 ', dimensions.width - verticalScrollWidth);
-
     dimensions.mainLeftWidth = leftWidth;
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
@@ -161,19 +159,6 @@ export class GridStructureBuilder {
     dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
     dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
     dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
-
-    console.log(
-      'calcBody ',
-      fieldLength,
-      dimensions.width,
-      dimensions.mainHeight,
-      mainBodyHeight,
-      rowLength,
-      rowHeight,
-      scroll.insideViewRow,
-      scroll.viewRow,
-      JSON.stringify(dimensions),
-    );
   }
 
   /**

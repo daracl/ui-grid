@@ -75,7 +75,8 @@ export class Footer {
       this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
       this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
       this.initPagingEvent();
-      //this.goPage(this.gridMain.config().paging.currPage, false);
+
+      this.setPagingTemplate(this.cfg.paging);
     }
   }
 
@@ -105,23 +106,38 @@ export class Footer {
   }
 
   public goPage(pageNum: number, drawFlag = true) {
+    if (utils.isUndefined(this.footerOpts.paging)) {
+      throw new Error('enablePaging not enabled');
+    }
+
     const pagingInfo = this.cfg.paging;
     pagingInfo.currPage = pageNum;
     pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.cfg.dataInfo.rowLength;
 
-    const pagingViewInfo = this.setPaging(pagingInfo);
+    if (pagingInfo.totalCount < 1) {
+      this.setPagingInfo({ totalCount: 0 } as PagingInfo);
+      this.paingElement.empty();
+      return;
+    }
 
-    if (pagingViewInfo) {
-      const countPerPage = pagingViewInfo?.countPerPage;
-      const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
+    const pagingViewInfo = getPagingInfo(
+      pagingInfo.totalCount,
+      pagingInfo.currPage,
+      pagingInfo.countPerPage,
+      pagingInfo.unitPage,
+    );
 
-      this.cfg.dataManager.setViewItems(this.cfg.dataManager.getCurrentItems(), startIdx, startIdx + countPerPage);
+    this.setPagingTemplate(pagingViewInfo);
 
-      if (drawFlag) {
-        this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
-        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
-        this.gridMain.refreshBody(drawFlag, 'footer draw');
-      }
+    const countPerPage = pagingViewInfo?.countPerPage;
+    const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
+
+    this.cfg.dataManager.setViewItems(this.cfg.dataManager.getCurrentItems(), startIdx, startIdx + countPerPage);
+
+    if (drawFlag) {
+      this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
+      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: 0 });
+      this.gridMain.refreshBody(drawFlag, 'footer draw');
     }
   }
 
@@ -152,7 +168,12 @@ export class Footer {
     }
   }
 
-  public setPagingInfo(pagingInfo: PagingInfo) {
+  /**
+   * set paging info
+   *
+   * @param pagingInfo paging info
+   */
+  private setPagingInfo(pagingInfo: PagingInfo) {
     if (this.footerOpts.paging?.enabled) {
       const countPerPage = pagingInfo.countPerPage;
 
@@ -186,25 +207,13 @@ export class Footer {
    * paging
    *
    * @public
-   * @param {PagingParam} info
+   * @param {PagingInfo} pagingInfo paging info
    * @returns {this}
    */
-  public setPaging(info: PagingParam) {
-    if (utils.isUndefined(this.footerOpts.paging)) {
-      throw new Error('enablePaging not enabled');
-    }
-
-    if (info.totalCount < 1) {
-      this.setPagingInfo({ totalCount: 0 } as PagingInfo);
-      this.paingElement.empty();
-      return;
-    }
-
-    const pagingInfo = getPagingInfo(info.totalCount ?? 0, info.currPage, info.countPerPage, info.unitPage);
+  public setPagingTemplate(pagingInfo: PagingInfo) {
+    this.cfg.paging = pagingInfo;
 
     this.setPagingInfo(pagingInfo);
-
-    this.cfg.paging = pagingInfo;
 
     let currP = pagingInfo.currPage;
     if (currP == 0) currP = 1;
@@ -254,7 +263,5 @@ export class Footer {
     strHTML.push('</ul>');
 
     this.paingElement.html(strHTML.join(''));
-
-    return pagingInfo;
   }
 }

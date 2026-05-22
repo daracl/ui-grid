@@ -1,8 +1,9 @@
 import { ALL_SELECT_VALUE } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
-import { GridOptions } from '@/types/GridOptions';
-import { getPagingInfo } from '@/util/pagingUtil';
+import { GridOptions, PagingParam } from '@/types/GridOptions';
+import { PagingInfo } from '@/types/PagingInfo';
+import { getPagingInfo, getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
 import { GridMain } from '@/view/GridMain';
 
@@ -16,17 +17,21 @@ export class ListDataManager extends DataManager {
     super.setItems(items);
 
     const footerOpts = this.opts.footer;
-    if (footerOpts?.enabled) {
+    if (footerOpts?.enabled && footerOpts.paging?.enabled) {
+      const itemLength = items.length;
       const pagingParam = this.opts.paging;
-      const pagingInfo = getPagingInfo(
-        pagingParam?.totalCount ?? items.length,
-        pagingParam?.currPage ?? 1,
-        pagingParam?.countPerPage ?? 10,
-        pagingParam?.unitPage ?? 10,
-      );
 
-      console.log('1111111111 : ', pagingInfo);
-      this.setViewItems(this.getCurrentItems(), pagingInfo.currStartPage, pagingInfo.currEndPage);
+      const pagingInfo = getPagingParamToPagingInfo(pagingParam ?? ({} as PagingParam), itemLength);
+
+      this.gridMain.setPaging(pagingInfo);
+      if (itemLength < pagingInfo.countPerPage) {
+        this.setViewItems(this.getCurrentItems());
+      } else {
+        const countPerPage = pagingInfo.countPerPage;
+        const startIdx = (pagingInfo.currPage - 1) * countPerPage;
+
+        this.setViewItems(this.getCurrentItems(), startIdx, startIdx + countPerPage);
+      }
     } else {
       this.setViewItems(this.getCurrentItems());
     }

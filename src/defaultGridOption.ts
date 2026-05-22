@@ -203,7 +203,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     },
   },
   paging: {
-    totalCount: -1,
+    totalCount: 0,
     currPage: 1,
     countPerPage: 10,
     unitPage: 5,

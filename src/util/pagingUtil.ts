@@ -1,8 +1,24 @@
+import { PagingParam } from '@/types/GridOptions';
 import { PagingInfo } from '@t/PagingInfo';
 
 /**
+ *  페이징 파라미터를 페이징 정보로 변환
+ * @param pagingParam 페이징 파라미터
+ * @param rowLength 전체 row 수
+ * @returns
+ */
+export const getPagingParamToPagingInfo = (pagingParam: PagingParam, rowLength: number) => {
+  const currPage = pagingParam?.currPage || 1;
+  const totalCount = pagingParam?.totalCount ?? rowLength;
+  const countPerPage = pagingParam?.countPerPage || 10;
+  const unitPage = pagingParam?.unitPage || 10;
+
+  return getPagingInfo(totalCount > 0 ? totalCount : rowLength, currPage, countPerPage, unitPage);
+};
+
+/**
  * 페이징 정보 얻기
- *
+ ;*
  * @param {number} totalCount 전체 row 수
  * @param {number} currPage  현재 페이지 number
  * @param {number} countPerPage 한페이지에 보여질 row 수

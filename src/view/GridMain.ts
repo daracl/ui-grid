@@ -135,6 +135,11 @@ export class GridMain {
     this.opts = opts;
 
     const beforeUid = element.getAttribute(INSTANCE_ATTR_KEY);
+
+    if (beforeUid && ALL_INSTANCE.get(beforeUid)) {
+      ALL_INSTANCE.get(beforeUid)?.destroy();
+    }
+
     this.$instanceId = beforeUid ?? `${FIELD_PREFIX}${++DARA_GRID_SEQ}`;
     this.orginStyle = element.style.cssText;
 
@@ -142,7 +147,7 @@ export class GridMain {
 
     this.gridElement = new DaraElement(element);
 
-    GridMain.setInstance(this.$instanceId, this);
+    ALL_INSTANCE.set(this.$instanceId, this);
 
     const headerOpts = opts.header;
     this.cellMinWidth = headerOpts.resize.minWidth;
@@ -193,14 +198,6 @@ export class GridMain {
         }
       });
     });
-  }
-
-  public static setInstance(instanceID: string, gridMain: GridMain) {
-    if (ALL_INSTANCE.get(instanceID)) {
-      ALL_INSTANCE.get(instanceID)?.destroy();
-    }
-
-    ALL_INSTANCE.set(instanceID, gridMain);
   }
 
   public static getInstance(eleOrId: HTMLElement | string): DaraGrid | null {
@@ -1013,8 +1010,8 @@ export class GridMain {
 
   public setPaging(paging: PagingInfo) {
     this.opts.paging = paging;
-    this.config().paging = paging;
-    this.getFooter().setPaging(paging);
+    this.cfg.paging = paging;
+    if (this.footer) this.footer.setPagingTemplate(paging);
   }
 
   public destroy() {
@@ -1023,26 +1020,25 @@ export class GridMain {
 
     const cfg = this.cfg;
 
-    if (ALL_INSTANCE.get(uid)) {
-      cfg.eventManager.destroy();
-      gridElement.removeAttr(INSTANCE_ATTR_KEY);
-      const el = gridElement.getElement();
+    cfg.eventManager.destroy();
+    gridElement.removeAttr(INSTANCE_ATTR_KEY);
+    const el = gridElement.getElement();
 
-      if (this.resizeObserver) {
-        this.resizeObserver.unobserve(el);
-        this.resizeObserver.disconnect();
-      }
-
-      el.style.cssText = this.orginStyle;
-      while (el.firstChild) {
-        if (typeof el.firstChild.remove === 'function') {
-          el.firstChild.remove(); // DOM에서 제거
-        } else {
-          el.removeChild(el.firstChild);
-        }
-      }
-      ALL_INSTANCE.delete(uid);
+    if (this.resizeObserver) {
+      this.resizeObserver.unobserve(el);
+      this.resizeObserver.disconnect();
     }
+
+    el.style.cssText = this.orginStyle;
+    while (el.firstChild) {
+      if (typeof el.firstChild.remove === 'function') {
+        el.firstChild.remove(); // DOM에서 제거
+      } else {
+        el.removeChild(el.firstChild);
+      }
+    }
+
+    ALL_INSTANCE.delete(uid);
   }
 }
 

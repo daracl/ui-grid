@@ -365,8 +365,6 @@ export class Body {
 
     this.bodyElement.setAttr({ 'data-view-mode': items.length < 1 ? 'empty' : 'grid' });
 
-    console.log('currentViewRow', mode, beforeViewRow, viewRow, maxRow, currentViewRow);
-
     if (currentViewRow < 1) {
       return;
     }
