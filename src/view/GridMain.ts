@@ -1005,7 +1005,22 @@ export class GridMain {
   expandRow(id: any) {
     const cfg = this.cfg;
     cfg.dataManager.expandRow(id);
-    this.body.dataDraw('expandRow');
+  }
+
+  public expandAll() {
+    const dataManager = this.cfg.dataManager;
+    if (dataManager instanceof TreeDataManager) {
+      dataManager.expandAll();
+      this.refreshBody(true, 'expandAll');
+    }
+  }
+
+  public collapseAll() {
+    const dataManager = this.cfg.dataManager;
+    if (dataManager instanceof TreeDataManager) {
+      dataManager.collapseAll();
+      this.refreshBody(true, 'collapseAll');
+    }
   }
 
   public setPaging(paging: PagingInfo) {

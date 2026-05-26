@@ -6,6 +6,10 @@
   </head>
 
   <body>
+    <div>
+      <button onclick="expandAll()">전체열기</button>
+      <button onclick="collapseAll()">전체닫기</button>
+    </div>
     <div class="grid-view-area">
       <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
     </div>
@@ -26,6 +30,14 @@
     Daracl.grid.message({ 'no.data': '데이터가 없습니다.', 'select.all': 'ALL' });
     fn_init(true);
   });
+
+  function expandAll() {
+    gridObj.expandAll();
+  }
+
+  function collapseAll() {
+    gridObj.collapseAll();
+  }
 
   function getItem(type, itemCount, cellCount) {
     let items = G_TREE_CHILD_DATA;

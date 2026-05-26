@@ -1,26 +1,27 @@
-import { ALL_SELECT_VALUE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { ALL_SELECT_VALUE, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
 import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common';
-import { Config } from '@/types/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
 import { sortTreeByLevel } from '@/util/utils';
-import { DataManager } from './DataManager';
 import { GridMain } from '../view/GridMain';
+import { DataManager } from './DataManager';
 
+/**
+ * TreeDataManager class
+ *
+ * @class TreeDataManager
+ * @typedef {TreeDataManager}
+ */
 export class TreeDataManager extends DataManager {
   private readonly childrenMap = new Map<RowId, any[]>();
-  private readonly expandedSet = new Set<RowId>();
-  private readonly idMap = new Map<RowId, RowId>();
 
   private readonly idKey: string;
   private readonly pidKey: string;
   private readonly childrenKey: string;
 
-  private readonly expandDepth: number;
-  private defaultExpandedIds: RowId[] = [];
-
   private orginTreeItems: any[] = [];
+  private viewTreeItems: any[] = [];
 
   constructor(opts: GridOptions, gridMain: GridMain) {
     super(opts, gridMain);
@@ -28,31 +29,36 @@ export class TreeDataManager extends DataManager {
     this.idKey = opts.tree?.idField ?? 'id';
     this.pidKey = opts.tree?.parentIdField ?? 'pid';
     this.childrenKey = opts.tree?.childrenField ?? 'children';
-
-    this.expandDepth = opts.tree?.expandDepth ?? 1;
-    this.defaultExpandedIds = opts.tree?.defaultExpandedIds ?? [];
   }
 
-  public addRows(addOpts: AddRowOptions): void {
-    throw new Error('Method not implemented.');
-  }
-
-  // ======================
-  // 데이터 세팅
-  // ======================
+  /**
+   * 트리 노드 렌더링을 위한 데이터 초기화
+   * @param items 원본 데이터 배열
+   */
   public setItems(items: any[]) {
-    super.setItems(items);
+    let treeItems;
+    let flatItems;
+    if (this.opts.tree?.isFlatData) {
+      treeItems = this.buildTree(items);
+      flatItems = items;
+    } else {
+      treeItems = items;
+      flatItems = this.getTreeDataToList(treeItems);
+    }
 
-    const processedItems = this.opts.tree?.isFlatData ? this.buildTree(items) : items;
-    this.orginTreeItems = processedItems;
+    super.setItems(flatItems);
 
-    this.buildMaps();
-    this.initExpandedState();
-    this.buildViewItems();
+    this.orginTreeItems = treeItems;
+    this.viewTreeItems = treeItems;
+
+    const expandDepth = this.opts.tree?.expandDepth ?? 1;
+    const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
+
+    this.initTreeItems(this.orginTreeItems, 1, expandDepth, defaultExpandedIds);
+    this.buildViewItems(this.orginTreeItems);
   }
 
   dataSort(
-    isShift: boolean,
     sortOrders: FieldSortInfo[],
     sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
   ) {
@@ -100,18 +106,40 @@ export class TreeDataManager extends DataManager {
     return roots;
   }
 
+  private getTreeDataToList(treeItems: any[]): any[] {
+    const result: any[] = [];
+    const dfs = (list: any[]) => {
+      for (const item of list) {
+        result.push(item);
+
+        const children = item[this.childrenKey];
+
+        if (children) dfs(children);
+      }
+    };
+
+    dfs(treeItems);
+
+    return result;
+  }
+
   // ======================
   // 초기화
   // ======================
-  private initTreeItems(items: any[], depth = 0): any[] {
+  private initTreeItems(items: any[], depth = 0, openDepth = 1, defaultExpandedIds: RowId[] = []): any[] {
     return items.map((item) => {
       super.createRowItem(item, depth);
 
-      const children = item[this.childrenKey];
+      const rowId = item[this.rowIdField];
 
+      item[ROW_EXPANDED_KEY] = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]);
+      const children = item[this.childrenKey];
+      this.setRowItem(rowId, item);
       if (children?.length) {
         item[ROW_HAS_CHILD_KEY] = true;
-        item[this.childrenKey] = this.initTreeItems(children, depth + 1);
+        item[this.childrenKey] = this.initTreeItems(children, depth + 1, openDepth, defaultExpandedIds);
+
+        this.childrenMap.set(rowId, children);
       }
 
       return item;
@@ -119,117 +147,53 @@ export class TreeDataManager extends DataManager {
   }
 
   // ======================
-  // Map 구성
-  // ======================
-  private buildMaps() {
-    this.clearRowMap();
-    this.childrenMap.clear();
-    this.idMap.clear();
-
-    const traverse = (list: any[]) => {
-      for (const item of list) {
-        const rowId = item[this.rowIdField];
-        const idValue = item[this.idKey];
-
-        this.setRowItem(rowId, item);
-        this.idMap.set(idValue, rowId);
-
-        const children = item[this.childrenKey];
-
-        if (children?.length) {
-          this.childrenMap.set(rowId, children);
-          traverse(children);
-        }
-      }
-    };
-
-    traverse(this.getCurrentItems());
-  }
-
-  // ======================
-  // 초기 펼침 상태
-  // ======================
-  private initExpandedState() {
-    this.expandedSet.clear();
-
-    // O(N) → O(1)로 개선
-    for (const id of this.defaultExpandedIds) {
-      const rowId = this.idMap.get(id);
-      if (rowId !== undefined) {
-        this.expandedSet.add(rowId);
-      }
-    }
-
-    const rowMap = this.getRowMap();
-
-    // 2. depth 기반 자동 expand
-    if (this.expandDepth > 0) {
-      for (const item of rowMap.values()) {
-        const depth = item[ROW_DEPTH_KEY];
-        const id = item[this.rowIdField];
-
-        if (depth < this.expandDepth) {
-          this.expandedSet.add(id);
-        }
-      }
-    }
-
-    for (const item of rowMap.values()) {
-      const id = item[this.rowIdField];
-      item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
-    }
-  }
-
-  // ======================
   // viewItems
   // ======================
-  public buildViewItems(start = 0, end = Infinity) {
-    this.setViewItems(this.getTreeToList(this.getCurrentItems()), start, end);
+  public buildViewItems(items?: any[]) {
+    if (items) {
+      this.setViewItems(this.getTreeToList(items));
+    } else {
+      this.setViewItems(this.getTreeToList(this.viewTreeItems));
+    }
   }
 
-  private getTreeToList(list: any, start = 0, end = Infinity) {
+  private getTreeToList(items: any[]): any[] {
     const result: any[] = [];
     const dfs = (list: any[]) => {
       for (const item of list) {
-        if (result.length >= end) break;
-
         result.push(item);
 
         const id = item[this.rowIdField];
 
-        if (this.expandedSet.has(id)) {
+        if (item[ROW_EXPANDED_KEY]) {
           const children = this.childrenMap.get(id);
+
           if (children) dfs(children);
         }
       }
     };
 
-    dfs(list);
+    dfs(items);
 
     return result;
   }
 
-  // ======================
-  // toggle
-  // ======================
+  /**
+   * toggle row expand/collapse
+   * @param rowId 행의 ID
+   */
   public toggleRow(rowId: RowId) {
-    let isExpand;
-    if (this.expandedSet.has(rowId)) {
-      isExpand = false;
-      this.expandedSet.delete(rowId);
-    } else {
-      isExpand = true;
-      this.expandedSet.add(rowId);
-    }
+    const rowItem = this.getRowItem(rowId);
 
-    this.getRowItem(rowId)[ROW_EXPANDED_KEY] = isExpand;
+    rowItem[ROW_EXPANDED_KEY] = !rowItem[ROW_EXPANDED_KEY];
 
     this.buildViewItems();
   }
 
+  /**
+   * 모든 행을 접음
+   */
   public collapseAll() {
-    this.expandedSet.clear();
-
     for (const item of this.getRowMap().values()) {
       item[ROW_EXPANDED_KEY] = false;
     }
@@ -237,31 +201,44 @@ export class TreeDataManager extends DataManager {
     this.buildViewItems();
   }
 
+  /**
+   * 모든 행을 펼침
+   */
   public expandAll() {
-    for (const key of this.childrenMap.keys()) {
-      this.expandedSet.add(key);
-    }
-
     for (const item of this.getRowMap().values()) {
-      const id = item[this.rowIdField];
-      item[ROW_EXPANDED_KEY] = this.expandedSet.has(id);
+      item[ROW_EXPANDED_KEY] = true;
     }
 
     this.buildViewItems();
   }
 
-  public expandRow(id: RowId) {
-    const rowId = this.idMap.get(id);
-    if (rowId === undefined) return;
+  /**
+   * 특정 행을 펼침
+   * @param rowId 펼칠 행의 ID
+   * @returns
+   */
+  public expandRow(rowId: RowId) {
+    const rowItem = this.getRowItem(rowId);
+    if (rowItem === undefined) return;
 
-    this.expandedSet.add(rowId);
-
-    this.getRowItem(rowId)[ROW_EXPANDED_KEY] = true;
+    rowItem[ROW_EXPANDED_KEY] = true;
 
     this.buildViewItems();
   }
-
+  /**
+   * 행 삭제
+   * @param ids 삭제할 행의 ID 배열
+   * @returns 삭제된 행의 ID 배열
+   */
   public removeRows(ids: RowId[]): RowId[] {
+    throw new Error('Method not implemented.');
+  }
+
+  /**
+   * 행 추가
+   * @param addOpts 추가 옵션 (예: 부모 행 ID, 추가할 데이터 등)
+   */
+  public addRows(addOpts: AddRowOptions): void {
     throw new Error('Method not implemented.');
   }
 
@@ -277,6 +254,10 @@ export class TreeDataManager extends DataManager {
     }
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
+
+    if (!options.hideNonMatched) {
+      return searchResults;
+    }
 
     // 트리 형태로 다시 구성
     const tree = this.buildSearchedTree(this.getCurrentItems(), searchResults);

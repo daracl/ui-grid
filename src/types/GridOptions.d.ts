@@ -338,6 +338,12 @@ export interface SearchOptions {
   matchWholeRegex?: RegExp;
 
   /**
+   * 검색어가 포함되지 않은 행 숨김 여부
+   * @default false
+   */
+  hideNonMatched?: boolean;
+
+  /**
    * find mode
    * @example
    * "search" | "full"

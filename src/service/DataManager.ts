@@ -43,7 +43,6 @@ export abstract class DataManager {
    * 전체 체크 설정
    */
   public setAllCheck() {
-    console.log('setAllCheck :  : : setAllCheck');
     for (const item of this.getViewItems()) {
       this.rowCheckSet.add(item[this.rowIdField]);
     }
@@ -64,7 +63,6 @@ export abstract class DataManager {
   public setItemChecked(item: any, checked: boolean) {
     const rowId = item[this.rowIdField];
 
-    console.log(rowId);
     if (checked) {
       this.rowCheckSet.add(rowId);
     } else {
@@ -92,7 +90,13 @@ export abstract class DataManager {
    * @returns
    */
   protected initItems(items: any[], depth = 0): any[] {
-    return items.map((item) => this.createRowItem(item, depth));
+    return items.map((item) => {
+      this.createRowItem(item, depth);
+
+      this.setRowItem(item[this.rowIdField], item);
+
+      return item;
+    });
   }
 
   /**
@@ -100,6 +104,7 @@ export abstract class DataManager {
    * @param items
    */
   public setItems(items: any[]) {
+    this.clearRowMap();
     this.originalItems = items;
     this.currentItems = items;
   }
@@ -113,7 +118,6 @@ export abstract class DataManager {
   }
 
   dataSort(
-    isShift: boolean,
     sortOrders: FieldSortInfo[],
     sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
   ) {

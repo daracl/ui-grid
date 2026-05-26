@@ -14,13 +14,17 @@ describe('gridDataSearch', () => {
   // 사용 예시
 
   it('name check', () => {
-    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name' });
+    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true });
     expect(1).toEqual(result.length);
     expect(result[0].name).toBe('김민수');
   });
 
   it('useRegex name check', () => {
-    const result = gridDataSearch(employeeList, '백엔드|디자이너', { searchFields: 'position', useRegex: true });
+    const result = gridDataSearch(employeeList, '백엔드|디자이너', {
+      searchFields: 'position',
+      useRegex: true,
+      hideNonMatched: true,
+    });
     // 실제로 "백엔드" 또는 "디자이너"가 포함된 position을 가진 사람 수
     // "백엔드 개발자": 3명, "UI/UX 디자이너": 1명, "그래픽 디자이너": 1명, "UX 디자이너": 1명, "웹 디자이너": 1명
     // 총 7명
@@ -31,33 +35,49 @@ describe('gridDataSearch', () => {
   });
 
   it('new line check', () => {
-    const result = gridDataSearch(employeeList, '전략적으로\n 문제를', { searchFields: '$all$' });
+    const result = gridDataSearch(employeeList, '전략적으로\n 문제를', { searchFields: '$all$', hideNonMatched: true });
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('김민수');
   });
 
   it('empty searchText returns all items', () => {
-    const result = gridDataSearch(employeeList, '', { searchFields: 'name' });
+    const result = gridDataSearch(employeeList, '', { searchFields: 'name', hideNonMatched: true });
 
     expect(result.length).toBe(employeeList.length);
   });
 
   it('matchCase: true should be case sensitive', () => {
-    const result1 = gridDataSearch(employeeList, 'minsu.kim@example.com', { searchFields: 'email', matchCase: true });
+    const result1 = gridDataSearch(employeeList, 'minsu.kim@example.com', {
+      searchFields: 'email',
+      matchCase: true,
+      hideNonMatched: true,
+    });
     expect(result1.length).toBe(1);
 
-    const result2 = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', { searchFields: 'email', matchCase: true });
+    const result2 = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
+      searchFields: 'email',
+      matchCase: true,
+      hideNonMatched: true,
+    });
     expect(result2.length).toBe(0);
   });
 
   it('matchCase: false should be case insensitive', () => {
-    const result = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', { searchFields: 'email', matchCase: false });
+    const result = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
+      searchFields: 'email',
+      matchCase: false,
+      hideNonMatched: true,
+    });
     expect(result.length).toBe(1);
   });
 
   it('matchWholeWord: true should match whole word only', () => {
     // "개발자"는 여러 position에 포함되지만, "프론트엔드 개발자"에서 "프론트엔드"만 검색하면 "프론트엔드 개발자"만 나와야 함
-    const result = gridDataSearch(employeeList, '프론트엔드', { searchFields: 'position', matchWholeWord: true });
+    const result = gridDataSearch(employeeList, '프론트엔드', {
+      searchFields: 'position',
+      matchWholeWord: true,
+      hideNonMatched: true,
+    });
 
     expect(result.length).toBe(3); // "프론트엔드 개발자", "주니어 프론트엔드 개발자"
     expect(result.map((r) => r.position)).toEqual(
@@ -66,7 +86,7 @@ describe('gridDataSearch', () => {
   });
 
   it('searchFields: array should search multiple fields', () => {
-    const result = gridDataSearch(employeeList, '문제', { searchFields: ['desc', 'position'] });
+    const result = gridDataSearch(employeeList, '문제', { searchFields: ['desc', 'position'], hideNonMatched: true });
     // "문제"가 desc나 position에 포함된 사람
     expect(result.length).toBeGreaterThan(0);
     expect(result.some((r) => r.name === '김민수')).toBe(true);
@@ -75,26 +95,30 @@ describe('gridDataSearch', () => {
   });
 
   it('useRegex: invalid regex falls back to text search', () => {
-    const result = gridDataSearch(employeeList, '[', { searchFields: 'desc', useRegex: true });
+    const result = gridDataSearch(employeeList, '[', { searchFields: 'desc', useRegex: true, hideNonMatched: true });
     // Invalid regex, should fallback to normal text search, which will not match anything
     expect(result.length).toBe(0);
   });
 
   it('searchFields: $all$ should search all fields', () => {
-    const result = gridDataSearch(employeeList, 'PM', { searchFields: '$all$' });
+    const result = gridDataSearch(employeeList, 'PM', { searchFields: '$all$', hideNonMatched: true });
     // "PM"이 포함된 사람: "프로덕트 매니저"의 배수지
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('배수지');
   });
 
   it('should highlight matched text in result', () => {
-    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name' });
+    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true });
     expect(result[0].$$matchedFields[0].highlightedValue).toContain('<mark>김민수</mark>');
   });
 
   it('should not match partial word when matchWholeWord is true', () => {
     // "엔지니어"는 "QA 엔지니어", "AI 엔지니어", "API 엔지니어", "클라우드 엔지니어" 등에서만 완전 일치
-    const result = gridDataSearch(employeeList, '엔지니어', { searchFields: 'position', matchWholeWord: true });
+    const result = gridDataSearch(employeeList, '엔지니어', {
+      searchFields: 'position',
+      matchWholeWord: true,
+      hideNonMatched: true,
+    });
     expect(result.length).toBe(6);
     expect(result.map((r) => r.position)).toEqual(
       expect.arrayContaining([
@@ -109,13 +133,13 @@ describe('gridDataSearch', () => {
   });
 
   it('should match numbers as string', () => {
-    const result = gridDataSearch(employeeList, '34', { searchFields: 'age' });
+    const result = gridDataSearch(employeeList, '34', { searchFields: 'age', hideNonMatched: true });
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('김민수');
   });
 
   it('should return empty array if no match', () => {
-    const result = gridDataSearch(employeeList, '없는이름', { searchFields: 'name' });
+    const result = gridDataSearch(employeeList, '없는이름', { searchFields: 'name', hideNonMatched: true });
     expect(result.length).toBe(0);
   });
 });

@@ -260,6 +260,14 @@ export class DaraGrid {
     this.gridMain.getContextMenu().changeHeader(label);
   }
 
+  public expandAll() {
+    this.gridMain.expandAll();
+  }
+
+  public collapseAll() {
+    this.gridMain.collapseAll();
+  }
+
   /**
    * grid destroy
    *

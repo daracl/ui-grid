@@ -22,13 +22,15 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     return searchList;
   }
 
-  const { matchCase, matchWholeWord, useRegex, searchFields, matchWholeRegex } = merge(
+  const { matchCase, matchWholeWord, useRegex, searchFields, matchWholeRegex, hideNonMatched, displayMode } = merge(
     {
       matchCase: false,
       matchWholeWord: false,
       useRegex: false,
       searchFields: ALL_SELECT_VALUE,
       matchWholeRegex: /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g,
+      hideNonMatched: false,
+      displayMode: 'list',
     },
     options,
   );
@@ -55,6 +57,8 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     wordBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedSearchText)}\\b`, flags);
   }
 
+  const isTree = displayMode === 'tree';
+
   for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
     const end = Math.min(i + CHUNK_SIZE, searchListLength);
     const chunk = searchList.slice(i, end);
@@ -73,12 +77,27 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       );
 
       if (matchedFields.length > 0) {
+        if (isTree) {
+          // 트리 모드인 경우, 매칭된 항목과 그 부모 항목 모두 표시
+          //
+          // 트리인 경우  처리 할것.
+          // ROW_EXPANDED_KEY  처리 할것.
+          //
+          //
+          //
+        }
         item.$$matchedFields = matchedFields;
         item.$$totalMatches = matchedFields.length;
         results.push(item);
-      } else if (item.$$matchedFields) {
-        delete item.$$matchedFields;
-        delete item.$$totalMatches;
+      } else {
+        if (item.$$matchedFields) {
+          delete item.$$matchedFields;
+          delete item.$$totalMatches;
+        }
+
+        if (!hideNonMatched) {
+          results.push(item);
+        }
       }
     }
   }

@@ -104,7 +104,7 @@ export class SortButtonEvent implements EventHandler {
         }
       }
 
-      dataManager.dataSort(isShift, sortOrders, sortOpts);
+      dataManager.dataSort(sortOrders, sortOpts);
 
       beforeSortOrderLength = sortOrders.length;
 

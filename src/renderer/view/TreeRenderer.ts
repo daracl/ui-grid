@@ -5,6 +5,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
+import { TreeDataManager } from '@/service/TreeDataManager';
 
 /**
  * tree renderer
@@ -73,13 +74,14 @@ export class TreeRenderer extends ViewRenderer {
 
   initExpanderEvent(expander: HTMLSpanElement) {
     const cfg = this.cfg;
+    const treeDataManager = cfg.dataManager as TreeDataManager;
     cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      cfg.dataManager.toggleRow(cellInfo.item[cfg.rowIdField]);
-      this.gridMain.refreshBody();
+      treeDataManager.toggleRow(cellInfo.item[cfg.rowIdField]);
+      this.gridMain.refreshBody(true, 'treeExpander');
 
       //stopPreventCancel(e);
 
