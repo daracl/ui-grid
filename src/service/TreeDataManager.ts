@@ -267,14 +267,6 @@ export class TreeDataManager extends DataManager {
   getSearchData(keyword: string, options: SearchMode) {
     const gridValue = this.getCurrentItems();
 
-    if (options.searchFields == ALL_SELECT_VALUE) {
-      options.searchFields = this.cfg.currentFields
-        .filter((item) => !item.$isAside)
-        .map((item) => {
-          return item.name;
-        });
-    }
-
     const expandedIds = new Set<RowId>();
 
     options.hideNonMatched = false;

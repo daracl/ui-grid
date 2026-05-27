@@ -2,8 +2,7 @@ import { ALL_SELECT_VALUE } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, PagingParam } from '@/types/GridOptions';
-import { PagingInfo } from '@/types/PagingInfo';
-import { getPagingInfo, getPagingParamToPagingInfo } from '@/util/pagingUtil';
+import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
 import { GridMain } from '@/view/GridMain';
 
@@ -39,14 +38,6 @@ export class ListDataManager extends DataManager {
 
   getSearchData(keyword: string, options: SearchMode): any[] {
     const items = this.getCurrentItems();
-
-    if (options.searchFields == ALL_SELECT_VALUE) {
-      options.searchFields = this.cfg.currentFields
-        .filter((item) => !item.$isAside)
-        .map((item) => {
-          return item.name;
-        });
-    }
 
     options.hideNonMatched = options.hideNonMatched ?? true;
 

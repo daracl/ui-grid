@@ -1,9 +1,9 @@
-import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY } from '@/constants';
+import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, SEARCH_MATCH_FIELDS } from '@/constants';
 import { OptionCallback, RowId, SearchMode, AddRowOptions } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
 import { GridOptions, SearchOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { arrayCopy, multiSort } from '@/util/utils';
+import { arrayCopy, isArray, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
@@ -25,6 +25,10 @@ export abstract class DataManager {
   private sortBaseItems: any[] = [];
   private defaultSearchOpts: SearchOptions;
 
+  private beforeKeyword: string;
+  private searchViewIdx = 0;
+  private beforeSearchMode: SearchMode;
+
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
@@ -35,7 +39,6 @@ export abstract class DataManager {
     this.rowIdField = this.cfg.rowIdField;
 
     this.defaultSearchOpts = merge(
-      {},
       {
         matchCase: false,
         matchWholeWord: false,
@@ -46,8 +49,6 @@ export abstract class DataManager {
       },
       opts.search,
     );
-
-    console.log('this.rowIdField ', this.rowIdField);
   }
 
   // ======================
@@ -250,8 +251,64 @@ export abstract class DataManager {
   public search(keyword: string, options: SearchMode) {
     if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
 
+    if (options.searchFields == ALL_SELECT_VALUE) {
+      options.searchFields = this.cfg.currentFields
+        .filter((item) => !item.$isAside)
+        .map((item) => {
+          return item.name;
+        });
+    }
+
     options = merge({}, this.defaultSearchOpts, options);
-    this.setViewItems(this.getSearchData(keyword, options));
+
+    const keys: string[] = ['matchCase', 'matchWholeWord', 'useRegex', 'searchFields'];
+
+    let isSameSearchOpts = this.beforeKeyword == keyword;
+
+    if (this.beforeSearchMode) {
+      for (const key of keys as (keyof SearchMode)[]) {
+        if (key === 'searchFields') {
+          const optsSearchFields = options.searchFields;
+          const beforeOptsSearchFields = this.beforeSearchMode.searchFields;
+          if (
+            (isArray(optsSearchFields) && JSON.stringify(optsSearchFields) != JSON.stringify(beforeOptsSearchFields)) ||
+            (!isArray(optsSearchFields) && optsSearchFields != beforeOptsSearchFields)
+          ) {
+            isSameSearchOpts = false;
+            break;
+          }
+        } else {
+          if (this.beforeSearchMode[key] !== options[key]) {
+            isSameSearchOpts = false;
+            break;
+          }
+        }
+      }
+    } else {
+      isSameSearchOpts = false;
+    }
+
+    let searchResult = this.getSearchData(keyword, options);
+    if (this.beforeKeyword == keyword && isSameSearchOpts) {
+      searchResult = this.getViewItems();
+
+      for (let i = this.cfg.scroll.startIdx + 1; i < searchResult.length; i++) {
+        const item = searchResult[i];
+        const matchedFields = item[SEARCH_MATCH_FIELDS];
+        if (matchedFields && matchedFields.length > 0) {
+          this.gridMain.getScroll().moveVerticalScroll({ rowIdx: i });
+          break;
+        }
+      }
+      return;
+    } else {
+      searchResult = this.getSearchData(keyword, options);
+    }
+
+    this.setViewItems(searchResult);
+
+    this.beforeKeyword = keyword;
+    this.beforeSearchMode = merge({}, options);
   }
 
   abstract getSearchData(keyword: string, options: SearchMode): any[];

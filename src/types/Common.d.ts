@@ -46,7 +46,7 @@ export type SearchMode = {
   useRegex: boolean;
   // 검색 대상 필드 (string 또는 string 배열, ALL_SELECT_VALUE인 경우 모든 필드 검색)
   searchFields?: SearchFields;
-  // 검색어 전체가 일치하는지 여부 (useRegex가 true인 경우에만 사용)
+  // 검색어 전체가 일차 체크 정규식
   matchWholeRegex: RegExp;
   // 검색어가 포함되지 않은 행 숨김 여부
   hideNonMatched?: boolean;

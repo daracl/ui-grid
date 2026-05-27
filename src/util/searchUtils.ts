@@ -1,6 +1,6 @@
 import { ALL_SELECT_VALUE, CHUNK_SIZE, SEARCH_MATCH_FIELDS } from '@/constants';
 import { MatchedField, SearchFields, SearchMode } from '@t/Common';
-import { hasOwnProp } from './utils';
+import { hasOwnProp, arrayCopy } from './utils';
 
 export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): any[] {
   const results: any[] = [];
@@ -93,7 +93,7 @@ function getSearchFields(searchList: any[], searchFields: SearchFields): string[
     return searchList.length > 0 ? Object.keys(searchList[0]) : [];
   }
 
-  return Array.isArray(searchFields) ? searchFields : [searchFields];
+  return Array.isArray(searchFields) ? arrayCopy(searchFields) : [searchFields];
 }
 
 function findFirstMatchInItemOptimized(
