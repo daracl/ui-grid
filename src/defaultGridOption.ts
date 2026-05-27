@@ -14,7 +14,7 @@ import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
  * grid default option
  */
 export const DEFAULT_OPTIONS: GridOptions = {
-  rowIdField: ROW_ID_FIELD_NAME, // 고유 아이디 키값
+  rowIdField: '', // 고유 아이디 키값
   theme: 'light', // 테마 값
   height: 'auto', // 높이 값
   width: 'auto', // 넓이값

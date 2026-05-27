@@ -14,7 +14,7 @@ export interface GridOptions {
   /**
    * 고유 아이디 키값
    */
-  rowIdField: string;
+  rowIdField?: string;
   /**
    *  테마 값
    */
@@ -160,7 +160,7 @@ export interface TreeOptions {
   /**
    * 각 row를 고유하게 식별하는 필드명
    * 예: 'id'
-   * ⚠️ 모든 row는 반드시 unique 해야 함
+   * 모든 row는 반드시 unique 해야 함
    */
   idField: string;
 
@@ -175,7 +175,6 @@ export interface TreeOptions {
    * 자식 노드 배열이 저장되는 필드명
    * 기본값: 'children'
    * 예: 'nodes', 'items', 'childList'
-   * ⚠️ API마다 다르므로 옵션으로 분리하는 것이 중요
    */
   childrenField?: string;
 

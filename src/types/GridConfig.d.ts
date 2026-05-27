@@ -12,8 +12,8 @@ import { EventManager } from '@/event/EventManager';
 export interface Config {
   // row id seq
   rowIdField: string;
+  // theme
   theme: string;
-  isTreeType: boolean;
   // header help button
   enableHeaderHelpButton: boolean;
   // data manager

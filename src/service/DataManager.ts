@@ -1,10 +1,11 @@
-import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY } from '@/constants';
+import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY } from '@/constants';
 import { OptionCallback, RowId, SearchMode, AddRowOptions } from '@/types/Common';
 import { Config } from '@/types/GridConfig';
-import { GridOptions } from '@/types/GridOptions';
+import { GridOptions, SearchOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
+import { merge } from '../util/utils';
 
 export abstract class DataManager {
   private viewItems: any[] = [];
@@ -16,19 +17,37 @@ export abstract class DataManager {
 
   protected readonly cfg;
 
+  private readonly searchOpts: SearchOptions;
+
   private originalItems: any[] = [];
   private currentItems: any[] = [];
 
   private sortBaseItems: any[] = [];
+  private defaultSearchOpts: SearchOptions;
 
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
-  constructor(protected opts: GridOptions, protected gridMain: GridMain) {
+  constructor(protected opts: GridOptions, protected gridMain: GridMain, protected type: string) {
     this.cfg = gridMain.config();
+    this.searchOpts = opts.search;
     this.rowHeight = this.cfg.rowHeight;
     this.rowIdField = this.cfg.rowIdField;
-    this.matchWholeRegex = opts.search?.matchWholeRegex;
+
+    this.defaultSearchOpts = merge(
+      {},
+      {
+        matchCase: false,
+        matchWholeWord: false,
+        useRegex: false,
+        searchFields: ALL_SELECT_VALUE,
+        matchWholeRegex: /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g,
+        hideNonMatched: false,
+      },
+      opts.search,
+    );
+
+    console.log('this.rowIdField ', this.rowIdField);
   }
 
   // ======================
@@ -166,29 +185,48 @@ export abstract class DataManager {
     }
   }
 
-  // ======================
-  // row 추가
-  // ======================
+  public getDataType() {
+    return this.type;
+  }
+
+  /**
+   * row 추가
+   * @param addOpts add options
+   */
   public abstract addRows(addOpts: AddRowOptions): void;
 
-  // ======================
-  // row 삭제
-  // ======================
+  /**
+   * row 삭제
+   * @param ids 삭제할 row id 배열
+   * @returns 삭제된 row id 배열
+   */
   public abstract removeRows(ids: RowId[]): RowId[];
 
+  /**
+   * row 확장 (트리 구조에서 자식 노드 보이기)
+   * @param id 확장할 row id
+   */
   public abstract expandRow(id: RowId): void;
 
-  // ======================
-  // getter
-  // ======================
+  /**
+   * grid 표시 데이터 얻기
+   * @returns
+   */
   public getViewItems() {
     return this.viewItems;
   }
 
+  /**
+   * 원본 데이터 얻기
+   * @returns
+   */
   public getOriginalItems() {
     return this.originalItems;
   }
-
+  /**
+   * 현재 데이터 얻기
+   * @returns
+   */
   public getCurrentItems() {
     return this.currentItems;
   }
@@ -210,13 +248,9 @@ export abstract class DataManager {
   }
 
   public search(keyword: string, options: SearchMode) {
-    if (!keyword.trim()) {
-      this.setViewItems(this.currentItems);
-      return;
-    }
-
     if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
 
+    options = merge({}, this.defaultSearchOpts, options);
     this.setViewItems(this.getSearchData(keyword, options));
   }
 

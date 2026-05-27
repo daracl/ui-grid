@@ -4,6 +4,7 @@ import { GridOptions } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
 import { sortTreeByLevel } from '@/util/utils';
+import { ROW_DEPTH_KEY } from '../constants';
 import { GridMain } from '../view/GridMain';
 import { DataManager } from './DataManager';
 
@@ -24,11 +25,13 @@ export class TreeDataManager extends DataManager {
   private viewTreeItems: any[] = [];
 
   constructor(opts: GridOptions, gridMain: GridMain) {
-    super(opts, gridMain);
+    super(opts, gridMain, 'tree');
 
-    this.idKey = opts.tree?.idField ?? 'id';
-    this.pidKey = opts.tree?.parentIdField ?? 'pid';
-    this.childrenKey = opts.tree?.childrenField ?? 'children';
+    const tree = opts.tree;
+
+    this.idKey = tree?.idField ?? 'id';
+    this.pidKey = tree?.parentIdField ?? 'pid';
+    this.childrenKey = tree?.childrenField ?? 'children';
   }
 
   /**
@@ -132,7 +135,7 @@ export class TreeDataManager extends DataManager {
 
       const rowId = item[this.rowIdField];
 
-      item[ROW_EXPANDED_KEY] = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]);
+      item[ROW_EXPANDED_KEY] = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]) ? 1 : 0;
       const children = item[this.childrenKey];
       this.setRowItem(rowId, item);
       if (children?.length) {
@@ -165,7 +168,7 @@ export class TreeDataManager extends DataManager {
 
         const id = item[this.rowIdField];
 
-        if (item[ROW_EXPANDED_KEY]) {
+        if (item[ROW_EXPANDED_KEY] > 0) {
           const children = this.childrenMap.get(id);
 
           if (children) dfs(children);
@@ -185,7 +188,7 @@ export class TreeDataManager extends DataManager {
   public toggleRow(rowId: RowId) {
     const rowItem = this.getRowItem(rowId);
 
-    rowItem[ROW_EXPANDED_KEY] = !rowItem[ROW_EXPANDED_KEY];
+    rowItem[ROW_EXPANDED_KEY] = rowItem[ROW_EXPANDED_KEY] > 0 ? 0 : 1;
 
     this.buildViewItems();
   }
@@ -195,7 +198,7 @@ export class TreeDataManager extends DataManager {
    */
   public collapseAll() {
     for (const item of this.getRowMap().values()) {
-      item[ROW_EXPANDED_KEY] = false;
+      item[ROW_EXPANDED_KEY] = 0;
     }
 
     this.buildViewItems();
@@ -206,7 +209,7 @@ export class TreeDataManager extends DataManager {
    */
   public expandAll() {
     for (const item of this.getRowMap().values()) {
-      item[ROW_EXPANDED_KEY] = true;
+      item[ROW_EXPANDED_KEY] = 1;
     }
 
     this.buildViewItems();
@@ -221,9 +224,28 @@ export class TreeDataManager extends DataManager {
     const rowItem = this.getRowItem(rowId);
     if (rowItem === undefined) return;
 
-    rowItem[ROW_EXPANDED_KEY] = true;
+    this.parentExpand(rowItem, []);
+    rowItem[ROW_EXPANDED_KEY] = 1;
 
     this.buildViewItems();
+  }
+
+  private parentExpand(item: any, expandedIds: RowId[], addMatchedKey = false) {
+    if (!item) return;
+    const pid = item[this.pidKey];
+    const parentItem = this.getRowItem(pid);
+
+    if (parentItem) {
+      expandedIds.push(pid);
+
+      if (addMatchedKey) {
+        parentItem[ROW_EXPANDED_KEY] = parentItem[ROW_EXPANDED_KEY] == 1 ? 3 : 2; // 1: 기존 펼침, 2: 검색으로 인한 펼침, 3: 기존+검색으로 인한 펼침
+      }
+
+      this.parentExpand(parentItem, expandedIds, addMatchedKey);
+    }
+
+    return expandedIds;
   }
   /**
    * 행 삭제
@@ -243,7 +265,7 @@ export class TreeDataManager extends DataManager {
   }
 
   getSearchData(keyword: string, options: SearchMode) {
-    const gridValue = [...this.getRowMap().values()];
+    const gridValue = this.getCurrentItems();
 
     if (options.searchFields == ALL_SELECT_VALUE) {
       options.searchFields = this.cfg.currentFields
@@ -253,81 +275,65 @@ export class TreeDataManager extends DataManager {
         });
     }
 
+    const expandedIds = new Set<RowId>();
+
+    options.hideNonMatched = false;
+    options.postProcess = (isMatched: boolean, item: any) => {
+      if (isMatched) {
+        expandedIds.add(item[this.rowIdField]);
+
+        const parentIds: RowId[] = [];
+
+        if (!expandedIds.has(item[this.pidKey])) {
+          this.parentExpand(item, parentIds, true);
+          parentIds.forEach((id) => {
+            expandedIds.add(id);
+          });
+        }
+      } else {
+        item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] % 2 ? 1 : 0;
+      }
+    };
+
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
-    if (!options.hideNonMatched) {
-      return searchResults;
+    const results = [];
+    const idKey = this.idKey;
+    const pidKey = this.pidKey;
+    const optsHideNonMatched = options.hideNonMatched;
+
+    for (const item of searchResults) {
+      const id = item[idKey];
+      const pid = item[pidKey];
+
+      if (optsHideNonMatched) {
+        if (expandedIds.has(id)) {
+          results.push(item);
+        }
+        continue;
+      }
+
+      if (item[ROW_DEPTH_KEY] == 1) {
+        results.push(item);
+        if (item[ROW_EXPANDED_KEY] > 0) {
+          expandedIds.add(id);
+        }
+        continue;
+      }
+
+      if (expandedIds.has(pid)) {
+        const pItem = this.getRowItem(pid);
+
+        if (pItem && pItem[ROW_EXPANDED_KEY] > 0) {
+          results.push(item);
+        }
+
+        if (item[ROW_EXPANDED_KEY] > 0) {
+          expandedIds.add(id);
+        }
+      }
     }
 
-    // 트리 형태로 다시 구성
-    const tree = this.buildSearchedTree(this.getCurrentItems(), searchResults);
-
-    // flatten for view cache
-    const result: any[] = [];
-    const dfs = (list: any[]) => {
-      for (const node of list) {
-        result.push(node);
-        if (node[this.childrenKey]?.length) {
-          dfs(node[this.childrenKey]);
-        }
-      }
-    };
-    dfs(tree);
-
-    return result;
-  }
-
-  buildSearchedTree(originTree: any[], searchResults: any[]): any[] {
-    const idKey = this.idKey;
-    const parentKey = this.pidKey;
-    const childrenKey = this.childrenKey;
-
-    // 1) Flat index from origin tree
-    const nodeMap = new Map<any, any>();
-    const flatList: any[] = [];
-
-    const dfsFlat = (nodes: any[]) => {
-      for (const n of nodes) {
-        flatList.push(n);
-        nodeMap.set(n[idKey], n);
-        if (n[childrenKey]?.length) dfsFlat(n[childrenKey]);
-      }
-    };
-    dfsFlat(originTree);
-
-    // 2) 검색된 노드 ID set
-    const matchedIds = new Set(searchResults.map((item) => item[idKey]));
-
-    // 3) 검색된 노드의 모든 조상 포함
-    const visibleIds = new Set<any>();
-
-    const addWithParents = (id: any) => {
-      if (!id || visibleIds.has(id)) return;
-      visibleIds.add(id);
-
-      const node = nodeMap.get(id);
-      if (node && node[parentKey]) addWithParents(node[parentKey]);
-    };
-
-    for (const id of matchedIds) addWithParents(id);
-
-    // 4) 트리 재구성(O(n))
-    const rebuildTree = (nodes: any[]): any[] => {
-      const result: any[] = [];
-      for (const n of nodes) {
-        if (!visibleIds.has(n[idKey])) continue;
-
-        const clone = { ...n };
-        if (n[childrenKey]?.length) {
-          clone[childrenKey] = rebuildTree(n[childrenKey]);
-        } else {
-          clone[childrenKey] = [];
-        }
-        result.push(clone);
-      }
-      return result;
-    };
-
-    return rebuildTree(originTree);
+    return results;
   }
 }

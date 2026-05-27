@@ -19,12 +19,19 @@ import { EventManager } from '@/event/EventManager';
 export function initConfig(opts: GridOptions): Config {
   const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
+  let rowIdField = ROW_ID_FIELD_NAME;
+  if (opts.rowIdField) {
+    rowIdField = opts.rowIdField;
+  } else if (opts.tree) {
+    rowIdField = opts.tree.idField || 'id';
+  }
+
+  console.log('initConfig', opts.rowIdField, opts.tree, { rowIdField, pagingInfo });
   return {
-    rowIdField: opts.rowIdField || ROW_ID_FIELD_NAME,
+    rowIdField: rowIdField,
     dataManager: {} as DataManager,
     eventManager: new EventManager(),
     theme: 'light',
-    isTreeType: false,
     selectRowOnCellClick: opts.body?.row?.selectRowOnCellClick === true,
     enableHeaderHelpButton: opts.header?.help?.enabled,
     dimensions: {

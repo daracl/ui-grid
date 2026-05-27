@@ -9,7 +9,7 @@ import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
   constructor(opts: GridOptions, gridMain: GridMain) {
-    super(opts, gridMain);
+    super(opts, gridMain, 'list');
   }
 
   public setItems(items: any[]) {
@@ -47,6 +47,8 @@ export class ListDataManager extends DataManager {
           return item.name;
         });
     }
+
+    options.hideNonMatched = options.hideNonMatched ?? true;
 
     return gridDataSearch(items, keyword, options);
   }

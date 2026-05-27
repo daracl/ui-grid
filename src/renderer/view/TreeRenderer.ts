@@ -1,11 +1,11 @@
 import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { TreeDataManager } from '@/service/TreeDataManager';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-import { TreeDataManager } from '@/service/TreeDataManager';
 
 /**
  * tree renderer
@@ -30,7 +30,7 @@ export class TreeRenderer extends ViewRenderer {
     // 트리 뎁스/자식/펼침 상태 등은 cellInfo에 있다고 가정
     const depth = item[ROW_DEPTH_KEY] ?? 0;
     const hasChildren = item[ROW_HAS_CHILD_KEY];
-    const expanded = item[ROW_EXPANDED_KEY];
+    const expanded = item[ROW_EXPANDED_KEY] > 0;
 
     let contentElement = element.firstElementChild as HTMLElement;
 

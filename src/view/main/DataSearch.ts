@@ -7,6 +7,7 @@ import { SearchOptions } from '@t/GridOptions';
 import { toggleClass } from '@/util/styleUtils';
 import { GridMain } from '@/view/GridMain';
 import { html } from '@/util/htmlTemplate';
+import { SearchMode } from '@/types/Common';
 
 /**
  * DataSearch class
@@ -183,7 +184,7 @@ export class DataSearch {
       matchWholeWord: searchParameter.matchWholeWord,
       useRegex: searchParameter.useRegex,
       searchFields: searchField,
-    });
+    } as SearchMode);
 
     if (searchText == '') {
       cfg.searchEnable = false;

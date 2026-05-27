@@ -282,6 +282,11 @@ export const FIELD_LAYER_CLASS = 'dg-field-layer';
 export const ALL_SELECT_VALUE = '$all$';
 
 /**
+ * 검색 시 매칭된 필드 정보 key
+ */
+export const SEARCH_MATCH_FIELDS = '$$matchedFields';
+
+/**
  * item chunk size
  *
  * @type {1000}
