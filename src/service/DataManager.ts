@@ -23,10 +23,9 @@ export abstract class DataManager {
   private currentItems: any[] = [];
 
   private sortBaseItems: any[] = [];
-  private defaultSearchOpts: SearchOptions;
+  private readonly defaultSearchOpts: SearchOptions;
 
   private beforeKeyword: string;
-  private searchViewIdx = 0;
   private beforeSearchMode: SearchMode;
 
   private readonly rowMap = new Map<RowId, any>();
@@ -51,9 +50,10 @@ export abstract class DataManager {
     );
   }
 
-  // ======================
-  // UUID
-  // ======================
+  /**
+   * UUID
+   * @returns
+   */
   protected generateUUID(): string {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => ((Math.random() * 16) | 0).toString(16));
@@ -288,28 +288,93 @@ export abstract class DataManager {
       isSameSearchOpts = false;
     }
 
-    let searchResult = this.getSearchData(keyword, options);
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+
+    let searchResult;
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
       searchResult = this.getViewItems();
-
-      for (let i = this.cfg.scroll.startIdx + 1; i < searchResult.length; i++) {
-        const item = searchResult[i];
-        const matchedFields = item[SEARCH_MATCH_FIELDS];
-        if (matchedFields && matchedFields.length > 0) {
-          this.gridMain.getScroll().moveVerticalScroll({ rowIdx: i });
-          break;
-        }
-      }
-      return;
     } else {
+      searchMatchInfo.matchIndex = 0;
+      searchMatchInfo.itemIndex = -1;
       searchResult = this.getSearchData(keyword, options);
     }
 
-    this.setViewItems(searchResult);
+    let currentMatchRowIdx = -1;
 
+    if (searchMatchInfo.matchCount > 0) {
+      currentMatchRowIdx = this.getMatchInfo(searchMatchInfo, searchResult);
+
+      if (currentMatchRowIdx == -1) {
+        searchMatchInfo.matchIndex = -1;
+        currentMatchRowIdx = this.getMatchInfo(searchMatchInfo, searchResult);
+      }
+    }
+
+    const { startIdx, insideViewRow } = this.cfg.scroll;
+    let moveScrollRowIdx = -1;
+    if (startIdx + insideViewRow <= currentMatchRowIdx || currentMatchRowIdx < startIdx) {
+      if (currentMatchRowIdx < insideViewRow) {
+        moveScrollRowIdx = 0;
+      } else {
+        moveScrollRowIdx = currentMatchRowIdx - (insideViewRow - Math.ceil(insideViewRow / 2));
+      }
+    }
+
+    searchMatchInfo.matchIndex = currentMatchRowIdx;
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
+    this.setViewItems(searchResult);
+
+    if (moveScrollRowIdx > -1) {
+      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx });
+    }
   }
 
   abstract getSearchData(keyword: string, options: SearchMode): any[];
+
+  /**
+   * next match item 구하기
+   *
+   * @param searchMatchInfo match 정보
+   * @param searchResult 검색 리스트
+   * @returns
+   */
+  private getMatchInfo(searchMatchInfo: any, searchResult: any[]) {
+    let beforeMatchRowIdx;
+    let matchItemIdx;
+
+    if (searchMatchInfo.matchIndex == -1) {
+      beforeMatchRowIdx = 0;
+      matchItemIdx = -1;
+    } else {
+      beforeMatchRowIdx = searchMatchInfo.matchIndex;
+      matchItemIdx = searchMatchInfo.itemIndex;
+    }
+
+    let currentMatchRowIdx = -1;
+
+    for (let searchRowIdx = beforeMatchRowIdx; searchRowIdx < searchResult.length; searchRowIdx++) {
+      const item = searchResult[searchRowIdx];
+      const matchedFields = item[SEARCH_MATCH_FIELDS];
+      if (matchedFields && matchedFields.length > 0) {
+        if (beforeMatchRowIdx == searchRowIdx) {
+          const isSammeMatchLength = matchedFields.length != matchItemIdx + 1;
+
+          if (isSammeMatchLength) {
+            currentMatchRowIdx = searchRowIdx;
+            searchMatchInfo.itemIndex = matchItemIdx + 1;
+          } else {
+            continue;
+          }
+        } else {
+          currentMatchRowIdx = searchRowIdx;
+          searchMatchInfo.itemIndex = 0;
+        }
+
+        break;
+      }
+    }
+
+    return currentMatchRowIdx;
+  }
 }

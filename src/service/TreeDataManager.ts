@@ -149,9 +149,10 @@ export class TreeDataManager extends DataManager {
     });
   }
 
-  // ======================
-  // viewItems
-  // ======================
+  /**
+   * viewItems
+   * @param items items
+   */
   public buildViewItems(items?: any[]) {
     if (items) {
       this.setViewItems(this.getTreeToList(items));
@@ -225,25 +226,26 @@ export class TreeDataManager extends DataManager {
     if (rowItem === undefined) return;
 
     this.parentExpand(rowItem, []);
-    rowItem[ROW_EXPANDED_KEY] = 1;
 
     this.buildViewItems();
   }
 
   private parentExpand(item: any, expandedIds: RowId[], addMatchedKey = false) {
     if (!item) return;
+    const id = item[this.idKey];
     const pid = item[this.pidKey];
     const parentItem = this.getRowItem(pid);
 
+    if (addMatchedKey) {
+      item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] == 1 ? 3 : 2;
+    } else {
+      item[ROW_EXPANDED_KEY] = 1;
+    }
+
     if (parentItem) {
-      expandedIds.push(pid);
-
-      if (addMatchedKey) {
-        parentItem[ROW_EXPANDED_KEY] = parentItem[ROW_EXPANDED_KEY] == 1 ? 3 : 2; // 1: 기존 펼침, 2: 검색으로 인한 펼침, 3: 기존+검색으로 인한 펼침
-      }
-
       this.parentExpand(parentItem, expandedIds, addMatchedKey);
     }
+    expandedIds.push(id);
 
     return expandedIds;
   }
@@ -269,10 +271,13 @@ export class TreeDataManager extends DataManager {
 
     const expandedIds = new Set<RowId>();
 
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+    searchMatchInfo.matchCount = 0;
+
     options.hideNonMatched = false;
     options.postProcess = (isMatched: boolean, item: any) => {
       if (isMatched) {
-        expandedIds.add(item[this.rowIdField]);
+        searchMatchInfo.matchCount += 1;
 
         const parentIds: RowId[] = [];
 
@@ -282,12 +287,16 @@ export class TreeDataManager extends DataManager {
             expandedIds.add(id);
           });
         }
+
+        expandedIds.add(item[this.rowIdField]);
       } else {
-        item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] % 2 ? 1 : 0;
+        item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] % 2 > 0 ? 1 : 0;
       }
     };
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
+
+    console.log('expandedIds : ', expandedIds);
 
     const results = [];
     const idKey = this.idKey;
@@ -315,6 +324,8 @@ export class TreeDataManager extends DataManager {
 
       if (expandedIds.has(pid)) {
         const pItem = this.getRowItem(pid);
+
+        console.log(id, pid, pItem[ROW_EXPANDED_KEY], pItem, item);
 
         if (pItem && pItem[ROW_EXPANDED_KEY] > 0) {
           results.push(item);

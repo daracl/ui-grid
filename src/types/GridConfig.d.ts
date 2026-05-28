@@ -114,6 +114,10 @@ export interface Config {
     searchFields: SearchFields;
     searchText: string;
   };
+
+  // 검색 매칭 정보
+  searchMatchInfo: SearchMatchInfo;
+
   paging: PagingOptions;
   selection: Selection;
   isHeaderResize: boolean;
@@ -145,6 +149,12 @@ export interface Config {
   scroll: ScrollInfo;
   edit: EditInfo;
   canvasContext?: CanvasRenderingContext2D;
+}
+
+export interface SearchMatchInfo {
+  matchCount: number;
+  matchIndex: number;
+  itemIndex: number;
 }
 
 export interface SummaryConfig {

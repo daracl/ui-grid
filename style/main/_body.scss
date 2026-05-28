@@ -116,7 +116,11 @@
           overflow: hidden;
 
           &.dg-search-highlight {
-            background-color: var(--search-cell-bg);
+            background-color: var(--search-cell-highlight);
+
+            &.dg-search-match {
+              background-color: var(--search-cell-match);
+            }
           }
 
           .dg-cell-renderer {

@@ -35,7 +35,8 @@ body .dg-hidden-container.dg-light {
   --scroll-thumb-bg: #a5a5a5;
   --scroll-thumb-hover-bg: #696969;
   --scroll-button-bg: #c5c3c3;
-  --search-cell-bg: #fffebc;
+  --search-cell-highlight: #fffebc;
+  --search-cell-match: #fffc7f;
   --status-danger-color: #d9534f;
   --status-danger-bg: #d9534f;
   --font-color: #686868;
@@ -89,7 +90,8 @@ body .dg-hidden-container.dg-dark {
   --scroll-thumb-bg: #555;
   --scroll-thumb-hover-bg: #777;
   --scroll-button-bg: #333;
-  --search-cell-bg: #97886b;
+  --search-cell-highlight: #97886b;
+  --search-cell-match: #776b51;
   --status-danger-color: #ff6b6b;
   --status-danger-bg: #ff6b6b;
   --font-color: #e0e0e0;
@@ -431,17 +433,19 @@ body .dg-hidden-container.dg-dark {
   position: relative;
   vertical-align: top;
   height: 40px;
+  display: none;
 }
 .daracl-grid .dg-main {
   border: 1px solid var(--border-color);
   width: 100%;
   height: 100px;
   position: relative;
+  overscroll-behavior: contain;
   /*scroll 처리*/
   /* grid style 처리*/
   /* main container */
 }
-.daracl-grid .dg-main .fixed-column-line {
+.daracl-grid .dg-main .dg-fixed-column-line {
   position: absolute;
   right: 0px;
   top: 0px;
@@ -494,7 +498,7 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-main.dg-style-borderless .dg-body-table tr > td {
   border: 1px solid transparent !important;
 }
-.daracl-grid .dg-main.dg-style-borderless .fixed-column-line {
+.daracl-grid .dg-main.dg-style-borderless .dg-fixed-column-line {
   background-color: transparent !important;
 }
 .daracl-grid .dg-main.dg-style-striped .dg-body.dg-body-odd .dg-row:nth-child(odd) {
@@ -529,7 +533,7 @@ body .dg-hidden-container.dg-dark {
   left: 0px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div.dg-left .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-header > div.dg-left .dg-fixed-column-line {
   right: 0px;
 }
 .daracl-grid .dg-main .dg-main-container .dg-header > div.dg-center {
@@ -539,7 +543,7 @@ body .dg-hidden-container.dg-dark {
   right: -1px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div.dg-right .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-header > div.dg-right .dg-fixed-column-line {
   left: 0px;
 }
 .daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table {
@@ -558,22 +562,22 @@ body .dg-hidden-container.dg-dark {
   margin: 0px !important;
   padding: 0px !important;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-header-cell.selection {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-header-cell.dg-selection {
   background-color: var(--header-bg-selection) !important;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper {
   position: relative;
   padding: 0;
   width: 100%;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper:hover .dg-sort-icon {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper:hover .dg-sort-icon {
   display: block;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper:hover .dg-sort-icon svg {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper:hover .dg-sort-icon svg {
   position: relative;
   top: 2px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon {
   position: absolute;
   width: 10px;
   height: 100%;
@@ -584,10 +588,10 @@ body .dg-hidden-container.dg-dark {
   font-size: 0pt;
   cursor: pointer;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon path {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon path {
   fill: #aeaeae;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon .dg-sort-num {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon .dg-sort-num {
   font-size: 0.6rem;
   font-family: monospace;
   text-align: center;
@@ -597,27 +601,27 @@ body .dg-hidden-container.dg-dark {
   position: relative;
   top: 4px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort] {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort] {
   display: block;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort] path {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort] path {
   fill: #8a8a8a;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort] svg {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort] svg {
   position: relative;
   top: 3px;
   line-height: 0px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort=asc] > svg {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort=asc] > svg {
   top: 6px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort=asc] > svg .dg-desc {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort=asc] > svg .dg-desc {
   display: none;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort=desc] > svg {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort=desc] > svg {
   top: -1px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .label-wrapper .dg-sort-icon[data-dg-sort=desc] > svg .dg-asc {
+.daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-label-wrapper .dg-sort-icon[data-dg-sort=desc] > svg .dg-asc {
   display: none;
 }
 .daracl-grid .dg-main .dg-main-container .dg-header > div > .dg-header-table .dg-search-icon {
@@ -756,10 +760,10 @@ body .dg-hidden-container.dg-dark {
   left: 0px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-left .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-left .dg-fixed-column-line {
   right: 0px;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-left .dg-row > .dg-cell.dg-aside.selection:first-child {
+.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-left .dg-row > .dg-cell.dg-aside.dg-selection:first-child {
   background: var(--header-bg-selection) !important;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div.dg-center {
@@ -769,7 +773,7 @@ body .dg-hidden-container.dg-dark {
   right: -1px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-right .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-body > div.dg-right .dg-fixed-column-line {
   left: 0px;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table {
@@ -803,25 +807,34 @@ body .dg-hidden-container.dg-dark {
   /* aside row drag handle*/
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-search-highlight {
-  background-color: var(--search-cell-bg);
+  background-color: var(--search-cell-highlight);
+}
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-search-highlight.dg-search-match {
+  background-color: var(--search-cell-match);
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-cell-renderer {
   position: relative;
-  margin: 0px 3px 1px 3px !important;
+  margin: 0px 5px 1px 5px !important;
   min-height: 23px;
   height: 23px;
-  line-height: 23px;
+  display: grid;
+  align-items: center;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.line-number {
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-cell-renderer.dg-white-space {
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-line-number {
   background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell:hover {
   background-color: var(--cell-bg-hover) !important;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.selection {
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-selection {
   background-color: var(--cell-bg-selection) !important;
 }
-.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.start-cell {
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-start-cell {
   box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-image {
@@ -885,7 +898,6 @@ body .dg-hidden-container.dg-dark {
   justify-content: center;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-switch {
-  display: block;
   width: 100%;
   margin: 0px 0px 1px 0px !important;
 }
@@ -897,15 +909,18 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-dropdown .dg-cell-content {
   padding: 2px 2px;
   width: 100%;
+  min-height: 22px;
   border: 1px solid var(--border-color);
   cursor: pointer;
   display: flex;
   align-items: center;
+  position: relative;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-dropdown .dg-cell-content .dg-cell-content-label {
   flex: 1;
-  padding: 0px 15px 0px 5px;
+  padding: 0px 0px 0px 5px;
   text-align: center;
+  overflow: hidden; /* (선택) 넘칠 때 대비 */
   white-space: nowrap;
   z-index: 1;
 }
@@ -919,13 +934,9 @@ body .dg-hidden-container.dg-dark {
   text-align: right;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-dropdown .dg-cell-content .dg-cell-content-icon {
-  font-size: 0.8em;
-  position: absolute;
-  height: calc(100% - 2px);
-  right: 1px;
-  padding: 0px 5px;
-  background: var(--button-bg);
-  z-index: 1;
+  width: 20px; /* 고정 크기 */
+  flex-shrink: 0; /* 줄어들지 않게 */
+  text-align: center;
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-dropdown .dg-cell-content .dg-cell-content-icon::after {
   content: "▼";
@@ -989,7 +1000,7 @@ body .dg-hidden-container.dg-dark {
   left: 0px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-summary > div.dg-left .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-summary > div.dg-left .dg-fixed-column-line {
   right: 0px;
 }
 .daracl-grid .dg-main .dg-main-container .dg-summary > div.dg-center {
@@ -999,7 +1010,7 @@ body .dg-hidden-container.dg-dark {
   right: -1px;
   z-index: 1;
 }
-.daracl-grid .dg-main .dg-main-container .dg-summary > div.dg-right .fixed-column-line {
+.daracl-grid .dg-main .dg-main-container .dg-summary > div.dg-right .dg-fixed-column-line {
   left: 0px;
 }
 .daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table {
@@ -1017,7 +1028,7 @@ body .dg-hidden-container.dg-dark {
   border-top: none !important;
   border-left: none !important;
   position: relative;
-  padding: 0px !important;
+  padding: 0px 5px !important;
   margin: 0 !important;
   overflow: hidden;
   font-weight: bold;
@@ -1071,6 +1082,7 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-scroll-container .dg-scroll-edge {
   bottom: 0px;
   right: 0px;
+  display: none;
   position: absolute;
   z-index: 1;
   background-color: var(--scroll-track-bg);

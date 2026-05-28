@@ -66,6 +66,11 @@ export function initConfig(opts: GridOptions): Config {
       searchFields: ALL_SELECT_VALUE,
       searchText: '',
     },
+    searchMatchInfo: {
+      matchCount: 0,
+      matchIndex: 0,
+      itemIndex: 0,
+    },
     fieldHeaderGroup: defaultFieldGroupInfo(),
     footer: { height: 0, width: 0 },
     navi: { height: 0, width: 0 },

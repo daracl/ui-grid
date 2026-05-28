@@ -5,6 +5,7 @@ import { GridOptions, PagingParam } from '@/types/GridOptions';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
 import { GridMain } from '@/view/GridMain';
+import { SearchMatchInfo } from '../types/GridConfig';
 
 export class ListDataManager extends DataManager {
   constructor(opts: GridOptions, gridMain: GridMain) {
@@ -38,6 +39,13 @@ export class ListDataManager extends DataManager {
 
   getSearchData(keyword: string, options: SearchMode): any[] {
     const items = this.getCurrentItems();
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+    searchMatchInfo.matchCount = 0;
+    options.postProcess = (isMatched: boolean, item: any) => {
+      if (isMatched) {
+        searchMatchInfo.matchCount += 1;
+      }
+    };
 
     options.hideNonMatched = options.hideNonMatched ?? true;
 
