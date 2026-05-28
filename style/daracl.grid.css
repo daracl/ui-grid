@@ -402,10 +402,10 @@ body .dg-hidden-container.dg-dark {
   transition: all 0.1s;
   box-sizing: border-box;
 }
-.daracl-grid .dg-checkbox.indeterminate .dg-checkmark::after,
-.daracl-grid .dg-checkbox > label.indeterminate .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox.indeterminate .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox > label.indeterminate .dg-checkmark::after {
+.daracl-grid .dg-checkbox.dg-indeterminate .dg-checkmark::after,
+.daracl-grid .dg-checkbox > label.dg-indeterminate .dg-checkmark::after,
+.dg-hidden-container .dg-checkbox.dg-indeterminate .dg-checkmark::after,
+.dg-hidden-container .dg-checkbox > label.dg-indeterminate .dg-checkmark::after {
   content: "";
   position: absolute;
   top: 50%;

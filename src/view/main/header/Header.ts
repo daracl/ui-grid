@@ -9,6 +9,7 @@ import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
 import { html } from '@/util/htmlTemplate';
 
+const CHECK_INDETERMINATE = 'dg-indeterminate';
 /**
  * Header class
  *
@@ -89,7 +90,7 @@ export class Header {
 
     const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
 
-    removeClass(checkEle as HTMLElement, 'indeterminate');
+    removeClass(checkEle as HTMLElement, CHECK_INDETERMINATE);
 
     this.gridMain.getBody().setAllCheckItem(allCheckedElement.checked);
   }
@@ -113,10 +114,10 @@ export class Header {
     const classList = checkEle?.classList;
     if (mode == 'partial') {
       (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = false;
-      if (!classList?.contains('indeterminate')) classList?.add('indeterminate');
+      if (!classList?.contains(CHECK_INDETERMINATE)) classList?.add(CHECK_INDETERMINATE);
     } else {
       (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = mode == 'all';
-      if (classList?.contains('indeterminate')) classList.remove('indeterminate');
+      if (classList?.contains(CHECK_INDETERMINATE)) classList.remove(CHECK_INDETERMINATE);
     }
   }
 

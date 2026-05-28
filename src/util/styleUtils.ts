@@ -60,15 +60,13 @@ export function addClass(element: Element | NodeListOf<Element> | null | Element
  * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
  * @param {string} styleClass style css class
  */
-export function removeClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
-  if (!element || typeof classNames !== 'string') return;
+export function removeClass(element: Element | NodeListOf<Element> | null | Element[], ...classNames: string[]): void {
+  if (!element || classNames.length < 1) return;
 
   const elements = $querySelector(element);
 
-  const styleClasses = styleClassSplit(classNames);
-
   for (const el of elements) {
-    el.classList.remove(...styleClasses);
+    el.classList.remove(classNames);
   }
 }
 

@@ -9,6 +9,7 @@ import { isFunction, isUndefined } from '@/util/utils';
 import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
 import { GridMain } from '../GridMain';
 
+const CONTEXT_MENU_ON = 'dg-on';
 /**
  * Body class
  *
@@ -90,7 +91,7 @@ export class ContextMenu {
 
       this.gridMain.hideLayer();
 
-      removeClass(this.contextElement.finds('.dg-submenu-item.dg-on'), 'dg-on');
+      removeClass(this.contextElement.finds('.dg-submenu-item.' + CONTEXT_MENU_ON), CONTEXT_MENU_ON);
 
       if (isDisableItemKeyFn) {
         const disableItem = contextOpts.disableItem(contextOpts.items);
@@ -189,16 +190,16 @@ export class ContextMenu {
       clearTimeout(submenuTimer);
 
       if (!hasClass(itemElement, 'dg-submenu-item')) {
-        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.dg-on'), 'dg-on');
+        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.' + CONTEXT_MENU_ON), CONTEXT_MENU_ON);
         return;
       }
 
-      if (!hasClass(itemElement, 'dg-on')) {
-        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.dg-on'), 'dg-on');
+      if (!hasClass(itemElement, CONTEXT_MENU_ON)) {
+        removeClass(parentElement.querySelectorAll(':scope >.dg-contextmenu-item.' + CONTEXT_MENU_ON), CONTEXT_MENU_ON);
       }
 
       submenuTimer = setTimeout(() => {
-        addClass(itemElement, 'dg-on');
+        addClass(itemElement, CONTEXT_MENU_ON);
 
         const browserSize = getBrowserSize();
 

@@ -303,6 +303,8 @@ export class Body {
       { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
 
+    console.log(mode);
+
     const viewRow = cfg.scroll.viewRow;
     let startIdx = cfg.scroll.startIdx;
 
@@ -543,7 +545,7 @@ export class Body {
 
   public clearSearchHighlight() {
     const bodyElement = this.bodyElement;
-    removeClass(bodyElement.finds('.dg-cell.' + CLASS_HIGHLIGHT), CLASS_HIGHLIGHT);
+    removeClass(bodyElement.finds('.dg-cell.' + CLASS_HIGHLIGHT), CLASS_HIGHLIGHT + ' ' + CLASS_MATCH);
   }
 
   /**

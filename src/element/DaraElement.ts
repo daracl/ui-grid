@@ -172,10 +172,10 @@ export class DaraElement {
    *
    * @param {string} styleClass css class
    */
-  removeClass(styleClass: string) {
+  removeClass(...styleClass: string[]) {
     const classList = this.element.classList;
 
-    for (const className of styleClassSplit(styleClass)) {
+    for (const className of styleClass) {
       if (classList.contains(className)) {
         classList.remove(className);
       }

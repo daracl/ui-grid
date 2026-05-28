@@ -401,7 +401,7 @@ body {
       box-sizing: border-box;
     }
 
-    &.indeterminate {
+    &.dg-indeterminate {
       .dg-checkmark {
         &::after {
           content: '';

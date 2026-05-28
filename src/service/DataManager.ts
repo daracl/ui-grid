@@ -291,27 +291,31 @@ export abstract class DataManager {
     const searchMatchInfo = this.cfg.searchMatchInfo;
 
     let searchResult;
+    let newViewItem = false;
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
       searchResult = this.getViewItems();
     } else {
+      newViewItem = true;
       searchMatchInfo.matchIndex = 0;
       searchMatchInfo.itemIndex = -1;
       searchResult = this.getSearchData(keyword, options);
     }
 
-    let currentMatchRowIdx = -1;
-
+    let matchInfo = { matchIndex: -1, itemIndex: 0, matchedInfo: {} };
     if (searchMatchInfo.matchCount > 0) {
-      currentMatchRowIdx = this.getMatchInfo(searchMatchInfo, searchResult);
+      matchInfo = this.getMatchInfo(searchMatchInfo, searchResult);
 
-      if (currentMatchRowIdx == -1) {
+      if (matchInfo.matchIndex == -1) {
         searchMatchInfo.matchIndex = -1;
-        currentMatchRowIdx = this.getMatchInfo(searchMatchInfo, searchResult);
+        matchInfo = this.getMatchInfo(searchMatchInfo, searchResult);
       }
     }
 
-    const { startIdx, insideViewRow } = this.cfg.scroll;
+    const currentMatchRowIdx = matchInfo.matchIndex;
+    const currentItemIndex = matchInfo.itemIndex;
+    const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
     let moveScrollRowIdx = -1;
+
     if (startIdx + insideViewRow <= currentMatchRowIdx || currentMatchRowIdx < startIdx) {
       if (currentMatchRowIdx < insideViewRow) {
         moveScrollRowIdx = 0;
@@ -320,13 +324,31 @@ export abstract class DataManager {
       }
     }
 
+    if (moveScrollRowIdx > -1) {
+      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
+    }
+
+    const matchedInfo = isArray(matchInfo.matchedInfo) ? matchInfo.matchedInfo[currentItemIndex] : null;
+
+    if (matchedInfo) {
+      const matchFieldInfo = this.cfg.allFieldMap.get(matchedInfo.fieldName);
+
+      if (matchFieldInfo) {
+        const colSeq = matchFieldInfo.$colSeq;
+
+        if (matchFieldInfo.$panel == 'center' && (colSeq < insideStartCol || insideEndCol < colSeq)) {
+          this.gridMain.getScroll().moveHorizontalScroll({ colIdx: colSeq, drawFlag: false });
+        }
+      }
+    }
+
     searchMatchInfo.matchIndex = currentMatchRowIdx;
+    searchMatchInfo.itemIndex = currentItemIndex;
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
-    this.setViewItems(searchResult);
 
-    if (moveScrollRowIdx > -1) {
-      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx });
+    if (newViewItem) {
+      this.setViewItems(searchResult);
     }
   }
 
@@ -340,41 +362,37 @@ export abstract class DataManager {
    * @returns
    */
   private getMatchInfo(searchMatchInfo: any, searchResult: any[]) {
-    let beforeMatchRowIdx;
-    let matchItemIdx;
+    const currentMatchIndex = searchMatchInfo.matchIndex;
+    const checkMatchIndex = currentMatchIndex == -1 ? 0 : currentMatchIndex;
+    const checkItemIdx = currentMatchIndex == -1 ? -1 : searchMatchInfo.itemIndex;
 
-    if (searchMatchInfo.matchIndex == -1) {
-      beforeMatchRowIdx = 0;
-      matchItemIdx = -1;
-    } else {
-      beforeMatchRowIdx = searchMatchInfo.matchIndex;
-      matchItemIdx = searchMatchInfo.itemIndex;
-    }
+    let matchIndex = -1;
+    let itemIndex = -1;
+    let matchedInfo;
 
-    let currentMatchRowIdx = -1;
-
-    for (let searchRowIdx = beforeMatchRowIdx; searchRowIdx < searchResult.length; searchRowIdx++) {
+    for (let searchRowIdx = checkMatchIndex; searchRowIdx < searchResult.length; searchRowIdx++) {
       const item = searchResult[searchRowIdx];
-      const matchedFields = item[SEARCH_MATCH_FIELDS];
-      if (matchedFields && matchedFields.length > 0) {
-        if (beforeMatchRowIdx == searchRowIdx) {
-          const isSammeMatchLength = matchedFields.length != matchItemIdx + 1;
+      const itemMatchInfos = item[SEARCH_MATCH_FIELDS];
+
+      if (itemMatchInfos && itemMatchInfos.length > 0) {
+        if (checkMatchIndex == searchRowIdx) {
+          const isSammeMatchLength = itemMatchInfos.length != checkItemIdx + 1;
 
           if (isSammeMatchLength) {
-            currentMatchRowIdx = searchRowIdx;
-            searchMatchInfo.itemIndex = matchItemIdx + 1;
+            matchIndex = searchRowIdx;
+            itemIndex = checkItemIdx + 1;
           } else {
             continue;
           }
         } else {
-          currentMatchRowIdx = searchRowIdx;
-          searchMatchInfo.itemIndex = 0;
+          matchIndex = searchRowIdx;
+          itemIndex = 0;
         }
-
+        matchedInfo = itemMatchInfos;
         break;
       }
     }
 
-    return currentMatchRowIdx;
+    return { matchIndex, itemIndex, matchedInfo };
   }
 }

@@ -140,10 +140,12 @@ export class Scroll {
 
   /**
    * @method moveHorizontalScroll
-   * @param  moveObj.direction {String ,Integer} 'L' or 'R' or left position
+   * @param  moveObj.position {Integer} left position
+   * @param  moveObj.direction {String} 'L' or 'R'
    * @param  moveObj.resizeFlag {boolean} resize flag
    * @param  moveObj.drawFlag {boolean} redraw flag
    * @param  moveObj.speed {Integer} row move count
+   * @param  moveObj.colIdx {Integer} move col idx
    * @description 가로 스크롤 이동.
    */
   public moveHorizontalScroll(moveObj: any) {

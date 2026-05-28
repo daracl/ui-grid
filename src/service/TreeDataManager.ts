@@ -296,8 +296,6 @@ export class TreeDataManager extends DataManager {
 
     const searchResults = gridDataSearch(gridValue, keyword, options);
 
-    console.log('expandedIds : ', expandedIds);
-
     const results = [];
     const idKey = this.idKey;
     const pidKey = this.pidKey;
