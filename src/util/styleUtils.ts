@@ -1,4 +1,4 @@
-import { $querySelector } from './domUtils';
+import { $getElements } from './domUtils';
 
 /**
  * @method addStyleTag
@@ -42,31 +42,29 @@ export const styleClassSplit = (styleClass: string) => {
  *
  * @param {string} styleClasss css class
  */
-export function addClass(element: Element | NodeListOf<Element> | null | Element[], styleClass: string): void {
+export function addClass(element: Element | null | Element[] | NodeListOf<Element>, ...styleClass: string[]): void {
   if (!element) return;
 
-  const elements = $querySelector(element);
-
-  const addStyles = styleClassSplit(styleClass);
+  const elements = $getElements(element);
 
   elements.forEach((el) => {
-    el.classList.add(...addStyles); // 중복 자동 처리
+    el.classList.add(...styleClass); // 중복 자동 처리
   });
 }
 
 /**
  * remove element css class
  *
- * @param {(HTMLElement | NodeListOf<Element>)} element html dom elements
+ * @param {(Element | null | Element[])} element html dom elements
  * @param {string} styleClass style css class
  */
-export function removeClass(element: Element | NodeListOf<Element> | null | Element[], ...classNames: string[]): void {
+export function removeClass(element: Element | null | Element[] | NodeListOf<Element>, ...classNames: string[]): void {
   if (!element || classNames.length < 1) return;
 
-  const elements = $querySelector(element);
+  const elements = $getElements(element);
 
   for (const el of elements) {
-    el.classList.remove(classNames);
+    el.classList.remove(...classNames);
   }
 }
 
@@ -78,10 +76,10 @@ export function removeClass(element: Element | NodeListOf<Element> | null | Elem
  * @param element - 단일 Element 또는 NodeListOf<Element> 또는 null
  * @param classNames - 공백으로 구분된 하나 이상의 클래스 이름
  */
-export function toggleClass(element: Element | NodeListOf<Element> | null | Element[], classNames: string): void {
+export function toggleClass(element: Element | null | Element[], classNames: string): void {
   if (!element || typeof classNames !== 'string') return;
 
-  const elements = $querySelector(element);
+  const elements = $getElements(element);
   const styleClasses = styleClassSplit(classNames);
 
   for (const el of elements) {

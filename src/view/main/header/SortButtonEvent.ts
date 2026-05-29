@@ -43,73 +43,77 @@ export class SortButtonEvent implements EventHandler {
 
     let beforeSortOrderLength = 0;
     eventManager.off(sortElements, 'mousedown touchstart');
-    eventManager.on({ el: sortElements, type: 'mousedown touchstart' }, (e: MouseEvent | TouchEvent) => {
-      if (!isClickEvent(e)) {
-        return;
-      }
-      stopPreventCancel(e);
-      this.gridMain.hideLayer();
-
-      const currentElement = e.currentTarget as HTMLElement;
-
-      const sortCell = intValue(
-        currentElement.closest('.dg-header-cell')?.getAttribute('data-header-cell-position') ?? '0',
-      );
-
-      const sortField = cfg.currentFields[sortCell];
-
-      const sortName = sortField.name;
-
-      const isShift = isShiftKey(e);
-
-      if (!isShift) {
-        removeAttr(headerElement.finds('[data-dg-sort]'), 'data-dg-sort');
-
-        if (sortOrders.length > 1 || !sortOrders.some((item: FieldSortInfo) => item.name === sortName)) {
-          sortOrders.forEach((item: FieldSortInfo) => {
-            headerCellElements[item.sortCell].querySelector('.dg-sort-num')?.replaceChildren();
-          });
-          sortOrders.length = 0;
-          beforeSortOrderLength = 0;
+    eventManager.on(
+      { el: sortElements, type: 'mousedown touchstart' },
+      (e: MouseEvent | TouchEvent) => {
+        if (!isClickEvent(e)) {
+          return;
         }
-      }
+        stopPreventCancel(e);
+        this.gridMain.hideLayer();
 
-      const currentSortItem = sortOrders.find((item: FieldSortInfo) => item.name === sortName);
+        const currentElement = e.currentTarget as HTMLElement;
 
-      if (currentSortItem) {
-        if (currentSortItem.ascOrder) {
-          addAttr(currentElement, { 'data-dg-sort': 'desc' });
-          currentSortItem.ascOrder = !currentSortItem.ascOrder;
-        } else {
-          const index = sortOrders.findIndex((item: FieldSortInfo) => item.name === sortName);
+        const sortCell = intValue(
+          currentElement.closest('.dg-header-cell')?.getAttribute('data-header-cell-position') ?? '0',
+        );
 
-          if (index !== -1) {
-            sortOrders.splice(index, 1);
+        const sortField = cfg.currentFields[sortCell];
+
+        const sortName = sortField.name;
+
+        const isShift = isShiftKey(e);
+
+        if (!isShift) {
+          removeAttr(headerElement.finds('[data-dg-sort]'), 'data-dg-sort');
+
+          if (sortOrders.length > 1 || !sortOrders.some((item: FieldSortInfo) => item.name === sortName)) {
+            sortOrders.forEach((item: FieldSortInfo) => {
+              headerCellElements[item.sortCell].querySelector('.dg-sort-num')?.replaceChildren();
+            });
+            sortOrders.length = 0;
+            beforeSortOrderLength = 0;
           }
-
-          currentElement.querySelector<HTMLElement>('.dg-sort-num')?.replaceChildren();
-
-          removeAttr(currentElement, 'data-dg-sort');
         }
-      } else {
-        addAttr(currentElement, { 'data-dg-sort': 'asc' });
-        sortOrders.push({ name: sortName, field: sortField, ascOrder: true, sortCell: sortCell });
-      }
 
-      if (sortOrders.length > 0) {
-        if (beforeSortOrderLength >= 1 && beforeSortOrderLength != sortOrders.length) {
-          sortOrders.forEach((item: FieldSortInfo, index: number) => {
-            headerCellElements[item.sortCell].querySelector('.dg-sort-num')?.replaceChildren(index + 1 + '');
-          });
+        const currentSortItem = sortOrders.find((item: FieldSortInfo) => item.name === sortName);
+
+        if (currentSortItem) {
+          if (currentSortItem.ascOrder) {
+            addAttr(currentElement, { 'data-dg-sort': 'desc' });
+            currentSortItem.ascOrder = !currentSortItem.ascOrder;
+          } else {
+            const index = sortOrders.findIndex((item: FieldSortInfo) => item.name === sortName);
+
+            if (index !== -1) {
+              sortOrders.splice(index, 1);
+            }
+
+            currentElement.querySelector<HTMLElement>('.dg-sort-num')?.replaceChildren();
+
+            removeAttr(currentElement, 'data-dg-sort');
+          }
+        } else {
+          addAttr(currentElement, { 'data-dg-sort': 'asc' });
+          sortOrders.push({ name: sortName, field: sortField, ascOrder: true, sortCell: sortCell });
         }
-      }
 
-      dataManager.dataSort(sortOrders, sortOpts);
+        if (sortOrders.length > 0) {
+          if (beforeSortOrderLength >= 1 && beforeSortOrderLength != sortOrders.length) {
+            sortOrders.forEach((item: FieldSortInfo, index: number) => {
+              headerCellElements[item.sortCell].querySelector('.dg-sort-num')?.replaceChildren(index + 1 + '');
+            });
+          }
+        }
 
-      beforeSortOrderLength = sortOrders.length;
+        dataManager.dataSort(sortOrders, sortOpts);
 
-      this.gridMain.selectionInfo.initSelection();
-      this.gridMain.getBody().dataDraw('sort');
-    });
+        beforeSortOrderLength = sortOrders.length;
+
+        this.gridMain.selectionInfo.initSelection();
+        this.gridMain.getBody().dataDraw('sort');
+      },
+      { passive: false },
+    );
   }
 }

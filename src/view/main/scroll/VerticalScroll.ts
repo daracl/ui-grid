@@ -118,34 +118,38 @@ export class VerticalScroll {
     const verticalTrackElement = this.verticalTrackElement.getElement();
 
     eventManager.off(verticalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: verticalTrackElement, type: 'mousedown touchstart' }, (e: Event) => {
-      if (!isClickEvent(e)) {
-        return;
-      }
-      this.gridMain.hideLayer();
-      bgMoveMode = 1;
-      startEventY = eventPosition(e).clientY - verticalTrackElement.getBoundingClientRect().top;
-      oneRowMove = cfg.scroll.oneRowMove;
-      bgMoveRow = oneRowMove * scrollOpts.vertical.speed * 5;
+    eventManager.on(
+      { el: verticalTrackElement, type: 'mousedown touchstart' },
+      (e: Event) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
+        this.gridMain.hideLayer();
+        bgMoveMode = 1;
+        startEventY = eventPosition(e).clientY - verticalTrackElement.getBoundingClientRect().top;
+        oneRowMove = cfg.scroll.oneRowMove;
+        bgMoveRow = oneRowMove * scrollOpts.vertical.speed * 5;
 
-      upFlag = startEventY < cfg.scroll.top;
+        upFlag = startEventY < cfg.scroll.top;
 
-      const vthumHeightHalf = cfg.scroll.vThumbHeight / 2;
+        const vthumHeightHalf = cfg.scroll.vThumbHeight / 2;
 
-      verticalScrollTimer = setInterval(() => {
-        bgMoveMode = 2;
+        verticalScrollTimer = setInterval(() => {
+          bgMoveMode = 2;
 
-        this.moveVerticalScroll({
-          position: this.getVerticalBgMovePostion(
-            cfg,
-            startEventY - (upFlag ? vthumHeightHalf : 0),
-            oneRowMove,
-            upFlag,
-            bgMoveRow,
-          ),
-        });
-      }, 100);
-    });
+          this.moveVerticalScroll({
+            position: this.getVerticalBgMovePostion(
+              cfg,
+              startEventY - (upFlag ? vthumHeightHalf : 0),
+              oneRowMove,
+              upFlag,
+              bgMoveRow,
+            ),
+          });
+        }, 100);
+      },
+      { passive: false },
+    );
 
     eventManager.on({ el: verticalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (bgMoveMode == 0) return;
@@ -173,16 +177,20 @@ export class VerticalScroll {
     let buttonMoveMode = 0;
     //세로 방향키
     eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
-      const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
-      this.gridMain.hideLayer();
-      buttonMoveMode = 1;
+    eventManager.on(
+      { el: scrollButtonElements, type: 'mousedown touchstart' },
+      (e: Event) => {
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
+        this.gridMain.hideLayer();
+        buttonMoveMode = 1;
 
-      scrollBtnTimer = setInterval(() => {
-        buttonMoveMode = 2;
-        this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
-      }, vBtnDelay);
-    });
+        scrollBtnTimer = setInterval(() => {
+          buttonMoveMode = 2;
+          this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
+        }, vBtnDelay);
+      },
+      { passive: false },
+    );
 
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
@@ -284,6 +292,7 @@ export class VerticalScroll {
 
         return true;
       },
+      { passive: false },
     );
   }
 

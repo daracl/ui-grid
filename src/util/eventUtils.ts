@@ -1,10 +1,8 @@
 import { POINTER_STATE } from '@/constants';
 import { ClickManager } from '@/event/ClickManager';
 import { PointerPosition, PointerSession } from '@/event/PointerSession';
+import { EventElementType } from '@/types/Event';
 import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
-import { EventOptions } from '../types/Event';
-import { $querySelector } from './domUtils';
-import { isEmpty, isString } from './utils';
 
 const EVENT_KEY_CODE = {
   Enter: 13,
@@ -212,3 +210,24 @@ export const isPrimaryPointer = (e: Event): boolean => {
 
   return false;
 };
+
+type EventTargetElement = Element | Document;
+
+export function getEventTargets(el: EventElementType): EventTargetElement[] {
+  if (!el) return [];
+
+  if (Array.isArray(el)) {
+    return el;
+  }
+
+  if (el instanceof Document || el instanceof Element) {
+    return [el];
+  }
+
+  if (el instanceof NodeList) {
+    return Array.from(el);
+  }
+
+  // string selector
+  return Array.from(document.querySelectorAll(el));
+}

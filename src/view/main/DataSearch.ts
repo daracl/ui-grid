@@ -139,16 +139,16 @@ export class DataSearch {
 
     const searchBtnElement = this.searchElement.querySelector('.dg-search-btn') as HTMLElement;
 
-    eventManager.off(searchBtnElement, 'click');
-    eventManager.on({ el: searchBtnElement, type: 'click' }, (e: UIEvent) => {
+    eventManager.off(searchBtnElement, 'mousedown');
+    eventManager.on({ el: searchBtnElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch();
     });
 
     const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
 
-    eventManager.off(searchIconElement, 'click');
-    eventManager.on({ el: searchIconElement, type: 'click' }, (e: UIEvent) => {
+    eventManager.off(searchIconElement, 'mousedown');
+    eventManager.on({ el: searchIconElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       const evtElement = e.currentTarget as HTMLElement;

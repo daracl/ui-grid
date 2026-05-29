@@ -141,6 +141,11 @@ export abstract class DataManager {
     sortOrders: FieldSortInfo[],
     sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
   ) {
+    //
+    //
+    //처리할것.
+    //
+    //
     if (this.sortBaseItems.length == 0) {
       this.setSortBaseItems(arrayCopy(this.getViewItems()));
     }

@@ -1,4 +1,3 @@
-import { styleClassSplit } from '@/util/styleUtils';
 import { hasOwnProp, isBlank, isString, isUndefined } from '@/util/utils';
 
 export class DaraElement {
@@ -18,8 +17,8 @@ export class DaraElement {
     return this.element.querySelector(selector) as HTMLElement;
   }
 
-  finds(selector: string) {
-    return this.element.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+  finds(selector: string): HTMLElement[] {
+    return Array.from(this.element.querySelectorAll(selector)) as HTMLElement[];
   }
 
   before(renderElements: HTMLElement | string) {
@@ -157,10 +156,10 @@ export class DaraElement {
    *
    * @param {string} styleClass css class
    */
-  addClass(styleClass: string) {
+  addClass(...styleClass: string[]) {
     const classList = this.element.classList;
 
-    for (const className of styleClassSplit(styleClass)) {
+    for (const className of styleClass) {
       if (!classList.contains(className)) {
         classList.add(className);
       }
@@ -173,13 +172,7 @@ export class DaraElement {
    * @param {string} styleClass css class
    */
   removeClass(...styleClass: string[]) {
-    const classList = this.element.classList;
-
-    for (const className of styleClass) {
-      if (classList.contains(className)) {
-        classList.remove(className);
-      }
-    }
+    this.element.classList.remove(...styleClass);
   }
 
   insertAdjacentHTML(insertPosition: InsertPosition, renderElements: HTMLElement | string) {

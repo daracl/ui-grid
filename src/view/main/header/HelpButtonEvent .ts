@@ -43,20 +43,23 @@ export class HelpButtonEvent implements EventHandler {
     if (isFunction(helpOpts.click)) {
       const helpClickFn = helpOpts.click ?? (() => void 0);
       eventManager.off(helpElements, 'mousedown touchstart');
+      eventManager.on(
+        { el: helpElements, type: 'mousedown touchstart' },
+        (e: UIEvent) => {
+          if (!isClickEvent(e)) {
+            return;
+          }
+          stopPreventCancel(e);
 
-      eventManager.on({ el: helpElements, type: 'mousedown touchstart' }, (e: UIEvent) => {
-        if (!isClickEvent(e)) {
-          return;
-        }
-        stopPreventCancel(e);
+          const currentElement = e.currentTarget as HTMLElement;
+          const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
 
-        const currentElement = e.currentTarget as HTMLElement;
-        const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
+          helpClickFn(cellInfo);
 
-        helpClickFn(cellInfo);
-
-        return false;
-      });
+          return false;
+        },
+        { passive: false },
+      );
     }
 
     let helpLayerElement: HTMLElement;

@@ -148,30 +148,34 @@ export class HorizontalScroll {
     const orginHorizontalThumbElement = horizontalThumbElement.getElement();
 
     eventManager.off(orginHorizontalThumbElement, 'mousedown touchstart touchend mouseup');
-    eventManager.on({ el: orginHorizontalThumbElement, type: 'mousedown touchstart' }, (e: MouseEvent | TouchEvent) => {
-      if (!isClickEvent(e)) {
-        return;
-      }
-      stopPreventCancel(e);
-      this.gridMain.hideLayer();
+    eventManager.on(
+      { el: orginHorizontalThumbElement, type: 'mousedown touchstart' },
+      (e: MouseEvent | TouchEvent) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
+        stopPreventCancel(e);
+        this.gridMain.hideLayer();
 
-      dragging = true;
-      startX = eventPosition(e).x;
-      lastX = startX;
-      initialLeft = cfg.scroll.left;
+        dragging = true;
+        startX = eventPosition(e).x;
+        lastX = startX;
+        initialLeft = cfg.scroll.left;
 
-      horizontalThumbElement.addClass('active');
+        horizontalThumbElement.addClass('active');
 
-      eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
-      eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
+        eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
+        eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
 
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      animationFrameId = requestAnimationFrame(loop);
+        if (animationFrameId !== null) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        animationFrameId = requestAnimationFrame(loop);
 
-      return true;
-    });
+        return true;
+      },
+      { passive: false },
+    );
   }
 
   /**
@@ -195,27 +199,31 @@ export class HorizontalScroll {
     const horizontalTrackElement = this.horizontalTrackElement.getElement();
 
     eventManager.off(horizontalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: horizontalTrackElement, type: 'mousedown touchstart' }, (e: Event) => {
-      if (!isClickEvent(e)) {
-        return;
-      }
-      this.gridMain.hideLayer();
-      bgMoveMode = 1;
-      startEventX = eventPosition(e).clientX - horizontalTrackElement.getBoundingClientRect().left;
+    eventManager.on(
+      { el: horizontalTrackElement, type: 'mousedown touchstart' },
+      (e: Event) => {
+        if (!isClickEvent(e)) {
+          return;
+        }
+        this.gridMain.hideLayer();
+        bgMoveMode = 1;
+        startEventX = eventPosition(e).clientX - horizontalTrackElement.getBoundingClientRect().left;
 
-      oneColMove = cfg.scroll.oneColMove;
-      bgMoveCol = oneColMove * scrollOpts.horizontal.speed * 2;
+        oneColMove = cfg.scroll.oneColMove;
+        bgMoveCol = oneColMove * scrollOpts.horizontal.speed * 2;
 
-      leftFlag = startEventX < cfg.scroll.left;
+        leftFlag = startEventX < cfg.scroll.left;
 
-      horizontalScrollTimer = setInterval(() => {
-        bgMoveMode = 2;
+        horizontalScrollTimer = setInterval(() => {
+          bgMoveMode = 2;
 
-        this.moveHorizontalScroll({
-          position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
-        });
-      }, 100);
-    });
+          this.moveHorizontalScroll({
+            position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
+          });
+        }, 100);
+      },
+      { passive: false },
+    );
 
     eventManager.on({ el: horizontalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (bgMoveMode == 0) return;
@@ -249,16 +257,20 @@ export class HorizontalScroll {
 
     //세로 방향키
     eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
-    eventManager.on({ el: scrollButtonElements, type: 'mousedown touchstart' }, (e: Event) => {
-      const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
-      buttonMoveMode = 1;
-      this.gridMain.hideLayer();
+    eventManager.on(
+      { el: scrollButtonElements, type: 'mousedown touchstart' },
+      (e: Event) => {
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
+        buttonMoveMode = 1;
+        this.gridMain.hideLayer();
 
-      scrollBtnTimer = setInterval(() => {
-        buttonMoveMode = 2;
-        this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
-      }, vBtnDelay);
-    });
+        scrollBtnTimer = setInterval(() => {
+          buttonMoveMode = 2;
+          this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
+        }, vBtnDelay);
+      },
+      { passive: false },
+    );
 
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {

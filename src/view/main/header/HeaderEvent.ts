@@ -208,62 +208,66 @@ export class HeaderEvent {
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
     eventManager.off(resizerElements, 'mousedown.resizerclick touchstart.resizerclick');
-    eventManager.on({ el: resizerElements, type: 'mousedown.resizerclick touchstart.resizerclick' }, (e: UIEvent) => {
-      if (!isPrimaryPointer(e)) {
-        return true;
-      }
+    eventManager.on(
+      { el: resizerElements, type: 'mousedown.resizerclick touchstart.resizerclick' },
+      (e: UIEvent) => {
+        if (!isPrimaryPointer(e)) {
+          return true;
+        }
 
-      if (e.cancelable) {
-        stopPreventCancel(e);
-      }
+        if (e.cancelable) {
+          stopPreventCancel(e);
+        }
 
-      this.gridMain.hideLayer();
+        this.gridMain.hideLayer();
 
-      const targetElement = e.currentTarget as HTMLElement;
+        const targetElement = e.currentTarget as HTMLElement;
 
-      const startCellInfo = getHeaderResizeCellInfo(cfg, targetElement);
-      startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
+        const startCellInfo = getHeaderResizeCellInfo(cfg, targetElement);
+        startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
 
-      session = initPointerSession(e, startCellInfo, clickManager);
-      session.handler = resizeHandler;
+        session = initPointerSession(e, startCellInfo, clickManager);
+        session.handler = resizeHandler;
 
-      resizeHandler.onPointerDown?.(session);
+        resizeHandler.onPointerDown?.(session);
 
-      if (resizeHandler.onPointerMove) {
-        let isStarted = false;
+        if (resizeHandler.onPointerMove) {
+          let isStarted = false;
 
-        eventManager.on({ el: document, type: 'touchmove.resizerclick mousemove.resizerclick' }, (moveEvt: Event) => {
-          session.currentPos = eventPosition(moveEvt);
+          eventManager.on({ el: document, type: 'touchmove.resizerclick mousemove.resizerclick' }, (moveEvt: Event) => {
+            session.currentPos = eventPosition(moveEvt);
 
-          if (!isStarted) {
-            if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
-              return;
+            if (!isStarted) {
+              if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
+                return;
+              }
+
+              isStarted = true;
+
+              resizeHandler.onActivate?.(session);
             }
 
-            isStarted = true;
+            session.state = POINTER_STATE.DRAGGING;
 
-            resizeHandler.onActivate?.(session);
-          }
+            resizeHandler.onPointerMove?.(session);
+          });
 
-          session.state = POINTER_STATE.DRAGGING;
+          eventManager.on({ el: document, type: 'touchend.resizerclick mouseup.resizerclick' }, (moveEvt: Event) => {
+            eventManager.off(
+              document,
+              'touchmove.resizerclick mousemove.resizerclick touchend.resizerclick mouseup.resizerclick',
+            );
 
-          resizeHandler.onPointerMove?.(session);
-        });
+            session.state = POINTER_STATE.IDLE;
+            session.currentPos = eventPosition(moveEvt);
+            resizeHandler.onPointerUp?.(session);
+          });
+        }
 
-        eventManager.on({ el: document, type: 'touchend.resizerclick mouseup.resizerclick' }, (moveEvt: Event) => {
-          eventManager.off(
-            document,
-            'touchmove.resizerclick mousemove.resizerclick touchend.resizerclick mouseup.resizerclick',
-          );
-
-          session.state = POINTER_STATE.IDLE;
-          session.currentPos = eventPosition(moveEvt);
-          resizeHandler.onPointerUp?.(session);
-        });
-      }
-
-      clickManager.processClick(session, resizeHandler);
-    });
+        clickManager.processClick(session, resizeHandler);
+      },
+      { passive: false },
+    );
   }
 
   /**

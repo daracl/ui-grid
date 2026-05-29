@@ -1,5 +1,5 @@
-import { EventOptions } from '@/types/Event';
-import { $querySelector } from '@/util/domUtils';
+import { EventElementType, EventOptions } from '@/types/Event';
+import { getEventTargets } from '@/util/eventUtils';
 type EventStore = Record<string, EventListener>;
 
 export class EventManager {
@@ -28,7 +28,7 @@ export class EventManager {
     const selector = opts.selector;
 
     const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
-    const elements = $querySelector(el);
+    const elements = getEventTargets(el);
 
     let fn: EventListener;
 
@@ -66,11 +66,11 @@ export class EventManager {
     }
   }
 
-  off(el: Element | string | NodeList | Element[] | Document | null, type: string) {
+  off(el: EventElementType, type: string) {
     if (!el) return;
 
     const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
-    const elements = $querySelector(el);
+    const elements = getEventTargets(el);
 
     for (const eventType of eventTypes) {
       const event = eventType.split('.')[0];

@@ -26,7 +26,6 @@ export function initConfig(opts: GridOptions): Config {
     rowIdField = opts.tree.idField || 'id';
   }
 
-  console.log('initConfig', opts.rowIdField, opts.tree, { rowIdField, pagingInfo });
   return {
     rowIdField: rowIdField,
     dataManager: {} as DataManager,

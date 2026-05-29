@@ -545,7 +545,7 @@ export class Body {
 
   public clearSearchHighlight() {
     const bodyElement = this.bodyElement;
-    removeClass(bodyElement.finds('.dg-cell.' + CLASS_HIGHLIGHT), CLASS_HIGHLIGHT + ' ' + CLASS_MATCH);
+    removeClass(bodyElement.finds('.dg-cell.' + CLASS_HIGHLIGHT), CLASS_HIGHLIGHT, CLASS_MATCH);
   }
 
   /**

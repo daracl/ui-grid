@@ -72,7 +72,7 @@ export function addAttr(el: HTMLElement, attrs: any) {
  * @param {HTMLElement} el element
  * @param {...string[]} attrKey attribute key
  */
-export function removeAttr(element: HTMLElement | NodeList, ...attrKey: string[]) {
+export function removeAttr(element: HTMLElement | HTMLElement[], ...attrKey: string[]) {
   let elements;
   if (element instanceof HTMLElement) {
     elements = [element];
@@ -82,38 +82,27 @@ export function removeAttr(element: HTMLElement | NodeList, ...attrKey: string[]
 
   elements.forEach((ele) => {
     for (const attr of attrKey) {
-      (ele as HTMLElement).removeAttribute(attr);
+      ele.removeAttribute(attr);
     }
   });
 }
+export function $getElements(el: Element | string | Element[] | NodeList | null): Element[] {
+  if (!el) return [];
 
-export function $querySelector(el: Element | string | NodeList | Document | Element[]): any[] {
-  if (isArray(el)) {
+  if (Array.isArray(el)) {
     return el;
-  }
-  if (el instanceof Document) {
-    return [document];
   }
 
   if (el instanceof Element) {
     return [el];
   }
-  let nodeList;
+
   if (el instanceof NodeList) {
-    nodeList = el;
-  } else {
-    nodeList = document.querySelectorAll(el);
+    return Array.from(el);
   }
 
-  const reval: Element[] = [];
-
-  for (const node of nodeList) {
-    reval.push(node as Element);
-  }
-
-  return reval;
+  return Array.from(document.querySelectorAll(el));
 }
-
 /**
  * HTML 요소를 생성하고, 클래스와 속성을 설정하는 유틸 함수
  *
