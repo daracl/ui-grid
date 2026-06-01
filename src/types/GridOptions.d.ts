@@ -3,6 +3,7 @@ import { DisplayFormatOptions, OptionCallback } from './Common';
 import { CellInfo } from './GridConfig';
 import { FieldItem } from './GridField';
 import { RendererInfo } from './RendererInfo';
+import { SortOption } from './Header';
 
 /**
  * grid options
@@ -226,20 +227,7 @@ export interface HeaderOptions {
    *
    * @default true
    */
-  sort: {
-    /**
-     * 정렬 활성화 여부
-     */
-    enabled: boolean;
-    /**
-     * null value 를 항상 끝으로 유지 할지 여부
-     */
-    nullsLast: boolean;
-    /**
-     * custom sorting function
-     */
-    customSorting: boolean | OptionCallback;
-  };
+  sort: SortOption;
 
   /**
    * header resize option
@@ -298,6 +286,24 @@ export interface HeaderOptions {
     dropCallback?: boolean | OptionCallback;
   };
 }
+
+/**
+ * 정렬 옵션
+ */
+export type SortOption = {
+  /**
+   * 정렬 활성화 여부
+   */
+  enabled: boolean;
+  /**
+   * null value 를 항상 끝으로 유지 할지 여부
+   */
+  nullsLast: boolean;
+  /**
+   * custom sorting function
+   */
+  customSorting: boolean | OptionCallback;
+};
 
 export interface HeaderResize {
   /**

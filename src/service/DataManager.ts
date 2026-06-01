@@ -1,7 +1,6 @@
 import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, SEARCH_MATCH_FIELDS } from '@/constants';
-import { OptionCallback, RowId, SearchMode, AddRowOptions } from '@/types/Common';
-import { Config } from '@/types/GridConfig';
-import { GridOptions, SearchOptions } from '@/types/GridOptions';
+import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
+import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, isArray, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -137,15 +136,7 @@ export abstract class DataManager {
     this.sortBaseItems = items;
   }
 
-  dataSort(
-    sortOrders: FieldSortInfo[],
-    sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
-  ) {
-    //
-    //
-    //처리할것.
-    //
-    //
+  dataSort(sortOrders: FieldSortInfo[], sortOpts: SortOption) {
     if (this.sortBaseItems.length == 0) {
       this.setSortBaseItems(arrayCopy(this.getViewItems()));
     }
@@ -159,12 +150,14 @@ export abstract class DataManager {
         }
       });
 
-      this.setViewItems(multiSort(this.getViewItems(), sortArr, sortOpts.nullsLast));
+      this.setViewItems(this.getSortData(sortArr, sortOpts));
     } else {
       this.setViewItems(this.getSortBaseItems());
       this.setSortBaseItems([]);
     }
   }
+
+  abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): any[];
 
   protected createRowItem(item: any, depth: number): any {
     item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
@@ -294,6 +287,7 @@ export abstract class DataManager {
     }
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
+    const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
 
     let searchResult;
     let newViewItem = false;
@@ -301,7 +295,7 @@ export abstract class DataManager {
       searchResult = this.getViewItems();
     } else {
       newViewItem = true;
-      searchMatchInfo.matchIndex = 0;
+      searchMatchInfo.matchIndex = startIdx;
       searchMatchInfo.itemIndex = -1;
       searchResult = this.getSearchData(keyword, options);
     }
@@ -318,7 +312,7 @@ export abstract class DataManager {
 
     const currentMatchRowIdx = matchInfo.matchIndex;
     const currentItemIndex = matchInfo.itemIndex;
-    const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
+
     let moveScrollRowIdx = -1;
 
     if (startIdx + insideViewRow <= currentMatchRowIdx || currentMatchRowIdx < startIdx) {
@@ -329,7 +323,7 @@ export abstract class DataManager {
       }
     }
 
-    if (moveScrollRowIdx > -1) {
+    if (searchMatchInfo.matchCount > 0 && moveScrollRowIdx > -1) {
       this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
     }
 

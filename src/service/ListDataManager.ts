@@ -1,11 +1,13 @@
 import { ALL_SELECT_VALUE } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
-import { GridOptions, PagingParam } from '@/types/GridOptions';
+import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
 import { GridMain } from '@/view/GridMain';
 import { SearchMatchInfo } from '../types/GridConfig';
+import { FieldSortInfo } from '@/types/Header';
+import { multiSort } from '@/util/utils';
 
 export class ListDataManager extends DataManager {
   constructor(opts: GridOptions, gridMain: GridMain) {
@@ -50,6 +52,10 @@ export class ListDataManager extends DataManager {
     options.hideNonMatched = options.hideNonMatched ?? true;
 
     return gridDataSearch(items, keyword, options);
+  }
+
+  public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
+    return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
   }
 
   public addRows(addOpts: AddRowOptions): void {

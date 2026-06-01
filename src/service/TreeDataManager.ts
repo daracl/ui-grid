@@ -1,9 +1,9 @@
 import { ALL_SELECT_VALUE, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
 import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common';
-import { GridOptions } from '@/types/GridOptions';
+import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { sortTreeByLevel } from '@/util/utils';
+import { multiSort, sortTreeByLevel } from '@/util/utils';
 import { ROW_DEPTH_KEY } from '../constants';
 import { GridMain } from '../view/GridMain';
 import { DataManager } from './DataManager';
@@ -61,35 +61,11 @@ export class TreeDataManager extends DataManager {
     this.buildViewItems(this.orginTreeItems);
   }
 
-  dataSort(
-    sortOrders: FieldSortInfo[],
-    sortOpts: { enabled: boolean; nullsLast: boolean; customSorting: boolean | OptionCallback },
-  ) {
-    const sortOrginItems = this.getSortBaseItems();
-
-    if (sortOrders.length > 0) {
-      const sortArr = Array.from(sortOrders);
-
-      sortArr.forEach((item) => {
-        if (item.field.getValue) {
-          item.isValue = true;
-        }
-      });
-
-      const sortTreeData = sortTreeByLevel(this.orginTreeItems, sortArr, sortOpts.nullsLast);
-
-      const treeData = this.getTreeToList(sortTreeData);
-
-      this.setViewItems(treeData);
-    } else {
-      this.setViewItems(sortOrginItems);
-      this.setSortBaseItems([]);
-    }
-  }
-
-  // ======================
-  // flat → tree
-  // ======================
+  /**
+   * flat → tree
+   * @param flatItems items
+   * @returns
+   */
   private buildTree(flatItems: any[]): any[] {
     const map = new Map<RowId, any>();
     const roots: any[] = [];
@@ -126,9 +102,14 @@ export class TreeDataManager extends DataManager {
     return result;
   }
 
-  // ======================
-  // 초기화
-  // ======================
+  /**
+   * tree data 초기화
+   * @param items items
+   * @param depth tree depth
+   * @param openDepth open depth
+   * @param defaultExpandedIds 펼침 ids
+   * @returns
+   */
   private initTreeItems(items: any[], depth = 0, openDepth = 1, defaultExpandedIds: RowId[] = []): any[] {
     return items.map((item) => {
       super.createRowItem(item, depth);
@@ -249,24 +230,8 @@ export class TreeDataManager extends DataManager {
 
     return expandedIds;
   }
-  /**
-   * 행 삭제
-   * @param ids 삭제할 행의 ID 배열
-   * @returns 삭제된 행의 ID 배열
-   */
-  public removeRows(ids: RowId[]): RowId[] {
-    throw new Error('Method not implemented.');
-  }
 
-  /**
-   * 행 추가
-   * @param addOpts 추가 옵션 (예: 부모 행 ID, 추가할 데이터 등)
-   */
-  public addRows(addOpts: AddRowOptions): void {
-    throw new Error('Method not implemented.');
-  }
-
-  getSearchData(keyword: string, options: SearchMode) {
+  public getSearchData(keyword: string, options: SearchMode) {
     const gridValue = this.getCurrentItems();
 
     const expandedIds = new Set<RowId>();
@@ -323,8 +288,6 @@ export class TreeDataManager extends DataManager {
       if (expandedIds.has(pid)) {
         const pItem = this.getRowItem(pid);
 
-        console.log(id, pid, pItem[ROW_EXPANDED_KEY], pItem, item);
-
         if (pItem && pItem[ROW_EXPANDED_KEY] > 0) {
           results.push(item);
         }
@@ -336,5 +299,47 @@ export class TreeDataManager extends DataManager {
     }
 
     return results;
+  }
+
+  public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
+    const sortOrginItems = this.getSortBaseItems();
+
+    if (sortOrders.length > 0) {
+      const sortArr = Array.from(sortOrders);
+
+      sortArr.forEach((item) => {
+        if (item.field.getValue) {
+          item.isValue = true;
+        }
+      });
+
+      const sortTreeData = sortTreeByLevel(this.orginTreeItems, sortArr, sortOpts.nullsLast);
+
+      const treeData = this.getTreeToList(sortTreeData);
+
+      this.setViewItems(treeData);
+    } else {
+      this.setViewItems(sortOrginItems);
+      this.setSortBaseItems([]);
+    }
+
+    return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
+  }
+
+  /**
+   * 행 삭제
+   * @param ids 삭제할 행의 ID 배열
+   * @returns 삭제된 행의 ID 배열
+   */
+  public removeRows(ids: RowId[]): RowId[] {
+    throw new Error('Method not implemented.');
+  }
+
+  /**
+   * 행 추가
+   * @param addOpts 추가 옵션 (예: 부모 행 ID, 추가할 데이터 등)
+   */
+  public addRows(addOpts: AddRowOptions): void {
+    throw new Error('Method not implemented.');
   }
 }
