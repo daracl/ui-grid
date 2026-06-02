@@ -2,7 +2,7 @@ import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, SEARCH_MA
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { arrayCopy, isArray, multiSort } from '@/util/utils';
+import { arrayCopy, isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
@@ -15,8 +15,6 @@ export abstract class DataManager {
   protected readonly rowIdField;
 
   protected readonly cfg;
-
-  private readonly searchOpts: SearchOptions;
 
   private originalItems: any[] = [];
   private currentItems: any[] = [];
@@ -32,7 +30,6 @@ export abstract class DataManager {
 
   constructor(protected opts: GridOptions, protected gridMain: GridMain, protected type: string) {
     this.cfg = gridMain.config();
-    this.searchOpts = opts.search;
     this.rowHeight = this.cfg.rowHeight;
     this.rowIdField = this.cfg.rowIdField;
 
@@ -125,7 +122,7 @@ export abstract class DataManager {
   public setItems(items: any[]) {
     this.clearRowMap();
     this.originalItems = items;
-    this.currentItems = items;
+    this.setCurrentItems(items);
   }
 
   protected getSortBaseItems() {
@@ -137,24 +134,15 @@ export abstract class DataManager {
   }
 
   dataSort(sortOrders: FieldSortInfo[], sortOpts: SortOption) {
-    if (this.sortBaseItems.length == 0) {
-      this.setSortBaseItems(arrayCopy(this.getViewItems()));
-    }
+    const sortArr = Array.from(sortOrders);
 
-    if (sortOrders.length > 0) {
-      const sortArr = Array.from(sortOrders);
+    sortArr.forEach((item) => {
+      if (item.field.getValue) {
+        item.isValue = true;
+      }
+    });
 
-      sortArr.forEach((item) => {
-        if (item.field.getValue) {
-          item.isValue = true;
-        }
-      });
-
-      this.setViewItems(this.getSortData(sortArr, sortOpts));
-    } else {
-      this.setViewItems(this.getSortBaseItems());
-      this.setSortBaseItems([]);
-    }
+    this.setViewItems(this.getSortData(sortArr, sortOpts));
   }
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): any[];
@@ -221,6 +209,10 @@ export abstract class DataManager {
    */
   public getOriginalItems() {
     return this.originalItems;
+  }
+
+  public setCurrentItems(items: any[]) {
+    this.currentItems = items;
   }
   /**
    * 현재 데이터 얻기

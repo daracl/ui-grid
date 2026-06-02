@@ -1,13 +1,11 @@
-import { ALL_SELECT_VALUE } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
+import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
+import { arrayCopy, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { SearchMatchInfo } from '../types/GridConfig';
-import { FieldSortInfo } from '@/types/Header';
-import { multiSort } from '@/util/utils';
 
 export class ListDataManager extends DataManager {
   constructor(opts: GridOptions, gridMain: GridMain) {
@@ -55,7 +53,17 @@ export class ListDataManager extends DataManager {
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
+    if (this.getSortBaseItems().length == 0) {
+      this.setSortBaseItems(arrayCopy(this.getViewItems()));
+    }
+
+    if (sortOrders.length > 0) {
+      return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
+    } else {
+      const result = this.getSortBaseItems();
+      this.setSortBaseItems([]);
+      return result;
+    }
   }
 
   public addRows(addOpts: AddRowOptions): void {

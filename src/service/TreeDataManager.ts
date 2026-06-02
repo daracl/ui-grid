@@ -3,7 +3,7 @@ import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { multiSort, sortTreeByLevel } from '@/util/utils';
+import { arrayCopy, multiSort, sortTreeByLevel } from '@/util/utils';
 import { ROW_DEPTH_KEY } from '../constants';
 import { GridMain } from '../view/GridMain';
 import { DataManager } from './DataManager';
@@ -21,7 +21,7 @@ export class TreeDataManager extends DataManager {
   private readonly pidKey: string;
   private readonly childrenKey: string;
 
-  private orginTreeItems: any[] = [];
+  // 트리 구조 데이터
   private viewTreeItems: any[] = [];
 
   constructor(opts: GridOptions, gridMain: GridMain) {
@@ -51,14 +51,13 @@ export class TreeDataManager extends DataManager {
 
     super.setItems(flatItems);
 
-    this.orginTreeItems = treeItems;
     this.viewTreeItems = treeItems;
 
     const expandDepth = this.opts.tree?.expandDepth ?? 1;
     const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
 
-    this.initTreeItems(this.orginTreeItems, 1, expandDepth, defaultExpandedIds);
-    this.buildViewItems(this.orginTreeItems);
+    this.initTreeItems(this.viewTreeItems, 1, expandDepth, defaultExpandedIds);
+    this.buildViewItems(this.viewTreeItems);
   }
 
   /**
@@ -151,7 +150,7 @@ export class TreeDataManager extends DataManager {
         const id = item[this.rowIdField];
 
         if (item[ROW_EXPANDED_KEY] > 0) {
-          const children = this.childrenMap.get(id);
+          const children = item[this.childrenKey]; //this.childrenMap.get(id);
 
           if (children) dfs(children);
         }
@@ -304,26 +303,33 @@ export class TreeDataManager extends DataManager {
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
     const sortOrginItems = this.getSortBaseItems();
 
-    if (sortOrders.length > 0) {
-      const sortArr = Array.from(sortOrders);
-
-      sortArr.forEach((item) => {
-        if (item.field.getValue) {
-          item.isValue = true;
-        }
-      });
-
-      const sortTreeData = sortTreeByLevel(this.orginTreeItems, sortArr, sortOpts.nullsLast);
-
-      const treeData = this.getTreeToList(sortTreeData);
-
-      this.setViewItems(treeData);
-    } else {
-      this.setViewItems(sortOrginItems);
-      this.setSortBaseItems([]);
+    if (sortOrginItems.length == 0) {
+      this.setSortBaseItems(arrayCopy(this.getTreeToList(this.viewTreeItems)));
     }
+    const childrenKey = this.childrenKey;
+    function sortTree(nodes: any[]) {
+      nodes = multiSort(nodes, sortOrders, sortOpts.nullsLast);
 
-    return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
+      console.log('a1111111 ', nodes);
+
+      for (const node of nodes) {
+        console.log('sortTree ; ', node);
+        const children = node[childrenKey];
+        if (children && children.length > 0) {
+          node[childrenKey] = sortTree(arrayCopy(children));
+        }
+      }
+      return nodes;
+    }
+    const sortedTree = sortTree(this.viewTreeItems);
+
+    const result = this.getTreeToList(sortedTree);
+
+    console.log('sortOrders : ', sortedTree);
+
+    console.log('sortOrders : ', result);
+
+    return result;
   }
 
   /**

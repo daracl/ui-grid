@@ -276,13 +276,13 @@ export function camelToKebab(str: string) {
 /**
  * 다중 키 기준으로 JSON 배열 정렬 (null/undefined 처리 포함)
  * @param {Array<Object>} data - 정렬할 JSON 배열
- * @param {Array<{ name: string, ascOrder?: boolean }>} sortKeys - 정렬 기준 키 배열
+ * @param {Array<{ name: string, ascOrder?: boolean }>} sortInfos - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-export function multiSort(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean) {
-  return [...data].sort((a: any, b: any): number => {
-    for (const col of sortKeys) {
-      const result = compareValue(a, b, col, emptyValueLast);
+export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) {
+  return data.sort((a: any, b: any): number => {
+    for (const sortInfo of sortInfos) {
+      const result = compareValue(a, b, sortInfo, emptyValueLast);
 
       if (result !== 0) {
         return result;
