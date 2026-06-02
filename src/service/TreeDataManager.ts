@@ -303,14 +303,19 @@ export class TreeDataManager extends DataManager {
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
     const sortOrginItems = this.getSortBaseItems();
 
+    // 정렬 여부
+    // _order 로 처음 정렬 기준 값 추가할것.
+    // 이동시 _order값 변경해줄것.
+    //
+    //
+
     if (sortOrginItems.length == 0) {
       this.setSortBaseItems(arrayCopy(this.getTreeToList(this.viewTreeItems)));
     }
     const childrenKey = this.childrenKey;
+
     function sortTree(nodes: any[]) {
       nodes = multiSort(nodes, sortOrders, sortOpts.nullsLast);
-
-      console.log('a1111111 ', nodes);
 
       for (const node of nodes) {
         console.log('sortTree ; ', node);
