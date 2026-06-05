@@ -1,4 +1,4 @@
-import { ALL_SELECT_VALUE, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { ALL_SELECT_VALUE, ORIGINAL_ORDER_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
 import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
@@ -68,14 +68,18 @@ export class TreeDataManager extends DataManager {
   private buildTree(flatItems: any[]): any[] {
     const map = new Map<RowId, any>();
     const roots: any[] = [];
+    const idKey = this.idKey;
+    const pidKey = this.pidKey;
+    const childrenKey = this.childrenKey;
 
-    flatItems.forEach((item) => map.set(item[this.idKey], { ...item, [this.childrenKey]: [] }));
+    flatItems.forEach((item) => map.set(item[idKey], { ...item, [childrenKey]: [] }));
 
     flatItems.forEach((item) => {
-      const node = map.get(item[this.idKey]);
+      const node = map.get(item[idKey]);
 
-      if (map.has(item[this.pidKey])) {
-        map.get(item[this.pidKey])[this.childrenKey].push(node);
+      const parent = map.get(item[pidKey]);
+      if (parent) {
+        parent[childrenKey].push(node);
       } else {
         roots.push(node);
       }
@@ -110,8 +114,10 @@ export class TreeDataManager extends DataManager {
    * @returns
    */
   private initTreeItems(items: any[], depth = 0, openDepth = 1, defaultExpandedIds: RowId[] = []): any[] {
+    let orderIdx = 0;
     return items.map((item) => {
       super.createRowItem(item, depth);
+      item[ORIGINAL_ORDER_KEY] = orderIdx++;
 
       const rowId = item[this.rowIdField];
 
@@ -147,10 +153,8 @@ export class TreeDataManager extends DataManager {
       for (const item of list) {
         result.push(item);
 
-        const id = item[this.rowIdField];
-
         if (item[ROW_EXPANDED_KEY] > 0) {
-          const children = item[this.childrenKey]; //this.childrenMap.get(id);
+          const children = item[this.childrenKey];
 
           if (children) dfs(children);
         }
@@ -231,12 +235,19 @@ export class TreeDataManager extends DataManager {
   }
 
   public getSearchData(keyword: string, options: SearchMode) {
+    //
+    //
+    //viewTreeItems 데이터로 처리 방법 확인할것.
+    //
+    //
     const gridValue = this.getCurrentItems();
 
     const expandedIds = new Set<RowId>();
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
     searchMatchInfo.matchCount = 0;
+
+    const optsHideNonMatched = options.hideNonMatched;
 
     options.hideNonMatched = false;
     options.postProcess = (isMatched: boolean, item: any) => {
@@ -263,7 +274,6 @@ export class TreeDataManager extends DataManager {
     const results = [];
     const idKey = this.idKey;
     const pidKey = this.pidKey;
-    const optsHideNonMatched = options.hideNonMatched;
 
     for (const item of searchResults) {
       const id = item[idKey];
@@ -297,28 +307,18 @@ export class TreeDataManager extends DataManager {
       }
     }
 
+    this.viewTreeItems = this.buildTree(results);
+
     return results;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    const sortOrginItems = this.getSortBaseItems();
-
-    // 정렬 여부
-    // _order 로 처음 정렬 기준 값 추가할것.
-    // 이동시 _order값 변경해줄것.
-    //
-    //
-
-    if (sortOrginItems.length == 0) {
-      this.setSortBaseItems(arrayCopy(this.getTreeToList(this.viewTreeItems)));
-    }
     const childrenKey = this.childrenKey;
 
     function sortTree(nodes: any[]) {
       nodes = multiSort(nodes, sortOrders, sortOpts.nullsLast);
 
       for (const node of nodes) {
-        console.log('sortTree ; ', node);
         const children = node[childrenKey];
         if (children && children.length > 0) {
           node[childrenKey] = sortTree(arrayCopy(children));
@@ -328,11 +328,13 @@ export class TreeDataManager extends DataManager {
     }
     const sortedTree = sortTree(this.viewTreeItems);
 
+    //
+    // 검색 정렬 처리 할것.
+    //
+    //
+    //
+
     const result = this.getTreeToList(sortedTree);
-
-    console.log('sortOrders : ', sortedTree);
-
-    console.log('sortOrders : ', result);
 
     return result;
   }

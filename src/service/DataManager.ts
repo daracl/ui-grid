@@ -1,4 +1,11 @@
-import { ALL_SELECT_VALUE, ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, SEARCH_MATCH_FIELDS } from '@/constants';
+import {
+  ALL_SELECT_VALUE,
+  ORIGINAL_ORDER_KEY,
+  ROW_CUD_KEY,
+  ROW_DEPTH_KEY,
+  ROW_HEIGHT_KEY,
+  SEARCH_MATCH_FIELDS,
+} from '@/constants';
 import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
@@ -106,8 +113,10 @@ export abstract class DataManager {
    * @returns
    */
   protected initItems(items: any[], depth = 0): any[] {
+    let orderIdx = 0;
     return items.map((item) => {
       this.createRowItem(item, depth);
+      item[ORIGINAL_ORDER_KEY] = orderIdx++;
 
       this.setRowItem(item[this.rowIdField], item);
 

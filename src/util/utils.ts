@@ -1,3 +1,4 @@
+import { ORIGINAL_ORDER_KEY } from '@/constants';
 import { FieldSortInfo } from '@/types/Header';
 import { FieldItem } from '@t/GridField';
 
@@ -280,7 +281,11 @@ export function camelToKebab(str: string) {
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
 export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) {
+  const isBaseData = sortInfos.length === 0;
   return data.sort((a: any, b: any): number => {
+    if (isBaseData) {
+      return a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY];
+    }
     for (const sortInfo of sortInfos) {
       const result = compareValue(a, b, sortInfo, emptyValueLast);
 

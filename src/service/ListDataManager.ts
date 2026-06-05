@@ -53,16 +53,10 @@ export class ListDataManager extends DataManager {
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    if (this.getSortBaseItems().length == 0) {
-      this.setSortBaseItems(arrayCopy(this.getViewItems()));
-    }
-
     if (sortOrders.length > 0) {
       return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
     } else {
-      const result = this.getSortBaseItems();
-      this.setSortBaseItems([]);
-      return result;
+      return multiSort(this.getViewItems(), [], sortOpts.nullsLast);
     }
   }
 

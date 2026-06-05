@@ -86,7 +86,7 @@ export function removeAttr(element: HTMLElement | HTMLElement[], ...attrKey: str
     }
   });
 }
-export function $getElements(el: Element | string | Element[] | NodeList | null): Element[] {
+export function $getElements(el: Element | string | Element[] | NodeListOf<Element> | null): Element[] {
   if (!el) return [];
 
   if (Array.isArray(el)) {

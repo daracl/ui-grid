@@ -287,6 +287,13 @@ export const ALL_SELECT_VALUE = '$all$';
 export const SEARCH_MATCH_FIELDS = '$$matchedFields';
 
 /**
+ * original order key for sort
+ *
+ * @type {"$originOrder"}
+ */
+export const ORIGINAL_ORDER_KEY = '$originOrder';
+
+/**
  * item chunk size
  *
  * @type {1000}

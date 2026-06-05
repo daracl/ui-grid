@@ -18,7 +18,7 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
           delete item.$$totalMatches;
         }
         if (postProcess) {
-          postProcess(false, item);
+          postProcess(true, item);
         }
       }
     }
