@@ -1,8 +1,8 @@
 import { ALL_SELECT_VALUE, CHUNK_SIZE, SEARCH_MATCH_FIELDS } from '@/constants';
-import { MatchedField, SearchFields, SearchMode } from '@t/Common';
+import { MatchedField, SearchFields, SearchMode, SearchResult } from '@t/Common';
 import { hasOwnProp, arrayCopy } from './utils';
 
-export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): any[] {
+export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): SearchResult {
   const results: any[] = [];
   const postProcess = options.postProcess;
   const searchListLength = searchList.length;
@@ -18,11 +18,11 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
           delete item.$$totalMatches;
         }
         if (postProcess) {
-          postProcess(true, item);
+          postProcess(false, item);
         }
       }
     }
-    return searchList;
+    return { isOriginal: true, items: searchList };
   }
 
   const { matchCase, matchWholeWord, useRegex, searchFields, matchWholeRegex, hideNonMatched } = options;
@@ -88,7 +88,7 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     }
   }
 
-  return results;
+  return { isOriginal: false, items: results };
 }
 
 function getSearchFields(searchList: any[], searchFields: SearchFields): string[] {

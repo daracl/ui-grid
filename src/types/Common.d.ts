@@ -35,6 +35,13 @@ interface StringArrayMap {
 }
 
 /**
+ * 검색 결과
+ */
+export type SearchResult = {
+  isOriginal: boolean;
+  items: any[];
+};
+/**
  * 검색 모드 옵션
  */
 export type SearchMode = {

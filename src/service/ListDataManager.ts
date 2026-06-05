@@ -49,7 +49,7 @@ export class ListDataManager extends DataManager {
 
     options.hideNonMatched = options.hideNonMatched ?? true;
 
-    return gridDataSearch(items, keyword, options);
+    return gridDataSearch(items, keyword, options).items;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {

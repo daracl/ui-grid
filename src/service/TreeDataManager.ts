@@ -1,11 +1,10 @@
-import { ALL_SELECT_VALUE, ORIGINAL_ORDER_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
-import { AddRowOptions, OptionCallback, RowId, SearchMode } from '@/types/Common';
+import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, multiSort, sortTreeByLevel } from '@/util/utils';
-import { ROW_DEPTH_KEY } from '../constants';
-import { GridMain } from '../view/GridMain';
+import { arrayCopy, hasOwnProp, multiSort } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
 import { DataManager } from './DataManager';
 
 /**
@@ -57,7 +56,7 @@ export class TreeDataManager extends DataManager {
     const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
 
     this.initTreeItems(this.viewTreeItems, 1, expandDepth, defaultExpandedIds);
-    this.buildViewItems(this.viewTreeItems);
+    this.buildViewItems();
   }
 
   /**
@@ -72,7 +71,22 @@ export class TreeDataManager extends DataManager {
     const pidKey = this.pidKey;
     const childrenKey = this.childrenKey;
 
-    flatItems.forEach((item) => map.set(item[idKey], { ...item, [childrenKey]: [] }));
+    const hasChildrenKey = flatItems.some((item) => hasOwnProp(item, childrenKey));
+
+    if (hasChildrenKey) {
+      for (const flatItem of flatItems) {
+        if (flatItem[ROW_DEPTH_KEY] === 1) {
+          roots.push(flatItem);
+        }
+      }
+      return roots;
+    }
+
+    flatItems.forEach((item) => {
+      item[childrenKey] = [];
+
+      map.set(item[idKey], item);
+    });
 
     flatItems.forEach((item) => {
       const node = map.get(item[idKey]);
@@ -139,12 +153,8 @@ export class TreeDataManager extends DataManager {
    * viewItems
    * @param items items
    */
-  public buildViewItems(items?: any[]) {
-    if (items) {
-      this.setViewItems(this.getTreeToList(items));
-    } else {
-      this.setViewItems(this.getTreeToList(this.viewTreeItems));
-    }
+  public buildViewItems() {
+    this.setViewItems(this.getTreeToList(this.viewTreeItems));
   }
 
   private getTreeToList(items: any[]): any[] {
@@ -174,6 +184,8 @@ export class TreeDataManager extends DataManager {
     const rowItem = this.getRowItem(rowId);
 
     rowItem[ROW_EXPANDED_KEY] = rowItem[ROW_EXPANDED_KEY] > 0 ? 0 : 1;
+
+    console.log(rowId, rowItem[ROW_EXPANDED_KEY], this.viewTreeItems);
 
     this.buildViewItems();
   }
@@ -269,17 +281,19 @@ export class TreeDataManager extends DataManager {
       }
     };
 
-    const searchResults = gridDataSearch(gridValue, keyword, options);
+    const searchResult = gridDataSearch(gridValue, keyword, options);
 
     const results = [];
     const idKey = this.idKey;
     const pidKey = this.pidKey;
+    const searchItems = searchResult.items;
+    const isOriginal = searchResult.isOriginal;
 
-    for (const item of searchResults) {
+    for (const item of searchItems) {
       const id = item[idKey];
       const pid = item[pidKey];
 
-      if (optsHideNonMatched) {
+      if (!isOriginal && optsHideNonMatched) {
         if (expandedIds.has(id)) {
           results.push(item);
         }
@@ -306,6 +320,8 @@ export class TreeDataManager extends DataManager {
         }
       }
     }
+
+    console.log('searchResults', optsHideNonMatched, searchItems);
 
     this.viewTreeItems = this.buildTree(results);
 
