@@ -185,8 +185,6 @@ export class TreeDataManager extends DataManager {
 
     rowItem[ROW_EXPANDED_KEY] = rowItem[ROW_EXPANDED_KEY] > 0 ? 0 : 1;
 
-    console.log(rowId, rowItem[ROW_EXPANDED_KEY], this.viewTreeItems);
-
     this.buildViewItems();
   }
 
