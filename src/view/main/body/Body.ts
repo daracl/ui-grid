@@ -3,7 +3,7 @@ import { CellInfo, SearchMatchInfo } from '@t/GridConfig';
 import { BodyCellStyle, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, WHITE_SPACE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
-import { ViewItem } from '@/types/Common';
+import { MatchedField, ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { removeClass } from '@/util/styleUtils';
@@ -12,8 +12,10 @@ import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
 
-const CLASS_HIGHLIGHT = 'dg-search-highlight';
-const CLASS_MATCH = 'dg-search-match';
+const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
+const CELL_MATCH_CLASS = 'dg-search-match';
+
+const CELL_BASE_CLASS = `${BodyCellStyle.CELL} ${BodyCellStyle.START_CELL} ${BodyCellStyle.SELECTION}`;
 /**
  * Body class
  *
@@ -442,13 +444,28 @@ export class Body {
 
       const rowIdx = pagingStartIdx + viewRowIdx;
 
+      let searchMatchedFields;
+      if (searchEnable) {
+        searchMatchedFields = viewItem.matchedFields?.map((f) => f.fieldName);
+      }
+
       // left panel
       if (enableLeftField) {
         const rowCells = leftElements[i];
         for (let j = 0; j < leftFields.length; j++) {
           const field = leftFields[j];
           const cell = rowCells[j];
-          this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, viewItem, searchEnable, searchMatchInfo);
+          this.setCellStyle(
+            startCell,
+            viewRowIdx,
+            j,
+            cell,
+            field,
+            item,
+            searchMatchedFields,
+            searchEnable,
+            searchMatchInfo,
+          );
           field.$renderer.render(
             { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
             cell.firstElementChild,
@@ -461,7 +478,17 @@ export class Body {
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
-        this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, viewItem, searchEnable, searchMatchInfo);
+        this.setCellStyle(
+          startCell,
+          viewRowIdx,
+          j,
+          cell,
+          field,
+          item,
+          searchMatchedFields,
+          searchEnable,
+          searchMatchInfo,
+        );
         field.$renderer.render(
           { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
           cell.firstElementChild,
@@ -475,7 +502,17 @@ export class Body {
           const field = rightFields[j];
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
-          this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, viewItem, searchEnable, searchMatchInfo);
+          this.setCellStyle(
+            startCell,
+            viewRowIdx,
+            cellIdx,
+            cell,
+            field,
+            item,
+            searchMatchedFields,
+            searchEnable,
+            searchMatchInfo,
+          );
 
           field.$renderer.render(
             { rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo,
@@ -509,7 +546,7 @@ export class Body {
     cellElement: HTMLElement,
     field: FieldItem,
     item: any,
-    viewItem: ViewItem,
+    searchMatchedFields: string[] | undefined,
     searchEnable: boolean,
     searchMatchInfo: SearchMatchInfo,
   ) {
@@ -519,23 +556,24 @@ export class Body {
     if (field.$isAside) return;
 
     if (searchEnable) {
-      const { classList } = cellElement;
-      let highlightFlag = false;
+      const classList = cellElement.classList;
+      const matchedFields = searchMatchedFields ?? [];
 
-      const matchedFields = viewItem.matchedFields;
-
-      if (matchedFields?.length) {
+      if (matchedFields && matchedFields.length > 0) {
+        const fieldName = field.name;
         const { matchIndex, itemIndex } = searchMatchInfo;
 
-        const isMatch = rowIdx === matchIndex && matchedFields[itemIndex]?.fieldName === field.name;
+        const isMatch = rowIdx === matchIndex && matchedFields[itemIndex] === fieldName;
 
-        classList.toggle(CLASS_MATCH, isMatch);
-
-        highlightFlag = matchedFields.some((item: any) => item.fieldName === field.name);
-
-        classList.toggle(CLASS_HIGHLIGHT, highlightFlag);
+        if (isMatch) {
+          classList.add(CELL_HIGHLIGHT_CLASS, CELL_MATCH_CLASS);
+        } else {
+          const highlightFlag = matchedFields.includes(fieldName);
+          classList.remove(CELL_MATCH_CLASS);
+          classList.toggle(CELL_HIGHLIGHT_CLASS, highlightFlag);
+        }
       } else {
-        classList.remove(CLASS_HIGHLIGHT, CLASS_MATCH);
+        classList.remove(CELL_HIGHLIGHT_CLASS, CELL_MATCH_CLASS);
       }
     }
 
@@ -550,7 +588,7 @@ export class Body {
 
   public clearSearchHighlight() {
     const bodyElement = this.bodyElement;
-    removeClass(bodyElement.finds('.dg-cell.' + CLASS_HIGHLIGHT), CLASS_HIGHLIGHT, CLASS_MATCH);
+    removeClass(bodyElement.finds('.dg-cell.' + CELL_HIGHLIGHT_CLASS), CELL_HIGHLIGHT_CLASS, CELL_MATCH_CLASS);
   }
 
   /**
@@ -571,31 +609,12 @@ export class Body {
 
     if (!field.styleClass) return;
 
-    const { classList } = cellEle;
-
     // Determine new class to add
     const newClass = utils.isFunction(field.styleClass)
       ? field.styleClass({ rowIdx, col, field, item })
-      : utils.isString(field.styleClass)
-      ? field.styleClass
-      : '';
+      : field.styleClass;
 
-    // Define base classes that should not be removed
-    const baseClasses: Set<string> = new Set([BodyCellStyle.CELL, BodyCellStyle.START_CELL, BodyCellStyle.SELECTION]);
-
-    if (newClass) {
-      if (!classList.contains(newClass)) {
-        classList.add(newClass);
-      }
-
-      baseClasses.add(newClass);
-    }
-
-    classList.forEach((cls) => {
-      if (!baseClasses.has(cls)) {
-        classList.remove(cls);
-      }
-    });
+    cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
   }
 
   selectRowAnchorCell() {
@@ -608,20 +627,22 @@ export class Body {
     const { left: leftElements } = this.gridMain.getBody().getBodyCellElements();
 
     const startIdx = cfg.scroll.startIdx;
+    const viewRow = cfg.scroll.viewRow;
+    const selectionClass = BodyCellStyle.SELECTION;
     const isAll = this.selectionInfo.isAllSelect();
+
+    if (isAll) {
+      for (let i = 0; i < viewRow; i++) {
+        leftElements[i][0].classList.add(selectionClass);
+      }
+
+      return;
+    }
+
     const rowLine = this.selectionInfo.getRowLine();
 
-    for (let i = 0; i < cfg.scroll.viewRow; i++) {
-      const lineNumberEle = leftElements[i][0];
-      const classList = lineNumberEle.classList;
-
-      if (isAll || rowLine.has(i + startIdx)) {
-        if (!classList.contains(BodyCellStyle.SELECTION)) {
-          classList.add(BodyCellStyle.SELECTION);
-        }
-      } else if (classList.contains(BodyCellStyle.SELECTION)) {
-        classList.remove(BodyCellStyle.SELECTION);
-      }
+    for (let i = 0; i < viewRow; i++) {
+      leftElements[i][0].classList.toggle(selectionClass, rowLine.has(i + startIdx));
     }
   }
 
