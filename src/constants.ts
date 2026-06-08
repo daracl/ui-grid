@@ -256,6 +256,18 @@ export const ROW_HAS_CHILD_KEY = ROw_ITEM_PREFIX_NAME + '$haschild';
 export const ROW_EXPANDED_KEY = ROw_ITEM_PREFIX_NAME + '$expanded';
 
 /**
+ * 전체 선택 value
+ */
+export const ALL_SELECT_VALUE = '$all$';
+
+/**
+ * original order key for sort
+ *
+ * @type {"$originOrder"}
+ */
+export const ORIGINAL_ORDER_KEY = ROw_ITEM_PREFIX_NAME + '$originOrder';
+
+/**
  * row drag handle name
  *
  * @type {"$rowDragHandle"}
@@ -275,23 +287,6 @@ export const LAYER_ATTR_NAME = 'data-dg-grid-layer';
  * @type {"dg-field-layer"}
  */
 export const FIELD_LAYER_CLASS = 'dg-field-layer';
-
-/**
- * 전체 선택 value
- */
-export const ALL_SELECT_VALUE = '$all$';
-
-/**
- * 검색 시 매칭된 필드 정보 key
- */
-export const SEARCH_MATCH_FIELDS = '$$matchedFields';
-
-/**
- * original order key for sort
- *
- * @type {"$originOrder"}
- */
-export const ORIGINAL_ORDER_KEY = '$originOrder';
 
 /**
  * item chunk size

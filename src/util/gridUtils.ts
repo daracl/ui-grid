@@ -76,7 +76,7 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
     r: posInfo.r,
     c: col,
     rowIndex: rowIndex,
-    item: cfg.dataManager.getViewItems()[rowIndex],
+    item: cfg.dataManager.getRowItem(cfg.dataManager.getViewItems()[rowIndex].id),
     field: cfg.currentFields[posInfo.c],
   };
 };
@@ -156,7 +156,8 @@ export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
  * @returns {number} max width size
  */
 export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
-  const items = cfg.dataManager.getViewItems();
+  const dataManager = cfg.dataManager;
+  const items = dataManager.getViewItems();
   const maxWidth = opts.header.resize.maxWidth;
   let returnMaxWidth = 0;
 
@@ -165,7 +166,7 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
   const startIdx = cfg.scroll.startIdx;
 
   for (let i = startIdx, len = Math.min(cfg.dataInfo.rowLength, startIdx + 100); i < len; i++) {
-    const tmpVal = field.$renderer.getValue(items[i]);
+    const tmpVal = field.$renderer.getValue(dataManager.getRowItem(items[i].id));
 
     if (isEmpty(tmpVal)) continue;
 

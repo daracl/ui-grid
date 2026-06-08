@@ -1,4 +1,5 @@
 import { ADD_ITEM_POSITION, ALL_SELECT_VALUE } from '../constants';
+import { match } from 'assert';
 export interface OptionCallback {
   (...params: any[]): any;
 }
@@ -39,7 +40,8 @@ interface StringArrayMap {
  */
 export type SearchResult = {
   isOriginal: boolean;
-  items: any[];
+  items: ViewItem[];
+  matchCount: number;
 };
 /**
  * 검색 모드 옵션
@@ -85,4 +87,12 @@ export type AddRowOptions = {
   rowId?: RowId;
   items: any | any[];
   position?: ADD_ITEM_POSITION;
+};
+
+export type ViewItem = {
+  id: RowId;
+  sortOrder?: number;
+  matchedFields?: MatchedField[];
+  matchCount?: number;
+  children?: ViewItem[];
 };

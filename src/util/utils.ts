@@ -1,4 +1,5 @@
-import { ORIGINAL_ORDER_KEY } from '@/constants';
+import { ORIGINAL_ORDER_KEY, ROW_ID_FIELD_NAME } from '@/constants';
+import { ViewItem } from '@/types/Common';
 import { FieldSortInfo } from '@/types/Header';
 import { FieldItem } from '@t/GridField';
 
@@ -282,10 +283,14 @@ export function camelToKebab(str: string) {
  */
 export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) {
   const isBaseData = sortInfos.length === 0;
-  return data.sort((a: any, b: any): number => {
+
+  console.log(data, sortInfos, emptyValueLast);
+
+  data.sort((a: any, b: any): number => {
     if (isBaseData) {
       return a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY];
     }
+
     for (const sortInfo of sortInfos) {
       const result = compareValue(a, b, sortInfo, emptyValueLast);
 
@@ -296,6 +301,19 @@ export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyVal
 
     return 0;
   });
+
+  const result = new Array<ViewItem>(data.length);
+
+  for (let i = 0; i < data.length; i++) {
+    result[i] = {
+      id: data[i][ROW_ID_FIELD_NAME],
+      sortOrder: i,
+    };
+  }
+
+  console.log(result);
+
+  return result;
 }
 
 /**

@@ -270,11 +270,12 @@ export class KeydownEvent implements EventHandler {
 
     if (
       isFunction(opts.body.keyNavHandler) &&
-      opts.body.keyNavHandler(evt, {
+      opts.body.keyNavHandler({
         key: evtKey,
         moveCol: moveColIdx,
         moveRow: moveRowIdx,
-        item: cfg.dataManager.getViewItems()[moveRowIdx],
+        item: cfg.dataManager.getRowItem(cfg.dataManager.getViewItems()[moveRowIdx]?.id),
+        evt: evt,
       }) === false
     ) {
       return false;

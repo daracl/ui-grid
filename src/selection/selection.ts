@@ -317,7 +317,7 @@ export class SelectionInfo {
    */
   public selectionData(dataType: 'text' | 'json' = 'text', isSummary = false): any {
     const { dataManager, currentFields, selection, dataInfo } = this.config;
-    const items = dataManager.getViewItems();
+    const viewItems = dataManager.getViewItems();
     const isJson = dataType === 'json';
 
     if (dataInfo.rowLength < 1) return isJson ? {} : '';
@@ -335,7 +335,8 @@ export class SelectionInfo {
     const summary = { count: 0, numbers: [] as number[] };
 
     for (let i = startIdx; i <= endIdx; i++) {
-      const item = items[i];
+      const viewItem = viewItems[i];
+      const item = dataManager.getRowItem(viewItem.id);
       const rowOutput: any = isJson ? { _dgIdx: i } : [];
       let hasSelection = false;
 

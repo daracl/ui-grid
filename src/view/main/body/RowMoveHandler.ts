@@ -4,6 +4,7 @@ import {
   MovePositionMap,
   POINTER_STATE,
   ROW_DRAG_HANDLE_NAME,
+  ROW_ID_FIELD_NAME,
 } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { PointerSession } from '@/event/PointerSession';
@@ -14,6 +15,7 @@ import { dragVerticalMovePosition, isCellSelectionMode, isRowSelectionMode, isSe
 import { Language } from '@/util/Language';
 import { BodyEvent } from './BodyEvent';
 import { CellClickHandler } from './CellClickHandler';
+import { RowId, ViewItem } from '@/types/Common';
 
 /**
  * RowMoveHandler class
@@ -36,7 +38,7 @@ export class RowMoveHandler extends CellClickHandler {
   private moveStartItem: CellInfo;
 
   private moveRowIndexs: number[] = [];
-  private moveItems: CellInfo[] = [];
+  private moveViewItems: any[] = [];
 
   private isDropForbidden = true;
 
@@ -90,7 +92,7 @@ export class RowMoveHandler extends CellClickHandler {
       return false;
     }
     this.moveRowIndexs.length = 0;
-    this.moveItems.length = 0;
+    this.moveViewItems.length = 0;
     this.dropRowIdx = -1;
     this.scrollDirectionX = null;
     this.scrollDirectionY = null;
@@ -167,14 +169,14 @@ export class RowMoveHandler extends CellClickHandler {
     }
 
     // 이동할 item 구하기
-    const moveItems: CellInfo[] = [];
+    const moveItems: any[] = [];
 
     if (moveRowIndexs.length > 0) {
-      const items = cfg.dataManager.getViewItems();
+      const viewItems = cfg.dataManager.getViewItems();
       if (moveRowIndexs.includes(moveStartItem.rowIndex)) {
         moveRowIndexs.sort((a, b) => a - b);
         for (const rowIdx of moveRowIndexs) {
-          moveItems.push(items[rowIdx]);
+          moveItems.push(cfg.dataManager.getRowItem(viewItems[rowIdx].id));
         }
       } else {
         moveRowIndexs.length = 0;
@@ -192,7 +194,7 @@ export class RowMoveHandler extends CellClickHandler {
     }
 
     this.moveRowIndexs = moveRowIndexs;
-    this.moveItems = moveItems;
+    this.moveViewItems = moveItems;
     this.isMoveRowSequential = isSequential(moveRowIndexs);
     this.moveStartItem = moveStartItem;
     const position = getElementRect(this.context.gridMain.getBody().getBodyElement().getElement(), true);
@@ -210,12 +212,12 @@ export class RowMoveHandler extends CellClickHandler {
 
     this.bodyPosition = position;
 
-    const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveItems });
+    const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveViewItems });
     const helperContent = this.rowMoveElement.querySelector('.dg-row-move-content') as HTMLElement;
     if (helperTemplate) {
       helperContent.innerHTML = helperTemplate;
     } else {
-      helperContent.textContent = `${this.moveItems.length} ${this.language.getMessage('row')}`;
+      helperContent.textContent = `${this.moveViewItems.length} ${this.language.getMessage('row')}`;
     }
 
     this.rowMoveElement.style.display = 'flex';
@@ -309,8 +311,11 @@ export class RowMoveHandler extends CellClickHandler {
     }
 
     if (
-      this.rowMoveOptions.dragOver?.({ moveItems: this.moveItems, dropItemIdx: dropItemIdx, position: position }) ===
-      false
+      this.rowMoveOptions.dragOver?.({
+        moveItems: this.moveViewItems,
+        dropItemIdx: dropItemIdx,
+        position: position,
+      }) === false
     ) {
       this.preventDrop();
     }
@@ -343,7 +348,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     const cfg = this.cfg;
     const rowMoveOptions = this.rowMoveOptions;
-    const moveItems = this.moveItems;
+    const moveItems = this.moveViewItems;
     const moveStartItem = this.moveStartItem;
 
     let position: MovePosition = MovePositionMap.BEFORE;
@@ -364,7 +369,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     const moveRowIndexs = this.moveRowIndexs;
 
-    const items = cfg.dataManager.getViewItems();
+    const ids = cfg.dataManager.getViewItems();
 
     for (let idx = moveRowIndexs.length - 1; idx >= 0; idx--) {
       const rowIndex = moveRowIndexs[idx];
@@ -373,12 +378,14 @@ export class RowMoveHandler extends CellClickHandler {
         --dropRowIdx;
       }
 
-      items.splice(rowIndex, 1);
+      ids.splice(rowIndex, 1);
     }
 
-    items.splice(dropRowIdx, 0, ...this.moveItems);
+    const moveViewItems: ViewItem[] = this.moveViewItems.map((item) => ({ id: item[ROW_ID_FIELD_NAME] } as ViewItem));
 
-    cfg.dataManager.setViewItems(items);
+    ids.splice(dropRowIdx, 0, ...moveViewItems);
+
+    cfg.dataManager.setViewItemIds(ids);
 
     let startCol = cfg.dataInfo.startCol;
     let endCol = cfg.dataInfo.colLength - 1;

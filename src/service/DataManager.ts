@@ -4,9 +4,9 @@ import {
   ROW_CUD_KEY,
   ROW_DEPTH_KEY,
   ROW_HEIGHT_KEY,
-  SEARCH_MATCH_FIELDS,
+  ROw_ITEM_PREFIX_NAME,
 } from '@/constants';
-import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
+import { AddRowOptions, MatchedField, RowId, SearchMode, ViewItem } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, isArray } from '@/util/utils';
@@ -14,7 +14,7 @@ import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
 export abstract class DataManager {
-  private viewItems: any[] = [];
+  private viewItems: ViewItem[] = [];
 
   protected readonly matchWholeRegex?: RegExp;
 
@@ -66,8 +66,8 @@ export abstract class DataManager {
    * 전체 체크 설정
    */
   public setAllCheck() {
-    for (const item of this.getViewItems()) {
-      this.rowCheckSet.add(item[this.rowIdField]);
+    for (const viewItem of this.getViewItems()) {
+      this.rowCheckSet.add(viewItem.id);
     }
   }
 
@@ -83,13 +83,11 @@ export abstract class DataManager {
    * @param cellInfo 체크된 셀 정보
    * @param checked 체크 여부
    */
-  public setItemChecked(item: any, checked: boolean) {
-    const rowId = item[this.rowIdField];
-
+  public setItemChecked(id: RowId, checked: boolean) {
     if (checked) {
-      this.rowCheckSet.add(rowId);
+      this.rowCheckSet.add(id);
     } else {
-      this.rowCheckSet.delete(rowId);
+      this.rowCheckSet.delete(id);
     }
   }
 
@@ -98,8 +96,8 @@ export abstract class DataManager {
    * @param item 체크 여부를 확인할 아이템
    * @returns 체크 여부
    */
-  public isItemChecked(item: any): boolean {
-    return item[this.rowIdField] && this.rowCheckSet.has(item[this.rowIdField]);
+  public isItemChecked(id: RowId): boolean {
+    return this.rowMap.has(id) && this.rowCheckSet.has(id);
   }
 
   getCheckedCount(): number {
@@ -114,14 +112,24 @@ export abstract class DataManager {
    */
   protected initItems(items: any[], depth = 0): any[] {
     let orderIdx = 0;
-    return items.map((item) => {
+    const viewItems: ViewItem[] = [];
+
+    const rowIdField = this.rowIdField;
+    this.clearRowMap();
+
+    items.forEach((item) => {
       this.createRowItem(item, depth);
       item[ORIGINAL_ORDER_KEY] = orderIdx++;
 
-      this.setRowItem(item[this.rowIdField], item);
-
-      return item;
+      const rowId = item[rowIdField];
+      viewItems.push({
+        id: rowId,
+        sortOrder: item[ORIGINAL_ORDER_KEY],
+      });
+      this.setRowItem(rowId, item);
     });
+
+    return viewItems;
   }
 
   /**
@@ -129,7 +137,6 @@ export abstract class DataManager {
    * @param items
    */
   public setItems(items: any[]) {
-    this.clearRowMap();
     this.originalItems = items;
     this.setCurrentItems(items);
   }
@@ -151,7 +158,7 @@ export abstract class DataManager {
       }
     });
 
-    this.setViewItems(this.getSortData(sortArr, sortOpts));
+    this.setViewItemIds(this.getSortData(sortArr, sortOpts));
   }
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): any[];
@@ -165,20 +172,61 @@ export abstract class DataManager {
     return item;
   }
 
-  public setViewItems(items: any[], start?: number, end?: number) {
-    const viewItems = arrayCopy(items, start, end);
-    this.viewItems = viewItems;
+  /**
+   * grid view에 보여지는 item의 id 배열 반환
+   * @returns
+   */
+  public getViewItems() {
+    return this.viewItems;
+  }
+
+  /**
+   *  grid view에 보여지는 item의 id 배열 설정
+   * @param ids item id 배열
+   * @param start start index
+   * @param end end index
+   */
+  public setViewItemIds(ids: ViewItem[], start?: number, end?: number) {
+    const viewItemIds = arrayCopy(ids, start, end);
+    this.viewItems = viewItemIds;
 
     const dataInfo = this.cfg.dataInfo;
 
     const beforeDataRowLength = dataInfo.rowLength;
 
-    dataInfo.rowLength = viewItems.length;
+    dataInfo.rowLength = viewItemIds.length;
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
 
     if (beforeDataRowLength !== dataInfo.rowLength) {
       this.gridMain.calcBody();
     }
+  }
+
+  public convertViewItemsToRowItems() {
+    const results = [];
+
+    for (const viewItem of this.getViewItems()) {
+      const item = this.getRowItem(viewItem.id);
+      results.push(item);
+    }
+
+    return results;
+  }
+
+  public getRowItems() {
+    const results = [];
+
+    for (const viewItem of this.getViewItems()) {
+      const item = this.getRowItem(viewItem.id);
+
+      const filteredItem = Object.fromEntries(
+        Object.entries(item).filter(([key]) => !key.startsWith(ROw_ITEM_PREFIX_NAME)),
+      );
+
+      results.push(filteredItem);
+    }
+
+    return results;
   }
 
   public getDataType() {
@@ -205,14 +253,6 @@ export abstract class DataManager {
   public abstract expandRow(id: RowId): void;
 
   /**
-   * grid 표시 데이터 얻기
-   * @returns
-   */
-  public getViewItems() {
-    return this.viewItems;
-  }
-
-  /**
    * 원본 데이터 얻기
    * @returns
    */
@@ -235,11 +275,11 @@ export abstract class DataManager {
     this.rowMap.clear();
   }
 
-  protected getRowItem(rowId: RowId) {
+  public getRowItem(rowId: RowId): any {
     return this.rowMap.get(rowId);
   }
 
-  protected getRowMap() {
+  public getRowMap() {
     return this.rowMap;
   }
 
@@ -301,7 +341,7 @@ export abstract class DataManager {
       searchResult = this.getSearchData(keyword, options);
     }
 
-    let matchInfo = { matchIndex: -1, itemIndex: 0, matchedInfo: {} };
+    let matchInfo = { matchIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
     if (searchMatchInfo.matchCount > 0) {
       matchInfo = this.getMatchInfo(searchMatchInfo, searchResult);
 
@@ -348,7 +388,7 @@ export abstract class DataManager {
     this.beforeSearchMode = merge({}, options);
 
     if (newViewItem) {
-      this.setViewItems(searchResult);
+      this.setViewItemIds(searchResult);
     }
   }
 
@@ -361,18 +401,18 @@ export abstract class DataManager {
    * @param searchResult 검색 리스트
    * @returns
    */
-  private getMatchInfo(searchMatchInfo: any, searchResult: any[]) {
+  private getMatchInfo(searchMatchInfo: any, searchResult: ViewItem[]) {
     const currentMatchIndex = searchMatchInfo.matchIndex;
     const checkMatchIndex = currentMatchIndex == -1 ? 0 : currentMatchIndex;
     const checkItemIdx = currentMatchIndex == -1 ? -1 : searchMatchInfo.itemIndex;
 
     let matchIndex = -1;
     let itemIndex = -1;
-    let matchedInfo;
+    let matchedInfo: MatchedField[] = [];
 
     for (let searchRowIdx = checkMatchIndex; searchRowIdx < searchResult.length; searchRowIdx++) {
       const item = searchResult[searchRowIdx];
-      const itemMatchInfos = item[SEARCH_MATCH_FIELDS];
+      const itemMatchInfos = item.matchedFields;
 
       if (itemMatchInfos && itemMatchInfos.length > 0) {
         if (checkMatchIndex == searchRowIdx) {

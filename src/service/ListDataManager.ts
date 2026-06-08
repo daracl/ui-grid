@@ -4,7 +4,7 @@ import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, multiSort } from '@/util/utils';
+import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
@@ -13,7 +13,8 @@ export class ListDataManager extends DataManager {
   }
 
   public setItems(items: any[]) {
-    items = this.initItems(items);
+    const viewItemIds = this.initItems(items);
+
     super.setItems(items);
 
     const footerOpts = this.opts.footer;
@@ -25,15 +26,15 @@ export class ListDataManager extends DataManager {
 
       this.gridMain.setPaging(pagingInfo);
       if (itemLength < pagingInfo.countPerPage) {
-        this.setViewItems(this.getCurrentItems());
+        this.setViewItemIds(viewItemIds);
       } else {
         const countPerPage = pagingInfo.countPerPage;
         const startIdx = (pagingInfo.currPage - 1) * countPerPage;
 
-        this.setViewItems(this.getCurrentItems(), startIdx, startIdx + countPerPage);
+        this.setViewItemIds(viewItemIds, startIdx, startIdx + countPerPage);
       }
     } else {
-      this.setViewItems(this.getCurrentItems());
+      this.setViewItemIds(viewItemIds);
     }
   }
 
@@ -54,9 +55,9 @@ export class ListDataManager extends DataManager {
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
     if (sortOrders.length > 0) {
-      return multiSort(this.getViewItems(), sortOrders, sortOpts.nullsLast);
+      return multiSort(this.convertViewItemsToRowItems(), sortOrders, sortOpts.nullsLast);
     } else {
-      return multiSort(this.getViewItems(), [], sortOpts.nullsLast);
+      return multiSort(this.convertViewItemsToRowItems(), [], sortOpts.nullsLast);
     }
   }
 

@@ -84,7 +84,7 @@ export class DaraGrid {
   }
 
   public getItems() {
-    return this.gridMain.config().dataManager.getViewItems();
+    return this.gridMain.config().dataManager.getRowItems();
   }
 
   public hideLayer() {
@@ -103,9 +103,13 @@ export class DaraGrid {
    */
   public getItemsByIndexs(indexs: number[]) {
     const result = [];
-    const items = this.gridMain.config().dataManager.getViewItems();
+    const dataManager = this.gridMain.config().dataManager;
+    const viewItems = dataManager.getViewItems();
     for (const index of indexs) {
-      result.push(items[index]);
+      const viewItem = viewItems[index];
+      if (viewItem) {
+        result.push(dataManager.getRowItem(viewItem.id));
+      }
     }
     return result;
   }

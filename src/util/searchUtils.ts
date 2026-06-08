@@ -1,9 +1,9 @@
-import { ALL_SELECT_VALUE, CHUNK_SIZE, SEARCH_MATCH_FIELDS } from '@/constants';
-import { MatchedField, SearchFields, SearchMode, SearchResult } from '@t/Common';
-import { hasOwnProp, arrayCopy } from './utils';
+import { ALL_SELECT_VALUE, CHUNK_SIZE, ROW_ID_FIELD_NAME } from '@/constants';
+import { MatchedField, SearchFields, SearchMode, SearchResult, ViewItem } from '@t/Common';
+import { arrayCopy, hasOwnProp } from './utils';
 
 export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): SearchResult {
-  const results: any[] = [];
+  const results: ViewItem[] = [];
   const postProcess = options.postProcess;
   const searchListLength = searchList.length;
   // 빈 검색어 처리
@@ -13,16 +13,13 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       const chunk = searchList.slice(i, end);
 
       for (const item of chunk) {
-        if (item[SEARCH_MATCH_FIELDS]) {
-          delete item[SEARCH_MATCH_FIELDS];
-          delete item.$$totalMatches;
-        }
+        results.push({ id: item[ROW_ID_FIELD_NAME] });
         if (postProcess) {
           postProcess(false, item);
         }
       }
     }
-    return { isOriginal: true, items: searchList };
+    return { isOriginal: true, matchCount: 0, items: results };
   }
 
   const { matchCase, matchWholeWord, useRegex, searchFields, matchWholeRegex, hideNonMatched } = options;
@@ -49,6 +46,7 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     wordBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedSearchText)}\\b`, flags);
   }
 
+  let matchCount = 0;
   for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
     const end = Math.min(i + CHUNK_SIZE, searchListLength);
     const chunk = searchList.slice(i, end);
@@ -72,23 +70,17 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       }
 
       if (matched) {
-        item[SEARCH_MATCH_FIELDS] = matchedFields;
-        item.$$totalMatches = matchedFields.length;
-        results.push(item);
+        matchCount += matchedFields.length;
+        results.push({ id: item[ROW_ID_FIELD_NAME], matchedFields, matchCount: matchedFields.length });
       } else {
-        if (item[SEARCH_MATCH_FIELDS]) {
-          delete item[SEARCH_MATCH_FIELDS];
-          delete item.$$totalMatches;
-        }
-
         if (!hideNonMatched) {
-          results.push(item);
+          results.push({ id: item[ROW_ID_FIELD_NAME] });
         }
       }
     }
   }
 
-  return { isOriginal: false, items: results };
+  return { isOriginal: false, matchCount: matchCount, items: results };
 }
 
 function getSearchFields(searchList: any[], searchFields: SearchFields): string[] {

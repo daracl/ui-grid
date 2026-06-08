@@ -880,7 +880,7 @@ export class GridMain {
    */
   public getCheckedItems(names?: string | string[] | undefined) {
     const { dataManager } = this.cfg;
-    const items = dataManager.getViewItems();
+    const viewItems = dataManager.getViewItems();
     const checkItems = [];
 
     let exportNames: string[] = [];
@@ -893,15 +893,17 @@ export class GridMain {
       exportNames = [names];
     }
 
-    for (const item of items) {
-      if (dataManager.isItemChecked(item)) {
+    for (const viewItem of viewItems) {
+      const rowId = viewItem.id;
+      if (dataManager.isItemChecked(rowId)) {
+        const rowItem = dataManager.getRowItem(rowId);
         let checkItem;
         if (isAll) {
-          checkItem = item;
+          checkItem = viewItem;
         } else {
           checkItem = {} as any;
           for (const name of exportNames) {
-            checkItem[name] = item[name];
+            checkItem[name] = rowItem[name];
           }
         }
 

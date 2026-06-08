@@ -1,5 +1,5 @@
 import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
-import { DisplayFormatOptions, OptionCallback } from './Common';
+import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
 import { CellInfo } from './GridConfig';
 import { FieldItem } from './GridField';
 import { RendererInfo } from './RendererInfo';
@@ -629,7 +629,7 @@ export interface BodyOptions {
 }
 
 export interface RowMoveEventParams {
-  moveItems: CellInfo[];
+  moveItems: any[];
   dropItemIdx: number;
   position: 'before' | 'after' | 'inside';
 }

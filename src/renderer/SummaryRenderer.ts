@@ -63,8 +63,9 @@ export abstract class SummaryRenderer extends Renderer {
   public getValue(): any {
     const summaryItem = this.summaryItem;
     const displayFormat = summaryItem.displayFormat ?? this.field?.displayFormat;
+    const dataManager = this.cfg.dataManager;
 
-    const items = this.cfg.dataManager.getViewItems();
+    const items = dataManager.getViewItems();
 
     const expression = summaryItem.expression;
 

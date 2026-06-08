@@ -3,6 +3,7 @@ import { CellInfo, SearchMatchInfo } from '@t/GridConfig';
 import { BodyCellStyle, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, WHITE_SPACE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
+import { ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { removeClass } from '@/util/styleUtils';
@@ -139,9 +140,9 @@ export class Body {
 
     const items = dataManager.getViewItems();
 
-    for (const item of items) {
-      if (dataManager.isItemChecked(item)) {
-        result.push(item[name]);
+    for (const viewItem of items) {
+      if (dataManager.isItemChecked(viewItem.id)) {
+        result.push(dataManager.getRowItem(viewItem.id)[name]);
       }
     }
 
@@ -161,13 +162,13 @@ export class Body {
 
     const checkValues = utils.isArray(values) ? values : [values];
 
-    const items = dataManager.getViewItems();
+    const viewItems = dataManager.getViewItems();
 
     dataManager.clearAllCheck();
 
-    for (const item of items) {
-      if (checkValues.includes(item[name])) {
-        dataManager.setItemChecked(item, true);
+    for (const viewItem of viewItems) {
+      if (checkValues.includes(dataManager.getRowItem(viewItem.id)[name])) {
+        dataManager.setItemChecked(viewItem.id, true);
 
         if (!isRowAllowMultiSelect) break;
       }
@@ -189,11 +190,11 @@ export class Body {
     const { dataManager, dataInfo } = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
-    const items = dataManager.getViewItems();
+    const viewItems = dataManager.getViewItems();
 
-    for (const item of items) {
-      if (checkValue.includes(item[name])) {
-        dataManager.setItemChecked(item, true);
+    for (const viewItem of viewItems) {
+      if (checkValue.includes(dataManager.getRowItem(viewItem.id)[name])) {
+        dataManager.setItemChecked(viewItem.id, true);
       }
     }
 
@@ -213,11 +214,11 @@ export class Body {
     const { dataManager, dataInfo } = this.gridMain.config();
 
     const checkValue = utils.isArray(values) ? values : [values];
-    const items = dataManager.getViewItems();
+    const viewItems = dataManager.getViewItems();
 
-    for (const item of items) {
-      if (checkValue.includes(item[name])) {
-        dataManager.setItemChecked(item, false);
+    for (const viewItem of viewItems) {
+      if (checkValue.includes(dataManager.getRowItem(viewItem.id)[name])) {
+        dataManager.setItemChecked(viewItem.id, false);
       }
     }
 
@@ -235,7 +236,8 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    this.gridMain.config().dataManager.setItemChecked(rowItem, checkFlag);
+    const rowId = rowItem[this.gridMain.config().rowIdField];
+    this.gridMain.config().dataManager.setItemChecked(rowId, checkFlag);
   }
 
   public setCenterElementStyle(styleCss: any) {
@@ -286,7 +288,9 @@ export class Body {
     const opts = this.gridMain.options();
     const cfg = this.gridMain.config();
 
-    const items = cfg.dataManager.getViewItems();
+    const dataManager = cfg.dataManager;
+
+    const viewItems = dataManager.getViewItems();
 
     const leftFields = cfg.fieldHeaderGroup.leafLeft;
     const centerFields = cfg.fieldHeaderGroup.leafCenter;
@@ -302,8 +306,6 @@ export class Body {
       { name: 'center', fields: centerFields, element: this.centerElement, startCol: fixedLeftIndex },
       { name: 'right', fields: rightFields, element: this.rightElement, startCol: fixedRightIndex },
     ];
-
-    console.log(mode);
 
     const viewRow = cfg.scroll.viewRow;
     let startIdx = cfg.scroll.startIdx;
@@ -367,7 +369,7 @@ export class Body {
       cfg.scroll.before.viewRow = viewRow;
     }
 
-    this.bodyElement.setAttr({ 'data-view-mode': items.length < 1 ? 'empty' : 'grid' });
+    this.bodyElement.setAttr({ 'data-view-mode': viewItems.length < 1 ? 'empty' : 'grid' });
 
     if (currentViewRow < 1) {
       return;
@@ -435,7 +437,8 @@ export class Body {
 
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
-      const item = items[viewRowIdx];
+      const viewItem = viewItems[viewRowIdx];
+      const item = dataManager.getRowItem(viewItem.id);
 
       const rowIdx = pagingStartIdx + viewRowIdx;
 
@@ -445,7 +448,7 @@ export class Body {
         for (let j = 0; j < leftFields.length; j++) {
           const field = leftFields[j];
           const cell = rowCells[j];
-          this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable, searchMatchInfo);
+          this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, viewItem, searchEnable, searchMatchInfo);
           field.$renderer.render(
             { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
             cell.firstElementChild,
@@ -458,7 +461,7 @@ export class Body {
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
-        this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, searchEnable, searchMatchInfo);
+        this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, viewItem, searchEnable, searchMatchInfo);
         field.$renderer.render(
           { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
           cell.firstElementChild,
@@ -472,7 +475,7 @@ export class Body {
           const field = rightFields[j];
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
-          this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, searchEnable, searchMatchInfo);
+          this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, viewItem, searchEnable, searchMatchInfo);
 
           field.$renderer.render(
             { rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo,
@@ -495,6 +498,7 @@ export class Body {
    * @param cellElement cell element
    * @param field field info
    * @param item  row item
+   * @param viewItem  view item
    * @param searchEnable  검색 여부
    * @returns
    */
@@ -505,6 +509,7 @@ export class Body {
     cellElement: HTMLElement,
     field: FieldItem,
     item: any,
+    viewItem: ViewItem,
     searchEnable: boolean,
     searchMatchInfo: SearchMatchInfo,
   ) {
@@ -517,7 +522,7 @@ export class Body {
       const { classList } = cellElement;
       let highlightFlag = false;
 
-      const matchedFields = item.$$matchedFields;
+      const matchedFields = viewItem.matchedFields;
 
       if (matchedFields?.length) {
         const { matchIndex, itemIndex } = searchMatchInfo;
