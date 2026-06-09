@@ -190,7 +190,7 @@ export const TOOLBAR_HEIGHT = 35;
  */
 export const FOOTER_HEIGHT = 35;
 
-export const ROw_ITEM_PREFIX_NAME = '_dg';
+export const ROW_ITEM_PREFIX_NAME = '_dg';
 
 /**
  * line number name
@@ -211,49 +211,49 @@ export const ROW_CHECK_NAME = '$rowCheck';
  *
  * @type {"_dg$rowCheck"}
  */
-export const ROW_CHECK_KEY = ROw_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
+export const ROW_CHECK_KEY = ROW_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
 
 /**
  * row id key
  *
  * @type {"_dg$rowid"}
  */
-export const ROW_ID_FIELD_NAME = ROw_ITEM_PREFIX_NAME + '$rowid';
+export const ROW_ID_FIELD_NAME = ROW_ITEM_PREFIX_NAME + '$rowid';
 
 /**
  * row height key
  *
  * @type {"_dg$rowHeight"}
  */
-export const ROW_HEIGHT_KEY = ROw_ITEM_PREFIX_NAME + '$rowHeight';
+export const ROW_HEIGHT_KEY = ROW_ITEM_PREFIX_NAME + '$rowHeight';
 
 /**
  * row cud name key
  *
  * @type {string}
  */
-export const ROW_CUD_KEY = ROw_ITEM_PREFIX_NAME + '$CUD';
+export const ROW_CUD_KEY = ROW_ITEM_PREFIX_NAME + '$CUD';
 
 /**
  * row depth key
  *
  * @type {"_dg$depth"}
  */
-export const ROW_DEPTH_KEY = ROw_ITEM_PREFIX_NAME + '$depth';
+export const ROW_DEPTH_KEY = ROW_ITEM_PREFIX_NAME + '$depth';
 
 /**
  * row haschild key
  *
  * @type {"_dg$haschild"}
  */
-export const ROW_HAS_CHILD_KEY = ROw_ITEM_PREFIX_NAME + '$haschild';
+export const ROW_HAS_CHILD_KEY = ROW_ITEM_PREFIX_NAME + '$haschild';
 
 /**
  * row has expanded key
  *
  * @type {"_dg$expanded"}
  */
-export const ROW_EXPANDED_KEY = ROw_ITEM_PREFIX_NAME + '$expanded';
+export const ROW_EXPANDED_KEY = ROW_ITEM_PREFIX_NAME + '$expanded';
 
 /**
  * 전체 선택 value
@@ -265,7 +265,7 @@ export const ALL_SELECT_VALUE = '$all$';
  *
  * @type {"$originOrder"}
  */
-export const ORIGINAL_ORDER_KEY = ROw_ITEM_PREFIX_NAME + '$originOrder';
+export const ORIGINAL_ORDER_KEY = ROW_ITEM_PREFIX_NAME + '$originOrder';
 
 /**
  * row drag handle name
@@ -342,3 +342,8 @@ export const BodyCellStyle = {
   SELECTION: 'dg-selection',
   START_CELL: 'dg-start-cell',
 } as const;
+
+/**
+ * match whole regex
+ */
+export const MATCH_WHOLE_REGEX = /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;

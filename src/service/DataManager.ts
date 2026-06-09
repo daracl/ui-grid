@@ -1,12 +1,14 @@
 import {
   ALL_SELECT_VALUE,
+  MATCH_WHOLE_REGEX,
   ORIGINAL_ORDER_KEY,
   ROW_CUD_KEY,
   ROW_DEPTH_KEY,
   ROW_HEIGHT_KEY,
-  ROw_ITEM_PREFIX_NAME,
+  ROW_ID_FIELD_NAME,
+  ROW_ITEM_PREFIX_NAME,
 } from '@/constants';
-import { AddRowOptions, MatchedField, RowId, SearchMode, ViewItem } from '@/types/Common';
+import { AddRowOptions, CURRNET_MATCH_INFO, MatchedField, RowId, SearchMode, ViewItem } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, isArray } from '@/util/utils';
@@ -32,6 +34,11 @@ export abstract class DataManager {
   private beforeKeyword: string;
   private beforeSearchMode: SearchMode;
 
+  private sortOrders: FieldSortInfo[] = [];
+  private sortOpts: SortOption;
+
+  private readonly matchMap = new Map<RowId, ViewItem>();
+
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
@@ -46,7 +53,7 @@ export abstract class DataManager {
         matchWholeWord: false,
         useRegex: false,
         searchFields: ALL_SELECT_VALUE,
-        matchWholeRegex: /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g,
+        matchWholeRegex: MATCH_WHOLE_REGEX,
         hideNonMatched: false,
       },
       opts.search,
@@ -114,17 +121,15 @@ export abstract class DataManager {
     let orderIdx = 0;
     const viewItems: ViewItem[] = [];
 
-    const rowIdField = this.rowIdField;
     this.clearRowMap();
 
     items.forEach((item) => {
       this.createRowItem(item, depth);
       item[ORIGINAL_ORDER_KEY] = orderIdx++;
 
-      const rowId = item[rowIdField];
+      const rowId = item[ROW_ID_FIELD_NAME];
       viewItems.push({
         id: rowId,
-        sortOrder: item[ORIGINAL_ORDER_KEY],
       });
       this.setRowItem(rowId, item);
     });
@@ -152,11 +157,19 @@ export abstract class DataManager {
   dataSort(sortOrders: FieldSortInfo[], sortOpts: SortOption) {
     const sortArr = Array.from(sortOrders);
 
+    this.sortOrders = sortOrders;
+    this.sortOpts = sortOpts;
+
     sortArr.forEach((item) => {
       if (item.field.getValue) {
         item.isValue = true;
       }
     });
+
+    if (this.opts.header.sort.customSorting) {
+      this.setViewItemIds(this.opts.header.sort.customSorting(this.getRowItems(true), sortArr, sortOpts));
+      return;
+    }
 
     this.setViewItemIds(this.getSortData(sortArr, sortOpts));
   }
@@ -164,7 +177,17 @@ export abstract class DataManager {
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): any[];
 
   protected createRowItem(item: any, depth: number): any {
-    item[this.rowIdField] = item[this.rowIdField] ?? this.generateUUID();
+    const rowIdField = this.rowIdField;
+    const rowId = item[rowIdField] ?? this.generateUUID();
+
+    if (!item[rowIdField]) {
+      item[rowIdField] = rowId;
+    }
+
+    if (this.rowIdField != ROW_ID_FIELD_NAME) {
+      item[ROW_ID_FIELD_NAME] = rowId;
+    }
+
     item[ROW_DEPTH_KEY] = depth;
     item[ROW_CUD_KEY] = 'R';
     item[ROW_HEIGHT_KEY] = this.rowHeight;
@@ -213,17 +236,22 @@ export abstract class DataManager {
     return results;
   }
 
-  public getRowItems() {
-    const results = [];
+  public getRowItems(rowIdInclude = false) {
+    const viewItems = this.getViewItems();
+    const results = new Array(viewItems.length);
 
-    for (const viewItem of this.getViewItems()) {
-      const item = this.getRowItem(viewItem.id);
+    for (let i = 0; i < viewItems.length; i++) {
+      const item = this.getRowItem(viewItems[i].id);
 
-      const filteredItem = Object.fromEntries(
-        Object.entries(item).filter(([key]) => !key.startsWith(ROw_ITEM_PREFIX_NAME)),
-      );
+      const filteredItem: Record<string, any> = {};
 
-      results.push(filteredItem);
+      for (const key in item) {
+        if ((rowIdInclude && key === ROW_ID_FIELD_NAME) || !key.startsWith(ROW_ITEM_PREFIX_NAME)) {
+          filteredItem[key] = item[key];
+        }
+      }
+
+      results[i] = filteredItem;
     }
 
     return results;
@@ -273,6 +301,21 @@ export abstract class DataManager {
 
   protected clearRowMap() {
     this.rowMap.clear();
+  }
+
+  /**
+   *clear search match map
+   */
+  protected clearMatchMap() {
+    this.matchMap.clear();
+  }
+
+  protected addMatchMap(id: RowId, viewItem: ViewItem) {
+    this.matchMap.set(id, viewItem);
+  }
+
+  public getMatchViewItem(rowId: RowId): ViewItem | undefined {
+    return this.matchMap.get(rowId);
   }
 
   public getRowItem(rowId: RowId): any {
@@ -331,17 +374,19 @@ export abstract class DataManager {
     const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
 
     let searchResult;
-    let newViewItem = false;
+    let isNewSearch = false;
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
       searchResult = this.getViewItems();
     } else {
-      newViewItem = true;
+      isNewSearch = true;
       searchMatchInfo.matchIndex = startIdx;
       searchMatchInfo.itemIndex = -1;
+      this.clearMatchMap();
       searchResult = this.getSearchData(keyword, options);
     }
 
-    let matchInfo = { matchIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
+    let matchInfo: CURRNET_MATCH_INFO = { matchIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
+
     if (searchMatchInfo.matchCount > 0) {
       matchInfo = this.getMatchInfo(searchMatchInfo, searchResult);
 
@@ -387,8 +432,13 @@ export abstract class DataManager {
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
 
-    if (newViewItem) {
+    if (isNewSearch) {
       this.setViewItemIds(searchResult);
+    }
+
+    // 정렬이되어 있을경우 정렬 처리.
+    if (this.sortOrders.length > 0) {
+      this.dataSort(this.sortOrders, this.sortOpts);
     }
   }
 
@@ -401,13 +451,14 @@ export abstract class DataManager {
    * @param searchResult 검색 리스트
    * @returns
    */
-  private getMatchInfo(searchMatchInfo: any, searchResult: ViewItem[]) {
+  private getMatchInfo(searchMatchInfo: any, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
     const currentMatchIndex = searchMatchInfo.matchIndex;
     const checkMatchIndex = currentMatchIndex == -1 ? 0 : currentMatchIndex;
     const checkItemIdx = currentMatchIndex == -1 ? -1 : searchMatchInfo.itemIndex;
 
     let matchIndex = -1;
     let itemIndex = -1;
+    let matchId;
     let matchedInfo: MatchedField[] = [];
 
     for (let searchRowIdx = checkMatchIndex; searchRowIdx < searchResult.length; searchRowIdx++) {
@@ -415,6 +466,7 @@ export abstract class DataManager {
       const itemMatchInfos = item.matchedFields;
 
       if (itemMatchInfos && itemMatchInfos.length > 0) {
+        matchId = item.id;
         if (checkMatchIndex == searchRowIdx) {
           const isSammeMatchLength = itemMatchInfos.length != checkItemIdx + 1;
 
@@ -433,6 +485,6 @@ export abstract class DataManager {
       }
     }
 
-    return { matchIndex, itemIndex, matchedInfo };
+    return { id: matchId, matchIndex, itemIndex, matchedInfo };
   }
 }

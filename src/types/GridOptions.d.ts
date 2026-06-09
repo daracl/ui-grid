@@ -302,7 +302,7 @@ export type SortOption = {
   /**
    * custom sorting function
    */
-  customSorting: boolean | OptionCallback;
+  customSorting?: OptionCallback;
 };
 
 export interface HeaderResize {

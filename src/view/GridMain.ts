@@ -9,6 +9,7 @@ import {
   HIDDEN_ELEMENT_SELECTOR,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
+  ROW_ID_FIELD_NAME,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
 } from '@/constants';
@@ -926,7 +927,7 @@ export class GridMain {
   }
 
   public getCheckedIds() {
-    return this.getBody().getCheckedItemByName(this.cfg.rowIdField);
+    return this.getBody().getCheckedItemByName(ROW_ID_FIELD_NAME);
   }
 
   /**

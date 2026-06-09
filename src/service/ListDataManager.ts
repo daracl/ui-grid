@@ -1,5 +1,5 @@
 import { DataManager } from '@/service/DataManager';
-import { AddRowOptions, RowId, SearchMode } from '@/types/Common';
+import { AddRowOptions, RowId, SearchMode, ViewItem } from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -42,8 +42,9 @@ export class ListDataManager extends DataManager {
     const items = this.getCurrentItems();
     const searchMatchInfo = this.cfg.searchMatchInfo;
     searchMatchInfo.matchCount = 0;
-    options.postProcess = (isMatched: boolean, item: any) => {
+    options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (isMatched) {
+        if (viewItem) this.addMatchMap(viewItem.id, viewItem);
         searchMatchInfo.matchCount += 1;
       }
     };
@@ -54,11 +55,7 @@ export class ListDataManager extends DataManager {
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    if (sortOrders.length > 0) {
-      return multiSort(this.convertViewItemsToRowItems(), sortOrders, sortOpts.nullsLast);
-    } else {
-      return multiSort(this.convertViewItemsToRowItems(), [], sortOpts.nullsLast);
-    }
+    return multiSort(this.convertViewItemsToRowItems(), sortOrders, sortOpts.nullsLast);
   }
 
   public addRows(addOpts: AddRowOptions): void {

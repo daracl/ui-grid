@@ -1,5 +1,5 @@
-import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
-import { AddRowOptions, RowId, SearchMode, SearchResult } from '@/types/Common';
+import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_FIELD_NAME } from '@/constants';
+import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
@@ -136,7 +136,7 @@ export class TreeDataManager extends DataManager {
       super.createRowItem(item, depth);
       item[ORIGINAL_ORDER_KEY] = orderIdx++;
 
-      const rowId = item[this.rowIdField];
+      const rowId = item[ROW_ID_FIELD_NAME];
 
       item[ROW_EXPANDED_KEY] = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]) ? 1 : 0;
       const children = item[this.childrenKey];
@@ -258,8 +258,9 @@ export class TreeDataManager extends DataManager {
     const optsHideNonMatched = options.hideNonMatched;
 
     //options.hideNonMatched = false;
-    options.postProcess = (isMatched: boolean, item: any) => {
+    options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (isMatched) {
+        if (viewItem) this.addMatchMap(viewItem.id, viewItem);
         searchMatchInfo.matchCount += 1;
 
         const parentIds: RowId[] = [];
@@ -271,7 +272,7 @@ export class TreeDataManager extends DataManager {
           });
         }
 
-        expandedIds.add(item[this.rowIdField]);
+        expandedIds.add(item[ROW_ID_FIELD_NAME]);
       } else {
         item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] % 2 > 0 ? 1 : 0;
       }

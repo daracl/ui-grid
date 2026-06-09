@@ -1,4 +1,5 @@
 import { gridDataSearch } from '../../src/util/searchUtils';
+import { ROW_ID_FIELD_NAME } from '../../src/constants';
 
 /*
 export type SearchMode = {
@@ -14,13 +15,13 @@ describe('gridDataSearch', () => {
   // 사용 예시
 
   it('name check', () => {
-    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
     expect(1).toEqual(result.length);
     expect(result[0].name).toBe('김민수');
   });
 
   it('useRegex name check', () => {
-    const result = gridDataSearch(employeeList, '백엔드|디자이너', {
+    const result = searchExecute(employeeList, '백엔드|디자이너', {
       searchFields: 'position',
       useRegex: true,
       hideNonMatched: true,
@@ -35,7 +36,7 @@ describe('gridDataSearch', () => {
   });
 
   it('new line check', () => {
-    const result = gridDataSearch(employeeList, '전략적으로\n 문제를', {
+    const result = searchExecute(employeeList, '전략적으로\n 문제를', {
       searchFields: '$all$',
       hideNonMatched: true,
     }).items;
@@ -44,20 +45,20 @@ describe('gridDataSearch', () => {
   });
 
   it('empty searchText returns all items', () => {
-    const result = gridDataSearch(employeeList, '', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '', { searchFields: 'name', hideNonMatched: true }).items;
 
     expect(result.length).toBe(employeeList.length);
   });
 
   it('matchCase: true should be case sensitive', () => {
-    const result1 = gridDataSearch(employeeList, 'minsu.kim@example.com', {
+    const result1 = searchExecute(employeeList, 'minsu.kim@example.com', {
       searchFields: 'email',
       matchCase: true,
       hideNonMatched: true,
     }).items;
     expect(result1.length).toBe(1);
 
-    const result2 = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
+    const result2 = searchExecute(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
       searchFields: 'email',
       matchCase: true,
       hideNonMatched: true,
@@ -66,7 +67,7 @@ describe('gridDataSearch', () => {
   });
 
   it('matchCase: false should be case insensitive', () => {
-    const result = gridDataSearch(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
+    const result = searchExecute(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
       searchFields: 'email',
       matchCase: false,
       hideNonMatched: true,
@@ -76,7 +77,7 @@ describe('gridDataSearch', () => {
 
   it('matchWholeWord: true should match whole word only', () => {
     // "개발자"는 여러 position에 포함되지만, "프론트엔드 개발자"에서 "프론트엔드"만 검색하면 "프론트엔드 개발자"만 나와야 함
-    const result = gridDataSearch(employeeList, '프론트엔드', {
+    const result = searchExecute(employeeList, '프론트엔드', {
       searchFields: 'position',
       matchWholeWord: true,
       hideNonMatched: true,
@@ -89,7 +90,7 @@ describe('gridDataSearch', () => {
   });
 
   it('searchFields: array should search multiple fields', () => {
-    const result = gridDataSearch(employeeList, '문제', {
+    const result = searchExecute(employeeList, '문제', {
       searchFields: ['desc', 'position'],
       hideNonMatched: true,
     }).items;
@@ -101,7 +102,7 @@ describe('gridDataSearch', () => {
   });
 
   it('useRegex: invalid regex falls back to text search', () => {
-    const result = gridDataSearch(employeeList, '[', {
+    const result = searchExecute(employeeList, '[', {
       searchFields: 'desc',
       useRegex: true,
       hideNonMatched: true,
@@ -111,20 +112,20 @@ describe('gridDataSearch', () => {
   });
 
   it('searchFields: $all$ should search all fields', () => {
-    const result = gridDataSearch(employeeList, 'PM', { searchFields: '$all$', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, 'PM', { searchFields: '$all$', hideNonMatched: true }).items;
     // "PM"이 포함된 사람: "프로덕트 매니저"의 배수지
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('배수지');
   });
 
   it('should highlight matched text in result', () => {
-    const result = gridDataSearch(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
-    expect(result[0].$$matchedFields[0].highlightedValue).toContain('<mark>김민수</mark>');
+    const result = searchExecute(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
+    expect(result[0].matchedFields[0].highlightedValue).toContain('<mark>김민수</mark>');
   });
 
   it('should not match partial word when matchWholeWord is true', () => {
     // "엔지니어"는 "QA 엔지니어", "AI 엔지니어", "API 엔지니어", "클라우드 엔지니어" 등에서만 완전 일치
-    const result = gridDataSearch(employeeList, '엔지니어', {
+    const result = searchExecute(employeeList, '엔지니어', {
       searchFields: 'position',
       matchWholeWord: true,
       hideNonMatched: true,
@@ -143,16 +144,37 @@ describe('gridDataSearch', () => {
   });
 
   it('should match numbers as string', () => {
-    const result = gridDataSearch(employeeList, '34', { searchFields: 'age', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '34', { searchFields: 'age', hideNonMatched: true }).items;
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('김민수');
   });
 
   it('should return empty array if no match', () => {
-    const result = gridDataSearch(employeeList, '없는이름', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '없는이름', { searchFields: 'name', hideNonMatched: true }).items;
     expect(result.length).toBe(0);
   });
 });
+
+function searchExecute(employeeList: any[], keyword: string, opts: any) {
+  const rowMap = new Map();
+
+  employeeList.forEach((item) => {
+    item[ROW_ID_FIELD_NAME] = item.email;
+    rowMap.set(item.email, item);
+  });
+
+  const searchResult = gridDataSearch(employeeList, keyword, opts);
+
+  const result: any[] = [];
+  searchResult.items.forEach((item: any) => {
+    const newItem = rowMap.get(item.id);
+    newItem.matchedFields = item.matchedFields;
+    newItem.matchCount = item.matchCount;
+    result.push(newItem);
+  });
+  searchResult.items = result;
+  return { items: result };
+}
 
 const employeeList = [
   {

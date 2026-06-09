@@ -1,9 +1,15 @@
 import { CellInfo, SearchMatchInfo } from '@t/GridConfig';
 
-import { BodyCellStyle, ROW_CHECK_NAME, ROW_CUD_KEY, ROW_HEIGHT_KEY, WHITE_SPACE } from '@/constants';
+import {
+  BodyCellStyle,
+  ROW_CHECK_NAME,
+  ROW_CUD_KEY,
+  ROW_HEIGHT_KEY,
+  ROW_ID_FIELD_NAME,
+  WHITE_SPACE,
+} from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
-import { MatchedField, ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { removeClass } from '@/util/styleUtils';
@@ -238,7 +244,7 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    const rowId = rowItem[this.gridMain.config().rowIdField];
+    const rowId = rowItem[ROW_ID_FIELD_NAME];
     this.gridMain.config().dataManager.setItemChecked(rowId, checkFlag);
   }
 
@@ -446,7 +452,7 @@ export class Body {
 
       let searchMatchedFields;
       if (searchEnable) {
-        searchMatchedFields = viewItem.matchedFields?.map((f) => f.fieldName);
+        searchMatchedFields = dataManager.getMatchViewItem(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
       }
 
       // left panel

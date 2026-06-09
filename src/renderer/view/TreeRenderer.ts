@@ -1,4 +1,4 @@
-import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY } from '@/constants';
+import { ALIGN_STYLE, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_FIELD_NAME } from '@/constants';
 import { TreeDataManager } from '@/service/TreeDataManager';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
@@ -80,7 +80,7 @@ export class TreeRenderer extends ViewRenderer {
       const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      treeDataManager.toggleRow(cellInfo.item[cfg.rowIdField]);
+      treeDataManager.toggleRow(cellInfo.item[ROW_ID_FIELD_NAME]);
       this.gridMain.refreshBody(true, 'treeExpander');
 
       //stopPreventCancel(e);

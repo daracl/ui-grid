@@ -60,7 +60,7 @@ export type SearchMode = {
   // 검색어가 포함되지 않은 행 숨김 여부
   hideNonMatched?: boolean;
   // 검색 완료 후 실행
-  postProcess?: (isMatched: boolean, item: T) => T;
+  postProcess?: (isMatched: boolean, item: any, viewItem?: ViewItem) => void;
 };
 
 export type SearchFields = string | string[] | ALL_SELECT_VALUE;
@@ -91,8 +91,14 @@ export type AddRowOptions = {
 
 export type ViewItem = {
   id: RowId;
-  sortOrder?: number;
   matchedFields?: MatchedField[];
   matchCount?: number;
   children?: ViewItem[];
+};
+
+export type CURRNET_MATCH_INFO = {
+  id?: RowId;
+  matchIndex: number;
+  itemIndex: number;
+  matchedInfo: MatchedField[];
 };

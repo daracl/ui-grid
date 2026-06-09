@@ -1,4 +1,4 @@
-import { ALL_SELECT_VALUE, CHUNK_SIZE, ROW_ID_FIELD_NAME } from '@/constants';
+import { ALL_SELECT_VALUE, CHUNK_SIZE, MATCH_WHOLE_REGEX, ROW_ID_FIELD_NAME } from '@/constants';
 import { MatchedField, SearchFields, SearchMode, SearchResult, ViewItem } from '@t/Common';
 import { arrayCopy, hasOwnProp } from './utils';
 
@@ -22,13 +22,18 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     return { isOriginal: true, matchCount: 0, items: results };
   }
 
-  const { matchCase, matchWholeWord, useRegex, searchFields, matchWholeRegex, hideNonMatched } = options;
+  const { matchCase, matchWholeWord, useRegex, searchFields, hideNonMatched } = options;
+  let matchWholeRegex = options.matchWholeRegex;
 
   // 검색 필드 최적화
   const fieldsToSearch = getSearchFields(searchList, searchFields);
 
   // 검색 텍스트 전처리
   const normalizedSearchText = matchCase ? searchText : searchText.toLowerCase();
+
+  if (matchWholeWord && !matchWholeRegex) {
+    matchWholeRegex = MATCH_WHOLE_REGEX;
+  }
 
   // 정규식 미리 컴파일
   let compiledRegex: RegExp | null = null;
@@ -63,19 +68,22 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
         fieldsToSearch,
         matchWholeRegex,
       );
-
-      const matched = matchedFields.length > 0;
-      if (postProcess) {
-        postProcess(matched, item);
-      }
-
+      const matchLength = matchedFields.length;
+      const matched = matchLength > 0;
+      let viewItem;
       if (matched) {
-        matchCount += matchedFields.length;
-        results.push({ id: item[ROW_ID_FIELD_NAME], matchedFields, matchCount: matchedFields.length });
+        matchCount += matchLength;
+        viewItem = { id: item[ROW_ID_FIELD_NAME], matchedFields, matchCount: matchLength };
+        results.push(viewItem);
       } else {
         if (!hideNonMatched) {
-          results.push({ id: item[ROW_ID_FIELD_NAME] });
+          viewItem = { id: item[ROW_ID_FIELD_NAME] };
+          results.push(viewItem);
         }
+      }
+
+      if (postProcess) {
+        postProcess(matched, item, viewItem);
       }
     }
   }

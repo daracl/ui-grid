@@ -281,18 +281,31 @@ export function camelToKebab(str: string) {
  * @param {Array<{ name: string, ascOrder?: boolean }>} sortInfos - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) {
-  const isBaseData = sortInfos.length === 0;
+export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast = false) {
+  if (sortInfos.length === 0) {
+    data.sort((a, b) => a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY]);
+    return data.map((row, index) => ({
+      id: row[ROW_ID_FIELD_NAME],
+    }));
+  }
 
-  console.log(data, sortInfos, emptyValueLast);
+  const sortInfoLength = sortInfos.length;
 
-  data.sort((a: any, b: any): number => {
-    if (isBaseData) {
-      return a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY];
-    }
+  const decorated = data.map((item) => ({
+    id: item[ROW_ID_FIELD_NAME],
+    sortValues: sortInfos.map(({ name, field, isValue }) =>
+      isValue ? field.$renderer.getValue({ field, item }) : item[name],
+    ),
+  }));
 
-    for (const sortInfo of sortInfos) {
-      const result = compareValue(a, b, sortInfo, emptyValueLast);
+  decorated.sort((a, b) => {
+    for (let i = 0; i < sortInfoLength; i++) {
+      const result = compareCachedValue(
+        a.sortValues[i],
+        b.sortValues[i],
+        sortInfos[i].ascOrder ?? true,
+        emptyValueLast,
+      );
 
       if (result !== 0) {
         return result;
@@ -302,90 +315,42 @@ export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyVal
     return 0;
   });
 
-  const result = new Array<ViewItem>(data.length);
+  const result = new Array<ViewItem>(decorated.length);
 
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0; i < decorated.length; i++) {
     result[i] = {
-      id: data[i][ROW_ID_FIELD_NAME],
-      sortOrder: i,
+      id: decorated[i].id,
     };
   }
-
-  console.log(result);
 
   return result;
 }
 
-/**
- * 값 비교
- */
-const compareValue = (a: any, b: any, sortInfo: FieldSortInfo, emptyValueLast?: boolean): number => {
-  const { name, ascOrder = true, field, isValue = false } = sortInfo;
-  const valA = isValue ? field.$renderer.getValue({ field: field, item: a }) : a[name];
-  const valB = isValue ? field.$renderer.getValue({ field: field, item: b }) : b[name];
+export function compareCachedValue(valA: any, valB: any, ascOrder: boolean, emptyValueLast = false): number {
+  const isNullishA = valA == null;
+  const isNullishB = valB == null;
 
-  const isNullishA = valA === null || valA === undefined;
-  const isNullishB = valB === null || valB === undefined;
-
-  // null/undefined 우선 정렬 처리
-  if (isNullishA && !isNullishB) return ascOrder ? 1 : -1;
-  if (!isNullishA && isNullishB) return ascOrder ? -1 : 1;
-  if (isNullishA && isNullishB) return 0;
-
-  let comparison;
-  if (typeof valA === 'number' && typeof valB === 'number') {
-    comparison = valA - valB;
-  } else {
-    comparison = String(valA).localeCompare(String(valB));
-  }
-
-  if (comparison === 0) {
-    return 0;
-  }
-
-  return ascOrder ? comparison : -comparison;
-};
-
-/**
- * 트리 데이터를 level 별로 정렬
- * - children 재귀 정렬
- * - 다중 컬럼 정렬 지원
- * - 원본 데이터 변경 없음
- */
-export function sortTreeByLevel(data: any[], sortKeys: FieldSortInfo[] = [], emptyValueLast?: boolean): any[] {
-  /**
-   * 다중 컬럼 정렬
-   */
-  const sortFn = (a: any, b: any): number => {
-    for (const col of sortKeys) {
-      const result = compareValue(a, b, col, emptyValueLast);
-
-      if (result !== 0) {
-        return result;
-      }
+  if (isNullishA !== isNullishB) {
+    if (emptyValueLast) {
+      return isNullishA ? 1 : -1;
     }
 
+    return ascOrder ? (isNullishA ? 1 : -1) : isNullishA ? -1 : 1;
+  }
+
+  if (isNullishA) {
     return 0;
-  };
+  }
 
-  /**
-   * 재귀 정렬
-   */
-  const recursiveSort = (nodes: any[]): any[] => {
-    return [...nodes].sort(sortFn).map((node) => {
-      const newNode: any = {
-        ...node,
-      };
+  let result: number;
 
-      if (Array.isArray(newNode.children)) {
-        newNode.children = recursiveSort(newNode.children) as any[];
-      }
+  if (typeof valA === 'number' && typeof valB === 'number') {
+    result = valA - valB;
+  } else {
+    result = String(valA).localeCompare(String(valB));
+  }
 
-      return newNode;
-    });
-  };
-
-  return recursiveSort(data);
+  return ascOrder ? result : -result;
 }
 
 export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {

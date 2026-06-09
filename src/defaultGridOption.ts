@@ -9,6 +9,7 @@ import {
   VIEW_RENDERER,
 } from './constants';
 import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
+import { FieldSortInfo } from './types/Header';
 
 /**
  * grid default option
@@ -39,9 +40,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
     sort: {
       enabled: true,
       nullsLast: false, // null value 를 항상 끝으로 유지 할지 여부
-      customSorting: (a, b, key, sortType) => {
-        // custom sorting function
-      },
+      customSorting: undefined, //(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) => {return data;}
+      // custom sorting function
     }, // 초기에 정렬할 값
     resize: {
       // resize 설정
