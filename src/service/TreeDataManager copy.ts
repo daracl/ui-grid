@@ -320,7 +320,7 @@ export class TreeDataManager222 extends DataManager {
     }
 */
 
-    return [];
+    return searchResult;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {

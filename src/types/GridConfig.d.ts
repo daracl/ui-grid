@@ -1,6 +1,6 @@
 import { DaraElement } from '@/element/DaraElement';
 import { DataManager } from '@/service/DataManager';
-import { AnyKeyMap, SearchFields } from './Common';
+import { AnyKeyMap, RowId, SearchFields } from './Common';
 import { FieldItem } from './GridField';
 import { PagingOptions } from './GridOptions';
 import { FieldSortInfo } from '@/type/Header';
@@ -155,6 +155,7 @@ export interface SearchMatchInfo {
   matchCount: number;
   matchIndex: number;
   itemIndex: number;
+  id: RowId;
 }
 
 export interface SummaryConfig {

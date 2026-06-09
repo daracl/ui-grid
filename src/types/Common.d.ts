@@ -97,7 +97,7 @@ export type ViewItem = {
 };
 
 export type CURRNET_MATCH_INFO = {
-  id?: RowId;
+  id: RowId;
   matchIndex: number;
   itemIndex: number;
   matchedInfo: MatchedField[];

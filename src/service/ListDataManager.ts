@@ -1,5 +1,5 @@
 import { DataManager } from '@/service/DataManager';
-import { AddRowOptions, RowId, SearchMode, ViewItem } from '@/types/Common';
+import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -38,23 +38,23 @@ export class ListDataManager extends DataManager {
     }
   }
 
-  getSearchData(keyword: string, options: SearchMode): any[] {
+  getSearchData(keyword: string, options: SearchMode): SearchResult {
     const items = this.getCurrentItems();
-    const searchMatchInfo = this.cfg.searchMatchInfo;
-    searchMatchInfo.matchCount = 0;
+
     options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (isMatched) {
-        if (viewItem) this.addMatchMap(viewItem.id, viewItem);
-        searchMatchInfo.matchCount += 1;
+        if (viewItem) {
+          this.addMatchMap(viewItem.id, viewItem);
+        }
       }
     };
 
     options.hideNonMatched = options.hideNonMatched ?? true;
 
-    return gridDataSearch(items, keyword, options).items;
+    return gridDataSearch(items, keyword, options);
   }
 
-  public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
+  public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
     return multiSort(this.convertViewItemsToRowItems(), sortOrders, sortOpts.nullsLast);
   }
 

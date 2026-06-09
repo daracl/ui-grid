@@ -281,7 +281,7 @@ export function camelToKebab(str: string) {
  * @param {Array<{ name: string, ascOrder?: boolean }>} sortInfos - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast = false) {
+export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast = false): ViewItem[] {
   if (sortInfos.length === 0) {
     data.sort((a, b) => a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY]);
     return data.map((row, index) => ({

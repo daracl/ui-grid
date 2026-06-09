@@ -247,7 +247,7 @@ export class TreeDataManager extends DataManager {
     return expandedIds;
   }
 
-  public getSearchData(keyword: string, options: SearchMode) {
+  public getSearchData(keyword: string, options: SearchMode): SearchResult {
     const originalTreeItems = this.originalTreeItems;
 
     const expandedIds = new Set<RowId>();
@@ -260,8 +260,10 @@ export class TreeDataManager extends DataManager {
     //options.hideNonMatched = false;
     options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (isMatched) {
-        if (viewItem) this.addMatchMap(viewItem.id, viewItem);
-        searchMatchInfo.matchCount += 1;
+        if (viewItem) {
+          this.addMatchMap(viewItem.id, viewItem);
+          searchMatchInfo.matchCount += viewItem.matchedFields?.length ?? 0;
+        }
 
         const parentIds: RowId[] = [];
 
@@ -328,7 +330,10 @@ export class TreeDataManager extends DataManager {
 
     this.viewTreeItems = matchResult.items;
 
-    return this.getTreeDataToList(matchResult.items);
+    matchResult.items = this.getTreeDataToList(matchResult.items);
+    matchResult.matchCount = totalMatchCount;
+
+    return matchResult;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
