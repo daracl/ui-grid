@@ -1,4 +1,4 @@
-import { CellInfo, SearchMatchInfo } from '@t/GridConfig';
+import { CellInfo } from '@t/GridConfig';
 
 import {
   BodyCellStyle,
@@ -17,6 +17,7 @@ import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
+import { SearchMatchInfo } from '@/types/Common';
 
 const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
 const CELL_MATCH_CLASS = 'dg-search-match';
@@ -452,7 +453,7 @@ export class Body {
 
       let searchMatchedFields;
       if (searchEnable) {
-        searchMatchedFields = dataManager.getMatchViewItem(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
+        searchMatchedFields = dataManager.getMatchMap(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
       }
 
       // left panel
@@ -567,7 +568,7 @@ export class Body {
 
       if (matchedFields && matchedFields.length > 0) {
         const fieldName = field.name;
-        const { matchIndex, itemIndex } = searchMatchInfo;
+        const { matchRowIndex: matchIndex, itemIndex } = searchMatchInfo;
 
         const isMatch = rowIdx === matchIndex && matchedFields[itemIndex] === fieldName;
 

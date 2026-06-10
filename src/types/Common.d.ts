@@ -1,4 +1,4 @@
-import { ADD_ITEM_POSITION, ALL_SELECT_VALUE } from '../constants';
+import { ADD_ITEM_POSITION, ALL_SELECT_VALUE, SearchDirection } from '../constants';
 import { match } from 'assert';
 export interface OptionCallback {
   (...params: any[]): any;
@@ -59,6 +59,8 @@ export type SearchMode = {
   matchWholeRegex: RegExp;
   // 검색어가 포함되지 않은 행 숨김 여부
   hideNonMatched?: boolean;
+  // 검색 방향
+  direction: SearchDirection;
   // 검색 완료 후 실행
   postProcess?: (isMatched: boolean, item: any, viewItem?: ViewItem) => void;
 };
@@ -89,16 +91,27 @@ export type AddRowOptions = {
   position?: ADD_ITEM_POSITION;
 };
 
-export type ViewItem = {
+export interface ViewItem {
   id: RowId;
   matchedFields?: MatchedField[];
   matchCount?: number;
-  children?: ViewItem[];
-};
+}
+
+export interface TreeViewItem extends ViewItem {
+  children: TreeViewItem[];
+}
 
 export type CURRNET_MATCH_INFO = {
   id: RowId;
-  matchIndex: number;
+  matchRowIndex: number;
   itemIndex: number;
   matchedInfo: MatchedField[];
 };
+
+export interface SearchMatchInfo {
+  matchCount: number;
+  currentMatchIndex: number;
+  matchRowIndex: number;
+  itemIndex: number;
+  id: RowId;
+}

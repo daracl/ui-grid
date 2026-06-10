@@ -1,5 +1,5 @@
 import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_FIELD_NAME } from '@/constants';
-import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
+import { AddRowOptions, RowId, SearchMode, SearchResult, TreeViewItem, ViewItem } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
@@ -21,9 +21,9 @@ export class TreeDataManager extends DataManager {
   private readonly childrenKey: string;
 
   // 원본 트리 구조 데이터
-  private originalTreeItems: any[] = [];
+  private originalTreeItems: TreeViewItem[] = [];
   // 트리 구조 데이터
-  private viewTreeItems: any[] = [];
+  private viewTreeItems: TreeViewItem[] = [];
 
   constructor(opts: GridOptions, gridMain: GridMain) {
     super(opts, gridMain, 'tree');
@@ -50,16 +50,43 @@ export class TreeDataManager extends DataManager {
       flatItems = this.getTreeDataToList(treeItems);
     }
 
+    const treeViewIds = this.convertOriginalTreeToTreeViewItems(treeItems);
+
     super.setItems(flatItems);
 
-    this.originalTreeItems = treeItems;
-    this.viewTreeItems = treeItems;
+    this.originalTreeItems = treeViewIds;
+    this.viewTreeItems = treeViewIds;
 
     const expandDepth = this.opts.tree?.expandDepth ?? 1;
     const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
 
     this.initTreeItems(treeItems, 1, expandDepth, defaultExpandedIds);
     this.buildViewItems();
+  }
+
+  private convertOriginalTreeToTreeViewItems(treeItems: any[]): TreeViewItem[] {
+    const idKey = this.idKey;
+    const childrenKey = this.childrenKey;
+
+    //
+    // 처리할 것.
+    //
+
+    const result: TreeViewItem[] = [];
+    const dfs = (list: any[]) => {
+      for (const item of list) {
+        const treeViewItem = { id: item[idKey], children: [] } as TreeViewItem;
+        result.push(treeViewItem);
+
+        const children = item[childrenKey];
+
+        if (children) dfs(children);
+      }
+    };
+
+    dfs(treeItems);
+
+    return result;
   }
 
   /**

@@ -7,6 +7,7 @@ import {
   ROW_HEIGHT_KEY,
   ROW_ID_FIELD_NAME,
   ROW_ITEM_PREFIX_NAME,
+  SearchDirectionMap,
 } from '@/constants';
 import {
   AddRowOptions,
@@ -16,6 +17,7 @@ import {
   SearchMode,
   SearchResult,
   ViewItem,
+  SearchMatchInfo,
 } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
@@ -180,16 +182,13 @@ export abstract class DataManager {
     }
 
     const sortData = this.getSortData(sortArr, sortOpts);
-
     const searchMatchInfo = this.cfg.searchMatchInfo;
-    const matchId = this.cfg.searchMatchInfo.id;
+    const matchId = searchMatchInfo.id;
+
     if (matchId) {
-      for (let i = 0; i < sortData.length; i++) {
-        if (sortData[i].id == matchId) {
-          searchMatchInfo.matchIndex = i;
-          break;
-        }
-      }
+      this.setCurrentMatchIndex(sortData, matchId);
+
+      this.gridMain.getDataSearch().setMatchCountText();
     }
 
     this.setViewItemIds(sortData);
@@ -335,7 +334,7 @@ export abstract class DataManager {
     this.matchMap.set(id, viewItem);
   }
 
-  public getMatchViewItem(rowId: RowId): ViewItem | undefined {
+  public getMatchMap(rowId: RowId): ViewItem | undefined {
     return this.matchMap.get(rowId);
   }
 
@@ -401,7 +400,9 @@ export abstract class DataManager {
       searchItems = this.getViewItems();
     } else {
       isNewSearch = true;
-      searchMatchInfo.matchIndex = startIdx;
+      searchMatchInfo.id = '';
+      searchMatchInfo.currentMatchIndex = -1;
+      searchMatchInfo.matchRowIndex = startIdx;
       searchMatchInfo.itemIndex = -1;
       this.clearMatchMap();
       searchResult = this.getSearchData(keyword, options);
@@ -409,36 +410,43 @@ export abstract class DataManager {
       searchItems = searchResult.items;
     }
 
-    let matchInfo: CURRNET_MATCH_INFO = { id: '', matchIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
+    if (isNewSearch) {
+      this.setViewItemIds(searchItems);
+    }
+
+    // 정렬 처리
+    if (this.sortOrders.length > 0) {
+      this.dataSort(this.sortOrders, this.sortOpts);
+    }
+
+    let matchInfo: CURRNET_MATCH_INFO = { id: '', matchRowIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
 
     if (searchMatchInfo.matchCount > 0) {
-      matchInfo = this.getMatchInfo(searchMatchInfo, searchItems);
+      matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
 
-      if (matchInfo.matchIndex == -1) {
-        searchMatchInfo.matchIndex = -1;
-        matchInfo = this.getMatchInfo(searchMatchInfo, searchItems);
+      if (matchInfo.matchRowIndex == -1) {
+        searchMatchInfo.matchRowIndex = -1;
+        matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
       }
     }
 
-    const { matchIndex, itemIndex } = matchInfo;
+    const { matchRowIndex, itemIndex } = matchInfo;
 
     let moveScrollRowIdx = -1;
 
-    if (startIdx + insideViewRow <= matchIndex || matchIndex < startIdx) {
-      if (matchIndex < insideViewRow) {
+    if (startIdx + insideViewRow <= matchRowIndex || matchRowIndex < startIdx) {
+      if (matchRowIndex < insideViewRow) {
         moveScrollRowIdx = 0;
       } else {
-        moveScrollRowIdx = matchIndex - (insideViewRow - Math.ceil(insideViewRow / 2));
+        moveScrollRowIdx = matchRowIndex - (insideViewRow - Math.ceil(insideViewRow / 2));
+      }
+      if (moveScrollRowIdx > -1) {
+        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
       }
     }
 
-    if (searchMatchInfo.matchCount > 0 && moveScrollRowIdx > -1) {
-      this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
-    }
-
-    const matchedInfo = isArray(matchInfo.matchedInfo) ? matchInfo.matchedInfo[itemIndex] : null;
-
-    if (matchedInfo) {
+    if (matchInfo.matchedInfo?.length > 0) {
+      const matchedInfo = matchInfo.matchedInfo[itemIndex];
       const matchFieldInfo = this.cfg.allFieldMap.get(matchedInfo.fieldName);
 
       if (matchFieldInfo) {
@@ -451,65 +459,154 @@ export abstract class DataManager {
     }
 
     searchMatchInfo.id = matchInfo.id;
-    searchMatchInfo.matchIndex = matchIndex;
+    searchMatchInfo.matchRowIndex = matchRowIndex;
     searchMatchInfo.itemIndex = itemIndex;
 
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
-
-    if (isNewSearch) {
-      this.setViewItemIds(searchItems);
-    }
-
-    // 정렬이되어 있을경우 정렬 처리.
-    if (this.sortOrders.length > 0) {
-      this.dataSort(this.sortOrders, this.sortOpts);
-    }
   }
 
   abstract getSearchData(keyword: string, options: SearchMode): SearchResult;
 
+  private getMatchInfo(
+    searchMatchInfo: SearchMatchInfo,
+    searchResult: ViewItem[],
+    options: SearchMode,
+  ): CURRNET_MATCH_INFO {
+    const isPrev = options.direction === SearchDirectionMap.PREV;
+
+    const currentMatchInfo = isPrev
+      ? this.getPrevMatch(searchMatchInfo, searchResult)
+      : this.getNextMatch(searchMatchInfo, searchResult);
+
+    this.setCurrentMatchIndex(searchResult, currentMatchInfo.id);
+
+    return currentMatchInfo;
+  }
+
   /**
-   * next match item 구하기
+   * 현재 검색 포커스 cell 정보
    *
-   * @param searchMatchInfo match 정보
-   * @param searchResult 검색 리스트
+   * @param items check item list
+   * @param matchId
    * @returns
    */
-  private getMatchInfo(searchMatchInfo: any, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
-    const currentMatchIndex = searchMatchInfo.matchIndex;
-    const checkMatchIndex = currentMatchIndex == -1 ? 0 : currentMatchIndex;
-    const checkItemIdx = currentMatchIndex == -1 ? -1 : searchMatchInfo.itemIndex;
+  private setCurrentMatchIndex(items: ViewItem[], matchId: RowId) {
+    let currentMatchIndex = 0;
+    let matchRowIndex = -1;
+    for (let i = 0; i < items.length; i++) {
+      const id = items[i].id;
 
-    let matchIndex = -1;
+      if (id == matchId) {
+        matchRowIndex = i;
+        break;
+      }
+
+      currentMatchIndex += this.getMatchMap(id)?.matchedFields?.length ?? 0;
+    }
+
+    this.cfg.searchMatchInfo.currentMatchIndex = currentMatchIndex;
+    this.cfg.searchMatchInfo.matchRowIndex = matchRowIndex;
+  }
+
+  /**
+   * 검색 다음 찾기
+   * @param searchMatchInfo 검색 정보
+   * @param searchResult 검색 결과
+   * @returns
+   */
+  private getNextMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
+    const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
+    const checkMatchIndex = currentMatchRowIndex === -1 ? 0 : currentMatchRowIndex;
+    const checkItemIdx = currentMatchRowIndex === -1 ? -1 : searchMatchInfo.itemIndex;
+
+    let matchRowIndex = -1;
     let itemIndex = -1;
     let matchId: RowId = '';
     let matchedInfo: MatchedField[] = [];
 
     for (let searchRowIdx = checkMatchIndex; searchRowIdx < searchResult.length; searchRowIdx++) {
       const item = searchResult[searchRowIdx];
-      const itemMatchInfos = this.matchMap.get(item.id)?.matchedFields;
+      const itemMatchInfos = this.getMatchMap(item.id)?.matchedFields;
 
-      if (itemMatchInfos && itemMatchInfos.length > 0) {
-        matchId = item.id;
-        if (checkMatchIndex == searchRowIdx) {
-          const isSammeMatchLength = itemMatchInfos.length != checkItemIdx + 1;
+      if (!itemMatchInfos?.length) continue;
 
-          if (isSammeMatchLength) {
-            matchIndex = searchRowIdx;
-            itemIndex = checkItemIdx + 1;
-          } else {
-            continue;
-          }
-        } else {
-          matchIndex = searchRowIdx;
-          itemIndex = 0;
+      matchId = item.id;
+
+      if (searchRowIdx === checkMatchIndex) {
+        const nextItemIdx = checkItemIdx + 1;
+
+        if (checkItemIdx === -1 || nextItemIdx < itemMatchInfos.length) {
+          matchRowIndex = searchRowIdx;
+          itemIndex = checkItemIdx === -1 ? 0 : nextItemIdx;
+          matchedInfo = itemMatchInfos;
+          break;
         }
-        matchedInfo = itemMatchInfos;
-        break;
+
+        continue;
       }
+
+      matchRowIndex = searchRowIdx;
+      itemIndex = 0;
+      matchedInfo = itemMatchInfos;
+      break;
     }
 
-    return { id: matchId, matchIndex, itemIndex, matchedInfo };
+    return { id: matchId, matchRowIndex: matchRowIndex, itemIndex, matchedInfo };
+  }
+
+  /**
+   * 검색 이전 찾기
+   * @param searchMatchInfo 검색 정보
+   * @param searchResult 검색 결과
+   * @returns
+   */
+  private getPrevMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
+    const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
+    const checkMatchIndex = currentMatchRowIndex === -1 ? searchResult.length - 1 : currentMatchRowIndex;
+    const checkItemIdx = currentMatchRowIndex === -1 ? -1 : searchMatchInfo.itemIndex;
+
+    let matchIndex = -1;
+    let itemIndex = -1;
+    let matchId: RowId = '';
+    let matchedInfo: MatchedField[] = [];
+
+    for (let searchRowIdx = checkMatchIndex; searchRowIdx >= 0; searchRowIdx--) {
+      const item = searchResult[searchRowIdx];
+      const itemMatchInfos = this.getMatchMap(item.id)?.matchedFields;
+
+      if (!itemMatchInfos?.length) continue;
+
+      matchId = item.id;
+
+      // 같은 row 내부 처리
+      if (searchRowIdx === checkMatchIndex) {
+        const prevItemIdx = checkItemIdx === -1 ? itemMatchInfos.length - 1 : checkItemIdx - 1;
+
+        // 핵심 수정: boundary 처리 강화
+        if (prevItemIdx >= 0) {
+          matchIndex = searchRowIdx;
+          itemIndex = prevItemIdx;
+          matchedInfo = itemMatchInfos;
+          break;
+        }
+
+        // 이 row에서는 더 이상 없음 → 이전 row로 넘어감
+        continue;
+      }
+
+      // 다른 row로 이동했을 때는 항상 "마지막 match"부터
+      matchIndex = searchRowIdx;
+      itemIndex = itemMatchInfos.length - 1;
+      matchedInfo = itemMatchInfos;
+      break;
+    }
+
+    return {
+      id: matchId,
+      matchRowIndex: matchIndex,
+      itemIndex,
+      matchedInfo,
+    };
   }
 }

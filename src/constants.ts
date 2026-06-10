@@ -347,3 +347,13 @@ export const BodyCellStyle = {
  * match whole regex
  */
 export const MATCH_WHOLE_REGEX = /[ㄱ-ㅎ가-힣a-zA-Z0-9_]+/g;
+
+/**
+ * 검색 방향
+ */
+export const SearchDirectionMap = {
+  PREV: 'prev',
+  NEXT: 'next',
+} as const;
+
+export type SearchDirection = (typeof SearchDirectionMap)[keyof typeof SearchDirectionMap];

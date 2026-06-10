@@ -1,6 +1,6 @@
 import { Config } from '@t/GridConfig';
 
-import { ALL_SELECT_VALUE } from '@/constants';
+import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { SearchOptions } from '@t/GridOptions';
@@ -26,6 +26,7 @@ export class DataSearch {
 
   private searchTextElement: HTMLInputElement;
   private searchFieldElement: HTMLSelectElement;
+  private matchCountElement: HTMLSpanElement;
 
   constructor(gridMain: GridMain) {
     this.cfg = gridMain.config();
@@ -83,9 +84,10 @@ export class DataSearch {
           </div>
         </div>
         <span class="dg-search-btn">
-          <span class="search-nav-up" title="${this.gridMain.i18n().getMessage('prev')}"></span>
-          <span class="search-nav-down" title="${this.gridMain.i18n().getMessage('next')}"></span>
-        </span>`);
+          <span class="dg-btn dg-search-prev" title="${this.gridMain.i18n().getMessage('prev')}"></span>
+          <span class="dg-btn dg-search-next" title="${this.gridMain.i18n().getMessage('next')}"></span>
+        </span>
+        <span class="dgMatchCount"></span>`);
 
       searchElement.innerHTML = template.join('');
 
@@ -109,6 +111,7 @@ export class DataSearch {
 
     this.searchTextElement = this.searchElement.querySelector('.dg-search-text') as HTMLInputElement;
     this.searchFieldElement = this.searchElement.querySelector('.dg-search-field') as HTMLSelectElement;
+    this.matchCountElement = this.searchElement.querySelector('.dgMatchCount') as HTMLSpanElement;
 
     this.initSimpleModeEvent();
   }
@@ -130,19 +133,27 @@ export class DataSearch {
 
       if (isEnter(e)) {
         e.preventDefault();
-        this.simpleSearch();
+        this.simpleSearch(SearchDirectionMap.NEXT);
       } else if (isEsc(e)) {
         cfg.searchEnable = false;
         this.gridMain.hideLayer(this.searchElement);
       }
     });
 
-    const searchBtnElement = this.searchElement.querySelector('.dg-search-btn') as HTMLElement;
+    const searchPrevBtnElement = this.searchElement.querySelector('.dg-search-prev') as HTMLElement;
 
-    eventManager.off(searchBtnElement, 'mousedown');
-    eventManager.on({ el: searchBtnElement, type: 'mousedown' }, (e: UIEvent) => {
+    eventManager.off(searchPrevBtnElement, 'mousedown');
+    eventManager.on({ el: searchPrevBtnElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
-      this.simpleSearch();
+      this.simpleSearch(SearchDirectionMap.PREV);
+    });
+
+    const searchNextBtnElement = this.searchElement.querySelector('.dg-search-next') as HTMLElement;
+
+    eventManager.off(searchNextBtnElement, 'mousedown');
+    eventManager.on({ el: searchNextBtnElement, type: 'mousedown' }, (e: UIEvent) => {
+      stopPreventCancel(e);
+      this.simpleSearch(SearchDirectionMap.NEXT);
     });
 
     const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
@@ -169,7 +180,7 @@ export class DataSearch {
     });
   }
 
-  simpleSearch() {
+  simpleSearch(direction: SearchDirection) {
     const searchText = this.searchTextElement.value;
     const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
 
@@ -184,7 +195,10 @@ export class DataSearch {
       matchWholeWord: searchParameter.matchWholeWord,
       useRegex: searchParameter.useRegex,
       searchFields: searchField,
+      direction: direction,
     } as SearchMode);
+
+    this.setMatchCountText();
 
     if (searchText == '') {
       cfg.searchEnable = false;
@@ -195,5 +209,16 @@ export class DataSearch {
 
     this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
+  }
+
+  setMatchCountText() {
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+
+    if (searchMatchInfo.matchCount > 0) {
+      this.matchCountElement.textContent =
+        searchMatchInfo.currentMatchIndex + searchMatchInfo.itemIndex + 1 + '/' + searchMatchInfo.matchCount;
+    } else {
+      this.matchCountElement.textContent = '';
+    }
   }
 }
