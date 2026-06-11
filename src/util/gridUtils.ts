@@ -72,12 +72,14 @@ export const getCellInfo = (cfg: Config, cellElement: HTMLElement): CellInfo => 
   const posInfo = getCellPosition(cellElement);
   const rowIndex = cfg.scroll.startIdx + posInfo.r;
   const col = posInfo.c;
+  const viewItem = cfg.dataManager.getViewItems()[rowIndex];
   return {
     r: posInfo.r,
     c: col,
     rowIndex: rowIndex,
-    item: cfg.dataManager.getRowItem(cfg.dataManager.getViewItems()[rowIndex].id),
     field: cfg.currentFields[posInfo.c],
+    item: cfg.dataManager.getRowItem(viewItem.id),
+    viewItem: viewItem,
   };
 };
 

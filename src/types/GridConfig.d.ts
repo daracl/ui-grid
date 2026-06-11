@@ -1,6 +1,6 @@
 import { DaraElement } from '@/element/DaraElement';
 import { DataManager } from '@/service/DataManager';
-import { AnyKeyMap, RowId, SearchFields, SearchMatchInfo } from './Common';
+import { AnyKeyMap, RowId, SearchFields, SearchMatchInfo, ViewItem } from './Common';
 import { FieldItem } from './GridField';
 import { PagingOptions } from './GridOptions';
 import { FieldSortInfo } from '@/type/Header';
@@ -188,6 +188,10 @@ export interface CellInfo {
    * item
    */
   item: any;
+  /**
+   * view item
+   */
+  viewItem?: ViewItem;
 }
 
 export interface EditInfo {

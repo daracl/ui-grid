@@ -242,20 +242,6 @@ export const ROW_CUD_KEY = ROW_ITEM_PREFIX_NAME + '$CUD';
 export const ROW_DEPTH_KEY = ROW_ITEM_PREFIX_NAME + '$depth';
 
 /**
- * row haschild key
- *
- * @type {"_dg$haschild"}
- */
-export const ROW_HAS_CHILD_KEY = ROW_ITEM_PREFIX_NAME + '$haschild';
-
-/**
- * row has expanded key
- *
- * @type {"_dg$expanded"}
- */
-export const ROW_EXPANDED_KEY = ROW_ITEM_PREFIX_NAME + '$expanded';
-
-/**
  * 전체 선택 value
  */
 export const ALL_SELECT_VALUE = '$all$';

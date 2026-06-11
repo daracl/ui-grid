@@ -93,12 +93,17 @@ export type AddRowOptions = {
 
 export interface ViewItem {
   id: RowId;
+  order: number;
+  sortValues?: any[];
   matchedFields?: MatchedField[];
   matchCount?: number;
 }
 
 export interface TreeViewItem extends ViewItem {
+  pid: RowId;
   children: TreeViewItem[];
+  expanded: number;
+  depth: number;
 }
 
 export type CURRNET_MATCH_INFO = {

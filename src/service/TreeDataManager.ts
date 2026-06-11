@@ -1,4 +1,4 @@
-import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_EXPANDED_KEY, ROW_HAS_CHILD_KEY, ROW_ID_FIELD_NAME } from '@/constants';
+import { ORIGINAL_ORDER_KEY, ROW_DEPTH_KEY, ROW_ID_FIELD_NAME } from '@/constants';
 import { AddRowOptions, RowId, SearchMode, SearchResult, TreeViewItem, ViewItem } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
@@ -14,7 +14,7 @@ import { DataManager } from './DataManager';
  * @typedef {TreeDataManager}
  */
 export class TreeDataManager extends DataManager {
-  private readonly childrenMap = new Map<RowId, any[]>();
+  private readonly idViewItemMap = new Map<RowId, TreeViewItem>();
 
   private readonly idKey: string;
   private readonly pidKey: string;
@@ -50,43 +50,56 @@ export class TreeDataManager extends DataManager {
       flatItems = this.getTreeDataToList(treeItems);
     }
 
-    const treeViewIds = this.convertOriginalTreeToTreeViewItems(treeItems);
+    const expandDepth = this.opts.tree?.expandDepth ?? 1;
+    const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
+
+    const treeViewIds = this.convertOriginalTreeToTreeViewItems(treeItems, expandDepth, defaultExpandedIds);
 
     super.setItems(flatItems);
 
     this.originalTreeItems = treeViewIds;
     this.viewTreeItems = treeViewIds;
 
-    const expandDepth = this.opts.tree?.expandDepth ?? 1;
-    const defaultExpandedIds = this.opts.tree?.defaultExpandedIds ?? [];
-
-    this.initTreeItems(treeItems, 1, expandDepth, defaultExpandedIds);
     this.buildViewItems();
   }
 
-  private convertOriginalTreeToTreeViewItems(treeItems: any[]): TreeViewItem[] {
-    const idKey = this.idKey;
+  private convertOriginalTreeToTreeViewItems(
+    treeItems: any[],
+    openDepth: number,
+    defaultExpandedIds: RowId[],
+  ): TreeViewItem[] {
     const childrenKey = this.childrenKey;
 
-    //
-    // 처리할 것.
-    //
-
-    const result: TreeViewItem[] = [];
-    const dfs = (list: any[]) => {
+    const rootNodes: TreeViewItem[] = [];
+    const dfs = (list: any[], depth: number, parentId: RowId, parentChildren: TreeViewItem[]) => {
+      let orderIdx = 0;
       for (const item of list) {
-        const treeViewItem = { id: item[idKey], children: [] } as TreeViewItem;
-        result.push(treeViewItem);
+        super.createRowItem(item, depth);
+
+        const rowId = item[ROW_ID_FIELD_NAME];
+        this.setRowItem(rowId, item);
+
+        const treeViewItem = { id: rowId, pid: parentId, order: orderIdx++, depth: depth } as TreeViewItem;
+        treeViewItem.expanded = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]) ? 1 : 0;
+
+        if (depth == 1) {
+          rootNodes.push(treeViewItem);
+        }
+        parentChildren.push(treeViewItem);
 
         const children = item[childrenKey];
+        if (children) {
+          treeViewItem.children = [];
+          dfs(children, depth + 1, rowId, treeViewItem.children);
+        }
 
-        if (children) dfs(children);
+        this.idViewItemMap.set(rowId, treeViewItem);
       }
     };
 
-    dfs(treeItems);
+    dfs(treeItems, 1, 'dg$root', []);
 
-    return result;
+    return rootNodes;
   }
 
   /**
@@ -150,36 +163,6 @@ export class TreeDataManager extends DataManager {
   }
 
   /**
-   * tree data 초기화
-   * @param items items
-   * @param depth tree depth
-   * @param openDepth open depth
-   * @param defaultExpandedIds 펼침 ids
-   * @returns
-   */
-  private initTreeItems(items: any[], depth = 0, openDepth = 1, defaultExpandedIds: RowId[] = []): any[] {
-    let orderIdx = 0;
-    return items.map((item) => {
-      super.createRowItem(item, depth);
-      item[ORIGINAL_ORDER_KEY] = orderIdx++;
-
-      const rowId = item[ROW_ID_FIELD_NAME];
-
-      item[ROW_EXPANDED_KEY] = depth < openDepth || defaultExpandedIds.includes(item[this.idKey]) ? 1 : 0;
-      const children = item[this.childrenKey];
-      this.setRowItem(rowId, item);
-      if (children?.length) {
-        item[ROW_HAS_CHILD_KEY] = true;
-        item[this.childrenKey] = this.initTreeItems(children, depth + 1, openDepth, defaultExpandedIds);
-
-        this.childrenMap.set(rowId, children);
-      }
-
-      return item;
-    });
-  }
-
-  /**
    * viewItems
    * @param items items
    */
@@ -187,16 +170,19 @@ export class TreeDataManager extends DataManager {
     this.setViewItemIds(this.getTreeToList(this.viewTreeItems));
   }
 
-  private getTreeToList(items: any[]): any[] {
-    const result: any[] = [];
-    const dfs = (list: any[]) => {
+  private getTreeToList(items: ViewItem[]): TreeViewItem[] {
+    const result: TreeViewItem[] = [];
+    const dfs = (list: ViewItem[]) => {
       for (const item of list) {
-        result.push(item);
+        const treeItem = this.idViewItemMap.get(item.id);
+        if (treeItem) {
+          result.push(treeItem);
 
-        if (item[ROW_EXPANDED_KEY] > 0) {
-          const children = item[this.childrenKey];
+          if (treeItem.expanded > 0) {
+            const children = treeItem.children;
 
-          if (children) dfs(children);
+            if (children) dfs(children);
+          }
         }
       }
     };
@@ -211,19 +197,20 @@ export class TreeDataManager extends DataManager {
    * @param rowId 행의 ID
    */
   public toggleRow(rowId: RowId) {
-    const rowItem = this.getRowItem(rowId);
+    const viewItem = this.idViewItemMap.get(rowId);
 
-    rowItem[ROW_EXPANDED_KEY] = rowItem[ROW_EXPANDED_KEY] > 0 ? 0 : 1;
-
-    this.buildViewItems();
+    if (viewItem) {
+      viewItem.expanded = viewItem?.expanded > 0 ? 0 : 1;
+      this.buildViewItems();
+    }
   }
 
   /**
    * 모든 행을 접음
    */
   public collapseAll() {
-    for (const item of this.getRowMap().values()) {
-      item[ROW_EXPANDED_KEY] = 0;
+    for (const item of this.idViewItemMap.values()) {
+      item.expanded = 0;
     }
 
     this.buildViewItems();
@@ -233,8 +220,8 @@ export class TreeDataManager extends DataManager {
    * 모든 행을 펼침
    */
   public expandAll() {
-    for (const item of this.getRowMap().values()) {
-      item[ROW_EXPANDED_KEY] = 1;
+    for (const item of this.idViewItemMap.values()) {
+      item.expanded = 1;
     }
 
     this.buildViewItems();
@@ -246,24 +233,24 @@ export class TreeDataManager extends DataManager {
    * @returns
    */
   public expandRow(rowId: RowId) {
-    const rowItem = this.getRowItem(rowId);
-    if (rowItem === undefined) return;
+    const treeViewItem = this.idViewItemMap.get(rowId);
+    if (!treeViewItem) return;
 
-    this.parentExpand(rowItem, []);
+    this.parentExpand(treeViewItem, []);
 
     this.buildViewItems();
   }
 
-  private parentExpand(item: any, expandedIds: RowId[], addMatchedKey = false) {
+  private parentExpand(item: TreeViewItem, expandedIds: RowId[], addMatchedKey = false) {
     if (!item) return;
-    const id = item[this.idKey];
-    const pid = item[this.pidKey];
-    const parentItem = this.getRowItem(pid);
+    const id = item.id;
+    const pid = item.pid;
+    const parentItem = this.idViewItemMap.get(pid);
 
     if (addMatchedKey) {
-      item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] == 1 ? 3 : 2;
+      item.expanded = item.expanded == 1 ? 3 : 2;
     } else {
-      item[ROW_EXPANDED_KEY] = 1;
+      item.expanded = 1;
     }
 
     if (parentItem) {
@@ -286,11 +273,13 @@ export class TreeDataManager extends DataManager {
 
     //options.hideNonMatched = false;
     options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
+      if (!viewItem) return;
+
+      const treeViewItem = viewItem as TreeViewItem;
+
       if (isMatched) {
-        if (viewItem) {
-          this.addMatchMap(viewItem.id, viewItem);
-          searchMatchInfo.matchCount += viewItem.matchedFields?.length ?? 0;
-        }
+        this.addMatchMap(viewItem.id, treeViewItem);
+        searchMatchInfo.matchCount += treeViewItem.matchedFields?.length ?? 0;
 
         const parentIds: RowId[] = [];
 
@@ -303,39 +292,41 @@ export class TreeDataManager extends DataManager {
 
         expandedIds.add(item[ROW_ID_FIELD_NAME]);
       } else {
-        item[ROW_EXPANDED_KEY] = item[ROW_EXPANDED_KEY] % 2 > 0 ? 1 : 0;
+        treeViewItem.expanded = treeViewItem.expanded % 2 > 0 ? 1 : 0;
       }
     };
 
-    const childrenKey = this.childrenKey;
+    const dataManager = this.cfg.dataManager;
     let totalMatchCount = 0;
-    const idKey = this.idKey;
-    const pidKey = this.pidKey;
     const matchItemMap = new Map<RowId, boolean>();
-    function searchTree(nodes: any[], keyword: string, options: SearchMode): SearchResult {
-      const matchResult = gridDataSearch(nodes, keyword, options);
+    function searchTree(nodes: TreeViewItem[]): SearchResult {
+      const matchResult = gridDataSearch(nodes, dataManager, keyword, options);
 
       if (matchResult.isOriginal) {
         return matchResult;
       }
 
       const matchItems = matchResult.items;
-      const searchResults = [];
+      const searchResults: TreeViewItem[] = [];
 
       let childMatchResult: SearchResult = {} as SearchResult;
       for (const node of nodes) {
-        const children = node[childrenKey];
+        const children = node.children;
 
         childMatchResult.matchCount = 0;
         if (children && children.length > 0) {
-          childMatchResult = searchTree(arrayCopy(children), keyword, options);
+          childMatchResult = searchTree(arrayCopy(children));
         }
 
         console.log('matchItems.includes(node)   ', node, childMatchResult.matchCount);
 
-        if (matchItems.includes(node) || childMatchResult.matchCount > 0 || matchItemMap.has(node[idKey])) {
-          if (!matchItemMap.has(node[pidKey])) {
-            matchItemMap.set(node[pidKey], true);
+        if (
+          matchItems.some((item) => item.id === node.id) ||
+          childMatchResult.matchCount > 0 ||
+          matchItemMap.has(node.id)
+        ) {
+          if (!matchItemMap.has(node.pid)) {
+            matchItemMap.set(node.pid, true);
           }
           searchResults.push(node);
         }
@@ -345,39 +336,28 @@ export class TreeDataManager extends DataManager {
       return matchResult;
     }
 
-    const matchResult = searchTree(originalTreeItems, keyword, options);
+    const matchResult = searchTree(originalTreeItems);
 
     console.log('searchResults', totalMatchCount, matchItemMap, matchResult, matchResult.items);
 
-    //console.log('this.getTreeDataToList(matchResult.items)', this.getTreeDataToList(matchResult.items));
+    this.viewTreeItems = matchResult.items as TreeViewItem[];
 
-    //
-    //
-    // sort 처리 필요.
-
-    this.viewTreeItems = matchResult.items;
-
-    matchResult.items = this.getTreeDataToList(matchResult.items);
+    matchResult.items = this.getTreeToList(matchResult.items);
     matchResult.matchCount = totalMatchCount;
 
     return matchResult;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    const childrenKey = this.childrenKey;
-    const cfg = this.cfg;
-    function sortTree(nodes: any[]) {
-      //
-      //
-      //확인할 것.
-      //
-      //
-      nodes = multiSort(nodes, sortOrders, sortOpts.nullsLast);
+    const dataManager = this.cfg.dataManager;
+    function sortTree(nodes: TreeViewItem[]) {
+      nodes = multiSort(nodes, dataManager, sortOrders, sortOpts.nullsLast) as TreeViewItem[];
 
       for (const node of nodes) {
-        const children = node[childrenKey];
+        const treeViewItem = node;
+        const children = treeViewItem.children;
         if (children && children.length > 0) {
-          node[childrenKey] = sortTree(arrayCopy(children));
+          treeViewItem.children = sortTree(arrayCopy(children));
         }
       }
       return nodes;
@@ -386,7 +366,7 @@ export class TreeDataManager extends DataManager {
 
     //
     // 검색 정렬 처리 할것.
-    //
+    //처리 할것.
     //
     //
 

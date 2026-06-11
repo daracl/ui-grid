@@ -1,6 +1,6 @@
 import { EventElementType, EventOptions } from '@/types/Event';
 import { getEventTargets } from '@/util/eventUtils';
-type EventStore = Record<string, EventListener>;
+type EventStore = Record<string, EventListener | undefined>;
 
 export class EventManager {
   private readonly EVENT_HANDLER_MAP = new WeakMap<any, EventStore>();
@@ -11,9 +11,9 @@ export class EventManager {
       this.EVENT_HANDLER_MAP.set(el, {});
     }
 
-    const store = this.EVENT_HANDLER_MAP.get(el)!;
+    const store = this.EVENT_HANDLER_MAP.get(el);
 
-    if (!store[eventType]) {
+    if (store?.[eventType]) {
       store[eventType] = listener;
     }
 
@@ -68,25 +68,42 @@ export class EventManager {
 
   off(el: EventElementType, type: string) {
     if (!el) return;
-
     const eventTypes = type.replaceAll(/\s+/g, ' ').split(' ');
     const elements = getEventTargets(el);
 
-    for (const eventType of eventTypes) {
-      const event = eventType.split('.')[0];
+    for (const target of elements) {
+      const store = this.EVENT_HANDLER_MAP.get(target);
+      if (!store) continue;
 
-      elements.forEach((target) => {
-        const store = this.EVENT_HANDLER_MAP.get(target);
-        if (!store?.[eventType]) return;
+      let hasHandler = false;
 
-        target.removeEventListener(event, store[eventType]);
-        delete store[eventType];
+      for (const eventType of eventTypes) {
+        const handler = store[eventType];
+        if (!handler) continue;
 
-        if (Object.keys(store).length < 1) {
+        const event = eventType.split('.')[0];
+        target.removeEventListener(event, handler);
+
+        store[eventType] = undefined;
+
+        hasHandler = true;
+      }
+
+      // 3. Object.keys()를 쓰지 않고 Map 전체를 검사하는 방식으로 전환
+      if (hasHandler) {
+        let isEmpty = true;
+        for (const key in store) {
+          if (store[key] !== undefined) {
+            isEmpty = false;
+            break;
+          }
+        }
+
+        if (isEmpty) {
           this.EVENT_HANDLER_MAP.delete(target);
           this.ELEMENTS.delete(target);
         }
-      });
+      }
     }
   }
 

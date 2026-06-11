@@ -1,4 +1,5 @@
 import { ORIGINAL_ORDER_KEY, ROW_ID_FIELD_NAME } from '@/constants';
+import { DataManager } from '@/service/DataManager';
 import { ViewItem } from '@/types/Common';
 import { FieldSortInfo } from '@/types/Header';
 import { FieldItem } from '@t/GridField';
@@ -281,31 +282,32 @@ export function camelToKebab(str: string) {
  * @param {Array<{ name: string, ascOrder?: boolean }>} sortInfos - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
-export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast = false): ViewItem[] {
+export function multiSort(
+  data: ViewItem[],
+  dataManager: DataManager,
+  sortInfos: FieldSortInfo[] = [],
+  emptyValueLast = false,
+): ViewItem[] {
   if (sortInfos.length === 0) {
-    data.sort((a, b) => a[ORIGINAL_ORDER_KEY] - b[ORIGINAL_ORDER_KEY]);
-    return data.map((row, index) => ({
-      id: row[ROW_ID_FIELD_NAME],
-    }));
+    data.sort((a, b) => a.order - b.order);
+    return data;
   }
 
   const sortInfoLength = sortInfos.length;
 
-  const decorated = data.map((item) => ({
-    id: item[ROW_ID_FIELD_NAME],
-    sortValues: sortInfos.map(({ name, field, isValue }) =>
-      isValue ? field.$renderer.getValue({ field, item }) : item[name],
-    ),
-  }));
+  data.forEach((viewItem) => {
+    const item = dataManager.getRowItem(viewItem.id);
 
-  decorated.sort((a, b) => {
+    viewItem.sortValues = sortInfos.map(({ name, field, isValue }) =>
+      isValue ? field.$renderer.getValue({ field, item }) : item[name],
+    );
+  });
+
+  data.sort((a, b) => {
+    const aValues = a.sortValues!;
+    const bValues = b.sortValues!;
     for (let i = 0; i < sortInfoLength; i++) {
-      const result = compareCachedValue(
-        a.sortValues[i],
-        b.sortValues[i],
-        sortInfos[i].ascOrder ?? true,
-        emptyValueLast,
-      );
+      const result = compareCachedValue(aValues[i], bValues[i], sortInfos[i].ascOrder ?? true, emptyValueLast);
 
       if (result !== 0) {
         return result;
@@ -315,15 +317,7 @@ export function multiSort(data: any[], sortInfos: FieldSortInfo[] = [], emptyVal
     return 0;
   });
 
-  const result = new Array<ViewItem>(decorated.length);
-
-  for (let i = 0; i < decorated.length; i++) {
-    result[i] = {
-      id: decorated[i].id,
-    };
-  }
-
-  return result;
+  return data;
 }
 
 export function compareCachedValue(valA: any, valB: any, ascOrder: boolean, emptyValueLast = false): number {

@@ -1,3 +1,4 @@
+import { ROW_ID_FIELD_NAME } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
@@ -12,10 +13,37 @@ export class ListDataManager extends DataManager {
     super(opts, gridMain, 'list');
   }
 
+  /**
+   * init item
+   * @param items items
+   * @param depth depth
+   * @returns
+   */
+  private initItems(items: any[], depth = 0): any[] {
+    let orderIdx = 0;
+    const viewItems: ViewItem[] = [];
+
+    this.clearRowMap();
+
+    items.forEach((item) => {
+      this.createRowItem(item, depth);
+
+      const rowId = item[ROW_ID_FIELD_NAME];
+      viewItems.push({
+        id: rowId,
+        order: orderIdx++,
+      });
+      this.setRowItem(rowId, item);
+    });
+
+    return viewItems;
+  }
+
   public setItems(items: any[]) {
     const viewItemIds = this.initItems(items);
 
     super.setItems(items);
+    super.setOriginalViewItems(viewItemIds);
 
     const footerOpts = this.opts.footer;
     if (footerOpts?.enabled && footerOpts.paging?.enabled) {
@@ -39,7 +67,7 @@ export class ListDataManager extends DataManager {
   }
 
   getSearchData(keyword: string, options: SearchMode): SearchResult {
-    const items = this.getCurrentItems();
+    const items = this.getOriginalViewItems();
 
     options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (isMatched) {
@@ -49,11 +77,11 @@ export class ListDataManager extends DataManager {
       }
     };
 
-    return gridDataSearch(items, keyword, options);
+    return gridDataSearch(items, this.cfg.dataManager, keyword, options);
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
-    return multiSort(this.convertViewItemsToRowItems(), sortOrders, sortOpts.nullsLast);
+    return multiSort(this.getOriginalViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
   }
 
   public addRows(addOpts: AddRowOptions): void {

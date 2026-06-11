@@ -456,12 +456,15 @@ export class Body {
         searchMatchedFields = dataManager.getMatchMap(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
       }
 
+      const rowCellInfo = { rowIndex: rowIdx, r: viewRowIdx, item: item } as CellInfo;
+
       // left panel
       if (enableLeftField) {
         const rowCells = leftElements[i];
         for (let j = 0; j < leftFields.length; j++) {
           const field = leftFields[j];
           const cell = rowCells[j];
+          rowCellInfo.c = j;
           this.setCellStyle(
             startCell,
             viewRowIdx,
@@ -473,10 +476,7 @@ export class Body {
             searchEnable,
             searchMatchInfo,
           );
-          field.$renderer.render(
-            { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
-            cell.firstElementChild,
-          );
+          field.$renderer.render(rowCellInfo, cell.firstElementChild);
         }
       }
 
@@ -496,10 +496,8 @@ export class Body {
           searchEnable,
           searchMatchInfo,
         );
-        field.$renderer.render(
-          { rowIndex: rowIdx, r: viewRowIdx, c: j, item: item } as CellInfo,
-          cell.firstElementChild,
-        );
+        rowCellInfo.c = j;
+        field.$renderer.render(rowCellInfo, cell.firstElementChild);
       }
 
       // right panel
@@ -509,6 +507,9 @@ export class Body {
           const field = rightFields[j];
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
+
+          rowCellInfo.c = cellIdx;
+
           this.setCellStyle(
             startCell,
             viewRowIdx,
@@ -521,10 +522,7 @@ export class Body {
             searchMatchInfo,
           );
 
-          field.$renderer.render(
-            { rowIndex: rowIdx, r: viewRowIdx, c: cellIdx, item: item } as CellInfo,
-            cell.firstElementChild,
-          );
+          field.$renderer.render(rowCellInfo, cell.firstElementChild);
         }
       }
     }

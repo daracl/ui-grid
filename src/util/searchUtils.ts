@@ -1,8 +1,14 @@
 import { ALL_SELECT_VALUE, CHUNK_SIZE, MATCH_WHOLE_REGEX, ROW_ID_FIELD_NAME } from '@/constants';
 import { MatchedField, SearchFields, SearchMode, SearchResult, ViewItem } from '@t/Common';
 import { arrayCopy, hasOwnProp } from './utils';
+import { DataManager } from '@/service/DataManager';
 
-export function gridDataSearch(searchList: any[], searchText: string, options: SearchMode): SearchResult {
+export function gridDataSearch(
+  searchList: ViewItem[],
+  dataManager: DataManager,
+  searchText: string,
+  options: SearchMode,
+): SearchResult {
   const results: ViewItem[] = [];
   const postProcess = options.postProcess;
   const searchListLength = searchList.length;
@@ -13,7 +19,10 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       const chunk = searchList.slice(i, end);
 
       for (const item of chunk) {
-        results.push({ id: item[ROW_ID_FIELD_NAME] });
+        item.matchCount = undefined;
+        item.matchedFields = undefined;
+
+        results.push(item);
         if (postProcess) {
           postProcess(false, item);
         }
@@ -56,7 +65,8 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
     const end = Math.min(i + CHUNK_SIZE, searchListLength);
     const chunk = searchList.slice(i, end);
 
-    for (const item of chunk) {
+    for (const viewItem of chunk) {
+      const item = dataManager.getRowItem(viewItem.id);
       const matchedFields = findFirstMatchInItemOptimized(
         item,
         searchText,
@@ -70,14 +80,17 @@ export function gridDataSearch(searchList: any[], searchText: string, options: S
       );
       const matchLength = matchedFields.length;
       const matched = matchLength > 0;
-      let viewItem;
+
       if (matched) {
         matchCount += matchLength;
-        viewItem = { id: item[ROW_ID_FIELD_NAME], matchedFields, matchCount: matchLength };
+        viewItem.matchedFields = matchedFields;
+        viewItem.matchCount = matchLength;
         results.push(viewItem);
       } else {
+        viewItem.matchCount = undefined;
+        viewItem.matchedFields = undefined;
+
         if (!hideNonMatched) {
-          viewItem = { id: item[ROW_ID_FIELD_NAME] };
           results.push(viewItem);
         }
       }

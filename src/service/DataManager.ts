@@ -1,7 +1,6 @@
 import {
   ALL_SELECT_VALUE,
   MATCH_WHOLE_REGEX,
-  ORIGINAL_ORDER_KEY,
   ROW_CUD_KEY,
   ROW_DEPTH_KEY,
   ROW_HEIGHT_KEY,
@@ -14,10 +13,10 @@ import {
   CURRNET_MATCH_INFO,
   MatchedField,
   RowId,
+  SearchMatchInfo,
   SearchMode,
   SearchResult,
   ViewItem,
-  SearchMatchInfo,
 } from '@/types/Common';
 import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
@@ -26,8 +25,6 @@ import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
 export abstract class DataManager {
-  private viewItems: ViewItem[] = [];
-
   protected readonly matchWholeRegex?: RegExp;
 
   protected readonly rowHeight;
@@ -36,7 +33,9 @@ export abstract class DataManager {
   protected readonly cfg;
 
   private originalItems: any[] = [];
-  private currentItems: any[] = [];
+  private originalViewItems: ViewItem[] = [];
+
+  private viewItems: ViewItem[] = [];
 
   private sortBaseItems: any[] = [];
   private readonly defaultSearchOpts: SearchOptions;
@@ -122,38 +121,11 @@ export abstract class DataManager {
   }
 
   /**
-   * init item
-   * @param items items
-   * @param depth depth
-   * @returns
-   */
-  protected initItems(items: any[], depth = 0): any[] {
-    let orderIdx = 0;
-    const viewItems: ViewItem[] = [];
-
-    this.clearRowMap();
-
-    items.forEach((item) => {
-      this.createRowItem(item, depth);
-      item[ORIGINAL_ORDER_KEY] = orderIdx++;
-
-      const rowId = item[ROW_ID_FIELD_NAME];
-      viewItems.push({
-        id: rowId,
-      });
-      this.setRowItem(rowId, item);
-    });
-
-    return viewItems;
-  }
-
-  /**
    * 데이터 세팅
    * @param items
    */
   public setItems(items: any[]) {
     this.originalItems = items;
-    this.setCurrentItems(items);
   }
 
   protected getSortBaseItems() {
@@ -308,15 +280,15 @@ export abstract class DataManager {
     return this.originalItems;
   }
 
-  public setCurrentItems(items: any[]) {
-    this.currentItems = items;
+  public setOriginalViewItems(items: ViewItem[]) {
+    this.originalViewItems = items;
   }
   /**
    * 현재 데이터 얻기
    * @returns
    */
-  public getCurrentItems() {
-    return this.currentItems;
+  public getOriginalViewItems() {
+    return this.originalViewItems;
   }
 
   protected clearRowMap() {
