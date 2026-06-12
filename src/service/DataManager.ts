@@ -391,15 +391,19 @@ export abstract class DataManager {
       this.dataSort(this.sortOrders, this.sortOpts);
     }
 
-    let matchInfo: CURRNET_MATCH_INFO = { id: '', matchRowIndex: -1, itemIndex: 0, matchedInfo: [] as MatchedField[] };
+    if (searchMatchInfo.matchCount < 1) {
+      return;
+    }
 
-    if (searchMatchInfo.matchCount > 0) {
+    let matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
+
+    if (matchInfo.matchRowIndex == -1) {
+      searchMatchInfo.matchRowIndex = -1;
       matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
+    }
 
-      if (matchInfo.matchRowIndex == -1) {
-        searchMatchInfo.matchRowIndex = -1;
-        matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
-      }
+    if (!this.visibleMatchInfo(searchMatchInfo, matchInfo)) {
+      matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
     }
 
     const { matchRowIndex, itemIndex } = matchInfo;
@@ -417,7 +421,7 @@ export abstract class DataManager {
       }
     }
 
-    if (matchInfo.matchedInfo?.length > 0) {
+    if (itemIndex > -1) {
       const matchedInfo = matchInfo.matchedInfo[itemIndex];
       const matchFieldInfo = this.cfg.allFieldMap.get(matchedInfo.fieldName);
 
@@ -437,6 +441,8 @@ export abstract class DataManager {
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
   }
+
+  abstract visibleMatchInfo(searchMatchInfo: SearchMatchInfo, matchInfo: CURRNET_MATCH_INFO): boolean;
 
   abstract getSearchData(keyword: string, options: SearchMode): SearchResult;
 

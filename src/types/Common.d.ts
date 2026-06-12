@@ -93,7 +93,7 @@ export type AddRowOptions = {
 
 export interface ViewItem {
   id: RowId;
-  order: number;
+  sortOrder: number;
   sortValues?: any[];
   matchedFields?: MatchedField[];
   matchCount?: number;

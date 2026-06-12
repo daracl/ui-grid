@@ -13,7 +13,7 @@ export class EventManager {
 
     const store = this.EVENT_HANDLER_MAP.get(el);
 
-    if (store?.[eventType]) {
+    if (store && !store?.[eventType]) {
       store[eventType] = listener;
     }
 
@@ -89,7 +89,6 @@ export class EventManager {
         hasHandler = true;
       }
 
-      // 3. Object.keys()를 쓰지 않고 Map 전체를 검사하는 방식으로 전환
       if (hasHandler) {
         let isEmpty = true;
         for (const key in store) {

@@ -289,7 +289,7 @@ export function multiSort(
   emptyValueLast = false,
 ): ViewItem[] {
   if (sortInfos.length === 0) {
-    data.sort((a, b) => a.order - b.order);
+    data.sort((a, b) => a.sortOrder - b.sortOrder);
     return data;
   }
 

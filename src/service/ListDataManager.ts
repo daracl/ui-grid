@@ -1,6 +1,14 @@
 import { ROW_ID_FIELD_NAME } from '@/constants';
 import { DataManager } from '@/service/DataManager';
-import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
+import {
+  AddRowOptions,
+  CURRNET_MATCH_INFO,
+  RowId,
+  SearchMatchInfo,
+  SearchMode,
+  SearchResult,
+  ViewItem,
+} from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -31,7 +39,7 @@ export class ListDataManager extends DataManager {
       const rowId = item[ROW_ID_FIELD_NAME];
       viewItems.push({
         id: rowId,
-        order: orderIdx++,
+        sortOrder: orderIdx++,
       });
       this.setRowItem(rowId, item);
     });
@@ -78,6 +86,10 @@ export class ListDataManager extends DataManager {
     };
 
     return gridDataSearch(items, this.cfg.dataManager, keyword, options);
+  }
+
+  public visibleMatchInfo(searchMatchInfo: SearchMatchInfo, matchInfo: CURRNET_MATCH_INFO) {
+    return true;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {

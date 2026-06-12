@@ -456,7 +456,7 @@ export class Body {
         searchMatchedFields = dataManager.getMatchMap(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
       }
 
-      const rowCellInfo = { rowIndex: rowIdx, r: viewRowIdx, item: item } as CellInfo;
+      const rowCellInfo = { rowIndex: rowIdx, r: viewRowIdx, item: item, viewItem: viewItem, c: -1 } as CellInfo;
 
       // left panel
       if (enableLeftField) {
