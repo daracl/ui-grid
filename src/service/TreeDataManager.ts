@@ -1,4 +1,4 @@
-import { ROW_ID_FIELD_NAME } from '@/constants';
+import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
 import {
   AddRowOptions,
   CURRNET_MATCH_INFO,
@@ -33,6 +33,8 @@ export class TreeDataManager extends DataManager {
   private originalTreeItems: TreeViewItem[] = [];
   // 트리 구조 데이터
   private viewTreeItems: TreeViewItem[] = [];
+
+  private searchMatchedIds: RowId[] = [];
 
   constructor(opts: GridOptions, gridMain: GridMain) {
     super(opts, gridMain, 'tree');
@@ -163,11 +165,22 @@ export class TreeDataManager extends DataManager {
 
   private getTreeToList(items: ViewItem[]): TreeViewItem[] {
     const result: TreeViewItem[] = [];
+
+    const matchedIds: RowId[] = [];
+
     const dfs = (list: ViewItem[], parentExpanded: boolean) => {
       for (const item of list) {
         const treeItem = item as TreeViewItem;
 
-        this.idViewItemMap.set(treeItem.id, treeItem);
+        const rowId = treeItem.id;
+
+        const matchViewItem = this.getMatchMap(rowId);
+
+        if (matchViewItem) {
+          matchedIds.push(rowId);
+        }
+
+        this.idViewItemMap.set(rowId, treeItem);
 
         if (parentExpanded) {
           result.push(treeItem);
@@ -180,6 +193,8 @@ export class TreeDataManager extends DataManager {
     };
 
     dfs(items, true);
+
+    this.searchMatchedIds = matchedIds;
 
     return result;
   }
@@ -273,12 +288,6 @@ export class TreeDataManager extends DataManager {
     const searchMatchInfo = this.cfg.searchMatchInfo;
     searchMatchInfo.matchCount = 0;
 
-    //
-    //
-    //검색 데이터 없을때 처리.
-    //
-    //
-
     options.hideNonMatched = true;
 
     const hideNonMatched = options.hideNonMatched;
@@ -362,6 +371,23 @@ export class TreeDataManager extends DataManager {
     return matchResult;
   }
 
+  protected getMatchInfo(
+    searchMatchInfo: SearchMatchInfo,
+    searchResult: ViewItem[],
+    options: SearchMode,
+  ): CURRNET_MATCH_INFO {
+    const isPrev = options.direction === SearchDirectionMap.PREV;
+
+    //this.searchMatchedIds
+    //처리할것.
+
+    const beforeCurrentMatchIndex = searchMatchInfo.currentMatchIndex;
+
+    const matchInfo = super.getMatchInfo(searchMatchInfo, searchResult, options);
+
+    return matchInfo;
+  }
+
   /**
    * 정렬
    *
@@ -388,24 +414,6 @@ export class TreeDataManager extends DataManager {
     const result = this.getTreeToList(sortedTree);
 
     return result;
-  }
-
-  public visibleMatchInfo(searchMatchInfo: SearchMatchInfo, matchInfo: CURRNET_MATCH_INFO) {
-    let pid;
-    if (matchInfo.id) {
-      pid = this.idViewItemMap.get(matchInfo.id)?.pid;
-    } else {
-      pid = this.idViewItemMap.get(searchMatchInfo.id)?.pid;
-    }
-
-    console.log(pid);
-
-    if (pid && (this.idViewItemMap.get(pid)?.expanded ?? 0) < 1) {
-      this.expandRow(pid);
-      return false;
-    }
-
-    return true;
   }
 
   /**

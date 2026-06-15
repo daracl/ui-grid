@@ -42,6 +42,7 @@ export abstract class DataManager {
 
   private beforeKeyword: string;
   private beforeSearchMode: SearchMode;
+  private beforeSearchSortInfo: string;
 
   private sortOrders: FieldSortInfo[] = [];
   private sortOpts: SortOption;
@@ -158,7 +159,7 @@ export abstract class DataManager {
     const matchId = searchMatchInfo.id;
 
     if (matchId) {
-      this.setCurrentMatchIndex(sortData, matchId);
+      this.setCurrentMatchInfo(sortData, matchId, searchMatchInfo.itemIndex);
 
       this.gridMain.getDataSearch().setMatchCountText();
     }
@@ -388,23 +389,29 @@ export abstract class DataManager {
 
     // 정렬 처리
     if (this.sortOrders.length > 0) {
-      this.dataSort(this.sortOrders, this.sortOpts);
+      const currentSortState = JSON.stringify(
+        this.sortOrders.map(({ name, ascOrder, sortCell }) => ({
+          name,
+          ascOrder,
+          sortCell,
+        })),
+      );
+
+      if (isNewSearch || this.beforeSearchSortInfo !== currentSortState) {
+        console.log('22222');
+        this.dataSort(this.sortOrders, this.sortOpts);
+        this.beforeSearchSortInfo = currentSortState;
+      }
     }
+
+    this.beforeKeyword = keyword;
+    this.beforeSearchMode = merge({}, options);
 
     if (searchMatchInfo.matchCount < 1) {
       return;
     }
 
-    let matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
-
-    if (matchInfo.matchRowIndex == -1) {
-      searchMatchInfo.matchRowIndex = -1;
-      matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
-    }
-
-    if (!this.visibleMatchInfo(searchMatchInfo, matchInfo)) {
-      matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
-    }
+    const matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
 
     const { matchRowIndex, itemIndex } = matchInfo;
 
@@ -434,19 +441,12 @@ export abstract class DataManager {
       }
     }
 
-    searchMatchInfo.id = matchInfo.id;
-    searchMatchInfo.matchRowIndex = matchRowIndex;
-    searchMatchInfo.itemIndex = itemIndex;
-
-    this.beforeKeyword = keyword;
-    this.beforeSearchMode = merge({}, options);
+    this.setCurrentMatchInfo(this.getViewItems(), matchInfo.id, matchInfo.itemIndex);
   }
-
-  abstract visibleMatchInfo(searchMatchInfo: SearchMatchInfo, matchInfo: CURRNET_MATCH_INFO): boolean;
 
   abstract getSearchData(keyword: string, options: SearchMode): SearchResult;
 
-  private getMatchInfo(
+  protected getMatchInfo(
     searchMatchInfo: SearchMatchInfo,
     searchResult: ViewItem[],
     options: SearchMode,
@@ -456,8 +456,6 @@ export abstract class DataManager {
     const currentMatchInfo = isPrev
       ? this.getPrevMatch(searchMatchInfo, searchResult)
       : this.getNextMatch(searchMatchInfo, searchResult);
-
-    this.setCurrentMatchIndex(searchResult, currentMatchInfo.id);
 
     return currentMatchInfo;
   }
@@ -469,7 +467,7 @@ export abstract class DataManager {
    * @param matchId
    * @returns
    */
-  private setCurrentMatchIndex(items: ViewItem[], matchId: RowId) {
+  private setCurrentMatchInfo(items: ViewItem[], matchId: RowId, itemIndex: number) {
     let currentMatchIndex = 0;
     let matchRowIndex = -1;
     for (let i = 0; i < items.length; i++) {
@@ -483,8 +481,12 @@ export abstract class DataManager {
       currentMatchIndex += this.getMatchMap(id)?.matchedFields?.length ?? 0;
     }
 
-    this.cfg.searchMatchInfo.currentMatchIndex = currentMatchIndex;
-    this.cfg.searchMatchInfo.matchRowIndex = matchRowIndex;
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+
+    searchMatchInfo.currentMatchIndex = currentMatchIndex + itemIndex + 1;
+    searchMatchInfo.matchRowIndex = matchRowIndex;
+    searchMatchInfo.id = matchId;
+    searchMatchInfo.itemIndex = itemIndex;
   }
 
   /**
@@ -495,8 +497,13 @@ export abstract class DataManager {
    */
   private getNextMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
     const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
-    const checkMatchIndex = currentMatchRowIndex === -1 ? 0 : currentMatchRowIndex;
-    const checkItemIdx = currentMatchRowIndex === -1 ? -1 : searchMatchInfo.itemIndex;
+
+    let checkMatchIndex = currentMatchRowIndex;
+    let checkItemIdx = searchMatchInfo.itemIndex;
+    if (searchMatchInfo.matchCount == searchMatchInfo.currentMatchIndex) {
+      checkMatchIndex = 0;
+      checkItemIdx = -1;
+    }
 
     let matchRowIndex = -1;
     let itemIndex = -1;
@@ -541,8 +548,13 @@ export abstract class DataManager {
    */
   private getPrevMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
     const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
-    const checkMatchIndex = currentMatchRowIndex === -1 ? searchResult.length - 1 : currentMatchRowIndex;
-    const checkItemIdx = currentMatchRowIndex === -1 ? -1 : searchMatchInfo.itemIndex;
+
+    let checkMatchIndex = currentMatchRowIndex;
+    let checkItemIdx = searchMatchInfo.itemIndex;
+    if (searchMatchInfo.currentMatchIndex == 1) {
+      checkMatchIndex = searchResult.length - 1;
+      checkItemIdx = -1;
+    }
 
     let matchIndex = -1;
     let itemIndex = -1;

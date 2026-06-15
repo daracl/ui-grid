@@ -1,14 +1,6 @@
 import { ROW_ID_FIELD_NAME } from '@/constants';
 import { DataManager } from '@/service/DataManager';
-import {
-  AddRowOptions,
-  CURRNET_MATCH_INFO,
-  RowId,
-  SearchMatchInfo,
-  SearchMode,
-  SearchResult,
-  ViewItem,
-} from '@/types/Common';
+import { AddRowOptions, RowId, SearchMode, SearchResult, ViewItem } from '@/types/Common';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -88,12 +80,8 @@ export class ListDataManager extends DataManager {
     return gridDataSearch(items, this.cfg.dataManager, keyword, options);
   }
 
-  public visibleMatchInfo(searchMatchInfo: SearchMatchInfo, matchInfo: CURRNET_MATCH_INFO) {
-    return true;
-  }
-
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
-    return multiSort(this.getOriginalViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+    return multiSort(this.getViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
   }
 
   public addRows(addOpts: AddRowOptions): void {

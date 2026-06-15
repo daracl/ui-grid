@@ -215,8 +215,7 @@ export class DataSearch {
     const searchMatchInfo = this.cfg.searchMatchInfo;
 
     if (searchMatchInfo.matchCount > 0) {
-      this.matchCountElement.textContent =
-        searchMatchInfo.currentMatchIndex + searchMatchInfo.itemIndex + 1 + '/' + searchMatchInfo.matchCount;
+      this.matchCountElement.textContent = searchMatchInfo.currentMatchIndex + '/' + searchMatchInfo.matchCount;
     } else {
       this.matchCountElement.textContent = '';
     }

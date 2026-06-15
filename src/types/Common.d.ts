@@ -100,6 +100,7 @@ export interface ViewItem {
 }
 
 export interface TreeViewItem extends ViewItem {
+  id: RowId;
   pid: RowId;
   children: TreeViewItem[];
   expanded: number;
@@ -114,9 +115,18 @@ export type CURRNET_MATCH_INFO = {
 };
 
 export interface SearchMatchInfo {
+  // 검색 match count
   matchCount: number;
-  currentMatchIndex: number;
+
+  // match row index
   matchRowIndex: number;
+
+  // match row cell index
   itemIndex: number;
+
+  // 현재 match item index
+  currentMatchIndex: number;
+
+  // match uid
   id: RowId;
 }
