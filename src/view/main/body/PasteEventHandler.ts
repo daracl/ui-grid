@@ -116,7 +116,7 @@ export class PasteEvent implements EventHandler {
         }
       }
 
-      cfg.dataManager.setViewItemIds(pasteResultItems);
+      cfg.dataManager.setViewItems(pasteResultItems);
       this.gridMain.refreshBody(true, 'paste');
 
       // selection 갱신

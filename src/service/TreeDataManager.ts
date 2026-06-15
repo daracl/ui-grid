@@ -160,7 +160,7 @@ export class TreeDataManager extends DataManager {
    * @param items items
    */
   public buildViewItems() {
-    this.setViewItemIds(this.getTreeToList(this.viewTreeItems));
+    this.setViewItems(this.getTreeToList(this.viewTreeItems));
   }
 
   private getTreeToList(items: ViewItem[]): TreeViewItem[] {
@@ -378,10 +378,27 @@ export class TreeDataManager extends DataManager {
   ): CURRNET_MATCH_INFO {
     const isPrev = options.direction === SearchDirectionMap.PREV;
 
-    //this.searchMatchedIds
-    //처리할것.
+    const matchId = searchMatchInfo.id;
 
-    const beforeCurrentMatchIndex = searchMatchInfo.currentMatchIndex;
+    const searchMatchIdLength = this.searchMatchedIds.length;
+    const currentIdx = this.searchMatchedIds.indexOf(matchId);
+    let nextIdx;
+    if (isPrev) {
+      nextIdx = currentIdx > 0 ? currentIdx - 1 : searchMatchIdLength - 1;
+    } else {
+      nextIdx = currentIdx < searchMatchIdLength - 1 ? currentIdx + 1 : 0;
+    }
+    const nextId = this.searchMatchedIds[nextIdx];
+
+    const nextViewItem = this.getMatchMap(nextId) as TreeViewItem;
+
+    if ((this.idViewItemMap.get(nextViewItem.pid) as TreeViewItem).expanded < 1) {
+      this.expandRow(nextId);
+
+      //this.getViewItems();
+      // 접기/펼치기 처리.
+      //const matchInfo = super.getMatchInfo(searchMatchInfo, searchResult, options);
+    }
 
     const matchInfo = super.getMatchInfo(searchMatchInfo, searchResult, options);
 

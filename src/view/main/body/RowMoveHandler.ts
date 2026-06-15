@@ -385,7 +385,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     ids.splice(dropRowIdx, 0, ...moveViewItems);
 
-    cfg.dataManager.setViewItemIds(ids);
+    cfg.dataManager.setViewItems(ids);
 
     let startCol = cfg.dataInfo.startCol;
     let endCol = cfg.dataInfo.colLength - 1;

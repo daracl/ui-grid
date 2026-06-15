@@ -54,15 +54,15 @@ export class ListDataManager extends DataManager {
 
       this.gridMain.setPaging(pagingInfo);
       if (itemLength < pagingInfo.countPerPage) {
-        this.setViewItemIds(viewItemIds);
+        this.setViewItems(viewItemIds);
       } else {
         const countPerPage = pagingInfo.countPerPage;
         const startIdx = (pagingInfo.currPage - 1) * countPerPage;
 
-        this.setViewItemIds(viewItemIds, startIdx, startIdx + countPerPage);
+        this.setViewItems(viewItemIds, startIdx, startIdx + countPerPage);
       }
     } else {
-      this.setViewItemIds(viewItemIds);
+      this.setViewItems(viewItemIds);
     }
   }
 

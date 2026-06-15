@@ -150,7 +150,7 @@ export abstract class DataManager {
     });
 
     if (this.opts.header.sort.customSorting) {
-      this.setViewItemIds(this.opts.header.sort.customSorting(this.getRowItems(true), sortArr, sortOpts));
+      this.setViewItems(this.opts.header.sort.customSorting(this.getRowItems(true), sortArr, sortOpts));
       return;
     }
 
@@ -164,7 +164,7 @@ export abstract class DataManager {
       this.gridMain.getDataSearch().setMatchCountText();
     }
 
-    this.setViewItemIds(sortData);
+    this.setViewItems(sortData);
   }
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
@@ -202,7 +202,7 @@ export abstract class DataManager {
    * @param start start index
    * @param end end index
    */
-  public setViewItemIds(ids: ViewItem[], start?: number, end?: number) {
+  public setViewItems(ids: ViewItem[], start?: number, end?: number) {
     const viewItemIds = arrayCopy(ids, start, end);
     this.viewItems = viewItemIds;
 
@@ -384,7 +384,7 @@ export abstract class DataManager {
     }
 
     if (isNewSearch) {
-      this.setViewItemIds(searchItems);
+      this.setViewItems(searchItems);
     }
 
     // 정렬 처리
@@ -467,7 +467,7 @@ export abstract class DataManager {
    * @param matchId
    * @returns
    */
-  private setCurrentMatchInfo(items: ViewItem[], matchId: RowId, itemIndex: number) {
+  protected setCurrentMatchInfo(items: ViewItem[], matchId: RowId, itemIndex: number) {
     let currentMatchIndex = 0;
     let matchRowIndex = -1;
     for (let i = 0; i < items.length; i++) {
