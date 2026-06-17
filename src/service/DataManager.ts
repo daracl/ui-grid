@@ -47,7 +47,7 @@ export abstract class DataManager {
   private sortOrders: FieldSortInfo[] = [];
   private sortOpts: SortOption;
 
-  private readonly matchMap = new Map<RowId, ViewItem>();
+  private readonly searchMap = new Map<RowId, ViewItem>();
 
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
@@ -154,15 +154,9 @@ export abstract class DataManager {
       return;
     }
 
+    console.log('22dataSort2222');
+
     const sortData = this.getSortData(sortArr, sortOpts);
-    const searchMatchInfo = this.cfg.searchMatchInfo;
-    const matchId = searchMatchInfo.id;
-
-    if (matchId) {
-      this.setCurrentMatchInfo(sortData, matchId, searchMatchInfo.itemIndex);
-
-      this.gridMain.getDataSearch().setMatchCountText();
-    }
 
     this.setViewItems(sortData);
   }
@@ -299,24 +293,24 @@ export abstract class DataManager {
   /**
    *clear search match map
    */
-  protected clearMatchMap() {
-    this.matchMap.clear();
+  protected clearSearchMap() {
+    this.searchMap.clear();
   }
 
-  protected addMatchMap(id: RowId, viewItem: ViewItem) {
-    this.matchMap.set(id, viewItem);
+  protected addSearchMapItem(id: RowId, viewItem: ViewItem) {
+    this.searchMap.set(id, viewItem);
   }
 
-  public getMatchMap(rowId: RowId): ViewItem | undefined {
-    return this.matchMap.get(rowId);
+  public getSearchMapItem(rowId: RowId): ViewItem | undefined {
+    return this.searchMap.get(rowId);
+  }
+
+  public hasSearchMapItem(rowId: RowId): boolean {
+    return this.searchMap.has(rowId);
   }
 
   public getRowItem(rowId: RowId): any {
     return this.rowMap.get(rowId);
-  }
-
-  public getRowMap() {
-    return this.rowMap;
   }
 
   protected setRowItem(rowId: RowId, item: any) {
@@ -363,21 +357,17 @@ export abstract class DataManager {
       isSameSearchOpts = false;
     }
 
-    const searchMatchInfo = this.cfg.searchMatchInfo;
-    const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
+    let searchMatchInfo;
 
     let searchResult: SearchResult;
     let searchItems;
     let isNewSearch = false;
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
+      searchMatchInfo = this.cfg.searchMatchInfo;
       searchItems = this.getViewItems();
     } else {
       isNewSearch = true;
-      searchMatchInfo.id = '';
-      searchMatchInfo.currentMatchIndex = -1;
-      searchMatchInfo.matchRowIndex = startIdx;
-      searchMatchInfo.itemIndex = -1;
-      this.clearMatchMap();
+      searchMatchInfo = this.clearSearchInfo();
       searchResult = this.getSearchData(keyword, options);
       searchMatchInfo.matchCount = searchResult.matchCount;
       searchItems = searchResult.items;
@@ -397,8 +387,9 @@ export abstract class DataManager {
         })),
       );
 
+      console.log(isNewSearch, this.beforeSearchSortInfo, currentSortState);
+
       if (isNewSearch || this.beforeSearchSortInfo !== currentSortState) {
-        console.log('22222');
         this.dataSort(this.sortOrders, this.sortOpts);
         this.beforeSearchSortInfo = currentSortState;
       }
@@ -411,13 +402,14 @@ export abstract class DataManager {
       return;
     }
 
-    const matchInfo = this.getMatchInfo(searchMatchInfo, this.getViewItems(), options);
+    const matchInfo = this.getMatchInfo(searchMatchInfo, isNewSearch, options);
 
-    const { matchRowIndex, itemIndex } = matchInfo;
+    const { rowIndex: matchRowIndex, cellIndex: itemIndex } = matchInfo;
 
-    let moveScrollRowIdx = -1;
+    const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
 
     if (startIdx + insideViewRow <= matchRowIndex || matchRowIndex < startIdx) {
+      let moveScrollRowIdx = -1;
       if (matchRowIndex < insideViewRow) {
         moveScrollRowIdx = 0;
       } else {
@@ -429,7 +421,8 @@ export abstract class DataManager {
     }
 
     if (itemIndex > -1) {
-      const matchedInfo = matchInfo.matchedInfo[itemIndex];
+      const matchedInfo = matchInfo.matchedFields[itemIndex];
+
       const matchFieldInfo = this.cfg.allFieldMap.get(matchedInfo.fieldName);
 
       if (matchFieldInfo) {
@@ -441,24 +434,27 @@ export abstract class DataManager {
       }
     }
 
-    this.setCurrentMatchInfo(this.getViewItems(), matchInfo.id, matchInfo.itemIndex);
+    //this.setCurrentMatchInfo(this.getViewItems(), matchInfo.id, matchInfo.itemIndex);
+  }
+
+  clearSearchInfo() {
+    this.clearSearchMap();
+    const searchMatchInfo = {
+      id: '',
+      rowIndex: -1,
+      currentMatchIndex: -1,
+      cellIndex: -1,
+      matchCount: 0,
+    };
+
+    this.cfg.searchMatchInfo = searchMatchInfo;
+
+    return searchMatchInfo;
   }
 
   abstract getSearchData(keyword: string, options: SearchMode): SearchResult;
 
-  protected getMatchInfo(
-    searchMatchInfo: SearchMatchInfo,
-    searchResult: ViewItem[],
-    options: SearchMode,
-  ): CURRNET_MATCH_INFO {
-    const isPrev = options.direction === SearchDirectionMap.PREV;
-
-    const currentMatchInfo = isPrev
-      ? this.getPrevMatch(searchMatchInfo, searchResult)
-      : this.getNextMatch(searchMatchInfo, searchResult);
-
-    return currentMatchInfo;
-  }
+  abstract getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRNET_MATCH_INFO;
 
   /**
    * 현재 검색 포커스 cell 정보
@@ -467,136 +463,32 @@ export abstract class DataManager {
    * @param matchId
    * @returns
    */
-  protected setCurrentMatchInfo(items: ViewItem[], matchId: RowId, itemIndex: number) {
-    let currentMatchIndex = 0;
-    let matchRowIndex = -1;
-    for (let i = 0; i < items.length; i++) {
-      const id = items[i].id;
+  protected setCurrentMatchInfo(currentMatchIndex: number, currentMatchInfo: CURRNET_MATCH_INFO) {
+    const searchMatchInfo = this.cfg.searchMatchInfo;
 
-      if (id == matchId) {
-        matchRowIndex = i;
+    searchMatchInfo.currentMatchIndex = currentMatchIndex + currentMatchInfo.cellIndex + 1;
+    searchMatchInfo.id = currentMatchInfo.id;
+    searchMatchInfo.cellIndex = currentMatchInfo.cellIndex;
+    searchMatchInfo.rowIndex = currentMatchInfo.rowIndex;
+
+    this.gridMain.getDataSearch().setMatchCountText();
+  }
+
+  getCurrentMatchIndex(searchMatchedIds: RowId[], matchRowId: RowId) {
+    let currentMatchIndex = 0;
+
+    if (!matchRowId) return currentMatchIndex;
+
+    for (let i = 0; i < searchMatchedIds.length; i++) {
+      const id = searchMatchedIds[i];
+
+      if (id == matchRowId) {
         break;
       }
 
-      currentMatchIndex += this.getMatchMap(id)?.matchedFields?.length ?? 0;
+      currentMatchIndex = currentMatchIndex + (this.getSearchMapItem(id)?.matchedFields?.length ?? 0);
     }
 
-    const searchMatchInfo = this.cfg.searchMatchInfo;
-
-    searchMatchInfo.currentMatchIndex = currentMatchIndex + itemIndex + 1;
-    searchMatchInfo.matchRowIndex = matchRowIndex;
-    searchMatchInfo.id = matchId;
-    searchMatchInfo.itemIndex = itemIndex;
-  }
-
-  /**
-   * 검색 다음 찾기
-   * @param searchMatchInfo 검색 정보
-   * @param searchResult 검색 결과
-   * @returns
-   */
-  private getNextMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
-    const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
-
-    let checkMatchIndex = currentMatchRowIndex;
-    let checkItemIdx = searchMatchInfo.itemIndex;
-    if (searchMatchInfo.matchCount == searchMatchInfo.currentMatchIndex) {
-      checkMatchIndex = 0;
-      checkItemIdx = -1;
-    }
-
-    let matchRowIndex = -1;
-    let itemIndex = -1;
-    let matchId: RowId = '';
-    let matchedInfo: MatchedField[] = [];
-
-    for (let searchRowIdx = checkMatchIndex; searchRowIdx < searchResult.length; searchRowIdx++) {
-      const item = searchResult[searchRowIdx];
-      const itemMatchInfos = this.getMatchMap(item.id)?.matchedFields;
-
-      if (!itemMatchInfos?.length) continue;
-
-      matchId = item.id;
-
-      if (searchRowIdx === checkMatchIndex) {
-        const nextItemIdx = checkItemIdx + 1;
-
-        if (checkItemIdx === -1 || nextItemIdx < itemMatchInfos.length) {
-          matchRowIndex = searchRowIdx;
-          itemIndex = checkItemIdx === -1 ? 0 : nextItemIdx;
-          matchedInfo = itemMatchInfos;
-          break;
-        }
-
-        continue;
-      }
-
-      matchRowIndex = searchRowIdx;
-      itemIndex = 0;
-      matchedInfo = itemMatchInfos;
-      break;
-    }
-
-    return { id: matchId, matchRowIndex: matchRowIndex, itemIndex, matchedInfo };
-  }
-
-  /**
-   * 검색 이전 찾기
-   * @param searchMatchInfo 검색 정보
-   * @param searchResult 검색 결과
-   * @returns
-   */
-  private getPrevMatch(searchMatchInfo: SearchMatchInfo, searchResult: ViewItem[]): CURRNET_MATCH_INFO {
-    const currentMatchRowIndex = searchMatchInfo.matchRowIndex;
-
-    let checkMatchIndex = currentMatchRowIndex;
-    let checkItemIdx = searchMatchInfo.itemIndex;
-    if (searchMatchInfo.currentMatchIndex == 1) {
-      checkMatchIndex = searchResult.length - 1;
-      checkItemIdx = -1;
-    }
-
-    let matchIndex = -1;
-    let itemIndex = -1;
-    let matchId: RowId = '';
-    let matchedInfo: MatchedField[] = [];
-
-    for (let searchRowIdx = checkMatchIndex; searchRowIdx >= 0; searchRowIdx--) {
-      const item = searchResult[searchRowIdx];
-      const itemMatchInfos = this.getMatchMap(item.id)?.matchedFields;
-
-      if (!itemMatchInfos?.length) continue;
-
-      matchId = item.id;
-
-      // 같은 row 내부 처리
-      if (searchRowIdx === checkMatchIndex) {
-        const prevItemIdx = checkItemIdx === -1 ? itemMatchInfos.length - 1 : checkItemIdx - 1;
-
-        // 핵심 수정: boundary 처리 강화
-        if (prevItemIdx >= 0) {
-          matchIndex = searchRowIdx;
-          itemIndex = prevItemIdx;
-          matchedInfo = itemMatchInfos;
-          break;
-        }
-
-        // 이 row에서는 더 이상 없음 → 이전 row로 넘어감
-        continue;
-      }
-
-      // 다른 row로 이동했을 때는 항상 "마지막 match"부터
-      matchIndex = searchRowIdx;
-      itemIndex = itemMatchInfos.length - 1;
-      matchedInfo = itemMatchInfos;
-      break;
-    }
-
-    return {
-      id: matchId,
-      matchRowIndex: matchIndex,
-      itemIndex,
-      matchedInfo,
-    };
+    return currentMatchIndex;
   }
 }

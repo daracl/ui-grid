@@ -21,6 +21,7 @@ export function gridDataSearch(
       for (const item of chunk) {
         item.matchCount = undefined;
         item.matchedFields = undefined;
+        item.isCurrentMatch = false;
 
         results.push(item);
         if (postProcess) {
@@ -80,6 +81,7 @@ export function gridDataSearch(
       );
       const matchLength = matchedFields.length;
       const matched = matchLength > 0;
+      viewItem.isCurrentMatch = false;
 
       if (matched) {
         matchCount += matchLength;

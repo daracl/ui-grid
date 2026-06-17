@@ -17,7 +17,7 @@ import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
-import { SearchMatchInfo } from '@/types/Common';
+import { SearchMatchInfo, ViewItem } from '@/types/Common';
 
 const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
 const CELL_MATCH_CLASS = 'dg-search-match';
@@ -444,6 +444,17 @@ export class Body {
     const searchEnable = cfg.searchEnable;
     const searchMatchInfo = cfg.searchMatchInfo;
 
+    const matchInfo: {
+      searchEnable: boolean;
+      cellIndex: number;
+      matchViewItem: ViewItem | undefined;
+      searchMatchedFields: string[] | undefined;
+    } = {
+      searchEnable: searchEnable,
+      cellIndex: searchMatchInfo.cellIndex,
+      matchViewItem: undefined,
+      searchMatchedFields: undefined,
+    };
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       const viewItem = viewItems[viewRowIdx];
@@ -451,9 +462,13 @@ export class Body {
 
       const rowIdx = pagingStartIdx + viewRowIdx;
 
-      let searchMatchedFields;
+      matchInfo.matchViewItem = undefined;
+      matchInfo.searchMatchedFields = undefined;
+
       if (searchEnable) {
-        searchMatchedFields = dataManager.getMatchMap(viewItem.id)?.matchedFields?.map((f) => f.fieldName);
+        const matchViewItem = dataManager.getSearchMapItem(viewItem.id);
+        matchInfo.matchViewItem = matchViewItem;
+        matchInfo.searchMatchedFields = matchViewItem?.matchedFields?.map((f) => f.fieldName);
       }
 
       const rowCellInfo = { rowIndex: rowIdx, r: viewRowIdx, item: item, viewItem: viewItem, c: -1 } as CellInfo;
@@ -465,17 +480,7 @@ export class Body {
           const field = leftFields[j];
           const cell = rowCells[j];
           rowCellInfo.c = j;
-          this.setCellStyle(
-            startCell,
-            viewRowIdx,
-            j,
-            cell,
-            field,
-            item,
-            searchMatchedFields,
-            searchEnable,
-            searchMatchInfo,
-          );
+          this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
           field.$renderer.render(rowCellInfo, cell.firstElementChild);
         }
       }
@@ -485,17 +490,7 @@ export class Body {
       for (let j = startCol; j <= endCol; j++) {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
-        this.setCellStyle(
-          startCell,
-          viewRowIdx,
-          j,
-          cell,
-          field,
-          item,
-          searchMatchedFields,
-          searchEnable,
-          searchMatchInfo,
-        );
+        this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
         rowCellInfo.c = j;
         field.$renderer.render(rowCellInfo, cell.firstElementChild);
       }
@@ -510,17 +505,7 @@ export class Body {
 
           rowCellInfo.c = cellIdx;
 
-          this.setCellStyle(
-            startCell,
-            viewRowIdx,
-            cellIdx,
-            cell,
-            field,
-            item,
-            searchMatchedFields,
-            searchEnable,
-            searchMatchInfo,
-          );
+          this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, matchInfo);
 
           field.$renderer.render(rowCellInfo, cell.firstElementChild);
         }
@@ -551,24 +536,25 @@ export class Body {
     cellElement: HTMLElement,
     field: FieldItem,
     item: any,
-    searchMatchedFields: string[] | undefined,
-    searchEnable: boolean,
-    searchMatchInfo: SearchMatchInfo,
+    matchInfo: {
+      searchEnable: boolean;
+      cellIndex: number;
+      matchViewItem: ViewItem | undefined;
+      searchMatchedFields: string[] | undefined;
+    },
   ) {
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
 
     if (field.$isAside) return;
 
-    if (searchEnable) {
+    if (matchInfo.searchEnable) {
       const classList = cellElement.classList;
-      const matchedFields = searchMatchedFields ?? [];
+      const matchedFields = matchInfo.searchMatchedFields ?? [];
 
       if (matchedFields && matchedFields.length > 0) {
         const fieldName = field.name;
-        const { matchRowIndex: matchIndex, itemIndex } = searchMatchInfo;
-
-        const isMatch = rowIdx === matchIndex && matchedFields[itemIndex] === fieldName;
+        const isMatch = matchInfo.matchViewItem?.isCurrentMatch && matchedFields[matchInfo.cellIndex] === fieldName;
 
         if (isMatch) {
           classList.add(CELL_HIGHLIGHT_CLASS, CELL_MATCH_CLASS);

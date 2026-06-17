@@ -97,6 +97,7 @@ export interface ViewItem {
   sortValues?: any[];
   matchedFields?: MatchedField[];
   matchCount?: number;
+  isCurrentMatch?: boolean;
 }
 
 export interface TreeViewItem extends ViewItem {
@@ -109,20 +110,20 @@ export interface TreeViewItem extends ViewItem {
 
 export type CURRNET_MATCH_INFO = {
   id: RowId;
-  matchRowIndex: number;
-  itemIndex: number;
-  matchedInfo: MatchedField[];
+  rowIndex: number;
+  cellIndex: number;
+  matchedFields: MatchedField[];
 };
 
 export interface SearchMatchInfo {
   // 검색 match count
   matchCount: number;
 
-  // match row index
-  matchRowIndex: number;
+  // match cell index
+  cellIndex: number;
 
-  // match row cell index
-  itemIndex: number;
+  // row index
+  rowIndex: number;
 
   // 현재 match item index
   currentMatchIndex: number;

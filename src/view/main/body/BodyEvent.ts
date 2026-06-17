@@ -75,10 +75,14 @@ export class BodyEvent {
     let lastY: number;
 
     eventManager.off(bodyElement, 'touchstart');
-    eventManager.on({ el: bodyElement, type: 'touchstart' }, (evt: TouchEvent) => {
-      lastX = evt.touches[0].clientX;
-      lastY = evt.touches[0].clientY;
-    });
+    eventManager.on(
+      { el: bodyElement, type: 'touchstart' },
+      (evt: TouchEvent) => {
+        lastX = evt.touches[0].clientX;
+        lastY = evt.touches[0].clientY;
+      },
+      { passive: true },
+    );
 
     eventManager.off(bodyElement, 'touchmove');
     eventManager.on(

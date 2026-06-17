@@ -102,6 +102,11 @@ export class CellClickHandler extends BasePointerHandler {
     this.startCellInfo = session.cellInfo as CellInfo;
     this.currentSelectionMode = this.selectionMode;
 
+    // 검색 위치 셋팅
+    if (this.startCellInfo.rowIndex) {
+      this.cfg.searchMatchInfo.rowIndex = this.startCellInfo.rowIndex;
+    }
+
     if (this.multipleFlag && session.cellInfo?.field.name == LINE_NUMBER_NAME) {
       this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
     }

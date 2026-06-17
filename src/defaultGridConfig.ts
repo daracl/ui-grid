@@ -69,7 +69,7 @@ export function initConfig(opts: GridOptions): Config {
       currentMatchIndex: -1,
       matchCount: -1,
       matchRowIndex: -1,
-      itemIndex: -1,
+      cellIndex: -1,
       id: '',
     },
     fieldHeaderGroup: defaultFieldGroupInfo(),

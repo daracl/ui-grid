@@ -182,6 +182,7 @@ export class HeaderEvent {
 
         clickManager.processClick(session, handler);
       },
+      { passive: true },
     );
   }
 
