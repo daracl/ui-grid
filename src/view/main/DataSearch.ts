@@ -202,6 +202,7 @@ export class DataSearch {
 
     if (searchText == '') {
       cfg.searchEnable = false;
+      this.matchCountElement.textContent = '';
       this.gridMain.getBody().clearSearchHighlight();
     } else {
       cfg.searchEnable = true;
@@ -217,7 +218,7 @@ export class DataSearch {
     if (searchMatchInfo.matchCount > 0) {
       this.matchCountElement.textContent = searchMatchInfo.currentMatchIndex + '/' + searchMatchInfo.matchCount;
     } else {
-      this.matchCountElement.textContent = '';
+      this.matchCountElement.textContent = '0/0';
     }
   }
 }

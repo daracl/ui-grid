@@ -6,12 +6,10 @@ import {
   ROW_HEIGHT_KEY,
   ROW_ID_FIELD_NAME,
   ROW_ITEM_PREFIX_NAME,
-  SearchDirectionMap,
 } from '@/constants';
 import {
   AddRowOptions,
   CURRNET_MATCH_INFO,
-  MatchedField,
   RowId,
   SearchMatchInfo,
   SearchMode,
@@ -155,8 +153,6 @@ export abstract class DataManager {
       this.setViewItems(this.opts.header.sort.customSorting(this.getRowItems(true), sortArr, sortOpts));
       return;
     }
-
-    console.log('22dataSort2222');
 
     const sortData = this.getSortData(sortArr, sortOpts);
 
@@ -399,6 +395,11 @@ export abstract class DataManager {
     this.beforeSearchMode = merge({}, options);
 
     if (searchMatchInfo.matchCount < 1) {
+      this.setCurrentMatchInfo(0, {
+        id: '',
+        rowIndex: -1,
+        cellIndex: 0,
+      } as CURRNET_MATCH_INFO);
       return;
     }
 
