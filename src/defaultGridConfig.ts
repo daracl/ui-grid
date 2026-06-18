@@ -68,7 +68,7 @@ export function initConfig(opts: GridOptions): Config {
     searchMatchInfo: {
       currentMatchIndex: -1,
       matchCount: -1,
-      matchRowIndex: -1,
+      rowIndex: -1,
       cellIndex: -1,
       id: '',
     },

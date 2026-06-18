@@ -623,7 +623,7 @@ var G_TREE_CHILD_DATA = [
   },
 ];
 
-var G_TREE_LIST_DATA = [
+var G_TREE_FLAT_DATA = [
   { id: '1-1', pid: '1', name: '인사부flat', desc: '회사 내 인사 업무를 총괄하는 부서입니다.' },
   { id: '1-1-1', pid: '1-1', name: '인사팀', desc: '인사 관련 실무를 담당하는 팀입니다.' },
   {

@@ -52,6 +52,8 @@ export abstract class DataManager {
   private readonly rowMap = new Map<RowId, any>();
   private readonly rowCheckSet = new Set<RowId>();
 
+  protected readonly matchOffsetMap = new Map<RowId, number>();
+
   constructor(protected opts: GridOptions, protected gridMain: GridMain, protected type: string) {
     this.cfg = gridMain.config();
     this.rowHeight = this.cfg.rowHeight;
@@ -387,8 +389,6 @@ export abstract class DataManager {
         })),
       );
 
-      console.log(isNewSearch, this.beforeSearchSortInfo, currentSortState);
-
       if (isNewSearch || this.beforeSearchSortInfo !== currentSortState) {
         this.dataSort(this.sortOrders, this.sortOpts);
         this.beforeSearchSortInfo = currentSortState;
@@ -474,21 +474,7 @@ export abstract class DataManager {
     this.gridMain.getDataSearch().setMatchCountText();
   }
 
-  getCurrentMatchIndex(searchMatchedIds: RowId[], matchRowId: RowId) {
-    let currentMatchIndex = 0;
-
-    if (!matchRowId) return currentMatchIndex;
-
-    for (let i = 0; i < searchMatchedIds.length; i++) {
-      const id = searchMatchedIds[i];
-
-      if (id == matchRowId) {
-        break;
-      }
-
-      currentMatchIndex = currentMatchIndex + (this.getSearchMapItem(id)?.matchedFields?.length ?? 0);
-    }
-
-    return currentMatchIndex;
+  getCurrentMatchIndex(matchRowId: RowId) {
+    return this.matchOffsetMap.get(matchRowId) ?? 0;
   }
 }

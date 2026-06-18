@@ -18,8 +18,6 @@ import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
-  private searchMatchedIds: RowId[] = [];
-
   constructor(opts: GridOptions, gridMain: GridMain) {
     super(opts, gridMain, 'list');
   }
@@ -79,22 +77,32 @@ export class ListDataManager extends DataManager {
 
   getSearchData(keyword: string, options: SearchMode): SearchResult {
     const items = this.getOriginalViewItems();
-    const matchedIds: RowId[] = [];
-    options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
-      if (isMatched) {
-        if (viewItem) {
-          matchedIds.push(viewItem.id);
-          this.addSearchMapItem(viewItem.id, viewItem);
-        }
-      }
-    };
-    this.searchMatchedIds = matchedIds;
 
-    if (matchedIds.length > 0) {
-      const firstItem = this.getSearchMapItem(matchedIds[0]);
+    this.matchOffsetMap.clear();
+
+    let firstMatchId: RowId = '';
+    let offset = 0;
+    options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
+      if (!isMatched || !viewItem) return;
+
+      const id = viewItem.id;
+      if (!firstMatchId) {
+        firstMatchId = viewItem.id;
+      }
+
+      this.matchOffsetMap.set(id, offset);
+      offset += viewItem.matchedFields?.length ?? 0;
+
+      this.addSearchMapItem(viewItem.id, viewItem);
+    };
+
+    const result = gridDataSearch(items, this.cfg.dataManager, keyword, options);
+
+    if (firstMatchId) {
+      const firstItem = this.getSearchMapItem(firstMatchId);
       if (firstItem) firstItem.isCurrentMatch = true;
     }
-    return gridDataSearch(items, this.cfg.dataManager, keyword, options);
+    return result;
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
@@ -105,13 +113,20 @@ export class ListDataManager extends DataManager {
 
     let currentMatchIndex = 0;
     let matchRowIndex = -1;
-    const matchedIds: RowId[] = [];
+
+    this.matchOffsetMap.clear();
+    const searchEnable = this.cfg.searchEnable;
+    let offset = 0;
     for (let i = 0; i < sortData.length; i++) {
       const id = sortData[i].id;
-      const searchViewItem = this.getSearchMapItem(id);
 
-      if (searchViewItem) {
-        matchedIds.push(id);
+      if (searchEnable) {
+        const matchViewItem = this.getSearchMapItem(id);
+        if (matchViewItem) {
+          this.matchOffsetMap.set(id, offset);
+
+          offset += matchViewItem.matchedFields?.length ?? 0;
+        }
       }
 
       if (matchRowIndex != -1) {
@@ -123,8 +138,7 @@ export class ListDataManager extends DataManager {
       }
     }
 
-    this.searchMatchedIds = matchedIds;
-    currentMatchIndex = this.getCurrentMatchIndex(matchedIds, matchId);
+    currentMatchIndex = this.getCurrentMatchIndex(matchId);
 
     this.setCurrentMatchInfo(currentMatchIndex, {
       id: matchId,
@@ -140,27 +154,17 @@ export class ListDataManager extends DataManager {
 
     const searchResult = this.getViewItems();
 
-    const searchMatchedIds = this.searchMatchedIds;
-
     const viewItem = this.getSearchMapItem(searchMatchInfo.id);
     if (viewItem) {
       viewItem.isCurrentMatch = false;
     }
 
-    let currentMatchInfo;
-    if (isNew) {
-      currentMatchInfo = {
-        id: searchMatchedIds[0],
-        rowIndex: -1,
-        cellIndex: 0,
-      } as CURRNET_MATCH_INFO;
-    } else {
-      const checkMatchIndex = searchMatchInfo.rowIndex ?? -1;
+    let checkMatchIndex = searchMatchInfo.rowIndex ?? -1;
+    checkMatchIndex = checkMatchIndex < 0 ? this.cfg.scroll.startIdx : checkMatchIndex;
 
-      currentMatchInfo = isPrev
-        ? this.getPrevMatch(checkMatchIndex, searchMatchInfo, searchResult)
-        : this.getNextMatch(checkMatchIndex, searchMatchInfo, searchResult);
-    }
+    const currentMatchInfo = isPrev
+      ? this.getPrevMatch(checkMatchIndex, searchMatchInfo, searchResult)
+      : this.getNextMatch(checkMatchIndex, searchMatchInfo, searchResult);
 
     const matchRowId = currentMatchInfo.id;
 
@@ -171,7 +175,7 @@ export class ListDataManager extends DataManager {
       currentMatchInfo.matchedFields = matchViewItem.matchedFields ?? [];
     }
 
-    const currentMatchIndex = this.getCurrentMatchIndex(searchMatchedIds, matchRowId);
+    const currentMatchIndex = this.getCurrentMatchIndex(matchRowId);
 
     this.setCurrentMatchInfo(currentMatchIndex, {
       id: matchRowId,
@@ -256,7 +260,7 @@ export class ListDataManager extends DataManager {
   ): CURRNET_MATCH_INFO {
     const checkItemIdx = searchMatchInfo.cellIndex;
 
-    let matchIndex = -1;
+    let matchRowIndex = -1;
     let itemIndex = -1;
     let matchId: RowId = '';
     let matchedInfo: MatchedField[] = [];
@@ -278,7 +282,7 @@ export class ListDataManager extends DataManager {
         const prevItemIdx = checkItemIdx === -1 ? itemMatchInfos.length - 1 : checkItemIdx - 1;
 
         if (prevItemIdx >= 0) {
-          matchIndex = searchRowIdx;
+          matchRowIndex = searchRowIdx;
           itemIndex = prevItemIdx;
           matchedInfo = itemMatchInfos;
           break;
@@ -289,7 +293,7 @@ export class ListDataManager extends DataManager {
       }
 
       // 다른 row는 항상 마지막 match 선택
-      matchIndex = searchRowIdx;
+      matchRowIndex = searchRowIdx;
       itemIndex = itemMatchInfos.length - 1;
       matchedInfo = itemMatchInfos;
       break;
@@ -297,11 +301,12 @@ export class ListDataManager extends DataManager {
 
     return {
       id: matchId,
-      rowIndex: matchIndex,
+      rowIndex: matchRowIndex,
       cellIndex: itemIndex,
       matchedFields: matchedInfo,
     };
   }
+
   public addRows(addOpts: AddRowOptions): void {
     throw new Error('Method not implemented.');
   }

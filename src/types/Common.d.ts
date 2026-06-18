@@ -70,7 +70,6 @@ export type SearchFields = string | string[] | ALL_SELECT_VALUE;
 export type MatchedField = {
   fieldName: string;
   originalValue: string;
-  highlightedValue: string;
   matchCount: number;
   matchPositions: { start: number; end: number }[];
 };

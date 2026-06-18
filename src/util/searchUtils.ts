@@ -14,21 +14,18 @@ export function gridDataSearch(
   const searchListLength = searchList.length;
   // 빈 검색어 처리
   if (!searchText.trim()) {
-    for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
-      const end = Math.min(i + CHUNK_SIZE, searchListLength);
-      const chunk = searchList.slice(i, end);
+    for (let i = 0; i < searchListLength; i++) {
+      const item = searchList[i];
+      item.matchCount = undefined;
+      item.matchedFields = undefined;
+      item.isCurrentMatch = false;
 
-      for (const item of chunk) {
-        item.matchCount = undefined;
-        item.matchedFields = undefined;
-        item.isCurrentMatch = false;
-
-        results.push(item);
-        if (postProcess) {
-          postProcess(false, item);
-        }
+      results.push(item);
+      if (postProcess) {
+        postProcess(false, item);
       }
     }
+
     return { isOriginal: true, matchCount: 0, items: results };
   }
 
@@ -62,44 +59,40 @@ export function gridDataSearch(
   }
 
   let matchCount = 0;
-  for (let i = 0; i < searchListLength; i += CHUNK_SIZE) {
-    const end = Math.min(i + CHUNK_SIZE, searchListLength);
-    const chunk = searchList.slice(i, end);
+  for (let i = 0; i < searchListLength; i++) {
+    const viewItem = searchList[i];
+    const item = dataManager.getRowItem(viewItem.id);
+    const matchedFields = findFirstMatchInItemOptimized(
+      item,
+      searchText,
+      normalizedSearchText,
+      matchCase,
+      matchWholeWord,
+      compiledRegex,
+      wordBoundaryRegex,
+      fieldsToSearch,
+      matchWholeRegex,
+    );
+    const matchLength = matchedFields.length;
+    const matched = matchLength > 0;
+    viewItem.isCurrentMatch = false;
 
-    for (const viewItem of chunk) {
-      const item = dataManager.getRowItem(viewItem.id);
-      const matchedFields = findFirstMatchInItemOptimized(
-        item,
-        searchText,
-        normalizedSearchText,
-        matchCase,
-        matchWholeWord,
-        compiledRegex,
-        wordBoundaryRegex,
-        fieldsToSearch,
-        matchWholeRegex,
-      );
-      const matchLength = matchedFields.length;
-      const matched = matchLength > 0;
-      viewItem.isCurrentMatch = false;
+    if (matched) {
+      matchCount += matchLength;
+      viewItem.matchedFields = matchedFields;
+      viewItem.matchCount = matchLength;
+      results.push(viewItem);
+    } else {
+      viewItem.matchCount = undefined;
+      viewItem.matchedFields = undefined;
 
-      if (matched) {
-        matchCount += matchLength;
-        viewItem.matchedFields = matchedFields;
-        viewItem.matchCount = matchLength;
+      if (!hideNonMatched) {
         results.push(viewItem);
-      } else {
-        viewItem.matchCount = undefined;
-        viewItem.matchedFields = undefined;
-
-        if (!hideNonMatched) {
-          results.push(viewItem);
-        }
       }
+    }
 
-      if (postProcess) {
-        postProcess(matched, item, viewItem);
-      }
+    if (postProcess) {
+      postProcess(matched, item, viewItem);
     }
   }
 
@@ -145,11 +138,9 @@ function findFirstMatchInItemOptimized(
     );
 
     if (firstMatch) {
-      const highlightedValue = highlightSingleMatch(fieldValue, firstMatch);
       matchedFields.push({
         fieldName: field,
         originalValue: fieldValue,
-        highlightedValue,
         matchCount: 1,
         matchPositions: [firstMatch],
       });
@@ -210,7 +201,11 @@ function findFirstMatchInTextOptimized(
   return null;
 }
 
-function highlightSingleMatch(text: string, match: { start: number; end: number }, highlightTag = 'mark'): string {
+export function highlightSingleMatch(
+  text: string,
+  match: { start: number; end: number },
+  highlightTag = 'mark',
+): string {
   const before = text.substring(0, match.start);
   const matchedText = text.substring(match.start, match.end);
   const after = text.substring(match.end);

@@ -17,6 +17,11 @@ import { GridMain } from '@/view/GridMain';
 import { DataManager } from './DataManager';
 import { MatchedField } from '../types/Common';
 
+const EXPAND_TYPE = {
+  USER: 1,
+  SEARCH: 2,
+};
+
 /**
  * TreeDataManager class
  *
@@ -32,10 +37,15 @@ export class TreeDataManager extends DataManager {
 
   // 원본 트리 구조 데이터
   private originalTreeItems: TreeViewItem[] = [];
+
   // 트리 구조 데이터
   private viewTreeItems: TreeViewItem[] = [];
 
-  private searchMatchedIds: RowId[] = [];
+  // viewTreeItems를 flat 한 데이터
+  private flatViewTreeItems: TreeViewItem[] = [];
+
+  //
+  private readonly visibleIndexMap = new Map<RowId, number>();
 
   constructor(opts: GridOptions, gridMain: GridMain) {
     super(opts, gridMain, 'tree');
@@ -92,8 +102,12 @@ export class TreeDataManager extends DataManager {
           pid: parentId,
           sortOrder: orderIdx++,
           depth,
-          expanded: depth < expandDepth || expandedIdSet.has(item[this.idKey]) ? 1 : 0,
+          expanded: depth < expandDepth || expandedIdSet.has(item[this.idKey]) ? EXPAND_TYPE.USER : 0,
         } as TreeViewItem;
+
+        // haschild 항목 처리할 것.
+        //
+        //
 
         target.push(treeViewItem);
 
@@ -165,37 +179,46 @@ export class TreeDataManager extends DataManager {
   }
 
   private getTreeToList(items: ViewItem[]): TreeViewItem[] {
+    this.visibleIndexMap.clear();
+    this.idViewItemMap.clear();
+    this.matchOffsetMap.clear();
     const result: TreeViewItem[] = [];
+    const flatList: TreeViewItem[] = [];
 
-    const matchedIds: RowId[] = [];
-
+    const searchEnable = this.cfg.searchEnable;
+    let offset = 0;
     const dfs = (list: ViewItem[], parentExpanded: boolean) => {
       for (const item of list) {
         const treeItem = item as TreeViewItem;
 
         const rowId = treeItem.id;
 
-        const matchViewItem = this.getSearchMapItem(rowId);
+        if (searchEnable) {
+          const matchViewItem = this.getSearchMapItem(rowId);
+          if (matchViewItem) {
+            this.matchOffsetMap.set(rowId, offset);
 
-        if (matchViewItem) {
-          matchedIds.push(rowId);
+            offset += matchViewItem.matchedFields?.length ?? 0;
+          }
         }
 
         this.idViewItemMap.set(rowId, treeItem);
 
+        flatList.push(treeItem);
         if (parentExpanded) {
+          this.visibleIndexMap.set(rowId, result.length);
           result.push(treeItem);
         }
 
         const children = treeItem.children;
 
-        if (children) dfs(children, treeItem.expanded > 0);
+        if (children) dfs(children, parentExpanded && treeItem.expanded > 0);
       }
     };
 
     dfs(items, true);
 
-    this.searchMatchedIds = matchedIds;
+    this.flatViewTreeItems = flatList;
 
     return result;
   }
@@ -208,7 +231,7 @@ export class TreeDataManager extends DataManager {
     const viewItem = this.idViewItemMap.get(rowId);
 
     if (viewItem) {
-      viewItem.expanded = viewItem?.expanded > 0 ? 0 : 1;
+      viewItem.expanded = viewItem?.expanded > 0 ? 0 : EXPAND_TYPE.USER;
       this.buildViewItems();
     }
   }
@@ -231,7 +254,7 @@ export class TreeDataManager extends DataManager {
     function dfs(items: TreeViewItem[]) {
       for (const item of items) {
         if (item.children?.length > 0) {
-          item.expanded = flag ? 1 : 0;
+          item.expanded = flag ? EXPAND_TYPE.USER : 0;
           dfs(item.children);
         }
       }
@@ -251,41 +274,25 @@ export class TreeDataManager extends DataManager {
     const treeViewItem = this.idViewItemMap.get(rowId);
     if (!treeViewItem) return;
 
-    this.parentExpand(treeViewItem);
+    this.expandParents(treeViewItem);
 
     this.buildViewItems();
   }
 
-  private parentExpand(item: TreeViewItem): {
-    expandedIds: { id: RowId; expanded: boolean }[];
-    hasUnexpanded: boolean;
-  } {
-    const expandedIds: { id: RowId; expanded: boolean }[] = [];
-
-    let hasUnexpanded = false;
+  private expandParents(item: TreeViewItem, mode = 1): boolean {
+    let changed = false;
     let current: TreeViewItem | undefined = item;
 
     while (current) {
-      const isExpanded = current.expanded > 0;
-
-      if (isExpanded) {
-        current.expanded = 1;
-      } else {
-        hasUnexpanded = true;
+      if (current.expanded < 1) {
+        changed = true;
+        current.expanded = mode;
       }
-
-      expandedIds.unshift({
-        id: current.id,
-        expanded: isExpanded,
-      });
 
       current = this.idViewItemMap.get(current.pid);
     }
 
-    return {
-      expandedIds,
-      hasUnexpanded,
-    };
+    return changed;
   }
 
   /**
@@ -314,12 +321,12 @@ export class TreeDataManager extends DataManager {
         this.addSearchMapItem(treeViewItem.id, treeViewItem);
         searchMatchInfo.matchCount += treeViewItem.matchedFields?.length ?? 0;
       } else {
-        treeViewItem.expanded = treeViewItem.expanded % 2 > 0 ? 1 : 0;
+        treeViewItem.expanded = treeViewItem.expanded % 2 > 0 ? EXPAND_TYPE.USER : 0;
       }
     };
 
     const dataManager = this.cfg.dataManager;
-    const matchItemMap = new Map<RowId, boolean>();
+    const matchItemSet = new Set<RowId>();
 
     const searchTree = (nodes: TreeViewItem[], depth: number): SearchResult => {
       const matchResult = gridDataSearch(nodes, dataManager, keyword, options);
@@ -338,14 +345,14 @@ export class TreeDataManager extends DataManager {
         if (children.length > 0) {
           childResult = searchTree(children, depth + 1);
         }
-
-        const isMatched = node.matchedFields?.length || childResult.matchCount > 0 || matchItemMap.has(node.id);
+        const pid = node.pid;
+        const isMatched = node.matchedFields?.length || childResult.matchCount > 0 || matchItemSet.has(node.id);
 
         if (!hideNonMatched) {
           if (isMatched) {
-            node.expanded = isMatched ? 2 : node.expanded;
-            if (!matchItemMap.has(node.pid)) {
-              matchItemMap.set(node.pid, true);
+            node.expanded = isMatched ? EXPAND_TYPE.SEARCH : node.expanded;
+            if (!matchItemSet.has(pid)) {
+              matchItemSet.add(pid);
             }
           }
 
@@ -358,12 +365,12 @@ export class TreeDataManager extends DataManager {
             ...node,
             children: (childResult.items ?? []) as TreeViewItem[],
           };
-          newNode.expanded = 2;
+          newNode.expanded = EXPAND_TYPE.SEARCH;
 
           resultNodes.push(newNode);
 
-          if (!matchItemMap.has(node.pid)) {
-            matchItemMap.set(node.pid, true);
+          if (!matchItemSet.has(pid)) {
+            matchItemSet.add(pid);
           }
         }
       }
@@ -385,79 +392,148 @@ export class TreeDataManager extends DataManager {
   }
 
   public getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRNET_MATCH_INFO {
-    const isPrev = options.direction === SearchDirectionMap.PREV;
+    const isNext = options.direction === SearchDirectionMap.NEXT;
 
-    const matchRowId = searchMatchInfo.id;
-    const currCellIndex = searchMatchInfo.cellIndex;
-    const searchMatchIdLength = this.searchMatchedIds.length;
-    const currentIdx = this.searchMatchedIds.indexOf(matchRowId);
-    if (!matchRowId) {
-      // return super.getMatchInfo(searchMatchInfo, isNewSearch, options);
-    }
-    const currViewItem = this.getSearchMapItem(matchRowId) as TreeViewItem;
-    const matchedFieldLength = currViewItem.matchedFields?.length ?? 0;
+    const searchResult = this.flatViewTreeItems;
 
-    let nextIdx;
-    let nextCellIdx = 0;
-    if (isPrev) {
-      if (currCellIndex <= 0) {
-        nextIdx = currentIdx > 0 ? currentIdx - 1 : searchMatchIdLength - 1;
-      } else {
-        nextIdx = currentIdx;
-        nextCellIdx = currCellIndex - 1;
-      }
-    } else {
-      if (currCellIndex + 1 >= matchedFieldLength) {
-        nextCellIdx = 0;
-        nextIdx = currentIdx < searchMatchIdLength - 1 ? currentIdx + 1 : 0;
-      } else {
-        nextIdx = currentIdx;
-        nextCellIdx = currCellIndex + 1;
-      }
+    const viewItem = this.getSearchMapItem(searchMatchInfo.id);
+    if (viewItem) {
+      viewItem.isCurrentMatch = false;
     }
 
-    console.log(currentIdx, nextIdx, currCellIndex, nextCellIdx, matchRowId);
+    let checkMatchIndex = searchMatchInfo.rowIndex ?? -1;
+    checkMatchIndex = checkMatchIndex < 0 ? this.cfg.scroll.startIdx : checkMatchIndex;
 
-    const nextId = this.searchMatchedIds[nextIdx];
+    const viewItems = this.getViewItems();
 
-    const nextViewItem = this.getSearchMapItem(nextId) as TreeViewItem;
+    if (viewItems.length <= checkMatchIndex) {
+      checkMatchIndex = 0;
+    }
 
-    const allExpantInfo = this.parentExpand(nextViewItem);
+    const viewRowId = viewItems[checkMatchIndex].id;
 
-    if (allExpantInfo.hasUnexpanded) {
-      this.buildViewItems();
+    checkMatchIndex = searchResult.findIndex((item) => item.id == viewRowId);
 
-      let matchRowIndex;
+    const currentMatchInfo = this.getNextPrevMatch(isNext, checkMatchIndex, searchMatchInfo, searchResult);
 
-      const viewItems = this.getViewItems();
+    const matchRowId = currentMatchInfo.id;
 
-      for (let i = 0; i < viewItems.length; i++) {
-        const id = viewItems[i].id;
+    const matchViewItem = this.getSearchMapItem(matchRowId);
 
-        if (id == nextId) {
-          matchRowIndex = i;
-          break;
+    if (matchViewItem) {
+      matchViewItem.isCurrentMatch = true;
+      currentMatchInfo.matchedFields = matchViewItem.matchedFields ?? [];
+    }
+
+    const currentMatchIndex = this.getCurrentMatchIndex(matchRowId);
+
+    this.setCurrentMatchInfo(currentMatchIndex, {
+      id: matchRowId,
+      rowIndex: currentMatchInfo.rowIndex,
+      cellIndex: currentMatchInfo.cellIndex,
+    } as CURRNET_MATCH_INFO);
+
+    return currentMatchInfo;
+  }
+
+  private getNextPrevMatch(
+    isNext: boolean,
+    checkMatchIndex: number,
+    searchMatchInfo: SearchMatchInfo,
+    searchResult: ViewItem[],
+  ): CURRNET_MATCH_INFO {
+    const len = searchResult.length;
+    const currentCellIdx = searchMatchInfo.cellIndex;
+
+    let matchId: RowId = '';
+    let matchRowIndex = -1;
+    let cellIndex = -1;
+    let matchedInfo: MatchedField[] = [];
+
+    for (let i = 0; i < len; i++) {
+      const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
+
+      const item = searchResult[searchRowIdx];
+      const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
+
+      if (!matchFields?.length) continue;
+
+      const sameRow = searchRowIdx === checkMatchIndex;
+
+      const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
+
+      if (sameRow) {
+        // 같은 row에서 더 이상 이동 불가능하면 다음 row로 넘김
+        const outOfRange = isNext ? baseIdx >= matchFields.length : baseIdx < 0;
+
+        if (currentCellIdx !== -1 && outOfRange) {
+          continue;
         }
       }
 
-      this.setCurrentMatchInfo(nextIdx, {
-        id: nextId,
+      const resolvedIdx = this.resolveCellIndex(isNext, sameRow, baseIdx, matchFields.length, currentCellIdx);
+
+      //  유효한 index가 아니면 다음 row로
+      if (resolvedIdx < 0) continue;
+
+      matchId = item.id;
+      matchedInfo = matchFields;
+
+      cellIndex = resolvedIdx;
+      matchRowIndex = this.visibleIndexMap.get(matchId) ?? -1;
+
+      const matchItem = this.getSearchMapItem(matchId) as TreeViewItem;
+
+      if (matchItem && this.expandParents(matchItem, EXPAND_TYPE.SEARCH)) {
+        this.buildViewItems();
+      }
+
+      return {
+        id: matchId,
         rowIndex: matchRowIndex,
-        cellIndex: nextCellIdx,
-      } as CURRNET_MATCH_INFO);
-      //matchRowIndex
+        cellIndex,
+        matchedFields: matchedInfo,
+      };
     }
-    // 확인 할것.
-    console.log('33333333333: ', allExpantInfo);
 
-    const matchInfo = null; //super.getMatchInfo(searchMatchInfo, isNew, options);
-
+    // 못 찾은 경우 fallback
     return {
-      id: matchRowId,
+      id: '',
       rowIndex: -1,
-      cellIndex: nextCellIdx,
-      matchedFields: nextViewItem.matchedFields as MatchedField[],
+      cellIndex: -1,
+      matchedFields: [],
     };
+  }
+
+  /**
+   * resolveCellIndex
+   *
+   * 현재 row 내부에서 next/prev 검색 시 이동할 cell index를 계산한다.
+   *
+   * - row 이동 로직은 포함하지 않는다.
+   * - 오직 "같은 row 안에서 몇 번째 match로 이동할지"만 결정한다.
+   * - 결과가 -1이면 해당 row에서는 더 이상 이동할 match가 없음을 의미한다.
+   *   (호출자가 다음/이전 row로 이동 처리해야 함)
+   */
+  private resolveCellIndex(isNext: boolean, sameRow: boolean, baseIdx: number, len: number, cellIdx: number): number {
+    // 다른 row면 항상 첫/마지막
+    if (!sameRow) {
+      return isNext ? 0 : len - 1;
+    }
+
+    // 같은 row일 때
+    if (isNext) {
+      // 처음 진입이면 0부터 시작
+      if (cellIdx === -1) return 0;
+
+      // 다음 index
+      return baseIdx < len ? baseIdx : -1;
+    }
+
+    // prev
+    if (cellIdx === -1) return len - 1;
+
+    return baseIdx >= 0 ? baseIdx : -1;
   }
 
   /**
@@ -485,30 +561,20 @@ export class TreeDataManager extends DataManager {
 
     const result = this.getTreeToList(sortedTree);
 
+    if (!this.cfg.searchEnable) {
+      return result;
+    }
+
     const searchMatchInfo = this.cfg.searchMatchInfo;
     const matchId = searchMatchInfo.id;
 
-    if (matchId) {
-      const searchMatchedIds = this.searchMatchedIds;
-      let currentMatchIndex = 0;
-      let matchRowIndex = -1;
-      for (let i = 0; i < searchMatchedIds.length; i++) {
-        const id = searchMatchedIds[i];
+    const currentMatchIndex = this.getCurrentMatchIndex(matchId);
 
-        if (id == matchId) {
-          matchRowIndex = i;
-          break;
-        }
-
-        currentMatchIndex += this.getSearchMapItem(id)?.matchedFields?.length ?? 0;
-      }
-
-      this.setCurrentMatchInfo(currentMatchIndex, {
-        id: matchId,
-        rowIndex: matchRowIndex,
-        cellIndex: searchMatchInfo.cellIndex,
-      } as CURRNET_MATCH_INFO);
-    }
+    this.setCurrentMatchInfo(currentMatchIndex, {
+      id: matchId,
+      rowIndex: this.cfg.scroll.startIdx,
+      cellIndex: searchMatchInfo.cellIndex,
+    } as CURRNET_MATCH_INFO);
 
     return result;
   }

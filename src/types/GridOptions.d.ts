@@ -182,7 +182,7 @@ export interface TreeOptions {
   /**
    * 초기 렌더 시 자동으로 펼칠 depth
    * 예: 0 = 루트만, 1 = 1단계까지 펼침
-   * ⚠️ defaultExpandedIds보다 우선순위 낮게 처리하는 것을 권장
+   * defaultExpandedIds보다 우선순위 낮게 처리하는 것을 권장
    */
   expandDepth?: number;
 
