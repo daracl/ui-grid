@@ -107,7 +107,7 @@ export interface TreeViewItem extends ViewItem {
   depth: number;
 }
 
-export type CURRNET_MATCH_INFO = {
+export type CURRENT_MATCH_INFO = {
   id: RowId;
   rowIndex: number;
   cellIndex: number;

@@ -9,7 +9,7 @@ import {
 } from '@/constants';
 import {
   AddRowOptions,
-  CURRNET_MATCH_INFO,
+  CURRENT_MATCH_INFO,
   RowId,
   SearchMatchInfo,
   SearchMode,
@@ -399,7 +399,7 @@ export abstract class DataManager {
         id: '',
         rowIndex: -1,
         cellIndex: 0,
-      } as CURRNET_MATCH_INFO);
+      } as CURRENT_MATCH_INFO);
       return;
     }
 
@@ -416,7 +416,12 @@ export abstract class DataManager {
       } else {
         moveScrollRowIdx = matchRowIndex - (insideViewRow - Math.ceil(insideViewRow / 2));
       }
+
       if (moveScrollRowIdx > -1) {
+        // 접혀 있는 데이터가 오픈 되었을때 처리.
+        if (searchItems.length != this.cfg.dataInfo.rowLength) {
+          this.gridMain.refreshBody(false, 'search');
+        }
         this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
       }
     }
@@ -455,7 +460,7 @@ export abstract class DataManager {
 
   abstract getSearchData(keyword: string, options: SearchMode): SearchResult;
 
-  abstract getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRNET_MATCH_INFO;
+  abstract getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRENT_MATCH_INFO;
 
   /**
    * 현재 검색 포커스 cell 정보
@@ -464,7 +469,7 @@ export abstract class DataManager {
    * @param matchId
    * @returns
    */
-  protected setCurrentMatchInfo(currentMatchIndex: number, currentMatchInfo: CURRNET_MATCH_INFO) {
+  protected setCurrentMatchInfo(currentMatchIndex: number, currentMatchInfo: CURRENT_MATCH_INFO) {
     const searchMatchInfo = this.cfg.searchMatchInfo;
 
     searchMatchInfo.currentMatchIndex = currentMatchIndex + currentMatchInfo.cellIndex + 1;
@@ -477,5 +482,31 @@ export abstract class DataManager {
 
   getCurrentMatchIndex(matchRowId: RowId) {
     return this.matchOffsetMap.get(matchRowId) ?? 0;
+  }
+
+  /**
+   * resolveCellIndex
+   *
+   * 현재 row 내부에서 next/prev 검색 시 이동할 cell index를 계산한다.
+   *
+   * - row 이동 로직은 포함하지 않는다.
+   * - 오직 "같은 row 안에서 몇 번째 match로 이동할지"만 결정한다.
+   * - 결과가 -1이면 해당 row에서는 더 이상 이동할 match가 없음을 의미한다.
+   *   (호출자가 다음/이전 row로 이동 처리해야 함)
+   */
+  protected resolveCellIndex(isNext: boolean, sameRow: boolean, baseIdx: number, len: number, cellIdx: number): number {
+    if (!sameRow) {
+      return isNext ? 0 : len - 1;
+    }
+
+    if (isNext) {
+      if (cellIdx === -1) return 0;
+
+      return baseIdx < len ? baseIdx : -1;
+    }
+
+    if (cellIdx === -1) return len - 1;
+
+    return baseIdx >= 0 ? baseIdx : -1;
   }
 }

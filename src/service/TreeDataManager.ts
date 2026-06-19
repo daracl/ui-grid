@@ -1,7 +1,7 @@
 import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
 import {
   AddRowOptions,
-  CURRNET_MATCH_INFO,
+  CURRENT_MATCH_INFO,
   RowId,
   SearchMatchInfo,
   SearchMode,
@@ -391,7 +391,7 @@ export class TreeDataManager extends DataManager {
     return matchResult;
   }
 
-  public getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRNET_MATCH_INFO {
+  public getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRENT_MATCH_INFO {
     const isNext = options.direction === SearchDirectionMap.NEXT;
 
     const searchResult = this.flatViewTreeItems;
@@ -405,7 +405,6 @@ export class TreeDataManager extends DataManager {
     checkMatchIndex = checkMatchIndex < 0 ? this.cfg.scroll.startIdx : checkMatchIndex;
 
     const viewItems = this.getViewItems();
-
     if (viewItems.length <= checkMatchIndex) {
       checkMatchIndex = 0;
     }
@@ -414,7 +413,7 @@ export class TreeDataManager extends DataManager {
 
     checkMatchIndex = searchResult.findIndex((item) => item.id == viewRowId);
 
-    const currentMatchInfo = this.getNextPrevMatch(isNext, checkMatchIndex, searchMatchInfo, searchResult);
+    const currentMatchInfo = this.findMatch(isNext, checkMatchIndex, searchMatchInfo, searchResult);
 
     const matchRowId = currentMatchInfo.id;
 
@@ -431,24 +430,19 @@ export class TreeDataManager extends DataManager {
       id: matchRowId,
       rowIndex: currentMatchInfo.rowIndex,
       cellIndex: currentMatchInfo.cellIndex,
-    } as CURRNET_MATCH_INFO);
+    } as CURRENT_MATCH_INFO);
 
     return currentMatchInfo;
   }
 
-  private getNextPrevMatch(
+  private findMatch(
     isNext: boolean,
     checkMatchIndex: number,
     searchMatchInfo: SearchMatchInfo,
     searchResult: ViewItem[],
-  ): CURRNET_MATCH_INFO {
+  ): CURRENT_MATCH_INFO {
     const len = searchResult.length;
     const currentCellIdx = searchMatchInfo.cellIndex;
-
-    let matchId: RowId = '';
-    let matchRowIndex = -1;
-    let cellIndex = -1;
-    let matchedInfo: MatchedField[] = [];
 
     for (let i = 0; i < len; i++) {
       const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
@@ -458,6 +452,7 @@ export class TreeDataManager extends DataManager {
 
       if (!matchFields?.length) continue;
 
+      const matchId = item.id;
       const sameRow = searchRowIdx === checkMatchIndex;
 
       const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
@@ -476,12 +471,6 @@ export class TreeDataManager extends DataManager {
       //  유효한 index가 아니면 다음 row로
       if (resolvedIdx < 0) continue;
 
-      matchId = item.id;
-      matchedInfo = matchFields;
-
-      cellIndex = resolvedIdx;
-      matchRowIndex = this.visibleIndexMap.get(matchId) ?? -1;
-
       const matchItem = this.getSearchMapItem(matchId) as TreeViewItem;
 
       if (matchItem && this.expandParents(matchItem, EXPAND_TYPE.SEARCH)) {
@@ -490,9 +479,9 @@ export class TreeDataManager extends DataManager {
 
       return {
         id: matchId,
-        rowIndex: matchRowIndex,
-        cellIndex,
-        matchedFields: matchedInfo,
+        rowIndex: this.visibleIndexMap.get(matchId) ?? -1,
+        cellIndex: resolvedIdx,
+        matchedFields: matchFields,
       };
     }
 
@@ -503,37 +492,6 @@ export class TreeDataManager extends DataManager {
       cellIndex: -1,
       matchedFields: [],
     };
-  }
-
-  /**
-   * resolveCellIndex
-   *
-   * 현재 row 내부에서 next/prev 검색 시 이동할 cell index를 계산한다.
-   *
-   * - row 이동 로직은 포함하지 않는다.
-   * - 오직 "같은 row 안에서 몇 번째 match로 이동할지"만 결정한다.
-   * - 결과가 -1이면 해당 row에서는 더 이상 이동할 match가 없음을 의미한다.
-   *   (호출자가 다음/이전 row로 이동 처리해야 함)
-   */
-  private resolveCellIndex(isNext: boolean, sameRow: boolean, baseIdx: number, len: number, cellIdx: number): number {
-    // 다른 row면 항상 첫/마지막
-    if (!sameRow) {
-      return isNext ? 0 : len - 1;
-    }
-
-    // 같은 row일 때
-    if (isNext) {
-      // 처음 진입이면 0부터 시작
-      if (cellIdx === -1) return 0;
-
-      // 다음 index
-      return baseIdx < len ? baseIdx : -1;
-    }
-
-    // prev
-    if (cellIdx === -1) return len - 1;
-
-    return baseIdx >= 0 ? baseIdx : -1;
   }
 
   /**
@@ -574,7 +532,7 @@ export class TreeDataManager extends DataManager {
       id: matchId,
       rowIndex: this.cfg.scroll.startIdx,
       cellIndex: searchMatchInfo.cellIndex,
-    } as CURRNET_MATCH_INFO);
+    } as CURRENT_MATCH_INFO);
 
     return result;
   }

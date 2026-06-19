@@ -103,7 +103,7 @@ export class CellClickHandler extends BasePointerHandler {
     this.currentSelectionMode = this.selectionMode;
 
     // 검색 위치 셋팅
-    if (this.startCellInfo.rowIndex) {
+    if (this.startCellInfo.rowIndex > -1) {
       this.cfg.searchMatchInfo.rowIndex = this.startCellInfo.rowIndex;
     }
 
@@ -317,25 +317,6 @@ export class CellClickHandler extends BasePointerHandler {
     }
 
     if (this.cellDblClick?.(cellInfo) === false) return;
-  }
-
-  /**
-   * row check item click event trigger
-   *
-   * @public
-   * @param {CellInfo} cellInfo
-   */
-  private setRowCheckItemClick(cellInfo: CellInfo) {
-    const cfg = this.context.gridMain.config();
-    const rowCheckField = cfg.allFieldMap.get(ROW_CHECK_NAME);
-
-    if (rowCheckField) {
-      (
-        this.bodyElement.querySelector(
-          `.dg-row[data-row="${cellInfo.r}"] [name="${rowCheckField.$uid}"]`,
-        ) as HTMLElement
-      ).click();
-    }
   }
 
   // cell click

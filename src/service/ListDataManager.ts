@@ -2,7 +2,7 @@ import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import {
   AddRowOptions,
-  CURRNET_MATCH_INFO,
+  CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
   SearchMatchInfo,
@@ -144,13 +144,13 @@ export class ListDataManager extends DataManager {
       id: matchId,
       rowIndex: matchRowIndex,
       cellIndex: searchMatchInfo.cellIndex,
-    } as CURRNET_MATCH_INFO);
+    } as CURRENT_MATCH_INFO);
 
     return sortData;
   }
 
-  public getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRNET_MATCH_INFO {
-    const isPrev = options.direction === SearchDirectionMap.PREV;
+  public getMatchInfo(searchMatchInfo: SearchMatchInfo, isNew: boolean, options: SearchMode): CURRENT_MATCH_INFO {
+    const isNext = options.direction === SearchDirectionMap.NEXT;
 
     const searchResult = this.getViewItems();
 
@@ -162,9 +162,7 @@ export class ListDataManager extends DataManager {
     let checkMatchIndex = searchMatchInfo.rowIndex ?? -1;
     checkMatchIndex = checkMatchIndex < 0 ? this.cfg.scroll.startIdx : checkMatchIndex;
 
-    const currentMatchInfo = isPrev
-      ? this.getPrevMatch(checkMatchIndex, searchMatchInfo, searchResult)
-      : this.getNextMatch(checkMatchIndex, searchMatchInfo, searchResult);
+    const currentMatchInfo = this.findMatch(isNext, checkMatchIndex, searchMatchInfo, searchResult);
 
     const matchRowId = currentMatchInfo.id;
 
@@ -181,129 +179,61 @@ export class ListDataManager extends DataManager {
       id: matchRowId,
       rowIndex: currentMatchInfo.rowIndex,
       cellIndex: currentMatchInfo.cellIndex,
-    } as CURRNET_MATCH_INFO);
+    } as CURRENT_MATCH_INFO);
 
     return currentMatchInfo;
   }
 
-  /**
-   * 검색 다음 찾기
-   * @param searchMatchInfo 검색 정보
-   * @param searchResult 검색 결과
-   * @returns
-   */
-  private getNextMatch(
+  private findMatch(
+    isNext: boolean,
     checkMatchIndex: number,
     searchMatchInfo: SearchMatchInfo,
     searchResult: ViewItem[],
-  ): CURRNET_MATCH_INFO {
-    const checkItemIdx = searchMatchInfo.cellIndex;
+  ): CURRENT_MATCH_INFO {
+    const len = searchResult.length;
+    const currentCellIdx = searchMatchInfo.cellIndex;
 
-    let matchRowIndex = -1;
-    let itemIndex = -1;
-    let matchId: RowId = '';
-    let matchedInfo: MatchedField[] = [];
-
-    const searchResultLength = searchResult.length;
-
-    // 순환 정방향 검색
-    for (let i = 0; i < searchResultLength; i++) {
-      const searchRowIdx = (checkMatchIndex + i) % searchResultLength;
+    for (let i = 0; i < len; i++) {
+      const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
 
       const item = searchResult[searchRowIdx];
-      const itemMatchInfos = this.getSearchMapItem(item.id)?.matchedFields;
+      const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
 
-      if (!itemMatchInfos?.length) continue;
+      if (!matchFields?.length) continue;
 
-      matchId = item.id;
+      const matchId = item.id;
+      const sameRow = searchRowIdx === checkMatchIndex;
 
-      // 시작 row 처리
-      if (searchRowIdx === checkMatchIndex) {
-        const nextItemIdx = checkItemIdx + 1;
+      const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
 
-        if (checkItemIdx === -1 || nextItemIdx < itemMatchInfos.length) {
-          matchRowIndex = searchRowIdx;
-          itemIndex = checkItemIdx === -1 ? 0 : nextItemIdx;
-          matchedInfo = itemMatchInfos;
-          break;
+      if (sameRow) {
+        // 같은 row에서 더 이상 이동 불가능하면 다음 row로 넘김
+        const outOfRange = isNext ? baseIdx >= matchFields.length : baseIdx < 0;
+
+        if (currentCellIdx !== -1 && outOfRange) {
+          continue;
         }
-
-        // 현재 row에 다음 match가 없으면 다음 row로
-        continue;
       }
 
-      // 다른 row는 항상 첫 번째 match 선택
-      matchRowIndex = searchRowIdx;
-      itemIndex = 0;
-      matchedInfo = itemMatchInfos;
-      break;
+      const resolvedIdx = this.resolveCellIndex(isNext, sameRow, baseIdx, matchFields.length, currentCellIdx);
+
+      //  유효한 index가 아니면 다음 row로
+      if (resolvedIdx < 0) continue;
+
+      return {
+        id: matchId,
+        rowIndex: searchRowIdx,
+        cellIndex: resolvedIdx,
+        matchedFields: matchFields,
+      };
     }
 
+    // 못 찾은 경우 fallback
     return {
-      id: matchId,
-      rowIndex: matchRowIndex,
-      cellIndex: itemIndex,
-      matchedFields: matchedInfo,
-    };
-  }
-
-  /**
-   * 검색 이전 찾기
-   * @param searchMatchInfo 검색 정보
-   * @param searchResult 검색 결과
-   * @returns
-   */
-  private getPrevMatch(
-    checkMatchIndex: number,
-    searchMatchInfo: SearchMatchInfo,
-    searchResult: ViewItem[],
-  ): CURRNET_MATCH_INFO {
-    const checkItemIdx = searchMatchInfo.cellIndex;
-
-    let matchRowIndex = -1;
-    let itemIndex = -1;
-    let matchId: RowId = '';
-    let matchedInfo: MatchedField[] = [];
-    const searchResultLength = searchResult.length;
-
-    // 순환 역방향 검색
-    for (let i = 0; i < searchResultLength; i++) {
-      const searchRowIdx = (checkMatchIndex - i + searchResultLength) % searchResultLength;
-
-      const item = searchResult[searchRowIdx];
-      const itemMatchInfos = this.getSearchMapItem(item.id)?.matchedFields;
-
-      if (!itemMatchInfos?.length) continue;
-
-      matchId = item.id;
-
-      // 시작 row 처리
-      if (searchRowIdx === checkMatchIndex) {
-        const prevItemIdx = checkItemIdx === -1 ? itemMatchInfos.length - 1 : checkItemIdx - 1;
-
-        if (prevItemIdx >= 0) {
-          matchRowIndex = searchRowIdx;
-          itemIndex = prevItemIdx;
-          matchedInfo = itemMatchInfos;
-          break;
-        }
-
-        // 현재 row에 이전 match가 없으면 다음 순환 row 검사
-        continue;
-      }
-
-      // 다른 row는 항상 마지막 match 선택
-      matchRowIndex = searchRowIdx;
-      itemIndex = itemMatchInfos.length - 1;
-      matchedInfo = itemMatchInfos;
-      break;
-    }
-
-    return {
-      id: matchId,
-      rowIndex: matchRowIndex,
-      cellIndex: itemIndex,
-      matchedFields: matchedInfo,
+      id: '',
+      rowIndex: -1,
+      cellIndex: -1,
+      matchedFields: [],
     };
   }
 
