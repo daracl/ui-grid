@@ -149,10 +149,41 @@
 
   .dg-tree {
     .dg-cell-content-expander {
-      margin-left: 5px;
+      width: 12px;
+      height: 12px;
+
+      background-color: var(--font-color);
+
+      -webkit-mask-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'>\
+<path d='M4 2l4 4-4 4' fill='none' stroke='black' stroke-width='1.5'/>\
+</svg>");
+
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      -webkit-mask-size: contain;
+
+      mask-image: url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'>\
+<path d='M4 2l4 4-4 4' fill='none' stroke='black' stroke-width='1.5'/>\
+</svg>");
+
+      mask-repeat: no-repeat;
+      mask-position: center;
+      mask-size: contain;
+
+      cursor: pointer;
+      flex-shrink: 0;
+
+      transform: rotate(0deg);
+      transition: transform 0.2s ease;
+
+      &.expanded {
+        transform: rotate(90deg);
+      }
     }
+
     .dg-icon {
-      display: inline-block;
       overflow: hidden;
       vertical-align: middle;
       width: 16px;
@@ -161,7 +192,7 @@
       background-size: 16px 16px;
       background-position: center center;
       background-repeat: no-repeat;
-      margin-right: 2px;
+      margin-right: 3px;
 
       &.dg-folder {
         background-image: url('data:image/svg+xml;utf8,<svg style="width: 16px; height: 16px; fill: rgb(233 215 158);" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"></path></svg>');
@@ -171,5 +202,11 @@
         background-image: url('data:image/svg+xml;utf8,<svg style="width: 20px; height: 16px; fill: rgb(142, 142, 142);" viewBox="0 0 384 512" xmlns="http://www.w3.org/2000/svg"><path d="M320 464c8.8 0 16-7.2 16-16V160H256c-17.7 0-32-14.3-32-32V48H64c-8.8 0-16 7.2-16 16V448c0 8.8 7.2 16 16 16H320zM0 64C0 28.7 28.7 0 64 0H229.5c17 0 33.3 6.7 45.3 18.7l90.5 90.5c12 12 18.7 28.3 18.7 45.3V448c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V64z"></path></svg>');
       }
     }
+  }
+
+  .dg-cell-content {
+    display: flex;
+    align-items: center;
+    min-height: 24px;
   }
 }

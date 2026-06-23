@@ -15,7 +15,6 @@ import { gridDataSearch } from '@/util/searchUtils';
 import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { DataManager } from './DataManager';
-import { MatchedField } from '../types/Common';
 
 const EXPAND_TYPE = {
   USER: 1,
@@ -80,7 +79,8 @@ export class TreeDataManager extends DataManager {
   }
 
   private convertOriginalTreeToTreeViewItems(treeItems: any[]) {
-    const expandDepth = this.opts.tree?.expandDepth ?? 1;
+    let expandDepth = this.opts.tree?.expandDepth ?? 0;
+    expandDepth = expandDepth - 1;
     const childrenKey = this.childrenKey;
     const expandedIdSet = new Set(this.opts.tree?.defaultExpandedIds ?? []);
 
@@ -102,12 +102,9 @@ export class TreeDataManager extends DataManager {
           pid: parentId,
           sortOrder: orderIdx++,
           depth,
+          isLeaf: true,
           expanded: depth < expandDepth || expandedIdSet.has(item[this.idKey]) ? EXPAND_TYPE.USER : 0,
         } as TreeViewItem;
-
-        // haschild 항목 처리할 것.
-        //
-        //
 
         target.push(treeViewItem);
 
@@ -115,9 +112,9 @@ export class TreeDataManager extends DataManager {
 
         const children = item[childrenKey];
 
-        if (children?.length) {
+        if (children?.length && children.length > 0) {
           treeViewItem.children = [];
-
+          treeViewItem.isLeaf = false;
           dfs(children, depth + 1, rowId, treeViewItem.children);
 
           item[childrenKey] = null;
@@ -125,7 +122,7 @@ export class TreeDataManager extends DataManager {
       }
     };
 
-    dfs(treeItems, 1, 'dg$root', rootNodes);
+    dfs(treeItems, 0, 'dg$root', rootNodes);
 
     return { flatItems, treeViewItems: rootNodes };
   }
@@ -212,7 +209,9 @@ export class TreeDataManager extends DataManager {
 
         const children = treeItem.children;
 
-        if (children) dfs(children, parentExpanded && treeItem.expanded > 0);
+        if (children && children.length > 0) {
+          dfs(children, parentExpanded && treeItem.expanded > 0);
+        }
       }
     };
 
@@ -307,8 +306,6 @@ export class TreeDataManager extends DataManager {
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
     searchMatchInfo.matchCount = 0;
-
-    options.hideNonMatched = true;
 
     const hideNonMatched = options.hideNonMatched;
 

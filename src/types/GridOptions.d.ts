@@ -1,9 +1,8 @@
 import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
-import { CellInfo } from './GridConfig';
 import { FieldItem } from './GridField';
-import { RendererInfo } from './RendererInfo';
 import { SortOption } from './Header';
+import { RendererInfo } from './RendererInfo';
 
 /**
  * grid options
@@ -198,9 +197,19 @@ export interface TreeOptions {
    * flat 데이터 구조를 tree 구조로 변환할지 여부
    * true: [{id, parentId}] → tree 변환
    * false: 이미 children 구조를 가진 데이터로 간주
-   * ⚠️ 대용량 데이터에서는 변환 비용 고려 필요
+   * 대용량 데이터에서는 변환 비용 고려 필요
    */
   isFlatData?: boolean;
+  /**
+   * 각 tree node에 적용할 icon CSS class를 반환하는 함수
+   *
+   * - node 상태(leaf, expanded, type 등)에 따라 다른 icon class를 지정할 때 사용
+   * - 반환값은 실제 DOM className으로 적용됨
+   *
+   * 예:
+   *  (node) => node.isLeaf ? 'dg-file' : 'dg-folder'
+   */
+  treeNodeIconClass?: OptionCallback;
 }
 
 /**

@@ -1,15 +1,7 @@
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
-import {
-  EDIT_RENDERER,
-  FOOTER_HEIGHT,
-  ROW_ID_FIELD_NAME,
-  SelectionMode,
-  TOOLBAR_HEIGHT,
-  VIEW_RENDERER,
-} from './constants';
+import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionMode, TOOLBAR_HEIGHT, VIEW_RENDERER } from './constants';
 import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
-import { FieldSortInfo } from './types/Header';
 
 /**
  * grid default option
@@ -147,7 +139,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       drop: undefined, // drop 완료 콜백
       dragEnd: undefined, // drag 종료 콜백
       /**
-       * 🔥 드래그 중 보여질 템플릿 설정
+       * 드래그 중 보여질 템플릿 설정
        */
       dragTemplate: undefined,
     },

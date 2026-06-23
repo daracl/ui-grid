@@ -103,6 +103,7 @@ export interface TreeViewItem extends ViewItem {
   id: RowId;
   pid: RowId;
   children: TreeViewItem[];
+  isLeaf: boolean;
   expanded: number;
   depth: number;
 }

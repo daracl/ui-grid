@@ -15,8 +15,12 @@ import { ViewRenderer } from '../ViewRenderer';
  * @extends {ViewRenderer}
  */
 export class TreeRenderer extends ViewRenderer {
+  private readonly treeNodeIconClass;
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
+
+    const opts = this.gridMain.options();
+    this.treeNodeIconClass = opts.tree?.treeNodeIconClass;
   }
 
   /**
@@ -31,7 +35,7 @@ export class TreeRenderer extends ViewRenderer {
 
     // 트리 뎁스/자식/펼침 상태 등은 cellInfo에 있다고 가정
     const depth = viewItem.depth;
-    const hasChildren = (viewItem.children?.length ?? 0) > 0;
+    const hasChildren = !viewItem.isLeaf;
     const expanded = viewItem.expanded > 0;
 
     let contentElement = element.firstElementChild as HTMLElement;
@@ -58,15 +62,39 @@ export class TreeRenderer extends ViewRenderer {
       this.initExpanderEvent(expander);
     }
 
+    const expanderClassList = expander.classList;
+    const iconClassList = icon.classList;
     // 트리 토글(펼침/접힘) 아이콘
     if (hasChildren) {
-      icon.classList.remove('dg-file');
-      icon.classList.add('dg-folder');
-      expander.textContent = expanded ? '▼' : '▶';
+      iconClassList.remove('dg-file');
+      iconClassList.add('dg-folder');
+      expanderClassList.remove('dg-invisible');
+      expanderClassList.toggle('expanded', expanded);
     } else {
-      icon.classList.remove('dg-folder');
-      icon.classList.add('dg-file');
-      expander.textContent = '';
+      iconClassList.remove('dg-folder');
+      iconClassList.add('dg-file');
+      expanderClassList.add('dg-invisible');
+    }
+
+    if (this.treeNodeIconClass) {
+      //
+      //
+      //확인할 것.
+      //
+      //
+      const next = this.treeNodeIconClass(item, renderValue) ?? '';
+      const prev = icon.dataset.iconClass;
+
+      if (prev === next) return;
+
+      if (prev) icon.classList.remove(prev);
+      if (next) icon.classList.add(next);
+
+      if (next) {
+        icon.dataset.iconClass = next;
+      } else {
+        delete icon.dataset.iconClass;
+      }
     }
 
     contentElement.style.paddingLeft = `${depth * 16}px`;

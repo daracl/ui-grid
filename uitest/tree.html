@@ -91,7 +91,7 @@
       {
         editable: false,
         //styleClass: 'striped',
-        selectionMode: 'cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        selectionMode: 'row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
         fixedLeftIndex: 2,
@@ -101,6 +101,10 @@
         tree: {
           expandDepth: 0,
           defaultExpandedIds: ['1-1'],
+          treeNodeIconClass(item) {
+            console.log(item);
+            return (item.id || '').startsWith('1-1') ? '1-1' : '';
+          },
         },
 
         colOptions: {
