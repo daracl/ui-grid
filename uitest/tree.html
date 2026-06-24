@@ -18,6 +18,31 @@
 <script src="./data/tree.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
+<style>
+  .dg-file-type1 {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 384 512'><path fill='rgb(142,142,142)' d='M224 136V0H64C28.7 0 0 28.7 0 64v384c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V160H248c-13.3 0-24-10.7-24-24z'/><path fill='rgb(180,180,180)' d='M384 160H256c-17.7 0-32-14.3-32-32V0z'/></svg>") !important;
+  }
+
+  .dg-file-type2 {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(142,142,142)' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path fill='rgb(200,200,200)' d='M14 2v6h6'/><path stroke='rgb(255,255,255)' stroke-width='1.5' d='M8 13h8M8 17h6'/></svg>") !important;
+  }
+
+  .dg-file-type3 {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='rgb(142,142,142)' stroke-width='2' d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><path fill='none' stroke='rgb(142,142,142)' stroke-width='2' d='M14 2v6h6'/></svg>") !important;
+  }
+
+  .dg-folder-type1 {
+    background-image: url('data:image/svg+xml;utf8,<svg style="width: 16px; height: 16px; fill: rgb(233 215 158);" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"></path></svg>') !important;
+  }
+
+  .dg-folder-type2 {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='none' stroke='rgb(233,215,158)' stroke-width='2' stroke-linejoin='round' d='M3 6h6l2 2h10v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z'/></svg>") !important;
+  }
+
+  .dg-folder-type3 {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(233,215,158)' d='M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v1H3V7z'/><path fill='rgb(245,225,170)' d='M3 10h19l-2 8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/></svg>") !important;
+  }
+</style>
 <script>
   var gridObj;
   function fn_init(initFlag) {
@@ -94,16 +119,19 @@
         selectionMode: 'row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
-        fixedLeftIndex: 2,
-        fixedRightIndex: 0,
         height: 300,
 
         tree: {
           expandDepth: 0,
           defaultExpandedIds: ['1-1'],
-          treeNodeIconClass(item) {
-            console.log(item);
-            return (item.id || '').startsWith('1-1') ? '1-1' : '';
+          treeNodeIconClass(item, value) {
+            if ((item.id || '').startsWith('1-1')) {
+              return item._dg$depth === 2 ? 'dg-file-type1' : 'dg-folder-type1';
+            } else if ((item.id || '').startsWith('1-2')) {
+              return item._dg$depth === 2 ? 'dg-file-type2' : 'dg-folder-type2';
+            } else {
+              return '';
+            }
           },
         },
 
@@ -116,7 +144,7 @@
 
         search: {
           enabled: true,
-          hideNonMatched: true,
+          //hideNonMatched: true,
           enableColumnFix: true,
           click: false,
           mode: 'simple', //'full'

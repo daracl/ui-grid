@@ -1,12 +1,4 @@
-import {
-  ALL_SELECT_VALUE,
-  MATCH_WHOLE_REGEX,
-  ROW_CUD_KEY,
-  ROW_DEPTH_KEY,
-  ROW_HEIGHT_KEY,
-  ROW_ID_FIELD_NAME,
-  ROW_ITEM_PREFIX_NAME,
-} from '@/constants';
+import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, ROW_ID_FIELD_NAME, ROW_ITEM_PREFIX_NAME } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
@@ -16,15 +8,13 @@ import {
   SearchResult,
   ViewItem,
 } from '@/types/Common';
-import { GridOptions, SearchOptions, SortOption } from '@/types/GridOptions';
+import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { arrayCopy, isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
 export abstract class DataManager {
-  protected readonly matchWholeRegex?: RegExp;
-
   protected readonly rowHeight;
   protected readonly rowIdField;
 
@@ -36,7 +26,6 @@ export abstract class DataManager {
   private viewItems: ViewItem[] = [];
 
   private sortBaseItems: any[] = [];
-  private readonly defaultSearchOpts: SearchOptions;
 
   private beforeKeyword: string;
   private beforeSearchMode: SearchMode;
@@ -56,18 +45,6 @@ export abstract class DataManager {
     this.cfg = gridMain.config();
     this.rowHeight = this.cfg.rowHeight;
     this.rowIdField = this.cfg.rowIdField;
-
-    this.defaultSearchOpts = merge(
-      {
-        matchCase: false,
-        matchWholeWord: false,
-        useRegex: false,
-        searchFields: ALL_SELECT_VALUE,
-        matchWholeRegex: MATCH_WHOLE_REGEX,
-        hideNonMatched: false,
-      },
-      opts.search,
-    );
   }
 
   /**
@@ -316,18 +293,6 @@ export abstract class DataManager {
   }
 
   public search(keyword: string, options: SearchMode) {
-    if (this.matchWholeRegex) options.matchWholeRegex = this.matchWholeRegex;
-
-    if (options.searchFields == ALL_SELECT_VALUE) {
-      options.searchFields = this.cfg.currentFields
-        .filter((item) => !item.$isAside)
-        .map((item) => {
-          return item.name;
-        });
-    }
-
-    options = merge({}, this.defaultSearchOpts, options);
-
     const keys: string[] = ['matchCase', 'matchWholeWord', 'useRegex', 'searchFields'];
 
     let isSameSearchOpts = this.beforeKeyword == keyword;
@@ -439,8 +404,6 @@ export abstract class DataManager {
         }
       }
     }
-
-    //this.setCurrentMatchInfo(this.getViewItems(), matchInfo.id, matchInfo.itemIndex);
   }
 
   clearSearchInfo() {

@@ -33,7 +33,7 @@ export function gridDataSearch(
   let matchWholeRegex = options.matchWholeRegex;
 
   // 검색 필드 최적화
-  const fieldsToSearch = getSearchFields(searchList, searchFields);
+  const fieldsToSearch = getSearchFields(searchList, dataManager, searchFields);
 
   // 검색 텍스트 전처리
   const normalizedSearchText = matchCase ? searchText : searchText.toLowerCase();
@@ -99,9 +99,9 @@ export function gridDataSearch(
   return { isOriginal: false, matchCount: matchCount, items: results };
 }
 
-function getSearchFields(searchList: any[], searchFields: SearchFields): string[] {
+function getSearchFields(searchList: ViewItem[], dataManager: DataManager, searchFields: SearchFields): string[] {
   if (searchFields === ALL_SELECT_VALUE) {
-    return searchList.length > 0 ? Object.keys(searchList[0]) : [];
+    return searchList.length > 0 ? Object.keys(dataManager.getRowItem(searchList[0].id)) : [];
   }
 
   return Array.isArray(searchFields) ? arrayCopy(searchFields) : [searchFields];

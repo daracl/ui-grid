@@ -33,10 +33,11 @@ import { Footer } from './footer/Footer';
 import { GridStructureBuilder } from './GridStructureBuilder';
 import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
-import { DataSearch } from './main/DataSearch';
+import { DataSearch } from './search/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
+import { SimpleDataSearch } from './search/SimpleDataSearch';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -114,7 +115,7 @@ export class GridMain {
 
   private resizeObserver: ResizeObserver;
 
-  private gridStructureBuilder: GridStructureBuilder;
+  private readonly gridStructureBuilder: GridStructureBuilder;
 
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
     const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
@@ -296,7 +297,7 @@ export class GridMain {
     this.summary = new Summary(this);
 
     if (opts.search.enabled) {
-      this.dataSearch = new DataSearch(this);
+      this.dataSearch = new SimpleDataSearch(this);
     }
 
     this.scroll = new Scroll(this);

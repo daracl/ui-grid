@@ -64,6 +64,10 @@ export abstract class ViewRenderer extends Renderer {
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
+  public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
+    return false;
+  }
+
   public getRefValue(value: any, rowItem?: any): any {
     if (this.isRefFunction) {
       return this.refValue.call(null, this.field, value, rowItem);

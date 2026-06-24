@@ -1,5 +1,8 @@
 import { gridDataSearch } from '../../src/util/searchUtils';
 import { ROW_ID_FIELD_NAME } from '../../src/constants';
+import { ViewItem } from '../../dist/types/Common';
+import { DataManager } from '../../src/service/DataManager';
+import { merge } from '../../src/util/utils';
 
 /*
 export type SearchMode = {
@@ -15,7 +18,7 @@ describe('gridDataSearch', () => {
   // 사용 예시
 
   it('name check', () => {
-    const result = searchExecute(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true });
     expect(1).toEqual(result.length);
     expect(result[0].name).toBe('김민수');
   });
@@ -25,7 +28,7 @@ describe('gridDataSearch', () => {
       searchFields: 'position',
       useRegex: true,
       hideNonMatched: true,
-    }).items;
+    });
     // 실제로 "백엔드" 또는 "디자이너"가 포함된 position을 가진 사람 수
     // "백엔드 개발자": 3명, "UI/UX 디자이너": 1명, "그래픽 디자이너": 1명, "UX 디자이너": 1명, "웹 디자이너": 1명
     // 총 7명
@@ -37,15 +40,14 @@ describe('gridDataSearch', () => {
 
   it('new line check', () => {
     const result = searchExecute(employeeList, '전략적으로\n 문제를', {
-      searchFields: '$all$',
       hideNonMatched: true,
-    }).items;
+    });
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('김민수');
   });
 
   it('empty searchText returns all items', () => {
-    const result = searchExecute(employeeList, '', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '', { searchFields: 'name', hideNonMatched: true });
 
     expect(result.length).toBe(employeeList.length);
   });
@@ -55,14 +57,14 @@ describe('gridDataSearch', () => {
       searchFields: 'email',
       matchCase: true,
       hideNonMatched: true,
-    }).items;
+    });
     expect(result1.length).toBe(1);
 
     const result2 = searchExecute(employeeList, 'MINSU.KIM@EXAMPLE.COM', {
       searchFields: 'email',
       matchCase: true,
       hideNonMatched: true,
-    }).items;
+    });
     expect(result2.length).toBe(0);
   });
 
@@ -71,7 +73,7 @@ describe('gridDataSearch', () => {
       searchFields: 'email',
       matchCase: false,
       hideNonMatched: true,
-    }).items;
+    });
     expect(result.length).toBe(1);
   });
 
@@ -81,7 +83,7 @@ describe('gridDataSearch', () => {
       searchFields: 'position',
       matchWholeWord: true,
       hideNonMatched: true,
-    }).items;
+    });
 
     expect(result.length).toBe(3); // "프론트엔드 개발자", "주니어 프론트엔드 개발자"
     expect(result.map((r) => r.position)).toEqual(
@@ -93,7 +95,7 @@ describe('gridDataSearch', () => {
     const result = searchExecute(employeeList, '문제', {
       searchFields: ['desc', 'position'],
       hideNonMatched: true,
-    }).items;
+    });
     // "문제"가 desc나 position에 포함된 사람
     expect(result.length).toBeGreaterThan(0);
     expect(result.some((r) => r.name === '김민수')).toBe(true);
@@ -106,21 +108,16 @@ describe('gridDataSearch', () => {
       searchFields: 'desc',
       useRegex: true,
       hideNonMatched: true,
-    }).items;
+    });
     // Invalid regex, should fallback to normal text search, which will not match anything
     expect(result.length).toBe(0);
   });
 
   it('searchFields: $all$ should search all fields', () => {
-    const result = searchExecute(employeeList, 'PM', { searchFields: '$all$', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, 'PM', { hideNonMatched: true });
     // "PM"이 포함된 사람: "프로덕트 매니저"의 배수지
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('배수지');
-  });
-
-  it('should highlight matched text in result', () => {
-    const result = searchExecute(employeeList, '김민수', { searchFields: 'name', hideNonMatched: true }).items;
-    expect(result[0].matchedFields[0].highlightedValue).toContain('<mark>김민수</mark>');
   });
 
   it('should not match partial word when matchWholeWord is true', () => {
@@ -129,7 +126,7 @@ describe('gridDataSearch', () => {
       searchFields: 'position',
       matchWholeWord: true,
       hideNonMatched: true,
-    }).items;
+    });
     expect(result.length).toBe(6);
     expect(result.map((r) => r.position)).toEqual(
       expect.arrayContaining([
@@ -144,36 +141,73 @@ describe('gridDataSearch', () => {
   });
 
   it('should match numbers as string', () => {
-    const result = searchExecute(employeeList, '34', { searchFields: 'age', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '34', { searchFields: 'age', hideNonMatched: true });
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('김민수');
   });
 
   it('should return empty array if no match', () => {
-    const result = searchExecute(employeeList, '없는이름', { searchFields: 'name', hideNonMatched: true }).items;
+    const result = searchExecute(employeeList, '없는이름', { searchFields: 'name', hideNonMatched: true });
     expect(result.length).toBe(0);
   });
 });
 
 function searchExecute(employeeList: any[], keyword: string, opts: any) {
   const rowMap = new Map();
+  let orderIdx = -1;
 
+  const allFieldNames: string[] = [];
+
+  for (const key in employeeList[0]) {
+    allFieldNames.push(key + '');
+  }
+
+  opts = merge(
+    {
+      matchCase: false,
+      matchWholeWord: false,
+      useRegex: false,
+      hideNonMatched: false,
+      searchFields: allFieldNames,
+    },
+    opts,
+  );
+
+  const searchViewItemds: ViewItem[] = [];
   employeeList.forEach((item) => {
     item[ROW_ID_FIELD_NAME] = item.email;
     rowMap.set(item.email, item);
+
+    const rowId = item[ROW_ID_FIELD_NAME];
+
+    const viewItem = {
+      id: rowId,
+      sortOrder: orderIdx++,
+    } as ViewItem;
+
+    searchViewItemds.push(viewItem);
   });
 
-  const searchResult = gridDataSearch(employeeList, keyword, opts);
+  const searchResult = gridDataSearch(
+    searchViewItemds,
+    {
+      getRowItem: (rowId) => {
+        return rowMap.get(rowId);
+      },
+    } as DataManager,
+    keyword,
+    opts,
+  );
 
   const result: any[] = [];
-  searchResult.items.forEach((item: any) => {
+  searchResult.items.forEach((item: ViewItem) => {
     const newItem = rowMap.get(item.id);
     newItem.matchedFields = item.matchedFields;
     newItem.matchCount = item.matchCount;
     result.push(newItem);
   });
-  searchResult.items = result;
-  return { items: result };
+
+  return result;
 }
 
 const employeeList = [

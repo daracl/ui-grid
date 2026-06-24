@@ -9,7 +9,7 @@ import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
-import { AddRowOptions } from './types/Common';
+import { AddRowOptions, SearchMode } from './types/Common';
 
 declare const APP_VERSION: string;
 
@@ -270,6 +270,10 @@ export class DaraGrid {
 
   public collapseAll() {
     this.gridMain.collapseAll();
+  }
+
+  public search(searchText: string, opts: SearchMode) {
+    return this.gridMain.getDataSearch().search(searchText, opts);
   }
 
   /**

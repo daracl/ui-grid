@@ -93,7 +93,6 @@
       padding: 2px 2px;
       width: 100%;
       min-height: 22px;
-      //background-color: var(--button-bg);
       border: 1px solid var(--border-color);
       cursor: pointer;
       display: flex;
@@ -176,7 +175,6 @@
       flex-shrink: 0;
 
       transform: rotate(0deg);
-      transition: transform 0.2s ease;
 
       &.expanded {
         transform: rotate(90deg);
@@ -195,7 +193,7 @@
       margin-right: 3px;
 
       &.dg-folder {
-        background-image: url('data:image/svg+xml;utf8,<svg style="width: 16px; height: 16px; fill: rgb(233 215 158);" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M64 480H448c35.3 0 64-28.7 64-64V160c0-35.3-28.7-64-64-64H288c-10.1 0-19.6-4.7-25.6-12.8L243.2 57.6C231.1 41.5 212.1 32 192 32H64C28.7 32 0 60.7 0 96V416c0 35.3 28.7 64 64 64z"></path></svg>');
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(233,215,158)' d='M10 4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6z'/></svg>");
       }
 
       &.dg-file {

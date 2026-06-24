@@ -16,11 +16,14 @@ import { ViewRenderer } from '../ViewRenderer';
  */
 export class TreeRenderer extends ViewRenderer {
   private readonly treeNodeIconClass;
+  private readonly iconState = new WeakMap<HTMLElement, string>();
+  private readonly treeDataManager: TreeDataManager;
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     const opts = this.gridMain.options();
     this.treeNodeIconClass = opts.tree?.treeNodeIconClass;
+    this.treeDataManager = this.cfg.dataManager as TreeDataManager;
   }
 
   /**
@@ -77,23 +80,15 @@ export class TreeRenderer extends ViewRenderer {
     }
 
     if (this.treeNodeIconClass) {
-      //
-      //
-      //확인할 것.
-      //
-      //
       const next = this.treeNodeIconClass(item, renderValue) ?? '';
-      const prev = icon.dataset.iconClass;
 
-      if (prev === next) return;
+      const prev = this.iconState.get(icon) ?? '';
 
-      if (prev) icon.classList.remove(prev);
-      if (next) icon.classList.add(next);
+      if (prev !== next) {
+        if (prev) iconClassList.remove(...prev.split(/\s+/));
+        if (next) iconClassList.add(...next.split(/\s+/));
 
-      if (next) {
-        icon.dataset.iconClass = next;
-      } else {
-        delete icon.dataset.iconClass;
+        this.iconState.set(icon, next);
       }
     }
 
@@ -104,19 +99,31 @@ export class TreeRenderer extends ViewRenderer {
 
   initExpanderEvent(expander: HTMLSpanElement) {
     const cfg = this.cfg;
-    const treeDataManager = cfg.dataManager as TreeDataManager;
+
     cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      treeDataManager.toggleRow(cellInfo.item[ROW_ID_FIELD_NAME]);
-      this.gridMain.refreshBody(true, 'treeExpander');
-
+      this.toggle(cellInfo);
       //stopPreventCancel(e);
 
       //this.click(e, cellElement, cellInfo);
     });
+  }
+
+  private toggle(cellInfo: CellInfo) {
+    this.treeDataManager.toggleRow(cellInfo.item[ROW_ID_FIELD_NAME]);
+    this.gridMain.refreshBody(true, 'treeExpander');
+  }
+
+  public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
+    if (!(this.treeDataManager.getViewItems()[cellInfo.rowIndex] as TreeViewItem).isLeaf) {
+      this.toggle(cellInfo);
+      return true;
+    }
+
+    return false;
   }
 
   public alignStyle() {

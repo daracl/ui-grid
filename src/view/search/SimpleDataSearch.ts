@@ -1,27 +1,23 @@
 import { Config } from '@t/GridConfig';
 
 import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
+import { SearchMode } from '@/types/Common';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
-import { SearchOptions } from '@t/GridOptions';
+import { html } from '@/util/htmlTemplate';
 import { toggleClass } from '@/util/styleUtils';
 import { GridMain } from '@/view/GridMain';
-import { html } from '@/util/htmlTemplate';
-import { SearchMode } from '@/types/Common';
+import { SearchOptions } from '@t/GridOptions';
+import { DataSearch } from './DataSearch';
+import { merge } from '@/util/utils';
 
 /**
- * DataSearch class
+ * simple search class
  *
- * @class DataSearch
- * @typedef {DataSearch}
+ * @class SimpleDataSearch
+ * @typedef {SimpleDataSearch}
  */
-export class DataSearch {
-  private readonly gridMain: GridMain;
-
-  private readonly cfg: Config;
-
-  private readonly searchOpts: SearchOptions;
-
+export class SimpleDataSearch extends DataSearch {
   private searchElement: HTMLElement;
 
   private searchTextElement: HTMLInputElement;
@@ -29,9 +25,7 @@ export class DataSearch {
   private matchCountElement: HTMLSpanElement;
 
   constructor(gridMain: GridMain) {
-    this.cfg = gridMain.config();
-    this.searchOpts = gridMain.options().search;
-    this.gridMain = gridMain;
+    super(gridMain);
     this.createTemplate();
   }
 
@@ -39,6 +33,8 @@ export class DataSearch {
     this.gridMain.openLayer(this.searchElement);
 
     this.searchTextElement.focus();
+
+    return true;
   }
 
   createTemplate() {
@@ -65,8 +61,11 @@ export class DataSearch {
 
       searchElement = getLayerElement('div', 'dg-search-simple', 'help-tooltip');
 
-      template.push('<select class="dg-search-field">');
-      template.push(`<option value="${ALL_SELECT_VALUE}">${this.gridMain.i18n().getMessage('all')}</option>`);
+      template.push(
+        `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${this.gridMain
+          .i18n()
+          .getMessage('all')}</option>`,
+      );
       for (const field of fields) {
         if (field.$isAside) continue;
         template.push(`<option value="${field.name}">${field.label}</option>`);
@@ -180,23 +179,16 @@ export class DataSearch {
     });
   }
 
-  simpleSearch(direction: SearchDirection) {
-    const searchText = this.searchTextElement.value;
-    const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
-
+  public search(searchText: string, opts: SearchMode): boolean {
     const cfg = this.gridMain.config();
-    const searchParameter = cfg.searchParameter;
 
-    searchParameter.searchText = searchText;
-    searchParameter.searchFields = searchField;
+    const options = merge({}, this.defaultSearchOpts, opts);
 
-    cfg.dataManager.search(searchText, {
-      matchCase: searchParameter.matchCase,
-      matchWholeWord: searchParameter.matchWholeWord,
-      useRegex: searchParameter.useRegex,
-      searchFields: searchField,
-      direction: direction,
-    } as SearchMode);
+    if (options.searchFields == ALL_SELECT_VALUE) {
+      options.searchFields = this.allFieldNames;
+    }
+
+    cfg.dataManager.search(searchText, opts);
 
     this.setMatchCountText();
 
@@ -210,6 +202,27 @@ export class DataSearch {
 
     this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
+
+    return true;
+  }
+
+  private simpleSearch(direction: SearchDirection) {
+    const searchText = this.searchTextElement.value;
+    const searchField = this.searchFieldElement.value || ALL_SELECT_VALUE;
+
+    const cfg = this.gridMain.config();
+    const searchParameter = cfg.searchParameter;
+
+    searchParameter.searchText = searchText;
+    searchParameter.searchFields = searchField;
+
+    this.search(searchText, {
+      matchCase: searchParameter.matchCase,
+      matchWholeWord: searchParameter.matchWholeWord,
+      useRegex: searchParameter.useRegex,
+      searchFields: searchField,
+      direction: direction,
+    } as SearchMode);
   }
 
   setMatchCountText() {

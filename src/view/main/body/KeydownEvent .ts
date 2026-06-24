@@ -69,13 +69,16 @@ export class KeydownEvent implements EventHandler {
 
         const field = cfg.currentFields[startCell.startCol];
 
+        const startElement = this.gridMain.getBody().getStartCellElement();
+
+        const cellInfo = getCellInfo(cfg, startElement);
+        if (field.renderer.type === 'tree') {
+          if (field.$renderer.bindEvents('space', cellInfo, startElement)) return true;
+        }
+
         if (editable === true && field.editable !== false && field.$renderer.canEdit()) {
           // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
-
-          const startElement = this.gridMain.getBody().getStartCellElement();
-
-          const cellInfo = getCellInfo(cfg, startElement);
 
           field.$editRenderer.render(cellInfo, startElement);
           return;
@@ -211,7 +214,7 @@ export class KeydownEvent implements EventHandler {
           moveCol = gridStartCol;
         } else {
           moveCol = evtKey == 36 ? gridStartCol : endCol - 1;
-          moveCol = moveCol > gridStartCol ? moveCol : gridStartCol;
+          moveCol = Math.max(moveCol, gridStartCol);
         }
 
         if (this.insideScrollCheck(evtKey, evt, scrollInfo, endIdx, moveCol)) {
