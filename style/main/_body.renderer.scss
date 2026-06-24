@@ -184,9 +184,12 @@
     .dg-icon {
       overflow: hidden;
       vertical-align: middle;
+
+      flex: 0 0 16px;
       width: 16px;
       height: 24px;
       line-height: 24px;
+
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;

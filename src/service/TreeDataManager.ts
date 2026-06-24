@@ -183,6 +183,7 @@ export class TreeDataManager extends DataManager {
     const flatList: TreeViewItem[] = [];
 
     const searchEnable = this.cfg.searchEnable;
+
     let offset = 0;
     const dfs = (list: ViewItem[], parentExpanded: boolean) => {
       for (const item of list) {
@@ -194,7 +195,6 @@ export class TreeDataManager extends DataManager {
           const matchViewItem = this.getSearchMapItem(rowId);
           if (matchViewItem) {
             this.matchOffsetMap.set(rowId, offset);
-
             offset += matchViewItem.matchedFields?.length ?? 0;
           }
         }

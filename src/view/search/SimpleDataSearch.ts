@@ -134,7 +134,6 @@ export class SimpleDataSearch extends DataSearch {
         e.preventDefault();
         this.simpleSearch(SearchDirectionMap.NEXT);
       } else if (isEsc(e)) {
-        cfg.searchEnable = false;
         this.gridMain.hideLayer(this.searchElement);
       }
     });
@@ -188,17 +187,15 @@ export class SimpleDataSearch extends DataSearch {
       options.searchFields = this.allFieldNames;
     }
 
-    cfg.dataManager.search(searchText, opts);
-
-    this.setMatchCountText();
-
     if (searchText == '') {
       cfg.searchEnable = false;
-      this.matchCountElement.textContent = '';
+      this.setMatchCountText(true);
       this.gridMain.getBody().clearSearchHighlight();
     } else {
       cfg.searchEnable = true;
     }
+
+    cfg.dataManager.search(searchText, opts);
 
     this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
@@ -225,7 +222,11 @@ export class SimpleDataSearch extends DataSearch {
     } as SearchMode);
   }
 
-  setMatchCountText() {
+  setMatchCountText(clear = false) {
+    if (clear) {
+      this.matchCountElement.textContent = '';
+      return;
+    }
     const searchMatchInfo = this.cfg.searchMatchInfo;
 
     if (searchMatchInfo.matchCount > 0) {
