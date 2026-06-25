@@ -2,6 +2,7 @@ import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
+  MatchedField,
   RowId,
   SearchMatchInfo,
   SearchMode,
@@ -432,7 +433,7 @@ export class TreeDataManager extends DataManager {
     return currentMatchInfo;
   }
 
-  private findMatch(
+  public findMatch(
     isNext: boolean,
     checkMatchIndex: number,
     searchMatchInfo: SearchMatchInfo,
@@ -482,12 +483,41 @@ export class TreeDataManager extends DataManager {
       };
     }
 
+    if (searchMatchInfo.matchCount == 1) {
+      return {
+        id: searchMatchInfo.id,
+        rowIndex: searchMatchInfo.rowIndex,
+        cellIndex: searchMatchInfo.cellIndex,
+        matchedFields: this.getSearchMapItem(searchMatchInfo.id)?.matchedFields || [],
+      };
+    }
+
     // 못 찾은 경우 fallback
     return {
       id: '',
       rowIndex: -1,
       cellIndex: -1,
       matchedFields: [],
+    };
+  }
+
+  public createMatchInfo(
+    matchId: RowId,
+    rowIndex: number,
+    cellIndex: number,
+    matchedFields: MatchedField[],
+  ): CURRENT_MATCH_INFO {
+    const matchItem = this.getSearchMapItem(matchId) as TreeViewItem;
+
+    if (matchItem && this.expandParents(matchItem, EXPAND_TYPE.SEARCH)) {
+      this.buildViewItems();
+    }
+
+    return {
+      id: matchId,
+      rowIndex: this.visibleIndexMap.get(matchId) ?? -1,
+      cellIndex,
+      matchedFields,
     };
   }
 

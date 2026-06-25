@@ -33,7 +33,7 @@ export abstract class DataSearch {
 
     const allFieldNames = [];
     for (const field of this.cfg.currentFields) {
-      allFieldNames.push(field.name);
+      if (!field.$isAside) allFieldNames.push(field.name);
     }
 
     this.allFieldNames = allFieldNames;

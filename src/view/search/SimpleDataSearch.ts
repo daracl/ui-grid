@@ -187,6 +187,7 @@ export class SimpleDataSearch extends DataSearch {
       options.searchFields = this.allFieldNames;
     }
 
+    this.searchTextElement.value = searchText;
     if (searchText == '') {
       cfg.searchEnable = false;
       this.setMatchCountText(true);
@@ -195,7 +196,7 @@ export class SimpleDataSearch extends DataSearch {
       cfg.searchEnable = true;
     }
 
-    cfg.dataManager.search(searchText, opts);
+    cfg.dataManager.search(searchText, options);
 
     this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);

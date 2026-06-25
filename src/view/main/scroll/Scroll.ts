@@ -68,6 +68,7 @@ export class Scroll {
     const mainElement = this.gridMain.mainElement().getElement();
     let animationId: number;
     let beforeStartIdx = -1;
+
     eventManager.off(mainElement, 'wheel DOMMouseScroll');
     eventManager.on(
       { el: mainElement, type: 'wheel DOMMouseScroll' },
@@ -85,8 +86,10 @@ export class Scroll {
         //delta < 0 --up
         const upFlag = delta < 0;
 
+        const rowLength = dataInfo.rowLength;
+
         if (scroll.enableVertical && !isHorizontal) {
-          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < dataInfo.rowLength)) {
+          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < rowLength)) {
             stopPreventCancel(evt);
           } else {
             cancelAnimationFrame(animationId);
@@ -94,17 +97,20 @@ export class Scroll {
             return;
           }
 
-          if (beforeStartIdx == startIdx) return;
+          if (animationId != 0 && beforeStartIdx == startIdx) {
+            return;
+          }
 
           beforeStartIdx = startIdx;
 
           animationId = requestAnimationFrame(() => {
             const speed = getFirstDigitMath(Math.abs(delta));
-            const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
+            const pageCount = Math.ceil(rowLength / scroll.viewRow);
             this.moveVerticalScroll({
               direction: upFlag ? 'U' : 'D',
               speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
             });
+            beforeStartIdx = -1;
           });
         } else if (isHorizontal) {
           if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {

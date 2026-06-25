@@ -1,15 +1,15 @@
 import { GridOptions } from '@t/GridOptions';
 
-import { ADD_ITEM_POSITION, HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
+import { HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
 import { PagingInfo } from '@t/PagingInfo';
+import { AddRowOptions, RowId, SearchMode } from './types/Common';
 import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
-import { AddRowOptions, SearchMode } from './types/Common';
 
 declare const APP_VERSION: string;
 
@@ -84,7 +84,7 @@ export class DaraGrid {
   }
 
   public getItems() {
-    return this.gridMain.config().dataManager.getRowItems();
+    return this.gridMain.config().dataManager.getAllRowItems();
   }
 
   public hideLayer() {
@@ -110,6 +110,33 @@ export class DaraGrid {
       if (viewItem) {
         result.push(dataManager.getRowItem(viewItem.id));
       }
+    }
+    return result;
+  }
+
+  /**
+   * 지정한 행 ID에 해당하는 데이터를 반환합니다.
+   *
+   * @param rowId 조회할 행의 ID
+   * @returns 행 ID에 해당하는 데이터 객체
+   */
+  public getItemById(rowId: RowId) {
+    return this.gridMain.config().dataManager.getRowItem(rowId);
+  }
+
+  /**
+   * 지정한 행 ID 목록에 해당하는 데이터들을 반환합니다.
+   *
+   * 반환되는 배열의 순서는 전달된 rowIds의 순서와 동일합니다.
+   *
+   * @param rowIds 조회할 행 ID 목록
+   * @returns 행 ID 목록에 해당하는 데이터 객체 배열
+   */
+  public getItemsByIds(rowIds: RowId[]) {
+    const result = [];
+    const dataManager = this.gridMain.config().dataManager;
+    for (const rowId of rowIds) {
+      result.push(dataManager.getRowItem(rowId));
     }
     return result;
   }

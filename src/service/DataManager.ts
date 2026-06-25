@@ -2,6 +2,7 @@ import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, ROW_ID_FIELD_NAME, ROW_ITEM
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
+  MatchedField,
   RowId,
   SearchMatchInfo,
   SearchMode,
@@ -40,6 +41,8 @@ export abstract class DataManager {
   private readonly rowCheckSet = new Set<RowId>();
 
   protected readonly matchOffsetMap = new Map<RowId, number>();
+
+  private beforeDataRowLength = -1;
 
   constructor(protected opts: GridOptions, protected gridMain: GridMain, protected type: string) {
     this.cfg = gridMain.config();
@@ -127,7 +130,7 @@ export abstract class DataManager {
     });
 
     if (this.opts.header.sort.customSorting) {
-      this.setViewItems(this.opts.header.sort.customSorting(this.getRowItems(true), sortArr, sortOpts));
+      this.setViewItems(this.opts.header.sort.customSorting(this.getAllRowItems(true), sortArr, sortOpts));
       return;
     }
 
@@ -172,19 +175,26 @@ export abstract class DataManager {
    * @param end end index
    */
   public setViewItems(ids: ViewItem[], start?: number, end?: number) {
-    const viewItemIds = arrayCopy(ids, start, end);
+    const viewItemIds = ids;
     this.viewItems = viewItemIds;
 
     const dataInfo = this.cfg.dataInfo;
 
-    const beforeDataRowLength = dataInfo.rowLength;
-
     dataInfo.rowLength = viewItemIds.length;
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
 
-    if (beforeDataRowLength !== dataInfo.rowLength) {
+    if (this.beforeDataRowLength !== dataInfo.rowLength) {
       this.gridMain.calcBody();
+      //처리 할것.
+      //
+      //this.gridMain.refreshBody(false, 'search');
+      //
+      //
     }
+
+    console.log('setViewItems : ', this.beforeDataRowLength, dataInfo.rowLength);
+
+    this.beforeDataRowLength = dataInfo.rowLength;
   }
 
   public convertViewItemsToRowItems() {
@@ -198,7 +208,11 @@ export abstract class DataManager {
     return results;
   }
 
-  public getRowItems(rowIdInclude = false) {
+  public getRowItem(rowId: RowId): any {
+    return this.rowMap.get(rowId);
+  }
+
+  public getAllRowItems(rowIdInclude = false) {
     const viewItems = this.getViewItems();
     const results = new Array(viewItems.length);
 
@@ -284,10 +298,6 @@ export abstract class DataManager {
     return this.searchMap.has(rowId);
   }
 
-  public getRowItem(rowId: RowId): any {
-    return this.rowMap.get(rowId);
-  }
-
   protected setRowItem(rowId: RowId, item: any) {
     this.rowMap.set(rowId, item);
   }
@@ -325,6 +335,7 @@ export abstract class DataManager {
     let searchResult: SearchResult;
     let searchItems;
     let isNewSearch = false;
+    const beforeRowLength = this.cfg.dataInfo.rowLength;
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
       searchMatchInfo = this.cfg.searchMatchInfo;
       searchItems = this.getViewItems();
@@ -370,6 +381,11 @@ export abstract class DataManager {
 
     const matchInfo = this.getMatchInfo(searchMatchInfo, isNewSearch, options);
 
+    // 접혀 있는 데이터가 오픈 되었을때 처리.
+    if (beforeRowLength != this.cfg.dataInfo.rowLength) {
+      //this.gridMain.refreshBody(false, 'search');
+    }
+
     const { rowIndex: matchRowIndex, cellIndex: itemIndex } = matchInfo;
 
     const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
@@ -383,10 +399,6 @@ export abstract class DataManager {
       }
 
       if (moveScrollRowIdx > -1) {
-        // 접혀 있는 데이터가 오픈 되었을때 처리.
-        if (searchItems.length != this.cfg.dataInfo.rowLength) {
-          this.gridMain.refreshBody(false, 'search');
-        }
         this.gridMain.getScroll().moveVerticalScroll({ rowIdx: moveScrollRowIdx, drawFlag: false });
       }
     }
@@ -471,5 +483,68 @@ export abstract class DataManager {
     if (cellIdx === -1) return len - 1;
 
     return baseIdx >= 0 ? baseIdx : -1;
+  }
+
+  protected findMatch(
+    isNext: boolean,
+    checkMatchIndex: number,
+    searchMatchInfo: SearchMatchInfo,
+    searchResult: ViewItem[],
+  ): CURRENT_MATCH_INFO {
+    const len = searchResult.length;
+    const currentCellIdx = searchMatchInfo.cellIndex;
+
+    for (let i = 0; i < len; i++) {
+      const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
+
+      const item = searchResult[searchRowIdx];
+      const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
+
+      if (!matchFields?.length) continue;
+
+      const sameRow = searchRowIdx === checkMatchIndex;
+      const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
+
+      if (sameRow) {
+        const outOfRange = isNext ? baseIdx >= matchFields.length : baseIdx < 0;
+
+        if (currentCellIdx !== -1 && outOfRange) {
+          continue;
+        }
+      }
+
+      const resolvedIdx = this.resolveCellIndex(isNext, sameRow, baseIdx, matchFields.length, currentCellIdx);
+
+      if (resolvedIdx < 0) continue;
+
+      return this.createMatchInfo(item.id, searchRowIdx, resolvedIdx, matchFields);
+    }
+
+    return this.createFallbackMatch(searchMatchInfo);
+  }
+
+  abstract createMatchInfo(
+    matchId: RowId,
+    rowIndex: number,
+    cellIndex: number,
+    matchedFields: MatchedField[],
+  ): CURRENT_MATCH_INFO;
+
+  private createFallbackMatch(searchMatchInfo: SearchMatchInfo): CURRENT_MATCH_INFO {
+    if (searchMatchInfo.matchCount === 1) {
+      return {
+        id: searchMatchInfo.id,
+        rowIndex: searchMatchInfo.rowIndex,
+        cellIndex: searchMatchInfo.cellIndex,
+        matchedFields: this.getSearchMapItem(searchMatchInfo.id)?.matchedFields || [],
+      };
+    }
+
+    return {
+      id: '',
+      rowIndex: -1,
+      cellIndex: -1,
+      matchedFields: [],
+    };
   }
 }

@@ -184,56 +184,17 @@ export class ListDataManager extends DataManager {
     return currentMatchInfo;
   }
 
-  private findMatch(
-    isNext: boolean,
-    checkMatchIndex: number,
-    searchMatchInfo: SearchMatchInfo,
-    searchResult: ViewItem[],
+  public createMatchInfo(
+    matchId: RowId,
+    rowIndex: number,
+    cellIndex: number,
+    matchedFields: MatchedField[],
   ): CURRENT_MATCH_INFO {
-    const len = searchResult.length;
-    const currentCellIdx = searchMatchInfo.cellIndex;
-
-    for (let i = 0; i < len; i++) {
-      const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
-
-      const item = searchResult[searchRowIdx];
-      const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
-
-      if (!matchFields?.length) continue;
-
-      const matchId = item.id;
-      const sameRow = searchRowIdx === checkMatchIndex;
-
-      const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
-
-      if (sameRow) {
-        // 같은 row에서 더 이상 이동 불가능하면 다음 row로 넘김
-        const outOfRange = isNext ? baseIdx >= matchFields.length : baseIdx < 0;
-
-        if (currentCellIdx !== -1 && outOfRange) {
-          continue;
-        }
-      }
-
-      const resolvedIdx = this.resolveCellIndex(isNext, sameRow, baseIdx, matchFields.length, currentCellIdx);
-
-      //  유효한 index가 아니면 다음 row로
-      if (resolvedIdx < 0) continue;
-
-      return {
-        id: matchId,
-        rowIndex: searchRowIdx,
-        cellIndex: resolvedIdx,
-        matchedFields: matchFields,
-      };
-    }
-
-    // 못 찾은 경우 fallback
     return {
-      id: '',
-      rowIndex: -1,
-      cellIndex: -1,
-      matchedFields: [],
+      id: matchId,
+      rowIndex,
+      cellIndex,
+      matchedFields,
     };
   }
 
