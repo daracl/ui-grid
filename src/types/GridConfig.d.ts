@@ -52,6 +52,9 @@ export interface Config {
 
     // center view width;
     mainCenterViewWidth: number;
+
+    // field total width;
+    fieldTotalWidth: number;
   };
 
   // summary info

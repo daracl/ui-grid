@@ -183,16 +183,10 @@ export abstract class DataManager {
     dataInfo.rowLength = viewItemIds.length;
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
 
-    if (this.beforeDataRowLength !== dataInfo.rowLength) {
+    if (this.beforeDataRowLength != -1 && this.beforeDataRowLength !== dataInfo.rowLength) {
       this.gridMain.calcBody();
-      //처리 할것.
-      //
-      //this.gridMain.refreshBody(false, 'search');
-      //
-      //
+      this.gridMain.refreshBody(false, 'search');
     }
-
-    console.log('setViewItems : ', this.beforeDataRowLength, dataInfo.rowLength);
 
     this.beforeDataRowLength = dataInfo.rowLength;
   }

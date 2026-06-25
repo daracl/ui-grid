@@ -67,30 +67,23 @@ export class GridStructureBuilder {
     for (const field of fields) {
       fieldTotalWidth += isHeaderResize ? field.$width : field.width;
     }
-
+    dimensions.fieldTotalWidth = fieldTotalWidth;
     scroll.enableHorizontal = fieldTotalWidth > dimensions.width;
 
     //세로 스크롭 계산 start
     const verticalEnable = opts.scroll.vertical.enable;
 
-    if (verticalEnable === false) {
-      dimensions.mainHeight =
-        rowHeight * rowLength +
-        (dimensions.mainHeaderHeight +
-          dimensions.mainSummaryHeight +
-          (scroll.enableHorizontal ? opts.scroll.width : 0));
-      dimensions.mainHeight = dimensions.mainHeight + MAIN_MARGIN_BOTTOM;
-    }
+    // 세로 스크롤 비활성화
+    const bodyMainHeight = verticalEnable ? dimensions.mainHeight : rowHeight * rowLength;
 
     const mainBodyHeight =
-      dimensions.mainHeight -
+      bodyMainHeight -
       (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? opts.scroll.width : 0)) -
       2; // 2 border height;
+    dimensions.mainBodyHeight = mainBodyHeight;
 
     scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > mainBodyHeight;
     scroll.enableHorizontal = fieldTotalWidth > dimensions.width - (scroll.enableVertical ? opts.scroll.width : 0);
-
-    dimensions.mainBodyHeight = mainBodyHeight;
 
     const orginViewRow = mainBodyHeight / rowHeight;
     const viewRow = Math.min(Math.max(1, Math.ceil(orginViewRow)), rowLength);

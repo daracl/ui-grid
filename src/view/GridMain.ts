@@ -551,7 +551,7 @@ export class GridMain {
   public calculation() {
     this.gridStructureBuilder.buildFields();
     this.cfg.dataManager.setItems(this.opts.items);
-    //this.calcBody();
+    this.calcBody();
   }
 
   public calcBody() {
