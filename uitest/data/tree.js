@@ -18,7 +18,7 @@ var G_TREE_CHILD_DATA = [
             position: '팀장',
             age: 38,
             email: 'chulsoo.kim@company.com',
-            desc: '팀을 이끌며 조직 운영과 업무 관리를 담당하고 있습니다. (38세)',
+            desc: '철수 팀을 이끌며 조직 운영과 업무 관리를 담당하고 있습니다. (38세)',
           },
           {
             id: '1-1-1-2',
@@ -633,7 +633,7 @@ var G_TREE_FLAT_DATA = [
     position: '팀장',
     age: 38,
     email: 'chulsoo.kim@company.com',
-    desc: '팀을 이끌며 인사 운영을 총괄합니다. (38세)',
+    desc: '철수는 팀을 이끌며 인사 운영을 총괄합니다. (38세)',
   },
   {
     id: '1-1-1-2',

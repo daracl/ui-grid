@@ -11,7 +11,11 @@
       <button onclick="collapseAll()">전체닫기</button>
     </div>
     <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+      <div id="sample" style="height: 300px; width: 100%"></div>
+    </div>
+
+    <div class="grid-view-area">
+      <div id="sample2" style="height: 250px; width: 100%"></div>
     </div>
   </body>
 </html>
@@ -46,7 +50,7 @@
 <script>
   var gridObj;
   function fn_init(initFlag) {
-    const jsonInfo = getItem();
+    let jsonInfo = getItem();
 
     gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
   }
@@ -117,11 +121,8 @@
     gridObj = Daracl.grid.create(
       element,
       {
-        editable: false,
-        //styleClass: 'striped',
-        selectionMode: 'row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        selectionMode: 'cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
-        enableTooltip: true, // tooltip flag
         height: 300,
 
         tree: {
@@ -137,17 +138,9 @@
             }
           },
         },
-
-        colOptions: {
-          maxWidth: 1024,
-        },
-        valueFilter: function (colInfo, objValue) {
-          return objValue[colInfo.key];
-        },
-
         search: {
           enabled: true,
-          hideNonMatched: true,
+          //hideNonMatched: true,
           enableColumnFix: true,
           click: false,
           mode: 'simple', //'full'
@@ -174,6 +167,9 @@
           },
           pasteAfter: function (a) {
             console.log('pasteAfter', a);
+          },
+          cellClick(rowInfo) {
+            return '';
           },
           row: {
             height: 30,

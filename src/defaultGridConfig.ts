@@ -49,6 +49,7 @@ export function initConfig(opts: GridOptions): Config {
       mainTotalWidth: 0,
       mainCenterOverWidth: 0,
       mainCenterViewWidth: 0,
+      fieldTotalWidth: 0,
     },
     summary: {
       heights: [],

@@ -7,7 +7,13 @@ import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { Config } from '@/types/GridConfig';
 import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
-import { getHeaderCellInfo, getHeaderResizeCellInfo, isMouseMoved, isRowSelectionMode } from '@/util/gridUtils';
+import {
+  getHeaderCellInfo,
+  getHeaderResizeCellInfo,
+  isMouseMoved,
+  isRowSelectionMode,
+  isSingleSelectionMode,
+} from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 import { HeaderCellClickHandler } from './HeaderCellClickHandler';
@@ -87,7 +93,7 @@ export class HeaderEvent {
 
     const allHandlers: BasePointerHandler[] = [];
 
-    if (this.headerOpts.enableAllColumnSelection && !isRowSelectionMode(selectionMode)) {
+    if (this.headerOpts.enableAllColumnSelection && !isSingleSelectionMode(selectionMode)) {
       allHandlers.push(new HeaderCellClickHandler({ gridMain: this.gridMain, header: this.header }, this));
     }
 

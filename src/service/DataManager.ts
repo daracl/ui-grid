@@ -375,11 +375,6 @@ export abstract class DataManager {
 
     const matchInfo = this.getMatchInfo(searchMatchInfo, isNewSearch, options);
 
-    // 접혀 있는 데이터가 오픈 되었을때 처리.
-    if (beforeRowLength != this.cfg.dataInfo.rowLength) {
-      //this.gridMain.refreshBody(false, 'search');
-    }
-
     const { rowIndex: matchRowIndex, cellIndex: itemIndex } = matchInfo;
 
     const { startIdx, insideViewRow, insideStartCol, insideEndCol } = this.cfg.scroll;
@@ -485,11 +480,13 @@ export abstract class DataManager {
     searchMatchInfo: SearchMatchInfo,
     searchResult: ViewItem[],
   ): CURRENT_MATCH_INFO {
-    const len = searchResult.length;
+    const resultLength = searchResult.length;
     const currentCellIdx = searchMatchInfo.cellIndex;
 
-    for (let i = 0; i < len; i++) {
-      const searchRowIdx = isNext ? (checkMatchIndex + i) % len : (checkMatchIndex - i + len) % len;
+    for (let i = 0; i < resultLength; i++) {
+      const searchRowIdx = isNext
+        ? (checkMatchIndex + i) % resultLength
+        : (checkMatchIndex - i + resultLength) % resultLength;
 
       const item = searchResult[searchRowIdx];
       const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
@@ -511,10 +508,15 @@ export abstract class DataManager {
 
       if (resolvedIdx < 0) continue;
 
+      //
+      // 처리 할것.
+      //
+      console.log('222222 ', item.id, searchRowIdx, resolvedIdx, matchFields);
+
       return this.createMatchInfo(item.id, searchRowIdx, resolvedIdx, matchFields);
     }
 
-    return this.createFallbackMatch(searchMatchInfo);
+    return this.createFallbackMatch(resultLength, isNext, searchMatchInfo);
   }
 
   abstract createMatchInfo(
@@ -524,13 +526,27 @@ export abstract class DataManager {
     matchedFields: MatchedField[],
   ): CURRENT_MATCH_INFO;
 
-  private createFallbackMatch(searchMatchInfo: SearchMatchInfo): CURRENT_MATCH_INFO {
-    if (searchMatchInfo.matchCount === 1) {
+  private createFallbackMatch(
+    resultLength: number,
+    isNext: boolean,
+    searchMatchInfo: SearchMatchInfo,
+  ): CURRENT_MATCH_INFO {
+    console.log('11111111111', resultLength);
+    if (resultLength === 1) {
+      const matchedFields = this.getSearchMapItem(searchMatchInfo.id)?.matchedFields || [];
+
+      let cellIndex = 0;
+      if (matchedFields.length != 0 && !isNext) {
+        cellIndex = matchedFields.length - 1;
+      }
+
+      console.log(resultLength, cellIndex, matchedFields);
+
       return {
         id: searchMatchInfo.id,
         rowIndex: searchMatchInfo.rowIndex,
-        cellIndex: searchMatchInfo.cellIndex,
-        matchedFields: this.getSearchMapItem(searchMatchInfo.id)?.matchedFields || [],
+        cellIndex: cellIndex,
+        matchedFields: matchedFields,
       };
     }
 

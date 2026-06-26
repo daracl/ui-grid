@@ -49,8 +49,6 @@ export class KeydownEvent implements EventHandler {
     cfg.eventManager.off(mainElement, 'keydown');
 
     cfg.eventManager.on({ el: mainElement, type: 'keydown' }, (e: KeyboardEvent) => {
-      if (!cfg.focus) return;
-
       const targetElement = e.target as HTMLElement;
 
       if (isInputField(targetElement.tagName)) {
