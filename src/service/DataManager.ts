@@ -11,7 +11,7 @@ import {
 } from '@/types/Common';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { arrayCopy, isArray } from '@/util/utils';
+import { isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 
@@ -333,7 +333,7 @@ export abstract class DataManager {
     let searchResult: SearchResult;
     let searchItems;
     let isNewSearch = false;
-    const beforeRowLength = this.cfg.dataInfo.rowLength;
+
     if (this.beforeKeyword == keyword && isSameSearchOpts) {
       searchMatchInfo = this.cfg.searchMatchInfo;
       searchItems = this.getViewItems();
@@ -469,11 +469,9 @@ export abstract class DataManager {
     cellIdx: number,
     searchRowLength: number,
   ): number {
-    if (!sameRow) {
+    if (!sameRow || cellIdx === -1) {
       return isNext ? 0 : matchFieldLength - 1;
     }
-
-    if (cellIdx === -1) return matchFieldLength - 1;
 
     const nextIndex = isNext ? cellIdx + 1 : cellIdx - 1;
 
