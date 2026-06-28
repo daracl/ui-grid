@@ -292,6 +292,10 @@ export abstract class DataManager {
     return this.searchMap.has(rowId);
   }
 
+  public getSearchMapItemLength(): number {
+    return this.searchMap.size;
+  }
+
   protected setRowItem(rowId: RowId, item: any) {
     this.rowMap.set(rowId, item);
   }
@@ -458,20 +462,32 @@ export abstract class DataManager {
    * - 결과가 -1이면 해당 row에서는 더 이상 이동할 match가 없음을 의미한다.
    *   (호출자가 다음/이전 row로 이동 처리해야 함)
    */
-  protected resolveCellIndex(isNext: boolean, sameRow: boolean, baseIdx: number, len: number, cellIdx: number): number {
+  protected resolveCellIndex(
+    isNext: boolean,
+    sameRow: boolean,
+    matchFieldLength: number,
+    cellIdx: number,
+    searchRowLength: number,
+  ): number {
     if (!sameRow) {
-      return isNext ? 0 : len - 1;
+      return isNext ? 0 : matchFieldLength - 1;
     }
 
-    if (isNext) {
-      if (cellIdx === -1) return 0;
+    if (cellIdx === -1) return matchFieldLength - 1;
 
-      return baseIdx < len ? baseIdx : -1;
+    const nextIndex = isNext ? cellIdx + 1 : cellIdx - 1;
+
+    const outOfRange = isNext ? nextIndex >= matchFieldLength : nextIndex < 0;
+
+    if (!outOfRange) {
+      return nextIndex;
     }
 
-    if (cellIdx === -1) return len - 1;
+    if (searchRowLength === 1) {
+      return isNext ? 0 : matchFieldLength - 1;
+    }
 
-    return baseIdx >= 0 ? baseIdx : -1;
+    return -1;
   }
 
   protected findMatch(
@@ -482,6 +498,8 @@ export abstract class DataManager {
   ): CURRENT_MATCH_INFO {
     const resultLength = searchResult.length;
     const currentCellIdx = searchMatchInfo.cellIndex;
+
+    const searchRowLength = this.getSearchMapItemLength();
 
     for (let i = 0; i < resultLength; i++) {
       const searchRowIdx = isNext
@@ -494,26 +512,12 @@ export abstract class DataManager {
       if (!matchFields?.length) continue;
 
       const sameRow = searchRowIdx === checkMatchIndex;
-      const baseIdx = isNext ? currentCellIdx + 1 : currentCellIdx - 1;
 
-      if (sameRow) {
-        const outOfRange = isNext ? baseIdx >= matchFields.length : baseIdx < 0;
+      const cellIndex = this.resolveCellIndex(isNext, sameRow, matchFields.length, currentCellIdx, searchRowLength);
 
-        if (currentCellIdx !== -1 && outOfRange) {
-          continue;
-        }
-      }
+      if (cellIndex < 0) continue;
 
-      const resolvedIdx = this.resolveCellIndex(isNext, sameRow, baseIdx, matchFields.length, currentCellIdx);
-
-      if (resolvedIdx < 0) continue;
-
-      //
-      // 처리 할것.
-      //
-      console.log('222222 ', item.id, searchRowIdx, resolvedIdx, matchFields);
-
-      return this.createMatchInfo(item.id, searchRowIdx, resolvedIdx, matchFields);
+      return this.createMatchInfo(item.id, searchRowIdx, cellIndex, matchFields);
     }
 
     return this.createFallbackMatch(resultLength, isNext, searchMatchInfo);
@@ -531,25 +535,6 @@ export abstract class DataManager {
     isNext: boolean,
     searchMatchInfo: SearchMatchInfo,
   ): CURRENT_MATCH_INFO {
-    console.log('11111111111', resultLength);
-    if (resultLength === 1) {
-      const matchedFields = this.getSearchMapItem(searchMatchInfo.id)?.matchedFields || [];
-
-      let cellIndex = 0;
-      if (matchedFields.length != 0 && !isNext) {
-        cellIndex = matchedFields.length - 1;
-      }
-
-      console.log(resultLength, cellIndex, matchedFields);
-
-      return {
-        id: searchMatchInfo.id,
-        rowIndex: searchMatchInfo.rowIndex,
-        cellIndex: cellIndex,
-        matchedFields: matchedFields,
-      };
-    }
-
     return {
       id: '',
       rowIndex: -1,
