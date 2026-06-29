@@ -28,6 +28,8 @@ export class Toolbar {
       return;
     }
 
+    // renderer 로 처리 할것.
+
     // toolbar
     const toolbarElement = this.gridMain.element().findDaraElement('.dg-toolbar');
 

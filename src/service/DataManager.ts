@@ -4,6 +4,7 @@ import {
   CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
+  RowSelectOptions,
   SearchMatchInfo,
   SearchMode,
   SearchResult,
@@ -14,6 +15,7 @@ import { FieldSortInfo } from '@/types/Header';
 import { isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
+import { Selection, SelectionRange } from '@/types/GridConfig';
 
 export abstract class DataManager {
   protected readonly rowHeight;
@@ -160,6 +162,16 @@ export abstract class DataManager {
     return item;
   }
 
+  public getViewItemIndex(id: RowId): number {
+    const viewItems = this.viewItems;
+
+    for (let idx = 0; idx < viewItems.length; idx++) {
+      if (viewItems[idx].id === id) return idx;
+    }
+
+    return -1;
+  }
+
   /**
    * grid view에 보여지는 item의 id 배열 반환
    * @returns
@@ -243,6 +255,47 @@ export abstract class DataManager {
    * @returns 삭제된 row id 배열
    */
   public abstract removeRows(ids: RowId[]): RowId[];
+
+  protected abstract getRowIndexById(rowId: RowId): number;
+
+  /**
+   * 지정한 row id의 행을 선택
+   * @param rowId 선택할 row id
+   * @param opts 포커스 이동, 스크롤 여부 등의 행 선택 옵션
+   */
+  public selectRowById(rowId: RowId, opts: RowSelectOptions) {
+    const index = this.getRowIndexById(rowId);
+
+    if (index > -1) {
+      let col = 1;
+      if (opts?.fieldName) {
+        const fieldInfo = this.cfg.allFieldMap.get(opts?.fieldName);
+        if (fieldInfo?.$colSeq) col = fieldInfo?.$colSeq;
+      } else {
+        col = this.cfg.dataInfo.startCol;
+      }
+
+      this.gridMain.selectionInfo.setSelectionRangeInfo(
+        {
+          range: {
+            type: 'cell',
+            startIdx: index,
+            endIdx: index,
+            startCol: col,
+            endCol: col,
+          } as SelectionRange,
+          isSelect: true,
+          startCell: { startIdx: index, startCol: col },
+        } as Selection,
+        true,
+        true,
+      );
+
+      if (opts?.scrollIntoView !== false) {
+        this.gridMain.getScroll().moveVerticalScroll({ rowIdx: index, drawFlag: true });
+      }
+    }
+  }
 
   /**
    * row 확장 (트리 구조에서 자식 노드 보이기)

@@ -60,15 +60,6 @@
         }
 
         .dg-row > .dg-cell {
-          border: 1px solid var(--border-color);
-          border-top: none !important;
-          border-left: none !important;
-          position: relative;
-          padding: 0px 5px !important;
-          margin: 0 !important;
-          overflow: hidden;
-          font-weight: bold;
-
           > .dg-cell-renderer {
             padding: 0px 5px;
           }

@@ -93,7 +93,7 @@ export function initConfig(opts: GridOptions): Config {
       orginLeafHeaderKeyMap: {},
     },
     cellWidths: [],
-    rowHeight: Math.max(opts.body.row.height ?? 25, 25),
+    rowHeight: Math.max(opts.body.row.height ?? 26, 26),
     enableSortButton: opts.header?.sort.enabled,
     sort: { orders: [] },
     paging: pagingInfo,

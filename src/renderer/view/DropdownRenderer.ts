@@ -14,8 +14,6 @@ import { ViewRenderer } from '../ViewRenderer';
  * @extends {ViewRenderer}
  */
 export class DropdownRenderer extends ViewRenderer {
-  private menuElement: HTMLElement;
-  private currentEditRow: number;
   private readonly valueDelimiter: string;
 
   private valueLabelMap: Map<string, any>;
@@ -148,13 +146,6 @@ export class DropdownRenderer extends ViewRenderer {
    * @returns
    */
   public click(e: Event, cellElement: HTMLElement, cellInfo: CellInfo) {
-    if (this.currentEditRow == cellInfo.rowIndex) {
-      if (window.getComputedStyle(this.menuElement).display == 'block') {
-        this.menuElement.style.display = 'none';
-        return;
-      }
-    }
-
     this.field.$editRenderer.render(cellInfo, cellElement);
   }
 

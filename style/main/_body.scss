@@ -101,66 +101,64 @@
         width: 0px !important;
         min-width: auto !important;
         border-collapse: separate !important;
+
         .dg-row {
           background-color: var(--body-bg);
-        }
+          & > .dg-cell {
+            &.dg-search-highlight {
+              background-color: var(--search-cell-highlight);
 
-        .dg-row > .dg-cell {
-          vertical-align: middle;
-          border: 1px solid var(--border-color);
-          border-top: none !important;
-          border-left: none !important;
-          position: relative;
-          padding: 0px !important;
-          margin: 0 !important;
-          overflow: hidden;
-
-          &.dg-search-highlight {
-            background-color: var(--search-cell-highlight);
-
-            &.dg-search-match {
-              background-color: var(--search-cell-match);
+              &.dg-search-match {
+                background-color: var(--search-cell-match);
+              }
             }
-          }
 
-          .dg-cell-renderer {
-            position: relative;
-            margin: 0px 5px 1px 5px !important;
-            min-height: 23px;
-            height: 23px;
-            display: grid;
-            align-items: center;
+            .dg-cell-renderer {
+              position: relative;
+              margin: 0px 5px 1px 5px !important;
+              min-height: 20px;
+              height: 23px;
+              display: grid;
+              align-items: center;
 
-            &.dg-white-space {
-              line-height: 1.4;
-              overflow-wrap: break-word;
-              white-space: pre-wrap;
+              &.dg-white-space {
+                line-height: 1.4;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+              }
             }
-          }
 
-          &.dg-line-number {
-            //background-color: var(--cell-bg-linenumber) !important;
-            background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
-          }
-          /*
-          &.modifi-info {
-          }
-          */
-          &:hover {
-            background-color: var(--cell-bg-hover) !important;
-          }
+            &.dg-line-number {
+              //background-color: var(--cell-bg-linenumber) !important;
+              background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
+            }
+            /*
+            &.modifi-info {
+            }
+            */
+            &:hover {
+              background-color: var(--cell-bg-hover) !important;
+              > .dg-cell-renderer {
+                color: var(--font-color);
+              }
+            }
 
-          &.dg-selection {
-            background-color: var(--cell-bg-selection) !important;
-          }
+            &.dg-selection {
+              background-color: var(--cell-bg-selection) !important;
 
-          &.dg-start-cell {
-            -webkit-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-            -moz-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-            box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-          }
+              > .dg-cell-renderer {
+                color: var(--font-color);
+              }
+            }
 
-          @include _RENDERER.renderer;
+            &.dg-start-cell {
+              -webkit-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
+              -moz-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
+              box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
+            }
+
+            @include _RENDERER.renderer;
+          }
         }
       }
     }

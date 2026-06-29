@@ -123,7 +123,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     pasteAfter: undefined, // 붙여 넣기 후 호출 메소드
     row: {
       // 로우 옵션.
-      height: 25, // cell 높이
+      height: 26, // cell 높이
       addStyle: false, // 추가할 style method
       dblClick: false, // row dblclick event
       selectRowOnCellClick: false, // double click row checkbox checked true 여부.

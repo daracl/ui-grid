@@ -4,6 +4,7 @@ import {
   CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
+  RowSelectOptions,
   SearchMatchInfo,
   SearchMode,
   SearchResult,
@@ -494,6 +495,12 @@ export class TreeDataManager extends DataManager {
     } as CURRENT_MATCH_INFO);
 
     return result;
+  }
+
+  public getRowIndexById(rowId: RowId) {
+    this.expandRow(rowId);
+
+    return this.getViewItemIndex(rowId);
   }
 
   /**

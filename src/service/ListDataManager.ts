@@ -5,11 +5,13 @@ import {
   CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
+  RowSelectOptions,
   SearchMatchInfo,
   SearchMode,
   SearchResult,
   ViewItem,
 } from '@/types/Common';
+import { Selection, SelectionRange } from '@/types/GridConfig';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -107,6 +109,9 @@ export class ListDataManager extends DataManager {
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
     const sortData = multiSort(this.getViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+    if (!this.cfg.searchEnable) {
+      return sortData;
+    }
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
     const matchId = searchMatchInfo.id ?? '';
@@ -115,18 +120,16 @@ export class ListDataManager extends DataManager {
     let matchRowIndex = -1;
 
     this.matchOffsetMap.clear();
-    const searchEnable = this.cfg.searchEnable;
+
     let offset = 0;
     for (let i = 0; i < sortData.length; i++) {
       const id = sortData[i].id;
 
-      if (searchEnable) {
-        const matchViewItem = this.getSearchMapItem(id);
-        if (matchViewItem) {
-          this.matchOffsetMap.set(id, offset);
+      const matchViewItem = this.getSearchMapItem(id);
+      if (matchViewItem) {
+        this.matchOffsetMap.set(id, offset);
 
-          offset += matchViewItem.matchedFields?.length ?? 0;
-        }
+        offset += matchViewItem.matchedFields?.length ?? 0;
       }
 
       if (matchRowIndex != -1) {
@@ -196,6 +199,10 @@ export class ListDataManager extends DataManager {
       cellIndex,
       matchedFields,
     };
+  }
+
+  public getRowIndexById(rowId: RowId) {
+    return this.getViewItemIndex(rowId);
   }
 
   public addRows(addOpts: AddRowOptions): void {

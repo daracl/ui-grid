@@ -7,24 +7,25 @@ import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
 /**
- * dropdown edit renderer
+ * dropdown renderer
  *
- * @class DropdownEditRenderer
- * @typedef {DropdownEditRenderer}
- * @extends {EditRenderer}
+ * @class DropdownRenderer
+ * @typedef {DropdownRenderer}
+ * @extends {ToolBarRenderer}
  */
-export class DropdownEditRenderer extends EditRenderer {
-  private dropdownElement: HTMLElement;
-  private currentEditRow: number;
+export class DropdownRenderer extends ToolBarRenderer {
+  private menuElement: HTMLElement;
   private readonly labelKey: string;
   private readonly valueKey: string;
   private readonly isMultiple: boolean;
   private readonly valueDelimiter: string;
+
+  private selectValues = '';
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -46,47 +47,27 @@ export class DropdownEditRenderer extends EditRenderer {
     return true;
   }
 
-  public render(cellInfo: CellInfo, cellElement: HTMLElement): void {
-    if (this.currentEditRow == cellInfo.rowIndex) {
-      if (window.getComputedStyle(this.dropdownElement).display == 'block') {
-        this.dropdownElement.style.display = 'none';
-        return;
-      }
-    }
-
-    //console.log("activeComponent  : ", this.currentEditRow == cellInfo.rowIndex ? window.getComputedStyle(this.menuElement).display : "", cellInfo);
-
-    const cellPosition = cellInfo.c + '';
-
-    const cfg = this.gridMain.config();
-
-    cfg.activeComponent = cellPosition;
-
-    this.currentEditRow = cellInfo.rowIndex;
-
+  public render(cellElement: HTMLElement): void {
+    const cellPosition = '';
     const eventElement = cellElement.querySelector('.dg-cell-content') as HTMLElement;
 
-    let dropdownElement = this.dropdownElement;
-    if (!dropdownElement) {
-      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, cellPosition);
+    const dropdwonElement = getLayerElement('div', 'dg-dropdown-menu toolbar ' + FIELD_LAYER_CLASS, cellPosition);
 
-      this.rendererContainer.appendChild(dropdownElement);
-      this.dropdownElement = dropdownElement;
-    }
+    cellElement.appendChild(dropdwonElement);
 
     let list = this.field.editRenderer.listItem?.list;
 
-    const value = cellInfo.item[this.fieldName];
+    const value = this.field.defaultValue;
 
     if (isArray(list)) {
       list = this.uniqueListItem(list);
-      dropdownElement.innerHTML = this.dropdownMenuTemplate(list, value);
-      this.openMenu(cellElement, dropdownElement, eventElement, cellInfo, list);
+      dropdwonElement.innerHTML = this.dropdownMenuTemplate(list, value);
+      this.openMenu(cellElement, dropdwonElement, eventElement, list);
     } else if (isFunction(list)) {
-      list(cellInfo, (result: any[]) => {
+      list(this.field, (result: any[]) => {
         result = this.uniqueListItem(result);
-        dropdownElement.innerHTML = this.dropdownMenuTemplate(result, value);
-        this.openMenu(cellElement, dropdownElement, eventElement, cellInfo, result);
+        dropdwonElement.innerHTML = this.dropdownMenuTemplate(result, value);
+        this.openMenu(cellElement, dropdwonElement, eventElement, result);
       });
     }
   }
@@ -109,16 +90,9 @@ export class DropdownEditRenderer extends EditRenderer {
    * @param {HTMLElement} cellElement cell element
    * @param {HTMLElement} dropdownElement dropdown element
    * @param {HTMLElement} eventElement click element
-   * @param {CellInfo} cellInfo cell info
    * @param {any[]} list list item
    */
-  private openMenu(
-    cellElement: HTMLElement,
-    dropdownElement: HTMLElement,
-    eventElement: HTMLElement,
-    cellInfo: CellInfo,
-    list: any[],
-  ) {
+  private openMenu(cellElement: HTMLElement, dropdownElement: HTMLElement, eventElement: HTMLElement, list: any[]) {
     const elementRect = getElementRect(eventElement);
 
     const menuStyle = dropdownElement.style;
@@ -127,7 +101,7 @@ export class DropdownEditRenderer extends EditRenderer {
     this.gridMain.openLayer(dropdownElement);
     menuStyle.width = `${elementRect.width}px`;
 
-    const openPosition = innerLayerPosition(this.rendererContainer, eventElement, dropdownElement);
+    const openPosition = innerLayerPosition(cellElement, eventElement, dropdownElement);
 
     menuStyle.top = `${openPosition.top}px`;
     menuStyle.left = `${openPosition.left}px`;
@@ -152,10 +126,10 @@ export class DropdownEditRenderer extends EditRenderer {
       if (isMultiple) {
         const notDisabledList = list.filter((item) => !item.disabled);
         const allItemLength = notDisabledList.length;
-        let currentValue = this.getValue(cellInfo.item) ?? '';
+        let currentValue = [];
 
-        if (isString(currentValue)) {
-          currentValue = stringSplit(currentValue, this.valueDelimiter);
+        if (isString(this.selectValues)) {
+          currentValue = stringSplit(this.selectValues, this.valueDelimiter);
         }
 
         const valueKey = this.valueKey;
@@ -163,7 +137,7 @@ export class DropdownEditRenderer extends EditRenderer {
         if (addValue == ALL_SELECT_VALUE) {
           const allItemElement = dropdownElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
           if (allItemLength == currentValue.length) {
-            this.setValue(e, cellInfo.item, '');
+            this.selectValues = '';
 
             removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
@@ -173,7 +147,7 @@ export class DropdownEditRenderer extends EditRenderer {
               })
               .join(this.valueDelimiter);
 
-            this.setValue(e, cellInfo.item, newValue);
+            this.selectValues = newValue;
 
             addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
@@ -182,15 +156,9 @@ export class DropdownEditRenderer extends EditRenderer {
             return item[valueKey];
           });
 
-          const newValue = addValueIfMissing(
-            cellInfo.item[this.fieldName],
-            addValue,
-            false,
-            this.valueDelimiter,
-            validValues,
-          );
+          const newValue = addValueIfMissing(this.selectValues, addValue, false, this.valueDelimiter, validValues);
 
-          this.setValue(e, cellInfo.item, newValue.join(this.valueDelimiter));
+          this.selectValues = newValue.join(this.valueDelimiter);
 
           if (allItemLength == newValue.length) {
             addClass(dropdownElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
@@ -202,7 +170,7 @@ export class DropdownEditRenderer extends EditRenderer {
           }
         }
       } else {
-        this.setValue(e, cellInfo.item, addValue || '');
+        this.selectValues = addValue || '';
       }
 
       if (!isMultiple) {

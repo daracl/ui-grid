@@ -5,7 +5,7 @@ import { HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
 import { PagingInfo } from '@t/PagingInfo';
-import { AddRowOptions, RowId, SearchMode } from './types/Common';
+import { AddRowOptions, RowId, RowSelectOptions, SearchMode } from './types/Common';
 import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
@@ -112,6 +112,10 @@ export class DaraGrid {
       }
     }
     return result;
+  }
+
+  public selectRowById(rowId: RowId, opts: RowSelectOptions) {
+    return this.gridMain.config().dataManager.selectRowById(rowId, opts);
   }
 
   /**

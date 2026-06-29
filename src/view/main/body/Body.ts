@@ -10,6 +10,7 @@ import {
 } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
+import { ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { removeClass } from '@/util/styleUtils';
@@ -17,12 +18,11 @@ import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
-import { SearchMatchInfo, ViewItem } from '@/types/Common';
 
 const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
 const CELL_MATCH_CLASS = 'dg-search-match';
 
-const CELL_BASE_CLASS = `${BodyCellStyle.CELL} ${BodyCellStyle.START_CELL} ${BodyCellStyle.SELECTION}`;
+const CELL_BASE_CLASS = `${BodyCellStyle.CELL} ${BodyCellStyle.SELECTION}`;
 /**
  * Body class
  *
@@ -606,6 +606,8 @@ export class Body {
       : field.styleClass;
 
     cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
+
+    console.log('new Class ', newClass, cellEle.className);
   }
 
   selectRowAnchorCell() {

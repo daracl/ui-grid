@@ -1,13 +1,12 @@
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from './ViewRenderer';
-import { GridMain } from '@/view/GridMain';
-import { CellInfo, Config } from '@t/GridConfig';
-import { Renderer } from './Renderer';
-import { SummaryItem } from '../types/GridOptions';
 import { ALIGN_STYLE } from '@/constants';
-import { isFunction, isString } from '@/util/utils';
-import { calcSummary } from '@/util/mathUtils';
 import { formatValue } from '@/util/formatUtils';
+import { calcSummary } from '@/util/mathUtils';
+import { isFunction, isString } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { Config } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { SummaryItem } from '../types/GridOptions';
+import { Renderer } from './Renderer';
 
 /**
  * summary Render
@@ -38,7 +37,6 @@ export abstract class SummaryRenderer extends Renderer {
    *
    * @public
    * @abstract
-   * @param {CellInfo} cellInfo cell info
    * @param {HTMLElement} element cell element
    */
   public abstract render(element: HTMLElement): void;
@@ -75,6 +73,8 @@ export abstract class SummaryRenderer extends Renderer {
       if (expression) {
         if (isFunction(expression)) {
           summaryValue.value = expression(items);
+        } else if (expression === 'count') {
+          summaryValue.value = items.length || 0;
         } else {
           summaryValue.value = calcSummary(items, expression, summaryItem.name);
         }

@@ -131,3 +131,19 @@ export interface SearchMatchInfo {
   // match uid
   id: RowId;
 }
+
+/**
+ * 행 선택 옵션
+ */
+export interface RowSelectOptions {
+  /**
+   * 선택할 필드명
+   */
+  fieldName?: string;
+
+  /**
+   * 선택한 행이 화면에 보이도록 스크롤할지 여부
+   * @default true
+   */
+  scrollIntoView?: boolean;
+}
