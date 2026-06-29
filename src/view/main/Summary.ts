@@ -74,11 +74,11 @@ export class Summary {
       const summaryRenders: SummaryRenderer[] = [];
       for (const item of items) {
         const fieldName = item.name;
-        const fileInfo = allFieldMap.get(fieldName) ?? (merge({}, item) as FieldItem);
+        const fieldInfo = allFieldMap.get(fieldName) ?? (merge({}, item) as FieldItem);
 
-        item.$alignStyle = ALIGN_STYLE[item.align] ?? (fileInfo.$alignStyle || ALIGN_STYLE.left);
+        item.$alignStyle = ALIGN_STYLE[item.align] ?? (fieldInfo.$alignStyle || ALIGN_STYLE.left);
 
-        summaryRenders.push(new SummaryTextRenderer(fileInfo, this.gridMain, item));
+        summaryRenders.push(new SummaryTextRenderer(fieldInfo, this.gridMain, item));
       }
       allSummaryRenders.push(summaryRenders);
     }
@@ -114,9 +114,8 @@ export class Summary {
     const summaryItems = this.allSummaryRenders;
     const summaryElement = this.summaryElement;
 
-    let rowIdx = 0;
-    for (const groupItem of summaryItems) {
-      for (const renderer of groupItem) {
+    for (let rowIdx = 0; rowIdx < summaryItems.length; rowIdx++) {
+      for (const renderer of summaryItems[rowIdx]) {
         const col = renderer.getCol();
 
         const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
@@ -126,7 +125,6 @@ export class Summary {
           renderer.render(cellElement);
         }
       }
-      rowIdx++;
     }
   }
 

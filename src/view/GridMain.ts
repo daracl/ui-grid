@@ -831,7 +831,6 @@ export class GridMain {
     this.scroll.calculate();
     this.setElementDimentions();
     this.fieldResize();
-    this.summary.drawData();
 
     if (drawFlag) {
       this.getBody().dataDraw('refreshBody-' + mode);

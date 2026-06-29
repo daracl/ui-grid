@@ -201,6 +201,7 @@ export abstract class DataManager {
     }
 
     this.beforeDataRowLength = dataInfo.rowLength;
+    this.gridMain.getSummary()?.drawData();
   }
 
   public convertViewItemsToRowItems() {
