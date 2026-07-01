@@ -9,5 +9,60 @@
     vertical-align: top;
     height: 40px;
     display: none;
+
+    /* 레이아웃 라인 */
+    .dg-layout {
+      display: grid;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* container */
+    .dg-container {
+      display: grid;
+      min-width: 0;
+
+      &.dg-grid-area-left {
+        justify-self: start;
+      }
+
+      &.dg-grid-area-center {
+        justify-self: center;
+      }
+
+      &.dg-grid-area-right {
+        justify-self: end;
+      }
+
+      .dg-field {
+        display: grid;
+        align-items: center;
+        min-width: 0;
+        width: 100%;
+        overflow: hidden;
+
+        /* 레이블 처리 */
+        .dg-label {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* 컨트롤 내부 요소 방어구조 */
+        .dg-control {
+          min-width: 0;
+          width: 100%;
+        }
+
+        &.has-label {
+          grid-template-columns: auto minmax(0, 1fr);
+          column-gap: 5px;
+        }
+        &.no-label {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    }
   }
 }

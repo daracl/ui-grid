@@ -124,54 +124,7 @@
         selectionMode: 'cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
         enableWidthFixed: false,
         height: 300,
-        toolbar: {
-          enabled: true,
-          height: 30,
-          items: [
-            {
-              search: true,
-              callback: (keyword) => {},
-            },
 
-            {
-              divider: true,
-            },
-            {
-              key: 'test',
-              renderType: 'dropdown',
-              style: {
-                valueWidth: '200px',
-              },
-              listItem: {
-                list: [
-                  { label: 'asdf', value: 1 },
-                  { label: 'asdf2', value: 2 },
-                  { label: 'asdf3', value: 3 },
-                ],
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              key: 'test22',
-              renderType: 'text',
-              style: {
-                valueWidth: '150px',
-              },
-              change: (aa) => {
-                console.log(aa);
-              },
-            },
-            {
-              label: 'button',
-              renderType: 'button',
-              click: (aa) => {
-                console.log(aa);
-              },
-            },
-          ],
-        },
         tree: {
           expandDepth: 0,
           defaultExpandedIds: ['1-1'],

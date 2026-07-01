@@ -57,7 +57,7 @@ export class PasteEvent implements EventHandler {
 
       if (!pastedText) return;
 
-      // ✅ 핵심: CSV 안전 파싱
+      // 핵심: CSV 안전 파싱
       const parsed = parseClipboard(pastedText);
 
       const startCellInfo = cfg.selection.startCell;
@@ -80,7 +80,7 @@ export class PasteEvent implements EventHandler {
         itemLength = pasteResultItems.length;
       }
 
-      // ✅ 데이터 적용
+      //  데이터 적용
       for (let i = 0; i < parsed.length; i++) {
         const rowIdx = startIdx + i;
         if (rowIdx >= itemLength) break;
@@ -101,7 +101,7 @@ export class PasteEvent implements EventHandler {
             value = value.slice(1, -1).replace(/""/g, '"');
           }
 
-          // ✅ Excel 수식 방지
+          // Excel 수식 방지
           if (/^=/.test(value)) {
             value = "'" + value;
           }

@@ -1,6 +1,12 @@
 import { ScrollInfo } from '@t/GridConfig';
 
-import { getCellInfo, isFixedLeftPostion, isFixedRightPostion, isInputField } from '@/util/gridUtils';
+import {
+  getCellInfo,
+  isFixedLeftPostion,
+  isFixedRightPostion,
+  isInputField,
+  isMultipleSelectionMode,
+} from '@/util/gridUtils';
 
 import { DaraElement } from '@/element/DaraElement';
 import { EventHandler } from '@/event/EventHandler';
@@ -39,7 +45,8 @@ export class KeydownEvent implements EventHandler {
     const opts = this.gridMain.options();
     const editable = opts.editable;
     const selectionMode = opts.selectionMode;
-    // window keydown 처리.  tabindex 처리 확인 해볼것.
+
+    const isMultiple = isMultipleSelectionMode(selectionMode);
 
     const searchEnabled = opts.search.enabled;
 
@@ -99,7 +106,7 @@ export class KeydownEvent implements EventHandler {
           return;
         } else if (evtKey == 65) {
           // ctrl + a
-          this.selectionInfo.setAllSelection(true);
+          if (isMultiple) this.selectionInfo.setAllSelection(true);
           return false;
         } else if (evtKey == 86) {
           // ctrl + v

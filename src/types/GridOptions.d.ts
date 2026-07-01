@@ -2,7 +2,7 @@ import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
 import { FieldItem } from './GridField';
 import { SortOption } from './Header';
-import { RendererInfo } from './RendererInfo';
+import { ToolbarLayout } from './Toolbar';
 
 /**
  * grid options
@@ -442,52 +442,7 @@ export interface ToolbarOptions {
   /**
    * toolbar items
    */
-  items: ToolbarItem[];
-}
-
-/**
- * toolbar item
- *
- * @interface ToolbarItem
- * @typedef {ToolbarItem}
- */
-export interface ToolbarItem {
-  /**
-   * 검색 활성화 여부
-   */
-  search?: bolean;
-  /**
-   * 검색 콜백
-   */
-  searchCallback?: OptionCallback;
-  /**
-   * 구분선 추가 여부
-   */
-  divider?: true;
-  /**
-   * item name
-   */
-  name: string;
-  /**
-   * label
-   */
-  label?: string;
-  /**
-   * 값 width
-   */
-  valueWidth?: string;
-  /**
-   * label width
-   */
-  labelWidth?: string;
-  /**
-   * render type
-   */
-  renderer?: RendererInfo;
-  /**
-   * 값 변경시 callback
-   */
-  change?: OptionCallback;
+  items: ToolbarLayout[];
 }
 
 /**

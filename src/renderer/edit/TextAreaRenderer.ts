@@ -56,6 +56,7 @@ export class TextAreaRenderer extends TextAbstractRenderer {
     style.top = `${cellRect.top - rendererContainer.top}px`;
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
+    style.height = `${cellRect.height}px`;
     textareaElement.value = item[this.fieldName] ?? '';
 
     setTimeout(() => {

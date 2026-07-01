@@ -1066,6 +1066,7 @@ function getGridTemplate() {
   GRID_TEMPLATE.innerHTML = html`
     <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
       <div style="position:absolute;user-select:none;touch-action:manipulation;">
+        <div class="dg-layer-container"></div>
         <div class="dg-toolbar" role="presentation"></div>
 
         <div tabindex="-1" class="dg-main" data-scroll="none" style="outline:none !important;">
@@ -1141,8 +1142,6 @@ function getGridTemplate() {
           <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
             <textarea class="dg-paste-area"></textarea>
           </div>
-
-          <div class="dg-layer-container"></div>
         </div>
 
         <div class="dg-footer" role="presentation">
