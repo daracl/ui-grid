@@ -1,6 +1,6 @@
 import { FieldItem } from '@t/GridField';
 
-import { FIELD_LAYER_CLASS, ROW_CUD_KEY } from '@/constants';
+import { FIELD_LAYER_CLASS, ROW_FIELD } from '@/constants';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
 import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -54,8 +54,8 @@ export abstract class EditRenderer extends Renderer {
     if (this.changeEventCall(e, item, value)) {
       if (item[this.fieldName] == value) return;
 
-      if (item[ROW_CUD_KEY] == 'R') {
-        item[ROW_CUD_KEY] = 'U';
+      if (item[ROW_FIELD.CUD] == 'R') {
+        item[ROW_FIELD.CUD] = 'U';
       }
       item[this.fieldName] = value;
 

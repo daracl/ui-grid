@@ -10,12 +10,29 @@
     height: 40px;
     display: none;
 
+    -webkit-touch-callout: text;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+
     /* 레이아웃 라인 */
     .dg-layout {
       display: grid;
       align-items: center;
       width: 100%;
       min-width: 0;
+    }
+
+    select {
+      padding: 5px 0px 5px 3px;
+    }
+
+    input,
+    button {
+      padding: 5px 10px;
+      border-radius: 3px;
     }
 
     /* container */
@@ -53,6 +70,11 @@
         .dg-control {
           min-width: 0;
           width: 100%;
+
+          > * {
+            width: 100%;
+            min-width: 0;
+          }
         }
 
         &.has-label {

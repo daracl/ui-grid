@@ -1,15 +1,16 @@
+import { ALIGN_STYLE } from '@/constants';
 import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
- * button renderer
- * @class ButtonRenderer
- * @typedef {ButtonRenderer}
+ * number renderer
+ *
+ * @typedef {NumberRenderer}
  * @extends {ToolBarRenderer}
  */
-export class ButtonRenderer extends ToolBarRenderer {
+export class NumberRenderer extends ToolBarRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -35,5 +36,13 @@ export class ButtonRenderer extends ToolBarRenderer {
 
       this.click(e, this.field);
     });
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
+  }
+
+  public canEdit() {
+    return false;
   }
 }

@@ -1,4 +1,4 @@
-import { ALIGN_STYLE, ROW_ID_FIELD_NAME } from '@/constants';
+import { ALIGN_STYLE, ROW_FIELD } from '@/constants';
 import { TreeDataManager } from '@/service/TreeDataManager';
 import { TreeViewItem } from '@/types/Common';
 import { createHTMLElement } from '@/util/domUtils';
@@ -113,7 +113,7 @@ export class TreeRenderer extends ViewRenderer {
   }
 
   private toggle(cellInfo: CellInfo) {
-    this.treeDataManager.toggleRow(cellInfo.item[ROW_ID_FIELD_NAME]);
+    this.treeDataManager.toggleRow(cellInfo.item[ROW_FIELD.ID]);
     this.gridMain.refreshBody(true, 'treeExpander');
   }
 

@@ -1,30 +1,48 @@
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ALIGN_STYLE } from '@/constants';
+import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
  * text renderer
  *
  * @typedef {TextRenderer}
- * @extends {ViewRenderer}
+ * @extends {ToolBarRenderer}
  */
-export class TextRenderer extends ViewRenderer {
+export class TextRenderer extends ToolBarRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
+  public render(element: HTMLElement): void {
+    let btnElement = element.firstElementChild as HTMLElement | null;
 
-    const renderValue = this.getValue(item);
-
-    if (element.textContent !== renderValue) {
-      element.textContent = renderValue;
+    // 최초 렌더링 시만 생성
+    if (!btnElement) {
+      btnElement = document.createElement('button');
+      btnElement.className = this.getRendererStyleClass('dg-button');
+      element.appendChild(btnElement);
+      this.initEvent(btnElement);
     }
+
+    btnElement.textContent = this.field.label;
+  }
+
+  initEvent(contentElement: HTMLElement) {
+    const cfg = this.gridMain.config();
+    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
+      stopPreventCancel(e);
+
+      this.click(e, this.field);
+    });
+  }
+
+  public alignStyle(): string {
+    return ALIGN_STYLE.center;
   }
 
   public canEdit() {
-    return true;
+    return false;
   }
 }

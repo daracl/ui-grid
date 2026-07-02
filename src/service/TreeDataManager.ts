@@ -1,10 +1,9 @@
-import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
+import { ROW_FIELD, SearchDirectionMap } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
-  RowSelectOptions,
   SearchMatchInfo,
   SearchMode,
   SearchResult,
@@ -96,7 +95,7 @@ export class TreeDataManager extends DataManager {
       for (const item of list) {
         this.createRowItem(item, depth);
 
-        const rowId = item[ROW_ID_FIELD_NAME];
+        const rowId = item[ROW_FIELD.ID];
         this.setRowItem(rowId, item);
 
         const treeViewItem = {

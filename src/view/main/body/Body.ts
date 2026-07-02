@@ -1,13 +1,6 @@
 import { CellInfo } from '@t/GridConfig';
 
-import {
-  BodyCellStyle,
-  ROW_CHECK_NAME,
-  ROW_CUD_KEY,
-  ROW_HEIGHT_KEY,
-  ROW_ID_FIELD_NAME,
-  WHITE_SPACE,
-} from '@/constants';
+import { BodyCellStyleMap, ROW_CHECK_NAME, ROW_FIELD, WHITE_SPACE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { ViewItem } from '@/types/Common';
@@ -22,7 +15,7 @@ import { BodyEvent } from './BodyEvent';
 const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
 const CELL_MATCH_CLASS = 'dg-search-match';
 
-const CELL_BASE_CLASS = `${BodyCellStyle.CELL} ${BodyCellStyle.SELECTION}`;
+const CELL_BASE_CLASS = `${BodyCellStyleMap.CELL} ${BodyCellStyleMap.SELECTION}`;
 /**
  * Body class
  *
@@ -70,17 +63,17 @@ export class Body {
    */
   public setChangeValue(mode: string, rowItem: any, colInfo?: FieldItem, newValue?: any) {
     if (mode == 'new') {
-      rowItem[ROW_CUD_KEY] = 'C';
+      rowItem[ROW_FIELD.CUD] = 'C';
       return rowItem;
     }
     if (mode == 'remove') {
-      rowItem[ROW_CUD_KEY] = 'D';
+      rowItem[ROW_FIELD.CUD] = 'D';
       return rowItem;
     }
 
     if (mode == 'modify' && colInfo) {
-      if (rowItem[ROW_CUD_KEY] == '_') {
-        rowItem[ROW_CUD_KEY] = 'U';
+      if (rowItem[ROW_FIELD.CUD] == '_') {
+        rowItem[ROW_FIELD.CUD] = 'U';
       }
 
       rowItem[colInfo.name] = newValue;
@@ -245,7 +238,7 @@ export class Body {
    * @returns {*}
    */
   public setRowCheck(rowItem: any, checkFlag: boolean) {
-    const rowId = rowItem[ROW_ID_FIELD_NAME];
+    const rowId = rowItem[ROW_FIELD.ID];
     this.gridMain.config().dataManager.setItemChecked(rowId, checkFlag);
   }
 
@@ -269,7 +262,7 @@ export class Body {
   }
 
   public getStartCellElement() {
-    return this.bodyElement.find('.dg-cell.' + BodyCellStyle.START_CELL);
+    return this.bodyElement.find('.dg-cell.' + BodyCellStyleMap.START_CELL);
   }
 
   public setGridPanelWidth(mainLeftWidth: number, mainCenterWidth: number, mainRightWidth: number) {
@@ -594,7 +587,7 @@ export class Body {
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
-    const heightPixel = `${item[ROW_HEIGHT_KEY] - 5}px`;
+    const heightPixel = `${item[ROW_FIELD.HEIGHT] - 5}px`;
     contentEleStyle.maxHeight = heightPixel;
     contentEleStyle.height = heightPixel;
 
@@ -621,7 +614,7 @@ export class Body {
 
     const startIdx = cfg.scroll.startIdx;
     const viewRow = cfg.scroll.viewRow;
-    const selectionClass = BodyCellStyle.SELECTION;
+    const selectionClass = BodyCellStyleMap.SELECTION;
     const isAll = this.selectionInfo.isAllSelect();
 
     if (isAll) {

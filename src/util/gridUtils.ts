@@ -1,11 +1,11 @@
-import { ROW_CUD_KEY, ScrollDirectionX, ScrollDirectionXMap, ScrollDirectionY, SelectionMode } from '@/constants';
+import { ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
 import { PointerPosition } from '@/event/PointerSession';
 import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EditRendererInfo } from '@t/RendererInfo';
-import { intValue, isArray, isEmpty, isNumber } from './utils';
 import { ScrollDirectionYMap } from '../constants';
+import { intValue, isArray, isEmpty, isNumber } from './utils';
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -35,15 +35,15 @@ export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
  * @type {string} selection mode
  */
 export const isMultipleSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.MULTIPLE_CELL;
+  return selectionMode == SelectionModeMap.MULTIPLE_ROW || selectionMode == SelectionModeMap.MULTIPLE_CELL;
 };
 
 export const isSingleSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionMode.CELL || selectionMode == SelectionMode.ROW;
+  return selectionMode == SelectionModeMap.CELL || selectionMode == SelectionModeMap.ROW;
 };
 
 export const isMultipleCellSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionMode.MULTIPLE_CELL;
+  return selectionMode == SelectionModeMap.MULTIPLE_CELL;
 };
 
 /**
@@ -53,7 +53,7 @@ export const isMultipleCellSelectionMode = (selectionMode: string): boolean => {
  * @returns {boolean}
  */
 export const isRowSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionMode.MULTIPLE_ROW || selectionMode == SelectionMode.ROW;
+  return selectionMode == SelectionModeMap.MULTIPLE_ROW || selectionMode == SelectionModeMap.ROW;
 };
 
 /**
@@ -62,7 +62,7 @@ export const isRowSelectionMode = (selectionMode: string): boolean => {
  * @returns boolean cell selection 여부
  */
 export const isCellSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionMode.MULTIPLE_CELL || selectionMode == SelectionMode.CELL;
+  return selectionMode == SelectionModeMap.MULTIPLE_CELL || selectionMode == SelectionModeMap.CELL;
 };
 
 /**
@@ -430,7 +430,7 @@ export const createNewItems = (fields: FieldItem[], createCount = 1): any[] => {
   const result = [];
   for (let i = 0; i < createCount; i++) {
     const newItem: any = {};
-    newItem[ROW_CUD_KEY] = 'C';
+    newItem[ROW_FIELD.CUD] = 'C';
     for (let j = 0; j < len; j++) {
       const field = fields[j];
       newItem[field.name] = field.defaultValue ?? '';

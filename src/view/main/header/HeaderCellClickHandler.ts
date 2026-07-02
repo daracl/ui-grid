@@ -1,4 +1,4 @@
-import { ScrollDirectionX, ScrollDirectionXMap, SelectionMode } from '@/constants';
+import { ScrollDirectionX, ScrollDirectionXMap, SelectionModeMap } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
@@ -103,7 +103,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
     this.beforeEndCol = -1;
 
     if (this.multipleFlag && hasClass(session.cellEl!, 'dg-line-number')) {
-      this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
+      this.currentSelectionMode = SelectionModeMap.MULTIPLE_ROW;
     }
   }
 

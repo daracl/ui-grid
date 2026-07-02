@@ -1,4 +1,4 @@
-import { ROW_CUD_KEY, ROW_DEPTH_KEY, ROW_HEIGHT_KEY, ROW_ID_FIELD_NAME, ROW_ITEM_PREFIX_NAME } from '@/constants';
+import { ROW_FIELD, ROW_KEY_PREFIX } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
@@ -10,12 +10,12 @@ import {
   SearchResult,
   ViewItem,
 } from '@/types/Common';
+import { Selection, SelectionRange } from '@/types/GridConfig';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
-import { Selection, SelectionRange } from '@/types/GridConfig';
 
 export abstract class DataManager {
   protected readonly rowHeight;
@@ -151,13 +151,13 @@ export abstract class DataManager {
       item[rowIdField] = rowId;
     }
 
-    if (this.rowIdField != ROW_ID_FIELD_NAME) {
-      item[ROW_ID_FIELD_NAME] = rowId;
+    if (this.rowIdField != ROW_FIELD.ID) {
+      item[ROW_FIELD.ID] = rowId;
     }
 
-    item[ROW_DEPTH_KEY] = depth;
-    item[ROW_CUD_KEY] = 'R';
-    item[ROW_HEIGHT_KEY] = this.rowHeight;
+    item[ROW_FIELD.DEPTH] = depth;
+    item[ROW_FIELD.CUD] = 'R';
+    item[ROW_FIELD.HEIGHT] = this.rowHeight;
 
     return item;
   }
@@ -229,7 +229,7 @@ export abstract class DataManager {
       const filteredItem: Record<string, any> = {};
 
       for (const key in item) {
-        if ((rowIdInclude && key === ROW_ID_FIELD_NAME) || !key.startsWith(ROW_ITEM_PREFIX_NAME)) {
+        if ((rowIdInclude && key === ROW_FIELD.ID) || !key.startsWith(ROW_KEY_PREFIX)) {
           filteredItem[key] = item[key];
         }
       }

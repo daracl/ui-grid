@@ -5,7 +5,7 @@ import {
   ScrollDirectionXMap,
   ScrollDirectionY,
   ScrollDirectionYMap,
-  SelectionMode,
+  SelectionModeMap,
 } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -108,7 +108,7 @@ export class CellClickHandler extends BasePointerHandler {
     }
 
     if (this.multipleFlag && session.cellInfo?.field.name == LINE_NUMBER_NAME) {
-      this.currentSelectionMode = SelectionMode.MULTIPLE_ROW;
+      this.currentSelectionMode = SelectionModeMap.MULTIPLE_ROW;
     }
   }
 

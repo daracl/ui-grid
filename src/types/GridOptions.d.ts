@@ -442,7 +442,7 @@ export interface ToolbarOptions {
   /**
    * toolbar items
    */
-  items: ToolbarLayout[];
+  items: ToolbarLayout[][];
 }
 
 /**

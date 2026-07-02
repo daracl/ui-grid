@@ -1,6 +1,6 @@
 import { HeaderOptions } from '@t/GridOptions';
 
-import { MOUSE_MOVE_THRESHOLD, POINTER_STATE } from '@/constants';
+import { MOUSE_MOVE_THRESHOLD, PointerStateMap } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -165,7 +165,7 @@ export class HeaderEvent {
                 }
               }
 
-              session.state = POINTER_STATE.DRAGGING;
+              session.state = PointerStateMap.DRAGGING;
 
               handler.onPointerMove?.(session);
             },
@@ -179,7 +179,7 @@ export class HeaderEvent {
                 'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
               );
 
-              session.state = POINTER_STATE.IDLE;
+              session.state = PointerStateMap.IDLE;
               session.currentPos = eventPosition(moveEvt);
               handler.onPointerUp?.(session);
             },
@@ -254,7 +254,7 @@ export class HeaderEvent {
               resizeHandler.onActivate?.(session);
             }
 
-            session.state = POINTER_STATE.DRAGGING;
+            session.state = PointerStateMap.DRAGGING;
 
             resizeHandler.onPointerMove?.(session);
           });
@@ -265,7 +265,7 @@ export class HeaderEvent {
               'touchmove.resizerclick mousemove.resizerclick touchend.resizerclick mouseup.resizerclick',
             );
 
-            session.state = POINTER_STATE.IDLE;
+            session.state = PointerStateMap.IDLE;
             session.currentPos = eventPosition(moveEvt);
             resizeHandler.onPointerUp?.(session);
           });

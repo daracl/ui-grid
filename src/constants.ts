@@ -1,34 +1,8 @@
-import { CheckboxRenderer } from './renderer/edit/CheckboxRenderer';
-import { CustomEditRenderer } from './renderer/edit/CustomEditRenderer';
-import { DateRenderer } from './renderer/edit/DateRenderer';
+import * as EditRenderer from './renderer/edit';
 
-import { NumberEditRenderer } from './renderer/edit/NumberEditRenderer';
-import { RangeRenderer } from './renderer/edit/RangeRenderer';
-import { TextAreaRenderer } from './renderer/edit/TextAreaRenderer';
-import { TextEditRenderer } from './renderer/edit/TextEditRenderer';
-import { PasswordRenderer } from './renderer/view/PasswordRenderer';
+import * as ViewRenderer from './renderer/view';
 
-import { AsideLineNumberRenderer } from './renderer/view/AsideLineNumberRenderer';
-import { AsideModifyInfoRenderer } from './renderer/view/AsideModifyInfoRenderer';
-import { AsideRowCheckRenderer } from './renderer/view/AsideRowCheckRenderer';
-
-import { DropdownEditRenderer } from './renderer/edit/DropdownEditRenderer';
-import { PasswordEditRenderer } from './renderer/edit/PasswordEditRenderer';
-import { SwitchRenderer } from './renderer/edit/SwitchRenderer';
-import { AsideRowDragHandleRenderer } from './renderer/view/AsideRowDragHandleRenderer';
-import { BarRenderer } from './renderer/view/BarRenderer';
-import { ButtonRenderer } from './renderer/view/ButtonRenderer';
-import { DropdownRenderer } from './renderer/view/DropdownRenderer';
-import { HiddenRenderer } from './renderer/view/HiddenRenderer';
-import { HtmlRenderer } from './renderer/view/HtmlRenderer';
-import { ImageRenderer } from './renderer/view/ImageRenderer';
-import { LinkRenderer } from './renderer/view/LinkRenderer';
-import { NumberRenderer } from './renderer/view/NumberRenderer';
-import { SparklineRenderer } from './renderer/view/SparklineRenderer';
-import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
-import { TextRenderer } from './renderer/view/TextRenderer';
-import { TreeRenderer } from './renderer/view/TreeRenderer';
-import { ViewCustomRenderer } from './renderer/view/ViewCustomRenderer';
+import * as ToolbarRenderer from './renderer/toolbar';
 
 // grid instance id attr key
 export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
@@ -65,40 +39,59 @@ export const FIELD_PREFIX = 'dg'; // daracl grid field
 
 // renderer type
 export const VIEW_RENDERER: any = {
-  lineNumber: AsideLineNumberRenderer,
-  modifyInfo: AsideModifyInfoRenderer,
-  rowCheckbox: AsideRowCheckRenderer,
-  rowDragHandle: AsideRowDragHandleRenderer,
-  dropdown: DropdownRenderer,
-  checkbox: CheckboxRenderer,
-  switch: SwitchRenderer,
-  bar: BarRenderer,
-  button: ButtonRenderer,
-  hidden: HiddenRenderer,
-  html: HtmlRenderer,
-  image: ImageRenderer,
-  link: LinkRenderer,
-  number: NumberRenderer,
-  text: TextRenderer,
-  password: PasswordRenderer,
-  sparkline: SparklineRenderer,
-  sparklineBar: SparklineRendererBar,
-  tree: TreeRenderer, // tree는 TextRenderer로 일단 처리. TreeRenderer는 별도 구현 필요
-  custom: ViewCustomRenderer,
+  lineNumber: ViewRenderer.AsideLineNumberRenderer,
+  modifyInfo: ViewRenderer.AsideModifyInfoRenderer,
+  rowCheckbox: ViewRenderer.AsideRowCheckRenderer,
+  rowDragHandle: ViewRenderer.AsideRowDragHandleRenderer,
+  dropdown: ViewRenderer.DropdownRenderer,
+  checkbox: EditRenderer.CheckboxRenderer,
+  switch: EditRenderer.SwitchRenderer,
+  bar: ViewRenderer.BarRenderer,
+  button: ViewRenderer.ButtonRenderer,
+  hidden: ViewRenderer.HiddenRenderer,
+  html: ViewRenderer.HtmlRenderer,
+  image: ViewRenderer.ImageRenderer,
+  link: ViewRenderer.LinkRenderer,
+  number: ViewRenderer.NumberRenderer,
+  text: ViewRenderer.TextRenderer,
+  password: ViewRenderer.PasswordRenderer,
+  sparkline: ViewRenderer.SparklineRenderer,
+  sparklineBar: ViewRenderer.SparklineRendererBar,
+  tree: ViewRenderer.TreeRenderer, // tree는 TextRenderer로 일단 처리. TreeRenderer는 별도 구현 필요
+  custom: ViewRenderer.ViewCustomRenderer,
 };
+
+export type RENDERER_TYPE = keyof typeof VIEW_RENDERER;
 
 // edit renderer type
 export const EDIT_RENDERER: any = {
-  date: DateRenderer,
-  custom: CustomEditRenderer,
-  text: TextEditRenderer,
-  number: NumberEditRenderer,
-  dropdown: DropdownEditRenderer,
-  checkbox: CheckboxRenderer,
-  password: PasswordEditRenderer,
-  range: RangeRenderer,
-  textarea: TextAreaRenderer,
+  date: EditRenderer.DateRenderer,
+  custom: EditRenderer.CustomEditRenderer,
+  text: EditRenderer.TextEditRenderer,
+  number: EditRenderer.NumberEditRenderer,
+  dropdown: EditRenderer.DropdownEditRenderer,
+  checkbox: EditRenderer.CheckboxRenderer,
+  password: EditRenderer.PasswordEditRenderer,
+  range: EditRenderer.RangeRenderer,
+  textarea: EditRenderer.TextAreaRenderer,
 };
+
+/**
+ * toolbar renderer type
+ */
+export const TOOLBAR_RENDERER: any = {
+  button: ToolbarRenderer.ButtonRenderer,
+  checkbox: ToolbarRenderer.CheckboxRenderer,
+  custom: ToolbarRenderer.CustomRenderer,
+  date: ToolbarRenderer.DateRenderer,
+  dropdown: ToolbarRenderer.DropdownRenderer,
+  number: ToolbarRenderer.NumberRenderer,
+  switch: ToolbarRenderer.SwitchRenderer,
+  text: ToolbarRenderer.TextRenderer,
+  textarea: ToolbarRenderer.TextRenderer,
+};
+
+export type TOOLBAR_RENDERER_TYPE = keyof typeof TOOLBAR_RENDERER;
 
 export const ALIGN = {
   left: 'left',
@@ -132,28 +125,6 @@ export type WHITE_SPACE_TYPE = keyof typeof WHITE_SPACE;
 export type TEXT_ALIGN_TYPE = keyof typeof ALIGN_STYLE;
 
 export type POSITION_TYPE = 'left' | 'center' | 'right';
-
-export type RENDERER_TYPE =
-  | 'bar'
-  | 'button'
-  | 'html'
-  | 'image'
-  | 'link'
-  | 'number'
-  | 'text'
-  | 'file'
-  | 'textarea'
-  | 'dropdown'
-  | 'radio'
-  | 'checkbox'
-  | 'date'
-  | 'datetime'
-  | 'dateyear'
-  | 'datemonth'
-  | 'datehour'
-  | 'group'
-  | 'tree'
-  | 'custom';
 
 export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
 
@@ -190,7 +161,7 @@ export const TOOLBAR_HEIGHT = 35;
  */
 export const FOOTER_HEIGHT = 35;
 
-export const ROW_ITEM_PREFIX_NAME = '_dg';
+export const ROW_KEY_PREFIX = '_dg';
 
 /**
  * line number name
@@ -211,47 +182,20 @@ export const ROW_CHECK_NAME = '$rowCheck';
  *
  * @type {"_dg$rowCheck"}
  */
-export const ROW_CHECK_KEY = ROW_ITEM_PREFIX_NAME + ROW_CHECK_NAME;
+export const ROW_CHECK_KEY = ROW_KEY_PREFIX + ROW_CHECK_NAME;
 
-/**
- * row id key
- *
- * @type {"_dg$rowid"}
- */
-export const ROW_ID_FIELD_NAME = ROW_ITEM_PREFIX_NAME + '$rowid';
-
-/**
- * row height key
- *
- * @type {"_dg$rowHeight"}
- */
-export const ROW_HEIGHT_KEY = ROW_ITEM_PREFIX_NAME + '$rowHeight';
-
-/**
- * row cud name key
- *
- * @type {string}
- */
-export const ROW_CUD_KEY = ROW_ITEM_PREFIX_NAME + '$CUD';
-
-/**
- * row depth key
- *
- * @type {"_dg$depth"}
- */
-export const ROW_DEPTH_KEY = ROW_ITEM_PREFIX_NAME + '$depth';
+export const ROW_FIELD = {
+  ID: `${ROW_KEY_PREFIX}$rowid`,
+  DEPTH: `${ROW_KEY_PREFIX}$depth`,
+  HEIGHT: `${ROW_KEY_PREFIX}$rowHeight`,
+  CUD: `${ROW_KEY_PREFIX}$CUD`,
+  ORIGINAL_ORDER: `${ROW_KEY_PREFIX}$originOrder`,
+} as const;
 
 /**
  * 전체 선택 value
  */
 export const ALL_SELECT_VALUE = '$all$';
-
-/**
- * original order key for sort
- *
- * @type {"$originOrder"}
- */
-export const ORIGINAL_ORDER_KEY = ROW_ITEM_PREFIX_NAME + '$originOrder';
 
 /**
  * row drag handle name
@@ -283,7 +227,7 @@ export const CHUNK_SIZE = 1000;
 
 export const HIDDEN_ELEMENT_SELECTOR = '.dg-hidden-container';
 
-export const POINTER_STATE = {
+export const PointerStateMap = {
   IDLE: 'IDLE',
   PRESSED: 'PRESSED',
   DRAGGING: 'DRAGGING',
@@ -311,7 +255,7 @@ export const ScrollDirectionYMap = {
 
 export type ScrollDirectionY = (typeof ScrollDirectionYMap)[keyof typeof ScrollDirectionYMap];
 
-export const SelectionMode = {
+export const SelectionModeMap = {
   MULTIPLE_ROW: 'multiple-row',
   MULTIPLE_CELL: 'multiple-cell',
   ROW: 'row',
@@ -323,7 +267,7 @@ export const SelectionMode = {
  *
  * @type {{CELL: string, SELECTION: string, START_CELL: string}}
  */
-export const BodyCellStyle = {
+export const BodyCellStyleMap = {
   CELL: 'dg-cell',
   SELECTION: 'dg-selection',
   START_CELL: 'dg-start-cell',

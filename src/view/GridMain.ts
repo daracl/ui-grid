@@ -9,7 +9,7 @@ import {
   HIDDEN_ELEMENT_SELECTOR,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
-  ROW_ID_FIELD_NAME,
+  ROW_FIELD,
   THEME_TYPE,
   TOOLBAR_HEIGHT,
 } from '@/constants';
@@ -33,10 +33,10 @@ import { Footer } from './footer/Footer';
 import { GridStructureBuilder } from './GridStructureBuilder';
 import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
-import { DataSearch } from './search/DataSearch';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
+import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
@@ -755,7 +755,20 @@ export class GridMain {
     const opts = this.opts;
 
     if (opts.toolbar.enabled) {
-      dimensions.toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
+      const toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
+      const items = opts.toolbar.items;
+      let totHeight = 0;
+      let rowHeight = 0;
+      items.forEach((row) => {
+        if (row.length > 0) {
+          rowHeight = isNumber(row[0].height) ? row[0].height : toolbarHeight;
+          row[0].height = rowHeight;
+        }
+
+        totHeight += rowHeight;
+      });
+
+      dimensions.toolbarHeight = totHeight;
     }
 
     if (opts.footer.enabled) {
@@ -927,7 +940,7 @@ export class GridMain {
   }
 
   public getCheckedIds() {
-    return this.getBody().getCheckedItemByName(ROW_ID_FIELD_NAME);
+    return this.getBody().getCheckedItemByName(ROW_FIELD.ID);
   }
 
   /**

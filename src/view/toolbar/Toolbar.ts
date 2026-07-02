@@ -36,17 +36,17 @@ export class Toolbar {
     // toolbar
     const toolbarElement = this.gridMain.element().findDaraElement('.dg-toolbar');
 
-    this.initRenderer();
-
-    this.createTemplate();
-
     if (this.toolbarOpts.enabled) {
-      toolbarElement.css({ height: `${this.config.dimensions.toolbarHeight}px` });
+      toolbarElement.css({ display: 'block', height: `${this.config.dimensions.toolbarHeight}px` });
     } else {
       toolbarElement.getElement().remove();
     }
 
     this.toolbarElement = toolbarElement.getElement();
+
+    this.initRenderer();
+
+    this.createTemplate();
   }
 
   initRenderer() {
@@ -56,13 +56,19 @@ export class Toolbar {
   createTemplate() {
     const appFragment = document.createDocumentFragment();
 
-    appFragment.appendChild(this.createLayout(this.toolbarOpts.items));
+    const items = this.toolbarOpts.items;
+    items.forEach((row) => appFragment.appendChild(this.createLayout(row)));
     this.toolbarElement.appendChild(appFragment);
   }
 
   private createLayout(items: ToolbarLayout[]) {
     const row = document.createElement('div');
+    if (items.length === 0) {
+      return document.createElement('div');
+    }
+
     row.className = 'dg-layout';
+    row.style.height = `${items[0].height}px`;
 
     const positions = ['left', 'center', 'right'];
     const layoutColumns = ['0px']; // 1번째 트랙 시작 (Index 1)
@@ -117,7 +123,7 @@ export class Toolbar {
     const area = document.createElement('div');
     area.className = `dg-container dg-grid-area-${item.position}`;
     area.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
-    this.setWidth(area, item.width);
+    this.setWidth(area, item.width ?? '');
 
     const columns = ['0px'];
     const fragment = document.createDocumentFragment();

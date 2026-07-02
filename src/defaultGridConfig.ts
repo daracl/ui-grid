@@ -1,10 +1,10 @@
+import { ALL_SELECT_VALUE, ROW_FIELD } from '@/constants';
+import { EventManager } from '@/event/EventManager';
+import { DataManager } from '@/service/DataManager';
+import { isPlainObject } from '@/util/utils';
+import { FieldItem } from '@t/GridField';
 import { GridOptions, PagingParam } from '@t/GridOptions';
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from './types/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { isPlainObject } from '@/util/utils';
-import { DataManager } from '@/service/DataManager';
-import { ALL_SELECT_VALUE, ROW_ID_FIELD_NAME } from '@/constants';
-import { EventManager } from '@/event/EventManager';
 
 /**
  * 
@@ -19,7 +19,7 @@ import { EventManager } from '@/event/EventManager';
 export function initConfig(opts: GridOptions): Config {
   const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
 
-  let rowIdField = ROW_ID_FIELD_NAME;
+  let rowIdField: string = ROW_FIELD.ID;
   if (opts.rowIdField) {
     rowIdField = opts.rowIdField;
   } else if (opts.tree) {

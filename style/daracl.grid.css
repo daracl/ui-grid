@@ -45,9 +45,9 @@ body .dg-hidden-container.dg-light {
   --invalid-font-color: #ff4136;
   --invalid-border-color: #ffb6b4;
   --invalid-bg: #fdd;
-  --button-bg: #e8ecef;
-  --button-bg-hover: #cdcdcd;
-  --button-bg-active: #d7d7d7;
+  --button-bg: #ffffff;
+  --button-bg-hover: #c9d2de;
+  --button-bg-active: #dfe7f3;
   --tab-bg: #f6f6f6;
   --tab-bg-hover: #ebebeb;
   --tooltip-bg: #3e3e3e;
@@ -173,16 +173,16 @@ body .dg-hidden-container.dg-dark {
 .dg-hidden-container input,
 .dg-hidden-container select,
 .dg-hidden-container button {
-  background: var(--background_color);
   border: 1px solid var(--border-color);
 }
 .daracl-grid button,
 .dg-hidden-container button {
+  background: var(--button-bg);
   cursor: pointer;
 }
 .daracl-grid button:hover,
 .dg-hidden-container button:hover {
-  background: var(--background_thick_color);
+  background: var(--button-bg-hover);
 }
 .daracl-grid input,
 .dg-hidden-container input {
@@ -437,6 +437,69 @@ body .dg-hidden-container.dg-dark {
   vertical-align: top;
   height: 40px;
   display: none;
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+  /* 레이아웃 라인 */
+  /* container */
+}
+.daracl-grid .dg-toolbar .dg-layout {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+.daracl-grid .dg-toolbar select {
+  padding: 5px 0px 5px 3px;
+}
+.daracl-grid .dg-toolbar input,
+.daracl-grid .dg-toolbar button {
+  padding: 5px 10px;
+  border-radius: 3px;
+}
+.daracl-grid .dg-toolbar .dg-container {
+  display: grid;
+  min-width: 0;
+}
+.daracl-grid .dg-toolbar .dg-container.dg-grid-area-left {
+  justify-self: start;
+}
+.daracl-grid .dg-toolbar .dg-container.dg-grid-area-center {
+  justify-self: center;
+}
+.daracl-grid .dg-toolbar .dg-container.dg-grid-area-right {
+  justify-self: end;
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  /* 레이블 처리 */
+  /* 컨트롤 내부 요소 방어구조 */
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field .dg-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field .dg-control {
+  min-width: 0;
+  width: 100%;
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field .dg-control > * {
+  width: 100%;
+  min-width: 0;
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field.has-label {
+  grid-template-columns: auto minmax(0, 1fr);
+  -moz-column-gap: 5px;
+       column-gap: 5px;
+}
+.daracl-grid .dg-toolbar .dg-container .dg-field.no-label {
+  grid-template-columns: minmax(0, 1fr);
 }
 .daracl-grid .dg-main {
   border: 1px solid var(--border-color);
@@ -523,6 +586,56 @@ body .dg-hidden-container.dg-dark {
   text-overflow: ellipsis;
   padding: 0px;
   margin: 0px;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell {
+  vertical-align: middle;
+  border: 1px solid var(--border-color);
+  border-top: none !important;
+  border-left: none !important;
+  position: relative;
+  padding: 0px !important;
+  margin: 0 !important;
+  overflow: hidden;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell > .dg-cell-renderer {
+  background-color: inherit;
+  color: inherit;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-primary {
+  background-color: #0d6efd !important;
+  color: #fff;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-secondary {
+  background-color: #6c757d !important;
+  color: #fff;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-success {
+  background-color: #198754 !important;
+  color: #fff;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-danger {
+  background-color: #dc3545 !important;
+  color: #fff;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-warning {
+  background-color: #ffc107 !important;
+  color: #212529;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-info {
+  background-color: #0dcaf0 !important;
+  color: #212529;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-light {
+  background-color: #f8f9fa !important;
+  color: #212529;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-dark {
+  background-color: #212529 !important;
+  color: #fff;
+}
+.daracl-grid .dg-main .dg-main-container .dg-cell.dg-muted {
+  background-color: #e9ecef !important;
+  color: #6c757d;
 }
 .daracl-grid .dg-main .dg-main-container .dg-header {
   position: relative;
@@ -789,14 +902,6 @@ body .dg-hidden-container.dg-dark {
   background-color: var(--body-bg);
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell {
-  vertical-align: middle;
-  border: 1px solid var(--border-color);
-  border-top: none !important;
-  border-left: none !important;
-  position: relative;
-  padding: 0px !important;
-  margin: 0 !important;
-  overflow: hidden;
   /*
   &.modifi-info {
   }
@@ -818,7 +923,7 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-cell-renderer {
   position: relative;
   margin: 0px 5px 1px 5px !important;
-  min-height: 23px;
+  min-height: 20px;
   height: 23px;
   display: grid;
   align-items: center;
@@ -834,8 +939,14 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell:hover {
   background-color: var(--cell-bg-hover) !important;
 }
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell:hover > .dg-cell-renderer {
+  color: var(--font-color);
+}
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-selection {
   background-color: var(--cell-bg-selection) !important;
+}
+.daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-selection > .dg-cell-renderer {
+  color: var(--font-color);
 }
 .daracl-grid .dg-main .dg-main-container .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-start-cell {
   box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
@@ -980,8 +1091,8 @@ body .dg-hidden-container.dg-dark {
   vertical-align: middle;
   flex: 0 0 16px;
   width: 16px;
-  height: 24px;
-  line-height: 24px;
+  height: 16px;
+  line-height: 16px;
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
@@ -1046,16 +1157,6 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table .dg-row {
   background-color: var(--summary-bg);
-}
-.daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table .dg-row > .dg-cell {
-  border: 1px solid var(--border-color);
-  border-top: none !important;
-  border-left: none !important;
-  position: relative;
-  padding: 0px 5px !important;
-  margin: 0 !important;
-  overflow: hidden;
-  font-weight: bold;
 }
 .daracl-grid .dg-main .dg-main-container .dg-summary > div > .dg-body-table .dg-row > .dg-cell > .dg-cell-renderer {
   padding: 0px 5px;

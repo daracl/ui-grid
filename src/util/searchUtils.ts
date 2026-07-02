@@ -1,7 +1,7 @@
-import { ALL_SELECT_VALUE, CHUNK_SIZE, MATCH_WHOLE_REGEX, ROW_ID_FIELD_NAME } from '@/constants';
+import { ALL_SELECT_VALUE, MATCH_WHOLE_REGEX } from '@/constants';
+import { DataManager } from '@/service/DataManager';
 import { MatchedField, SearchFields, SearchMode, SearchResult, ViewItem } from '@t/Common';
 import { arrayCopy, hasOwnProp } from './utils';
-import { DataManager } from '@/service/DataManager';
 
 export function gridDataSearch(
   searchList: ViewItem[],

@@ -1,4 +1,4 @@
-import { BodyCellStyle, SelectionMode } from '@/constants';
+import { BodyCellStyleMap, SelectionModeMap } from '@/constants';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
 import { escapeCellValue, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
@@ -298,7 +298,7 @@ export class SelectionInfo {
   public clearAnchorCell() {
     const bodyElement = this.gridMain.getBody().getBodyElement();
     this.removeStartAnchorCell();
-    removeClass(bodyElement.finds('.dg-cell.' + BodyCellStyle.SELECTION), BodyCellStyle.SELECTION);
+    removeClass(bodyElement.finds('.dg-cell.' + BodyCellStyleMap.SELECTION), BodyCellStyleMap.SELECTION);
   }
 
   public selectAnchorCell() {
@@ -308,7 +308,7 @@ export class SelectionInfo {
 
   public removeStartAnchorCell() {
     const bodyElement = this.gridMain.getBody().getStartCellElement();
-    removeClass(bodyElement, BodyCellStyle.START_CELL);
+    removeClass(bodyElement, BodyCellStyleMap.START_CELL);
   }
 
   /**
@@ -558,16 +558,16 @@ export class SelectionInfo {
     const classList = cellElement.classList;
 
     if (startIdx == rowIdx && startCol == col) {
-      classList.add(BodyCellStyle.START_CELL);
+      classList.add(BodyCellStyleMap.START_CELL);
     }
 
     if (this.isAllSelect() || this.isSelection(rowIdx, col)) {
-      if (!classList.contains(BodyCellStyle.SELECTION)) classList.add(BodyCellStyle.SELECTION);
+      if (!classList.contains(BodyCellStyleMap.SELECTION)) classList.add(BodyCellStyleMap.SELECTION);
 
       return true;
     }
 
-    if (classList.contains(BodyCellStyle.SELECTION)) classList.remove(BodyCellStyle.SELECTION);
+    if (classList.contains(BodyCellStyleMap.SELECTION)) classList.remove(BodyCellStyleMap.SELECTION);
 
     return false;
   }
@@ -629,7 +629,7 @@ export class SelectionInfo {
     if (isRowSelectionMode(selectionMode)) {
       startCol = cfg.dataInfo.startCol;
       endCol = cfg.dataInfo.colLength - 1;
-    } else if (selectionMode == SelectionMode.MULTIPLE_CELL) {
+    } else if (selectionMode == SelectionModeMap.MULTIPLE_CELL) {
       if (isMouseDown) {
         startCol = -1;
       } else if (hasClass(cellElement, 'dg-line-number')) {

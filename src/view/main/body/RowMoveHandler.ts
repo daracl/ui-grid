@@ -2,12 +2,13 @@ import {
   HIDDEN_ELEMENT_SELECTOR,
   MovePosition,
   MovePositionMap,
-  POINTER_STATE,
+  PointerStateMap,
   ROW_DRAG_HANDLE_NAME,
-  ROW_ID_FIELD_NAME,
+  ROW_FIELD,
 } from '@/constants';
 import { PointerContext } from '@/event/PointerContext';
 import { PointerSession } from '@/event/PointerSession';
+import { ViewItem } from '@/types/Common';
 import { CellInfo, Selection, SelectionRange } from '@/types/GridConfig';
 import { RowMoveOptions } from '@/types/GridOptions';
 import { getElementRect } from '@/util/domUtils';
@@ -15,7 +16,6 @@ import { dragVerticalMovePosition, isCellSelectionMode, isRowSelectionMode, isSe
 import { Language } from '@/util/Language';
 import { BodyEvent } from './BodyEvent';
 import { CellClickHandler } from './CellClickHandler';
-import { RowId, ViewItem } from '@/types/Common';
 
 /**
  * RowMoveHandler class
@@ -225,7 +225,7 @@ export class RowMoveHandler extends CellClickHandler {
 
   /** move 중 */
   onPointerMove(session: PointerSession) {
-    if (session.state != POINTER_STATE.DRAGGING) return;
+    if (session.state != PointerStateMap.DRAGGING) return;
     const cfg = this.cfg;
     const bounds = this.gridBounds;
     const { x, y } = session.currentPos;
@@ -381,7 +381,7 @@ export class RowMoveHandler extends CellClickHandler {
       ids.splice(rowIndex, 1);
     }
 
-    const moveViewItems: ViewItem[] = this.moveViewItems.map((item) => ({ id: item[ROW_ID_FIELD_NAME] } as ViewItem));
+    const moveViewItems: ViewItem[] = this.moveViewItems.map((item) => ({ id: item[ROW_FIELD.ID] } as ViewItem));
 
     ids.splice(dropRowIdx, 0, ...moveViewItems);
 

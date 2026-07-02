@@ -1,6 +1,6 @@
 import { getCellInfo, isInputField, isMouseMoved } from '@/util/gridUtils';
 
-import { LINE_NUMBER_NAME, MOUSE_MOVE_THRESHOLD, POINTER_STATE, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import { LINE_NUMBER_NAME, MOUSE_MOVE_THRESHOLD, PointerStateMap, ROW_DRAG_HANDLE_NAME } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -241,14 +241,14 @@ export class BodyEvent {
               }
             }
 
-            session.state = POINTER_STATE.DRAGGING;
+            session.state = PointerStateMap.DRAGGING;
 
             handler.onPointerMove?.(session);
           });
 
           eventManager.on({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
             eventManager.off(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
-            session.state = POINTER_STATE.IDLE;
+            session.state = PointerStateMap.IDLE;
             session.currentPos = eventPosition(moveEvt);
             handler.onPointerUp?.(session);
             cfg.isBodyDragging = false;

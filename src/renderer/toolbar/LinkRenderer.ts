@@ -1,66 +1,51 @@
-import { getCellInfo } from '@/util/gridUtils';
-import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
 import { stopPreventCancel } from '@/util/eventUtils';
+import { GridMain } from '@/view/GridMain';
+import { FieldItem } from '@t/GridField';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
  * link renderer
  *
  * @class LinkRenderer
  * @typedef {LinkRenderer}
- * @extends {ViewRenderer}
  */
-export class LinkRenderer extends ViewRenderer {
+export class LinkRenderer extends ToolBarRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-    const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
-
+  public render(element: HTMLElement): void {
     let aElement = element.firstElementChild as HTMLAnchorElement | null;
+    const refValue = this.getRefValue();
 
-    // 처음 생성 시
+    // 최초 렌더링 시만 생성
     if (!aElement) {
       aElement = document.createElement('a');
-      aElement.className = this.getRendererStyleClass('dg-cell-content');
+      aElement.className = this.getRendererStyleClass('dg-link');
       aElement.setAttribute('tabindex', '-1');
       element.appendChild(aElement);
       this.initEvent(aElement);
     }
 
-    if (refValue) {
-      aElement.href = this.isClick ? '#' : refValue.href;
-      if (!this.isClick) {
-        aElement.target = refValue.target ?? '_blank';
+    if (this.isClick) {
+      aElement.href = 'javascript:void(0);';
+    } else if (refValue?.href) {
+      aElement.href = refValue.href;
+
+      if (refValue.target) {
+        aElement.target = refValue.target;
       }
-      aElement.textContent = refValue.label ?? value;
-    } else {
-      aElement.href = this.isClick ? '#' : value;
-      if (!this.isClick) {
-        aElement.target = '_blank';
-      }
-      aElement.textContent = value;
     }
+
+    aElement.textContent = refValue.label ?? refValue;
   }
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
-      const eventElement = e.target as HTMLElement;
-      const cellElement = this.getClosestCellElement(eventElement);
-      const cellInfo = getCellInfo(cfg, cellElement);
 
-      this.click(e, cellElement, cellInfo);
+      this.click(e, this.field);
     });
-  }
-
-  public canEdit() {
-    return true;
   }
 }

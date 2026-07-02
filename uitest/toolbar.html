@@ -152,74 +152,30 @@
 
       toolbar: {
         enabled: true,
-        height: 30,
+        height: 40,
         items: [
           [
             {
               position: 'left',
-              //width: 500,
               children: [
                 {
-                  label: '검색조건',
-                  name: 'searchField',
+                  label: 'Theme',
+                  name: 'theme',
                   renderer: 'dropdown',
-                  width: 150,
-                  gap: 10,
+                  //width: 150,
                 },
+              ],
+            },
+
+            {
+              position: 'right',
+              children: [
                 {
-                  label: '검색조건1',
                   name: 'searchValue',
                   renderer: 'text',
                   width: 150,
                 },
-                { name: 'searchValue2', renderer: 'text' },
-                { name: 'searchValue3', renderer: 'text' },
-              ],
-            },
-            {
-              position: 'center',
-              width: 300,
-              children: [
-                {
-                  name: 'centerValue',
-                  label: '가운데',
-                  renderer: 'text',
-                  width: 120,
-                },
-                {
-                  name: 'centerValue2',
-                  label: '가운데2',
-                  renderer: 'text',
-                  width: 120,
-                },
-              ],
-            },
-            {
-              position: 'right',
-              children: [
                 { name: 'searchBtn', renderer: 'button', label: '검색' },
-                { name: 'initBtn', renderer: 'button', label: '초기화' },
-              ],
-            },
-          ],
-          [
-            {
-              position: 'center',
-              width: 500,
-              children: [
-                {
-                  label: '가운데 정렬',
-                  name: 'searchField',
-                  width: 200,
-                  renderer: 'dropdown',
-                },
-                { label: '검색어', name: 'searchValue', renderer: 'text' },
-                {
-                  name: 'searchBtn',
-                  renderer: 'button',
-                  width: 'auto',
-                  label: '검색검색검색검색',
-                },
               ],
             },
           ],

@@ -1,4 +1,4 @@
-import { POSITION_TYPE } from '@/constants';
+import { POSITION_TYPE, TOOLBAR_RENDERER_TYPE } from '@/constants';
 import { OptionCallback } from './Common';
 import { RendererInfo } from './RendererInfo';
 
@@ -11,7 +11,8 @@ import { RendererInfo } from './RendererInfo';
 export interface ToolbarLayout {
   position: POSITION_TYPE;
   children: ToolbarCellItem[];
-  width: number;
+  height?: number;
+  width?: number;
 }
 
 export interface ToolbarCellItem {
@@ -39,7 +40,7 @@ export interface ToolbarCellItem {
   /**
    * render type
    */
-  renderer?: string;
+  renderer?: TOOLBAR_RENDERER_TYPE;
   /**
    * 값 변경시 callback
    */

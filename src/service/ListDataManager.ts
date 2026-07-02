@@ -1,17 +1,15 @@
-import { ROW_ID_FIELD_NAME, SearchDirectionMap } from '@/constants';
+import { ROW_FIELD, SearchDirectionMap } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
   MatchedField,
   RowId,
-  RowSelectOptions,
   SearchMatchInfo,
   SearchMode,
   SearchResult,
   ViewItem,
 } from '@/types/Common';
-import { Selection, SelectionRange } from '@/types/GridConfig';
 import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
@@ -39,7 +37,7 @@ export class ListDataManager extends DataManager {
     items.forEach((item) => {
       this.createRowItem(item, depth);
 
-      const rowId = item[ROW_ID_FIELD_NAME];
+      const rowId = item[ROW_FIELD.ID];
       viewItems.push({
         id: rowId,
         sortOrder: orderIdx++,

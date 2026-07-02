@@ -1,4 +1,4 @@
-import { POINTER_STATE } from '@/constants';
+import { PointerStateMap } from '@/constants';
 import { ClickManager } from '@/event/ClickManager';
 import { PointerPosition, PointerSession } from '@/event/PointerSession';
 import { EventElementType } from '@/types/Event';
@@ -178,7 +178,7 @@ export function initPointerSession(
   const evtPosition = eventPosition(e);
 
   return {
-    state: POINTER_STATE.PRESSED,
+    state: PointerStateMap.PRESSED,
     event: e,
     startPos: evtPosition,
     currentPos: evtPosition,

@@ -1,4 +1,3 @@
-import { ORIGINAL_ORDER_KEY, ROW_ID_FIELD_NAME } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import { ViewItem } from '@/types/Common';
 import { FieldSortInfo } from '@/types/Header';

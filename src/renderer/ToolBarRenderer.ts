@@ -64,14 +64,14 @@ export abstract class ToolBarRenderer extends Renderer {
    */
   public abstract render(element: HTMLElement): void;
 
-  public getRefValue(value: any, rowItem?: any): any {
+  public getRefValue(): any {
     if (this.isRefFunction) {
-      return this.refValue.call(null, this.field, value, rowItem);
+      return this.refValue.call(null, this.field);
     }
 
     if (this.isRefString) return { label: this.refValue };
 
-    return this.refValue[value];
+    return this.field?.label ?? '';
   }
 
   /**

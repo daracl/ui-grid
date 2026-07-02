@@ -43,9 +43,9 @@ body {
     --invalid-font-color: #ff4136;
     --invalid-border-color: #ffb6b4;
     --invalid-bg: #fdd;
-    --button-bg: #e8ecef;
-    --button-bg-hover: #cdcdcd;
-    --button-bg-active: #d7d7d7;
+    --button-bg: #ffffff;
+    --button-bg-hover: #c9d2de;
+    --button-bg-active: #dfe7f3;
     --tab-bg: #f6f6f6;
     --tab-bg-hover: #ebebeb;
     --tooltip-bg: #3e3e3e;
@@ -195,14 +195,14 @@ body {
   input,
   select,
   button {
-    background: var(--background_color);
     border: 1px solid var(--border-color);
   }
 
   button {
+    background: var(--button-bg);
     cursor: pointer;
     &:hover {
-      background: var(--background_thick_color);
+      background: var(--button-bg-hover);
     }
   }
 
