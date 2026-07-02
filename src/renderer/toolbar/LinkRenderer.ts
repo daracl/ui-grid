@@ -2,6 +2,7 @@ import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { ToolBarRenderer } from '../ToolBarRenderer';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 
 /**
  * link renderer
@@ -10,7 +11,7 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
  * @typedef {LinkRenderer}
  */
 export class LinkRenderer extends ToolBarRenderer {
-  constructor(field: FieldItem, gridMain: GridMain) {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
@@ -47,5 +48,9 @@ export class LinkRenderer extends ToolBarRenderer {
 
       this.click(e, this.field);
     });
+  }
+
+  public getValue() {
+    return '';
   }
 }

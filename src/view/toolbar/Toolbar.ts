@@ -1,7 +1,7 @@
 import { Config } from '@t/GridConfig';
 
 import { ToolbarOptions } from '@/types/GridOptions';
-import { ToolbarCellItem, ToolbarLayout } from '@/types/Toolbar';
+import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
 import { isArray } from '@/util/utils';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
@@ -165,7 +165,7 @@ export class Toolbar {
       let trackWidth = '1fr';
       if (field.width) {
         trackWidth = formatLength(field.width);
-      } else if (field.renderer === 'button') {
+      } else if (field.editRenderer === 'button') {
         trackWidth = 'max-content';
       }
       columns.push(trackWidth);
@@ -187,15 +187,15 @@ export class Toolbar {
     return area;
   }
 
-  private createField(field: ToolbarCellItem, colIndex: number) {
+  private createField(field: ToolbarFieldItem, colIndex: number) {
     const el = document.createElement('div');
-    const hasLabel = field.renderer !== 'button' && field.label;
+    const hasLabel = field.editRenderer !== 'button' && field.label;
 
-    el.className = `dg-field field-${field.renderer} ${hasLabel ? 'has-label' : 'no-label'}`;
+    el.className = `dg-field field-${field.editRenderer} ${hasLabel ? 'has-label' : 'no-label'}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
 
     let control = '';
-    switch (field.renderer) {
+    switch (field.editRenderer) {
       case 'text':
         control = `<input type="text" name="${field.name || ''}">`;
         break;
@@ -213,7 +213,7 @@ export class Toolbar {
             <div class="dg-control">${control}</div>
           `;
     } else {
-      el.innerHTML = field.renderer === 'button' ? control : `<div class="dg-control">${control}</div>`;
+      el.innerHTML = field.editRenderer === 'button' ? control : `<div class="dg-control">${control}</div>`;
     }
 
     this.setWidth(el, field.width ?? 'auto');

@@ -1,6 +1,6 @@
-import { POSITION_TYPE, TOOLBAR_RENDERER_TYPE } from '@/constants';
+import { POSITION_TYPE } from '@/constants';
 import { OptionCallback } from './Common';
-import { RendererInfo } from './RendererInfo';
+import { EditRendererInfo } from './RendererInfo';
 
 /**
  * ToolBar item info
@@ -10,12 +10,12 @@ import { RendererInfo } from './RendererInfo';
  */
 export interface ToolbarLayout {
   position: POSITION_TYPE;
-  children: ToolbarCellItem[];
+  children: ToolbarFieldItem[];
   height?: number;
   width?: number;
 }
 
-export interface ToolbarCellItem {
+export interface ToolbarFieldItem {
   placeholder?: string;
   defaultValue?: string;
   gap?: number | number[];
@@ -40,9 +40,16 @@ export interface ToolbarCellItem {
   /**
    * render type
    */
-  renderer?: TOOLBAR_RENDERER_TYPE;
+  editRenderer: EditRendererInfo;
   /**
    * 값 변경시 callback
    */
   change?: OptionCallback;
+
+  click?: OptionCallback;
+
+  /**
+   * field unique id
+   */
+  $uid: string;
 }

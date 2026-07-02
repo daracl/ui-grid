@@ -1,7 +1,7 @@
+import { ToolbarFieldItem } from '@/types/Toolbar';
 import { GridMain } from '@/view/GridMain';
-import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
-import { TextRenderer } from './TextRenderer';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
  * date renderer
@@ -9,13 +9,17 @@ import { TextRenderer } from './TextRenderer';
  * @typedef {DateRenderer}
  * @extends {EditRenderer}
  */
-export class DateRenderer extends TextRenderer {
-  constructor(field: FieldItem, gridMain: GridMain) {
+export class DateRenderer extends ToolBarRenderer {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
     const rendererInfo = this.field.editRenderer;
   }
 
   public render(element: HTMLElement): void {
     //this.textRender(cellInfo, element, 'date');
+  }
+
+  public getValue() {
+    return '';
   }
 }

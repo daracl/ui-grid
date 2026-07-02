@@ -5,6 +5,8 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
+import { ToolBarRenderer } from '../ToolBarRenderer';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 
 /**
  * Switch renderer
@@ -13,12 +15,12 @@ import { EditRenderer } from '../EditRenderer';
  * @typedef {SwitchRenderer}
  * @extends {EditRenderer}
  */
-export class SwitchRenderer extends EditRenderer {
+export class SwitchRenderer extends ToolBarRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
   private showLabel: boolean;
 
-  constructor(field: FieldItem, gridMain: GridMain) {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     const rendererInfo = this.field.editRenderer;
@@ -27,11 +29,7 @@ export class SwitchRenderer extends EditRenderer {
     this.showLabel = rendererInfo.showLabel ?? false;
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-
-    const val = this.getValue(item);
-
+  public render(element: HTMLElement): void {
     let label = element.firstElementChild as HTMLLabelElement;
 
     // 최초 렌더링 시 구조 생성
@@ -80,11 +78,7 @@ export class SwitchRenderer extends EditRenderer {
     });
   }
 
-  public valid(value: any): ValidResult | boolean {
-    return true;
-  }
-
-  public alignStyle(): string {
-    return ALIGN_STYLE.center;
+  public getValue() {
+    return '';
   }
 }

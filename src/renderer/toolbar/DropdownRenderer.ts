@@ -8,6 +8,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ToolBarRenderer } from '../ToolBarRenderer';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
@@ -27,7 +28,7 @@ export class DropdownRenderer extends ToolBarRenderer {
 
   private selectValues = '';
 
-  constructor(field: FieldItem, gridMain: GridMain) {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     const rendererInfo = this.field.editRenderer;
@@ -225,5 +226,9 @@ export class DropdownRenderer extends ToolBarRenderer {
     }
 
     return templateParts.join('');
+  }
+
+  public getValue() {
+    return '';
   }
 }

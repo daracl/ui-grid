@@ -1,43 +1,34 @@
-import { FieldItem } from '@t/GridField';
-
-import { ALIGN_STYLE } from '@/constants';
-import { isFunction, isString } from '@/util/utils';
+import { ToolbarFieldItem } from '@/types/Toolbar';
+import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
-import { Renderer } from './Renderer';
 
 /**
  *
  */
-export abstract class ToolBarRenderer extends Renderer {
-  private readonly isRefFunction: boolean;
-  private readonly isRefString: boolean;
-  private readonly isVauleFunction: boolean;
-  protected readonly refValue: any;
+export abstract class ToolBarRenderer {
   protected isClick = false;
   protected eventStyleClass = '';
   protected readonly cfg: Config;
 
-  constructor(field: FieldItem, gridMain: GridMain) {
-    super(field, gridMain);
+  protected field;
+  protected fieldName;
+  protected gridMain;
+  protected language;
+
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
+    this.field = field;
+    this.fieldName = field.name;
+    this.gridMain = gridMain;
+    this.language = this.gridMain.i18n();
     this.cfg = this.gridMain.config();
-    const refValue = field.renderer.refValue;
-    this.isRefFunction = isFunction(refValue);
-    this.isRefString = isString(refValue);
-    this.isVauleFunction = isFunction(field.getValue);
 
-    if (this.isRefString || this.isRefFunction) {
-      this.refValue = refValue;
-    } else {
-      this.refValue = refValue ?? {};
-    }
-
-    this.isClick = isFunction(this.field.renderer.click);
+    this.isClick = isFunction(this.field.click);
     this.initEventClass();
   }
 
   initEventClass() {
-    const eventStyleClass = this.isClick ? 'dg-cell-click' : '';
+    const eventStyleClass = this.isClick ? 'dg-tool-click' : '';
 
     this.eventStyleClass = eventStyleClass;
   }
@@ -64,41 +55,16 @@ export abstract class ToolBarRenderer extends Renderer {
    */
   public abstract render(element: HTMLElement): void;
 
-  public getRefValue(): any {
-    if (this.isRefFunction) {
-      return this.refValue.call(null, this.field);
-    }
-
-    if (this.isRefString) return { label: this.refValue };
-
-    return this.field?.label ?? '';
-  }
-
   /**
    * cell click event
    * @param e click event object
    * @param eventElement  event element
    */
-  public click(e: Event, field: FieldItem) {
+  public click(e: Event, eventElement: HTMLElement) {
     if (this.isClick) {
-      this.field.renderer.click?.call(null, { evt: e, field: this.field });
+      this.field.click?.call(null, { evt: e, field: this.field, element: eventElement });
     }
   }
 
-  /**
-   * 랜더러가 editor 랜더러 인지 여부
-   *
-   * @returns {boolean}
-   */
-  public canEdit() {
-    return false;
-  }
-
-  /**
-   *  값 정렬 스타일
-   * @returns {string} align style
-   */
-  public alignStyle(): string {
-    return ALIGN_STYLE.left;
-  }
+  public abstract getValue(): any;
 }

@@ -1,7 +1,6 @@
-import { ALIGN_STYLE } from '@/constants';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
-import { FieldItem } from '@t/GridField';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
@@ -11,7 +10,7 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
  * @extends {ToolBarRenderer}
  */
 export class NumberRenderer extends ToolBarRenderer {
-  constructor(field: FieldItem, gridMain: GridMain) {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
@@ -26,7 +25,7 @@ export class NumberRenderer extends ToolBarRenderer {
       this.initEvent(btnElement);
     }
 
-    btnElement.textContent = this.field.label;
+    btnElement.textContent = this.field.label ?? '';
   }
 
   initEvent(contentElement: HTMLElement) {
@@ -34,15 +33,11 @@ export class NumberRenderer extends ToolBarRenderer {
     cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
-      this.click(e, this.field);
+      this.click(e, contentElement);
     });
   }
 
-  public alignStyle(): string {
-    return ALIGN_STYLE.center;
-  }
-
-  public canEdit() {
-    return false;
+  public getValue() {
+    return '';
   }
 }

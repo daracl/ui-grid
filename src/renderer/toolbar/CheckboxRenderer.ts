@@ -1,25 +1,25 @@
+import { ALIGN_STYLE } from '@/constants';
+import { ValidResult } from '@/types/ValidResult';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
-import { ALIGN_STYLE } from '@/constants';
-import { EditRenderer } from '../EditRenderer';
-import { ValidResult } from '@/types/ValidResult';
+import { ToolBarRenderer } from '../ToolBarRenderer';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 
 /**
  * checkbox renderer
  *
  * @class CheckboxRenderer
  * @typedef {CheckboxRenderer}
- * @extends {ViewRenderer}
+ * @extends {ToolBarRenderer}
  */
-export class CheckboxRenderer extends EditRenderer {
+export class CheckboxRenderer extends ToolBarRenderer {
   private readonly trueValue: string | boolean;
   private readonly falseValue: string | boolean;
   private readonly showLabel: boolean;
 
-  constructor(field: FieldItem, gridMain: GridMain) {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     const rendererInfo = this.field.editRenderer;
@@ -29,11 +29,7 @@ export class CheckboxRenderer extends EditRenderer {
     this.showLabel = rendererInfo.showLabel ?? false;
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-
-    const val = this.getValue(item);
-
+  public render(element: HTMLElement): void {
     let label = element.firstElementChild as HTMLLabelElement;
 
     // 최초 렌더링 시 구조 생성
@@ -52,7 +48,7 @@ export class CheckboxRenderer extends EditRenderer {
 
       if (this.showLabel) {
         const textLabel = document.createElement('span');
-        textLabel.className = 'dg-cell-content-label dg-cell-ellipsis';
+        textLabel.className = 'dg-toolbar-content-label dg-cell-ellipsis';
         label.appendChild(textLabel);
       }
 
@@ -61,42 +57,29 @@ export class CheckboxRenderer extends EditRenderer {
       this.initClick(input);
     }
 
+    /* 
+    초기 체크 처리 할 것
     const input = label.firstChild as HTMLInputElement;
     input.checked = val === this.trueValue;
-
-    if (this.showLabel) {
-      const labelElement = element.querySelector('.dg-cell-content-label');
-      if (labelElement) labelElement.textContent = val;
-    }
+    */
   }
 
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      const cellElement = this.getClosestCellElement(contentElement);
-
-      const cellInfo = getCellInfo(cfg, cellElement);
-
       const checked = contentElement.checked;
 
-      const item = cellInfo.item;
-
-      this.setValue(e, item, checked ? this.trueValue : this.falseValue);
-
-      this.render(cellInfo, cellElement);
+      // set value 처리할것
+      // this.setValue(e, checked ? this.trueValue : this.falseValue);
     });
+  }
+
+  public getValue() {
+    return '';
   }
 
   public valid(value: any): ValidResult | boolean {
     return true;
-  }
-
-  public canEdit() {
-    return false;
-  }
-
-  public alignStyle(): string {
-    return ALIGN_STYLE.center;
   }
 }

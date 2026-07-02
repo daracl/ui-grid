@@ -1,30 +1,27 @@
+import { ToolbarFieldItem } from '@/types/Toolbar';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
  * custom renderer
  *
  * @class CustomRenderer
  * @typedef {CustomRenderer}
- * @extends {EditRenderer}
+ * @extends {ToolBarRenderer}
  */
-export class CustomRenderer extends EditRenderer {
-  constructor(field: FieldItem, gridMain: GridMain) {
+export class CustomRenderer extends ToolBarRenderer {
+  constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
-  public getValue(value: any) {
-    return value[this.field.name];
+  public getValue() {
+    return '';
   }
 
-  public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
+  public render(element: HTMLElement): void {
     element.innerHTML = '<input type="text">';
-    const value = item[cellInfo.field.name];
 
-    this.getValue(value);
+    this.getValue();
   }
 
   valid(element: HTMLElement): any {
