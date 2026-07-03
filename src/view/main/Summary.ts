@@ -137,13 +137,13 @@ export class Summary {
 
     if (this.summaryOpts.position === 'top') {
       summaryElement.addClass('dg-top');
-      const container = this.gridMain.element().find('.dg-main-container');
+      const container = this.gridMain.element().find('.dg-panels');
       container?.insertBefore(summaryElement.getElement(), container.querySelector('.dg-body'));
     }
 
-    this.leftElement = summaryElement.findDaraElement('.dg-left');
-    this.centerElement = summaryElement.findDaraElement('.dg-center');
-    this.rightElement = summaryElement.findDaraElement('.dg-right');
+    this.leftElement = summaryElement.findDaraElement('.dg-region-left');
+    this.centerElement = summaryElement.findDaraElement('.dg-region-center');
+    this.rightElement = summaryElement.findDaraElement('.dg-region-right');
 
     this.leftElement.html(this.template('left'));
     this.centerElement.html(this.template('center'));

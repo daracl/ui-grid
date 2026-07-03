@@ -19,7 +19,9 @@ export class HtmlRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    element.innerHTML = this.field.editRenderer.defaultValue ?? '';
+    const controlElement = this.getControlElement(element);
+
+    controlElement.innerHTML = this.field.renderer.defaultValue ?? '';
   }
 
   public getValue() {

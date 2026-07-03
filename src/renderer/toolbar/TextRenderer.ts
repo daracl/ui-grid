@@ -17,15 +17,12 @@ export class TextRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    let btnElement = element.firstElementChild as HTMLElement | null;
+    const controlElement = this.getControlElement(element);
 
-    // 최초 렌더링 시만 생성
-    if (!btnElement) {
-      btnElement = document.createElement('button');
-      btnElement.className = this.getRendererStyleClass('dg-button');
-      element.appendChild(btnElement);
-      this.initEvent(btnElement);
-    }
+    const btnElement = document.createElement('button');
+    btnElement.className = this.getRendererStyleClass('dg-button');
+    controlElement.appendChild(btnElement);
+    this.initEvent(btnElement);
 
     btnElement.textContent = this.field.label ?? '';
   }

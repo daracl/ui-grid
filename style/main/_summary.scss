@@ -27,7 +27,7 @@
       border-top: 1px solid var(--border-color);
       padding-top: 1px;
 
-      &.dg-left {
+      &.dg-region-left {
         left: 0px;
         z-index: 1;
 
@@ -36,11 +36,11 @@
         }
       }
 
-      &.dg-center {
+      &.dg-region-center {
         z-index: 0;
       }
 
-      &.dg-right {
+      &.dg-region-right {
         right: -1px;
         z-index: 1;
 

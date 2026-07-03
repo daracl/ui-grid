@@ -1,7 +1,15 @@
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
-import { EDIT_RENDERER, FOOTER_HEIGHT, SelectionModeMap, TOOLBAR_HEIGHT, VIEW_RENDERER } from './constants';
+import {
+  EDIT_RENDERER,
+  FOOTER_HEIGHT,
+  SelectionModeMap,
+  TOOLBAR_HEIGHT,
+  TOOLBAR_RENDERER,
+  VIEW_RENDERER,
+} from './constants';
 import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
+import { ToolbarFieldItem } from './types/Toolbar';
 
 /**
  * grid default option
@@ -227,6 +235,19 @@ export const DEFAULT_EDIT_RENDERER_INFO: EditRendererInfo = {
   trueValue: true,
   falseValue: false,
   showLabel: false,
+};
+
+export const DEFAULT_TOOLBAR_FIELD_INFO: ToolbarFieldItem = {
+  name: '',
+  label: '',
+  width: 0,
+  renderer: {
+    type: 'text',
+    trueValue: true,
+    falseValue: false,
+  },
+  $renderer: EDIT_RENDERER['text'],
+  $uid: '',
 };
 
 export const DEFAULT_FIELD_INFO: FieldItem = {

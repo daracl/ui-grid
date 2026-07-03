@@ -2,9 +2,12 @@ import { Config } from '@t/GridConfig';
 
 import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
-import { isArray } from '@/util/utils';
+import { isArray, isString, merge } from '@/util/utils';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
+import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
+import { EDIT_RENDERER } from '@/constants';
+import { TOOLBAR_RENDERER } from '../../constants';
 
 /**
  * Toolbar class
@@ -20,6 +23,8 @@ export class Toolbar {
   private readonly toolbarOpts: ToolbarOptions;
 
   private toolbarElement: HTMLElement;
+
+  private toolbarLayouts: ToolbarLayout[][];
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -50,14 +55,51 @@ export class Toolbar {
   }
 
   initRenderer() {
-    //throw new Error('Method not implemented.');
+    const items = this.toolbarOpts.items;
+
+    const mainUid = this.gridMain.uid();
+    this.toolbarLayouts = items.map((row, rowIndex) =>
+      row.map((item, itemIndex) => ({
+        ...item,
+        children: item.children.map((field, fieldIndex) =>
+          this.createToolbarField(field, mainUid, rowIndex, itemIndex, fieldIndex),
+        ),
+      })),
+    );
+  }
+
+  private createToolbarField(
+    field: ToolbarFieldItem,
+    mainUid: string,
+    rowIndex: number,
+    itemIndex: number,
+    fieldIndex: number,
+  ): ToolbarFieldItem {
+    const toolbarField: ToolbarFieldItem = merge({}, DEFAULT_TOOLBAR_FIELD_INFO, field);
+
+    toolbarField.$uid = `${mainUid}_${rowIndex}_${itemIndex}_${fieldIndex}`;
+
+    const renderer =
+      typeof toolbarField.renderer === 'string'
+        ? {
+            ...DEFAULT_EDIT_RENDERER_INFO,
+            type: toolbarField.renderer,
+          }
+        : merge({}, DEFAULT_EDIT_RENDERER_INFO, toolbarField.renderer);
+
+    toolbarField.renderer = renderer;
+
+    const Renderer = TOOLBAR_RENDERER[renderer.type] ?? TOOLBAR_RENDERER.text;
+
+    toolbarField.$renderer = new Renderer(toolbarField, this.gridMain);
+
+    return toolbarField;
   }
 
   createTemplate() {
     const appFragment = document.createDocumentFragment();
 
-    const items = this.toolbarOpts.items;
-    items.forEach((row) => appFragment.appendChild(this.createLayout(row)));
+    this.toolbarLayouts.forEach((row) => appFragment.appendChild(this.createLayout(row)));
     this.toolbarElement.appendChild(appFragment);
   }
 
@@ -165,7 +207,7 @@ export class Toolbar {
       let trackWidth = '1fr';
       if (field.width) {
         trackWidth = formatLength(field.width);
-      } else if (field.editRenderer === 'button') {
+      } else if (field.renderer.type === 'button') {
         trackWidth = 'max-content';
       }
       columns.push(trackWidth);
@@ -189,32 +231,22 @@ export class Toolbar {
 
   private createField(field: ToolbarFieldItem, colIndex: number) {
     const el = document.createElement('div');
-    const hasLabel = field.editRenderer !== 'button' && field.label;
+    const rendererType = field.renderer.type;
+    const hasLabel = rendererType !== 'button' && field.label;
 
-    el.className = `dg-field field-${field.editRenderer} ${hasLabel ? 'has-label' : 'no-label'}`;
+    el.className = `dg-field field-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
-
-    let control = '';
-    switch (field.editRenderer) {
-      case 'text':
-        control = `<input type="text" name="${field.name || ''}">`;
-        break;
-      case 'dropdown':
-        control = '<select><option>전체전체전체전체</option><option>이름</option></select>';
-        break;
-      case 'button':
-        control = `<button>${field.label || ''}</button>`;
-        break;
-    }
 
     if (hasLabel) {
       el.innerHTML = `
-            <span class="dg-label">${field.label}</span>
-            <div class="dg-control">${control}</div>
-          `;
+          <span class="dg-label">${field.label}</span>
+          <div class="dg-control"></div>
+        `;
     } else {
-      el.innerHTML = field.editRenderer === 'button' ? control : `<div class="dg-control">${control}</div>`;
+      el.innerHTML = '<div class="dg-control"></div>';
     }
+
+    field.$renderer.render(el);
 
     this.setWidth(el, field.width ?? 'auto');
 

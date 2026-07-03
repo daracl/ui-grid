@@ -7,7 +7,7 @@
     z-index: 0;
 
     &[data-view-mode='empty'] {
-      .dg-empty-msg-area {
+      .dg-empty-overlay {
         display: -webkit-box;
         display: -ms-flexbox;
         display: flex;
@@ -15,7 +15,7 @@
       }
     }
 
-    .dg-empty-msg-area {
+    .dg-empty-overlay {
       display: none;
       position: absolute;
       top: 0;
@@ -28,7 +28,7 @@
       justify-content: center;
       -webkit-justify-content: center;
 
-      .dg-empty-msg {
+      .dg-empty-message {
         padding-bottom: 20px;
         .empty-text {
           display: table-cell;
@@ -70,7 +70,7 @@
       position: absolute;
       background: var(--body-bg);
 
-      &.dg-left {
+      &.dg-region-left {
         left: 0px;
         z-index: 1;
 
@@ -83,11 +83,11 @@
         }
       }
 
-      &.dg-center {
+      &.dg-region-center {
         z-index: 0;
       }
 
-      &.dg-right {
+      &.dg-region-right {
         right: -1px;
         z-index: 1;
 

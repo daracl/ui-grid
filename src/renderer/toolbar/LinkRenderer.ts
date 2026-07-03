@@ -16,17 +16,17 @@ export class LinkRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    let aElement = element.firstElementChild as HTMLAnchorElement | null;
-    const refValue = this.getRefValue();
+    const controlElement = this.getControlElement(element);
+
+    const refValue: any = this.field.renderer.defaultValue ?? {};
 
     // 최초 렌더링 시만 생성
-    if (!aElement) {
-      aElement = document.createElement('a');
-      aElement.className = this.getRendererStyleClass('dg-link');
-      aElement.setAttribute('tabindex', '-1');
-      element.appendChild(aElement);
-      this.initEvent(aElement);
-    }
+
+    const aElement = document.createElement('a');
+    aElement.className = this.getRendererStyleClass('dg-link');
+    aElement.setAttribute('tabindex', '-1');
+    controlElement.appendChild(aElement);
+    this.initEvent(aElement);
 
     if (this.isClick) {
       aElement.href = 'javascript:void(0);';
@@ -44,9 +44,7 @@ export class LinkRenderer extends ToolBarRenderer {
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
-      stopPreventCancel(e);
-
-      this.click(e, this.field);
+      this.click(e, contentElement);
     });
   }
 

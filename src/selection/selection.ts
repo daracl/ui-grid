@@ -48,6 +48,12 @@ export class SelectionInfo {
     }
 
     const cfg = this.config;
+    const { dataInfo } = cfg;
+
+    if (dataInfo.rowLength < 1) {
+      return;
+    }
+
     const changeRangeInfo = changeSelection.range;
     if (initFlag) {
       this.serialNumber = 0;
@@ -58,8 +64,8 @@ export class SelectionInfo {
 
     const currentSelection = this.setSelectionInfo(initFlag, cfg.selection, changeSelection);
 
-    const lastRowIdx = cfg.dataInfo.lastRow;
-    const lastCol = cfg.dataInfo.colLength - 1;
+    const lastRowIdx = dataInfo.lastRow;
+    const lastCol = dataInfo.colLength - 1;
 
     let rangeInfo = this.clampRange(currentSelection.range, lastRowIdx, lastCol);
 

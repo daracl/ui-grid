@@ -134,9 +134,9 @@ export class HelpButtonEvent implements EventHandler {
         const idx = intValue(groupPosition[1]);
 
         let fieldGroups;
-        if (groupCellElement.closest('.dg-left')) {
+        if (groupCellElement.closest('.dg-region-left')) {
           fieldGroups = cfg.fieldHeaderGroup.left;
-        } else if (groupCellElement.closest('.dg-right')) {
+        } else if (groupCellElement.closest('.dg-region-right')) {
           fieldGroups = cfg.fieldHeaderGroup.right;
         } else {
           fieldGroups = cfg.fieldHeaderGroup.center;

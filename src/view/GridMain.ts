@@ -88,9 +88,9 @@ export class GridMain {
 
   private dataSearch: DataSearch;
 
-  private _mainElement: DaraElement;
+  private mainElement: DaraElement;
 
-  private containerElement: DaraElement;
+  private layoutElement: DaraElement;
 
   private rendererContainer: HTMLElement;
 
@@ -256,20 +256,19 @@ export class GridMain {
     // append
     this.gridElement.getElement().appendChild(gridElement);
 
-    this._mainElement = new DaraElement(this.gridElement.find('.dg-main'));
+    this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid > .dg-layout'));
 
-    this.containerElement = new DaraElement(this.gridElement.find('.daracl-grid > div'));
+    this.rendererContainer = this.gridElement.find('.dg-layers');
 
-    this.rendererContainer = this.gridElement.find('.dg-layer-container');
-
-    this._mainElement.addClass(
+    this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
+    this.mainElement.addClass(
       `dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'}`,
       opts.selectionMode === 'none' ? '' : 'daracl-noselect',
     );
 
     this.setTheme(this.opts.theme);
 
-    const style = window.getComputedStyle(this._mainElement.getElement());
+    const style = window.getComputedStyle(this.mainElement.getElement());
 
     cfg.fontFamily = style.fontFamily;
     cfg.fontSize = style.fontSize;
@@ -344,20 +343,23 @@ export class GridMain {
       this.initResizeEvent();
     }
 
-    const mainElement = this._mainElement.getElement();
+    const containerElement = this.layoutElement;
 
     // focus in, mousedown
-    cfg.eventManager.on({ el: mainElement, type: 'mousedown' }, (e: UIEvent) => {
-      this.setGridFocusIn(e);
-    });
+    cfg.eventManager.on(
+      { el: containerElement.getElement(), type: 'mousedown', selector: '.dg-layout' },
+      (e: UIEvent) => {
+        this.setGridFocusIn(e);
+      },
+    );
 
-    const rendererElement = this.mainElement().findDaraElement('.dg-layer-container').getElement();
+    const dgLayersElement = containerElement.findDaraElement('.dg-layers').getElement();
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
 
-    cfg.eventManager.off(rendererElement, 'wheel DOMMouseScroll');
+    cfg.eventManager.off(dgLayersElement, 'wheel DOMMouseScroll');
     cfg.eventManager.on(
-      { el: rendererElement, type: 'wheel DOMMouseScroll' },
+      { el: dgLayersElement, type: 'wheel DOMMouseScroll' },
       (evt: WheelEvent) => {
         const targetElement = evt.target as HTMLElement;
         const el = targetElement.closest(layerSelector) as HTMLElement;
@@ -389,14 +391,14 @@ export class GridMain {
   public setGridFocusIn(e?: Event, focunInFlag = false) {
     if (!focunInFlag && e) {
       const targetElement = e.target as HTMLElement;
-      if (targetElement.closest('.dg-body') == null && targetElement.closest('.dg-layer-container') == null) {
+      if (targetElement.closest('.dg-body') == null && targetElement.closest('.dg-layers') == null) {
         this.hideLayer();
       }
     }
 
     if (this.cfg.focus) return;
 
-    if (this._mainElement) this._mainElement.getElement().focus({ preventScroll: true });
+    if (this.layoutElement) this.layoutElement.getElement().focus({ preventScroll: true });
 
     this.cfg.focus = true;
   }
@@ -417,7 +419,7 @@ export class GridMain {
     }
 
     if ((e as MouseEvent).button !== 2) {
-      const mainElement = this._mainElement.getElement();
+      const containerElement = this.layoutElement.getElement();
 
       const relatedTarget = (e as any).relatedTarget as HTMLElement;
 
@@ -425,7 +427,7 @@ export class GridMain {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
         if (outerLayerElement?.getAttribute('data-grid-id') == this.$instanceId) {
-          mainElement.focus({ preventScroll: true });
+          containerElement.focus({ preventScroll: true });
           return;
         }
       }
@@ -564,8 +566,8 @@ export class GridMain {
    * @public
    * @returns {DaraElement} main element
    */
-  public mainElement() {
-    return this._mainElement;
+  public getMainElement() {
+    return this.mainElement;
   }
 
   public getDataSearch() {
@@ -716,9 +718,9 @@ export class GridMain {
   setElementDimentions() {
     const cfg = this.cfg;
     const dimensions = cfg.dimensions;
-    this._mainElement.setHeight(dimensions.mainHeight);
-    this._mainElement.findDaraElement('.dg-body').setHeight(dimensions.mainBodyHeight);
-    this.containerElement.css({
+    this.mainElement.setHeight(dimensions.mainHeight);
+    this.mainElement.findDaraElement('.dg-body').setHeight(dimensions.mainBodyHeight);
+    this.layoutElement.css({
       width: dimensions.width + 'px',
       height: dimensions.height + 'px',
     });
@@ -809,7 +811,7 @@ export class GridMain {
     const scrollWidth = this.opts.scroll.width;
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
-    const mainContainerStyle = this._mainElement.find('.dg-main-container').style;
+    const mainContainerStyle = this.mainElement.find('.dg-panels').style;
 
     mainContainerStyle.removeProperty('height');
     mainContainerStyle.removeProperty('width');
@@ -823,9 +825,9 @@ export class GridMain {
     }
 
     if (scrollMode == 0) {
-      this._mainElement.removeAttr('data-scroll');
+      this.mainElement.removeAttr('data-scroll');
     } else {
-      this._mainElement.setAttr({ 'data-scroll': SCROLL_MODE[scrollMode] });
+      this.mainElement.setAttr({ 'data-scroll': SCROLL_MODE[scrollMode] });
     }
   }
 
@@ -1078,37 +1080,37 @@ function getGridTemplate() {
 
   GRID_TEMPLATE.innerHTML = html`
     <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
-      <div style="position:absolute;user-select:none;touch-action:manipulation;">
-        <div class="dg-layer-container"></div>
+      <div class="dg-layout" style="position:absolute;user-select:none;touch-action:manipulation;">
+        <div class="dg-layers"></div>
         <div class="dg-toolbar" role="presentation"></div>
 
         <div tabindex="-1" class="dg-main" data-scroll="none" style="outline:none !important;">
-          <div class="dg-main-container">
+          <div class="dg-panels">
             <div class="dg-panel dg-header">
-              <div class="dg-left"></div>
-              <div class="dg-center"></div>
-              <div class="dg-right"></div>
+              <div class="dg-region-left"></div>
+              <div class="dg-region-center"></div>
+              <div class="dg-region-right"></div>
             </div>
 
             <div class="dg-panel dg-body">
-              <div class="dg-left"></div>
-              <div class="dg-center"></div>
-              <div class="dg-right"></div>
+              <div class="dg-region-left"></div>
+              <div class="dg-region-center"></div>
+              <div class="dg-region-right"></div>
 
-              <div class="dg-empty-msg-area">
-                <span class="dg-empty-msg">
+              <div class="dg-empty-overlay">
+                <span class="dg-empty-message">
                   <i class="dg-icon-info"></i>
                   <span class="empty-text"></span>
                 </span>
               </div>
 
-              <div class="dg-movedrop-helper"></div>
+              <div class="dg-drop-indicator"></div>
             </div>
 
             <div class="dg-panel dg-summary">
-              <div class="dg-left"></div>
-              <div class="dg-center"></div>
-              <div class="dg-right"></div>
+              <div class="dg-region-left"></div>
+              <div class="dg-region-center"></div>
+              <div class="dg-region-right"></div>
             </div>
           </div>
 
@@ -1149,7 +1151,7 @@ function getGridTemplate() {
               </div>
             </div>
 
-            <div class="dg-scroll-edge"></div>
+            <div class="dg-scroll-corner"></div>
           </div>
 
           <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">

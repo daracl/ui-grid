@@ -1,11 +1,7 @@
-import { ALIGN_STYLE } from '@/constants';
-import { ValidResult } from '@/types/ValidResult';
-import { getCellInfo } from '@/util/gridUtils';
-import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { ToolBarRenderer } from '../ToolBarRenderer';
 import { ToolbarFieldItem } from '@/types/Toolbar';
+import { ValidResult } from '@/types/ValidResult';
+import { GridMain } from '@/view/GridMain';
+import { ToolBarRenderer } from '../ToolBarRenderer';
 
 /**
  * checkbox renderer
@@ -22,7 +18,7 @@ export class CheckboxRenderer extends ToolBarRenderer {
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.editRenderer;
+    const rendererInfo = this.field.renderer;
 
     this.trueValue = rendererInfo.trueValue ?? true;
     this.falseValue = rendererInfo.falseValue ?? false;
@@ -30,32 +26,29 @@ export class CheckboxRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    let label = element.firstElementChild as HTMLLabelElement;
+    const controlElement = this.getControlElement(element);
 
-    // 최초 렌더링 시 구조 생성
-    if (!label) {
-      label = document.createElement('label');
+    const label = document.createElement('label');
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.name = this.field.$uid;
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.name = this.field.$uid;
 
-      const mark = document.createElement('span');
-      mark.className = 'dg-checkmark';
+    const mark = document.createElement('span');
+    mark.className = 'dg-checkmark';
 
-      label.appendChild(input);
-      label.appendChild(mark);
+    label.appendChild(input);
+    label.appendChild(mark);
 
-      if (this.showLabel) {
-        const textLabel = document.createElement('span');
-        textLabel.className = 'dg-toolbar-content-label dg-cell-ellipsis';
-        label.appendChild(textLabel);
-      }
-
-      element.appendChild(label);
-
-      this.initClick(input);
+    if (this.showLabel) {
+      const textLabel = document.createElement('span');
+      textLabel.className = 'dg-toolbar-content-label dg-cell-ellipsis';
+      label.appendChild(textLabel);
     }
+
+    controlElement.appendChild(label);
+
+    this.initClick(input);
 
     /* 
     초기 체크 처리 할 것

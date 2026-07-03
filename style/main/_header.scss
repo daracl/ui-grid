@@ -9,7 +9,7 @@
       position: absolute;
       background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
 
-      &.dg-left {
+      &.dg-region-left {
         left: 0px;
         z-index: 1;
 
@@ -18,11 +18,11 @@
         }
       }
 
-      &.dg-center {
+      &.dg-region-center {
         z-index: 0;
       }
 
-      &.dg-right {
+      &.dg-region-right {
         right: -1px;
         z-index: 1;
 

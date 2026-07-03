@@ -1,80 +1,62 @@
-import { ALIGN_STYLE } from '@/constants';
-import { ValidResult } from '@/types/ValidResult';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { ToolbarFieldItem } from '@/types/Toolbar';
 
 /**
  * Switch renderer
  *
  * @class SwitchRenderer
  * @typedef {SwitchRenderer}
- * @extends {EditRenderer}
+ * @extends {ToolBarRenderer}
  */
 export class SwitchRenderer extends ToolBarRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
-  private showLabel: boolean;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.editRenderer;
+    const rendererInfo = this.field.renderer;
     this.trueValue = rendererInfo.trueValue ?? true;
     this.falseValue = rendererInfo.falseValue ?? false;
-    this.showLabel = rendererInfo.showLabel ?? false;
   }
 
   public render(element: HTMLElement): void {
-    let label = element.firstElementChild as HTMLLabelElement;
+    const controlElement = this.getControlElement(element);
 
-    // 최초 렌더링 시 구조 생성
-    if (!label) {
-      label = document.createElement('label');
+    const val = this.field.defaultValue;
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.name = this.field.$uid;
+    const label = document.createElement('label');
 
-      const mark = document.createElement('span');
-      mark.className = 'dg-slider';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.name = this.field.$uid;
 
-      label.appendChild(input);
-      label.appendChild(mark);
+    const mark = document.createElement('span');
+    mark.className = 'dg-slider';
 
-      element.appendChild(label);
+    label.appendChild(input);
+    label.appendChild(mark);
 
-      this.initClick(input);
-    }
+    controlElement.appendChild(label);
 
-    const input = label.firstChild as HTMLInputElement;
+    this.initClick(input);
+
     input.checked = val === this.trueValue;
-
-    if (this.showLabel) {
-      const labelElement = element.querySelector('.dg-slider');
-      if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
-    }
   }
 
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      const cellElement = this.getClosestCellElement(contentElement);
-
-      const cellInfo = getCellInfo(cfg, cellElement);
-
       const checked = contentElement.checked;
 
-      const item = cellInfo.item;
+      this.click(e, contentElement);
 
-      this.setValue(e, item, checked ? this.trueValue : this.falseValue);
+      //this.setValue(e, item, checked ? this.trueValue : this.falseValue);
 
-      this.render(cellInfo, cellElement);
+      //this.changeValue();
     });
   }
 

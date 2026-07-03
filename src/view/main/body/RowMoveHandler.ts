@@ -55,7 +55,7 @@ export class RowMoveHandler extends CellClickHandler {
 
     this.isSelectionRowMode = isRowSelectionMode(this.selectionMode);
 
-    this.rowMoveDropHelperElement = context.gridMain.element().findDaraElement('.dg-movedrop-helper').getElement();
+    this.rowMoveDropHelperElement = context.gridMain.element().findDaraElement('.dg-drop-indicator').getElement();
     this.initTemplate();
   }
 

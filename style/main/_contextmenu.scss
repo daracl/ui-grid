@@ -1,4 +1,4 @@
-@use "../common/common";
+@use '../common/common';
 
 @mixin contextMenu {
   .dg-contextmenu {
@@ -23,7 +23,7 @@
     -moz-background-clip: padding;
     background-clip: padding-box;
 
-    &.dg-right {
+    &.dg-region-right {
       right: 0;
       left: auto;
     }
@@ -36,7 +36,7 @@
       display: block;
 
       &:after {
-        content: "";
+        content: '';
         position: absolute;
         top: calc(50% - 1px);
         left: 0;
@@ -103,8 +103,8 @@
       vertical-align: middle;
     }
 
-    input[type="checkbox"],
-    input[type="radio"] {
+    input[type='checkbox'],
+    input[type='radio'] {
       vertical-align: baseline;
       position: relative;
       width: 20px;
@@ -156,7 +156,7 @@
       border-left-color: var(--border-thick-color);
       border-style: solid;
       border-width: 5px 0 5px 5px;
-      content: " ";
+      content: ' ';
     }
   }
 

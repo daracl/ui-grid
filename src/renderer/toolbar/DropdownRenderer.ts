@@ -1,14 +1,13 @@
 import { ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
+import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
 import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { ToolbarFieldItem } from '@/types/Toolbar';
+import { listToValueLabelMap } from '@/util/rendererUtils';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
@@ -20,55 +19,139 @@ const SELECTED_STYLE_CLASS = 'selected';
  * @extends {ToolBarRenderer}
  */
 export class DropdownRenderer extends ToolBarRenderer {
-  private menuElement: HTMLElement;
+  private dropdownElement: HTMLElement;
   private readonly labelKey: string;
   private readonly valueKey: string;
   private readonly isMultiple: boolean;
   private readonly valueDelimiter: string;
+  private valueLabelMap: Map<string, any>;
 
   private selectValues = '';
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    const rendererInfo = this.field.editRenderer;
+    const rendererInfo = this.field.renderer;
     this.labelKey = valuesLabelKey(rendererInfo);
     this.valueKey = valuesValueKey(rendererInfo);
 
     if (rendererInfo?.listItem) {
       this.isMultiple = rendererInfo.listItem?.multiple ?? false;
       this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ',';
+
+      const list = rendererInfo.listItem?.list;
+      if (isArray(list)) {
+        this.valueLabelMap = listToValueLabelMap(list, this.labelKey, this.valueKey);
+      } else if (isFunction(list)) {
+        list({ init: true }, (result: any[]) => {
+          this.valueLabelMap = listToValueLabelMap(result, this.labelKey, this.valueKey);
+        });
+      }
     } else {
       this.valueDelimiter = ',';
       this.isMultiple = false;
+      this.valueLabelMap = new Map<string, any>();
     }
+  }
+
+  public render(element: HTMLElement): void {
+    const controlElement = this.getControlElement(element);
+
+    const contentElement = document.createElement('div');
+    contentElement.className = this.getRendererStyleClass('dg-cell-content');
+
+    const text = document.createElement('div');
+
+    text.className = 'dg-cell-content-label ';
+    const icon = document.createElement('div');
+    icon.className = 'dg-cell-content-icon';
+
+    contentElement.appendChild(text);
+    contentElement.appendChild(icon);
+
+    controlElement.appendChild(contentElement);
+
+    this.initEvent(contentElement);
+
+    const textElement = contentElement.querySelector('.dg-cell-content-label') as HTMLElement;
+
+    let viewLabel = '';
+    if (this.valueLabelMap.size > 0) {
+      const value = this.field.defaultValue ?? '';
+      let labels = this.getLabel(value);
+
+      if (labels.length < 1 && this.field.defaultValue) {
+        labels = this.getLabel(this.field.defaultValue);
+      }
+      viewLabel = labels.join(this.valueDelimiter);
+    }
+    textElement.textContent = viewLabel;
+  }
+
+  public getLabel(value: string | string[]) {
+    let valueSet;
+    if (isString(value)) {
+      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
+    } else {
+      valueSet = new Set(value);
+    }
+
+    const values = Array.from(valueSet);
+
+    const labels: string[] = [];
+
+    const valueLabelMap = this.valueLabelMap;
+
+    for (const val of values) {
+      if (valueLabelMap.has(val)) {
+        labels.push(valueLabelMap.get(val));
+      }
+    }
+    return labels;
+  }
+
+  initEvent(contentElement: HTMLElement) {
+    this.cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
+      this.click(e, contentElement);
+
+      this.editRender(contentElement);
+    });
   }
 
   public valid(value: any): ValidResult | boolean {
     return true;
   }
 
-  public render(cellElement: HTMLElement): void {
-    const cellPosition = '';
-    const eventElement = cellElement.querySelector('.dg-cell-content') as HTMLElement;
+  private editRender(eventElement: HTMLElement) {
+    const layerId = this.field.$uid;
 
-    const dropdwonElement = getLayerElement('div', 'dg-dropdown-menu toolbar ' + FIELD_LAYER_CLASS, cellPosition);
+    const cfg = this.gridMain.config();
 
-    cellElement.appendChild(dropdwonElement);
+    cfg.activeComponent = layerId;
 
-    let list = this.field.editRenderer.listItem?.list;
+    //const eventElement = element.querySelector('.dg-cell-content') as HTMLElement;
 
-    const value = this.field.defaultValue;
+    let dropdownElement = this.dropdownElement;
+    if (!dropdownElement) {
+      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, layerId);
+
+      this.rendererContainer.appendChild(dropdownElement);
+      this.dropdownElement = dropdownElement;
+    }
+
+    let list = this.field.renderer.listItem?.list;
+
+    const value = (this.field.defaultValue ?? '').split(this.valueDelimiter);
 
     if (isArray(list)) {
       list = this.uniqueListItem(list);
-      dropdwonElement.innerHTML = this.dropdownMenuTemplate(list, value);
-      this.openMenu(cellElement, dropdwonElement, eventElement, list);
+      dropdownElement.innerHTML = this.dropdownMenuTemplate(list, value);
+      this.openMenu(eventElement, dropdownElement, list);
     } else if (isFunction(list)) {
       list(this.field, (result: any[]) => {
         result = this.uniqueListItem(result);
-        dropdwonElement.innerHTML = this.dropdownMenuTemplate(result, value);
-        this.openMenu(cellElement, dropdwonElement, eventElement, result);
+        dropdownElement.innerHTML = this.dropdownMenuTemplate(result, value);
+        this.openMenu(eventElement, dropdownElement, result);
       });
     }
   }
@@ -93,8 +176,8 @@ export class DropdownRenderer extends ToolBarRenderer {
    * @param {HTMLElement} eventElement click element
    * @param {any[]} list list item
    */
-  private openMenu(cellElement: HTMLElement, dropdownElement: HTMLElement, eventElement: HTMLElement, list: any[]) {
-    const elementRect = getElementRect(eventElement);
+  private openMenu(cellElement: HTMLElement, dropdownElement: HTMLElement, list: any[]) {
+    const elementRect = getElementRect(cellElement);
 
     const menuStyle = dropdownElement.style;
 
@@ -102,7 +185,7 @@ export class DropdownRenderer extends ToolBarRenderer {
     this.gridMain.openLayer(dropdownElement);
     menuStyle.width = `${elementRect.width}px`;
 
-    const openPosition = innerLayerPosition(cellElement, eventElement, dropdownElement);
+    const openPosition = innerLayerPosition(this.rendererContainer, cellElement, dropdownElement);
 
     menuStyle.top = `${openPosition.top}px`;
     menuStyle.left = `${openPosition.left}px`;

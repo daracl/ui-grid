@@ -1,5 +1,6 @@
 import { ALIGN_STYLE } from '@/constants';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { listToValueLabelMap } from '@/util/rendererUtils';
 import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -30,36 +31,16 @@ export class DropdownRenderer extends ViewRenderer {
 
       const list = editInfo.listItem?.list;
       if (isArray(list)) {
-        this.initListItem(list, labelKey, valueKey);
+        this.valueLabelMap = listToValueLabelMap(list, labelKey, valueKey);
       } else if (isFunction(list)) {
         list({ init: true }, (result: any[]) => {
-          this.initListItem(result, labelKey, valueKey);
+          this.valueLabelMap = listToValueLabelMap(result, labelKey, valueKey);
         });
       }
     } else {
       this.valueDelimiter = ',';
       this.valueLabelMap = new Map<string, any>();
     }
-  }
-
-  private initListItem(list: any[], labelKey: string, valueKey: string) {
-    const valueLabelMap = new Map<string, any>();
-    const isStringValue = isString(list[0]);
-    for (const item of list) {
-      let val: string;
-      let label: string;
-
-      if (isStringValue) {
-        val = item;
-        label = item;
-      } else {
-        val = item?.[valueKey] ?? '';
-        label = item?.[labelKey] ?? '';
-      }
-      valueLabelMap.set(val, label);
-    }
-
-    this.valueLabelMap = valueLabelMap;
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {

@@ -63,7 +63,6 @@ export interface EditRendererInfo {
   validator?: OptionCallback; // custom validator
   change?: OptionCallback; //  입력값 변경시 체크 function
   click?: OptionCallback; // button onclick function
-  editRender?: EditRenderer;
   conditional?: ConditionInfo; // 보이기 여부
   // checkbox, Switch true or false 값
   trueValue?: string | boolean;

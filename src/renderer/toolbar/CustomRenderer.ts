@@ -19,9 +19,9 @@ export class CustomRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    element.innerHTML = '<input type="text">';
+    const controlElement = this.getControlElement(element);
 
-    this.getValue();
+    controlElement.innerHTML = '<input type="text">';
   }
 
   valid(element: HTMLElement): any {

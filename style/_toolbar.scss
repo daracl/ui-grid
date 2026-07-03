@@ -18,7 +18,7 @@
     user-select: text;
 
     /* 레이아웃 라인 */
-    .dg-layout {
+    .dg-toolbar-layout {
       display: grid;
       align-items: center;
       width: 100%;
@@ -58,6 +58,7 @@
         min-width: 0;
         width: 100%;
         overflow: hidden;
+        grid-template-columns: minmax(0, 1fr);
 
         /* 레이블 처리 */
         .dg-label {
@@ -77,12 +78,9 @@
           }
         }
 
-        &.has-label {
+        &.dg-group {
           grid-template-columns: auto minmax(0, 1fr);
           column-gap: 5px;
-        }
-        &.no-label {
-          grid-template-columns: minmax(0, 1fr);
         }
       }
     }

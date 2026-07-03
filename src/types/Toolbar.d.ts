@@ -35,12 +35,12 @@ export interface ToolbarFieldItem {
   /**
    * 값 width
    */
-  width?: string;
+  width: string | number;
 
   /**
    * render type
    */
-  editRenderer: EditRendererInfo;
+  renderer: EditRendererInfo;
   /**
    * 값 변경시 callback
    */
@@ -52,4 +52,6 @@ export interface ToolbarFieldItem {
    * field unique id
    */
   $uid: string;
+
+  $renderer: ToolbarRenderer;
 }

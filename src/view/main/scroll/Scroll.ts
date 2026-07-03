@@ -26,9 +26,9 @@ export class Scroll {
 
     this.opts = this.gridMain.options();
 
-    this.horizontalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-horizontal');
+    this.horizontalElement = this.gridMain.getMainElement().findDaraElement('.dg-scroll.dg-horizontal');
 
-    this.verticalElement = this.gridMain.mainElement().findDaraElement('.dg-scroll.dg-vertical');
+    this.verticalElement = this.gridMain.getMainElement().findDaraElement('.dg-scroll.dg-vertical');
   }
 
   /**
@@ -39,7 +39,7 @@ export class Scroll {
     this.horizontalScroll = new HorizontalScroll(this.gridMain, this, this.horizontalElement);
 
     const scrollSize = this.opts.scroll.width;
-    const edge = this.gridMain.mainElement().findDaraElement('.dg-scroll-edge');
+    const edge = this.gridMain.getMainElement().findDaraElement('.dg-scroll-corner');
 
     edge.css({ width: `${scrollSize}px`, height: `${scrollSize}px` });
 
@@ -65,7 +65,7 @@ export class Scroll {
 
     const enableWheelInContainer = opts.scroll.enableWheelInContainer;
 
-    const mainElement = this.gridMain.mainElement().getElement();
+    const mainElement = this.gridMain.getMainElement().getElement();
     let animationId: number;
     let beforeStartIdx = -1;
 

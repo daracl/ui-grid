@@ -16,6 +16,10 @@ export abstract class ToolBarRenderer {
   protected gridMain;
   protected language;
 
+  protected readonly rendererContainer: HTMLElement;
+
+  private validatorElement: HTMLElement;
+
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     this.field = field;
     this.fieldName = field.name;
@@ -25,6 +29,8 @@ export abstract class ToolBarRenderer {
 
     this.isClick = isFunction(this.field.click);
     this.initEventClass();
+
+    this.rendererContainer = this.gridMain.getRendererContainer();
   }
 
   initEventClass() {
@@ -64,6 +70,16 @@ export abstract class ToolBarRenderer {
     if (this.isClick) {
       this.field.click?.call(null, { evt: e, field: this.field, element: eventElement });
     }
+  }
+
+  public changeValue(eventElement: HTMLElement) {
+    if (this.field.change) {
+      this.field.change.call(null, { field: this.field, value: this.getValue(), element: eventElement });
+    }
+  }
+
+  public getControlElement(fieldElement: HTMLElement): HTMLElement {
+    return fieldElement.querySelector('.dg-control') as HTMLElement;
   }
 
   public abstract getValue(): any;

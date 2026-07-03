@@ -438,7 +438,7 @@ body {
   @include _MAIN.main;
   @include _FOOTER.footer;
 
-  .dg-layer-container {
+  .dg-layers {
     visibility: visible;
     width: 0;
     height: 0px;

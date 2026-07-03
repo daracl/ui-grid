@@ -15,10 +15,11 @@ export class ButtonRenderer extends ToolBarRenderer {
   }
 
   public render(element: HTMLElement): void {
-    const btnElement = document.createElement('button') as HTMLButtonElement;
+    const controlElement = this.getControlElement(element);
 
+    const btnElement = document.createElement('button');
     btnElement.className = this.getRendererStyleClass('dg-button');
-    element.appendChild(btnElement);
+    controlElement.appendChild(btnElement);
 
     this.initEvent(btnElement);
 

@@ -36,7 +36,7 @@
         display: block !important;
       }
 
-      .dg-right {
+      .dg-region-right {
         right: 0px !important;
       }
     }
@@ -46,11 +46,11 @@
         display: block !important;
       }
 
-      .dg-scroll-edge {
+      .dg-scroll-corner {
         display: block !important;
       }
 
-      .dg-right {
+      .dg-region-right {
         right: 0px !important;
       }
     }
@@ -123,7 +123,7 @@
     }
 
     /* main container */
-    .dg-main-container {
+    .dg-panels {
       position: relative;
       overflow: hidden;
       width: 100%;
@@ -222,7 +222,7 @@
     }
   }
 
-  .dg-movedrop-helper {
+  .dg-drop-indicator {
     width: 100%;
     position: absolute;
     display: none;

@@ -76,7 +76,7 @@ export class ContextMenu {
   private initEvent() {
     const cfg = this.gridMain.config();
     const contextOpts = this.contextOpts;
-    const gridElement = this.gridMain.mainElement().getElement();
+    const gridElement = this.gridMain.getMainElement().getElement();
 
     const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
     const isBeforeActivateFn = isFunction(contextOpts.beforeActivate);

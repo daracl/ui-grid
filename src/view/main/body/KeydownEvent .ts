@@ -51,7 +51,7 @@ export class KeydownEvent implements EventHandler {
     const searchEnabled = opts.search.enabled;
 
     const pasteElement = this.pasteElement.getElement();
-    const mainElement = this.gridMain.mainElement().getElement();
+    const mainElement = this.gridMain.getMainElement().getElement();
 
     cfg.eventManager.off(mainElement, 'keydown');
 

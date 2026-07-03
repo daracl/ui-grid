@@ -69,7 +69,7 @@ export class BodyEvent {
     const opts = this.gridMain.options();
     const scrollInfo = this.gridMain.getScroll();
 
-    const bodyElement = this.gridMain.mainElement().getElement().querySelector('.dg-body') as HTMLElement;
+    const bodyElement = this.gridMain.getMainElement().getElement().querySelector('.dg-body') as HTMLElement;
     let animationId: number;
     let lastX: number;
     let lastY: number;
