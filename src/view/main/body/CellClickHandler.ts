@@ -1,6 +1,5 @@
 import {
   LINE_NUMBER_NAME,
-  ROW_CHECK_NAME,
   ScrollDirectionX,
   ScrollDirectionXMap,
   ScrollDirectionY,
@@ -331,7 +330,7 @@ export class CellClickHandler extends BasePointerHandler {
     const cfg = context.gridMain.config();
     const gridMain = context.gridMain;
 
-    gridMain.setGridFocusIn(e, true);
+    //gridMain.setGridFocusIn(e, true);
 
     if (!(cellInfo.field.renderer.type == 'dropdown' && cellInfo.c == +cfg.activeComponent)) {
       gridMain.hideLayer();

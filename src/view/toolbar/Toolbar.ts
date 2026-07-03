@@ -109,7 +109,7 @@ export class Toolbar {
       return document.createElement('div');
     }
 
-    row.className = 'dg-layout';
+    row.className = 'dg-toolbar-row';
     row.style.height = `${items[0].height}px`;
 
     const positions = ['left', 'center', 'right'];
@@ -163,7 +163,7 @@ export class Toolbar {
 
   private createContainer(item: ToolbarLayout, layoutColIndex: number): any {
     const area = document.createElement('div');
-    area.className = `dg-container dg-grid-area-${item.position}`;
+    area.className = `dg-toolbar-section dg-grid-area-${item.position}`;
     area.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
     this.setWidth(area, item.width ?? '');
 
@@ -234,7 +234,7 @@ export class Toolbar {
     const rendererType = field.renderer.type;
     const hasLabel = rendererType !== 'button' && field.label;
 
-    el.className = `dg-field field-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
+    el.className = `dg-toolbar-field field-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
 
     if (hasLabel) {

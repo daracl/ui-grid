@@ -21,10 +21,10 @@
 
 body {
   &[data-dg-theme='light'] .daracl-grid,
-  &[data-dg-theme='light'] .dg-hidden-container,
+  &[data-dg-theme='light'] .dg-hidden-layers,
   .daracl-grid > .dg-light,
-  .dg-hidden-container,
-  .dg-hidden-container.dg-light {
+  .dg-hidden-layers,
+  .dg-hidden-layers.dg-light {
     --border-color: #cdcdcd;
     --border-thick-color: #b9bdc1;
     --scroll-bg: #f7f7f7;
@@ -89,9 +89,9 @@ body {
   }
 
   &[data-dg-theme='dark'] .daracl-grid,
-  &[data-dg-theme='dark'] .dg-hidden-container,
+  &[data-dg-theme='dark'] .dg-hidden-layers,
   .daracl-grid > .dg-dark,
-  .dg-hidden-container.dg-dark {
+  .dg-hidden-layers.dg-dark {
     --border-color: #3a3a3a;
     --border-thick-color: #4d4d4d;
 
@@ -165,7 +165,7 @@ body {
 }
 
 .daracl-grid,
-.dg-hidden-container {
+.dg-hidden-layers {
   background: transparent;
   margin: 0px auto;
   width: 100%;
@@ -457,7 +457,7 @@ body {
   }
 }
 
-.dg-hidden-container {
+.dg-hidden-layers {
   position: initial;
   height: 0px;
   @include _CONTEXT.contextMenu;

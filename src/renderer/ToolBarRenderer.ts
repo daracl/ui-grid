@@ -30,7 +30,7 @@ export abstract class ToolBarRenderer {
     this.isClick = isFunction(this.field.click);
     this.initEventClass();
 
-    this.rendererContainer = this.gridMain.getRendererContainer();
+    this.rendererContainer = this.gridMain.getRendererLayerElement();
   }
 
   initEventClass() {

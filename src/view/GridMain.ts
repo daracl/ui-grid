@@ -38,6 +38,7 @@ import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
+import { getLayerElement } from '../util/domUtils';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -92,7 +93,7 @@ export class GridMain {
 
   private layoutElement: DaraElement;
 
-  private rendererContainer: HTMLElement;
+  private rendererLayerElement: HTMLElement;
 
   private readonly cellMinWidth: number;
 
@@ -184,20 +185,21 @@ export class GridMain {
     INIT_GRID_GLOBAL_EVNET = true;
 
     document.addEventListener('pointerdown', (e: Event) => {
+      const path = e.composedPath();
       ALL_INSTANCE.forEach((grid, id) => {
         const gridElement = grid.gridElement.getElement();
-
-        const path = e.composedPath();
-
-        for (const el of document.querySelectorAll(`${HIDDEN_ELEMENT_SELECTOR} [data-grid-id="dg1"]`)) {
-          if (path.includes(el)) {
-            return;
-          }
-        }
 
         if (!path.includes(gridElement)) {
           grid.setGridFocusOut();
         }
+
+        /*
+        for (const el of document.querySelectorAll(`${HIDDEN_ELEMENT_SELECTOR} [data-grid-id]`)) {
+          if (path.includes(el)) {
+            return;
+          }
+        }
+          */
       });
     });
   }
@@ -258,7 +260,7 @@ export class GridMain {
 
     this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid > .dg-layout'));
 
-    this.rendererContainer = this.gridElement.find('.dg-layers');
+    this.rendererLayerElement = this.gridElement.find('.dg-layers');
 
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
     this.mainElement.addClass(
@@ -321,8 +323,8 @@ export class GridMain {
     this.refreshBody(true, 'init');
   }
 
-  public getRendererContainer() {
-    return this.rendererContainer;
+  public getRendererLayerElement() {
+    return this.rendererLayerElement;
   }
 
   public uid() {
@@ -345,13 +347,16 @@ export class GridMain {
 
     const containerElement = this.layoutElement;
 
+    const rendererLayerElement = this.rendererLayerElement;
+
     // focus in, mousedown
-    cfg.eventManager.on(
-      { el: containerElement.getElement(), type: 'mousedown', selector: '.dg-layout' },
-      (e: UIEvent) => {
-        this.setGridFocusIn(e);
-      },
-    );
+    cfg.eventManager.on({ el: containerElement.getElement(), type: 'mousedown' }, (e: UIEvent) => {
+      const path = e.composedPath();
+      if (path.includes(rendererLayerElement)) {
+        return;
+      }
+      this.setGridFocusIn(e);
+    });
 
     const dgLayersElement = containerElement.findDaraElement('.dg-layers').getElement();
 
@@ -388,17 +393,21 @@ export class GridMain {
    * @public
    * @param {Event} e event
    */
-  public setGridFocusIn(e?: Event, focunInFlag = false) {
-    if (!focunInFlag && e) {
+  public setGridFocusIn(e?: Event) {
+    if (e) {
       const targetElement = e.target as HTMLElement;
-      if (targetElement.closest('.dg-body') == null && targetElement.closest('.dg-layers') == null) {
+
+      if (
+        targetElement.closest('.dg-empty-overlay') != null ||
+        (targetElement.closest('.dg-body') == null && targetElement.closest('.dg-layers') == null)
+      ) {
         this.hideLayer();
       }
     }
 
-    if (this.cfg.focus) return;
-
-    if (this.layoutElement) this.layoutElement.getElement().focus({ preventScroll: true });
+    if (document.activeElement != this.mainElement.getElement()) {
+      this.mainElement.getElement().focus({ preventScroll: true });
+    }
 
     this.cfg.focus = true;
   }
@@ -419,15 +428,15 @@ export class GridMain {
     }
 
     if ((e as MouseEvent).button !== 2) {
-      const containerElement = this.layoutElement.getElement();
+      const layoutElement = this.layoutElement.getElement();
 
       const relatedTarget = (e as any).relatedTarget as HTMLElement;
 
-      if (relatedTarget?.closest('.dg-hidden-container') !== null) {
+      if (relatedTarget?.closest('.dg-hidden-layers') !== null) {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
         if (outerLayerElement?.getAttribute('data-grid-id') == this.$instanceId) {
-          containerElement.focus({ preventScroll: true });
+          layoutElement.focus({ preventScroll: true });
           return;
         }
       }
@@ -476,7 +485,7 @@ export class GridMain {
         }
       }
       this.cfg.isOpenLayer = this.openLayers.length > 0;
-      this.setGridFocusIn();
+
       return;
     }
 
@@ -491,7 +500,6 @@ export class GridMain {
     }
 
     this.cfg.activeComponent = '';
-    this.setGridFocusIn();
   }
 
   /**
@@ -811,17 +819,17 @@ export class GridMain {
     const scrollWidth = this.opts.scroll.width;
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
-    const mainContainerStyle = this.mainElement.find('.dg-panels').style;
+    const mainPanelStyle = this.mainElement.find('.dg-panels').style;
 
-    mainContainerStyle.removeProperty('height');
-    mainContainerStyle.removeProperty('width');
+    mainPanelStyle.removeProperty('height');
+    mainPanelStyle.removeProperty('width');
 
     if (cfg.scroll.enableHorizontal) {
-      mainContainerStyle.height = `calc(100% - ${scrollWidth})`;
+      mainPanelStyle.height = `calc(100% - ${scrollWidth})`;
     }
 
     if (cfg.scroll.enableVertical) {
-      mainContainerStyle.width = `calc(100% - ${scrollWidth})`;
+      mainPanelStyle.width = `calc(100% - ${scrollWidth})`;
     }
 
     if (scrollMode == 0) {
@@ -1084,7 +1092,7 @@ function getGridTemplate() {
         <div class="dg-layers"></div>
         <div class="dg-toolbar" role="presentation"></div>
 
-        <div tabindex="-1" class="dg-main" data-scroll="none" style="outline:none !important;">
+        <div class="dg-main" data-scroll="none" style="outline:none !important;" tabindex="-1">
           <div class="dg-panels">
             <div class="dg-panel dg-header">
               <div class="dg-region-left"></div>

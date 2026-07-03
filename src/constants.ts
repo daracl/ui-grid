@@ -225,7 +225,7 @@ export const FIELD_LAYER_CLASS = 'dg-field-layer';
  */
 export const CHUNK_SIZE = 1000;
 
-export const HIDDEN_ELEMENT_SELECTOR = '.dg-hidden-container';
+export const HIDDEN_ELEMENT_SELECTOR = '.dg-hidden-layers';
 
 export const PointerStateMap = {
   IDLE: 'IDLE',

@@ -16,7 +16,7 @@ export abstract class EditRenderer extends Renderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    this.rendererContainer = this.gridMain.getRendererContainer();
+    this.rendererContainer = this.gridMain.getRendererLayerElement();
   }
 
   /**
@@ -37,6 +37,10 @@ export abstract class EditRenderer extends Renderer {
    */
   public getValue(value: any, formatFlag?: boolean) {
     return value[this.field.name];
+  }
+
+  public completeEdit() {
+    this.gridMain.setGridFocusIn();
   }
 
   /**

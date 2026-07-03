@@ -599,8 +599,6 @@ export class Body {
       : field.styleClass;
 
     cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
-
-    console.log('new Class ', newClass, cellEle.className);
   }
 
   selectRowAnchorCell() {

@@ -64,18 +64,8 @@ export class TextAreaRenderer extends TextAbstractRenderer {
     }, 100);
   }
 
-  setChangeValue(e: Event, cancelFlag = false) {
-    this.isShow = false;
-    if (!cancelFlag) {
-      const value = this.textareaElement.value;
-      if (this.setValue(e, this.item, value) === false) {
-        this.isShow = true;
-        return false;
-      }
-    }
-
-    this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
-    this.gridMain.hideLayer();
+  public getElementValue(): string {
+    return this.textareaElement.value;
   }
 
   valid(value: string): any {

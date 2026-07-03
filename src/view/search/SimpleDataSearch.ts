@@ -51,7 +51,7 @@ export class SimpleDataSearch extends DataSearch {
    * @private
    */
   private simpleTemplate() {
-    const rendererContainer = this.gridMain.getRendererContainer();
+    const rendererContainer = this.gridMain.getRendererLayerElement();
 
     const fields = this.cfg.currentFields;
 

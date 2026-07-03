@@ -44,10 +44,15 @@ export abstract class TextAbstractRenderer extends EditRenderer {
     });
   }
 
+  public getElementValue(): string {
+    return this.editElement.value;
+  }
+
   setChangeValue(e: Event, cancelFlag = false) {
     this.isShow = false;
+
     if (!cancelFlag) {
-      const value = this.editElement.value;
+      const value = this.getElementValue();
       if (this.setValue(e, this.item, value) === false) {
         this.isShow = true;
         return false;
@@ -56,6 +61,8 @@ export abstract class TextAbstractRenderer extends EditRenderer {
 
     this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
     this.gridMain.hideLayer();
+
+    this.completeEdit();
   }
 
   valid(value: string): any {

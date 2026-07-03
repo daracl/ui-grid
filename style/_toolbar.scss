@@ -18,7 +18,7 @@
     user-select: text;
 
     /* 레이아웃 라인 */
-    .dg-toolbar-layout {
+    .dg-toolbar-row {
       display: grid;
       align-items: center;
       width: 100%;
@@ -35,8 +35,8 @@
       border-radius: 3px;
     }
 
-    /* container */
-    .dg-container {
+    /* section */
+    .dg-toolbar-section {
       display: grid;
       min-width: 0;
 
@@ -52,7 +52,7 @@
         justify-self: end;
       }
 
-      .dg-field {
+      .dg-toolbar-field {
         display: grid;
         align-items: center;
         min-width: 0;

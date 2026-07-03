@@ -24,10 +24,10 @@
   user-select: none;
 }
 
-body[data-dg-theme=light] .daracl-grid, body[data-dg-theme=light] .dg-hidden-container,
+body[data-dg-theme=light] .daracl-grid, body[data-dg-theme=light] .dg-hidden-layers,
 body .daracl-grid > .dg-light,
-body .dg-hidden-container,
-body .dg-hidden-container.dg-light {
+body .dg-hidden-layers,
+body .dg-hidden-layers.dg-light {
   --border-color: #cdcdcd;
   --border-thick-color: #b9bdc1;
   --scroll-bg: #f7f7f7;
@@ -80,9 +80,9 @@ body .dg-hidden-container.dg-light {
   --item-selected: #e9faff;
   --item-check-color: #1a73e8;
 }
-body[data-dg-theme=dark] .daracl-grid, body[data-dg-theme=dark] .dg-hidden-container,
+body[data-dg-theme=dark] .daracl-grid, body[data-dg-theme=dark] .dg-hidden-layers,
 body .daracl-grid > .dg-dark,
-body .dg-hidden-container.dg-dark {
+body .dg-hidden-layers.dg-dark {
   --border-color: #3a3a3a;
   --border-thick-color: #4d4d4d;
   --scroll-bg: #1e1e1e;
@@ -137,7 +137,7 @@ body .dg-hidden-container.dg-dark {
 }
 
 .daracl-grid,
-.dg-hidden-container {
+.dg-hidden-layers {
   background: transparent;
   margin: 0px auto;
   width: 100%;
@@ -150,7 +150,7 @@ body .dg-hidden-container.dg-dark {
   /* --// dg-checkbox */
 }
 .daracl-grid *,
-.dg-hidden-container * {
+.dg-hidden-layers * {
   line-height: 1;
   border-spacing: 0;
   border-collapse: separate;
@@ -159,72 +159,72 @@ body .dg-hidden-container.dg-dark {
   box-sizing: border-box !important;
 }
 .daracl-grid *:before, .daracl-grid *:after,
-.dg-hidden-container *:before,
-.dg-hidden-container *:after {
+.dg-hidden-layers *:before,
+.dg-hidden-layers *:after {
   box-sizing: border-box !important;
 }
 .daracl-grid .dg-main,
-.dg-hidden-container .dg-main {
+.dg-hidden-layers .dg-main {
   background-color: var(--body-bg);
 }
 .daracl-grid input,
 .daracl-grid select,
 .daracl-grid button,
-.dg-hidden-container input,
-.dg-hidden-container select,
-.dg-hidden-container button {
+.dg-hidden-layers input,
+.dg-hidden-layers select,
+.dg-hidden-layers button {
   border: 1px solid var(--border-color);
 }
 .daracl-grid button,
-.dg-hidden-container button {
+.dg-hidden-layers button {
   background: var(--button-bg);
   cursor: pointer;
 }
 .daracl-grid button:hover,
-.dg-hidden-container button:hover {
+.dg-hidden-layers button:hover {
   background: var(--button-bg-hover);
 }
 .daracl-grid input,
-.dg-hidden-container input {
+.dg-hidden-layers input {
   line-height: normal;
   margin: 0;
   padding: 0px 3px 0px 3px;
   display: inline-block;
 }
 .daracl-grid input[type=checkbox],
-.dg-hidden-container input[type=checkbox] {
+.dg-hidden-layers input[type=checkbox] {
   margin: auto;
 }
 .daracl-grid .text-al,
-.dg-hidden-container .text-al {
+.dg-hidden-layers .text-al {
   text-align: left;
   justify-content: start;
 }
 .daracl-grid .text-ac,
-.dg-hidden-container .text-ac {
+.dg-hidden-layers .text-ac {
   text-align: center;
   justify-content: center;
 }
 .daracl-grid .text-ar,
-.dg-hidden-container .text-ar {
+.dg-hidden-layers .text-ar {
   text-align: right;
   justify-content: flex-end;
 }
 .daracl-grid .dg-display-none,
-.dg-hidden-container .dg-display-none {
+.dg-hidden-layers .dg-display-none {
   display: none !important;
 }
 .daracl-grid .dg-invisible,
-.dg-hidden-container .dg-invisible {
+.dg-hidden-layers .dg-invisible {
   visibility: hidden !important;
 }
 .daracl-grid .dg-disabled,
-.dg-hidden-container .dg-disabled {
+.dg-hidden-layers .dg-disabled {
   pointer-events: none !important;
   opacity: 0.5 !important;
 }
 .daracl-grid .dg-radio,
-.dg-hidden-container .dg-radio {
+.dg-hidden-layers .dg-radio {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -236,16 +236,16 @@ body .dg-hidden-container.dg-dark {
   margin-bottom: 10px;
 }
 .daracl-grid .dg-radio input[type=radio],
-.dg-hidden-container .dg-radio input[type=radio] {
+.dg-hidden-layers .dg-radio input[type=radio] {
   display: none;
 }
 .daracl-grid .dg-radio input[type=radio]:checked + .radiomark,
-.dg-hidden-container .dg-radio input[type=radio]:checked + .radiomark {
+.dg-hidden-layers .dg-radio input[type=radio]:checked + .radiomark {
   border-color: var(--radio-color);
   background-color: var(--radio-color);
 }
 .daracl-grid .dg-radio input[type=radio]:checked + .radiomark::after,
-.dg-hidden-container .dg-radio input[type=radio]:checked + .radiomark::after {
+.dg-hidden-layers .dg-radio input[type=radio]:checked + .radiomark::after {
   content: "";
   position: absolute;
   top: 4px;
@@ -256,7 +256,7 @@ body .dg-hidden-container.dg-dark {
   border-radius: 50%;
 }
 .daracl-grid .dg-radio .radiomark,
-.dg-hidden-container .dg-radio .radiomark {
+.dg-hidden-layers .dg-radio .radiomark {
   width: 16px;
   height: 16px;
   border: 1.5px solid #999;
@@ -267,8 +267,8 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-switch,
 .daracl-grid .dg-switch > label,
-.dg-hidden-container .dg-switch,
-.dg-hidden-container .dg-switch > label {
+.dg-hidden-layers .dg-switch,
+.dg-hidden-layers .dg-switch > label {
   position: relative;
   display: inline-block;
   min-width: 38px;
@@ -278,14 +278,14 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-switch input[type=checkbox],
 .daracl-grid .dg-switch > label input[type=checkbox],
-.dg-hidden-container .dg-switch input[type=checkbox],
-.dg-hidden-container .dg-switch > label input[type=checkbox] {
+.dg-hidden-layers .dg-switch input[type=checkbox],
+.dg-hidden-layers .dg-switch > label input[type=checkbox] {
   display: none;
 }
 .daracl-grid .dg-switch .dg-slider,
 .daracl-grid .dg-switch > label .dg-slider,
-.dg-hidden-container .dg-switch .dg-slider,
-.dg-hidden-container .dg-switch > label .dg-slider {
+.dg-hidden-layers .dg-switch .dg-slider,
+.dg-hidden-layers .dg-switch > label .dg-slider {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -302,8 +302,8 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-switch .dg-slider::before,
 .daracl-grid .dg-switch > label .dg-slider::before,
-.dg-hidden-container .dg-switch .dg-slider::before,
-.dg-hidden-container .dg-switch > label .dg-slider::before {
+.dg-hidden-layers .dg-switch .dg-slider::before,
+.dg-hidden-layers .dg-switch > label .dg-slider::before {
   content: "";
   position: absolute;
   height: 13px;
@@ -316,41 +316,41 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-switch input:checked + .dg-slider,
 .daracl-grid .dg-switch > label input:checked + .dg-slider,
-.dg-hidden-container .dg-switch input:checked + .dg-slider,
-.dg-hidden-container .dg-switch > label input:checked + .dg-slider {
+.dg-hidden-layers .dg-switch input:checked + .dg-slider,
+.dg-hidden-layers .dg-switch > label input:checked + .dg-slider {
   background-color: var(--checkbox-bg);
   justify-content: flex-start;
 }
 .daracl-grid .dg-switch input:checked + .dg-slider::before,
 .daracl-grid .dg-switch > label input:checked + .dg-slider::before,
-.dg-hidden-container .dg-switch input:checked + .dg-slider::before,
-.dg-hidden-container .dg-switch > label input:checked + .dg-slider::before {
+.dg-hidden-layers .dg-switch input:checked + .dg-slider::before,
+.dg-hidden-layers .dg-switch > label input:checked + .dg-slider::before {
   right: 3px;
   left: initial;
 }
 .daracl-grid .dg-switch input:not(:checked) + .dg-slider,
 .daracl-grid .dg-switch > label input:not(:checked) + .dg-slider,
-.dg-hidden-container .dg-switch input:not(:checked) + .dg-slider,
-.dg-hidden-container .dg-switch > label input:not(:checked) + .dg-slider {
+.dg-hidden-layers .dg-switch input:not(:checked) + .dg-slider,
+.dg-hidden-layers .dg-switch > label input:not(:checked) + .dg-slider {
   justify-content: flex-end;
 }
 .daracl-grid .dg-switch input:disabled + .dg-slider,
 .daracl-grid .dg-switch > label input:disabled + .dg-slider,
-.dg-hidden-container .dg-switch input:disabled + .dg-slider,
-.dg-hidden-container .dg-switch > label input:disabled + .dg-slider {
+.dg-hidden-layers .dg-switch input:disabled + .dg-slider,
+.dg-hidden-layers .dg-switch > label input:disabled + .dg-slider {
   background-color: var(--disabled-bg);
   cursor: not-allowed;
 }
 .daracl-grid .dg-switch input:disabled + .dg-slider::before,
 .daracl-grid .dg-switch > label input:disabled + .dg-slider::before,
-.dg-hidden-container .dg-switch input:disabled + .dg-slider::before,
-.dg-hidden-container .dg-switch > label input:disabled + .dg-slider::before {
+.dg-hidden-layers .dg-switch input:disabled + .dg-slider::before,
+.dg-hidden-layers .dg-switch > label input:disabled + .dg-slider::before {
   background-color: #bdbdbd;
 }
 .daracl-grid .dg-checkbox,
 .daracl-grid .dg-checkbox > label,
-.dg-hidden-container .dg-checkbox,
-.dg-hidden-container .dg-checkbox > label {
+.dg-hidden-layers .dg-checkbox,
+.dg-hidden-layers .dg-checkbox > label {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -363,26 +363,26 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-checkbox.dg-all input[type=checkbox]:checked + .dg-checkmark::after,
 .daracl-grid .dg-checkbox > label.dg-all input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox.dg-all input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox > label.dg-all input[type=checkbox]:checked + .dg-checkmark::after {
+.dg-hidden-layers .dg-checkbox.dg-all input[type=checkbox]:checked + .dg-checkmark::after,
+.dg-hidden-layers .dg-checkbox > label.dg-all input[type=checkbox]:checked + .dg-checkmark::after {
   border-width: 0 2px 2px 0;
 }
 .daracl-grid .dg-checkbox input[type=checkbox],
 .daracl-grid .dg-checkbox > label input[type=checkbox],
-.dg-hidden-container .dg-checkbox input[type=checkbox],
-.dg-hidden-container .dg-checkbox > label input[type=checkbox] {
+.dg-hidden-layers .dg-checkbox input[type=checkbox],
+.dg-hidden-layers .dg-checkbox > label input[type=checkbox] {
   display: none;
 }
 .daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
 .daracl-grid .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark,
-.dg-hidden-container .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
-.dg-hidden-container .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark {
+.dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
+.dg-hidden-layers .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark {
   background-color: var(--checkbox-bg);
 }
 .daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
 .daracl-grid .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark::after {
+.dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
+.dg-hidden-layers .dg-checkbox > label input[type=checkbox]:checked + .dg-checkmark::after {
   content: "";
   position: absolute;
   left: 4px;
@@ -395,8 +395,8 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-checkbox .dg-checkmark,
 .daracl-grid .dg-checkbox > label .dg-checkmark,
-.dg-hidden-container .dg-checkbox .dg-checkmark,
-.dg-hidden-container .dg-checkbox > label .dg-checkmark {
+.dg-hidden-layers .dg-checkbox .dg-checkmark,
+.dg-hidden-layers .dg-checkbox > label .dg-checkmark {
   width: 16px;
   height: 16px;
   border: 1.5px solid #999;
@@ -407,8 +407,8 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid .dg-checkbox.dg-indeterminate .dg-checkmark::after,
 .daracl-grid .dg-checkbox > label.dg-indeterminate .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox.dg-indeterminate .dg-checkmark::after,
-.dg-hidden-container .dg-checkbox > label.dg-indeterminate .dg-checkmark::after {
+.dg-hidden-layers .dg-checkbox.dg-indeterminate .dg-checkmark::after,
+.dg-hidden-layers .dg-checkbox > label.dg-indeterminate .dg-checkmark::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -421,8 +421,8 @@ body .dg-hidden-container.dg-dark {
 }
 .daracl-grid input,
 .daracl-grid textarea,
-.dg-hidden-container input,
-.dg-hidden-container textarea {
+.dg-hidden-layers input,
+.dg-hidden-layers textarea {
   -webkit-touch-callout: text !important;
   -webkit-user-select: text !important;
   -moz-user-select: text !important;
@@ -442,9 +442,9 @@ body .dg-hidden-container.dg-dark {
   -moz-user-select: text;
   user-select: text;
   /* 레이아웃 라인 */
-  /* container */
+  /* section */
 }
-.daracl-grid .dg-toolbar .dg-toolbar-layout {
+.daracl-grid .dg-toolbar .dg-toolbar-row {
   display: grid;
   align-items: center;
   width: 100%;
@@ -458,20 +458,20 @@ body .dg-hidden-container.dg-dark {
   padding: 5px 10px;
   border-radius: 3px;
 }
-.daracl-grid .dg-toolbar .dg-container {
+.daracl-grid .dg-toolbar .dg-toolbar-section {
   display: grid;
   min-width: 0;
 }
-.daracl-grid .dg-toolbar .dg-container.dg-grid-area-left {
+.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-left {
   justify-self: start;
 }
-.daracl-grid .dg-toolbar .dg-container.dg-grid-area-center {
+.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-center {
   justify-self: center;
 }
-.daracl-grid .dg-toolbar .dg-container.dg-grid-area-right {
+.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-right {
   justify-self: end;
 }
-.daracl-grid .dg-toolbar .dg-container .dg-field {
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field {
   display: grid;
   align-items: center;
   min-width: 0;
@@ -481,20 +481,20 @@ body .dg-hidden-container.dg-dark {
   /* 레이블 처리 */
   /* 컨트롤 내부 요소 방어구조 */
 }
-.daracl-grid .dg-toolbar .dg-container .dg-field .dg-label {
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.daracl-grid .dg-toolbar .dg-container .dg-field .dg-control {
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control {
   min-width: 0;
   width: 100%;
 }
-.daracl-grid .dg-toolbar .dg-container .dg-field .dg-control > * {
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control > * {
   width: 100%;
   min-width: 0;
 }
-.daracl-grid .dg-toolbar .dg-container .dg-field.dg-group {
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field.dg-group {
   grid-template-columns: auto minmax(0, 1fr);
   -moz-column-gap: 5px;
        column-gap: 5px;
@@ -1172,7 +1172,7 @@ body .dg-hidden-container.dg-dark {
 .daracl-grid .dg-resize-helper.active {
   display: block;
 }
-.daracl-grid .dg-movedrop-helper {
+.daracl-grid .dg-drop-indicator {
   width: 100%;
   position: absolute;
   display: none;
@@ -1181,10 +1181,10 @@ body .dg-hidden-container.dg-dark {
   z-index: 100;
   background-color: #b6b6b6 !important;
 }
-.daracl-grid .dg-movedrop-helper.active {
+.daracl-grid .dg-drop-indicator.active {
   display: block;
 }
-.daracl-grid .dg-movedrop-helper.dg-drop-forbidden {
+.daracl-grid .dg-drop-indicator.dg-drop-forbidden {
   background-color: #d95959 !important;
 }
 .daracl-grid .dg-scroll-container .dg-scroll-thumb {
@@ -1563,12 +1563,12 @@ body .dg-hidden-container.dg-dark {
   opacity: 1;
 }
 
-.dg-hidden-container {
+.dg-hidden-layers {
   position: initial;
   height: 0px;
   /*search-simple*/
 }
-.dg-hidden-container .dg-contextmenu {
+.dg-hidden-layers .dg-contextmenu {
   position: absolute;
   top: 100%;
   left: 0;
@@ -1590,18 +1590,18 @@ body .dg-hidden-container.dg-dark {
   -moz-background-clip: padding;
   background-clip: padding-box;
 }
-.dg-hidden-container .dg-contextmenu.dg-region-right {
+.dg-hidden-layers .dg-contextmenu.dg-region-right {
   right: 0;
   left: auto;
 }
-.dg-hidden-container .dg-contextmenu .dg-divider {
+.dg-hidden-layers .dg-contextmenu .dg-divider {
   width: 100%;
   height: 10px;
   overflow: hidden;
   position: relative;
   display: block;
 }
-.dg-hidden-container .dg-contextmenu .dg-divider:after {
+.dg-hidden-layers .dg-contextmenu .dg-divider:after {
   content: "";
   position: absolute;
   top: calc(50% - 1px);
@@ -1611,7 +1611,7 @@ body .dg-hidden-container.dg-dark {
   margin: 0px;
   border-top: 1px solid var(--border-thick-color);
 }
-.dg-hidden-container .dg-contextmenu > .dg-contextmenu-check > a {
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-check > a {
   clear: both;
   font-weight: normal;
   line-height: 20px;
@@ -1621,7 +1621,7 @@ body .dg-hidden-container.dg-dark {
   outline: none;
   margin: 0px 5px;
 }
-.dg-hidden-container .dg-contextmenu > .dg-contextmenu-item > a {
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-item > a {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1637,57 +1637,57 @@ body .dg-hidden-container.dg-dark {
   margin: 0px 5px;
   border-radius: 4px;
 }
-.dg-hidden-container .dg-contextmenu > .dg-contextmenu-item > a:hover {
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-item > a:hover {
   color: var(--font-hover-color);
   background-color: var(--body-bg-hover);
 }
-.dg-hidden-container .dg-contextmenu > .dg-contextmenu-item.dg-on > a {
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-item.dg-on > a {
   color: var(--font-hover-color);
   background-color: var(--body-bg-hover);
 }
-.dg-hidden-container .dg-contextmenu > .dg-contextmenu-item.disabled > a {
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-item.disabled > a {
   opacity: 0.5;
 }
-.dg-hidden-container .dg-contextmenu label {
+.dg-hidden-layers .dg-contextmenu label {
   display: inline-block;
   font-weight: bold;
   padding: 5px 10px;
   line-height: 100%;
   vertical-align: middle;
 }
-.dg-hidden-container .dg-contextmenu input[type=checkbox],
-.dg-hidden-container .dg-contextmenu input[type=radio] {
+.dg-hidden-layers .dg-contextmenu input[type=checkbox],
+.dg-hidden-layers .dg-contextmenu input[type=radio] {
   vertical-align: baseline;
   position: relative;
   width: 20px;
 }
-.dg-hidden-container .dg-contextmenu .dg-contextmenu-header {
+.dg-hidden-layers .dg-contextmenu .dg-contextmenu-header {
   cursor: default;
   color: var(--font-color);
   padding: 3px 7px;
   font-weight: bold;
   display: block;
 }
-.dg-hidden-container .dg-submenu-item {
+.dg-hidden-layers .dg-submenu-item {
   position: relative;
 }
-.dg-hidden-container .dg-submenu-item .dg-contextmenu {
+.dg-hidden-layers .dg-submenu-item .dg-contextmenu {
   display: none;
 }
-.dg-hidden-container .dg-submenu-item.disabled > a:after {
+.dg-hidden-layers .dg-submenu-item.disabled > a:after {
   border-left-color: transparent !important;
 }
-.dg-hidden-container .dg-submenu-item.disabled .dg-contextmenu {
+.dg-hidden-layers .dg-submenu-item.disabled .dg-contextmenu {
   display: none !important;
 }
-.dg-hidden-container .dg-submenu-item.dg-on > .dg-contextmenu {
+.dg-hidden-layers .dg-submenu-item.dg-on > .dg-contextmenu {
   top: 0;
   left: 100%;
   margin-top: -6px;
   margin-left: -1px;
   display: block;
 }
-.dg-hidden-container .dg-submenu-item > a:after {
+.dg-hidden-layers .dg-submenu-item > a:after {
   display: block;
   float: right;
   width: 0;
@@ -1700,11 +1700,11 @@ body .dg-hidden-container.dg-dark {
   border-width: 5px 0 5px 5px;
   content: " ";
 }
-.dg-hidden-container .dg-contextmenu-label {
+.dg-hidden-layers .dg-contextmenu-label {
   max-width: 50%;
   display: table-cell;
 }
-.dg-hidden-container .dg-contextmenu-hotkey {
+.dg-hidden-layers .dg-contextmenu-hotkey {
   width: 50%;
   max-width: 50%;
   padding-left: 8px;
@@ -1712,14 +1712,14 @@ body .dg-hidden-container.dg-dark {
   text-align: right;
   display: table-cell;
 }
-.dg-hidden-container .dg-contextmenu-hotkey-empty {
+.dg-hidden-layers .dg-contextmenu-hotkey-empty {
   width: 78px;
   min-width: 78px;
   margin-left: 8px;
   text-align: right;
   display: table-cell;
 }
-.dg-hidden-container .dg-row-move-helper {
+.dg-hidden-layers .dg-row-move-helper {
   position: absolute;
   top: 0;
   left: 0;
@@ -1736,35 +1736,35 @@ body .dg-hidden-container.dg-dark {
   border-radius: 5px;
   border: 1px solid var(--border-thick-color);
 }
-.dg-hidden-container .dg-row-move-helper > .dg-row-move-content {
+.dg-hidden-layers .dg-row-move-helper > .dg-row-move-content {
   line-height: 1;
 }
-.dg-hidden-container .dg-row-move-helper > .dg-row-move-status {
+.dg-hidden-layers .dg-row-move-helper > .dg-row-move-status {
   width: 15px;
   height: 26px;
   flex-shrink: 0; /* 아이콘 찌그러짐 방지 */
   margin-right: 10px;
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   font-weight: bold;
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon::before {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon::before {
   content: "";
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon.dg-success {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon.dg-success {
   color: #28a745;
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon.dg-success::before {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon.dg-success::before {
   content: "✔";
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon.dg-fail {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon.dg-fail {
   color: #dc3545;
 }
-.dg-hidden-container .dg-row-move-helper > .dg-icon.dg-fail::before {
+.dg-hidden-layers .dg-row-move-helper > .dg-icon.dg-fail::before {
   content: "✖";
 }
 /*# sourceMappingURL=daracl.grid.css.map */

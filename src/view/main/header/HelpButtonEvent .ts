@@ -66,7 +66,7 @@ export class HelpButtonEvent implements EventHandler {
 
     // help mouseenter
     const delay = helpOpts.showDelay;
-    const renderContainer = this.gridMain.getRendererContainer();
+    const renderContainer = this.gridMain.getRendererLayerElement();
     let delayTimer: any;
     eventManager.off(helpElements, 'mouseenter');
     eventManager.on({ el: helpElements, type: 'mouseenter' }, (e: UIEvent) => {
