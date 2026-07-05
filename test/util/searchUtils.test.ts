@@ -340,11 +340,11 @@ const employeeList = [
     position: '백엔드 개발자',
   },
   {
-    name: '노윤호',
+    name: '김아린',
     age: 41,
     desc: '협업과 조율 능력이 탁월한 리더입니다.',
-    email: 'yunho.noh@example.com',
-    birth: '1983-04-17',
+    email: 'arin@example.com',
+    birth: '1983-12-28',
     position: '기술 리더',
   },
   {
