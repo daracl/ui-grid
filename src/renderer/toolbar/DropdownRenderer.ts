@@ -3,11 +3,11 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { normalizeChoiceOptions } from '@/util/rendererUtils';
 import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
 import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { normalizeChoiceOptions } from '@/util/rendererUtils';
 
 const SELECTED_STYLE_CLASS = 'selected';
 

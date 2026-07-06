@@ -1,13 +1,12 @@
 import { Config } from '@t/GridConfig';
 
+import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
 import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
-import { isArray, isString, merge } from '@/util/utils';
+import { isArray, merge } from '@/util/utils';
+import { TOOLBAR_RENDERER } from '../../constants';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
-import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
-import { EDIT_RENDERER } from '@/constants';
-import { TOOLBAR_RENDERER } from '../../constants';
 
 /**
  * Toolbar class
@@ -25,6 +24,8 @@ export class Toolbar {
   private toolbarElement: HTMLElement;
 
   private toolbarLayouts: ToolbarLayout[][];
+
+  private toolbarFields: ToolbarFieldItem[] = [];
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -93,6 +94,8 @@ export class Toolbar {
 
     toolbarField.$renderer = new Renderer(toolbarField, this.gridMain);
 
+    this.toolbarFields.push(toolbarField);
+
     return toolbarField;
   }
 
@@ -101,6 +104,19 @@ export class Toolbar {
 
     this.toolbarLayouts.forEach((row) => appFragment.appendChild(this.createLayout(row)));
     this.toolbarElement.appendChild(appFragment);
+  }
+
+  public getValues() {
+    const result = [];
+    for (const field of this.toolbarFields) {
+      const item: any = {};
+      if (field.name) {
+        item[field.name] = field.$renderer.getValue();
+        result.push(item);
+      }
+    }
+
+    return result;
   }
 
   private createLayout(items: ToolbarLayout[]) {

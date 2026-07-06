@@ -1,5 +1,4 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
-import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -13,6 +12,7 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
 export class SwitchRenderer extends ToolBarRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
+  private editElement: HTMLInputElement;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -35,7 +35,6 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     const input = document.createElement('input');
     input.type = 'checkbox';
-    input.name = this.field.$uid;
     label.appendChild(input);
 
     const mark = document.createElement('span');
@@ -45,26 +44,28 @@ export class SwitchRenderer extends ToolBarRenderer {
     contentElement.appendChild(label);
     controlElement.appendChild(contentElement);
 
-    this.initClick(input);
-
     input.checked = val === this.trueValue;
+    this.editElement = input;
+
+    this.initClick(input);
   }
 
   initClick(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
 
+    let beforeValue = this.getValue();
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      const checked = contentElement.checked;
-
       this.click(e, contentElement);
 
-      //this.setValue(e, item, checked ? this.trueValue : this.falseValue);
-
-      //this.changeValue();
+      const val = this.getValue();
+      if (beforeValue !== val) {
+        beforeValue = val;
+        this.changeValue(e, contentElement, this.getValue());
+      }
     });
   }
 
   public getValue() {
-    return '';
+    return this.editElement.checked ? this.trueValue : this.falseValue;
   }
 }

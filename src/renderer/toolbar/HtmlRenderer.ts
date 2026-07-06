@@ -1,15 +1,14 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
+import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { ViewRenderer } from '../ViewRenderer';
-import { isFunction } from '@/util/utils';
 
 /**
  * html renderer
  *
  * @class HtmlRenderer
  * @typedef {HtmlRenderer}
- * @extends {ViewRenderer}
+ * @extends {ToolBarRenderer}
  */
 export class HtmlRenderer extends ToolBarRenderer {
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {

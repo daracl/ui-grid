@@ -1,5 +1,4 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
-import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 

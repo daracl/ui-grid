@@ -1,6 +1,7 @@
 import { POSITION_TYPE } from '@/constants';
 import { OptionCallback } from './Common';
 import { EditRendererInfo } from './RendererInfo';
+import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
 
 /**
  * ToolBar item info
@@ -58,5 +59,5 @@ export interface ToolbarFieldItem {
    */
   $uid: string;
 
-  $renderer: ToolbarRenderer;
+  $renderer: ToolBarRenderer;
 }

@@ -1054,6 +1054,10 @@ export class GridMain {
     if (this.footer) this.footer.setPagingTemplate(paging);
   }
 
+  public getToolbarValues() {
+    return this.toolbar.getValues();
+  }
+
   public destroy() {
     const gridElement = this.gridElement;
     const uid = this.$instanceId;

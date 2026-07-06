@@ -95,6 +95,10 @@ export class DaraGrid {
     this.gridMain.setGridFocusOut();
   }
 
+  public getToolbarValues() {
+    return this.gridMain.getToolbarValues();
+  }
+
   /**
    * item index 값으로 item 얻기
    *
