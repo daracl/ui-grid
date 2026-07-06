@@ -184,8 +184,10 @@
     border: 2px solid var(--cell-selection-border);
     outline: none;
   }
+
   /*dropdown menu*/
   .dg-dropdown-menu {
+    user-select: none;
     margin-top: 1px;
     border: 1px solid var(--border-color);
     background-color: var(--body-bg);
@@ -195,13 +197,19 @@
     min-width: 65px;
     max-height: 230px;
 
+    &.dg-toolbar {
+      > .dg-dropdown-item {
+        padding: 7px 0px 7px 3px;
+      }
+    }
+
     &.open {
       display: block;
     }
 
     .dg-dropdown-item {
       cursor: pointer;
-      padding: 2px 16px;
+      padding: 5px 16px;
       text-align: center;
       opacity: 0.8;
 

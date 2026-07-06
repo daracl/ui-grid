@@ -12,6 +12,7 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
  * @extends {ToolBarRenderer}
  */
 export class TextRenderer extends ToolBarRenderer {
+  private editElement: HTMLInputElement;
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -19,24 +20,20 @@ export class TextRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const btnElement = document.createElement('button');
-    btnElement.className = this.getRendererStyleClass('dg-button');
-    controlElement.appendChild(btnElement);
-    this.initEvent(btnElement);
+    const editElement = this.textRender(controlElement, 'text');
 
-    btnElement.textContent = this.field.label ?? '';
+    this.editElement = editElement;
+    this.initEvent(editElement);
   }
 
-  initEvent(contentElement: HTMLElement) {
+  initEvent(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
-      stopPreventCancel(e);
-
-      this.click(e, contentElement);
+    cfg.eventManager.on({ el: contentElement, type: 'input' }, (e: UIEvent) => {
+      this.changeValue(e, contentElement, contentElement.value);
     });
   }
 
   public getValue() {
-    return '';
+    return this.editElement.value;
   }
 }

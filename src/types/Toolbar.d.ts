@@ -38,6 +38,11 @@ export interface ToolbarFieldItem {
   width: string | number;
 
   /**
+   * add class
+   */
+  styleClass?: OptionCallback | string;
+
+  /**
    * render type
    */
   renderer: EditRendererInfo;

@@ -44,7 +44,7 @@ body {
     --invalid-border-color: #ffb6b4;
     --invalid-bg: #fdd;
     --button-bg: #ffffff;
-    --button-bg-hover: #c9d2de;
+    --button-bg-hover: #e3e3e3;
     --button-bg-active: #dfe7f3;
     --tab-bg: #f6f6f6;
     --tab-bg-hover: #ebebeb;
@@ -93,7 +93,7 @@ body {
   .daracl-grid > .dg-dark,
   .dg-hidden-layers.dg-dark {
     --border-color: #3a3a3a;
-    --border-thick-color: #4d4d4d;
+    --border-thick-color: #807e7e;
 
     --scroll-bg: #1e1e1e;
     --scroll-track-bg: #1e1e1e;
@@ -171,11 +171,15 @@ body {
   width: 100%;
   height: 100%;
   position: relative;
+  line-height: 1.2em;
 
   @include comm.boxSizing(comm.$box_sizing_border);
 
+  .dg-layout {
+    background-color: var(--body-bg);
+  }
+
   * {
-    line-height: 1;
     border-spacing: 0;
     border-collapse: separate;
     color: var(--font-color);
@@ -188,14 +192,22 @@ body {
     }
   }
 
-  .dg-main {
-    background-color: var(--body-bg);
-  }
-
   input,
+  button,
   select,
-  button {
+  textarea {
     border: 1px solid var(--border-color);
+    height: 25px;
+    line-height: 1.2em;
+    font: inherit;
+    border-radius: 2px;
+    padding: 0px 12px;
+    background-color: var(--input-bg);
+    outline: none;
+    &:hover,
+    &:focus {
+      border: 1px solid var(--border-thick-color);
+    }
   }
 
   button {
@@ -207,7 +219,6 @@ body {
   }
 
   input {
-    line-height: normal;
     margin: 0;
     padding: 0px 3px 0px 3px;
     display: inline-block;
@@ -215,6 +226,10 @@ body {
     &[type='checkbox'] {
       margin: auto;
     }
+  }
+
+  textarea {
+    padding: 0px 3px 0px 3px;
   }
 
   .text-a {
@@ -243,6 +258,49 @@ body {
   .dg-disabled {
     pointer-events: none !important;
     opacity: 0.5 !important;
+  }
+
+  .dg-dropdown-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    width: 100%;
+
+    background: var(--button-bg);
+    border: 1px solid var(--border-color);
+
+    cursor: pointer;
+
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: var(--border-thick-color);
+      background: var(--button-bg-hover);
+    }
+
+    > .dg-dropdown-label {
+      flex: 1;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:empty::before {
+        content: '\00a0'; /* non-breaking space */
+      }
+    }
+
+    > .dg-dropdown-icon {
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
+      transform: rotate(45deg);
+      margin-top: -3px;
+      flex-shrink: 0;
+    }
   }
 
   .dg-radio {
@@ -286,14 +344,18 @@ body {
   }
 
   /*dg-switch*/
-  .dg-switch,
-  .dg-switch > label {
-    position: relative;
-    display: inline-block;
-    min-width: 38px;
-    width: 38px;
-    height: 19px;
-    margin-top: 2px !important;
+  .dg-switch {
+    user-select: none;
+    > label {
+      position: relative;
+      display: block; //inline-block;
+      min-width: 38px;
+      width: 38px;
+      height: 19px;
+
+      justify-content: center;
+      align-items: center;
+    }
 
     input[type='checkbox'] {
       display: none;

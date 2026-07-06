@@ -7,7 +7,7 @@ import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
 import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { listToValueLabelMap } from '@/util/rendererUtils';
+import { normalizeChoiceOptions } from '@/util/rendererUtils';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
@@ -19,12 +19,15 @@ const SELECTED_STYLE_CLASS = 'selected';
  * @extends {ToolBarRenderer}
  */
 export class DropdownRenderer extends ToolBarRenderer {
-  private dropdownElement: HTMLElement;
+  private listElement: HTMLElement;
+  private selectLabelElement: HTMLElement;
   private readonly labelKey: string;
   private readonly valueKey: string;
   private readonly isMultiple: boolean;
   private readonly valueDelimiter: string;
   private valueLabelMap: Map<string, any>;
+
+  private listItems: any[] = [];
 
   private selectValues = '';
 
@@ -41,10 +44,15 @@ export class DropdownRenderer extends ToolBarRenderer {
 
       const list = rendererInfo.listItem?.list;
       if (isArray(list)) {
-        this.valueLabelMap = listToValueLabelMap(list, this.labelKey, this.valueKey);
+        const reval = normalizeChoiceOptions(list, this.labelKey, this.valueKey);
+
+        this.listItems = reval.list;
+        this.valueLabelMap = reval.map;
       } else if (isFunction(list)) {
         list({ init: true }, (result: any[]) => {
-          this.valueLabelMap = listToValueLabelMap(result, this.labelKey, this.valueKey);
+          const reval = normalizeChoiceOptions(result, this.labelKey, this.valueKey);
+          this.listItems = reval.list;
+          this.valueLabelMap = reval.map;
         });
       }
     } else {
@@ -57,35 +65,32 @@ export class DropdownRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const contentElement = document.createElement('div');
-    contentElement.className = this.getRendererStyleClass('dg-cell-content');
+    const buttonElement = document.createElement('button');
+    buttonElement.className = this.getRendererStyleClass('dg-dropdown-button');
 
     const text = document.createElement('div');
+    text.className = 'dg-dropdown-label';
 
-    text.className = 'dg-cell-content-label ';
     const icon = document.createElement('div');
-    icon.className = 'dg-cell-content-icon';
+    icon.className = 'dg-dropdown-icon';
 
-    contentElement.appendChild(text);
-    contentElement.appendChild(icon);
+    buttonElement.appendChild(text);
+    buttonElement.appendChild(icon);
 
-    controlElement.appendChild(contentElement);
+    controlElement.appendChild(buttonElement);
 
-    this.initEvent(contentElement);
-
-    const textElement = contentElement.querySelector('.dg-cell-content-label') as HTMLElement;
+    this.initEvent(buttonElement);
 
     let viewLabel = '';
     if (this.valueLabelMap.size > 0) {
       const value = this.field.defaultValue ?? '';
-      let labels = this.getLabel(value);
+      const labels = this.getLabel(value);
 
-      if (labels.length < 1 && this.field.defaultValue) {
-        labels = this.getLabel(this.field.defaultValue);
-      }
+      this.selectValues = value;
       viewLabel = labels.join(this.valueDelimiter);
     }
-    textElement.textContent = viewLabel;
+    text.textContent = viewLabel;
+    this.selectLabelElement = text;
   }
 
   public getLabel(value: string | string[]) {
@@ -110,11 +115,11 @@ export class DropdownRenderer extends ToolBarRenderer {
     return labels;
   }
 
-  initEvent(contentElement: HTMLElement) {
-    this.cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
-      this.click(e, contentElement);
+  initEvent(buttonElement: HTMLElement) {
+    this.cfg.eventManager.on({ el: buttonElement, type: 'click' }, (e: UIEvent) => {
+      this.click(e, buttonElement);
 
-      this.editRender(contentElement);
+      this.editRender(buttonElement);
     });
   }
 
@@ -122,38 +127,28 @@ export class DropdownRenderer extends ToolBarRenderer {
     return true;
   }
 
-  private editRender(eventElement: HTMLElement) {
+  private editRender(buttonElement: HTMLElement) {
     const layerId = this.field.$uid;
 
     const cfg = this.gridMain.config();
 
     cfg.activeComponent = layerId;
 
-    //const eventElement = element.querySelector('.dg-cell-content') as HTMLElement;
+    let listElement = this.listElement;
+    if (!listElement) {
+      listElement = getLayerElement('div', 'dg-dropdown-menu dg-toolbar ' + FIELD_LAYER_CLASS, layerId);
 
-    let dropdownElement = this.dropdownElement;
-    if (!dropdownElement) {
-      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, layerId);
-
-      this.rendererContainer.appendChild(dropdownElement);
-      this.dropdownElement = dropdownElement;
+      this.rendererContainer.appendChild(listElement);
+      this.listElement = listElement;
     }
 
-    let list = this.field.renderer.listItem?.list;
+    let list = this.listItems;
 
-    const value = (this.field.defaultValue ?? '').split(this.valueDelimiter);
+    const value = (this.selectValues ?? '').split(this.valueDelimiter);
 
-    if (isArray(list)) {
-      list = this.uniqueListItem(list);
-      dropdownElement.innerHTML = this.dropdownMenuTemplate(list, value);
-      this.openMenu(eventElement, dropdownElement, list);
-    } else if (isFunction(list)) {
-      list(this.field, (result: any[]) => {
-        result = this.uniqueListItem(result);
-        dropdownElement.innerHTML = this.dropdownMenuTemplate(result, value);
-        this.openMenu(eventElement, dropdownElement, result);
-      });
-    }
+    list = this.uniqueListItem(list);
+    listElement.innerHTML = this.dropdownMenuTemplate(list, value);
+    this.openMenu(buttonElement, listElement, list);
   }
 
   private uniqueListItem(list: any[]) {
@@ -171,27 +166,27 @@ export class DropdownRenderer extends ToolBarRenderer {
    * dropdown list open
    *
    * @private
-   * @param {HTMLElement} cellElement cell element
-   * @param {HTMLElement} dropdownElement dropdown element
+   * @param {HTMLElement} buttonElement cell element
+   * @param {HTMLElement} listElement dropdown element
    * @param {HTMLElement} eventElement click element
    * @param {any[]} list list item
    */
-  private openMenu(cellElement: HTMLElement, dropdownElement: HTMLElement, list: any[]) {
-    const elementRect = getElementRect(cellElement);
+  private openMenu(buttonElement: HTMLElement, listElement: HTMLElement, list: any[]) {
+    const elementRect = getElementRect(buttonElement);
 
-    const menuStyle = dropdownElement.style;
+    const menuStyle = listElement.style;
 
     menuStyle.height = 'auto';
-    this.gridMain.openLayer(dropdownElement);
+    this.gridMain.openLayer(listElement);
     menuStyle.width = `${elementRect.width}px`;
 
-    const openPosition = innerLayerPosition(this.rendererContainer, cellElement, dropdownElement);
+    const openPosition = innerLayerPosition(this.rendererContainer, buttonElement, listElement);
 
     menuStyle.top = `${openPosition.top}px`;
     menuStyle.left = `${openPosition.left}px`;
     menuStyle.height = `${openPosition.height}px`;
 
-    const items = dropdownElement.querySelectorAll('.dg-dropdown-item');
+    const items = listElement.querySelectorAll('.dg-dropdown-item');
 
     const isMultiple = this.isMultiple;
 
@@ -219,7 +214,7 @@ export class DropdownRenderer extends ToolBarRenderer {
         const valueKey = this.valueKey;
 
         if (addValue == ALL_SELECT_VALUE) {
-          const allItemElement = dropdownElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
+          const allItemElement = listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
           if (allItemLength == currentValue.length) {
             this.selectValues = '';
 
@@ -245,10 +240,10 @@ export class DropdownRenderer extends ToolBarRenderer {
           this.selectValues = newValue.join(this.valueDelimiter);
 
           if (allItemLength == newValue.length) {
-            addClass(dropdownElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
+            addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
           } else {
             removeClass(
-              dropdownElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'),
+              listElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'),
               SELECTED_STYLE_CLASS,
             );
           }
@@ -256,6 +251,10 @@ export class DropdownRenderer extends ToolBarRenderer {
       } else {
         this.selectValues = addValue || '';
       }
+
+      this.changeValue(e, target, this.selectValues);
+
+      this.selectLabelElement.textContent = this.getLabel(this.selectValues).join(this.valueDelimiter);
 
       if (!isMultiple) {
         cfg.eventManager.off(items, 'click');
@@ -312,6 +311,6 @@ export class DropdownRenderer extends ToolBarRenderer {
   }
 
   public getValue() {
-    return '';
+    return this.selectValues;
   }
 }

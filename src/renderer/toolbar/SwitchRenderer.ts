@@ -27,19 +27,23 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     const val = this.field.defaultValue;
 
+    const contentElement = document.createElement('div');
+
+    contentElement.className = this.getRendererStyleClass('dg-switch');
+
     const label = document.createElement('label');
 
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.name = this.field.$uid;
+    label.appendChild(input);
 
     const mark = document.createElement('span');
     mark.className = 'dg-slider';
-
-    label.appendChild(input);
     label.appendChild(mark);
 
-    controlElement.appendChild(label);
+    contentElement.appendChild(label);
+    controlElement.appendChild(contentElement);
 
     this.initClick(input);
 

@@ -10,34 +10,28 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
  * @extends {ToolBarRenderer}
  */
 export class NumberRenderer extends ToolBarRenderer {
+  private editElement: HTMLInputElement;
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
 
   public render(element: HTMLElement): void {
-    let btnElement = element.firstElementChild as HTMLElement | null;
+    const controlElement = this.getControlElement(element);
 
-    // 최초 렌더링 시만 생성
-    if (!btnElement) {
-      btnElement = document.createElement('button');
-      btnElement.className = this.getRendererStyleClass('dg-button');
-      element.appendChild(btnElement);
-      this.initEvent(btnElement);
-    }
+    const editElement = this.textRender(controlElement, 'number');
 
-    btnElement.textContent = this.field.label ?? '';
+    this.editElement = editElement;
+    this.initEvent(editElement);
   }
 
-  initEvent(contentElement: HTMLElement) {
+  initEvent(editElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
-      stopPreventCancel(e);
-
-      this.click(e, contentElement);
+    cfg.eventManager.on({ el: editElement, type: 'input' }, (e: UIEvent) => {
+      this.changeValue(e, editElement, editElement.value);
     });
   }
 
   public getValue() {
-    return '';
+    return this.editElement.value;
   }
 }

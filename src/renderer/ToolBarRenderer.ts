@@ -8,7 +8,6 @@ import { Config } from '@t/GridConfig';
  */
 export abstract class ToolBarRenderer {
   protected isClick = false;
-  protected eventStyleClass = '';
   protected readonly cfg: Config;
 
   protected field;
@@ -28,15 +27,8 @@ export abstract class ToolBarRenderer {
     this.cfg = this.gridMain.config();
 
     this.isClick = isFunction(this.field.click);
-    this.initEventClass();
 
     this.rendererContainer = this.gridMain.getRendererLayerElement();
-  }
-
-  initEventClass() {
-    const eventStyleClass = this.isClick ? 'dg-tool-click' : '';
-
-    this.eventStyleClass = eventStyleClass;
   }
 
   /**
@@ -47,9 +39,15 @@ export abstract class ToolBarRenderer {
    * @returns {string}
    */
   public getRendererStyleClass(defaultStyleClass: string) {
-    if (!this.eventStyleClass) return defaultStyleClass;
+    const styleClass = this.field.styleClass;
 
-    return defaultStyleClass ? defaultStyleClass + ' ' + this.eventStyleClass : this.eventStyleClass;
+    if (!styleClass) {
+      return defaultStyleClass;
+    }
+
+    const addClass = isFunction(styleClass) ? styleClass() : styleClass;
+
+    return addClass ? defaultStyleClass + ' ' + addClass : defaultStyleClass;
   }
 
   /**
@@ -60,6 +58,23 @@ export abstract class ToolBarRenderer {
    * @param {HTMLElement} element cell element
    */
   public abstract render(element: HTMLElement): void;
+
+  protected textRender(element: HTMLElement, type: string): HTMLInputElement {
+    const editElement = document.createElement('input');
+
+    editElement.type = type;
+    editElement.name = this.field.$uid;
+    editElement.setAttribute('autocomplete', 'off');
+    editElement.placeholder = this.field.placeholder ?? '';
+
+    editElement.className = this.getRendererStyleClass('dg-edit-' + type);
+
+    editElement.value = this.field.defaultValue ?? '';
+
+    element.appendChild(editElement);
+
+    return editElement;
+  }
 
   /**
    * cell click event
@@ -72,9 +87,9 @@ export abstract class ToolBarRenderer {
     }
   }
 
-  public changeValue(eventElement: HTMLElement) {
+  public changeValue(e: Event, eventElement: HTMLElement, newValue: any) {
     if (this.field.change) {
-      this.field.change.call(null, { field: this.field, value: this.getValue(), element: eventElement });
+      this.field.change.call(null, { evt: e, field: this.field, value: newValue, element: eventElement });
     }
   }
 

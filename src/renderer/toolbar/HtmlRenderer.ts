@@ -1,10 +1,8 @@
-import { isHTMLElement } from '@/util/utils';
-import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
-import { ToolBarRenderer } from '../ToolBarRenderer';
 import { ToolbarFieldItem } from '@/types/Toolbar';
+import { GridMain } from '@/view/GridMain';
+import { ToolBarRenderer } from '../ToolBarRenderer';
+import { ViewRenderer } from '../ViewRenderer';
+import { isFunction } from '@/util/utils';
 
 /**
  * html renderer
@@ -21,7 +19,17 @@ export class HtmlRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    controlElement.innerHTML = this.field.renderer.defaultValue ?? '';
+    controlElement.classList = this.getRendererStyleClass('dg-html');
+
+    const defaultValue = this.field.defaultValue;
+
+    if (!defaultValue) return;
+
+    if (isFunction(defaultValue)) {
+      controlElement.innerHTML = defaultValue(this.field);
+    } else {
+      controlElement.innerHTML = defaultValue;
+    }
   }
 
   public getValue() {

@@ -1,6 +1,6 @@
 import { ALIGN_STYLE } from '@/constants';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { listToValueLabelMap } from '@/util/rendererUtils';
+import { normalizeChoiceOptions } from '@/util/rendererUtils';
 import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -17,6 +17,8 @@ import { ViewRenderer } from '../ViewRenderer';
 export class DropdownRenderer extends ViewRenderer {
   private readonly valueDelimiter: string;
 
+  private listItems: any[] = [];
+
   private valueLabelMap: Map<string, any>;
 
   constructor(field: FieldItem, gridMain: GridMain) {
@@ -31,10 +33,15 @@ export class DropdownRenderer extends ViewRenderer {
 
       const list = editInfo.listItem?.list;
       if (isArray(list)) {
-        this.valueLabelMap = listToValueLabelMap(list, labelKey, valueKey);
+        const reval = normalizeChoiceOptions(list, labelKey, valueKey);
+
+        this.listItems = reval.list;
+        this.valueLabelMap = reval.map;
       } else if (isFunction(list)) {
         list({ init: true }, (result: any[]) => {
-          this.valueLabelMap = listToValueLabelMap(result, labelKey, valueKey);
+          const reval = normalizeChoiceOptions(result, labelKey, valueKey);
+          this.listItems = reval.list;
+          this.valueLabelMap = reval.map;
         });
       }
     } else {

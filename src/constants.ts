@@ -89,6 +89,8 @@ export const TOOLBAR_RENDERER: any = {
   switch: ToolbarRenderer.SwitchRenderer,
   text: ToolbarRenderer.TextRenderer,
   textarea: ToolbarRenderer.TextRenderer,
+  html: ToolbarRenderer.HtmlRenderer,
+  link: ToolbarRenderer.LinkRenderer,
 };
 
 export type TOOLBAR_RENDERER_TYPE = keyof typeof TOOLBAR_RENDERER;

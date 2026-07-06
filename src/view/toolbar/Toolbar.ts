@@ -234,7 +234,7 @@ export class Toolbar {
     const rendererType = field.renderer.type;
     const hasLabel = rendererType !== 'button' && field.label;
 
-    el.className = `dg-toolbar-field field-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
+    el.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
 
     if (hasLabel) {
