@@ -808,7 +808,7 @@ export class GridMain {
         cfg.summary.heights[i] = summaryHeight;
       }
 
-      dimensions.mainSummaryHeight = totalHeight + Math.min(totalHeight, 3); // 2 border + 1 padding
+      dimensions.mainSummaryHeight = totalHeight + Math.min(totalHeight, 2); // 2 border + 1 padding
     }
   }
 

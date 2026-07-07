@@ -67,7 +67,7 @@ export abstract class SummaryRenderer extends Renderer {
 
     const expression = summaryItem.expression;
 
-    const summaryValue: any = { foramtValue: '' };
+    const summaryValue: any = { formatValue: '' };
 
     if (items.length > 0) {
       if (expression) {
@@ -78,12 +78,12 @@ export abstract class SummaryRenderer extends Renderer {
         } else {
           summaryValue.value = calcSummary(items, expression, summaryItem.name);
         }
-        summaryValue.foramtValue = summaryValue.value;
+        summaryValue.formatValue = summaryValue.value;
         if (displayFormat) {
-          summaryValue.foramtValue = formatValue(summaryValue.value, displayFormat);
+          summaryValue.formatValue = formatValue(summaryValue.value, displayFormat);
         }
       } else if (summaryItem.label) {
-        summaryValue.foramtValue = summaryItem.label;
+        summaryValue.formatValue = summaryItem.label;
       }
     }
 

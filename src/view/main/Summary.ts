@@ -236,6 +236,7 @@ export class Summary {
 
       const cellTemplate = [];
       let colspan = 0;
+      const rowHeight = rowHeights[i];
       for (let j = 0; j < fields.length; j++) {
         let field = fields[j];
 
@@ -284,6 +285,7 @@ export class Summary {
           >
             <div
               role="presentation"
+              style="height:${rowHeight - 2}px;max-height:${rowHeight - 2}px"
               class="dg-cell-renderer dg-cell-ellipsis 
               dg-text ${field.$alignStyle}"
             ></div>
@@ -291,7 +293,7 @@ export class Summary {
         }
       }
 
-      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeights[i]}px">
+      returnTemplate.push(html`<tr class="dg-row" data-row="${rowIdx}" style="height:${rowHeight}px">
         ${cellTemplate.join('')}
       </tr>`);
     }
