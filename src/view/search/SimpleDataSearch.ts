@@ -1,21 +1,18 @@
-import { Config } from '@t/GridConfig';
-
 import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
 import { SearchMode } from '@/types/Common';
 import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { html } from '@/util/htmlTemplate';
 import { toggleClass } from '@/util/styleUtils';
-import { GridMain } from '@/view/GridMain';
-import { SearchOptions } from '@t/GridOptions';
-import { DataSearch } from './DataSearch';
 import { merge } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { DataSearch } from './DataSearch';
 
 /**
  * simple search class
  *
  * @class SimpleDataSearch
- * @typedef {SimpleDataSearch}
+ * @typedef {DataSearch}
  */
 export class SimpleDataSearch extends DataSearch {
   private searchElement: HTMLElement;

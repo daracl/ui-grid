@@ -39,6 +39,7 @@ import { Summary } from './main/Summary';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
 import { getLayerElement } from '../util/domUtils';
+import { ApiDataSearch } from './search/ApiDataSearch';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -299,6 +300,8 @@ export class GridMain {
 
     if (opts.search.enabled) {
       this.dataSearch = new SimpleDataSearch(this);
+    } else {
+      this.dataSearch = new ApiDataSearch(this);
     }
 
     this.scroll = new Scroll(this);
@@ -1054,8 +1057,16 @@ export class GridMain {
     if (this.footer) this.footer.setPagingTemplate(paging);
   }
 
+  /**
+   * toolbar value
+   * @returns [] toolbar value
+   */
   public getToolbarValues() {
     return this.toolbar.getValues();
+  }
+
+  public setToolbarValues(val: any) {
+    return this.toolbar.setValues(val);
   }
 
   public destroy() {

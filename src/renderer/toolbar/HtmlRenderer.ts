@@ -18,7 +18,7 @@ export class HtmlRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    controlElement.classList = this.getRendererStyleClass('dg-html');
+    controlElement.classList.add(this.getRendererStyleClass('dg-html'));
 
     const defaultValue = this.field.defaultValue;
 
@@ -33,5 +33,9 @@ export class HtmlRenderer extends ToolBarRenderer {
 
   public getValue() {
     return '';
+  }
+
+  public canEdit() {
+    return false;
   }
 }

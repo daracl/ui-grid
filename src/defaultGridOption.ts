@@ -248,6 +248,7 @@ export const DEFAULT_TOOLBAR_FIELD_INFO: ToolbarFieldItem = {
   },
   $renderer: EDIT_RENDERER['text'],
   $uid: '',
+  $width: 0,
 };
 
 export const DEFAULT_FIELD_INFO: FieldItem = {

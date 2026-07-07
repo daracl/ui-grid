@@ -20,14 +20,7 @@ export class TextRenderer extends ToolBarRenderer {
     const editElement = this.textRender(controlElement, 'text');
 
     this.editElement = editElement;
-    this.initEvent(editElement);
-  }
-
-  initEvent(contentElement: HTMLInputElement) {
-    const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'input' }, (e: UIEvent) => {
-      this.changeValue(e, contentElement, contentElement.value);
-    });
+    this.initTextEvent(editElement);
   }
 
   public getValue() {

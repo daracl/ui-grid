@@ -29,17 +29,22 @@
     .dg-toolbar-section {
       display: grid;
       min-width: 0;
+      position: relative;
+      overflow: visible;
 
       &.dg-grid-area-left {
         justify-self: start;
+        z-index: 2;
       }
 
       &.dg-grid-area-center {
         justify-self: center;
+        z-index: 1;
       }
 
       &.dg-grid-area-right {
         justify-self: end;
+        z-index: 0;
       }
 
       .dg-toolbar-field {
@@ -55,6 +60,14 @@
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+
+          &.dg-required:after {
+            content: '*';
+            margin-left: 2px;
+            color: #e53935;
+            font-size: 1.2em;
+            font-weight: bold;
+          }
         }
 
         /* 컨트롤 내부 요소 방어구조 */

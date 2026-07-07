@@ -426,7 +426,7 @@ export abstract class DataManager {
       this.setCurrentMatchInfo(0, {
         id: '',
         rowIndex: -1,
-        cellIndex: 0,
+        cellIndex: -1,
       } as CURRENT_MATCH_INFO);
       return;
     }

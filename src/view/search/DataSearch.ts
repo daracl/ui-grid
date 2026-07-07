@@ -57,7 +57,7 @@ export abstract class DataSearch {
 
   public abstract openSearch(): boolean;
 
-  public abstract search(searchText: string, opts: SearchMode): boolean;
+  public abstract search(searchText: string, opts: SearchMode): any;
 
   public abstract setMatchCountText(): void;
 }

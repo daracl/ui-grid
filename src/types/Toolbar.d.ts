@@ -54,10 +54,14 @@ export interface ToolbarFieldItem {
 
   click?: OptionCallback;
 
+  search?: OptionCallback;
+
   /**
    * field unique id
    */
   $uid: string;
 
   $renderer: ToolBarRenderer;
+
+  $width: number;
 }

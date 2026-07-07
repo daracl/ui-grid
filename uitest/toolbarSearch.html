@@ -138,6 +138,13 @@
   } //test
 
   function gridDraw(element, aaa, colItem, message) {
+    const searchFn = (info) => {
+      const result = gridObj.search(info.values.searchValue);
+
+      document.getElementById('searchData').innerHTML = result.matchIndex + '/' + result.count;
+      // toolbar setValue 처리 할것.
+    };
+
     gridObj = Daracl.grid.create(element, {
       editable: true,
       rowIdField: 'email',
@@ -164,7 +171,6 @@
                   width: 200,
                   renderer: {
                     type: 'dropdown',
-                    required: true,
                     listItem: {
                       list: [
                         { label: '다크', value: 'dark' },
@@ -181,51 +187,6 @@
                     gridObj.setTheme(info.value);
                   },
                 },
-                {
-                  label: 'Category',
-                  name: '직급',
-                  width: 150,
-                  renderer: {
-                    type: 'dropdown',
-                    listItem: {
-                      multiple: true,
-                      list: ['대리', '과장', '부장'],
-                    },
-                  },
-
-                  defaultValue: '대리',
-
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
-                },
-              ],
-            },
-
-            {
-              position: 'right',
-              children: [
-                {
-                  name: 'searchValue',
-                  renderer: {
-                    type: 'text',
-                  },
-                  placeholder: '검색어',
-                  width: 150,
-                  change: (info) => {
-                    console.log(info, info.value);
-                  },
-                },
-                {
-                  name: 'searchBtn',
-                  renderer: 'button',
-                  label: '검색',
-                  click(info) {
-                    console.log(info);
-                  },
-                },
               ],
             },
           ],
@@ -234,52 +195,31 @@
               position: 'left',
               children: [
                 {
-                  label: '숫자',
-                  name: 'number',
-                  width: 200,
-                  renderer: 'number',
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
-                },
-                {
-                  label: '달력',
-                  name: 'date',
-                  width: 200,
-                  renderer: 'date',
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
-                },
-                {
-                  label: '사용여부',
-                  name: 'switch',
-                  width: 150,
-                  gap: [10, 20],
-                  defaultValue: 'Y',
-                  styleClass: 'asdf',
                   renderer: {
-                    type: 'switch',
-                    trueValue: 'Y',
-                    falseValue: 'N',
+                    type: 'html',
                   },
 
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
+                  defaultValue() {
+                    return '<span id="searchData">0/0</span>';
                   },
                 },
+              ],
+            },
+            {
+              position: 'right',
+              children: [
                 {
-                  width: 100,
-                  defaultValue() {
-                    return '<div style="border:1px solid #dddddd;" onclick="alert(1)">test</div>';
-                  },
-                  renderer: 'html',
+                  name: 'searchValue',
+                  renderer: 'text',
+                  placeholder: '검색어',
+                  width: 150,
+                  search: searchFn,
+                },
+                {
+                  name: 'searchBtn',
+                  renderer: 'button',
+                  label: '검색',
+                  search: searchFn,
                 },
               ],
             },

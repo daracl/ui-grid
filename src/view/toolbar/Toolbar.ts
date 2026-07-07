@@ -23,9 +23,11 @@ export class Toolbar {
 
   private toolbarElement: HTMLElement;
 
+  private hiddenCheckElement: HTMLElement;
+
   private toolbarLayouts: ToolbarLayout[][];
 
-  private toolbarFields: ToolbarFieldItem[] = [];
+  private readonly toolbarFields: ToolbarFieldItem[] = [];
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -101,25 +103,38 @@ export class Toolbar {
 
   createTemplate() {
     const appFragment = document.createDocumentFragment();
-
-    this.toolbarLayouts.forEach((row) => appFragment.appendChild(this.createLayout(row)));
+    const hiddenCheckElement = document.createElement('div');
+    this.hiddenCheckElement = hiddenCheckElement;
+    hiddenCheckElement.style.cssText =
+      'width:100%;height:0px;position:fixed;top:-9999;left:0px;z-index:-1;display: flex;';
+    this.toolbarElement.appendChild(hiddenCheckElement);
+    this.toolbarLayouts.forEach((row) => appFragment.appendChild(this.createRow(row)));
+    hiddenCheckElement.remove();
     this.toolbarElement.appendChild(appFragment);
   }
 
+  public setValues(val: any) {
+    for (const key in val) {
+      //
+      //
+      // name 처리 할것.
+      //
+      //
+    }
+  }
+
   public getValues() {
-    const result = [];
+    const item: any = {};
     for (const field of this.toolbarFields) {
-      const item: any = {};
-      if (field.name) {
+      if (field.name && field.$renderer.canEdit()) {
         item[field.name] = field.$renderer.getValue();
-        result.push(item);
       }
     }
 
-    return result;
+    return item;
   }
 
-  private createLayout(items: ToolbarLayout[]) {
+  private createRow(items: ToolbarLayout[]) {
     const row = document.createElement('div');
     if (items.length === 0) {
       return document.createElement('div');
@@ -152,16 +167,18 @@ export class Toolbar {
         layoutColumns.push('auto', widthVal, 'auto');
 
         group.list.forEach((item) => {
-          fragment.appendChild(this.createContainer(item, targetColIndex));
+          this.createSection(item, targetColIndex, fragment);
         });
       } else {
         // width 값이 없는 경우 기본적으로 자동 계산 영역 확장
         const targetColIndex = layoutColumns.length + 1;
-        layoutColumns.push('minmax(0px, 1fr)');
 
+        let sectionWidth = 0;
         group.list.forEach((item) => {
-          fragment.appendChild(this.createContainer(item, targetColIndex));
+          sectionWidth = this.createSection(item, targetColIndex, fragment);
         });
+
+        layoutColumns.push('minmax(' + sectionWidth + 'px, 1fr)');
       }
 
       // 그룹 간 구분선 트랙 삽입
@@ -177,15 +194,17 @@ export class Toolbar {
     return row;
   }
 
-  private createContainer(item: ToolbarLayout, layoutColIndex: number): any {
-    const area = document.createElement('div');
-    area.className = `dg-toolbar-section dg-grid-area-${item.position}`;
-    area.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
-    this.setWidth(area, item.width ?? '');
+  private createSection(item: ToolbarLayout, layoutColIndex: number, parentFragment: DocumentFragment): any {
+    const sectionElement = document.createElement('div');
+    sectionElement.className = `dg-toolbar-section dg-grid-area-${item.position}`;
+    sectionElement.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
+    this.setWidth(sectionElement, item.width ?? '');
 
     const columns = ['0px'];
     const fragment = document.createDocumentFragment();
     let currentColumnIndex = 2; // "0px" 트랙이 1번이므로 실제 배치는 2번부터
+
+    let totalWidth = 0;
 
     item.children.forEach((field, index) => {
       let beforeGap = 0;
@@ -215,6 +234,7 @@ export class Toolbar {
 
       // 2. 앞 여백(Before Gap) 트랙 추가
       if (beforeGap > 0) {
+        totalWidth += beforeGap;
         columns.push(`${beforeGap}px`);
         currentColumnIndex++; // 앞 여백이 차지한 트랙만큼 인덱스 증가
       }
@@ -232,30 +252,35 @@ export class Toolbar {
       fragment.appendChild(this.createField(field, currentColumnIndex));
       currentColumnIndex++; // 요소가 차지한 트랙만큼 인덱스 증가
 
+      totalWidth += field.$width;
+
       // 4. 뒤 여백(After Gap) 트랙 추가
       if (afterGap > 0) {
+        totalWidth += afterGap;
         columns.push(`${afterGap}px`);
         currentColumnIndex++; // 뒤 여백이 차지한 트랙만큼 인덱스 증가
       }
     });
 
     columns.push('0px'); // 맨 뒤 트랙 마무리
-    area.style.gridTemplateColumns = columns.join(' ');
-    area.appendChild(fragment);
-    return area;
+    sectionElement.style.gridTemplateColumns = columns.join(' ');
+    sectionElement.appendChild(fragment);
+    parentFragment.appendChild(sectionElement);
+    return totalWidth;
   }
 
   private createField(field: ToolbarFieldItem, colIndex: number) {
     const el = document.createElement('div');
     const rendererType = field.renderer.type;
-    const hasLabel = rendererType !== 'button' && field.label;
+    const isRequired = field.renderer.required === true;
+    const hasLabel = isRequired || (rendererType !== 'button' && field.label);
 
     el.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
 
     if (hasLabel) {
       el.innerHTML = `
-          <span class="dg-label">${field.label}</span>
+          <span class="dg-label ${isRequired ? 'dg-required' : ''}">${field.label}</span>
           <div class="dg-control"></div>
         `;
     } else {
@@ -265,6 +290,11 @@ export class Toolbar {
     field.$renderer.render(el);
 
     this.setWidth(el, field.width ?? 'auto');
+
+    // 넓이 체크용으로 추가.
+    this.hiddenCheckElement.appendChild(el);
+
+    field.$width = el.getBoundingClientRect().width;
 
     return el;
   }

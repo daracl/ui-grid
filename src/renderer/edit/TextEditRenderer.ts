@@ -1,14 +1,13 @@
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
 import { TextAbstractRenderer } from './TextAbstractRenderer';
 
 /**
  * text edit renderer
  *
  * @typedef {TextEditRenderer}
- * @extends {EditRenderer}
+ * @extends {TextAbstractRenderer}
  */
 export class TextEditRenderer extends TextAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {

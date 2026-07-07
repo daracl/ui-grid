@@ -49,4 +49,8 @@ export class LinkRenderer extends ToolBarRenderer {
   public getValue() {
     return '';
   }
+
+  public canEdit() {
+    return false;
+  }
 }

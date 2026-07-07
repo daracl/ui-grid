@@ -10,8 +10,8 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
  * @extends {ToolBarRenderer}
  */
 export class SwitchRenderer extends ToolBarRenderer {
-  private trueValue: string | boolean;
-  private falseValue: string | boolean;
+  private readonly trueValue: string | boolean;
+  private readonly falseValue: string | boolean;
   private editElement: HTMLInputElement;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {

@@ -308,7 +308,7 @@ export class DaraGrid {
   }
 
   public search(searchText: string, opts: SearchMode) {
-    return this.gridMain.getDataSearch().search(searchText, opts);
+    return this.gridMain.getDataSearch().search(searchText, opts ?? {});
   }
 
   /**

@@ -32,10 +32,16 @@ export class ButtonRenderer extends ToolBarRenderer {
       stopPreventCancel(e);
 
       this.click(e, contentElement);
+
+      this.search(e);
     });
   }
 
   public getValue() {
     return '';
+  }
+
+  public canEdit() {
+    return false;
   }
 }

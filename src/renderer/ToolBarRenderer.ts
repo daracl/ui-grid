@@ -63,7 +63,6 @@ export abstract class ToolBarRenderer {
     const editElement = document.createElement('input');
 
     editElement.type = type;
-    editElement.name = this.field.$uid;
     editElement.setAttribute('autocomplete', 'off');
     editElement.placeholder = this.field.placeholder ?? '';
 
@@ -74,6 +73,20 @@ export abstract class ToolBarRenderer {
     element.appendChild(editElement);
 
     return editElement;
+  }
+
+  initTextEvent(contentElement: HTMLInputElement) {
+    const cfg = this.gridMain.config();
+    cfg.eventManager.on({ el: contentElement, type: 'input' }, (e: UIEvent) => {
+      this.changeValue(e, contentElement, this.getValue());
+    });
+
+    cfg.eventManager.on({ el: contentElement, type: 'keydown' }, (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.search(e);
+      }
+    });
   }
 
   /**
@@ -89,7 +102,25 @@ export abstract class ToolBarRenderer {
 
   public changeValue(e: Event, eventElement: HTMLElement, newValue: any) {
     if (this.field.change) {
-      this.field.change.call(null, { evt: e, field: this.field, value: newValue, element: eventElement });
+      const toolbarValues = this.gridMain.getToolbarValues();
+      this.field.change.call(null, {
+        evt: e,
+        field: this.field,
+        value: newValue,
+        element: eventElement,
+        values: toolbarValues,
+      });
+    }
+  }
+
+  public search(e: Event) {
+    if (this.field.search) {
+      const toolbarValues = this.gridMain.getToolbarValues();
+      this.field.search.call(null, {
+        evt: e,
+        field: this.field,
+        values: toolbarValues,
+      });
     }
   }
 
@@ -98,4 +129,8 @@ export abstract class ToolBarRenderer {
   }
 
   public abstract getValue(): any;
+
+  public canEdit() {
+    return true;
+  }
 }
