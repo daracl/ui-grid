@@ -79,7 +79,7 @@ export class GridStructureBuilder {
     const mainBodyHeight =
       bodyMainHeight -
       (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? opts.scroll.width : 0)) -
-      2; // 2 border height;
+      1; // 1 border height;
     dimensions.mainBodyHeight = mainBodyHeight;
 
     scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > mainBodyHeight;

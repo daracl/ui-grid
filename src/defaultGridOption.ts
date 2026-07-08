@@ -156,7 +156,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   scroll: {
     // 스크롤 옵션
     enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용
-    width: 14, // 세로 스크롤
+    width: 12, // 세로 스크롤
     vertical: {
       enable: true,
       speed: 3, // 스크롤 스피드 row 1

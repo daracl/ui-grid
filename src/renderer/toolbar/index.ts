@@ -10,3 +10,4 @@ export { TextRenderer } from './TextRenderer';
 export { DateRenderer } from './DateRenderer';
 export { SwitchRenderer } from './SwitchRenderer';
 export { CustomRenderer } from './CustomRenderer';
+export { SearchRenderer } from './SearchRenderer';

@@ -178,10 +178,10 @@ body .dg-hidden-layers.dg-dark {
   border: 1px solid var(--border-color);
   height: 25px;
   line-height: 1.2em;
-  font: inherit;
   border-radius: 2px;
-  padding: 0px 12px;
+  padding: 0px 8px 0px 5px;
   background-color: var(--input-bg);
+  color: inherit;
   outline: none;
 }
 .daracl-grid input:hover, .daracl-grid input:focus,
@@ -204,6 +204,7 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid button,
 .dg-hidden-layers button {
   background: var(--button-bg);
+  color: inherit;
   cursor: pointer;
 }
 .daracl-grid button:hover,
@@ -510,15 +511,20 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid .dg-toolbar .dg-toolbar-section {
   display: grid;
   min-width: 0;
+  position: relative;
+  overflow: visible;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-left {
   justify-self: start;
+  z-index: 2;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-center {
   justify-self: center;
+  z-index: 1;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-right {
   justify-self: end;
+  z-index: 0;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field {
   display: grid;
@@ -534,6 +540,13 @@ body .dg-hidden-layers.dg-dark {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-label.dg-required:after {
+  content: "*";
+  margin-left: 2px;
+  color: #e53935;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control {
   min-width: 0;
@@ -1161,7 +1174,7 @@ body .dg-hidden-layers.dg-dark {
   z-index: 2;
 }
 .daracl-grid .dg-main .dg-panels .dg-summary.dg-top > div {
-  border-top: 1px solid transparent;
+  border-top: 0px solid transparent;
   border-bottom: 1px solid var(--border-color);
   padding-top: 0px;
   padding-bottom: 1px;
@@ -1207,6 +1220,15 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-main .dg-panels .dg-summary > div > .dg-body-table .dg-row > .dg-cell > .dg-cell-renderer {
   padding: 0px 5px;
+  margin-top: -2px;
+  /* 여러 줄 */
+}
+.daracl-grid .dg-main .dg-panels .dg-summary > div > .dg-body-table .dg-row > .dg-cell > .dg-cell-renderer.single-line {
+  display: flex;
+  align-items: center;
+}
+.daracl-grid .dg-main .dg-panels .dg-summary > div > .dg-body-table .dg-row > .dg-cell > .dg-cell-renderer.multi-line {
+  display: block;
 }
 .daracl-grid .dg-resize-helper {
   width: 0;

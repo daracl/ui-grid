@@ -199,10 +199,10 @@ body {
     border: 1px solid var(--border-color);
     height: 25px;
     line-height: 1.2em;
-    font: inherit;
     border-radius: 2px;
     padding: 0px 8px 0px 5px;
     background-color: var(--input-bg);
+    color: inherit;
     outline: none;
     &:hover,
     &:focus {
@@ -212,6 +212,7 @@ body {
 
   button {
     background: var(--button-bg);
+    color: inherit;
     cursor: pointer;
     &:hover {
       background: var(--button-bg-hover);

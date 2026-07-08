@@ -40,18 +40,6 @@
     }
   }
 
-  function fn_button() {
-    const themeElement = document.getElementById('theme');
-
-    themeElement.addEventListener('change', (e) => {
-      const value = themeElement.value;
-
-      if (value) {
-        setMainTheme(value, true);
-      }
-    });
-  }
-
   function fn_init(initFlag) {
     const themeElement = document.getElementById('theme');
 
@@ -63,7 +51,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    fn_button();
     fn_init(true);
   });
 
@@ -147,7 +134,7 @@
       enableWidthFixed: false,
       enableTooltip: true, // tooltip flag
       theme: document.getElementById('theme').value,
-      height: 335,
+      height: 'auto',
       width: 'auto',
 
       toolbar: {
@@ -176,8 +163,6 @@
                   defaultValue: 'light',
 
                   change: (info) => {
-                    console.log(info, info.value);
-
                     gridObj.setTheme(info.value);
                   },
                 },
@@ -192,14 +177,8 @@
                       list: ['대리', '과장', '부장'],
                     },
                   },
-
                   defaultValue: '대리',
-
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
+                  change: (info) => {},
                 },
               ],
             },
@@ -238,22 +217,12 @@
                   name: 'number',
                   width: 200,
                   renderer: 'number',
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
                 },
                 {
                   label: '달력',
                   name: 'date',
                   width: 200,
                   renderer: 'date',
-                  change: (info) => {
-                    console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
-                  },
                 },
                 {
                   label: '사용여부',
@@ -270,8 +239,6 @@
 
                   change: (info) => {
                     console.log(info, info.value);
-
-                    gridObj.setTheme(info.value);
                   },
                 },
                 {
@@ -280,6 +247,31 @@
                     return '<div style="border:1px solid #dddddd;" onclick="alert(1)">test</div>';
                   },
                   renderer: 'html',
+                },
+              ],
+            },
+          ],
+          [
+            {
+              position: 'left',
+              children: [
+                {
+                  label: '체크',
+                  name: 'checkbox',
+                  width: 150,
+                  gap: [10, 20],
+                  defaultValue: '대리',
+                  renderer: {
+                    type: 'checkbox',
+                    listItem: {
+                      multiple: true,
+                      list: ['대리', '과장', '부장'],
+                    },
+                  },
+
+                  change: (info) => {
+                    console.log(info, info.value);
+                  },
                 },
               ],
             },
