@@ -1,6 +1,5 @@
-import { REGEXP_TYPE, ORIENTATION_TYPE } from '@/constants';
+import { ORIENTATION_TYPE, REGEXP_TYPE } from '@/constants';
 import { OptionCallback } from '@t/Common';
-import { EditRenderer } from '../renderer/EditRenderer';
 
 export interface ValuesInfo {
   labelField: string;
@@ -9,6 +8,7 @@ export interface ValuesInfo {
   delimiter: string;
   list: any[] | OptionCallback;
   orientation: ORIENTATION_TYPE;
+  labelOnly?: boolean;
 }
 
 /**

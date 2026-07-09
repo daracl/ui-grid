@@ -3,6 +3,7 @@ import { ViewRenderer } from '../ViewRenderer';
 import { GridMain } from '@/view/GridMain';
 import { getElementRect } from '@/util/domUtils';
 import { CellInfo } from '@t/GridConfig';
+import { ROW_FIELD } from '@/constants';
 
 /**
  * Sparkline renderer
@@ -28,22 +29,25 @@ export class SparklineRenderer extends ViewRenderer {
       element.innerHTML = '';
       return;
     }
-    const rect = getElementRect(element);
+
+    const cellElement = this.getClosestCellElement(element);
+
+    const rect = getElementRect(cellElement);
+
     const width = rect.width;
-    const height = rect.height;
+    const height = rect.height - 5;
 
     // 기존 canvas가 있으면 재사용, 없으면 생성
     let canvas = element.querySelector('canvas') as HTMLCanvasElement | null;
 
-    if (!canvas) {
+    if (canvas) {
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    } else {
       canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
       element.appendChild(canvas);
-    } else {
-      // 크기 고정 시 다시 설정 필요없으면 생략 가능
-      if (canvas.width !== width) canvas.width = width;
-      if (canvas.height !== height) canvas.height = height;
     }
 
     const ctx = canvas.getContext('2d');

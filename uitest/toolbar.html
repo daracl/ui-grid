@@ -257,14 +257,35 @@
               children: [
                 {
                   label: '체크',
-                  name: 'checkbox',
-                  width: 150,
+                  name: 'choice',
+                  //width: 150,
                   gap: [10, 20],
                   defaultValue: '대리',
                   renderer: {
-                    type: 'checkbox',
+                    type: 'choice',
+
                     listItem: {
-                      multiple: true,
+                      labelOnly: false,
+                      list: ['대리', '과장', '부장'],
+                    },
+                  },
+
+                  change: (info) => {
+                    console.log(info, info.value);
+                  },
+                },
+
+                {
+                  label: '라디오 초이스',
+                  name: 'choice1',
+                  //width: 150,
+                  gap: [10, 20],
+                  defaultValue: '대리',
+                  renderer: {
+                    type: 'choice',
+                    listItem: {
+                      multiple: false,
+                      labelOnly: false,
                       list: ['대리', '과장', '부장'],
                     },
                   },

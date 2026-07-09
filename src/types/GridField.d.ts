@@ -1,9 +1,9 @@
+import { TEXT_ALIGN_TYPE, WHITE_SPACE_TYPE } from '@/constantStyles';
+import { EditRenderer } from '@/renderer/EditRenderer';
+import { ViewRenderer } from '@/renderer/ViewRenderer';
 import { FieldItem } from '@t/GridField';
-import { TEXT_ALIGN_TYPE, WHITE_SPACE_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback } from './Common';
 import { EditRendererInfo, RendererInfo } from './RendererInfo';
-import { ViewRenderer } from '@/renderer/ViewRenderer';
-import { EditRenderer } from '@/renderer/EditRenderer';
 
 /**
  * Field info

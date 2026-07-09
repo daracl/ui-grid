@@ -1,18 +1,15 @@
 import { Config } from '@t/GridConfig';
 
 import {
-  ADD_ITEM_POSITION,
   FIELD_LAYER_CLASS,
   FIELD_PREFIX,
   FOOTER_HEIGHT,
-  GRID_THEME,
-  HIDDEN_ELEMENT_SELECTOR,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   ROW_FIELD,
-  THEME_TYPE,
   TOOLBAR_HEIGHT,
 } from '@/constants';
+import { GRID_THEME, THEME_TYPE } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
 import { DEFAULT_OPTIONS } from '@/defaultGridOption';
@@ -36,10 +33,9 @@ import { ContextMenu } from './main/ContextMenu';
 import { Header } from './main/header/Header';
 import { Scroll } from './main/scroll/Scroll';
 import { Summary } from './main/Summary';
+import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
-import { getLayerElement } from '../util/domUtils';
-import { ApiDataSearch } from './search/ApiDataSearch';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -671,20 +667,8 @@ export class GridMain {
   }
 
   resizeDraw() {
-    const scroll = this.cfg.scroll;
-
     this.calcBody();
-
-    if (
-      scroll.before.startIdx !== scroll.startIdx ||
-      scroll.before.viewRow !== scroll.viewRow ||
-      scroll.before.startCol !== scroll.startCol ||
-      scroll.before.endCol !== scroll.endCol
-    ) {
-      this.refreshBody(true, 'resizeDraw');
-    } else {
-      this.refreshBody(false, 'resizeDraw');
-    }
+    this.refreshBody(false, 'resizeDraw');
   }
 
   /**
@@ -860,6 +844,20 @@ export class GridMain {
 
     if (drawFlag) {
       this.getBody().dataDraw('refreshBody-' + mode);
+      return;
+    }
+
+    if (mode == 'resizeDraw') {
+      const scroll = this.cfg.scroll;
+
+      if (
+        scroll.before.startIdx !== scroll.startIdx ||
+        scroll.before.viewRow !== scroll.viewRow ||
+        scroll.before.startCol !== scroll.startCol ||
+        scroll.before.endCol !== scroll.endCol
+      ) {
+        this.getBody().dataDraw('refreshBody-' + mode);
+      }
     }
   }
 
@@ -867,7 +865,6 @@ export class GridMain {
    * add row
    *
    * @param {any[]} items items
-   * @param {ADD_ITEM_POSITION} position before , after
    * @param {?number} [rowIndex] row index
    */
   public addRows(addOpts: AddRowOptions) {

@@ -1,18 +1,17 @@
+import { ALIGN_STYLE } from '@/constantStyles';
+import { ValidResult } from '@/types/ValidResult';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
-import { ALIGN_STYLE } from '@/constants';
 import { EditRenderer } from '../EditRenderer';
-import { ValidResult } from '@/types/ValidResult';
 
 /**
  * checkbox renderer
  *
  * @class CheckboxRenderer
  * @typedef {CheckboxRenderer}
- * @extends {ViewRenderer}
+ * @extends {EditRenderer}
  */
 export class CheckboxRenderer extends EditRenderer {
   private readonly trueValue: string | boolean;
@@ -52,7 +51,7 @@ export class CheckboxRenderer extends EditRenderer {
 
       if (this.showLabel) {
         const textLabel = document.createElement('span');
-        textLabel.className = 'dg-cell-content-label dg-cell-ellipsis';
+        textLabel.className = 'dg-cell-content-label dg-ellipsis';
         label.appendChild(textLabel);
       }
 

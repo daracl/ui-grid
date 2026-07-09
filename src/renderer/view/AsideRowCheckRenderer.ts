@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';

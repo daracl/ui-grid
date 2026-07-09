@@ -129,8 +129,8 @@
       width: 100%;
       height: 100%;
 
-      .dg-cell-ellipsis,
-      .dg-cell-ellipsis > * {
+      .dg-ellipsis,
+      .dg-ellipsis > * {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

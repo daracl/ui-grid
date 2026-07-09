@@ -2,7 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 
 /**
  * password renderer

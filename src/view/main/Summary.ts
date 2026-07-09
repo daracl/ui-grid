@@ -1,7 +1,7 @@
 import { Config, SummaryConfig } from '@t/GridConfig';
 import { SummaryOptions } from '@t/GridOptions';
 
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { DaraElement } from '@/element/DaraElement';
 import { SummaryTextRenderer } from '@/renderer/summary/SummaryTextRenderer';
 import { SummaryRenderer } from '@/renderer/SummaryRenderer';
@@ -286,7 +286,7 @@ export class Summary {
             <div
               role="presentation"
               style="height:${rowHeight - 2}px;max-height:${rowHeight - 2}px"
-              class="dg-cell-renderer dg-cell-ellipsis 
+              class="dg-cell-renderer dg-ellipsis 
               dg-text ${field.$alignStyle}"
             ></div>
           </td>`);

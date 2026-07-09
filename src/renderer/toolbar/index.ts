@@ -1,4 +1,4 @@
-export { CheckboxRenderer } from './CheckboxRenderer';
+export { ChoiceRenderer } from './ChoiceRenderer';
 
 export { ButtonRenderer } from './ButtonRenderer';
 export { DropdownRenderer } from './DropdownRenderer';

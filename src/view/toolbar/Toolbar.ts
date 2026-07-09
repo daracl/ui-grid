@@ -1,10 +1,10 @@
 import { Config } from '@t/GridConfig';
 
+import { TOOLBAR_RENDERER } from '@/constantRenders';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
 import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
 import { isArray, merge } from '@/util/utils';
-import { TOOLBAR_RENDERER } from '../../constants';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
 

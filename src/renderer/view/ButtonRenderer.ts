@@ -3,7 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewRenderer } from '../ViewRenderer';
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { stopPreventCancel } from '@/util/eventUtils';
 
 /**

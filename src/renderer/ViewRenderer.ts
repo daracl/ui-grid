@@ -5,7 +5,7 @@ import { isFunction, isString } from '@/util/utils';
 import { CellInfo, Config } from '@t/GridConfig';
 import { GridMain } from '@/view/GridMain';
 import { formatValue } from '@/util/formatUtils';
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { isBlank } from '../util/utils';
 
 export abstract class ViewRenderer extends Renderer {

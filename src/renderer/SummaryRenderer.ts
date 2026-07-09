@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
 import { isFunction, isString } from '@/util/utils';

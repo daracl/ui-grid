@@ -1,4 +1,5 @@
-import { ALIGN_STYLE, ROW_FIELD } from '@/constants';
+import { ROW_FIELD } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { TreeDataManager } from '@/service/TreeDataManager';
 import { TreeViewItem } from '@/types/Common';
 import { createHTMLElement } from '@/util/domUtils';

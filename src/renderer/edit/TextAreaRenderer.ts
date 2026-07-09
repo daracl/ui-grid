@@ -49,6 +49,7 @@ export class TextAreaRenderer extends TextAbstractRenderer {
     const style = textareaElement.style;
 
     const cellRect = getElementRect(element);
+
     const rendererContainer = getElementRect(this.rendererContainer);
 
     this.isShow = true;

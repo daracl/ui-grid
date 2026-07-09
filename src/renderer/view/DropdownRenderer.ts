@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { normalizeChoiceOptions } from '@/util/rendererUtils';
 import { isArray, isFunction, isString, stringSplit } from '@/util/utils';

@@ -1,6 +1,8 @@
 import { CellInfo } from '@t/GridConfig';
 
-import { BodyCellStyleMap, ROW_CHECK_NAME, ROW_FIELD, WHITE_SPACE } from '@/constants';
+import { BodyCellStyleMap, ROW_CHECK_NAME, ROW_FIELD } from '@/constants';
+import { WHITE_SPACE } from '@/constantStyles';
+
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { ViewItem } from '@/types/Common';
@@ -536,6 +538,11 @@ export class Body {
       searchMatchedFields: string[] | undefined;
     },
   ) {
+    const contentEleStyle = (cellElement.firstElementChild as HTMLElement).style;
+    const heightPixel = `${item[ROW_FIELD.HEIGHT] - 5}px`;
+    contentEleStyle.maxHeight = heightPixel;
+    //contentEleStyle.height = heightPixel;
+
     // field add class
     this.setCellStyleClass(cellElement, rowIdx, col, field, item);
 
@@ -586,11 +593,6 @@ export class Body {
    * @param {*} item item
    */
   private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    const contentEleStyle = (cellEle.firstElementChild as HTMLElement).style;
-    const heightPixel = `${item[ROW_FIELD.HEIGHT] - 5}px`;
-    contentEleStyle.maxHeight = heightPixel;
-    contentEleStyle.height = heightPixel;
-
     if (!field.styleClass) return;
 
     // Determine new class to add
@@ -723,7 +725,7 @@ export class Body {
           cellTemplate.push(html`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + ',' + (startCol + j)}">
             <div
               role="presentation"
-              class="dg-cell-renderer dg-cell-ellipsis 
+              class="dg-cell-renderer dg-ellipsis 
             dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass}"
               style="${whiteSpaceStyle}"
             ></div>

@@ -1,6 +1,7 @@
 import { GridOptions } from '@t/GridOptions';
 
-import { HIDDEN_ELEMENT_SELECTOR, THEME_TYPE } from './constants';
+import { HIDDEN_ELEMENT_SELECTOR } from './constants';
+import { THEME_TYPE } from './constantStyles';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';

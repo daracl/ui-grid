@@ -1,21 +1,16 @@
-import {
-  ALIGN_STYLE,
-  EDIT_RENDERER,
-  LINE_NUMBER_NAME,
-  ROW_CHECK_NAME,
-  ROW_DRAG_HANDLE_NAME,
-  VIEW_RENDERER,
-} from '@/constants';
+import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { EditRenderer } from '@/renderer/EditRenderer';
-import { FieldItem } from '@/types/GridField';
-import { getTextWidth, heightOptionValue } from '@/util/gridUtils';
-import { deepCopy, isNumber, isObject, isPlainObject, isString, isUndefined, merge } from '@/util/utils';
-import { GridMain } from './GridMain';
-import { GridOptions } from '@/types/GridOptions';
 import { Config, FieldHeaderGroupInfo } from '@/types/GridConfig';
-import { defaultFieldGroupInfo } from '@/defaultGridConfig';
+import { FieldItem } from '@/types/GridField';
+import { GridOptions } from '@/types/GridOptions';
+import { getTextWidth, heightOptionValue } from '@/util/gridUtils';
+import { deepCopy, isNumber, isPlainObject, isString, isUndefined, merge } from '@/util/utils';
 import { isArray } from '../util/utils';
+import { GridMain } from './GridMain';
+import { ALIGN_STYLE } from '@/constantStyles';
+import { EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders';
 
 // main-body  margin = border top + border bottom+ 공백1
 const MAIN_MARGIN_BOTTOM = 3;
