@@ -1,8 +1,8 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { normalizeChoiceOptions } from '@/util/rendererUtils';
-import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
+import { intValue, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 import { SELECTED_STYLE_CLASS } from '@/constantStyles';
@@ -25,8 +25,8 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
   private listItems: any[] = [];
 
-  private selectValues = '';
-  private labelOnly = true;
+  private selectValues: string[];
+  private readonly labelOnly: boolean;
 
   private choiceContainer: HTMLElement;
 
@@ -37,31 +37,34 @@ export class ChoiceRenderer extends ToolBarRenderer {
     this.labelKey = valuesLabelKey(rendererInfo);
     this.valueKey = valuesValueKey(rendererInfo);
 
-    this.selectValues = this.field.defaultValue ?? '';
+    this.selectValues = stringSplit(this.field.defaultValue || '', this.valueDelimiter);
 
     const listItem = rendererInfo?.listItem;
+    this.labelOnly = true;
 
     if (listItem) {
-      this.labelOnly = listItem.labelOnly ?? true;
+      this.labelOnly = listItem.labelOnly !== false;
       this.isMultiple = listItem.multiple ?? true;
       this.valueDelimiter = listItem.delimiter ?? ',';
 
       const list = listItem.list;
       if (isArray(list)) {
         const reval = normalizeChoiceOptions(list, this.labelKey, this.valueKey);
+        this.listItems = uniqueListItem(reval.list, this.valueKey);
 
-        this.listItems = this.uniqueListItem(reval.list);
         this.valueLabelMap = reval.map;
       } else if (isFunction(list)) {
         list({ init: true }, (result: any[]) => {
           const reval = normalizeChoiceOptions(result, this.labelKey, this.valueKey);
-          this.listItems = this.uniqueListItem(reval.list);
+          this.listItems = uniqueListItem(reval.list, this.valueKey);
+
           this.valueLabelMap = reval.map;
         });
       }
     } else {
       this.valueDelimiter = ',';
       this.isMultiple = true;
+      this.listItems = [];
       this.valueLabelMap = new Map<string, any>();
     }
   }
@@ -71,27 +74,13 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
     const choiceContainer = document.createElement('div');
     choiceContainer.className = this.getRendererStyleClass('');
-
-    const value = (this.selectValues ?? '').split(this.valueDelimiter);
-
-    choiceContainer.innerHTML = this.template(this.listItems, value);
-
+    choiceContainer.innerHTML = this.template(this.listItems);
     controlElement.appendChild(choiceContainer);
+    this.choiceContainer = choiceContainer;
+
+    this.setValue(this.field.defaultValue ?? '');
 
     this.initEvt(choiceContainer);
-
-    this.choiceContainer = choiceContainer;
-  }
-
-  private uniqueListItem(list: any[]) {
-    const seen = new Set();
-    const valueKey = this.valueKey;
-    const uniqueArr = list.filter((item) => {
-      if (seen.has(item[valueKey])) return false;
-      seen.add(item[valueKey]);
-      return true;
-    });
-    return uniqueArr;
   }
 
   initEvt(contentElement: HTMLElement) {
@@ -123,7 +112,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
       this.selectValues = this.getValue();
 
-      if (this.selectValues == '') {
+      if (this.selectValues.length < 1) {
         this.setValue(this.field.defaultValue ?? '');
       }
 
@@ -136,62 +125,46 @@ export class ChoiceRenderer extends ToolBarRenderer {
       this.choiceContainer.querySelectorAll<HTMLElement>('.dg-choice.' + SELECTED_STYLE_CLASS),
     ).map((ele) => {
       const index = ele.dataset.index;
-      if (index) return this.listItems[parseInt(index, 10)][this.valueKey];
+      if (index) return this.listItems[intValue(index)][this.valueKey];
     });
 
-    return values.join(this.valueDelimiter);
+    return values;
   }
 
   public setValue(value: string | string[]) {
     const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
-    //
-    //처리할것.
-    //
-    //
-    for (const item of this.listItems) {
-      //
+
+    const listItems = this.listItems;
+
+    const valueKey = this.valueKey;
+    for (let i = 0; i < listItems.length; i++) {
+      const listItem = listItems[i];
+
+      if (values.includes(listItem[valueKey])) {
+        const element = this.choiceContainer.querySelector(`.dg-choice[data-index="${i}"]`);
+
+        if (element) element.classList.add(SELECTED_STYLE_CLASS);
+      }
     }
   }
 
-  private template(list: any[], value: string | string[]): string {
+  private template(list: any[]): string {
     if (!isArray(list) || list.length === 0) return '';
 
     const templateParts: string[] = [];
 
-    let valueSet;
-    if (isString(value)) {
-      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
-    } else {
-      valueSet = new Set(value);
-    }
-
-    const isStringValue = isString(list[0]);
     const inputType = this.isMultiple ? 'checkbox' : 'radio';
     const isLabelOnly = this.labelOnly;
-    let itemIdx = -1;
-    for (const item of list) {
-      let val: string;
-      let label: string;
-      itemIdx++;
 
-      if (isStringValue) {
-        val = item;
-        label = item;
-      } else {
-        val = item?.[this.valueKey] ?? '';
-        label = item?.[this.labelKey] ?? '';
-      }
+    for (let itemIdx = 0; itemIdx < list.length; itemIdx++) {
+      const item = list[itemIdx];
 
-      // 선택됨/비활성화 상태 클래스
-      const isSelected = valueSet.has(val);
+      const label = item?.[this.labelKey] ?? '';
+
+      // 비활성화 상태 클래스
       const isDisabled = !!item?.disabled;
 
-      const classes = [
-        isSelected ? SELECTED_STYLE_CLASS : '',
-        isDisabled ? 'disabled' : '',
-        isLabelOnly ? 'dg-label-only' : '',
-        inputType,
-      ]
+      const classes = [isDisabled ? 'disabled' : '', isLabelOnly ? 'dg-label-only' : '', inputType]
         .filter((item) => item)
         .join(' ');
 

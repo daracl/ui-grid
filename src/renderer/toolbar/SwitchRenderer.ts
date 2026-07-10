@@ -68,4 +68,12 @@ export class SwitchRenderer extends ToolBarRenderer {
   public getValue() {
     return this.editElement.checked ? this.trueValue : this.falseValue;
   }
+
+  public setValue(value: string | boolean) {
+    if (value === this.trueValue || value === true) {
+      this.editElement.checked = true;
+    } else {
+      this.editElement.checked = false;
+    }
+  }
 }

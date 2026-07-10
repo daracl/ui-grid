@@ -53,4 +53,8 @@ export class LinkRenderer extends ToolBarRenderer {
   public canEdit() {
     return false;
   }
+
+  public setValue(value: string) {
+    //ignore
+  }
 }

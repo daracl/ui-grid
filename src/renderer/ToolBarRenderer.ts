@@ -128,6 +128,8 @@ export abstract class ToolBarRenderer {
     return fieldElement.querySelector('.dg-control') as HTMLElement;
   }
 
+  public abstract setValue(values: any): void;
+
   public abstract getValue(): any;
 
   public canEdit() {

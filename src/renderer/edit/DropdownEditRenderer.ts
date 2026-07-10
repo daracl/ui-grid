@@ -8,6 +8,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
+import { uniqueListItem } from '@/util/rendererUtils';
 
 const SELECTED_STYLE_CLASS = 'selected';
 
@@ -54,8 +55,6 @@ export class DropdownEditRenderer extends EditRenderer {
       }
     }
 
-    //console.log("activeComponent  : ", this.currentEditRow == cellInfo.rowIndex ? window.getComputedStyle(this.menuElement).display : "", cellInfo);
-
     const cellPosition = cellInfo.c + '';
 
     const cfg = this.gridMain.config();
@@ -79,27 +78,16 @@ export class DropdownEditRenderer extends EditRenderer {
     const value = cellInfo.item[this.fieldName];
 
     if (isArray(list)) {
-      list = this.uniqueListItem(list);
+      list = uniqueListItem(list, this.valueKey);
       dropdownElement.innerHTML = this.dropdownMenuTemplate(list, value);
       this.openMenu(cellElement, dropdownElement, eventElement, cellInfo, list);
     } else if (isFunction(list)) {
       list(cellInfo, (result: any[]) => {
-        result = this.uniqueListItem(result);
+        result = uniqueListItem(result, this.valueKey);
         dropdownElement.innerHTML = this.dropdownMenuTemplate(result, value);
         this.openMenu(cellElement, dropdownElement, eventElement, cellInfo, result);
       });
     }
-  }
-
-  private uniqueListItem(list: any[]) {
-    const seen = new Set();
-    const valueKey = this.valueKey;
-    const uniqueArr = list.filter((item) => {
-      if (seen.has(item[valueKey])) return false;
-      seen.add(item[valueKey]);
-      return true;
-    });
-    return uniqueArr;
   }
 
   /**

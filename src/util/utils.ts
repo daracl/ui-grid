@@ -95,6 +95,27 @@ export const isArray = (value: any): value is Array<any> => {
   return Array.isArray(value);
 };
 
+/**
+ * 배열에서 지정한 항목을 제거한 새로운 배열을 반환합니다.
+ *
+ * 원본 배열은 변경되지 않습니다.
+ *
+ * @template T 배열 요소의 타입
+ * @param array 대상 배열
+ * @param item 제거할 항목
+ * @returns 지정한 항목이 제거된 새로운 배열.
+ *          항목이 존재하지 않으면 원본과 동일한 요소를 가진 새로운 배열을 반환합니다.
+ */
+export const removeItem = <T>(array: T[], item: T): T[] => {
+  const index = array.indexOf(item);
+
+  if (index === -1) {
+    return [...array];
+  }
+
+  return [...array.slice(0, index), ...array.slice(index + 1)];
+};
+
 export const copyStringToClipboard = (copyText: string) => {
   if (navigator.clipboard) {
     navigator.clipboard

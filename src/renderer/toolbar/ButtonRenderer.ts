@@ -44,4 +44,8 @@ export class ButtonRenderer extends ToolBarRenderer {
   public canEdit() {
     return false;
   }
+
+  public setValue(value: string | string[]) {
+    //ignore;
+  }
 }

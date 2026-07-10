@@ -26,4 +26,8 @@ export class NumberRenderer extends ToolBarRenderer {
   public getValue() {
     return this.editElement.value;
   }
+
+  public setValue(value: string) {
+    this.editElement.value = value;
+  }
 }

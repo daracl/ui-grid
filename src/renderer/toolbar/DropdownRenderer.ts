@@ -3,9 +3,9 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { normalizeChoiceOptions } from '@/util/rendererUtils';
+import { bindHideOnBlur, normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
 import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
-import { addValueIfMissing, isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { isArray, isFunction, isString, removeItem, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -29,7 +29,9 @@ export class DropdownRenderer extends ToolBarRenderer {
 
   private listItems: any[] = [];
 
-  private selectValues = '';
+  private selectValues: string[];
+
+  private readonly useIncludeAllOption: boolean;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -45,13 +47,13 @@ export class DropdownRenderer extends ToolBarRenderer {
       const list = rendererInfo.listItem?.list;
       if (isArray(list)) {
         const reval = normalizeChoiceOptions(list, this.labelKey, this.valueKey);
+        this.listItems = uniqueListItem(reval.list, this.valueKey);
 
-        this.listItems = reval.list;
         this.valueLabelMap = reval.map;
       } else if (isFunction(list)) {
         list({ init: true }, (result: any[]) => {
           const reval = normalizeChoiceOptions(result, this.labelKey, this.valueKey);
-          this.listItems = reval.list;
+          this.listItems = uniqueListItem(reval.list, this.valueKey);
           this.valueLabelMap = reval.map;
         });
       }
@@ -60,6 +62,9 @@ export class DropdownRenderer extends ToolBarRenderer {
       this.isMultiple = false;
       this.valueLabelMap = new Map<string, any>();
     }
+
+    this.selectValues = stringSplit(this.field.defaultValue || '', this.valueDelimiter);
+    this.useIncludeAllOption = this.isMultiple && (this.field.renderer.listItem?.includeAllOption ?? false);
   }
 
   public render(element: HTMLElement): void {
@@ -83,25 +88,15 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     let viewLabel = '';
     if (this.valueLabelMap.size > 0) {
-      const value = this.field.defaultValue ?? '';
-      const labels = this.getLabel(value);
-
-      this.selectValues = value;
+      const labels = this.getLabel(this.selectValues);
       viewLabel = labels.join(this.valueDelimiter);
     }
     text.textContent = viewLabel;
     this.selectLabelElement = text;
   }
 
-  public getLabel(value: string | string[]) {
-    let valueSet;
-    if (isString(value)) {
-      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
-    } else {
-      valueSet = new Set(value);
-    }
-
-    const values = Array.from(valueSet);
+  public getLabel(value: string[]) {
+    const values = Array.from(new Set(value));
 
     const labels: string[] = [];
 
@@ -135,6 +130,7 @@ export class DropdownRenderer extends ToolBarRenderer {
     cfg.activeComponent = layerId;
 
     let listElement = this.listElement;
+
     if (!listElement) {
       listElement = getLayerElement('div', 'dg-dropdown-menu dg-toolbar ' + FIELD_LAYER_CLASS, layerId);
 
@@ -142,24 +138,19 @@ export class DropdownRenderer extends ToolBarRenderer {
       this.listElement = listElement;
     }
 
-    let list = this.listItems;
+    const list = this.listItems;
 
-    const value = (this.selectValues ?? '').split(this.valueDelimiter);
+    if (this.useIncludeAllOption) {
+      const allItem: any = {};
+      allItem[this.valueKey] = ALL_SELECT_VALUE;
+      allItem[this.labelKey] = this.language.getMessage('select.all');
+      list.unshift(allItem);
+    }
 
-    list = this.uniqueListItem(list);
-    listElement.innerHTML = this.dropdownMenuTemplate(list, value);
+    listElement.innerHTML = this.dropdownMenuTemplate(list);
+
+    this.setValue(this.selectValues);
     this.openMenu(buttonElement, listElement, list);
-  }
-
-  private uniqueListItem(list: any[]) {
-    const seen = new Set();
-    const valueKey = this.valueKey;
-    const uniqueArr = list.filter((item) => {
-      if (seen.has(item[valueKey])) return false;
-      seen.add(item[valueKey]);
-      return true;
-    });
-    return uniqueArr;
   }
 
   /**
@@ -192,9 +183,11 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     const cfg = this.gridMain.config();
 
+    bindHideOnBlur(listElement, cfg.eventManager);
+
     cfg.eventManager.on({ el: items, type: 'click' }, (e: UIEvent) => {
       const target = e.target as HTMLElement;
-      const addValue = target.getAttribute('data-dg-value');
+      const addItemIndex = Number(target.dataset.index || '0');
 
       if (target.classList.contains('disabled')) {
         return;
@@ -202,54 +195,50 @@ export class DropdownRenderer extends ToolBarRenderer {
 
       toggleClass(target, SELECTED_STYLE_CLASS);
 
+      const addItem = list[addItemIndex];
+
+      const addItemValue = addItem[this.valueKey];
+
       if (isMultiple) {
         const notDisabledList = list.filter((item) => !item.disabled);
         const allItemLength = notDisabledList.length;
-        let currentValue = [];
-
-        if (isString(this.selectValues)) {
-          currentValue = stringSplit(this.selectValues, this.valueDelimiter);
-        }
+        const currentValue = this.selectValues;
 
         const valueKey = this.valueKey;
 
-        if (addValue == ALL_SELECT_VALUE) {
+        if (addItemValue == ALL_SELECT_VALUE) {
           const allItemElement = listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
+
           if (allItemLength == currentValue.length) {
-            this.selectValues = '';
+            this.selectValues = [];
 
             removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
-            const newValue = notDisabledList
-              .map((item) => {
-                return item[valueKey];
-              })
-              .join(this.valueDelimiter);
+            const newValue = notDisabledList.map((item) => {
+              return item[valueKey];
+            });
 
             this.selectValues = newValue;
 
             addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
         } else {
-          const validValues = notDisabledList.map((item) => {
-            return item[valueKey];
-          });
-
-          const newValue = addValueIfMissing(this.selectValues, addValue, false, this.valueDelimiter, validValues);
-
-          this.selectValues = newValue.join(this.valueDelimiter);
-
-          if (allItemLength == newValue.length) {
-            addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
+          if (this.selectValues.includes(addItemValue)) {
+            this.selectValues = removeItem(this.selectValues, addItemValue);
           } else {
-            removeClass(
-              listElement.querySelectorAll('.dg-dropdown-item[data-dg-value="' + ALL_SELECT_VALUE + '"]'),
-              SELECTED_STYLE_CLASS,
-            );
+            this.selectValues.push(addItemValue);
+          }
+
+          if (this.useIncludeAllOption) {
+            if (!this.selectValues.includes(ALL_SELECT_VALUE) && allItemLength - 1 == this.selectValues.length) {
+              addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
+            } else {
+              removeClass(listElement.querySelectorAll('.dg-dropdown-item[data-index="0"]'), SELECTED_STYLE_CLASS);
+            }
           }
         }
       } else {
-        this.selectValues = addValue || '';
+        this.selectValues = this.selectValues.includes(addItemValue) ? [] : [addItemValue];
       }
 
       this.changeValue(e, target, this.selectValues);
@@ -263,48 +252,39 @@ export class DropdownRenderer extends ToolBarRenderer {
     });
   }
 
-  private dropdownMenuTemplate(list: any[], value: string | string[]): string {
+  public setValue(value: string | string[]) {
+    const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+
+    const listItems = this.listItems;
+
+    const valueKey = this.valueKey;
+    for (let i = 0; i < listItems.length; i++) {
+      const listItem = listItems[i];
+      const val = listItem[valueKey];
+
+      if (values.includes(val)) {
+        const element = this.listElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`);
+
+        if (element) element.classList.add(SELECTED_STYLE_CLASS);
+      }
+    }
+  }
+
+  private dropdownMenuTemplate(list: any[]): string {
     if (!isArray(list) || list.length === 0) return '';
 
     const templateParts: string[] = [];
 
-    let valueSet;
-    if (isString(value)) {
-      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
-    } else {
-      valueSet = new Set(value);
-    }
+    for (let itemIdx = 0; itemIdx < list.length; itemIdx++) {
+      const item = list[itemIdx];
+      const label = item?.[this.labelKey] ?? '';
 
-    const isStringValue = isString(list[0]);
-    const isMultiple = this.isMultiple;
-
-    if (isMultiple) {
-      templateParts.push(
-        `<div data-dg-value="${ALL_SELECT_VALUE}" class="dg-dropdown-item dg-all ${
-          list.length == valueSet.size ? SELECTED_STYLE_CLASS : ''
-        }">${this.language.getMessage('select.all')}</div>`,
-      );
-    }
-
-    for (const item of list) {
-      let val: string;
-      let label: string;
-
-      if (isStringValue) {
-        val = item;
-        label = item;
-      } else {
-        val = item?.[this.valueKey] ?? '';
-        label = item?.[this.labelKey] ?? '';
-      }
-
-      // 선택됨/비활성화 상태 클래스
-      const isSelected = valueSet.has(val);
+      // 비활성화 상태 클래스
       const isDisabled = !!item?.disabled;
 
-      const classes = [isSelected ? SELECTED_STYLE_CLASS : '', isDisabled ? 'disabled' : ''].join(' ');
+      const classes = [isDisabled ? 'disabled' : ''].join(' ');
 
-      templateParts.push(`<div data-dg-value="${val}" class="dg-dropdown-item ${classes}">${label}</div>`);
+      templateParts.push(`<div data-index="${itemIdx}" class="dg-dropdown-item ${classes}">${label}</div>`);
     }
 
     return templateParts.join('');

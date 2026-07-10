@@ -4,11 +4,12 @@ import { OptionCallback } from '@t/Common';
 export interface ValuesInfo {
   labelField: string;
   valueField: string;
-  multiple: boolean;
+  multiple?: boolean;
   delimiter: string;
   list: any[] | OptionCallback;
   orientation: ORIENTATION_TYPE;
   labelOnly?: boolean;
+  includeAllOption?: boolean;
 }
 
 /**
