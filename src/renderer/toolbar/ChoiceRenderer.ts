@@ -81,6 +81,8 @@ export class ChoiceRenderer extends ToolBarRenderer {
     this.setValue(this.field.defaultValue ?? '');
 
     this.initEvt(choiceContainer);
+
+    this.setIsInit();
   }
 
   initEvt(contentElement: HTMLElement) {
@@ -115,8 +117,6 @@ export class ChoiceRenderer extends ToolBarRenderer {
       if (this.selectValues.length < 1) {
         this.setValue(this.field.defaultValue ?? '');
       }
-
-      this.changeValue(e, contentElement, this.selectValues);
     });
   }
 
@@ -132,7 +132,11 @@ export class ChoiceRenderer extends ToolBarRenderer {
   }
 
   public setValue(value: string | string[]) {
-    const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+    let values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+
+    if (!this.isMultiple && values.length > 1) {
+      values = values.slice(0, 1);
+    }
 
     const listItems = this.listItems;
 
@@ -140,11 +144,17 @@ export class ChoiceRenderer extends ToolBarRenderer {
     for (let i = 0; i < listItems.length; i++) {
       const listItem = listItems[i];
 
-      if (values.includes(listItem[valueKey])) {
-        const element = this.choiceContainer.querySelector(`.dg-choice[data-index="${i}"]`);
+      const element = this.choiceContainer.querySelector(`.dg-choice[data-index="${i}"]`);
 
-        if (element) element.classList.add(SELECTED_STYLE_CLASS);
+      if (element) {
+        if (values.includes(listItem[valueKey])) {
+          element.classList.add(SELECTED_STYLE_CLASS);
+        } else {
+          element.classList.remove(SELECTED_STYLE_CLASS);
+        }
       }
+
+      this.changeValue(this.selectValues);
     }
   }
 

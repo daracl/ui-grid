@@ -85,14 +85,10 @@ export class DropdownRenderer extends ToolBarRenderer {
     controlElement.appendChild(buttonElement);
 
     this.initEvent(buttonElement);
-
-    let viewLabel = '';
-    if (this.valueLabelMap.size > 0) {
-      const labels = this.getLabel(this.selectValues);
-      viewLabel = labels.join(this.valueDelimiter);
-    }
-    text.textContent = viewLabel;
     this.selectLabelElement = text;
+    this.setValue(this.selectValues);
+
+    this.setIsInit();
   }
 
   public getLabel(value: string[]) {
@@ -140,7 +136,7 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     const list = this.listItems;
 
-    if (this.useIncludeAllOption) {
+    if (this.useIncludeAllOption && list.filter((item) => item[this.valueKey] == ALL_SELECT_VALUE).length < 1) {
       const allItem: any = {};
       allItem[this.valueKey] = ALL_SELECT_VALUE;
       allItem[this.labelKey] = this.language.getMessage('select.all');
@@ -193,11 +189,11 @@ export class DropdownRenderer extends ToolBarRenderer {
         return;
       }
 
-      toggleClass(target, SELECTED_STYLE_CLASS);
-
       const addItem = list[addItemIndex];
 
       const addItemValue = addItem[this.valueKey];
+
+      let selectValues = this.selectValues;
 
       if (isMultiple) {
         const notDisabledList = list.filter((item) => !item.disabled);
@@ -210,7 +206,7 @@ export class DropdownRenderer extends ToolBarRenderer {
           const allItemElement = listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
 
           if (allItemLength == currentValue.length) {
-            this.selectValues = [];
+            selectValues = [];
 
             removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
@@ -218,32 +214,26 @@ export class DropdownRenderer extends ToolBarRenderer {
               return item[valueKey];
             });
 
-            this.selectValues = newValue;
+            selectValues = newValue;
 
             addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
         } else {
           if (this.selectValues.includes(addItemValue)) {
-            this.selectValues = removeItem(this.selectValues, addItemValue);
+            selectValues = removeItem(this.selectValues, addItemValue);
           } else {
-            this.selectValues.push(addItemValue);
+            selectValues.push(addItemValue);
           }
 
-          if (this.useIncludeAllOption) {
-            if (!this.selectValues.includes(ALL_SELECT_VALUE) && allItemLength - 1 == this.selectValues.length) {
-              addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
-            } else {
-              removeClass(listElement.querySelectorAll('.dg-dropdown-item[data-index="0"]'), SELECTED_STYLE_CLASS);
-            }
+          if (selectValues.length != allItemLength) {
+            selectValues = removeItem(selectValues, ALL_SELECT_VALUE);
           }
         }
-      } else {
-        this.selectValues = this.selectValues.includes(addItemValue) ? [] : [addItemValue];
+      } else if (!this.selectValues.includes(addItemValue)) {
+        selectValues = [addItemValue];
       }
 
-      this.changeValue(e, target, this.selectValues);
-
-      this.selectLabelElement.textContent = this.getLabel(this.selectValues).join(this.valueDelimiter);
+      this.setValue(selectValues);
 
       if (!isMultiple) {
         cfg.eventManager.off(items, 'click');
@@ -253,17 +243,46 @@ export class DropdownRenderer extends ToolBarRenderer {
   }
 
   public setValue(value: string | string[]) {
-    const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+    let values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
 
     const listItems = this.listItems;
 
     const valueKey = this.valueKey;
+
+    let isAll = false;
+    if (this.useIncludeAllOption) {
+      if (values.includes(ALL_SELECT_VALUE)) {
+        values = listItems.filter((item) => !item.disabled).map((item) => item[valueKey]);
+        this.selectValues = values;
+        isAll = true;
+      }
+    }
+
+    this.selectLabelElement.textContent = this.getLabel(values).join(this.valueDelimiter);
+
+    this.selectValues = values;
+
+    this.changeValue(values);
+
+    if (!this.listElement) {
+      return;
+    }
+
+    const listElement = this.listElement;
+
+    if (isAll) {
+      addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
+      return;
+    }
+
+    removeClass(listElement.querySelectorAll('.dg-dropdown-item.' + SELECTED_STYLE_CLASS), SELECTED_STYLE_CLASS);
+
     for (let i = 0; i < listItems.length; i++) {
       const listItem = listItems[i];
       const val = listItem[valueKey];
 
       if (values.includes(val)) {
-        const element = this.listElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`);
+        const element = listElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`);
 
         if (element) element.classList.add(SELECTED_STYLE_CLASS);
       }

@@ -22,9 +22,15 @@ export class CustomRenderer extends ToolBarRenderer {
     const controlElement = this.getControlElement(element);
 
     controlElement.innerHTML = '<input type="text">';
+
+    this.setIsInit();
   }
 
   valid(element: HTMLElement): any {
     return true;
+  }
+
+  public setValue(values: any): void {
+    //
   }
 }

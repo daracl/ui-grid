@@ -19,6 +19,8 @@ export abstract class ToolBarRenderer {
 
   private validatorElement: HTMLElement;
 
+  private isInit = false;
+
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     this.field = field;
     this.fieldName = field.name;
@@ -78,7 +80,7 @@ export abstract class ToolBarRenderer {
   initTextEvent(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'input' }, (e: UIEvent) => {
-      this.changeValue(e, contentElement, this.getValue());
+      this.changeValue(this.getValue());
     });
 
     cfg.eventManager.on({ el: contentElement, type: 'keydown' }, (e: KeyboardEvent) => {
@@ -100,14 +102,18 @@ export abstract class ToolBarRenderer {
     }
   }
 
-  public changeValue(e: Event, eventElement: HTMLElement, newValue: any) {
+  public setIsInit() {
+    this.isInit = true;
+  }
+
+  public changeValue(newValue: any) {
+    if (!this.isInit) return;
+
     if (this.field.change) {
       const toolbarValues = this.gridMain.getToolbarValues();
       this.field.change.call(null, {
-        evt: e,
         field: this.field,
         value: newValue,
-        element: eventElement,
         values: toolbarValues,
       });
     }

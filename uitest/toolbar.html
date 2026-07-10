@@ -168,12 +168,12 @@
                 },
                 {
                   label: 'Category',
-                  name: '직급',
+                  name: 'dropdown',
                   width: 150,
                   renderer: {
                     type: 'dropdown',
                     listItem: {
-                      //includeAllOption: true,
+                      includeAllOption: true,
                       multiple: true,
                       list: ['대리', '과장', '부장'],
                     },
@@ -266,7 +266,7 @@
                     type: 'choice',
 
                     listItem: {
-                      labelOnly: false,
+                      labelOnly: true,
                       list: ['대리', '과장', '부장'],
                     },
                   },
@@ -286,7 +286,7 @@
                     type: 'choice',
                     listItem: {
                       multiple: false,
-                      labelOnly: false,
+                      labelOnly: true,
                       list: ['대리', '과장', '부장'],
                     },
                   },

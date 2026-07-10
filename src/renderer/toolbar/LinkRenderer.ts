@@ -37,6 +37,8 @@ export class LinkRenderer extends ToolBarRenderer {
     }
 
     aElement.textContent = refValue.label ?? refValue;
+
+    this.setIsInit();
   }
 
   initEvent(contentElement: HTMLElement) {

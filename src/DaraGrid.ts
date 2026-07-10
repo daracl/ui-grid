@@ -84,20 +84,47 @@ export class DaraGrid {
     return this.gridMain.config().currentFields;
   }
 
+  /**
+   * 그리드의 전체 행 데이터를 반환한다.
+   *
+   * @returns 전체 행 데이터 배열
+   */
   public getItems() {
     return this.gridMain.config().dataManager.getAllRowItems();
   }
 
+  /**
+   * 현재 표시 중인 모든 레이어(드롭다운, 팝업 등)를 숨긴다.
+   */
   public hideLayer() {
     this.gridMain.hideLayer('all');
   }
 
+  /**
+   * 그리드에 focusout 처리를 설정한다.
+   *
+   * 포커스를 잃었을 때 필요한 UI 처리(예: 레이어 닫기)를 수행한다.
+   */
   public setFocusOut() {
     this.gridMain.setGridFocusOut();
   }
 
+  /**
+   * 툴바에 설정된 현재 값을 반환한다.
+   *
+   * @returns 툴바 값 객체
+   */
   public getToolbarValues() {
     return this.gridMain.getToolbarValues();
+  }
+
+  /**
+   * 툴바 값을 설정한다.
+   *
+   * @param values - 설정할 툴바 값 객체
+   */
+  public setToolbarValues(values: any) {
+    this.gridMain.setToolbarValues(values);
   }
 
   /**

@@ -24,6 +24,8 @@ export class ButtonRenderer extends ToolBarRenderer {
     this.initEvent(btnElement);
 
     btnElement.textContent = this.field.label ?? '';
+
+    this.setIsInit();
   }
 
   initEvent(contentElement: HTMLElement) {

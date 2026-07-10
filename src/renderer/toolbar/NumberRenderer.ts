@@ -21,6 +21,8 @@ export class NumberRenderer extends ToolBarRenderer {
 
     this.editElement = editElement;
     this.initTextEvent(editElement);
+
+    this.setIsInit();
   }
 
   public getValue() {

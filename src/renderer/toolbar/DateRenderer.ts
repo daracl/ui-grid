@@ -21,10 +21,13 @@ export class DateRenderer extends ToolBarRenderer {
 
     this.editElement = editElement;
     this.initTextEvent(editElement);
+
+    this.setIsInit();
   }
 
   public setValue(value: string) {
     this.editElement.value = value;
+    this.changeValue(value);
   }
 
   public getValue() {

@@ -48,6 +48,8 @@ export class SwitchRenderer extends ToolBarRenderer {
     this.editElement = input;
 
     this.initClick(input);
+
+    this.setIsInit();
   }
 
   initClick(contentElement: HTMLInputElement) {
@@ -60,7 +62,7 @@ export class SwitchRenderer extends ToolBarRenderer {
       const val = this.getValue();
       if (beforeValue !== val) {
         beforeValue = val;
-        this.changeValue(e, contentElement, this.getValue());
+        this.changeValue(this.getValue());
       }
     });
   }

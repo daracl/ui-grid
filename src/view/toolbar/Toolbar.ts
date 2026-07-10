@@ -114,12 +114,13 @@ export class Toolbar {
   }
 
   public setValues(val: any) {
-    for (const key in val) {
-      //
-      //
-      // name 처리 할것.
-      //
-      //
+    for (const field of this.toolbarFields) {
+      const fieldName = field.name;
+      if (fieldName && field.$renderer.canEdit()) {
+        if (val[fieldName]) {
+          field.$renderer.setValue(val[fieldName]);
+        }
+      }
     }
   }
 

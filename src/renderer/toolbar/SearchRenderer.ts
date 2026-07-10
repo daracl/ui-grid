@@ -91,6 +91,8 @@ export class SearchRenderer extends ToolBarRenderer {
     }
     text.textContent = viewLabel;
     this.selectLabelElement = text;
+
+    this.setIsInit();
   }
 
   public getLabel(value: string | string[]) {
@@ -252,7 +254,7 @@ export class SearchRenderer extends ToolBarRenderer {
         this.selectValues = addValue || '';
       }
 
-      this.changeValue(e, target, this.selectValues);
+      this.changeValue(this.selectValues);
 
       this.selectLabelElement.textContent = this.getLabel(this.selectValues).join(this.valueDelimiter);
 
@@ -312,5 +314,9 @@ export class SearchRenderer extends ToolBarRenderer {
 
   public getValue() {
     return this.selectValues;
+  }
+
+  public setValue(values: any): void {
+    //
   }
 }
