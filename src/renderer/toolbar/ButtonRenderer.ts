@@ -2,6 +2,7 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
+import { createHTMLElement } from '@/util/domUtils';
 
 /**
  * button renderer
@@ -17,15 +18,12 @@ export class ButtonRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const btnElement = document.createElement('button');
-    btnElement.className = this.getRendererStyleClass('dg-button');
+    const btnElement = createHTMLElement('button', this.getRendererStyleClass('dg-button'));
     controlElement.appendChild(btnElement);
 
     this.initEvent(btnElement);
 
     btnElement.textContent = this.field.label ?? '';
-
-    this.setIsInit();
   }
 
   initEvent(contentElement: HTMLElement) {

@@ -1,3 +1,4 @@
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
@@ -5,7 +6,6 @@ import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
 import { intValue, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 
 /**
  * Selection renderer
@@ -80,12 +80,10 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
     this.setValue(this.field.defaultValue ?? '');
 
-    this.initEvt(choiceContainer);
-
-    this.setIsInit();
+    this.initTextEvt(choiceContainer);
   }
 
-  initEvt(contentElement: HTMLElement) {
+  initTextEvt(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
 
     const isMultiple = this.isMultiple;
@@ -153,9 +151,9 @@ export class ChoiceRenderer extends ToolBarRenderer {
           element.classList.remove(SELECTED_STYLE_CLASS);
         }
       }
-
-      this.changeValue(this.selectValues);
     }
+
+    this.changeValue(this.selectValues);
   }
 
   private template(list: any[]): string {

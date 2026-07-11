@@ -1,15 +1,14 @@
 import { ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
-import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
+import { createHTMLElement, getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { bindHideOnBlur, normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
-import { addClass, removeClass, toggleClass } from '@/util/styleUtils';
+import { addClass, removeClass } from '@/util/styleUtils';
 import { isArray, isFunction, isString, removeItem, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-
-const SELECTED_STYLE_CLASS = 'selected';
 
 /**
  * dropdown renderer
@@ -73,22 +72,18 @@ export class DropdownRenderer extends ToolBarRenderer {
     const buttonElement = document.createElement('button');
     buttonElement.className = this.getRendererStyleClass('dg-dropdown-button');
 
-    const text = document.createElement('div');
-    text.className = 'dg-dropdown-label';
-
-    const icon = document.createElement('div');
-    icon.className = 'dg-dropdown-icon';
+    const text = createHTMLElement('div', 'dg-dropdown-label');
+    const icon = createHTMLElement('div', 'dg-dropdown-icon');
 
     buttonElement.appendChild(text);
     buttonElement.appendChild(icon);
 
     controlElement.appendChild(buttonElement);
+    this.selectLabelElement = text;
 
     this.initEvent(buttonElement);
-    this.selectLabelElement = text;
-    this.setValue(this.selectValues);
 
-    this.setIsInit();
+    this.setValue(this.selectValues);
   }
 
   public getLabel(value: string[]) {

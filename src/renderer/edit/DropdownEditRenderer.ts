@@ -9,8 +9,7 @@ import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRenderer } from '../EditRenderer';
 import { uniqueListItem } from '@/util/rendererUtils';
-
-const SELECTED_STYLE_CLASS = 'selected';
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 
 /**
  * dropdown edit renderer

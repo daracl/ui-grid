@@ -1,4 +1,5 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
+import { createHTMLElement } from '@/util/domUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
@@ -61,14 +62,21 @@ export abstract class ToolBarRenderer {
    */
   public abstract render(element: HTMLElement): void;
 
+  public afterRender() {
+    this.isInit = true;
+  }
+
   protected textRender(element: HTMLElement, type: string): HTMLInputElement {
-    const editElement = document.createElement('input');
-
-    editElement.type = type;
-    editElement.setAttribute('autocomplete', 'off');
-    editElement.placeholder = this.field.placeholder ?? '';
-
-    editElement.className = this.getRendererStyleClass('dg-edit-' + type);
+    const attr = {
+      type: type,
+      autocomplete: 'off',
+      placeholder: this.field.placeholder ?? '',
+    };
+    const editElement = createHTMLElement(
+      'input',
+      this.getRendererStyleClass('dg-edit-' + type),
+      attr,
+    ) as HTMLInputElement;
 
     editElement.value = this.field.defaultValue ?? '';
 
@@ -77,7 +85,7 @@ export abstract class ToolBarRenderer {
     return editElement;
   }
 
-  initTextEvent(contentElement: HTMLInputElement) {
+  initTextEvt(contentElement: HTMLInputElement) {
     const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'input' }, (e: UIEvent) => {
       this.changeValue(this.getValue());
@@ -100,10 +108,6 @@ export abstract class ToolBarRenderer {
     if (this.isClick) {
       this.field.click?.call(null, { evt: e, field: this.field, element: eventElement });
     }
-  }
-
-  public setIsInit() {
-    this.isInit = true;
   }
 
   public changeValue(newValue: any) {

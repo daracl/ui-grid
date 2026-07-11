@@ -48,8 +48,6 @@ export class SwitchRenderer extends ToolBarRenderer {
     this.editElement = input;
 
     this.initClick(input);
-
-    this.setIsInit();
   }
 
   initClick(contentElement: HTMLInputElement) {

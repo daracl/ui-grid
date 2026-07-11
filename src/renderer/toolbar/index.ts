@@ -7,7 +7,7 @@ export { LinkRenderer } from './LinkRenderer';
 export { NumberRenderer } from './NumberRenderer';
 export { TextRenderer } from './TextRenderer';
 
-export { DateRenderer } from './DateRenderer';
-export { SwitchRenderer } from './SwitchRenderer';
 export { CustomRenderer } from './CustomRenderer';
+export { DateRenderer } from './DateRenderer';
 export { SearchRenderer } from './SearchRenderer';
+export { SwitchRenderer } from './SwitchRenderer';

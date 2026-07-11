@@ -58,6 +58,7 @@ export const TOOLBAR_RENDERER: any = {
   textarea: ToolbarRenderer.TextRenderer,
   html: ToolbarRenderer.HtmlRenderer,
   link: ToolbarRenderer.LinkRenderer,
+  search: ToolbarRenderer.SearchRenderer,
 };
 
 export type TOOLBAR_RENDERER_TYPE = keyof typeof TOOLBAR_RENDERER;

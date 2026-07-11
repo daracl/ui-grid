@@ -29,8 +29,6 @@ export class HtmlRenderer extends ToolBarRenderer {
     } else {
       controlElement.innerHTML = defaultValue;
     }
-
-    this.setIsInit();
   }
 
   public getValue() {

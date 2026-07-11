@@ -46,8 +46,6 @@ export class ApiDataSearch extends DataSearch {
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
 
-    console.log('searchMatchInfo : ', searchMatchInfo);
-
     return { count: searchMatchInfo.matchCount, matchIndex: searchMatchInfo.currentMatchIndex };
   }
 

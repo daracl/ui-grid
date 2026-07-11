@@ -20,9 +20,7 @@ export class NumberRenderer extends ToolBarRenderer {
     const editElement = this.textRender(controlElement, 'number');
 
     this.editElement = editElement;
-    this.initTextEvent(editElement);
-
-    this.setIsInit();
+    this.initTextEvt(editElement);
   }
 
   public getValue() {

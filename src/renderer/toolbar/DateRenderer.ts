@@ -20,9 +20,7 @@ export class DateRenderer extends ToolBarRenderer {
     const editElement = this.textRender(controlElement, 'date');
 
     this.editElement = editElement;
-    this.initTextEvent(editElement);
-
-    this.setIsInit();
+    this.initTextEvt(editElement);
   }
 
   public setValue(value: string) {

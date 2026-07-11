@@ -20,9 +20,7 @@ export class TextRenderer extends ToolBarRenderer {
     const editElement = this.textRender(controlElement, 'text');
 
     this.editElement = editElement;
-    this.initTextEvent(editElement);
-
-    this.setIsInit();
+    this.initTextEvt(editElement);
   }
 
   public getValue() {

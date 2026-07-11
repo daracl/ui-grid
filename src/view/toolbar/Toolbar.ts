@@ -116,6 +116,7 @@ export class Toolbar {
   public setValues(val: any) {
     for (const field of this.toolbarFields) {
       const fieldName = field.name;
+
       if (fieldName && field.$renderer.canEdit()) {
         if (val[fieldName]) {
           field.$renderer.setValue(val[fieldName]);
@@ -296,6 +297,8 @@ export class Toolbar {
     this.hiddenCheckElement.appendChild(el);
 
     field.$width = el.getBoundingClientRect().width;
+
+    field.$renderer.afterRender();
 
     return el;
   }
