@@ -180,9 +180,9 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers select,
 .dg-hidden-layers textarea {
   border: 1px solid var(--border-color);
-  height: 25px;
+  height: 28px;
   line-height: 1.2em;
-  border-radius: 2px;
+  border-radius: 4px;
   padding: 0px 8px 0px 5px;
   background-color: var(--input-bg);
   color: inherit;
@@ -218,7 +218,7 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid input,
 .dg-hidden-layers input {
   margin: 0;
-  padding: 0px 3px 0px 3px;
+  padding: 0px 5px 0px 8px;
   display: inline-block;
 }
 .daracl-grid input[type=checkbox],
@@ -227,7 +227,7 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid textarea,
 .dg-hidden-layers textarea {
-  padding: 0px 3px 0px 3px;
+  padding: 0px 5px 0px 8px;
 }
 .daracl-grid .text-al,
 .dg-hidden-layers .text-al {
@@ -662,6 +662,30 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control > * {
   width: 100%;
   min-width: 0;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search .dg-search-text {
+  border: 0px;
+  margin-left: 5px;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search .dg-search-btn {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search .dg-search-btn::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  display: block;
+  background: center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field.dg-group {
   grid-template-columns: auto minmax(0, 1fr);

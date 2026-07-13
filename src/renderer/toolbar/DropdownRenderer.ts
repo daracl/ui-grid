@@ -43,19 +43,7 @@ export class DropdownRenderer extends ToolBarRenderer {
       this.isMultiple = rendererInfo.listItem?.multiple ?? false;
       this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ',';
 
-      const list = rendererInfo.listItem?.list;
-      if (isArray(list)) {
-        const reval = normalizeChoiceOptions(list, this.labelKey, this.valueKey);
-        this.listItems = uniqueListItem(reval.list, this.valueKey);
-
-        this.valueLabelMap = reval.map;
-      } else if (isFunction(list)) {
-        list({ init: true }, (result: any[]) => {
-          const reval = normalizeChoiceOptions(result, this.labelKey, this.valueKey);
-          this.listItems = uniqueListItem(reval.list, this.valueKey);
-          this.valueLabelMap = reval.map;
-        });
-      }
+      this.getListItems();
     } else {
       this.valueDelimiter = ',';
       this.isMultiple = false;
@@ -64,6 +52,22 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     this.selectValues = stringSplit(this.field.defaultValue || '', this.valueDelimiter);
     this.useIncludeAllOption = this.isMultiple && (this.field.renderer.listItem?.includeAllOption ?? false);
+  }
+  getListItems() {
+    const rendererInfo = this.field.renderer;
+    const list = rendererInfo.listItem?.list;
+
+    const renderDropdown = (items: any[]) => {
+      const { list, map } = normalizeChoiceOptions(items, this.labelKey, this.valueKey);
+      this.listItems = uniqueListItem(list, this.valueKey);
+      this.valueLabelMap = map;
+    };
+
+    if (Array.isArray(list)) {
+      renderDropdown(list);
+    } else if (isFunction(list)) {
+      list({ init: true, values: this.getToolbarValues() }, renderDropdown);
+    }
   }
 
   public render(element: HTMLElement): void {
@@ -129,6 +133,8 @@ export class DropdownRenderer extends ToolBarRenderer {
       this.listElement = listElement;
     }
 
+    this.getListItems();
+
     const list = this.listItems;
 
     if (this.useIncludeAllOption && list.filter((item) => item[this.valueKey] == ALL_SELECT_VALUE).length < 1) {
@@ -176,6 +182,9 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     bindHideOnBlur(listElement, cfg.eventManager);
 
+    const enabledItems = list.filter((item) => !item.disabled);
+    const enabledCount = enabledItems.length;
+
     cfg.eventManager.on({ el: items, type: 'click' }, (e: UIEvent) => {
       const target = e.target as HTMLElement;
       const addItemIndex = Number(target.dataset.index || '0');
@@ -191,36 +200,25 @@ export class DropdownRenderer extends ToolBarRenderer {
       let selectValues = this.selectValues;
 
       if (isMultiple) {
-        const notDisabledList = list.filter((item) => !item.disabled);
-        const allItemLength = notDisabledList.length;
-        const currentValue = this.selectValues;
-
-        const valueKey = this.valueKey;
-
         if (addItemValue == ALL_SELECT_VALUE) {
-          const allItemElement = listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)');
-
-          if (allItemLength == currentValue.length) {
+          if (enabledCount == selectValues.length) {
             selectValues = [];
-
-            removeClass(allItemElement, SELECTED_STYLE_CLASS);
           } else {
-            const newValue = notDisabledList.map((item) => {
+            const valueKey = this.valueKey;
+            const newValue = enabledItems.map((item) => {
               return item[valueKey];
             });
 
             selectValues = newValue;
-
-            addClass(allItemElement, SELECTED_STYLE_CLASS);
           }
         } else {
-          if (this.selectValues.includes(addItemValue)) {
-            selectValues = removeItem(this.selectValues, addItemValue);
+          if (selectValues.includes(addItemValue)) {
+            selectValues = removeItem(selectValues, addItemValue);
           } else {
             selectValues.push(addItemValue);
           }
 
-          if (selectValues.length != allItemLength) {
+          if (selectValues.length != enabledCount) {
             selectValues = removeItem(selectValues, ALL_SELECT_VALUE);
           }
         }
@@ -244,10 +242,17 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     const valueKey = this.valueKey;
 
+    const notDisabledList = listItems.filter((item) => !item.disabled);
+    const allItemLength = notDisabledList.length;
+
+    if (!values.includes(ALL_SELECT_VALUE) && values.length == allItemLength - 1) {
+      values.push(ALL_SELECT_VALUE);
+    }
+
     let isAll = false;
     if (this.useIncludeAllOption) {
       if (values.includes(ALL_SELECT_VALUE)) {
-        values = listItems.filter((item) => !item.disabled).map((item) => item[valueKey]);
+        values = notDisabledList.map((item) => item[valueKey]);
         this.selectValues = values;
         isAll = true;
       }
@@ -284,24 +289,29 @@ export class DropdownRenderer extends ToolBarRenderer {
     }
   }
 
-  private dropdownMenuTemplate(list: any[]): string {
+  private dropdownMenuTemplate<T extends Record<string, unknown>>(list: T[]): string {
     if (!isArray(list) || list.length === 0) return '';
 
-    const templateParts: string[] = [];
+    const { valueKey, labelKey } = this;
+    const html: string[] = [];
 
-    for (let itemIdx = 0; itemIdx < list.length; itemIdx++) {
-      const item = list[itemIdx];
-      const label = item?.[this.labelKey] ?? '';
+    for (let i = 0; i < list.length; i++) {
+      const item = list[i];
 
-      // 비활성화 상태 클래스
-      const isDisabled = !!item?.disabled;
+      let className = 'dg-dropdown-item';
 
-      const classes = [isDisabled ? 'disabled' : ''].join(' ');
+      if (item.disabled) {
+        className += ' disabled';
+      }
 
-      templateParts.push(`<div data-index="${itemIdx}" class="dg-dropdown-item ${classes}">${label}</div>`);
+      if (item[valueKey] === ALL_SELECT_VALUE) {
+        className += ' dg-all';
+      }
+
+      html.push(`<div data-index="${i}" class="${className}">${item[labelKey] ?? ''}</div>`);
     }
 
-    return templateParts.join('');
+    return html.join('');
   }
 
   public getValue() {

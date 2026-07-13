@@ -134,6 +134,11 @@ export abstract class ToolBarRenderer {
     }
   }
 
+  public getToolbarValues() {
+    if (!this.isInit) return {};
+    return this.gridMain.getToolbarValues();
+  }
+
   public getControlElement(fieldElement: HTMLElement): HTMLElement {
     return fieldElement.querySelector('.dg-control') as HTMLElement;
   }

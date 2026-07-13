@@ -196,24 +196,16 @@
     width: 100%;
     min-width: 65px;
     max-height: 230px;
-
-    &.dg-toolbar {
-      > .dg-dropdown-item {
-        padding: 7px 0px 7px 3px;
-      }
-    }
-
-    &.open {
-      display: block;
-    }
+    outline: none;
 
     .dg-dropdown-item {
       cursor: pointer;
-      padding: 5px 16px;
+      padding: 3px 12px 3px 12px;
       text-align: center;
       opacity: 0.8;
 
       &.disabled {
+        opacity: 0.5;
         background-color: var(--disabled-bg) !important;
       }
 
@@ -238,6 +230,7 @@
 
       &:hover {
         opacity: 1;
+        background-color: var(--body-bg-thin);
       }
     }
   }
