@@ -1,12 +1,17 @@
 import { ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
-import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { createHTMLElement, getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { bindHideOnBlur, normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
-import { addClass, removeClass } from '@/util/styleUtils';
-import { isArray, isFunction, isString, removeItem, stringSplit } from '@/util/utils';
+import {
+  bindHideOnBlur,
+  getLabelsByValue,
+  normalizeChoiceOptions,
+  uniqueListItem,
+  updateDropdownSelection,
+  updateSelectValues,
+} from '@/util/rendererUtils';
+import { arrayEquals, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -18,7 +23,7 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
  * @extends {ToolBarRenderer}
  */
 export class DropdownRenderer extends ToolBarRenderer {
-  private listElement: HTMLElement;
+  private dropdownElement: HTMLElement;
   private selectLabelElement: HTMLElement;
   private readonly labelKey: string;
   private readonly valueKey: string;
@@ -29,6 +34,8 @@ export class DropdownRenderer extends ToolBarRenderer {
   private listItems: any[] = [];
 
   private selectValues: string[];
+
+  private readonly required: boolean;
 
   private readonly useIncludeAllOption: boolean;
 
@@ -49,8 +56,8 @@ export class DropdownRenderer extends ToolBarRenderer {
       this.isMultiple = false;
       this.valueLabelMap = new Map<string, any>();
     }
-
-    this.selectValues = stringSplit(this.field.defaultValue || '', this.valueDelimiter);
+    this.required = rendererInfo.required ?? false;
+    this.selectValues = [];
     this.useIncludeAllOption = this.isMultiple && (this.field.renderer.listItem?.includeAllOption ?? false);
   }
   getListItems() {
@@ -85,31 +92,50 @@ export class DropdownRenderer extends ToolBarRenderer {
     controlElement.appendChild(buttonElement);
     this.selectLabelElement = text;
 
+    const dropdownElement = getLayerElement('div', 'dg-dropdown-menu dg-toolbar ' + FIELD_LAYER_CLASS, this.field.$uid);
+    this.rendererContainer.appendChild(dropdownElement);
+    this.dropdownElement = dropdownElement;
+
     this.initEvent(buttonElement);
 
-    this.setValue(this.selectValues);
-  }
-
-  public getLabel(value: string[]) {
-    const values = Array.from(new Set(value));
-
-    const labels: string[] = [];
-
-    const valueLabelMap = this.valueLabelMap;
-
-    for (const val of values) {
-      if (valueLabelMap.has(val)) {
-        labels.push(valueLabelMap.get(val));
-      }
-    }
-    return labels;
+    this.setValue(stringSplit(this.field.defaultValue || '', this.valueDelimiter));
   }
 
   initEvent(buttonElement: HTMLElement) {
-    this.cfg.eventManager.on({ el: buttonElement, type: 'click' }, (e: UIEvent) => {
+    const { eventManager } = this.gridMain.config();
+
+    eventManager.on({ el: buttonElement, type: 'click' }, (e: UIEvent) => {
       this.click(e, buttonElement);
 
       this.editRender(buttonElement);
+    });
+
+    const { valueKey, isMultiple, required } = this;
+
+    eventManager.on({ el: this.dropdownElement, type: 'click', selector: '.dg-dropdown-item' }, (e: UIEvent) => {
+      const target = e.target as HTMLElement;
+      const addItemIndex = Number(target.dataset.index || '0');
+
+      if (target.classList.contains('disabled')) {
+        return;
+      }
+
+      const enabledItems = this.listItems.filter((item) => !item.disabled);
+      const enabledValues = enabledItems.map((item) => {
+        return item[valueKey];
+      });
+
+      const addItemValue = this.listItems[addItemIndex][valueKey];
+
+      const selectValues = updateSelectValues(this.selectValues, addItemValue, isMultiple, enabledValues, required);
+
+      if (!arrayEquals(this.selectValues, selectValues)) {
+        this.setValue(selectValues);
+      }
+
+      if (!isMultiple) {
+        this.dropdownElement.style.display = 'none';
+      }
     });
   }
 
@@ -124,15 +150,6 @@ export class DropdownRenderer extends ToolBarRenderer {
 
     cfg.activeComponent = layerId;
 
-    let listElement = this.listElement;
-
-    if (!listElement) {
-      listElement = getLayerElement('div', 'dg-dropdown-menu dg-toolbar ' + FIELD_LAYER_CLASS, layerId);
-
-      this.rendererContainer.appendChild(listElement);
-      this.listElement = listElement;
-    }
-
     this.getListItems();
 
     const list = this.listItems;
@@ -144,10 +161,12 @@ export class DropdownRenderer extends ToolBarRenderer {
       list.unshift(allItem);
     }
 
-    listElement.innerHTML = this.dropdownMenuTemplate(list);
+    const dropdownElement = this.dropdownElement;
+
+    dropdownElement.innerHTML = this.dropdownMenuTemplate(list);
 
     this.setValue(this.selectValues);
-    this.openMenu(buttonElement, listElement, list);
+    this.openMenu(buttonElement, dropdownElement);
   }
 
   /**
@@ -155,138 +174,52 @@ export class DropdownRenderer extends ToolBarRenderer {
    *
    * @private
    * @param {HTMLElement} buttonElement cell element
-   * @param {HTMLElement} listElement dropdown element
-   * @param {HTMLElement} eventElement click element
-   * @param {any[]} list list item
+   * @param {HTMLElement} dropdownElement dropdown element
    */
-  private openMenu(buttonElement: HTMLElement, listElement: HTMLElement, list: any[]) {
+  private openMenu(buttonElement: HTMLElement, dropdownElement: HTMLElement) {
     const elementRect = getElementRect(buttonElement);
 
-    const menuStyle = listElement.style;
+    const menuStyle = dropdownElement.style;
 
     menuStyle.height = 'auto';
-    this.gridMain.openLayer(listElement);
+    this.gridMain.openLayer(dropdownElement);
     menuStyle.width = `${elementRect.width}px`;
 
-    const openPosition = innerLayerPosition(this.rendererContainer, buttonElement, listElement);
+    const openPosition = innerLayerPosition(this.rendererContainer, buttonElement, dropdownElement);
 
     menuStyle.top = `${openPosition.top}px`;
     menuStyle.left = `${openPosition.left}px`;
     menuStyle.height = `${openPosition.height}px`;
 
-    const items = listElement.querySelectorAll('.dg-dropdown-item');
-
-    const isMultiple = this.isMultiple;
-
-    const cfg = this.gridMain.config();
-
-    bindHideOnBlur(listElement, cfg.eventManager);
-
-    const enabledItems = list.filter((item) => !item.disabled);
-    const enabledCount = enabledItems.length;
-
-    cfg.eventManager.on({ el: items, type: 'click' }, (e: UIEvent) => {
-      const target = e.target as HTMLElement;
-      const addItemIndex = Number(target.dataset.index || '0');
-
-      if (target.classList.contains('disabled')) {
-        return;
-      }
-
-      const addItem = list[addItemIndex];
-
-      const addItemValue = addItem[this.valueKey];
-
-      let selectValues = this.selectValues;
-
-      if (isMultiple) {
-        if (addItemValue == ALL_SELECT_VALUE) {
-          if (enabledCount == selectValues.length) {
-            selectValues = [];
-          } else {
-            const valueKey = this.valueKey;
-            const newValue = enabledItems.map((item) => {
-              return item[valueKey];
-            });
-
-            selectValues = newValue;
-          }
-        } else {
-          if (selectValues.includes(addItemValue)) {
-            selectValues = removeItem(selectValues, addItemValue);
-          } else {
-            selectValues.push(addItemValue);
-          }
-
-          if (selectValues.length != enabledCount) {
-            selectValues = removeItem(selectValues, ALL_SELECT_VALUE);
-          }
-        }
-      } else if (!this.selectValues.includes(addItemValue)) {
-        selectValues = [addItemValue];
-      }
-
-      this.setValue(selectValues);
-
-      if (!isMultiple) {
-        cfg.eventManager.off(items, 'click');
-        menuStyle.display = 'none';
-      }
-    });
+    bindHideOnBlur(dropdownElement, this.gridMain.config().eventManager);
   }
 
   public setValue(value: string | string[]) {
-    let values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+    const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
 
     const listItems = this.listItems;
 
     const valueKey = this.valueKey;
 
-    const notDisabledList = listItems.filter((item) => !item.disabled);
-    const allItemLength = notDisabledList.length;
-
-    if (!values.includes(ALL_SELECT_VALUE) && values.length == allItemLength - 1) {
-      values.push(ALL_SELECT_VALUE);
-    }
-
     let isAll = false;
     if (this.useIncludeAllOption) {
       if (values.includes(ALL_SELECT_VALUE)) {
-        values = notDisabledList.map((item) => item[valueKey]);
-        this.selectValues = values;
         isAll = true;
       }
     }
 
-    this.selectLabelElement.textContent = this.getLabel(values).join(this.valueDelimiter);
-
     this.selectValues = values;
+    this.selectLabelElement.textContent = getLabelsByValue(values, this.valueDelimiter, this.valueLabelMap).join(
+      this.valueDelimiter,
+    );
 
     this.changeValue(values);
 
-    if (!this.listElement) {
+    if (!this.dropdownElement) {
       return;
     }
 
-    const listElement = this.listElement;
-
-    if (isAll) {
-      addClass(listElement.querySelectorAll('.dg-dropdown-item:not(.disabled)'), SELECTED_STYLE_CLASS);
-      return;
-    }
-
-    removeClass(listElement.querySelectorAll('.dg-dropdown-item.' + SELECTED_STYLE_CLASS), SELECTED_STYLE_CLASS);
-
-    for (let i = 0; i < listItems.length; i++) {
-      const listItem = listItems[i];
-      const val = listItem[valueKey];
-
-      if (values.includes(val)) {
-        const element = listElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`);
-
-        if (element) element.classList.add(SELECTED_STYLE_CLASS);
-      }
-    }
+    updateDropdownSelection(this.dropdownElement, listItems, values, valueKey, isAll);
   }
 
   private dropdownMenuTemplate<T extends Record<string, unknown>>(list: T[]): string {
@@ -308,7 +241,7 @@ export class DropdownRenderer extends ToolBarRenderer {
         className += ' dg-all';
       }
 
-      html.push(`<div data-index="${i}" class="${className}">${item[labelKey] ?? ''}</div>`);
+      html.push(`<div data-index="${i}" class="${className}">${item[labelKey]}</div>`);
     }
 
     return html.join('');

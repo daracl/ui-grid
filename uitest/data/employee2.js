@@ -8,6 +8,7 @@ var GRID_EMPLOYEE_DATA = [
     status: '정상',
     active: 'Y',
     amount: 85,
+    food: ['$all$'],
     password: 'pw001!',
     s: [12, 18, 25, 30, 28, 35],
     t: [5, 15, 10, 20, 18, 25],

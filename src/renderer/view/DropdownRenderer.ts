@@ -1,7 +1,7 @@
 import { ALIGN_STYLE } from '@/constantStyles';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
-import { normalizeChoiceOptions } from '@/util/rendererUtils';
-import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { getLabelsByValue, normalizeChoiceOptions } from '@/util/rendererUtils';
+import { isArray, isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -95,25 +95,7 @@ export class DropdownRenderer extends ViewRenderer {
   }
 
   public getLabel(value: string | string[]) {
-    let valueSet;
-    if (isString(value)) {
-      valueSet = new Set(stringSplit(value || '', this.valueDelimiter));
-    } else {
-      valueSet = new Set(value);
-    }
-
-    const values = Array.from(valueSet);
-
-    const labels: string[] = [];
-
-    const valueLabelMap = this.valueLabelMap;
-
-    for (const val of values) {
-      if (valueLabelMap.has(val)) {
-        labels.push(valueLabelMap.get(val));
-      }
-    }
-    return labels;
+    return getLabelsByValue(value, this.valueDelimiter, this.valueLabelMap);
   }
 
   initEvent(contentElement: HTMLElement) {

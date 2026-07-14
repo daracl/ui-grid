@@ -163,6 +163,7 @@
                   defaultValue: 'light',
 
                   change: (info) => {
+                    console.log(info);
                     gridObj.setTheme(info.value);
                   },
                 },
@@ -179,6 +180,20 @@
                     },
                   },
                   defaultValue: '대리',
+                  change: (info) => {},
+                },
+                {
+                  label: '단계',
+                  name: 'step',
+                  width: 150,
+                  renderer: {
+                    type: 'dropdown',
+                    listItem: {
+                      multiple: true,
+                      list: ['설계', '개발', '운영'],
+                    },
+                  },
+                  defaultValue: '설계',
                   change: (info) => {},
                 },
               ],

@@ -612,3 +612,41 @@ function cloneArrayDeep(dst: any, src: any[]) {
   }
   return dst;
 }
+
+/**
+ * 두 배열이 동일한지 비교한다.
+ *
+ * @param a 비교할 첫 번째 배열
+ * @param b 비교할 두 번째 배열
+ * @param ignoreOrder true이면 요소의 순서를 무시하고 비교한다.
+ * @param selector 비교에 사용할 값을 반환하는 선택 함수
+ * @returns 두 배열이 동일하면 true, 그렇지 않으면 false
+ */
+export function arrayEquals<T, U = T>(a: T[], b: T[], ignoreOrder = false, selector?: (item: T) => U): boolean {
+  if (a === b) {
+    return true;
+  }
+
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  const getValue = selector ?? ((item: T) => item as unknown as U);
+
+  if (ignoreOrder) {
+    const sortedA = [...a].sort((x, y) => compare(getValue(x), getValue(y)));
+    const sortedB = [...b].sort((x, y) => compare(getValue(x), getValue(y)));
+
+    return sortedA.every((item, index) => getValue(item) === getValue(sortedB[index]));
+  }
+
+  return a.every((item, index) => getValue(item) === getValue(b[index]));
+}
+
+/**
+ * 정렬을 위한 기본 비교 함수
+ */
+function compare<T>(a: T, b: T): number {
+  if (a === b) return 0;
+  return a > b ? 1 : -1;
+}
