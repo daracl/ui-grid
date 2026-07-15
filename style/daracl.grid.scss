@@ -78,6 +78,8 @@ body {
     --row-bg: #f3f6fa;
     --empty-icon-color: #adabab;
 
+    --icon-stroke-color: #ffffff;
+
     --checkbox-bg: #4caf50;
     --checkbox-color: #ffffff;
     --checkbox-indeterminate-bg: #686868;
@@ -153,6 +155,8 @@ body {
     --row-bg: #303236;
 
     --empty-icon-color: #888;
+
+    --icon-stroke-color: #1a1a1a;
 
     --checkbox-bg: #00c1ff;
     --checkbox-color: #4e4e4e;
@@ -262,6 +266,31 @@ body {
   .dg-disabled {
     pointer-events: none !important;
     opacity: 0.5 !important;
+  }
+
+  .dg-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; /* 또는 18px, 20px */
+    height: 16px;
+
+    > svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      fill: currentColor;
+      background: transparent;
+      transform: translateX(1px);
+    }
+
+    .icon-fill {
+      fill: currentColor;
+    }
+
+    .icon-stroke {
+      stroke: var(--icon-stroke-color);
+    }
   }
 
   .dg-ellipsis,

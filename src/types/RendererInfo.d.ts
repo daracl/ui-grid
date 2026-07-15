@@ -70,4 +70,7 @@ export interface EditRendererInfo {
   falseValue?: string | boolean;
   //label 보이기 여부
   showLabel?: boolean;
+  // icon style class
+  iconStyle?: 'string';
+  icon?: 'string';
 }

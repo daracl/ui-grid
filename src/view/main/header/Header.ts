@@ -8,6 +8,7 @@ import { addClass, removeClass } from '@/util/styleUtils';
 import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
 import { html } from '@/util/htmlTemplate';
+import { ALL_ICONS } from '@/constantIcons';
 
 const CHECK_INDETERMINATE = 'dg-indeterminate';
 /**
@@ -276,22 +277,7 @@ export class Header {
 
     const sortEnabled = opts.header.sort.enabled;
 
-    const searchIcon = searchEnabled
-      ? html`<div class="dg-search-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 12 12"
-            fill="none"
-            stroke="#999"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="5" cy="5" r="3.5" />
-            <line x1="8.5" y1="8.5" x2="11" y2="11" />
-          </svg>
-        </div>`
-      : '';
+    const searchIcon = searchEnabled ? html`<div class="dg-search-icon">${ALL_ICONS.search}</div>` : '';
 
     headerGroups.forEach((headerGroup, rowIndex) => {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
@@ -316,29 +302,13 @@ export class Header {
 
         const sortIcons =
           headerItem.$isLeaf && !headerItem.$isAside && (sortEnabled || headerItem.sort === true)
-            ? html`<div class="dg-sort-icon">
-                <span class="dg-sort-num"></span
-                ><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
-                  <path
-                    class="dg-asc"
-                    d="M10 5H2a.5.5 0 01-.46-.31.47.47 0 01.11-.54L5.29.5A1 1 0 016.7.5l3.65 3.65a.49.49 0 01.11.54A.51.51 0 0110 5z"
-                  />
-                  <path
-                    class="dg-desc"
-                    d="M2 7a.5.5 0 00-.46.31.47.47 0 00.11.54L5.3 11.5a1 1 0 001.41 0l3.65-3.65a.49.49 0 00.11-.54A.53.53 0 0010 7z"
-                  />
-                </svg>
-              </div>`
+            ? html`<div class="dg-sort-icon"><span class="dg-sort-num"></span>${ALL_ICONS.headerSort}</div>`
             : '';
 
         const isheaderHelp = headerItem.$enableHelp;
         const helpIcon =
           !headerItem.$isAside && (helpEnabled || isheaderHelp !== false)
-            ? html`<div class="dg-header-help-button">
-                <svg class="dg-header-help" viewBox="0 0 100 100">
-                  <g><polygon class="dg-header-help-btn" points="0 0,0 100,100 0"></polygon></g>
-                </svg>
-              </div>`
+            ? html`<div class="dg-header-help-button">${ALL_ICONS.help}</div>`
             : '';
 
         const label =

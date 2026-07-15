@@ -36,6 +36,7 @@ import { Summary } from './main/Summary';
 import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
+import { ALL_ICONS } from '@/constantIcons';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -1141,52 +1142,38 @@ function getGridTemplate() {
               <div class="dg-scroll-track"></div>
               <div class="dg-scroll-thumb"></div>
 
-              <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">
-                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
-                  <path d="M951.1626 819.412438 72.8374 819.412438 511.999488 204.586538Z"></path>
-                </svg>
-              </div>
+              <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">${ALL_ICONS.scrollUp}</div>
 
-              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;">
-                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
-                  <path d="M511.999488 819.413462 72.8374 204.586538 951.1626 204.586538Z"></path>
-                </svg>
-              </div>
+              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;">${ALL_ICONS.scrollDown}</div>
             </div>
 
             <div class="dg-scroll dg-horizontal">
               <div class="dg-scroll-track"></div>
               <div class="dg-scroll-thumb"></div>
 
-              <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">
-                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
-                  <path d="M819.41295 72.835865 819.41295 951.161065 204.586027 512Z"></path>
-                </svg>
-              </div>
+              <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollLeft}</div>
 
               <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">
-                <svg viewBox="0 0 1024 1024" style="fill: currentColor;">
-                  <path d="M204.58705 951.162088 204.58705 72.836889 819.41295 511.998977Z"></path>
-                </svg>
+                <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollRight}</div>
               </div>
+
+              <div class="dg-scroll-corner"></div>
             </div>
 
-            <div class="dg-scroll-corner"></div>
+            <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
+              <textarea class="dg-paste-area"></textarea>
+            </div>
           </div>
 
-          <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
-            <textarea class="dg-paste-area"></textarea>
+          <div class="dg-footer" role="presentation">
+            <span class="dg-status">
+              <span class="dg-selection-status"></span>
+            </span>
+
+            <span class="dg-paging"></span>
+
+            <span class="dg-paging-info"></span>
           </div>
-        </div>
-
-        <div class="dg-footer" role="presentation">
-          <span class="dg-status">
-            <span class="dg-selection-status"></span>
-          </span>
-
-          <span class="dg-paging"></span>
-
-          <span class="dg-paging-info"></span>
         </div>
       </div>
     </div>

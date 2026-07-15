@@ -1,7 +1,7 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { createHTMLElement } from '@/util/domUtils';
+import { createHTMLElement, getIcon } from '@/util/domUtils';
 
 /**
  * search renderer
@@ -30,6 +30,11 @@ export class SearchRenderer extends ToolBarRenderer {
     wrapperElement.appendChild(editElement);
 
     const btnElement = createHTMLElement('button', 'dg-button dg-search-btn');
+
+    const iconElement = createHTMLElement('span', 'dg-icon');
+    iconElement.innerHTML = getIcon('search');
+    btnElement.appendChild(iconElement);
+
     wrapperElement.appendChild(btnElement);
 
     controlElement.appendChild(wrapperElement);

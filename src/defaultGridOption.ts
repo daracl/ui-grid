@@ -210,12 +210,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     'setting.column.fixed.label': 'Fixed Column',
     'setting.column.fixed.notused': 'Not Used',
   },
-  icon: {
-    sortup:
-      '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg>',
-    sortdown:
-      '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>',
-  },
+
   operators: {}, // setting condition operator
   tree: undefined,
 };

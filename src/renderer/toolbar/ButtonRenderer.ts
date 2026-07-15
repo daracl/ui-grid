@@ -2,7 +2,8 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { createHTMLElement } from '@/util/domUtils';
+import { createHTMLElement, getIcon } from '@/util/domUtils';
+import { ALL_ICONS } from '@/constantIcons';
 
 /**
  * button renderer
@@ -19,11 +20,25 @@ export class ButtonRenderer extends ToolBarRenderer {
     const controlElement = this.getControlElement(element);
 
     const btnElement = createHTMLElement('button', this.getRendererStyleClass('dg-button'));
+
+    if (this.field.renderer.icon) {
+      const iconElement = createHTMLElement('span', 'dg-icon');
+      iconElement.innerHTML = getIcon(this.field.renderer.icon);
+      btnElement.appendChild(iconElement);
+    } else if (this.field.renderer.iconStyle) {
+      const iconElement = createHTMLElement('span', 'dg-icon ' + this.field.renderer.iconStyle);
+      btnElement.appendChild(iconElement);
+    }
+
+    if (this.field.label) {
+      const btnLabelElement = createHTMLElement('span', 'dg-button-label');
+      btnLabelElement.textContent = this.field.label ?? '';
+      btnElement.appendChild(btnLabelElement);
+    }
+
     controlElement.appendChild(btnElement);
 
     this.initEvent(btnElement);
-
-    btnElement.textContent = this.field.label ?? '';
   }
 
   initEvent(contentElement: HTMLElement) {

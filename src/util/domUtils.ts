@@ -1,6 +1,7 @@
 import { LAYER_ATTR_NAME } from '@/constants';
 import { styleClassSplit } from './styleUtils';
 import { isArray } from './utils';
+import { ALL_ICONS } from '@/constantIcons';
 
 export function hasClass(element: HTMLElement, styleClass: string) {
   const styleClassArr = styleClassSplit(styleClass);
@@ -261,6 +262,10 @@ export function getBrowserSize(usableSize = true) {
     width: windowWidth - scrollbarWidth,
     height: windowHeight - scrollbarHeight,
   };
+}
+
+export function getIcon(name: string): string {
+  return ALL_ICONS[name as keyof typeof ALL_ICONS] ?? '';
 }
 
 /**

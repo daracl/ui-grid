@@ -116,13 +116,7 @@ export interface GridOptions {
    * footer option
    */
   footer: FooterOptions;
-  /**
-   * icon
-   */
-  icon: {
-    sortup: string;
-    sortdown: string;
-  };
+
   /**
    * i18n
    */

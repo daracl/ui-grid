@@ -73,6 +73,7 @@ body .dg-hidden-layers.dg-light {
   --cell-bg-linenumber: #e6e6e6;
   --row-bg: #f3f6fa;
   --empty-icon-color: #adabab;
+  --icon-stroke-color: #ffffff;
   --checkbox-bg: #4caf50;
   --checkbox-color: #ffffff;
   --checkbox-indeterminate-bg: #686868;
@@ -129,6 +130,7 @@ body .dg-hidden-layers.dg-dark {
   --cell-bg-linenumber: #2e2e2e;
   --row-bg: #303236;
   --empty-icon-color: #888;
+  --icon-stroke-color: #1a1a1a;
   --checkbox-bg: #00c1ff;
   --checkbox-color: #4e4e4e;
   --checkbox-indeterminate-bg: #fffbfb;
@@ -256,6 +258,31 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-disabled {
   pointer-events: none !important;
   opacity: 0.5 !important;
+}
+.daracl-grid .dg-icon,
+.dg-hidden-layers .dg-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; /* 또는 18px, 20px */
+  height: 16px;
+}
+.daracl-grid .dg-icon > svg,
+.dg-hidden-layers .dg-icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+  background: transparent;
+  transform: translateX(1px);
+}
+.daracl-grid .dg-icon .icon-fill,
+.dg-hidden-layers .dg-icon .icon-fill {
+  fill: currentColor;
+}
+.daracl-grid .dg-icon .icon-stroke,
+.dg-hidden-layers .dg-icon .icon-stroke {
+  stroke: var(--icon-stroke-color);
 }
 .daracl-grid .dg-ellipsis,
 .daracl-grid .dg-ellipsis > *,
@@ -609,6 +636,17 @@ body .dg-hidden-layers.dg-dark {
   /* 레이아웃 라인 */
   /* section */
 }
+.daracl-grid .dg-toolbar .dg-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.daracl-grid .dg-toolbar .dg-button .dg-icon:has(+ span) {
+  margin-right: 3px;
+}
+.daracl-grid .dg-toolbar .dg-button .dg-button-label {
+  display: inline-block;
+}
 .daracl-grid .dg-toolbar .dg-toolbar-row {
   display: grid;
   align-items: center;
@@ -677,15 +715,8 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search .dg-search-btn {
   border: 0;
-  background: transparent;
+  background-color: transparent;
   cursor: pointer;
-}
-.daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field .dg-control .dg-search .dg-search-btn::before {
-  content: "";
-  width: 16px;
-  height: 16px;
-  display: block;
-  background: center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field.dg-group {
   grid-template-columns: auto minmax(0, 1fr);
@@ -1733,20 +1764,16 @@ body .dg-hidden-layers.dg-dark {
   width: 100%;
   min-width: 65px;
   max-height: 230px;
-}
-.daracl-grid .dg-layers .dg-dropdown-menu.dg-toolbar > .dg-dropdown-item {
-  padding: 7px 0px 7px 3px;
-}
-.daracl-grid .dg-layers .dg-dropdown-menu.open {
-  display: block;
+  outline: none;
 }
 .daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item {
   cursor: pointer;
-  padding: 5px 16px;
+  padding: 3px 12px 3px 12px;
   text-align: center;
   opacity: 0.8;
 }
 .daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.disabled {
+  opacity: 0.5;
   background-color: var(--disabled-bg) !important;
 }
 .daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.dg-all {
@@ -1767,6 +1794,7 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item:hover {
   opacity: 1;
+  background-color: var(--body-bg-thin);
 }
 
 .dg-hidden-layers {

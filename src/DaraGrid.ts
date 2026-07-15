@@ -11,6 +11,7 @@ import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
+import { ALL_ICONS } from './constantIcons';
 
 declare const APP_VERSION: string;
 
@@ -337,6 +338,10 @@ export class DaraGrid {
 
   public search(searchText: string, opts: SearchMode) {
     return this.gridMain.getDataSearch().search(searchText, opts ?? {});
+  }
+
+  public static setIcons(icons: any) {
+    Object.assign(ALL_ICONS, icons);
   }
 
   /**
