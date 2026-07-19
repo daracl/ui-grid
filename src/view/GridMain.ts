@@ -1141,24 +1141,17 @@ function getGridTemplate() {
             <div class="dg-scroll dg-vertical">
               <div class="dg-scroll-track"></div>
               <div class="dg-scroll-thumb"></div>
-
               <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">${ALL_ICONS.scrollUp}</div>
-
               <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;">${ALL_ICONS.scrollDown}</div>
             </div>
 
             <div class="dg-scroll dg-horizontal">
               <div class="dg-scroll-track"></div>
               <div class="dg-scroll-thumb"></div>
-
               <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollLeft}</div>
-
-              <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">
-                <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollRight}</div>
-              </div>
-
-              <div class="dg-scroll-corner"></div>
+              <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">${ALL_ICONS.scrollRight}</div>
             </div>
+            <div class="dg-scroll-corner"></div>
 
             <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
               <textarea class="dg-paste-area"></textarea>
