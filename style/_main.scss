@@ -27,13 +27,13 @@
     /*scroll 처리*/
     &[data-scroll='horizontal'] {
       .dg-scroll.dg-horizontal {
-        display: block !important;
+        display: flex !important;
       }
     }
 
     &[data-scroll='vertical'] {
       .dg-scroll.dg-vertical {
-        display: block !important;
+        display: flex !important;
       }
 
       .dg-region-right {
@@ -43,7 +43,7 @@
 
     &[data-scroll='both'] {
       .dg-scroll {
-        display: block !important;
+        display: flex !important;
       }
 
       .dg-scroll-corner {

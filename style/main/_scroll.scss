@@ -2,8 +2,8 @@
 
 @mixin scroll {
   .dg-scroll-thumb {
-    z-index: 1;
     position: absolute;
+    z-index: 1;
     border-radius: 0.5em !important;
     -ms-touch-action: none;
     touch-action: none;
@@ -17,75 +17,83 @@
 
   .dg-scroll-track {
     position: relative;
-    height: 100%;
     width: 100%;
+    height: 100%;
   }
 
   .dg-scroll-corner {
-    bottom: 0px;
-    right: 0px;
-    display: none;
     position: absolute;
+    right: 0;
+    bottom: 0;
     z-index: 1;
+    display: none;
     background-color: var(--scroll-track-bg);
   }
 
   .dg-scroll {
     display: none;
+    position: absolute;
+    z-index: 3;
     background-color: var(--scroll-track-bg);
 
-    /* vertical scroll */
-    &.dg-vertical {
-      height: 100%;
-      width: 12px;
+    /* Scroll Button */
+    .dg-scroll-button {
       position: absolute;
-      text-align: center;
-      right: 0px;
-      top: 0px;
-      z-index: 3;
-      border-left: 0px solid transparent;
-      border-bottom: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
 
-      /* scroll bar */
-      .dg-scroll-thumb {
-        top: 0px;
-        right: 2px;
-        position: absolute;
-        z-index: 1;
-      }
-
-      /* scroll button */
-      .dg-scroll-button {
-        position: absolute;
-        right: 0px;
-        width: 100%;
-        cursor: pointer;
-        line-height: 100%;
+      svg {
+        display: block;
+        flex-shrink: 0;
       }
     }
 
-    /* horizontal scroll */
-    &.dg-horizontal {
-      width: 100%;
-      height: 12px;
-      position: absolute;
-      vertical-align: middle;
-      bottom: 0px;
-      z-index: 3;
+    /* ===========================
+     * Vertical Scroll
+     * =========================== */
+    &.dg-vertical {
+      top: 0;
+      right: 0;
+      width: 12px;
+      height: 100%;
+      flex-direction: column;
+
+      border-left: 0;
+      border-bottom: 1px solid transparent;
 
       .dg-scroll-thumb {
-        left: 0px;
-        top: 2px;
+        left: 50%;
+        top: 0;
+        transform: translateX(-50%);
       }
 
-      /* scroll button */
       .dg-scroll-button {
-        position: absolute;
-        top: 0px;
-        padding: 1px 0px;
+        left: 0;
+        width: 100%;
+      }
+    }
+
+    /* ===========================
+     * Horizontal Scroll
+     * =========================== */
+    &.dg-horizontal {
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 12px;
+
+      .dg-scroll-thumb {
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .dg-scroll-button {
+        top: 50%;
         height: 100%;
-        line-height: 100%;
-        cursor: pointer;
+        transform: translateY(-50%);
       }
     }
   }

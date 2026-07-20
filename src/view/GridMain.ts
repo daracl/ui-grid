@@ -1153,16 +1153,16 @@ function getGridTemplate() {
               <textarea class="dg-paste-area"></textarea>
             </div>
           </div>
+        </div>
 
-          <div class="dg-footer" role="presentation">
-            <span class="dg-status">
-              <span class="dg-selection-status"></span>
-            </span>
+        <div class="dg-footer" role="presentation">
+          <span class="dg-status">
+            <span class="dg-selection-status"></span>
+          </span>
 
-            <span class="dg-paging"></span>
+          <span class="dg-paging"></span>
 
-            <span class="dg-paging-info"></span>
-          </div>
+          <span class="dg-paging-info"></span>
         </div>
       </div>
     </div>
