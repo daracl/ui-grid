@@ -140,6 +140,14 @@
       toolbar: {
         enabled: true,
         height: 40,
+        defaultValues: {
+          mode: 'N',
+          choice: '대리',
+          choice1: '대리',
+          theme: 'dark',
+          dropdown: '대리',
+          step: '설계',
+        },
         items: [
           [
             {
@@ -159,11 +167,7 @@
                       ],
                     },
                   },
-
-                  defaultValue: 'light',
-
                   change: (info) => {
-                    console.log(info);
                     gridObj.setTheme(info.value);
                   },
                 },
@@ -179,7 +183,6 @@
                       list: ['대리', '과장', '부장'],
                     },
                   },
-                  defaultValue: '대리',
                   change: (info) => {},
                 },
                 {
@@ -193,7 +196,6 @@
                       list: ['설계', '개발', '운영'],
                     },
                   },
-                  defaultValue: '설계',
                   change: (info) => {},
                 },
               ],
@@ -202,17 +204,6 @@
             {
               position: 'right',
               children: [
-                {
-                  name: 'searchValue',
-                  renderer: {
-                    type: 'text',
-                  },
-                  placeholder: '검색어',
-                  width: 150,
-                  change: (info) => {
-                    console.log(info, info.value);
-                  },
-                },
                 {
                   name: 'search',
                   width: 200,
@@ -277,7 +268,6 @@
                   name: 'choice',
                   //width: 150,
                   gap: [10, 20],
-                  defaultValue: '대리',
                   renderer: {
                     type: 'choice',
 
@@ -297,7 +287,7 @@
                   name: 'choice1',
                   //width: 150,
                   gap: [10, 20],
-                  defaultValue: '대리',
+
                   renderer: {
                     type: 'choice',
                     listItem: {
@@ -319,12 +309,104 @@
               position: 'left',
               children: [
                 {
+                  renderer: 'hidden',
+                  name: 'mode',
+                },
+                {
                   renderer: { type: 'button', icon: 'add' },
                   label: '추가',
+                  click(info) {
+                    console.log('추가 클릭');
+                    gridObj.setToolbarValues({ mode: 'N' });
+                  },
+                  condition: {
+                    visible(toolbarInfo) {
+                      console.log('visible ', toolbarInfo);
+                      const field = toolbarInfo.field;
+                      const values = toolbarInfo.values;
+                      return values['mode'] == 'Y';
+                    },
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'edit' },
+                  label: '편집',
+                  click(info) {
+                    console.log(info);
+                  },
+                  condition: {
+                    disabled(toolbarInfo) {
+                      const field = toolbarInfo.field;
+                      const values = toolbarInfo.values;
+                      return values['theme'] == 'light';
+                    },
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'mapping' },
+                  label: '맵핑',
                   click(info) {
                     console.log(info);
                   },
                 },
+                {
+                  renderer: { type: 'button', icon: 'preview' },
+                  label: '미리보기',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'permission' },
+                  label: '권한',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'parameter' },
+                  label: 'parameter',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'start' },
+                  label: 'Start',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'stop' },
+                  label: 'Stop',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'pause' },
+                  label: 'Pause',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+
+                {
+                  renderer: { type: 'button', icon: 'restart' },
+                  label: 'Restart',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'terminate' },
+                  label: 'Terminate',
+                  click(info) {
+                    console.log(info);
+                  },
+                },
+
                 {
                   renderer: { type: 'button', icon: 'delete' },
                   label: '삭제',

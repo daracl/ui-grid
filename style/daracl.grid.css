@@ -73,7 +73,8 @@ body .dg-hidden-layers.dg-light {
   --cell-bg-linenumber: #e6e6e6;
   --row-bg: #f3f6fa;
   --empty-icon-color: #adabab;
-  --icon-stroke-color: #ffffff;
+  --icon-stroke-color: #5a5858;
+  --icon-fill-stroke-color: #ffffff;
   --checkbox-bg: #4caf50;
   --checkbox-color: #ffffff;
   --checkbox-indeterminate-bg: #686868;
@@ -130,7 +131,8 @@ body .dg-hidden-layers.dg-dark {
   --cell-bg-linenumber: #2e2e2e;
   --row-bg: #303236;
   --empty-icon-color: #888;
-  --icon-stroke-color: #1a1a1a;
+  --icon-stroke-color: #fffbfb;
+  --icon-fill-stroke-color: #1a1a1a;
   --checkbox-bg: #00c1ff;
   --checkbox-color: #4e4e4e;
   --checkbox-indeterminate-bg: #fffbfb;
@@ -246,9 +248,13 @@ body .dg-hidden-layers.dg-dark {
   text-align: right;
   justify-content: flex-end;
 }
-.daracl-grid .dg-display-none,
-.dg-hidden-layers .dg-display-none {
+.daracl-grid .dg-hide,
+.dg-hidden-layers .dg-hide {
   display: none !important;
+}
+.daracl-grid .dg-show,
+.dg-hidden-layers .dg-show {
+  display: block !important;
 }
 .daracl-grid .dg-invisible,
 .dg-hidden-layers .dg-invisible {
@@ -276,13 +282,19 @@ body .dg-hidden-layers.dg-dark {
   background: transparent;
   transform: translateX(1px);
 }
-.daracl-grid .dg-icon .icon-fill,
-.dg-hidden-layers .dg-icon .icon-fill {
+.daracl-grid .dg-icon .dg-icon-fill,
+.dg-hidden-layers .dg-icon .dg-icon-fill {
   fill: currentColor;
 }
-.daracl-grid .dg-icon .icon-stroke,
-.dg-hidden-layers .dg-icon .icon-stroke {
+.daracl-grid .dg-icon .dg-icon-stroke,
+.dg-hidden-layers .dg-icon .dg-icon-stroke {
+  fill: none;
   stroke: var(--icon-stroke-color);
+}
+.daracl-grid .dg-icon .dg-icon-fill-stroke,
+.dg-hidden-layers .dg-icon .dg-icon-fill-stroke {
+  fill: none;
+  stroke: var(--icon-fill-stroke-color);
 }
 .daracl-grid .dg-ellipsis,
 .daracl-grid .dg-ellipsis > *,

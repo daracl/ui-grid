@@ -102,3 +102,18 @@ export function addStyleCss(element: HTMLElement, styles: any) {
     }
   }
 }
+
+/**
+ * CSS length 값을 정규화합니다.
+ *
+ * 숫자 값은 기본 단위인 px을 추가하고,
+ * 이미 CSS 단위가 포함된 문자열 값은 그대로 반환합니다.
+ *
+ * @example
+ * normalizeCssLength(10) // "10px"
+ * normalizeCssLength("10rem") // "10rem"
+ */
+export function normalizeCssLength(value: number | string) {
+  if (!value) return '';
+  return typeof value === 'number' || /^\d+$/.test(value) ? `${value}px` : value;
+}

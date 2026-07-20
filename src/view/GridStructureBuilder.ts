@@ -501,13 +501,16 @@ export class GridStructureBuilder {
     field.$renderer = new VIEW_RENDERER[rendererType](field, this.gridMain);
 
     if ((opts.editable && field.editable !== false) || field.$renderer instanceof EditRenderer) {
-      field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, field.editRenderer);
-
       let editRendererInfo = field.editRenderer;
 
       if (isString(editRendererInfo)) {
         editRendererInfo = { type: editRendererInfo };
       }
+      if (isUndefined(editRendererInfo) || isUndefined(editRendererInfo.type)) {
+        editRendererInfo = { type: rendererType };
+      }
+
+      field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, editRendererInfo);
 
       let type = 'text';
       const editType = editRendererInfo?.type;

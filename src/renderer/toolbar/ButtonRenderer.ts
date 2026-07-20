@@ -1,9 +1,8 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
+import { createHTMLElement, getIcon } from '@/util/domUtils';
 import { stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { createHTMLElement, getIcon } from '@/util/domUtils';
-import { ALL_ICONS } from '@/constantIcons';
 
 /**
  * button renderer

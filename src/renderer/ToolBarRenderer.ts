@@ -1,3 +1,4 @@
+import { OptionCallback } from '@/types/Common';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { createHTMLElement } from '@/util/domUtils';
 import { isFunction } from '@/util/utils';
@@ -16,11 +17,17 @@ export abstract class ToolBarRenderer {
   protected gridMain;
   protected language;
 
+  protected fieldElement: HTMLElement;
+
+  private enableView = true;
+
   protected readonly rendererContainer: HTMLElement;
 
   private validatorElement: HTMLElement;
 
   private isInit = false;
+
+  private beforeValue: any;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     this.field = field;
@@ -111,6 +118,9 @@ export abstract class ToolBarRenderer {
   }
 
   public changeValue(newValue: any) {
+    if (this.beforeValue == newValue) return;
+
+    this.beforeValue = newValue;
     if (!this.isInit) return;
 
     if (this.field.change) {
@@ -121,6 +131,8 @@ export abstract class ToolBarRenderer {
         values: toolbarValues,
       });
     }
+
+    this.gridMain.getToolbar().refreshConditionFields();
   }
 
   public search(e: Event) {
@@ -149,5 +161,61 @@ export abstract class ToolBarRenderer {
 
   public canEdit() {
     return true;
+  }
+
+  public isEnableView() {
+    return this.enableView;
+  }
+
+  private getFieldElement() {
+    if (!this.fieldElement) {
+      this.fieldElement = this.gridMain
+        .getToolbar()
+        .getToolbarElement()
+        .querySelector('[data-uid="' + this.field.$uid + '"]') as HTMLElement;
+    }
+    return this.fieldElement;
+  }
+
+  public show() {
+    this.enableView = true;
+    this.getFieldElement().classList.remove('dg-hide');
+  }
+
+  public hide() {
+    this.enableView = false;
+    this.getFieldElement().classList.add('dg-hide');
+  }
+
+  public setDisabled(disabled: boolean) {
+    this.getFieldElement().classList.toggle('dg-disabled', disabled);
+  }
+
+  public refreshCondition() {
+    this.isVisible() ? this.show() : this.hide();
+    this.setDisabled(this.isDisabled());
+  }
+
+  protected evaluateCondition(condition: boolean | OptionCallback | undefined, defaultValue: boolean): boolean {
+    if (condition === undefined) {
+      return defaultValue;
+    }
+
+    if (typeof condition === 'function') {
+      return condition({
+        field: this.field,
+        values: this.gridMain.getToolbarValues(),
+      });
+    }
+
+    return condition;
+  }
+
+  private isVisible(): boolean {
+    return this.evaluateCondition(this.field.condition?.visible, true);
+  }
+
+  private isDisabled(): boolean {
+    return this.evaluateCondition(this.field.condition?.disabled, false);
   }
 }

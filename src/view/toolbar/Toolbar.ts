@@ -7,6 +7,7 @@ import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
 import { isArray, merge } from '@/util/utils';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
+import { normalizeCssLength } from '@/util/styleUtils';
 
 /**
  * Toolbar class
@@ -28,6 +29,8 @@ export class Toolbar {
   private toolbarLayouts: ToolbarLayout[][];
 
   private readonly toolbarFields: ToolbarFieldItem[] = [];
+
+  private readonly conditionFields: ToolbarFieldItem[] = [];
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -55,17 +58,25 @@ export class Toolbar {
     this.initRenderer();
 
     this.createTemplate();
+
+    this.refreshConditionFields();
+  }
+
+  public getToolbarElement() {
+    return this.toolbarElement;
   }
 
   initRenderer() {
     const items = this.toolbarOpts.items;
+
+    const defaultValues = this.toolbarOpts.defaultValues ?? {};
 
     const mainUid = this.gridMain.uid();
     this.toolbarLayouts = items.map((row, rowIndex) =>
       row.map((item, itemIndex) => ({
         ...item,
         children: item.children.map((field, fieldIndex) =>
-          this.createToolbarField(field, mainUid, rowIndex, itemIndex, fieldIndex),
+          this.createToolbarField(field, mainUid, rowIndex, itemIndex, fieldIndex, defaultValues),
         ),
       })),
     );
@@ -77,6 +88,7 @@ export class Toolbar {
     rowIndex: number,
     itemIndex: number,
     fieldIndex: number,
+    defaultValues: Record<string, any>,
   ): ToolbarFieldItem {
     const toolbarField: ToolbarFieldItem = merge({}, DEFAULT_TOOLBAR_FIELD_INFO, field);
 
@@ -92,11 +104,19 @@ export class Toolbar {
 
     toolbarField.renderer = renderer;
 
+    if (defaultValues[toolbarField.name] && !toolbarField.defaultValue) {
+      toolbarField.defaultValue = defaultValues[toolbarField.name];
+    }
+
     const Renderer = TOOLBAR_RENDERER[renderer.type] ?? TOOLBAR_RENDERER.text;
 
     toolbarField.$renderer = new Renderer(toolbarField, this.gridMain);
 
     this.toolbarFields.push(toolbarField);
+
+    if (toolbarField.condition) {
+      this.conditionFields.push(toolbarField);
+    }
 
     return toolbarField;
   }
@@ -159,8 +179,8 @@ export class Toolbar {
     validGroup.forEach((group, index) => {
       const groupItem = group.list[0];
 
-      if (groupItem && groupItem.width) {
-        const widthVal = formatLength(groupItem.width);
+      if (groupItem?.width) {
+        const widthVal = normalizeCssLength(groupItem.width);
 
         // 핵심 변경: 현재까지 쌓인 트랙 배열 길이를 기반으로 타겟 인덱스를 안전하게 계산
         // [현재 배열 길이] + 1(Grid의 1-base 인덱스) + 1(첫 번째 'auto' 패딩 건너뛰기)
@@ -208,7 +228,16 @@ export class Toolbar {
 
     let totalWidth = 0;
 
-    item.children.forEach((field, index) => {
+    for (let index = 0; index < item.children.length; index++) {
+      const field = item.children[index];
+
+      if (!field) continue;
+
+      if (field.renderer.type == 'hidden') {
+        field.$renderer.render(document.createElement('div'));
+        continue;
+      }
+
       let beforeGap = 0;
       let afterGap = 0;
 
@@ -244,7 +273,7 @@ export class Toolbar {
       // 3. 필드(요소) 트랙 너비 계산 및 추가
       let trackWidth = '1fr';
       if (field.width) {
-        trackWidth = formatLength(field.width);
+        trackWidth = normalizeCssLength(field.width);
       } else if (field.renderer.type === 'button') {
         trackWidth = 'max-content';
       }
@@ -262,7 +291,7 @@ export class Toolbar {
         columns.push(`${afterGap}px`);
         currentColumnIndex++; // 뒤 여백이 차지한 트랙만큼 인덱스 증가
       }
-    });
+    }
 
     columns.push('0px'); // 맨 뒤 트랙 마무리
     sectionElement.style.gridTemplateColumns = columns.join(' ');
@@ -279,6 +308,7 @@ export class Toolbar {
 
     el.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
     el.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
+    el.dataset.uid = field.$uid;
 
     if (hasLabel) {
       el.innerHTML = `
@@ -306,7 +336,7 @@ export class Toolbar {
   private setWidth(el: HTMLDivElement, width: number | string) {
     if (!width) return;
 
-    const value = formatLength(width);
+    const value = normalizeCssLength(width);
 
     el.style.width = value;
     if (width !== 'auto') {
@@ -317,9 +347,16 @@ export class Toolbar {
       el.style.maxWidth = 'initial';
     }
   }
-}
 
-function formatLength(width: number | string) {
-  if (!width) return '';
-  return typeof width === 'number' || /^\d+$/.test(width) ? `${width}px` : width;
+  /**
+   * field 활성 비활성화 여부.
+   *
+   * @param field form field
+   * @returns
+   */
+  public refreshConditionFields() {
+    this.conditionFields.forEach((field) => {
+      field.$renderer.refreshCondition();
+    });
+  }
 }

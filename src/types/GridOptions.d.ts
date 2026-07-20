@@ -434,6 +434,13 @@ export interface ToolbarOptions {
    */
   height: number;
   /**
+   * item의 기본값
+   *
+   * key는 item의 name이며, 렌더링 시 기본값으로 사용
+   */
+  defaultValues?: Record<string, any>;
+
+  /**
    * toolbar items
    */
   items: ToolbarLayout[][];

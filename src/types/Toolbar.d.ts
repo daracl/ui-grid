@@ -64,4 +64,19 @@ export interface ToolbarFieldItem {
   $renderer: ToolBarRenderer;
 
   $width: number;
+
+  // 보이기 여부
+  condition?: ToolbarCondition;
+}
+
+/**
+ * 상태 체크 정보
+ *
+ * @export
+ * @interface ConditionInfo
+ * @typedef {ConditionInfo}
+ */
+export interface ToolbarCondition {
+  visible?: boolean | OptionCallback;
+  disabled?: boolean | OptionCallback;
 }

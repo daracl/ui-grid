@@ -190,14 +190,6 @@ export class GridMain {
         if (!path.includes(gridElement)) {
           grid.setGridFocusOut();
         }
-
-        /*
-        for (const el of document.querySelectorAll(`${HIDDEN_ELEMENT_SELECTOR} [data-grid-id]`)) {
-          if (path.includes(el)) {
-            return;
-          }
-        }
-          */
       });
     });
   }
@@ -1053,6 +1045,10 @@ export class GridMain {
     this.opts.paging = paging;
     this.cfg.paging = paging;
     if (this.footer) this.footer.setPagingTemplate(paging);
+  }
+
+  public getToolbar() {
+    return this.toolbar;
   }
 
   /**

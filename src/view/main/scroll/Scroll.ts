@@ -41,7 +41,7 @@ export class Scroll {
     const scrollSize = this.opts.scroll.width;
     const edge = this.gridMain.getMainElement().findDaraElement('.dg-scroll-corner');
 
-    edge.css({ width: `${scrollSize}px`, height: `${scrollSize}px` });
+    edge.css({ width: `${scrollSize}px`, height: `${scrollSize + 1}px` });
 
     this.calculate();
 

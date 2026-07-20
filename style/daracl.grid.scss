@@ -78,7 +78,10 @@ body {
     --row-bg: #f3f6fa;
     --empty-icon-color: #adabab;
 
-    --icon-stroke-color: #ffffff;
+    // 바탕 없을때
+    --icon-stroke-color: #5a5858;
+    // 바탕이 있는 색의 컬러
+    --icon-fill-stroke-color: #ffffff;
 
     --checkbox-bg: #4caf50;
     --checkbox-color: #ffffff;
@@ -156,7 +159,10 @@ body {
 
     --empty-icon-color: #888;
 
-    --icon-stroke-color: #1a1a1a;
+    // 바탕 없을때
+    --icon-stroke-color: #fffbfb;
+    // 바탕 있을때
+    --icon-fill-stroke-color: #1a1a1a;
 
     --checkbox-bg: #00c1ff;
     --checkbox-color: #4e4e4e;
@@ -255,8 +261,12 @@ body {
     }
   }
 
-  .dg-display-none {
+  .dg-hide {
     display: none !important;
+  }
+
+  .dg-show {
+    display: block !important;
   }
 
   .dg-invisible {
@@ -284,12 +294,18 @@ body {
       transform: translateX(1px);
     }
 
-    .icon-fill {
+    .dg-icon-fill {
       fill: currentColor;
     }
 
-    .icon-stroke {
+    .dg-icon-stroke {
+      fill: none;
       stroke: var(--icon-stroke-color);
+    }
+
+    .dg-icon-fill-stroke {
+      fill: none;
+      stroke: var(--icon-fill-stroke-color);
     }
   }
 
