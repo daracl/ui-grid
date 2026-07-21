@@ -86,7 +86,8 @@ export class GridStructureBuilder {
     scroll.insideViewRow = viewRow - (viewRow > 1 && viewRow > Math.floor(orginViewRow) ? 1 : 0);
     scroll.viewRow = viewRow;
 
-    const verticalScrollWidth = scroll.enableVertical ? opts.scroll.width + (cfg.fixedRightIndex > 0 ? 1 : 3) : 0; // +3 마지막 여백처리;
+    const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2; // +2 마지막 여백처리;
+    const verticalScrollWidth = scroll.enableVertical ? opts.scroll.width + centerMargin : 0;
 
     let remainderWidth = 0,
       lastSpaceW = 0;

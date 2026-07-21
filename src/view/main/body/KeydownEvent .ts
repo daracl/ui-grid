@@ -11,7 +11,7 @@ import {
 import { DaraElement } from '@/element/DaraElement';
 import { EventHandler } from '@/event/EventHandler';
 import { SelectionInfo } from '@/selection/selection';
-import { eventKeyCode, isCtrlKey, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
+import { eventKeyCode, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from './Body';
@@ -62,6 +62,12 @@ export class KeydownEvent implements EventHandler {
         return true;
       }
 
+      this.gridMain.hideLayer();
+
+      if (isEsc(e)) {
+        return;
+      }
+
       // 설정 영역 keydown 처리
       if (targetElement.closest('.dg-setting-area')) return true;
 
@@ -81,7 +87,7 @@ export class KeydownEvent implements EventHandler {
           if (field.$renderer.bindEvents('space', cellInfo, startElement)) return true;
         }
 
-        if (editable === true && field.editable !== false && field.$renderer.canEdit()) {
+        if (editable === true && field.editable !== false && field.$renderer?.canEdit()) {
           // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 

@@ -312,7 +312,11 @@ export class CellClickHandler extends BasePointerHandler {
       field.$renderer.canEdit?.() &&
       (field.editable === true || (this.editable === true && field.editable !== false))
     ) {
-      field.$editRenderer.render(cellInfo, session.cellEl!);
+      setTimeout(() => {
+        field.$editRenderer.render(cellInfo, session.cellEl!);
+      }, 10);
+
+      return;
     }
 
     if (this.cellDblClick?.(cellInfo) === false) return;

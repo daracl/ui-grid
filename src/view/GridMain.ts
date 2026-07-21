@@ -645,14 +645,19 @@ export class GridMain {
    * @param {?number} [height] 높이
    */
   public setSize(width: number, height: number, drawFlag = false) {
-    const { dimensions } = this.cfg;
+    const { dimensions, rowHeight } = this.cfg;
 
     dimensions.width = width < 0 ? this.gridElement.width() : width;
-    dimensions.height = height < 0 ? this.gridElement.height() : height;
+    let changeHeight = height < 0 ? this.gridElement.height() : height;
 
-    this.currentSize = { width: dimensions.width, height: dimensions.height };
+    const minHeightSize = dimensions.toolbarHeight + dimensions.footerHeight + dimensions.mainHeaderHeight + rowHeight;
 
-    dimensions.mainHeight = dimensions.height - (dimensions.toolbarHeight + dimensions.footerHeight);
+    changeHeight = Math.max(minHeightSize, changeHeight);
+
+    this.currentSize = { width: dimensions.width, height: changeHeight };
+
+    dimensions.mainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
+    dimensions.height = changeHeight;
 
     if (drawFlag) {
       this.resizeDraw();
@@ -1138,7 +1143,7 @@ function getGridTemplate() {
               <div class="dg-scroll-track"></div>
               <div class="dg-scroll-thumb"></div>
               <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">${ALL_ICONS.scrollUp}</div>
-              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:-2px;">${ALL_ICONS.scrollDown}</div>
+              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:0px;">${ALL_ICONS.scrollDown}</div>
             </div>
 
             <div class="dg-scroll dg-horizontal">

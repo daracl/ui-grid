@@ -1,6 +1,6 @@
-import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
+import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
-import { eqAttributeValue, hasClass } from '@/util/domUtils';
+import { eqAttributeValue } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { getCenterContentLeft, getHorizontalScrollPosition } from '@/util/gridUtils';
 import { isFunction, isNumber, isString } from '@/util/utils';
@@ -38,11 +38,14 @@ export class HorizontalScroll {
   init() {
     const scrollSize = this.scrollOpts.width;
     this.horizontalElement.css({ height: `${scrollSize}px` });
-    this.horizontalThumbElement.css({ height: `${scrollSize - 3}px`, margin: `0px ${scrollSize}px` });
+    this.horizontalThumbElement.css({
+      height: `${scrollSize - SCROLL_INSET}px`,
+      margin: `1px ${scrollSize}px`,
+    });
     const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button > svg');
     scrollButtonElements.forEach((el) => {
-      el.style.width = `${scrollSize}px`;
-      el.style.height = `${scrollSize}px`;
+      el.style.width = `${scrollSize - SCROLL_INSET}px`;
+      el.style.height = `${scrollSize - SCROLL_INSET}px`;
     });
 
     this.initHorizontalTrack();
@@ -71,7 +74,7 @@ export class HorizontalScroll {
     const totalColWidth = dimensions.mainTotalWidth;
 
     const hWidth = dimensions.width - (scroll.enableVertical ? opts.scroll.width : 0) - 2; // 2 left right border
-    // 2 top bottom border
+
     const hTrackWidth = hWidth - arrowButtonSize;
     let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
     thumbWidth = Math.max(thumbWidth, SCROLL_THUMB_MIN_SIZE);
@@ -261,6 +264,7 @@ export class HorizontalScroll {
       { el: scrollButtonElements, type: 'mousedown touchstart' },
       (e: Event) => {
         const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
+
         buttonMoveMode = 1;
         this.gridMain.hideLayer();
 
@@ -274,7 +278,7 @@ export class HorizontalScroll {
 
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = hasClass(e.currentTarget as HTMLElement, 'left');
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
         this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
       }
       clearInterval(scrollBtnTimer);

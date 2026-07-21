@@ -75,7 +75,9 @@ export class DropdownEditRenderer extends EditRenderer {
 
     this.currentEditRow = cellInfo.rowIndex;
 
-    const eventElement = cellElement.querySelector('.dg-cell-content') as HTMLElement;
+    const eventElement = cellElement.querySelector('.dg-cell-renderer') as HTMLElement;
+
+    console.log(this.currentEditRow, cellInfo);
 
     let dropdownElement = this.dropdownElement;
     if (!dropdownElement) {
@@ -189,7 +191,7 @@ export class DropdownEditRenderer extends EditRenderer {
     bindHideOnBlur(dropdownElement, this.gridMain.config().eventManager);
   }
 
-  public setDropItemCheck(value: string | string[]) {
+  public setDropItemCheck(value: string | string[] = '') {
     const values = isString(value) ? stringSplit(value, this.valueDelimiter) : value;
 
     let isAll = false;

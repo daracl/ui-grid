@@ -134,6 +134,11 @@ export function debounce<T extends (...args: any[]) => void>(f: T, delay: number
   let timer: number | undefined;
 
   return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
+    if (delay < 1) {
+      f.apply(this, args);
+      return;
+    }
+
     if (timer !== undefined) {
       clearTimeout(timer);
     }

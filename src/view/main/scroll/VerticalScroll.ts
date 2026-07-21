@@ -1,6 +1,6 @@
-import { SCROLL_THUMB_MIN_SIZE } from '@/constants';
+import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
-import { eqAttributeValue, hasClass } from '@/util/domUtils';
+import { eqAttributeValue } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction, isNumber, isString } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -36,11 +36,11 @@ export class VerticalScroll {
   init() {
     const scrollSize = this.scrollOpts.width;
     this.verticalElement.css({ width: `${scrollSize}px` });
-    this.verticalThumbElement.css({ width: `${scrollSize - 3}px`, margin: `${scrollSize}px 0px` });
+    this.verticalThumbElement.css({ width: `${scrollSize - SCROLL_INSET}px`, margin: `${scrollSize}px 0px` });
     const scrollButtonElements = this.verticalElement.finds('.dg-scroll-button > svg');
     scrollButtonElements.forEach((el) => {
-      el.style.width = `${scrollSize}px`;
-      el.style.height = `${scrollSize}px`;
+      el.style.width = `${scrollSize - SCROLL_INSET}px`;
+      el.style.height = `${scrollSize - SCROLL_INSET}px`;
     });
 
     this.initVerticalTrack();
@@ -194,7 +194,7 @@ export class VerticalScroll {
 
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
-        const mode = hasClass(e.currentTarget as HTMLElement, 'up');
+        const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
         this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
       }
 

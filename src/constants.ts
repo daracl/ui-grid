@@ -148,6 +148,8 @@ export const PointerStateMap = {
 
 export const SCROLL_THUMB_MIN_SIZE = 18;
 
+export const SCROLL_INSET = 4;
+
 /**
  * Scroll direction for X-axis
  */
