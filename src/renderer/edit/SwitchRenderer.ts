@@ -5,6 +5,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
+import { hasClass } from '@/util/domUtils';
 
 /**
  * Switch renderer
@@ -32,39 +33,46 @@ export class SwitchRenderer extends EditCellRenderer {
 
     const val = this.getValue(item);
 
-    let label = element.firstElementChild as HTMLLabelElement;
+    let slider = element.firstElementChild as HTMLElement;
 
     // 최초 렌더링 시 구조 생성
-    if (!label) {
-      label = document.createElement('label');
+    if (!slider) {
+      slider = document.createElement('div');
+      slider.className = 'dg-slider';
 
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.name = this.field.$uid;
+      if (this.showLabel) {
+        const label = document.createElement('span');
+        label.className = 'dg-label';
+        slider.appendChild(label);
+      }
 
-      const mark = document.createElement('span');
-      mark.className = 'dg-slider';
-
-      label.appendChild(input);
-      label.appendChild(mark);
-
-      element.appendChild(label);
+      element.appendChild(slider);
 
       if (this.isEditable()) {
-        this.initClick(input);
+        this.initClick(slider);
       }
     }
 
-    const input = label.firstChild as HTMLInputElement;
-    input.checked = val === this.trueValue;
-
-    if (this.showLabel) {
-      const labelElement = element.querySelector('.dg-slider');
-      if (labelElement) labelElement.textContent = `${val === this.trueValue ? this.falseValue : this.trueValue}`;
-    }
+    this.toggle(slider, val);
   }
 
-  initClick(contentElement: HTMLInputElement) {
+  public toggle(sliderElement: HTMLElement, value: string | boolean) {
+    let labelText = this.falseValue;
+    let checked = false;
+    if (value === this.trueValue || value === true) {
+      checked = true;
+      labelText = this.trueValue;
+    }
+
+    if (this.showLabel) {
+      const labelElement = sliderElement.querySelector('.dg-label');
+      if (labelElement) labelElement.textContent = labelText + '';
+    }
+
+    sliderElement.classList.toggle('dg-checked', checked);
+  }
+
+  initClick(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
@@ -72,7 +80,9 @@ export class SwitchRenderer extends EditCellRenderer {
 
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      const checked = contentElement.checked;
+      const checked = !hasClass(contentElement, 'dg-checked');
+
+      this.toggle(contentElement, checked);
 
       const item = cellInfo.item;
 

@@ -83,9 +83,10 @@ body {
     // 바탕이 있는 색의 컬러
     --icon-fill-stroke-color: #ffffff;
 
-    --checkbox-bg: #4caf50;
-    --checkbox-color: #ffffff;
-    --checkbox-indeterminate-bg: #686868;
+    --check-bg: #dfdfdf;
+    --check-active-bg: #4caf50;
+    --check-mark-color: #ffffff;
+    --check-indeterminate-bg: #686868;
 
     --bar-positive-bg: #77c0fc;
     --bar-negative-bg: #ff8989;
@@ -164,9 +165,10 @@ body {
     // 바탕 있을때
     --icon-fill-stroke-color: #1a1a1a;
 
-    --checkbox-bg: #00c1ff;
-    --checkbox-color: #4e4e4e;
-    --checkbox-indeterminate-bg: #fffbfb;
+    --check-bg: #979797;
+    --check-active-bg: #00c1ff;
+    --check-mark-color: #4e4e4e;
+    --check-indeterminate-bg: #fffbfb;
 
     --bar-positive-bg: #77c0fc;
     --bar-negative-bg: #ff8989;
@@ -406,18 +408,33 @@ body {
   .dg-switch {
     user-select: none;
     position: relative;
-    display: inline-block;
-    width: 38px;
     height: 19px;
+    display: flex;
 
     .dg-slider {
       position: relative;
       display: block;
-      width: 40px;
+      width: 42px;
       height: 100%;
-      background: var(--body-bg-hover);
+      background: var(--check-bg);
       border-radius: 20px;
       transition: background-color 0.3s;
+
+      &.dg-checked {
+        background: var(--check-active-bg);
+
+        &::before {
+          transform: translateX(20px);
+        }
+      }
+
+      &.dg-disabled {
+        background: var(--disabled-bg);
+
+        &::before {
+          background: var(--check-mark-color);
+        }
+      }
 
       &::before {
         content: '';
@@ -425,32 +442,10 @@ body {
         width: 14px;
         height: 13px;
         top: 3px;
-        left: 3px;
+        left: 4px;
         border-radius: 50%;
-        background: var(--body-bg);
+        background: var(--check-mark-color);
         transition: transform 0.3s;
-      }
-    }
-
-    &.dg-checked {
-      .dg-slider {
-        background: var(--checkbox-bg);
-
-        &::before {
-          transform: translateX(18px);
-        }
-      }
-    }
-
-    &.dg-disabled {
-      pointer-events: none;
-
-      .dg-slider {
-        background: var(--disabled-bg);
-
-        &::before {
-          background: #bdbdbd;
-        }
       }
     }
   }
@@ -618,7 +613,7 @@ body {
       display: none;
 
       &:checked + .dg-checkmark {
-        background-color: var(--checkbox-bg);
+        background-color: var(--check-bg);
 
         &::after {
           content: '';
@@ -627,7 +622,7 @@ body {
           top: 1px;
           width: 4px;
           height: 8px;
-          border: solid var(--checkbox-color);
+          border: solid var(--check-mark-color);
           border-width: 0 1.5px 1.5px 0;
           transform: rotate(45deg);
         }
@@ -653,7 +648,7 @@ body {
           left: 50%;
           width: 10px;
           height: 3px;
-          background-color: var(--checkbox-indeterminate-bg);
+          background-color: var(--check-indeterminate-bg);
           border-radius: 1px;
           transform: translate(-50%, -50%);
         }
