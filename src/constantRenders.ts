@@ -1,45 +1,48 @@
-import * as EditRenderer from './renderer/edit';
+import * as EditCellRenderer from './renderer/edit';
 
-import * as ViewRenderer from './renderer/view';
+import * as ViewCellRenderer from './renderer/view';
 
 import * as ToolbarRenderer from './renderer/toolbar';
 
+export const ASIDE_RENDERER: any = {
+  lineNumber: ViewCellRenderer.AsideLineNumberRenderer,
+  modifyInfo: ViewCellRenderer.AsideModifyInfoRenderer,
+  rowCheckbox: ViewCellRenderer.AsideRowCheckRenderer,
+  rowDragHandle: ViewCellRenderer.AsideRowDragHandleRenderer,
+};
+
 // renderer type
 export const VIEW_RENDERER: any = {
-  lineNumber: ViewRenderer.AsideLineNumberRenderer,
-  modifyInfo: ViewRenderer.AsideModifyInfoRenderer,
-  rowCheckbox: ViewRenderer.AsideRowCheckRenderer,
-  rowDragHandle: ViewRenderer.AsideRowDragHandleRenderer,
-  dropdown: ViewRenderer.DropdownRenderer,
-  bar: ViewRenderer.BarRenderer,
-  button: ViewRenderer.ButtonRenderer,
-  hidden: ViewRenderer.HiddenRenderer,
-  html: ViewRenderer.HtmlRenderer,
-  image: ViewRenderer.ImageRenderer,
-  link: ViewRenderer.LinkRenderer,
-  number: ViewRenderer.NumberRenderer,
-  text: ViewRenderer.TextRenderer,
-  password: ViewRenderer.PasswordRenderer,
-  sparkline: ViewRenderer.SparklineRenderer,
-  sparklineBar: ViewRenderer.SparklineRendererBar,
-  tree: ViewRenderer.TreeRenderer, // tree는 TextRenderer로 일단 처리. TreeRenderer는 별도 구현 필요
-  custom: ViewRenderer.ViewCustomRenderer,
+  dropdown: ViewCellRenderer.DropdownRenderer,
+  bar: ViewCellRenderer.BarRenderer,
+  button: ViewCellRenderer.ButtonRenderer,
+  hidden: ViewCellRenderer.HiddenRenderer,
+  html: ViewCellRenderer.HtmlRenderer,
+  image: ViewCellRenderer.ImageRenderer,
+  link: ViewCellRenderer.LinkRenderer,
+  number: ViewCellRenderer.NumberRenderer,
+  text: ViewCellRenderer.TextRenderer,
+  password: ViewCellRenderer.PasswordRenderer,
+  sparkline: ViewCellRenderer.SparklineRenderer,
+  sparklineBar: ViewCellRenderer.SparklineRendererBar,
+  tree: ViewCellRenderer.TreeRenderer, // tree는 TextRenderer로 일단 처리. TreeRenderer는 별도 구현 필요
+  custom: ViewCellRenderer.ViewCustomRenderer,
 };
 
 export type RENDERER_TYPE = keyof typeof VIEW_RENDERER;
 
 // edit renderer type
 export const EDIT_RENDERER: any = {
-  date: EditRenderer.DateRenderer,
-  custom: EditRenderer.CustomEditRenderer,
-  text: EditRenderer.TextEditRenderer,
-  number: EditRenderer.NumberEditRenderer,
-  dropdown: EditRenderer.DropdownEditRenderer,
-  switch: EditRenderer.SwitchRenderer,
-  checkbox: EditRenderer.CheckboxRenderer,
-  password: EditRenderer.PasswordEditRenderer,
-  range: EditRenderer.RangeRenderer,
-  textarea: EditRenderer.TextAreaRenderer,
+  date: EditCellRenderer.DateRenderer,
+  custom: EditCellRenderer.CustomEditRenderer,
+  text: EditCellRenderer.TextEditRenderer,
+  number: EditCellRenderer.NumberEditRenderer,
+  dropdown: EditCellRenderer.DropdownEditRenderer,
+  switch: EditCellRenderer.SwitchRenderer,
+  checkbox: EditCellRenderer.CheckboxRenderer,
+  password: EditCellRenderer.PasswordEditRenderer,
+  range: EditCellRenderer.RangeRenderer,
+  textarea: EditCellRenderer.TextAreaRenderer,
 };
 
 /**

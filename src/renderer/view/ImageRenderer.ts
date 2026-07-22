@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 /**
@@ -7,9 +7,9 @@ import { CellInfo } from '@t/GridConfig';
  *
  * @class ImageRenderer
  * @typedef {ImageRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class ImageRenderer extends ViewRenderer {
+export class ImageRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -52,9 +52,5 @@ export class ImageRenderer extends ViewRenderer {
       // 필요 없는 label은 제거
       label.remove();
     }
-  }
-
-  public canEdit() {
-    return true;
   }
 }

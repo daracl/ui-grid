@@ -76,7 +76,7 @@ export interface Config {
    */
   fontSize: string;
 
-  isCellEdit: boolean;
+  enableCellEdit: boolean;
 
   isOpenLayer: boolean;
 

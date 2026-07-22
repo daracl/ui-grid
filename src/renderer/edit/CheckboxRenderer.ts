@@ -4,16 +4,16 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 
 /**
  * checkbox renderer
  *
  * @class CheckboxRenderer
  * @typedef {CheckboxRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
-export class CheckboxRenderer extends EditRenderer {
+export class CheckboxRenderer extends EditCellRenderer {
   private readonly trueValue: string | boolean;
   private readonly falseValue: string | boolean;
   private readonly showLabel: boolean;
@@ -57,7 +57,9 @@ export class CheckboxRenderer extends EditRenderer {
 
       element.appendChild(label);
 
-      this.initClick(input);
+      if (this.isEditable()) {
+        this.initClick(input);
+      }
     }
 
     const input = label.firstChild as HTMLInputElement;
@@ -91,8 +93,8 @@ export class CheckboxRenderer extends EditRenderer {
     return true;
   }
 
-  public canEdit() {
-    return false;
+  public supportsInteraction() {
+    return true;
   }
 
   public alignStyle(): string {

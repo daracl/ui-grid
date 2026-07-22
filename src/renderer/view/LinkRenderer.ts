@@ -2,7 +2,7 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
@@ -10,9 +10,9 @@ import { stopPreventCancel } from '@/util/eventUtils';
  *
  * @class LinkRenderer
  * @typedef {LinkRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class LinkRenderer extends ViewRenderer {
+export class LinkRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -58,9 +58,5 @@ export class LinkRenderer extends ViewRenderer {
 
       this.click(e, cellElement, cellInfo);
     });
-  }
-
-  public canEdit() {
-    return true;
   }
 }

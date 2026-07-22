@@ -2,6 +2,7 @@ import { ScrollInfo } from '@t/GridConfig';
 
 import {
   getCellInfo,
+  isFieldEditable,
   isFixedLeftPostion,
   isFixedRightPostion,
   isInputField,
@@ -43,7 +44,6 @@ export class KeydownEvent implements EventHandler {
     this.pasteElement = new DaraElement(this.gridMain.element().find('.dg-paste-area'));
     const cfg = this.gridMain.config();
     const opts = this.gridMain.options();
-    const editable = opts.editable;
     const selectionMode = opts.selectionMode;
 
     const isMultiple = isMultipleSelectionMode(selectionMode);
@@ -73,12 +73,14 @@ export class KeydownEvent implements EventHandler {
 
       const evtKey = eventKeyCode(e);
 
+      const startCell = cfg.selection.startCell;
+
+      const field = cfg.currentFields[startCell.startCol];
+
+      const editable = isFieldEditable(cfg, field);
+
       if (isSpacebar(e)) {
         stopPreventCancel(e);
-
-        const startCell = cfg.selection.startCell;
-
-        const field = cfg.currentFields[startCell.startCol];
 
         const startElement = this.gridMain.getBody().getStartCellElement();
 
@@ -87,15 +89,13 @@ export class KeydownEvent implements EventHandler {
           if (field.$renderer.bindEvents('space', cellInfo, startElement)) return true;
         }
 
-        if (editable === true && field.editable !== false && field.$renderer?.canEdit()) {
+        if (editable) {
           // 스크롤 이동
           this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 
           field.$editRenderer.render(cellInfo, startElement);
           return;
         }
-
-        return false;
       }
 
       if (e.metaKey || isCtrlKey(e)) {
@@ -129,7 +129,7 @@ export class KeydownEvent implements EventHandler {
         }
       }
 
-      if (opts.editable === true) {
+      if (editable) {
         if ((65 <= evtKey && evtKey <= 90) || (48 <= evtKey && evtKey <= 57)) {
           // const clickInfo = _this.getCurrentClickInfo();
           // const cellInfo = _$util.getCellInfo(_this, _$util.getCellElement(_this, clickInfo.r, clickInfo.c));

@@ -12,7 +12,8 @@ import { ToolBarRenderer } from '../ToolBarRenderer';
 export class SwitchRenderer extends ToolBarRenderer {
   private readonly trueValue: string | boolean;
   private readonly falseValue: string | boolean;
-  private editElement: HTMLInputElement;
+  private switchElement: HTMLElement;
+  private checked: boolean;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -31,31 +32,27 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     contentElement.className = this.getRendererStyleClass('dg-switch');
 
-    const label = document.createElement('label');
-
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    label.appendChild(input);
-
     const mark = document.createElement('span');
     mark.className = 'dg-slider';
-    label.appendChild(mark);
 
-    contentElement.appendChild(label);
+    contentElement.appendChild(mark);
     controlElement.appendChild(contentElement);
 
-    input.checked = val === this.trueValue;
-    this.editElement = input;
+    this.switchElement = contentElement;
 
-    this.initClick(input);
+    this.initClick(contentElement);
   }
 
-  initClick(contentElement: HTMLInputElement) {
+  initClick(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
 
     let beforeValue = this.getValue();
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       this.click(e, contentElement);
+
+      this.checked = !this.checked;
+
+      this.switchElement.classList.toggle('dg-checked', this.checked);
 
       const val = this.getValue();
       if (beforeValue !== val) {
@@ -66,14 +63,16 @@ export class SwitchRenderer extends ToolBarRenderer {
   }
 
   public getValue() {
-    return this.editElement.checked ? this.trueValue : this.falseValue;
+    return this.checked ? this.trueValue : this.falseValue;
   }
 
   public setValue(value: string | boolean) {
     if (value === this.trueValue || value === true) {
-      this.editElement.checked = true;
+      this.checked = true;
     } else {
-      this.editElement.checked = false;
+      this.checked = false;
     }
+
+    this.switchElement.classList.toggle('dg-checked', this.checked);
   }
 }

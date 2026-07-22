@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 
@@ -8,9 +8,9 @@ import { CellInfo } from '@t/GridConfig';
  *
  * @class HiddenRenderer
  * @typedef {HiddenRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class HiddenRenderer extends ViewRenderer {
+export class HiddenRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

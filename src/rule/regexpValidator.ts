@@ -1,5 +1,5 @@
-import { ValidResult } from '@t/ValidResult';
 import { FieldItem } from '@t/GridField';
+import { ValidResult } from '@t/ValidResult';
 
 const regexp = {
   mobile: /^\d{3}-\d{3,4}-\d{4}$/,
@@ -19,7 +19,7 @@ const regexp = {
  * 정규식 유효성 체크.
  *
  * @param {string} value
- * @param {EditRenderer} field
+ * @param {FieldItem} field
  * @param {(ValidResult | undefined)} result
  * @returns {ValidResult}
  */

@@ -1,4 +1,4 @@
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -8,9 +8,9 @@ import { CellInfo } from '@t/GridConfig';
  *
  * @class CustomEditRenderer
  * @typedef {CustomEditRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
-export class CustomEditRenderer extends EditRenderer {
+export class CustomEditRenderer extends EditCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

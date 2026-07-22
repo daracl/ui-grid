@@ -1,6 +1,6 @@
 import { TEXT_ALIGN_TYPE, WHITE_SPACE_TYPE } from '@/constantStyles';
-import { EditRenderer } from '@/renderer/EditRenderer';
-import { ViewRenderer } from '@/renderer/ViewRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
+import { CellRenderer } from '@/renderer/CellRenderer';
 import { FieldItem } from '@t/GridField';
 import { DisplayFormatOptions, OptionCallback } from './Common';
 import { EditRendererInfo, RendererInfo } from './RendererInfo';
@@ -102,13 +102,13 @@ export interface FieldItem {
   /**
    * 실제 랜더러
    */
-  $renderer: ViewRenderer;
+  $renderer: CellRenderer;
 
   /**
    * edit renderer
    *
    */
-  $editRenderer: EditRenderer;
+  $editRenderer: EditCellRenderer;
 
   /**
    * colspan number

@@ -3,16 +3,16 @@ import { ALIGN_STYLE } from '@/constantStyles';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * aside modify info
  *
  * @class AsideModifyInfoRenderer
  * @typedef {AsideModifyInfoRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class AsideModifyInfoRenderer extends ViewRenderer {
+export class AsideModifyInfoRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

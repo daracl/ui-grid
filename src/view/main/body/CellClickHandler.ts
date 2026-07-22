@@ -16,6 +16,7 @@ import { isCtrlKey, isShiftKey } from '@/util/eventUtils';
 import {
   dragHorizontalMovePosition,
   dragVerticalMovePosition,
+  isFieldEditable,
   isFixedLeftPostion,
   isFixedRightPostion,
   isMultipleSelectionMode,
@@ -46,8 +47,6 @@ export class CellClickHandler extends BasePointerHandler {
   private beforeEndCol = -1;
 
   private readonly cellClickFn: ((cellInfo: any) => void) | undefined;
-
-  private readonly editable: boolean;
 
   protected readonly multipleFlag: boolean;
 
@@ -88,12 +87,13 @@ export class CellClickHandler extends BasePointerHandler {
     this.multipleFlag = isMultipleSelectionMode(this.selectionMode);
 
     this.cellClickFn = this.opts.body.cellClick;
-    this.editable = this.opts.editable;
-    this.rowHeight = this.cfg.rowHeight;
+
+    const { rowHeight, enableCellEdit } = this.cfg;
+    this.rowHeight = rowHeight;
 
     this.cellDblClick = this.opts.body.cellDblClick;
 
-    this.isCellDbClickEvent = this.editable || utils.isFunction(this.cellDblClick);
+    this.isCellDbClickEvent = enableCellEdit || utils.isFunction(this.cellDblClick);
   }
 
   onPointerDown(session: PointerSession): void {
@@ -307,11 +307,7 @@ export class CellClickHandler extends BasePointerHandler {
     const cellInfo = session.cellInfo as CellInfo;
     const field = cellInfo.field;
 
-    if (
-      !field.$isAside &&
-      field.$renderer.canEdit?.() &&
-      (field.editable === true || (this.editable === true && field.editable !== false))
-    ) {
+    if (!field.$isAside && isFieldEditable(this.cfg, field)) {
       setTimeout(() => {
         field.$editRenderer.render(cellInfo, session.cellEl!);
       }, 10);
@@ -322,7 +318,6 @@ export class CellClickHandler extends BasePointerHandler {
     if (this.cellDblClick?.(cellInfo) === false) return;
   }
 
-  // cell click
   protected setCellClick(
     e: Event,
     cellInfo: CellInfo,

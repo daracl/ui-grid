@@ -55,7 +55,7 @@ export class ButtonRenderer extends ToolBarRenderer {
     return '';
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return false;
   }
 

@@ -159,7 +159,7 @@ export abstract class ToolBarRenderer {
 
   public abstract getValue(): any;
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 

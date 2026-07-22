@@ -1,16 +1,18 @@
+import { ASIDE_RENDERER, EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders';
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import { ALIGN_STYLE } from '@/constantStyles';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
-import { EditRenderer } from '@/renderer/EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { Config, FieldHeaderGroupInfo } from '@/types/GridConfig';
 import { FieldItem } from '@/types/GridField';
 import { GridOptions } from '@/types/GridOptions';
-import { getTextWidth, heightOptionValue } from '@/util/gridUtils';
+import { EditRendererInfo } from '@/types/RendererInfo';
+import { getTextWidth, heightOptionValue, isFieldEditable } from '@/util/gridUtils';
 import { deepCopy, isNumber, isPlainObject, isString, isUndefined, merge } from '@/util/utils';
 import { isArray } from '../util/utils';
 import { GridMain } from './GridMain';
-import { ALIGN_STYLE } from '@/constantStyles';
-import { EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders';
 
 // main-body  margin = border top + border bottom+ 공백1
 const MAIN_MARGIN_BOTTOM = 3;
@@ -474,13 +476,45 @@ export class GridStructureBuilder {
    * @returns {FieldItem} renderer 정보가 추가된 field
    */
   private createRenderer(field: FieldItem): FieldItem {
-    const opts = this.opts;
-
     if (field.$isAside) {
-      field.$renderer = new VIEW_RENDERER[field.renderer.type](field, this.gridMain);
+      field.$renderer = new ASIDE_RENDERER[field.renderer.type](field, this.gridMain);
       return field;
     }
 
+    const editable = isFieldEditable(this.cfg, field);
+
+    let editRenderer;
+    if (!isUndefined(field.editRenderer)) {
+      editRenderer = this.getEditRenderer(field, field.editRenderer, '');
+      field.$editRenderer = editRenderer;
+
+      if (editRenderer.supportsInteraction()) {
+        field.$renderer = editRenderer;
+        field.renderer = merge({}, DEFAULT_RENDERER_INFO, { type: field.editRenderer.type });
+      }
+    }
+
+    if (!field.$renderer) {
+      field = this.getViewRenderer(field);
+    }
+
+    if (editable && !field.$editRenderer) {
+      field.$editRenderer = this.getEditRenderer(field, field.editRenderer, field.renderer.type);
+    }
+
+    return field;
+  }
+
+  /**
+   * 필드에 설정된 renderer 정보를 기반으로 View Renderer를 생성한다.
+   *
+   * renderer가 문자열이면 type으로 변환하고, 객체이면 기본 설정과 병합한다.
+   * 등록되지 않은 renderer 타입은 기본 text renderer를 사용한다.
+   *
+   * @param field 렌더러를 생성할 필드 정보
+   * @returns View Renderer 인스턴스
+   */
+  private getViewRenderer(field: FieldItem): FieldItem {
     let renderInfo = { type: 'text' };
 
     if (isPlainObject(field.renderer)) {
@@ -497,35 +531,47 @@ export class GridStructureBuilder {
 
     field.renderer = merge({}, DEFAULT_RENDERER_INFO, renderInfo);
 
-    const rendererType = field.renderer.type;
-
-    field.$renderer = new VIEW_RENDERER[rendererType](field, this.gridMain);
-
-    if ((opts.editable && field.editable !== false) || field.$renderer instanceof EditRenderer) {
-      let editRendererInfo = field.editRenderer;
-
-      if (isString(editRendererInfo)) {
-        editRendererInfo = { type: editRendererInfo };
-      }
-      if (isUndefined(editRendererInfo) || isUndefined(editRendererInfo.type)) {
-        editRendererInfo = { type: rendererType };
-      }
-
-      field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, editRendererInfo);
-
-      let type = 'text';
-      const editType = editRendererInfo?.type;
-
-      if (editType && EDIT_RENDERER[editType]) {
-        type = editType;
-      } else if (EDIT_RENDERER[rendererType]) {
-        type = rendererType;
-      }
-
-      field.$editRenderer = new EDIT_RENDERER[type](field, this.gridMain);
-    }
+    field.$renderer = new VIEW_RENDERER[field.renderer.type](field, this.gridMain);
 
     return field;
+  }
+
+  /**
+   * 편집 모드에서 사용할 Editor Renderer를 생성한다.
+   *
+   * editRenderer 설정이 없으면 rendererType을 기본 타입으로 사용하며,
+   * 등록되지 않은 타입은 text editor를 사용한다.
+   * 생성된 renderer 정보는 기본 설정과 병합하여 field.editRenderer에 저장한다.
+   *
+   * @param field 렌더러를 생성할 필드 정보
+   * @param editRendererInfo 편집 렌더러 설정
+   * @param rendererType View Renderer 타입(기본 Editor 타입 결정에 사용)
+   * @returns Editor Renderer 인스턴스
+   */
+  private getEditRenderer(
+    field: FieldItem,
+    editRendererInfo: EditRendererInfo,
+    rendererType: string,
+  ): EditCellRenderer {
+    if (isString(editRendererInfo)) {
+      editRendererInfo = { type: editRendererInfo };
+    }
+    if (isUndefined(editRendererInfo) || isUndefined(editRendererInfo.type)) {
+      editRendererInfo = { type: rendererType };
+    }
+
+    field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, editRendererInfo);
+
+    let type = 'text';
+    const editType = editRendererInfo?.type;
+
+    if (editType && EDIT_RENDERER[editType]) {
+      type = editType;
+    } else if (EDIT_RENDERER[rendererType]) {
+      type = rendererType;
+    }
+
+    return new EDIT_RENDERER[type](field, this.gridMain);
   }
 }
 

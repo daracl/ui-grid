@@ -2,16 +2,16 @@ import { isHTMLElement } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * html renderer
  *
  * @class HtmlRenderer
  * @typedef {HtmlRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class HtmlRenderer extends ViewRenderer {
+export class HtmlRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

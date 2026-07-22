@@ -51,7 +51,7 @@ export class BodyEvent {
     this.initPointerEvent();
     this.initMobileTouch();
 
-    if (this.gridMain.options().editable !== false) {
+    if (this.gridMain.config().enableCellEdit === true) {
       new PasteEvent(this.gridMain, this.selectionInfo).init();
     }
 
@@ -148,13 +148,12 @@ export class BodyEvent {
    */
   initPointerEvent() {
     const cfg = this.gridMain.config();
-    const opts = this.gridMain.options();
     const bodyElement = this.bodyElement.getElement();
 
     const eventManager = cfg.eventManager;
 
     let session: PointerSession;
-    const editable = opts.editable;
+    const editable = cfg.enableCellEdit;
 
     const clickManager = new ClickManager();
 

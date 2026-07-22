@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { ALIGN_STYLE } from '@/constantStyles';
@@ -9,9 +9,9 @@ import { ALIGN_STYLE } from '@/constantStyles';
  *
  * @class AsideRowDragHandleRenderer
  * @typedef {AsideRowDragHandleRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class AsideRowDragHandleRenderer extends ViewRenderer {
+export class AsideRowDragHandleRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -26,7 +26,7 @@ export class AsideRowDragHandleRenderer extends ViewRenderer {
     return ALIGN_STYLE.center;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return false;
   }
 }

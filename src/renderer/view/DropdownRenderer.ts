@@ -5,16 +5,16 @@ import { isArray, isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * dropdown renderer
  *
  * @class DropdownRenderer
  * @typedef {DropdownRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class DropdownRenderer extends ViewRenderer {
+export class DropdownRenderer extends ViewCellRenderer {
   private readonly valueDelimiter: string;
 
   private listItems: any[] = [];
@@ -119,7 +119,7 @@ export class DropdownRenderer extends ViewRenderer {
     this.field.$editRenderer.render(cellInfo, cellElement);
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 

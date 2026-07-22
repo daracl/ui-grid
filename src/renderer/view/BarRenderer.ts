@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 
@@ -8,9 +8,9 @@ import { CellInfo } from '@t/GridConfig';
  *
  * @class BarRenderer
  * @typedef {BarRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class BarRenderer extends ViewRenderer {
+export class BarRenderer extends ViewCellRenderer {
   private min: number;
   private max: number;
   constructor(field: FieldItem, gridMain: GridMain) {

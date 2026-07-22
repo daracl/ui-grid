@@ -1,22 +1,14 @@
 import { SummaryItem } from '@/types/GridOptions';
+import { isString } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { SummaryRenderer } from '../SummaryRenderer';
-import { isString } from '@/util/utils';
 
-/**
- * view custom renderer
- *
- * @class ViewCustomRenderer
- * @typedef {ViewCustomRenderer}
- * @extends {ViewRenderer}
- */
 /**
  * text renderer
  *
  * @typedef {TextRenderer}
- * @extends {ViewRenderer}
+ * @extends {SummaryRenderer}
  */
 export class SummaryTextRenderer extends SummaryRenderer {
   constructor(field: FieldItem, gridMain: GridMain, summaryItem: SummaryItem) {

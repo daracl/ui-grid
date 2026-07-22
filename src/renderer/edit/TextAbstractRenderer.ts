@@ -3,16 +3,16 @@ import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
  * text renderer
  *
  * @typedef {TextRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
-export abstract class TextAbstractRenderer extends EditRenderer {
+export abstract class TextAbstractRenderer extends EditCellRenderer {
   protected editElement: HTMLInputElement;
   protected item: any;
   protected cellElement: HTMLElement;

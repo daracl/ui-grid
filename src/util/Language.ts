@@ -1,7 +1,7 @@
-import { Message } from '@t/Message';
-import { FieldItem } from '../types/GridField';
-import { ValidResult } from '@t/ValidResult';
 import { RULES } from '@/constants';
+import { Message } from '@t/Message';
+import { ValidResult } from '@t/ValidResult';
+import { FieldItem } from '../types/GridField';
 import { merge } from './utils';
 
 let localeMessage: Message = {
@@ -86,7 +86,7 @@ export class Language {
    * ValidResult 값을 메시지로 변경.
    *
    * @public
-   * @param {EditRenderer} field
+   * @param {FieldItem} field
    * @param {ValidResult} validResult
    * @returns {string[]}
    */

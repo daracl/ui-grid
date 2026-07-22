@@ -3,16 +3,16 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * Aside RowCheck Renderer
  *
  * @class AsideRowCheckRenderer
  * @typedef {AsideRowCheckRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class AsideRowCheckRenderer extends ViewRenderer {
+export class AsideRowCheckRenderer extends ViewCellRenderer {
   private readonly allowMultiSelect: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {

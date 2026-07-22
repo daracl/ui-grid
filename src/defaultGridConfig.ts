@@ -56,7 +56,7 @@ export function initConfig(opts: GridOptions): Config {
     },
     fontFamily: 'Noto Sans KR',
     fontSize: '12px',
-    isCellEdit: false,
+    enableCellEdit: opts.editable ?? false,
     isRowAllowMultiSelect: opts.aside?.rowCheckbox?.allowMultiSelect ?? true,
     searchEnable: false,
     searchParameter: {

@@ -4,7 +4,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRendererInfo } from '@t/RendererInfo';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { TextAbstractRenderer } from './TextAbstractRenderer';
 import { FIELD_LAYER_CLASS } from '@/constants';
 
@@ -13,7 +13,7 @@ import { FIELD_LAYER_CLASS } from '@/constants';
  *
  * @class NumberEditRenderer
  * @typedef {NumberEditRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
 export class NumberEditRenderer extends TextAbstractRenderer {
   private readonly editRendererInfo: EditRendererInfo;

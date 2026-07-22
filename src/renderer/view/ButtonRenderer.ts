@@ -2,7 +2,7 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { ALIGN_STYLE } from '@/constantStyles';
 import { stopPreventCancel } from '@/util/eventUtils';
 
@@ -10,9 +10,9 @@ import { stopPreventCancel } from '@/util/eventUtils';
  * button renderer
  * @class ButtonRenderer
  * @typedef {ButtonRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class ButtonRenderer extends ViewRenderer {
+export class ButtonRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -61,7 +61,7 @@ export class ButtonRenderer extends ViewRenderer {
     return ALIGN_STYLE.center;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return false;
   }
 }

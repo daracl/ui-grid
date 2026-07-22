@@ -137,7 +137,7 @@ export class Toolbar {
     for (const field of this.toolbarFields) {
       const fieldName = field.name;
 
-      if (fieldName && field.$renderer.canEdit()) {
+      if (fieldName && field.$renderer.supportsEdit()) {
         if (val[fieldName]) {
           field.$renderer.setValue(val[fieldName]);
         }
@@ -148,7 +148,7 @@ export class Toolbar {
   public getValues() {
     const item: any = {};
     for (const field of this.toolbarFields) {
-      if (field.name && field.$renderer.canEdit()) {
+      if (field.name && field.$renderer.supportsEdit()) {
         item[field.name] = field.$renderer.getValue();
       }
     }

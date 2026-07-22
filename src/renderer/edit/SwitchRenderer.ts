@@ -4,16 +4,16 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 
 /**
  * Switch renderer
  *
  * @class SwitchRenderer
  * @typedef {SwitchRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
-export class SwitchRenderer extends EditRenderer {
+export class SwitchRenderer extends EditCellRenderer {
   private trueValue: string | boolean;
   private falseValue: string | boolean;
   private showLabel: boolean;
@@ -50,7 +50,9 @@ export class SwitchRenderer extends EditRenderer {
 
       element.appendChild(label);
 
-      this.initClick(input);
+      if (this.isEditable()) {
+        this.initClick(input);
+      }
     }
 
     const input = label.firstChild as HTMLInputElement;
@@ -81,6 +83,10 @@ export class SwitchRenderer extends EditRenderer {
   }
 
   public valid(value: any): ValidResult | boolean {
+    return true;
+  }
+
+  public supportsInteraction() {
     return true;
   }
 

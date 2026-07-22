@@ -9,7 +9,7 @@ import { Config } from '@t/GridConfig';
  * 숫자 유효성 체크
  *
  * @param {string} value
- * @param {EditRenderer} field
+ * @param {FieldItem} field
  * @returns {(ValidResult | boolean)}
  */
 export const numberValidator = (

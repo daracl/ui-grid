@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 
@@ -7,9 +7,9 @@ import { CellInfo } from '@t/GridConfig';
  * text renderer
  *
  * @typedef {TextRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class TextRenderer extends ViewRenderer {
+export class TextRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -24,7 +24,7 @@ export class TextRenderer extends ViewRenderer {
     }
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 }

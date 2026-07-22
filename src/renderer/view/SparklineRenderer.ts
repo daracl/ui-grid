@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { getElementRect } from '@/util/domUtils';
 import { CellInfo } from '@t/GridConfig';
@@ -10,9 +10,9 @@ import { ROW_FIELD } from '@/constants';
  *
  * @class SparklineRenderer
  * @typedef {SparklineRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class SparklineRenderer extends ViewRenderer {
+export class SparklineRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

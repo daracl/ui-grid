@@ -393,71 +393,52 @@ body .dg-hidden-layers.dg-dark {
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
-}
-.daracl-grid .dg-switch > label,
-.dg-hidden-layers .dg-switch > label {
   position: relative;
-  display: block;
-  min-width: 38px;
+  display: inline-block;
   width: 38px;
   height: 19px;
-  justify-content: center;
-  align-items: center;
-}
-.daracl-grid .dg-switch input[type=checkbox],
-.dg-hidden-layers .dg-switch input[type=checkbox] {
-  display: none;
 }
 .daracl-grid .dg-switch .dg-slider,
 .dg-hidden-layers .dg-switch .dg-slider {
-  position: absolute;
-  width: 100%;
+  position: relative;
+  display: block;
+  width: 40px;
   height: 100%;
-  left: 0;
-  color: var(--input-color);
-  background-color: var(--body-bg-hover);
+  background: var(--body-bg-hover);
   border-radius: 20px;
-  cursor: pointer;
   transition: background-color 0.3s;
-  align-items: center;
-  padding: 0 6px;
-  font-weight: bold;
-  display: inline-flex;
 }
 .daracl-grid .dg-switch .dg-slider::before,
 .dg-hidden-layers .dg-switch .dg-slider::before {
   content: "";
   position: absolute;
-  height: 13px;
   width: 14px;
-  left: 3px;
+  height: 13px;
   top: 3px;
-  background-color: var(--body-bg);
+  left: 3px;
   border-radius: 50%;
+  background: var(--body-bg);
   transition: transform 0.3s;
 }
-.daracl-grid .dg-switch input:checked + .dg-slider,
-.dg-hidden-layers .dg-switch input:checked + .dg-slider {
-  background-color: var(--checkbox-bg);
-  justify-content: flex-start;
+.daracl-grid .dg-switch.dg-checked .dg-slider,
+.dg-hidden-layers .dg-switch.dg-checked .dg-slider {
+  background: var(--checkbox-bg);
 }
-.daracl-grid .dg-switch input:checked + .dg-slider::before,
-.dg-hidden-layers .dg-switch input:checked + .dg-slider::before {
-  right: 3px;
-  left: initial;
+.daracl-grid .dg-switch.dg-checked .dg-slider::before,
+.dg-hidden-layers .dg-switch.dg-checked .dg-slider::before {
+  transform: translateX(18px);
 }
-.daracl-grid .dg-switch input:not(:checked) + .dg-slider,
-.dg-hidden-layers .dg-switch input:not(:checked) + .dg-slider {
-  justify-content: flex-end;
+.daracl-grid .dg-switch.dg-disabled,
+.dg-hidden-layers .dg-switch.dg-disabled {
+  pointer-events: none;
 }
-.daracl-grid .dg-switch input:disabled + .dg-slider,
-.dg-hidden-layers .dg-switch input:disabled + .dg-slider {
-  background-color: var(--disabled-bg);
-  cursor: not-allowed;
+.daracl-grid .dg-switch.dg-disabled .dg-slider,
+.dg-hidden-layers .dg-switch.dg-disabled .dg-slider {
+  background: var(--disabled-bg);
 }
-.daracl-grid .dg-switch input:disabled + .dg-slider::before,
-.dg-hidden-layers .dg-switch input:disabled + .dg-slider::before {
-  background-color: #bdbdbd;
+.daracl-grid .dg-switch.dg-disabled .dg-slider::before,
+.dg-hidden-layers .dg-switch.dg-disabled .dg-slider::before {
+  background: #bdbdbd;
 }
 .daracl-grid .dg-choice,
 .dg-hidden-layers .dg-choice {
@@ -641,6 +622,7 @@ body .dg-hidden-layers.dg-dark {
   vertical-align: top;
   height: 40px;
   display: none;
+  z-index: 2;
   -webkit-touch-callout: text;
   -webkit-user-select: text;
   -moz-user-select: text;
@@ -755,16 +737,16 @@ body .dg-hidden-layers.dg-dark {
   background-color: var(--fixed-column-bg);
 }
 .daracl-grid .dg-main[data-scroll=horizontal] .dg-scroll.dg-horizontal {
-  display: block !important;
+  display: flex !important;
 }
 .daracl-grid .dg-main[data-scroll=vertical] .dg-scroll.dg-vertical {
-  display: block !important;
+  display: flex !important;
 }
 .daracl-grid .dg-main[data-scroll=vertical] .dg-region-right {
   right: 0px !important;
 }
 .daracl-grid .dg-main[data-scroll=both] .dg-scroll {
-  display: block !important;
+  display: flex !important;
 }
 .daracl-grid .dg-main[data-scroll=both] .dg-scroll-corner {
   display: block !important;
@@ -812,6 +794,7 @@ body .dg-hidden-layers.dg-dark {
   overflow: hidden;
   width: 100%;
   height: 100%;
+  z-index: 1;
 }
 .daracl-grid .dg-main .dg-panels .dg-ellipsis,
 .daracl-grid .dg-main .dg-panels .dg-ellipsis > * {
@@ -1430,9 +1413,12 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid .dg-drop-indicator.dg-drop-forbidden {
   background-color: #d95959 !important;
 }
+.daracl-grid .dg-scroll-container {
+  z-index: 2;
+}
 .daracl-grid .dg-scroll-container .dg-scroll-thumb {
-  z-index: 1;
   position: absolute;
+  z-index: 1;
   border-radius: 0.5em !important;
   touch-action: none;
   background-color: var(--scroll-thumb-bg);
@@ -1442,69 +1428,75 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-scroll-container .dg-scroll-track {
   position: relative;
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
 .daracl-grid .dg-scroll-container .dg-scroll-corner {
-  bottom: 0px;
-  right: 0px;
-  display: none;
   position: absolute;
+  right: 0;
+  bottom: 0;
   z-index: 1;
+  display: none;
   background-color: var(--scroll-track-bg);
 }
 .daracl-grid .dg-scroll-container .dg-scroll {
   display: none;
+  position: absolute;
+  z-index: 3;
   background-color: var(--scroll-track-bg);
-  /* vertical scroll */
-  /* horizontal scroll */
+  /* Scroll Button */
+  /* ===========================
+   * Vertical Scroll
+   * =========================== */
+  /* ===========================
+   * Horizontal Scroll
+   * =========================== */
+}
+.daracl-grid .dg-scroll-container .dg-scroll .dg-scroll-button {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.daracl-grid .dg-scroll-container .dg-scroll .dg-scroll-button svg {
+  display: block;
+  flex-shrink: 0;
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-vertical {
-  height: 100%;
+  top: 0;
+  right: 0;
   width: 12px;
-  position: absolute;
-  text-align: center;
-  right: 0px;
-  top: 0px;
-  z-index: 3;
-  border-left: 0px solid transparent;
+  height: 100%;
+  flex-direction: column;
+  border-left: 0;
   border-bottom: 1px solid transparent;
-  /* scroll bar */
-  /* scroll button */
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-vertical .dg-scroll-thumb {
-  top: 0px;
-  right: 2px;
-  position: absolute;
-  z-index: 1;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-vertical .dg-scroll-button {
-  position: absolute;
-  right: 0px;
+  left: 0;
   width: 100%;
-  cursor: pointer;
-  line-height: 100%;
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-horizontal {
+  left: 0;
+  bottom: 0;
   width: 100%;
   height: 12px;
-  position: absolute;
-  vertical-align: middle;
-  bottom: 0px;
-  z-index: 3;
-  /* scroll button */
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-horizontal .dg-scroll-thumb {
-  left: 0px;
-  top: 2px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 .daracl-grid .dg-scroll-container .dg-scroll.dg-horizontal .dg-scroll-button {
-  position: absolute;
-  top: 0px;
-  padding: 1px 0px;
+  margin-top: 1px;
+  top: 50%;
   height: 100%;
-  line-height: 100%;
-  cursor: pointer;
+  transform: translateY(-50%);
 }
 .daracl-grid .dg-footer {
   border: 1px solid var(--border-color);

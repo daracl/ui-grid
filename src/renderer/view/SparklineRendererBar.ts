@@ -2,16 +2,16 @@ import { getElementRect } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * Sparkline bar renderer
  *
  * @class SparklineRendererBar
  * @typedef {SparklineRendererBar}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class SparklineRendererBar extends ViewRenderer {
+export class SparklineRendererBar extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

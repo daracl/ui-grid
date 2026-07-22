@@ -1,17 +1,17 @@
-import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ALIGN_STYLE } from '@/constantStyles';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { FieldItem } from '@t/GridField';
 
 /**
  * Aside LineNumber renderer
  *
  * @class AsideLineNumberRenderer
  * @typedef {AsideLineNumberRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class AsideLineNumberRenderer extends ViewRenderer {
+export class AsideLineNumberRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }

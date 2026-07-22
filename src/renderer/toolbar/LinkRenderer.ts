@@ -50,7 +50,7 @@ export class LinkRenderer extends ToolBarRenderer {
     return '';
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return false;
   }
 

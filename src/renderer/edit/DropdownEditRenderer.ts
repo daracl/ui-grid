@@ -13,16 +13,16 @@ import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 
 /**
  * dropdown edit renderer
  *
  * @class DropdownEditRenderer
  * @typedef {DropdownEditRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
-export class DropdownEditRenderer extends EditRenderer {
+export class DropdownEditRenderer extends EditCellRenderer {
   private dropdownElement: HTMLElement;
   private currentEditRow: number;
   private readonly labelKey: string;
@@ -76,8 +76,6 @@ export class DropdownEditRenderer extends EditRenderer {
     this.currentEditRow = cellInfo.rowIndex;
 
     const eventElement = cellElement.querySelector('.dg-cell-renderer') as HTMLElement;
-
-    console.log(this.currentEditRow, cellInfo);
 
     let dropdownElement = this.dropdownElement;
     if (!dropdownElement) {

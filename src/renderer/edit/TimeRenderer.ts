@@ -1,14 +1,14 @@
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditRenderer } from '../EditRenderer';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { TextAbstractRenderer } from './TextAbstractRenderer';
 
 /**
  * time renderer
  *
  * @typedef {TimeRenderer}
- * @extends {EditRenderer}
+ * @extends {EditCellRenderer}
  */
 export class TimeRenderer extends TextAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {

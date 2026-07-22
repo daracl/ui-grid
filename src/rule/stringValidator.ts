@@ -1,14 +1,14 @@
-import { ValidResult } from '@t/ValidResult';
 import { RULES } from '@/constants';
-import * as utils from '@/util/utils';
-import { validator } from './validator';
-import { FieldItem } from '@t/GridField';
+import { isBlank, isNumber } from '@/util/utils';
 import { Config } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
+import { ValidResult } from '@t/ValidResult';
+import { validator } from './validator';
 /**
  * string validator
  *
  * @param {string} value
- * @param {EditRenderer} field
+ * @param {FieldItem} field
  * @returns {(ValidResult | boolean)}
  */
 export const stringValidator = (
@@ -24,7 +24,7 @@ export const stringValidator = (
     return null;
   }
 
-  if (editRenderer.required && utils.isBlank(value)) {
+  if (editRenderer.required && isBlank(value)) {
     result.constraints.push(RULES.REQUIRED);
     return result;
   }
@@ -38,8 +38,8 @@ export const stringValidator = (
   if (rule) {
     const valueLength = value.length;
 
-    const isMinNumber = utils.isNumber(rule.minLength),
-      isMaxNumber = utils.isNumber(rule.maxLength);
+    const isMinNumber = isNumber(rule.minLength),
+      isMaxNumber = isNumber(rule.maxLength);
 
     let minRule = false,
       maxRule = false;

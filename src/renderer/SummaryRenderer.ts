@@ -6,7 +6,6 @@ import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { SummaryItem } from '../types/GridOptions';
-import { Renderer } from './Renderer';
 
 /**
  * summary Render
@@ -15,17 +14,25 @@ import { Renderer } from './Renderer';
  * @abstract
  * @class SummaryRenderer
  * @typedef {SummaryRenderer}
- * @extends {Renderer}
  */
-export abstract class SummaryRenderer extends Renderer {
+export abstract class SummaryRenderer {
   protected readonly summaryItem;
   protected readonly isVauleFunction: boolean;
   protected isClick = false;
   protected eventStyleClass = '';
   protected readonly cfg: Config;
 
+  protected field;
+  protected fieldName;
+  protected gridMain;
+  protected language;
+
   constructor(field: FieldItem, gridMain: GridMain, summaryItem: SummaryItem) {
-    super(field, gridMain);
+    this.field = field;
+    this.fieldName = field.name;
+    this.gridMain = gridMain;
+    this.language = this.gridMain.i18n();
+
     this.cfg = this.gridMain.config();
     this.isVauleFunction = isFunction(field.getValue);
 

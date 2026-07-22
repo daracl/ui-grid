@@ -1,5 +1,5 @@
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { ALIGN_STYLE } from '@/constantStyles';
@@ -8,9 +8,9 @@ import { ALIGN_STYLE } from '@/constantStyles';
  * password renderer
  *
  * @typedef {PasswordRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class PasswordRenderer extends ViewRenderer {
+export class PasswordRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -27,7 +27,7 @@ export class PasswordRenderer extends ViewRenderer {
     return ALIGN_STYLE.center;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 }

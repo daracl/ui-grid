@@ -35,7 +35,7 @@ export class HtmlRenderer extends ToolBarRenderer {
     return '';
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return false;
   }
 

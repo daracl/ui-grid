@@ -2,15 +2,15 @@ import { ALIGN_STYLE } from '@/constantStyles';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * number renderer
  *
  * @typedef {NumberRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class NumberRenderer extends ViewRenderer {
+export class NumberRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
   }
@@ -29,7 +29,7 @@ export class NumberRenderer extends ViewRenderer {
     return ALIGN_STYLE.right;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 }

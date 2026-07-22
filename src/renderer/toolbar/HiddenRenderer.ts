@@ -23,7 +23,7 @@ export class HiddenRenderer extends ToolBarRenderer {
     return this.value;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 

@@ -1,14 +1,13 @@
 import { FieldItem } from '@t/GridField';
 
-import { Renderer } from './Renderer';
-import { isFunction, isString } from '@/util/utils';
-import { CellInfo, Config } from '@t/GridConfig';
-import { GridMain } from '@/view/GridMain';
 import { formatValue } from '@/util/formatUtils';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { isFunction, isString } from '@/util/utils';
+import { GridMain } from '@/view/GridMain';
+import { CellInfo, Config } from '@t/GridConfig';
 import { isBlank } from '../util/utils';
+import { CellRenderer } from './CellRenderer';
 
-export abstract class ViewRenderer extends Renderer {
+export abstract class ViewCellRenderer extends CellRenderer {
   private readonly isRefFunction: boolean;
   private readonly isRefString: boolean;
   private readonly isVauleFunction: boolean;
@@ -52,20 +51,6 @@ export abstract class ViewRenderer extends Renderer {
     if (!this.eventStyleClass) return defaultStyleClass;
 
     return defaultStyleClass ? defaultStyleClass + ' ' + this.eventStyleClass : this.eventStyleClass;
-  }
-
-  /**
-   * view render
-   *
-   * @public
-   * @abstract
-   * @param {CellInfo} cellInfo cell info
-   * @param {HTMLElement} element cell element
-   */
-  public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
-
-  public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
-    return false;
   }
 
   public getRefValue(value: any, rowItem?: any): any {
@@ -118,15 +103,7 @@ export abstract class ViewRenderer extends Renderer {
    *
    * @returns {boolean}
    */
-  public canEdit() {
+  public supportsEdit() {
     return false;
-  }
-
-  /**
-   *  값 정렬 스타일
-   * @returns {string} align style
-   */
-  public alignStyle(): string {
-    return ALIGN_STYLE.left;
   }
 }

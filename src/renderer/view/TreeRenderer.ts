@@ -7,15 +7,15 @@ import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewRenderer } from '../ViewRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * tree renderer
  *
  * @typedef {TreeRenderer}
- * @extends {ViewRenderer}
+ * @extends {ViewCellRenderer}
  */
-export class TreeRenderer extends ViewRenderer {
+export class TreeRenderer extends ViewCellRenderer {
   private readonly treeNodeIconClass;
   private readonly iconState = new WeakMap<HTMLElement, string>();
   private readonly treeDataManager: TreeDataManager;
@@ -131,7 +131,7 @@ export class TreeRenderer extends ViewRenderer {
     return ALIGN_STYLE.left;
   }
 
-  public canEdit() {
+  public supportsEdit() {
     return true;
   }
 }

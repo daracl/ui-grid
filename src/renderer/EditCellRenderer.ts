@@ -2,30 +2,30 @@ import { FieldItem } from '@t/GridField';
 
 import { FIELD_LAYER_CLASS, ROW_FIELD } from '@/constants';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
-import * as utils from '@/util/utils';
+import { merge } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
 import { ValidResult } from '@t/ValidResult';
-import { Renderer } from './Renderer';
+import { CellRenderer } from './CellRenderer';
+import { isFieldEditable } from '@/util/gridUtils';
 
-export abstract class EditRenderer extends Renderer {
+export abstract class EditCellRenderer extends CellRenderer {
   protected readonly rendererContainer: HTMLElement;
 
   private validatorElement: HTMLElement;
+
+  private _editable: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     this.rendererContainer = this.gridMain.getRendererLayerElement();
+
+    this._editable = isFieldEditable(this.gridMain.config(), field);
   }
 
-  /**
-   * view render
-   *
-   * @param {HTMLElement} element td element
-   * @param {*} value value row item
-   */
-  public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
+  public isEditable() {
+    return this._editable;
+  }
 
   public abstract valid(value: any): ValidResult | boolean;
 
@@ -35,7 +35,7 @@ export abstract class EditRenderer extends Renderer {
    * @param {any} value row item
    * @returns {any} field value
    */
-  public getValue(value: any, formatFlag?: boolean) {
+  public getValue(value: any) {
     return value[this.field.name];
   }
 
@@ -76,7 +76,7 @@ export abstract class EditRenderer extends Renderer {
       const changeInfo: any = {
         field: field,
         evt: e,
-        item: utils.merge({}, item),
+        item: merge({}, item),
         //oldValue: field.$value,
         value: fieldValue,
       };
@@ -138,7 +138,7 @@ export abstract class EditRenderer extends Renderer {
     return false;
   }
 
-  public isEditRenderer() {
+  public supportsEdit() {
     return true;
   }
 }
