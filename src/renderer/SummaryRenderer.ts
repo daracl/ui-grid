@@ -4,7 +4,7 @@ import { calcSummary } from '@/util/mathUtils';
 import { resolveClassName } from '@/util/styleUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { Config } from '@t/GridConfig';
+import { Config, CellPositionInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { SummaryItem } from '../types/GridOptions';
 
@@ -27,6 +27,9 @@ export abstract class SummaryRenderer {
   protected gridMain;
   protected language;
 
+  private readonly hasRendererClass: boolean;
+  private rendererClassCache = new WeakMap<HTMLElement, string[]>();
+
   constructor(field: FieldItem, gridMain: GridMain, summaryItem: SummaryItem) {
     this.field = field;
     this.fieldName = field.name;
@@ -35,6 +38,8 @@ export abstract class SummaryRenderer {
 
     this.cfg = this.gridMain.config();
     this.isVauleFunction = isFunction(field.getValue);
+
+    this.hasRendererClass = !!summaryItem.rendererClass;
 
     this.summaryItem = summaryItem;
   }
@@ -46,7 +51,7 @@ export abstract class SummaryRenderer {
    * @abstract
    * @param {HTMLElement} element cell element
    */
-  public abstract render(element: HTMLElement): void;
+  public abstract render(cellInfo: CellPositionInfo, element: HTMLElement): void;
 
   public getCol() {
     return this.field.$colSeq;
@@ -97,11 +102,21 @@ export abstract class SummaryRenderer {
     return summaryValue;
   }
 
-  public setRendererClassValue(renderValue: any, element: HTMLElement) {
+  public setRendererClass(renderValue: any, element: HTMLElement) {
+    if (!this.hasRendererClass) return;
+
+    const prev = this.rendererClassCache.get(element);
+
     const classNames = resolveClassName(this.summaryItem.rendererClass, renderValue);
 
-    if (classNames) {
-      element.classList.add(classNames);
+    if (prev?.length) {
+      element.classList.remove(...prev);
+    }
+    if (classNames.length > 0) {
+      element.classList.add(...classNames);
+      this.rendererClassCache.set(element, classNames);
+    } else {
+      this.rendererClassCache.delete(element);
     }
   }
 

@@ -257,7 +257,7 @@ export class ContextMenu {
 
       if (isUndefined(item)) continue;
 
-      classNames = resolveClassName(item.itemClass, { item }) + (item.disabled === true ? ' disabled' : '');
+      classNames = resolveClassName(item.itemClass, { item }).join(' ') + (item.disabled === true ? ' disabled' : '');
 
       itemKey = depth + '_' + (item.key || '');
 

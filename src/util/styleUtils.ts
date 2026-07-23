@@ -35,8 +35,12 @@ export const addStyleTag = (instanceId: string) => {
  * @param {string} classNames
  * @returns {*}
  */
-export const styleClassSplit = (classNames: string) => {
-  return classNames.trim().split(/\s+/);
+export const styleClassSplit = (classNames?: string): string[] => {
+  if (!classNames) {
+    return [];
+  }
+
+  return classNames.match(/\S+/g) ?? [];
 };
 
 /**
@@ -135,6 +139,18 @@ export function normalizeCssLength(value: number | string) {
  * @returns {string}
  *        resolved class name
  */
-export const resolveClassName = (className: string | OptionCallback | undefined, params?: any): string => {
-  return isFunction(className) ? className(params) : className ?? '';
+export const resolveClassName = (className: string | OptionCallback | undefined, params?: any): string[] => {
+  if (!className) {
+    return [];
+  }
+  let reval: string;
+  if (isFunction(className)) {
+    reval = className(params);
+  } else {
+    reval = className + '';
+  }
+
+  console.log('reval : ', reval);
+
+  return styleClassSplit(reval);
 };

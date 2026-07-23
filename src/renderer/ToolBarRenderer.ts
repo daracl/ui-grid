@@ -52,7 +52,7 @@ export abstract class ToolBarRenderer {
   public getRendererClass(addClass: string) {
     const classNames = resolveClassName(this.field.rendererClass);
 
-    return classNames ? addClass + ' ' + classNames : addClass;
+    return classNames.length > 0 ? addClass + ' ' + classNames.join(' ') : addClass;
   }
 
   /**

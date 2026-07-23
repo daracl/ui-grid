@@ -9,7 +9,7 @@ import { ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { removeClass, resolveClassName } from '@/util/styleUtils';
-import * as utils from '@/util/utils';
+import { camelToKebab, copyStringToClipboard, isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { BodyEvent } from './BodyEvent';
@@ -17,7 +17,7 @@ import { BodyEvent } from './BodyEvent';
 const CELL_HIGHLIGHT_CLASS = 'dg-search-highlight';
 const CELL_MATCH_CLASS = 'dg-search-match';
 
-const CELL_BASE_CLASS = `${BodyCellStyleMap.CELL} ${BodyCellStyleMap.SELECTION}`;
+const CELL_BASE_CLASS = `${BodyCellStyleMap.CELL}`;
 /**
  * Body class
  *
@@ -38,6 +38,8 @@ export class Body {
   private rightElement: DaraElement;
 
   private allCellElements: any;
+
+  private cellClassCache = new WeakMap<HTMLElement, string[]>();
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -164,7 +166,7 @@ export class Body {
     const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
     const { dataManager, dataInfo } = this.gridMain.config();
 
-    const checkValues = utils.isArray(values) ? values : [values];
+    const checkValues = isArray(values) ? values : [values];
 
     const viewItems = dataManager.getViewItems();
 
@@ -193,7 +195,7 @@ export class Body {
   public addCheckedItemByValue(name: string, values: any) {
     const { dataManager, dataInfo } = this.gridMain.config();
 
-    const checkValue = utils.isArray(values) ? values : [values];
+    const checkValue = isArray(values) ? values : [values];
     const viewItems = dataManager.getViewItems();
 
     for (const viewItem of viewItems) {
@@ -217,7 +219,7 @@ export class Body {
   public unCheckedItemByValue(name: string, values: any) {
     const { dataManager, dataInfo } = this.gridMain.config();
 
-    const checkValue = utils.isArray(values) ? values : [values];
+    const checkValue = isArray(values) ? values : [values];
     const viewItems = dataManager.getViewItems();
 
     for (const viewItem of viewItems) {
@@ -257,7 +259,7 @@ export class Body {
     const selectData = this.selectionInfo.selectionData();
 
     try {
-      utils.copyStringToClipboard(selectData);
+      copyStringToClipboard(selectData);
     } catch (e) {
       console.log('Unable to copy', e);
     }
@@ -595,10 +597,23 @@ export class Body {
   private setCellClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
     if (!field.cellClass) return;
 
-    // Determine new class to add
-    const newClass = resolveClassName(field.cellClass, { rowIdx, col, field, item });
+    const prevClasses = this.cellClassCache.get(cellEle);
 
-    cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
+    // 이전 cellClass 제거
+    if (prevClasses?.length) {
+      cellEle.classList.remove(...prevClasses);
+    }
+
+    const newClasses = resolveClassName(field.cellClass, { rowIdx, col, field, item });
+
+    if (newClasses.length > 0) {
+      cellEle.classList.add(...newClasses);
+      this.cellClassCache.set(cellEle, newClasses);
+    } else {
+      this.cellClassCache.delete(cellEle);
+    }
+
+    //cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
   }
 
   selectRowAnchorCell() {
@@ -711,7 +726,7 @@ export class Body {
         if (field.$isAside) {
           cellTemplate.push(html`<td
             scope="col"
-            class="dg-cell dg-aside dg-${utils.camelToKebab(field.name).replace('$', '')}"
+            class="dg-cell dg-aside dg-${camelToKebab(field.name).replace('$', '')}"
             data-cell-position="${rowIdx + ',' + (startCol + j)}"
           >
             <div

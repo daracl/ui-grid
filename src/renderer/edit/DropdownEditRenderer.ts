@@ -69,9 +69,9 @@ export class DropdownEditRenderer extends EditCellRenderer {
 
     this.currentCellInfo = cellInfo;
 
-    const cellPosition = String(cellInfo.c);
+    const colIdx = String(cellInfo.c);
 
-    this.gridMain.config().activeComponent = cellPosition;
+    this.gridMain.config().activeComponent = colIdx;
 
     this.currentEditRow = cellInfo.rowIndex;
 
@@ -79,7 +79,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
 
     let dropdownElement = this.dropdownElement;
     if (!dropdownElement) {
-      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, cellPosition);
+      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, colIdx);
 
       this.rendererContainer.appendChild(dropdownElement);
       this.dropdownElement = dropdownElement;

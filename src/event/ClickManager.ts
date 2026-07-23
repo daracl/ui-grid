@@ -8,7 +8,7 @@ export class ClickManager {
   private lastClickTime = 0;
   private clickCount = 0;
   private readonly clickDelay: number;
-  private currentCellPosition: PointerPosition;
+  private currentPointerPosition: PointerPosition;
   private clickTimer: any;
 
   public constructor(delay: number = DBLCLICK_DELAY) {
@@ -22,11 +22,11 @@ export class ClickManager {
 
   resetClick() {
     this.clickCount = 0;
-    this.currentCellPosition = { x: 0, y: 0, clientX: 0, clientY: 0 };
+    this.currentPointerPosition = { x: 0, y: 0, clientX: 0, clientY: 0 };
   }
 
-  conserveClick(cellPosition: PointerPosition) {
-    this.currentCellPosition = cellPosition;
+  conserveClick(pointerPosition: PointerPosition) {
+    this.currentPointerPosition = pointerPosition;
     this.clickCount = 1;
     clearTimeout(this.clickTimer);
     this.clickTimer = setTimeout(() => this.resetClick(), this.clickDelay);
@@ -42,7 +42,7 @@ export class ClickManager {
     this.lastClickTime = now;
 
     if (this.clickCount === 2) {
-      if (!isMouseMoved(session.startPos, this.currentCellPosition, 5)) {
+      if (!isMouseMoved(session.startPos, this.currentPointerPosition, 5)) {
         handler.onDoubleClick?.(session);
         this.resetClick();
         return;

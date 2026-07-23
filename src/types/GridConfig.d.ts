@@ -158,6 +158,18 @@ export interface SummaryConfig {
   heights: number[];
 }
 
+export interface CellPositionInfo {
+  /**
+   * view column index
+   */
+  c: number;
+
+  /**
+   * view row index
+   */
+  r: number;
+}
+
 export interface HeaderCellInfo {
   /**
    * view column index

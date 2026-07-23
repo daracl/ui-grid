@@ -1,4 +1,4 @@
-import { Config, SummaryConfig } from '@t/GridConfig';
+import { CellInfo, Config, CellPositionInfo, SummaryConfig } from '@t/GridConfig';
 import { SummaryOptions } from '@t/GridOptions';
 
 import { ALIGN_STYLE } from '@/constantStyles';
@@ -122,7 +122,11 @@ export class Summary {
           ?.firstElementChild as HTMLElement;
 
         if (cellElement) {
-          renderer.render(cellElement);
+          const cellInfo = {
+            r: rowIdx,
+            c: col,
+          } as CellPositionInfo;
+          renderer.render(cellInfo, cellElement);
         }
       }
     }

@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara summary</title>
-  </head>
 
-  <body>
-    <div>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara summary</title>
+</head>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+<body>
+  <div>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+  </div>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 <style>
   .pre-white {
@@ -209,7 +211,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
+            dropCallback: (data) => { },
           },
         },
         summary: {
@@ -231,7 +233,15 @@
                 colspan: 2,
                 align: 'center',
                 rendererClass: function (val) {
-                  return 'custom-class';
+                  if (val < 5000000) {
+                    return 'salary-5'
+                  } else if (val < 6000000) {
+                    return 'salary-6'
+                  } else if (val < 9000000) {
+                    return 'salary-9'
+                  }
+
+                  return 'salary-up';
                 },
                 expression: 'sum',
                 displayFormat: {
@@ -263,7 +273,7 @@
         },
         search: {
           enabled: true,
-          //hideNonMatched: true,
+          hideNonMatched: true,
           enableColumnFix: true,
           click: false,
           mode: 'simple', //'full'

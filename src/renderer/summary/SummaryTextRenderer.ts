@@ -1,3 +1,4 @@
+import { CellPositionInfo } from '@/types/GridConfig';
 import { SummaryItem } from '@/types/GridOptions';
 import { isString } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -15,10 +16,10 @@ export class SummaryTextRenderer extends SummaryRenderer {
     super(field, gridMain, summaryItem);
   }
 
-  public render(element: HTMLElement): void {
+  public render(cellInfo: CellPositionInfo, element: HTMLElement): void {
     const summaryValue = this.getValue();
 
-    this.setRendererClassValue(summaryValue.value, element);
+    this.setRendererClass(summaryValue.value, element);
 
     const formatValue = summaryValue.formatValue;
 
