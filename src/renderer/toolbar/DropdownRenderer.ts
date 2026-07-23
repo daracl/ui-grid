@@ -81,7 +81,7 @@ export class DropdownRenderer extends ToolBarRenderer {
     const controlElement = this.getControlElement(element);
 
     const buttonElement = document.createElement('button');
-    buttonElement.className = this.getRendererStyleClass('dg-dropdown-button');
+    buttonElement.className = this.getRendererClass('dg-dropdown-button');
 
     const text = createHTMLElement('div', 'dg-dropdown-label');
     const icon = createHTMLElement('div', 'dg-dropdown-icon');

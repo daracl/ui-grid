@@ -15,7 +15,7 @@ export class SwitchRenderer extends ToolBarRenderer {
   private sliderElement: HTMLElement;
   private labelElement: HTMLElement;
   private checked: boolean;
-  private showLabel: boolean;
+  private readonly showLabel: boolean;
 
   constructor(field: ToolbarFieldItem, gridMain: GridMain) {
     super(field, gridMain);
@@ -31,14 +31,14 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     const contentElement = document.createElement('div');
 
-    contentElement.className = this.getRendererStyleClass('dg-switch');
+    contentElement.className = this.getRendererClass('dg-switch');
 
     const slider = document.createElement('div');
     slider.className = 'dg-slider';
 
     if (this.showLabel) {
       const label = document.createElement('span');
-      label.className = 'dg-label';
+      label.className = 'dg-slider-label';
       slider.appendChild(label);
       this.labelElement = label;
     }
@@ -48,7 +48,7 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     this.sliderElement = slider;
 
-    this.setValue(this.field.defaultValue ?? false);
+    this.setValue(this.field.defaultValue);
 
     this.initClick(contentElement);
   }
@@ -56,19 +56,10 @@ export class SwitchRenderer extends ToolBarRenderer {
   initClick(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
 
-    let beforeValue = this.getValue();
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       this.click(e, contentElement);
 
-      this.checked = !this.checked;
-
-      this.setValue(this.checked);
-
-      const val = this.getValue();
-      if (beforeValue !== val) {
-        beforeValue = val;
-        this.changeValue(this.getValue());
-      }
+      this.setChecked(!this.checked);
     });
   }
 
@@ -76,20 +67,23 @@ export class SwitchRenderer extends ToolBarRenderer {
     return this.checked ? this.trueValue : this.falseValue;
   }
 
-  public setValue(value: string | boolean) {
-    let labelText;
-    if (value === this.trueValue || value === true) {
-      this.checked = true;
-      labelText = this.trueValue;
-    } else {
-      this.checked = false;
-      labelText = this.falseValue;
+  public setValue(value: any) {
+    this.setChecked(value === this.trueValue);
+  }
+
+  public setChecked(checked: boolean) {
+    if (this.checked === checked) {
+      return;
     }
 
     if (this.showLabel) {
-      this.labelElement.textContent = labelText + '';
+      this.labelElement.textContent = (checked ? this.trueValue : this.falseValue) + '';
     }
 
-    this.sliderElement.classList.toggle('dg-checked', this.checked);
+    this.checked = checked;
+
+    this.changeValue(this.getValue());
+
+    this.sliderElement.classList.toggle('dg-checked', checked);
   }
 }

@@ -254,7 +254,7 @@ export class GridMain {
 
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
     this.mainElement.addClass(
-      `dg-style-${this._BODY_STYLE.includes(opts.styleClass) ? opts.styleClass : 'default'}`,
+      `dg-style-${this._BODY_STYLE.includes(opts.style) ? opts.style : 'default'}`,
       opts.selectionMode === 'none' ? '' : 'daracl-noselect',
     );
 

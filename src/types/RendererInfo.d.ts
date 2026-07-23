@@ -59,18 +59,34 @@ export interface EditRendererInfo {
     message: string;
   };
 
-  defaultValue?: string; // 기본값
-  listItem?: ValuesInfo; // dropdown, radio, checkbox
-  validator?: OptionCallback; // custom validator
-  change?: OptionCallback; //  입력값 변경시 체크 function
-  click?: OptionCallback; // button onclick function
-  conditional?: ConditionInfo; // 보이기 여부
+  // 기본값
+  defaultValue?: string;
+
+  // dropdown, radio, checkbox
+  listItem?: ValuesInfo;
+
+  // custom validator
+  validator?: OptionCallback;
+
+  //  입력값 변경시 체크 function
+  change?: OptionCallback;
+
+  // button onclick function
+  click?: OptionCallback;
+
+  // 보이기 여부
+  conditional?: ConditionInfo;
+
   // checkbox, Switch true or false 값
   trueValue?: string | boolean;
   falseValue?: string | boolean;
+
   //label 보이기 여부
   showLabel?: boolean;
+
   // icon style class
   iconStyle?: 'string';
+
+  // icon type
   icon?: 'string';
 }

@@ -1,11 +1,11 @@
 import { ALIGN_STYLE } from '@/constantStyles';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { ValidResult } from '@/types/ValidResult';
+import { hasClass } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditCellRenderer } from '@/renderer/EditCellRenderer';
-import { hasClass } from '@/util/domUtils';
 
 /**
  * Switch renderer
@@ -15,17 +15,17 @@ import { hasClass } from '@/util/domUtils';
  * @extends {EditCellRenderer}
  */
 export class SwitchRenderer extends EditCellRenderer {
-  private trueValue: string | boolean;
-  private falseValue: string | boolean;
-  private showLabel: boolean;
+  private readonly trueValue: string | boolean;
+  private readonly falseValue: string | boolean;
+  private readonly showLabel: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
     const rendererInfo = this.field.editRenderer;
+    this.showLabel = rendererInfo.showLabel ?? false;
     this.trueValue = rendererInfo.trueValue ?? true;
     this.falseValue = rendererInfo.falseValue ?? false;
-    this.showLabel = rendererInfo.showLabel ?? false;
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
@@ -42,7 +42,7 @@ export class SwitchRenderer extends EditCellRenderer {
 
       if (this.showLabel) {
         const label = document.createElement('span');
-        label.className = 'dg-label';
+        label.className = 'dg-slider-label';
         slider.appendChild(label);
       }
 
@@ -57,16 +57,11 @@ export class SwitchRenderer extends EditCellRenderer {
   }
 
   public toggle(sliderElement: HTMLElement, value: string | boolean) {
-    let labelText = this.falseValue;
-    let checked = false;
-    if (value === this.trueValue || value === true) {
-      checked = true;
-      labelText = this.trueValue;
-    }
+    const checked = value === this.trueValue;
 
     if (this.showLabel) {
-      const labelElement = sliderElement.querySelector('.dg-label');
-      if (labelElement) labelElement.textContent = labelText + '';
+      const labelElement = sliderElement.querySelector('.dg-slider-label');
+      if (labelElement) labelElement.textContent = (checked ? this.trueValue : this.falseValue) + '';
     }
 
     sliderElement.classList.toggle('dg-checked', checked);

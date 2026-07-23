@@ -21,7 +21,7 @@ export class LinkRenderer extends ToolBarRenderer {
     // 최초 렌더링 시만 생성
 
     const aElement = document.createElement('a');
-    aElement.className = this.getRendererStyleClass('dg-link');
+    aElement.className = this.getRendererClass('dg-link');
     aElement.setAttribute('tabindex', '-1');
     controlElement.appendChild(aElement);
     this.initEvent(aElement);

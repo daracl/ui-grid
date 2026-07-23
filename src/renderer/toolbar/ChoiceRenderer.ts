@@ -73,7 +73,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
     const controlElement = this.getControlElement(element);
 
     const choiceContainer = document.createElement('div');
-    choiceContainer.className = this.getRendererStyleClass('');
+    choiceContainer.className = this.getRendererClass('dg-choice');
     choiceContainer.innerHTML = this.template(this.listItems);
     controlElement.appendChild(choiceContainer);
     this.choiceContainer = choiceContainer;
@@ -87,7 +87,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
     const cfg = this.gridMain.config();
 
     const isMultiple = this.isMultiple;
-    const choiceElements = contentElement.querySelectorAll('.dg-choice');
+    const choiceElements = contentElement.querySelectorAll('.dg-choice-item');
 
     cfg.eventManager.on({ el: choiceElements, type: 'click' }, (e: UIEvent) => {
       const choiceElement = e.currentTarget as HTMLElement;
@@ -176,7 +176,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
         .filter((item) => item)
         .join(' ');
 
-      const checkTemplate = `<div class="dg-choice ${classes}" data-index="${itemIdx}">
+      const checkTemplate = `<div class="dg-choice-item ${classes}" data-index="${itemIdx}">
         ${isLabelOnly ? '' : '<div class="dg-indicator"></div>'}
         <span class="dg-label dg-ellipsis">${label}</span>
       </div>`;

@@ -39,9 +39,9 @@ export interface ToolbarFieldItem {
   width: string | number;
 
   /**
-   * add class
+   * renderer class
    */
-  styleClass?: OptionCallback | string;
+  rendererClass?: OptionCallback | string;
 
   /**
    * render type

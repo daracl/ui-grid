@@ -1,5 +1,6 @@
 import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
+import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
 import { SortOption } from './Header';
 import { ToolbarLayout } from './Toolbar';
@@ -44,9 +45,9 @@ export interface GridOptions {
   fixedRightIndex: number;
 
   /**
-   *
+   * grid body style
    */
-  styleClass: string;
+  style: string;
 
   /**
    * 넓이 고정 여부.
@@ -763,99 +764,6 @@ export interface SummaryItem extends FieldItem {
    *display format
    */
   displayFormat?: DisplayFormatOptions;
-}
-
-/**
- * context menu
- *
- * @export
- * @interface ContextMenuOptions
- * @typedef {ContextMenuOptions}
- */
-export interface ContextMenuOptions {
-  /**
-   * click before
-   *
-   */
-  beforeActivate: OptionCallback;
-  /**
-   * 컨텍스트 메뉴 오픈시 disable item
-   */
-  disableItem: OptionCallback;
-  /**
-   * click callback
-   */
-  callback: OptionCallback;
-  /**
-   * context mene items
-   */
-  items: ContextMenuItem[];
-
-  /**
-   * enable header
-   */
-  enableHeader: boolean;
-}
-
-/**
- * context menu item
- *
- * @export
- * @interface ContextMenuItem
- * @typedef {ContextMenuItem}
- */
-export interface ContextMenuItem {
-  /**
-   * context menu header
-   *
-   * @type {?string}
-   */
-  header?: string;
-
-  /**
-   * key
-   *
-   * @type {?string}
-   */
-  key?: string;
-  /**
-   * click disabled
-   */
-  disabled?: boolean;
-  /**
-   * hotkey
-   */
-  hotkey?: string;
-  /**
-   * context menu label
-   */
-  label: string;
-  /**
-   * checkbox
-   */
-  checkbox?: boolean;
-
-  /**
-   * click callback
-   *
-   * @type {?OptionCallback}
-   */
-  callback?: OptionCallback;
-
-  styleClass: string;
-
-  /**
-   * 구분선
-   *
-   * @type {?boolean}
-   */
-  divider?: boolean;
-  /**
-   * children
-   *
-   * @type {ContextMenuItem[]}
-   */
-  children?: ContextMenuItem[];
 }
 
 export interface RowMoveOptions {

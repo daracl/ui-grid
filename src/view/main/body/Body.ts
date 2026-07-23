@@ -8,7 +8,7 @@ import { SelectionInfo } from '@/selection/selection';
 import { ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
-import { removeClass } from '@/util/styleUtils';
+import { removeClass, resolveClassName } from '@/util/styleUtils';
 import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
@@ -86,7 +86,7 @@ export class Body {
 
       const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + ',' + cell.c + '"]');
 
-      this.setCellStyleClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
+      this.setCellClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
       cell.field.$renderer.render(cell, cellEle.querySelector('.dg-cell') as HTMLElement);
 
       return rowItem;
@@ -544,7 +544,7 @@ export class Body {
     //contentEleStyle.height = heightPixel;
 
     // field add class
-    this.setCellStyleClass(cellElement, rowIdx, col, field, item);
+    this.setCellClass(cellElement, rowIdx, col, field, item);
 
     if (field.$isAside) return;
 
@@ -568,7 +568,7 @@ export class Body {
       }
     }
 
-    this.selectionInfo.setCellSelectionStyleClass(
+    this.selectionInfo.updateCellSelectionClass(
       cellElement,
       rowIdx,
       col,
@@ -583,7 +583,7 @@ export class Body {
   }
 
   /**
-   * cell style 추가
+   * cell class 추가
    *
    * @private
    * @param {HTMLElement} cellEle cell element
@@ -592,13 +592,11 @@ export class Body {
    * @param {FieldItem} field field info
    * @param {*} item item
    */
-  private setCellStyleClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    if (!field.styleClass) return;
+  private setCellClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
+    if (!field.cellClass) return;
 
     // Determine new class to add
-    const newClass = utils.isFunction(field.styleClass)
-      ? field.styleClass({ rowIdx, col, field, item })
-      : field.styleClass;
+    const newClass = resolveClassName(field.cellClass, { rowIdx, col, field, item });
 
     cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;
   }

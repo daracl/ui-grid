@@ -79,7 +79,9 @@
 
   /*dg-switch */
   .dg-switch {
-    margin: 0px 2px 0px 2px !important;
+    .dg-slider {
+      margin: 0px 2px 0px 2px !important;
+    }
   }
 
   /* dropdown */

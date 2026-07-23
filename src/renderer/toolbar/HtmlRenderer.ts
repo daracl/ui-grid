@@ -18,7 +18,7 @@ export class HtmlRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    controlElement.classList.add(this.getRendererStyleClass('dg-html'));
+    controlElement.classList.add(this.getRendererClass('dg-html'));
 
     const defaultValue = this.field.defaultValue;
 

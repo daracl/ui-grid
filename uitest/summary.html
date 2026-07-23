@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara summary</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara summary</title>
-</head>
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
 
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
 <style>
   .pre-white {
@@ -211,7 +209,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => { },
+            dropCallback: (data) => {},
           },
         },
         summary: {
@@ -219,7 +217,7 @@
           height: [30, 40],
           items: [
             [
-              { name: 'name', label: '합계\n합계\n합계', styleClass: 'pre-white' },
+              { name: 'name', label: '합계\n합계\n합계', rendererClass: 'pre-white' },
               { name: 'age', expression: 'sum' },
               {
                 name: 'birth',
@@ -232,7 +230,7 @@
                 name: 'salary',
                 colspan: 2,
                 align: 'center',
-                styleClass: function (val) {
+                rendererClass: function (val) {
                   return 'custom-class';
                 },
                 expression: 'sum',

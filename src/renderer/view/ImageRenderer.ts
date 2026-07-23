@@ -29,7 +29,7 @@ export class ImageRenderer extends ViewCellRenderer {
     // img 없으면 새로 생성
     if (!img) {
       img = document.createElement('img');
-      img.className = this.getRendererStyleClass('dg-cell-content');
+      img.className = this.getInteractiveClass('dg-cell-content');
       element.appendChild(img);
     }
 

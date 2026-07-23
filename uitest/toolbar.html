@@ -1,24 +1,22 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara toolbar</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara toolbar</title>
-</head>
-
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
@@ -185,7 +183,7 @@
                       list: ['대리', '과장', '부장'],
                     },
                   },
-                  change: (info) => { },
+                  change: (info) => {},
                 },
                 {
                   label: '단계',
@@ -198,7 +196,7 @@
                       list: ['설계', '개발', '운영'],
                     },
                   },
-                  change: (info) => { },
+                  change: (info) => {},
                 },
               ],
             },
@@ -237,20 +235,36 @@
                 {
                   label: '사용여부',
                   name: 'switch',
-                  width: 150,
+                  width: 90,
                   gap: [10, 20],
-                  defaultValue: 'Y',
+                  defaultValue: true,
                   renderer: {
                     type: 'switch',
-                    trueValue: 'Y',
-                    falseValue: 'N',
-                    showLabel: true
                   },
 
                   change: (info) => {
                     console.log(info, info.value);
                   },
                 },
+                {
+                  label: 'on/off',
+                  name: 'switchonoff',
+                  width: 90,
+                  gap: [10, 20],
+                  defaultValue: 'ON',
+                  rendererClass: 'dg-slider-box',
+                  renderer: {
+                    type: 'switch',
+                    trueValue: 'ON',
+                    falseValue: 'OFF',
+                    showLabel: true,
+                  },
+
+                  change: (info) => {
+                    console.log(info, info.value);
+                  },
+                },
+
                 {
                   width: 100,
                   defaultValue() {

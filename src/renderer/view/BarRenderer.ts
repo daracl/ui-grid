@@ -41,7 +41,7 @@ export class BarRenderer extends ViewCellRenderer {
 
     if (!text) {
       text = document.createElement('span');
-      text.className = this.getRendererStyleClass('dg-bar-label');
+      text.className = this.getInteractiveClass('dg-bar-label');
       element.appendChild(text);
     }
 

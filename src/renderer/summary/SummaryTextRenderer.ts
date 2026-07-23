@@ -18,7 +18,7 @@ export class SummaryTextRenderer extends SummaryRenderer {
   public render(element: HTMLElement): void {
     const summaryValue = this.getValue();
 
-    this.setStyleClassValue(summaryValue.value, element);
+    this.setRendererClassValue(summaryValue.value, element);
 
     const formatValue = summaryValue.formatValue;
 

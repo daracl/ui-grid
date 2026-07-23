@@ -21,7 +21,7 @@ export class SearchRenderer extends ToolBarRenderer {
 
     const wrapperElement = createHTMLElement('div', 'dg-search');
 
-    const editElement = createHTMLElement('input', this.getRendererStyleClass('dg-search-text'), {
+    const editElement = createHTMLElement('input', this.getRendererClass('dg-search-text'), {
       type: 'text',
       autocomplete: 'off',
       placeholder: this.field.placeholder ?? '',

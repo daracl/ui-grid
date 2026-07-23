@@ -1,4 +1,6 @@
+import { OptionCallback } from '@/types/Common';
 import { $getElements } from './domUtils';
+import { isFunction } from './utils';
 
 /**
  * @method addStyleTag
@@ -30,33 +32,34 @@ export const addStyleTag = (instanceId: string) => {
  * ```
  * 'a b c' => ['a','b','c']
  * ```
- * @param {string} styleClass
+ * @param {string} classNames
  * @returns {*}
  */
-export const styleClassSplit = (styleClass: string) => {
-  return styleClass.trim().split(/\s+/);
+export const styleClassSplit = (classNames: string) => {
+  return classNames.trim().split(/\s+/);
 };
 
 /**
  * add element css class
  *
- * @param {string} styleClasss css class
+ * @param {string} classes css class
  */
-export function addClass(element: Element | null | Element[] | NodeListOf<Element>, ...styleClass: string[]): void {
+export function addClass(element: Element | null | Element[] | NodeListOf<Element>, ...classes: string[]): void {
   if (!element) return;
 
   const elements = $getElements(element);
 
   elements.forEach((el) => {
-    el.classList.add(...styleClass); // 중복 자동 처리
+    el.classList.add(...classes); // 중복 자동 처리
   });
 }
 
 /**
  * remove element css class
  *
- * @param {(Element | null | Element[])} element html dom elements
- * @param {string} styleClass style css class
+ * @export
+ * @param {(Element | null | Element[] | NodeListOf<Element>)} element
+ * @param {...string[]} classNames class names
  */
 export function removeClass(element: Element | null | Element[] | NodeListOf<Element>, ...classNames: string[]): void {
   if (!element || classNames.length < 1) return;
@@ -80,10 +83,10 @@ export function toggleClass(element: Element | null | Element[], classNames: str
   if (!element || typeof classNames !== 'string') return;
 
   const elements = $getElements(element);
-  const styleClasses = styleClassSplit(classNames);
+  const classes = styleClassSplit(classNames);
 
   for (const el of elements) {
-    styleClasses.forEach((cls) => {
+    classes.forEach((cls) => {
       el.classList.toggle(cls);
     });
   }
@@ -117,3 +120,21 @@ export function normalizeCssLength(value: number | string) {
   if (!value) return '';
   return typeof value === 'number' || /^\d+$/.test(value) ? `${value}px` : value;
 }
+
+/**
+ * Resolve class name value.
+ *
+ * className이 callback 함수인 경우 params를 전달하여 실행한 결과를 반환하고,
+ * 문자열인 경우 그대로 반환한다.
+ *
+ * @param {string | OptionCallback | undefined} className
+ *        클래스명 또는 클래스명을 반환하는 callback
+ * @param {any} [params]
+ *        callback 실행 시 전달할 파라미터
+ *
+ * @returns {string}
+ *        resolved class name
+ */
+export const resolveClassName = (className: string | OptionCallback | undefined, params?: any): string => {
+  return isFunction(className) ? className(params) : className ?? '';
+};

@@ -4,7 +4,7 @@ import { TOOLBAR_RENDERER } from '@/constantRenders';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
 import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
-import { isArray, merge } from '@/util/utils';
+import { isArray, isUndefined, merge } from '@/util/utils';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
 import { normalizeCssLength } from '@/util/styleUtils';
@@ -133,13 +133,14 @@ export class Toolbar {
     this.toolbarElement.appendChild(appFragment);
   }
 
-  public setValues(val: any) {
+  public setValues(values: any) {
     for (const field of this.toolbarFields) {
       const fieldName = field.name;
 
       if (fieldName && field.$renderer.supportsEdit()) {
-        if (val[fieldName]) {
-          field.$renderer.setValue(val[fieldName]);
+        const fieldValue = values[fieldName];
+        if (!isUndefined(fieldValue)) {
+          field.$renderer.setValue(fieldValue);
         }
       }
     }

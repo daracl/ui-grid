@@ -253,7 +253,7 @@
               name: 'b',
               label: '비',
               width: 100,
-              styleClass: function (rowInfo) {
+              cellClass: function (rowInfo) {
                 const rowIdx = rowInfo.rowIdx;
                 if (rowIdx % 3 == 0) {
                   return 'dg-primary';

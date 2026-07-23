@@ -1,7 +1,8 @@
 import { ALIGN_STYLE } from '@/constantStyles';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
-import { isFunction, isString } from '@/util/utils';
+import { resolveClassName } from '@/util/styleUtils';
+import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -19,7 +20,6 @@ export abstract class SummaryRenderer {
   protected readonly summaryItem;
   protected readonly isVauleFunction: boolean;
   protected isClick = false;
-  protected eventStyleClass = '';
   protected readonly cfg: Config;
 
   protected field;
@@ -97,16 +97,11 @@ export abstract class SummaryRenderer {
     return summaryValue;
   }
 
-  public setStyleClassValue(renderValue: any, element: HTMLElement) {
-    let styleClass = '';
-    if (isFunction(this.summaryItem.styleClass)) {
-      styleClass = this.summaryItem.styleClass(renderValue);
-    } else {
-      styleClass = isString(this.summaryItem.styleClass) ? this.summaryItem.styleClass : '';
-    }
+  public setRendererClassValue(renderValue: any, element: HTMLElement) {
+    const classNames = resolveClassName(this.summaryItem.rendererClass, renderValue);
 
-    if (styleClass) {
-      element.classList.add(styleClass);
+    if (classNames) {
+      element.classList.add(classNames);
     }
   }
 

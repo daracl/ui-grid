@@ -516,19 +516,19 @@ export class SelectionInfo {
       // 왼쪽 고정 영역
       if (enableLeftField) {
         for (let j = gridStartCol; j <= minFixedLeftCol; j++) {
-          this.setCellSelectionStyleClass(leftElements[i][j], currRow, j, startCellIdx, startCellCol);
+          this.updateCellSelectionClass(leftElements[i][j], currRow, j, startCellIdx, startCellCol);
         }
       }
 
       // 중앙 스크롤 영역
       for (let j = scrollStartCol; j <= minScrollEndCol; j++) {
-        this.setCellSelectionStyleClass(centerElements[i][j], currRow, j, startCellIdx, startCellCol);
+        this.updateCellSelectionClass(centerElements[i][j], currRow, j, startCellIdx, startCellCol);
       }
 
       // 오른쪽 고정 영역
       if (enableRightField) {
         for (let j = fixedRightIndex; j <= endCol; j++) {
-          this.setCellSelectionStyleClass(rightElements[i][j], currRow, j, startCellIdx, startCellCol);
+          this.updateCellSelectionClass(rightElements[i][j], currRow, j, startCellIdx, startCellCol);
         }
       }
     }
@@ -554,7 +554,7 @@ export class SelectionInfo {
    * @param startCol start cell
    * @returns
    */
-  public setCellSelectionStyleClass(
+  public updateCellSelectionClass(
     cellElement: HTMLElement,
     rowIdx: number,
     col: number,

@@ -140,11 +140,11 @@ export class DaraElement {
   /**
    * element css class check
    *
-   * @param {string} styleClass check css class
+   * @param {string} checkClass check css class
    * @returns {boolean} contains = true, flase
    */
-  hasClass(styleClass: string) {
-    if (this.element.classList.contains(styleClass)) {
+  hasClass(checkClass: string) {
+    if (this.element.classList.contains(checkClass)) {
       return true;
     }
 
@@ -154,12 +154,12 @@ export class DaraElement {
   /**
    * add element css class
    *
-   * @param {string} styleClass css class
+   * @param {string} addClasses css class
    */
-  addClass(...styleClass: string[]) {
+  addClass(...addClasses: string[]) {
     const classList = this.element.classList;
 
-    for (const className of styleClass) {
+    for (const className of addClasses) {
       if (!classList.contains(className)) {
         classList.add(className);
       }
@@ -169,10 +169,10 @@ export class DaraElement {
   /**
    * remove element css class
    *
-   * @param {string} styleClass css class
+   * @param {string} removeClasses css class
    */
-  removeClass(...styleClass: string[]) {
-    this.element.classList.remove(...styleClass);
+  removeClass(...removeClasses: string[]) {
+    this.element.classList.remove(...removeClasses);
   }
 
   insertAdjacentHTML(insertPosition: InsertPosition, renderElements: HTMLElement | string) {

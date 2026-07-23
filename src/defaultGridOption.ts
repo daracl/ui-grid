@@ -16,7 +16,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   windowResizeDelay: 50,
   fixedLeftIndex: -1,
   fixedRightIndex: -1,
-  styleClass: 'default',
+  style: 'default',
   enableWidthFixed: false, // 넓이 고정 여부.
   useDefaultFormatter: true, // 기본 포멧터 사용여부
   editable: false, // 편집 모드 활성화
@@ -255,7 +255,7 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   },
   displayFormat: undefined,
   defaultValue: '',
-  styleClass: undefined,
+  cellClass: undefined,
   tooltip: {
     enabled: false,
     content: undefined,

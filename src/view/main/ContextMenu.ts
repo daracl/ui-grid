@@ -1,12 +1,12 @@
 import { HIDDEN_ELEMENT_SELECTOR } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
+import { ContextMenuItem, ContextMenuOptions } from '@/types/ContenxtMenu';
 import { getBrowserSize, getElementRect, hasClass, outerLayerPosition } from '@/util/domUtils';
 import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
-import { addClass, removeClass } from '@/util/styleUtils';
+import { addClass, removeClass, resolveClassName } from '@/util/styleUtils';
 import { isFunction, isUndefined } from '@/util/utils';
-import { ContextMenuItem, ContextMenuOptions } from '@t/GridOptions';
 import { GridMain } from '../GridMain';
 
 const CONTEXT_MENU_ON = 'dg-on';
@@ -251,13 +251,13 @@ export class ContextMenu {
 
     const dateLen = data.length;
 
-    let itemKey, styleClass;
+    let itemKey, classNames;
     for (let i = 0; i < dateLen; i++) {
       const item = data[i];
 
       if (isUndefined(item)) continue;
 
-      styleClass = (item.styleClass ? item.styleClass : '') + (item.disabled === true ? ' disabled' : '');
+      classNames = resolveClassName(item.itemClass, { item }) + (item.disabled === true ? ' disabled' : '');
 
       itemKey = depth + '_' + (item.key || '');
 
@@ -267,7 +267,7 @@ export class ContextMenu {
       }
 
       if (item.checkbox === true) {
-        htmlTemplate.push(html`<li class="dg-contextmenu-check ${styleClass}">
+        htmlTemplate.push(html`<li class="dg-contextmenu-check ${classNames}">
           <a tabindex="-1">
             <label for="dgcontext_${item.key}"
               ><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
@@ -280,7 +280,7 @@ export class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${styleClass}" data-item-key="${itemKey}">
+        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${classNames}" data-item-key="${itemKey}">
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${item.label}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
@@ -291,7 +291,7 @@ export class ContextMenu {
         </li>`);
       } else {
         const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : '';
-        htmlTemplate.push(html`<li class="dg-contextmenu-item ${styleClass}" data-item-key="${itemKey}">
+        htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${itemKey}">
           <a tabindex="-1"> <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm} </a>
         </li>`);
       }

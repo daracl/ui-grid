@@ -196,7 +196,7 @@
             name: 'email',
             label: '이메일',
             width: 100,
-            styleClass: function (rowInfo) {
+            cellClass: function (rowInfo) {
               const rowIdx = rowInfo.rowIdx;
               if (rowIdx % 3 === 0) return 'dg-primary';
               if (rowIdx % 3 === 1) return 'dg-success';

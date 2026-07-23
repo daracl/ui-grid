@@ -156,6 +156,18 @@
               box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
             }
 
+            /* switch box */
+            &.dg-slider-box {
+              .dg-switch {
+                .dg-slider {
+                  border-radius: 3px;
+                  &::before {
+                    border-radius: 2px;
+                  }
+                }
+              }
+            }
+
             @include _RENDERER.renderer;
           }
         }

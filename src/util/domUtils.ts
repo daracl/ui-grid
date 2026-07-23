@@ -1,14 +1,12 @@
+import { ALL_ICONS } from '@/constantIcons';
 import { LAYER_ATTR_NAME } from '@/constants';
 import { styleClassSplit } from './styleUtils';
-import { isArray } from './utils';
-import { ALL_ICONS } from '@/constantIcons';
 
-export function hasClass(element: HTMLElement, styleClass: string) {
-  const styleClassArr = styleClassSplit(styleClass);
+export function hasClass(element: HTMLElement, className: string) {
+  const classNames = styleClassSplit(className);
 
-  const classList = element.classList;
-  for (const styleClassItem of styleClassArr) {
-    if (classList.contains(styleClassItem)) {
+  for (const item of classNames) {
+    if (element.classList.contains(item)) {
       return true;
     }
   }

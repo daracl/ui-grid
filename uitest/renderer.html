@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara renderer</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara renderer</title>
-</head>
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
 
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
 
 <script type="module" src="/src/index.ts"></script>
@@ -163,7 +161,7 @@
               name: 'b',
               label: '비',
               width: 100,
-              styleClass: function (rowInfo) {
+              cellClass: function (rowInfo) {
                 const rowIdx = rowInfo.rowIdx;
                 if (rowIdx % 3 == 0) {
                   return 'dg-primary';
@@ -296,11 +294,12 @@
         },
         {
           name: 'k',
-          label: 'checkbox',
+          label: 'switch-box',
           width: 100,
+          rendererClass: 'dg-slider-box',
           editable: false,
           editRenderer: {
-            type: 'checkbox',
+            type: 'switch',
             trueValue: 'Y',
             falseValue: 'N',
             showLabel: true,
@@ -308,6 +307,7 @@
         },
         {
           name: 'k',
+          //editable: false,
           label: 'switch',
           width: 60,
           editRenderer: {
@@ -506,7 +506,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => { },
+            dropCallback: (data) => {},
           },
         },
         search: {
