@@ -400,12 +400,12 @@ body .dg-hidden-layers.dg-dark {
   display: flex;
   /* Box 스타일 */
 }
-.daracl-grid .dg-switch.dg-slider-box .dg-slider,
-.dg-hidden-layers .dg-switch.dg-slider-box .dg-slider {
+.daracl-grid .dg-switch.dg-box .dg-slider,
+.dg-hidden-layers .dg-switch.dg-box .dg-slider {
   border-radius: 3px;
 }
-.daracl-grid .dg-switch.dg-slider-box .dg-slider::before,
-.dg-hidden-layers .dg-switch.dg-slider-box .dg-slider::before {
+.daracl-grid .dg-switch.dg-box .dg-slider::before,
+.dg-hidden-layers .dg-switch.dg-box .dg-slider::before {
   border-radius: 2px;
 }
 .daracl-grid .dg-switch .dg-slider,

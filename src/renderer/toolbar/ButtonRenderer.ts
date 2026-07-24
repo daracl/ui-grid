@@ -18,7 +18,7 @@ export class ButtonRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const btnElement = createHTMLElement('button', this.getRendererClass('dg-button'));
+    const btnElement = createHTMLElement('button', this.getRendererClassName('dg-button'));
 
     if (this.field.renderer.icon) {
       const iconElement = createHTMLElement('span', 'dg-icon');

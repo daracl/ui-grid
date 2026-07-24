@@ -1,7 +1,8 @@
+import { RENDERER_VARIANTS } from '@/constantStyles';
 import { OptionCallback } from '@/types/Common';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { createHTMLElement } from '@/util/domUtils';
-import { resolveClassName } from '@/util/styleUtils';
+import { getRendererVariantClass, resolveClassName } from '@/util/styleUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
@@ -49,10 +50,14 @@ export abstract class ToolBarRenderer {
    * @param {string} addClass
    * @returns {string}
    */
-  public getRendererClass(addClass: string) {
-    const classNames = resolveClassName(this.field.rendererClass);
+  public getRendererClassName(addClass: string) {
+    const rendererVariant = getRendererVariantClass(this.field.renderer);
 
-    return classNames.length > 0 ? addClass + ' ' + classNames.join(' ') : addClass;
+    if (!rendererVariant) {
+      return addClass;
+    }
+
+    return addClass + ' ' + rendererVariant;
   }
 
   /**
@@ -74,7 +79,11 @@ export abstract class ToolBarRenderer {
       autocomplete: 'off',
       placeholder: this.field.placeholder ?? '',
     };
-    const editElement = createHTMLElement('input', this.getRendererClass('dg-edit-' + type), attr) as HTMLInputElement;
+    const editElement = createHTMLElement(
+      'input',
+      this.getRendererClassName('dg-edit-' + type),
+      attr,
+    ) as HTMLInputElement;
 
     editElement.value = this.field.defaultValue ?? '';
 

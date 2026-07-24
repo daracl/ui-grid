@@ -2,7 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EDIT_RENDERER, VIEW_RENDERER } from './constantRenders';
 import { FOOTER_HEIGHT, SelectionModeMap, TOOLBAR_HEIGHT } from './constants';
-import { EditRendererInfo, RendererInfo } from './types/RendererInfo';
+import { EditRendererInfo, ViewRendererInfo } from '@/types/RendererInfo';
 import { ToolbarFieldItem } from './types/Toolbar';
 
 /**
@@ -215,7 +215,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   tree: undefined,
 };
 
-export const DEFAULT_RENDERER_INFO: RendererInfo = {
+export const DEFAULT_RENDERER_INFO: ViewRendererInfo = {
   type: 'text',
 };
 

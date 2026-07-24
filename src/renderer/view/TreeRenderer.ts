@@ -51,7 +51,7 @@ export class TreeRenderer extends ViewCellRenderer {
 
     // 처음 생성 시
     if (!contentElement) {
-      contentElement = createHTMLElement('div', this.getInteractiveClass('dg-cell-content'));
+      contentElement = createHTMLElement('div', 'dg-cell-content');
 
       expander = createHTMLElement('span', 'dg-cell-content-expander dg-icon');
       icon = createHTMLElement('span', 'dg-cell-content-icon dg-icon');

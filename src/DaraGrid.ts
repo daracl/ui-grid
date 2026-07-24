@@ -1,7 +1,7 @@
 import { GridOptions } from '@t/GridOptions';
 
 import { HIDDEN_ELEMENT_SELECTOR } from './constants';
-import { THEME_TYPE } from './constantStyles';
+import { ThemeType } from './constantStyles';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
@@ -306,7 +306,7 @@ export class DaraGrid {
    *
    * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
    */
-  public setTheme(themeName: THEME_TYPE) {
+  public setTheme(themeName: ThemeType) {
     this.gridMain.setTheme(themeName);
   }
 

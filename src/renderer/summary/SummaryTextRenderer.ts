@@ -19,22 +19,24 @@ export class SummaryTextRenderer extends SummaryRenderer {
   public render(cellInfo: CellPositionInfo, element: HTMLElement): void {
     const summaryValue = this.getValue();
 
-    this.setRendererClass(summaryValue.value, element);
+    this.setCellClass(summaryValue.value, element);
+
+    const renderElement = element.firstElementChild as HTMLElement;
 
     const formatValue = summaryValue.formatValue;
 
-    if (element.textContent !== formatValue) {
-      element.textContent = formatValue;
+    if (renderElement.textContent !== formatValue) {
+      renderElement.textContent = formatValue;
     }
 
     // 기존 클래스 제거
-    element.classList.remove('single-line', 'multi-line');
+    renderElement.classList.remove('single-line', 'multi-line');
 
     // 줄바꿈 여부 판단
     if (isString(formatValue) && formatValue.includes('\n')) {
-      element.classList.add('multi-line');
+      renderElement.classList.add('multi-line');
     } else {
-      element.classList.add('single-line');
+      renderElement.classList.add('single-line');
     }
   }
 }

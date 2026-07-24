@@ -16,20 +16,12 @@ export abstract class CellRenderer {
     this.language = this.gridMain.i18n();
   }
 
-  public getClosestCellElement(target: HTMLElement) {
-    return target.closest('.dg-cell') as HTMLElement;
-  }
-
   /**
    * 편집 기능을 지원하는지 여부
    *
    * @returns {boolean}
    */
   public abstract supportsEdit(): boolean;
-
-  public supportsInteraction() {
-    return false;
-  }
 
   /**
    * view render
@@ -39,11 +31,19 @@ export abstract class CellRenderer {
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
-  public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
+  public abstract getValue(rowItem: any): any;
+
+  public getClosestCellElement(target: HTMLElement) {
+    return target.closest('.dg-cell') as HTMLElement;
+  }
+
+  public supportsInteraction() {
     return false;
   }
 
-  public abstract getValue(rowItem: any): any;
+  public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
+    return false;
+  }
 
   /**
    *  값 정렬 스타일

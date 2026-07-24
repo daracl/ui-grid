@@ -73,7 +73,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
     const controlElement = this.getControlElement(element);
 
     const choiceContainer = document.createElement('div');
-    choiceContainer.className = this.getRendererClass('dg-choice');
+    choiceContainer.className = this.getRendererClassName('dg-choice');
     choiceContainer.innerHTML = this.template(this.listItems);
     controlElement.appendChild(choiceContainer);
     this.choiceContainer = choiceContainer;

@@ -8,7 +8,7 @@ import { SelectionInfo } from '@/selection/selection';
 import { ViewItem } from '@/types/Common';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
-import { removeClass, resolveClassName } from '@/util/styleUtils';
+import { getRendererVariantClass, getWhiteSpaceInfo, removeClass, resolveClassName } from '@/util/styleUtils';
 import { camelToKebab, copyStringToClipboard, isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
@@ -713,16 +713,6 @@ export class Body {
         const field = fields[j];
         const rendererType = field.renderer.type;
 
-        let whiteSpaceStyle = '';
-        let whiteSpaceClass = '';
-        if (field.whiteSpace) {
-          const fieldWhiteStyle = WHITE_SPACE[field.whiteSpace];
-          if (fieldWhiteStyle) {
-            whiteSpaceStyle = 'white-space: ' + fieldWhiteStyle;
-            whiteSpaceClass = 'dg-white-space';
-          }
-        }
-
         if (field.$isAside) {
           cellTemplate.push(html`<td
             scope="col"
@@ -735,11 +725,19 @@ export class Body {
             ></div>
           </td>`);
         } else {
+          const { style: whiteSpaceStyle, className: whiteSpaceClass } = getWhiteSpaceInfo(field);
+          let variantClass = '';
+          if (field.$renderer.supportsInteraction()) {
+            variantClass = getRendererVariantClass(field.editRenderer);
+          } else {
+            variantClass = getRendererVariantClass(field.renderer);
+          }
+
           cellTemplate.push(html`<td scope="col" class="dg-cell" data-cell-position="${rowIdx + ',' + (startCol + j)}">
             <div
               role="presentation"
               class="dg-cell-renderer dg-ellipsis 
-            dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass}"
+            dg-${rendererType} ${field.$alignStyle} ${whiteSpaceClass} ${variantClass}"
               style="${whiteSpaceStyle}"
             ></div>
           </td>`);

@@ -1,34 +1,45 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara summary</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara summary</title>
-</head>
+  <body>
+    <div>
+      theme
+      <select id="theme">
+        <option value="light" selected>light</option>
+        <option value="dark">dark</option>
+      </select>
+    </div>
 
-<body>
-  <div>
-    theme
-    <select id="theme">
-      <option value="light" selected>light</option>
-      <option value="dark">dark</option>
-    </select>
-  </div>
-
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
-<style>
-  .pre-white {
-    white-space: pre !important;
-  }
-</style>
+
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
+<style>
+  .salary-5 {
+    background-color: #f30606 !important;
+  }
+
+  .salary-10 {
+    background-color: #e48140 !important;
+  }
+
+  .salary-15 {
+    background-color: #b6cc65 !important;
+  }
+
+  .salary-up {
+    background-color: #4df398 !important;
+  }
+</style>
 <script>
   var gridObj;
   const THEME_KEY = 'grid-theme';
@@ -211,7 +222,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => { },
+            dropCallback: (data) => {},
           },
         },
         summary: {
@@ -219,7 +230,7 @@
           height: [30, 40],
           items: [
             [
-              { name: 'name', label: '합계\n합계\n합계', rendererClass: 'pre-white' },
+              { name: 'name', label: '합계\n합계\n합계', whiteSpace: 'pre' },
               { name: 'age', expression: 'sum' },
               {
                 name: 'birth',
@@ -232,16 +243,17 @@
                 name: 'salary',
                 colspan: 2,
                 align: 'center',
-                rendererClass: function (val) {
+                cellClass: function (val) {
                   if (val < 5000000) {
-                    return 'salary-5'
-                  } else if (val < 6000000) {
-                    return 'salary-6'
-                  } else if (val < 9000000) {
-                    return 'salary-9'
+                    return 'salary-5';
+                  } else if (val < 10000000) {
+                    return 'salary-10';
+                  } else if (val < 15000000) {
+                    return 'salary-15';
+                  } else if (val > 15000000) {
+                    return 'salary-up';
                   }
-
-                  return 'salary-up';
+                  return '';
                 },
                 expression: 'sum',
                 displayFormat: {

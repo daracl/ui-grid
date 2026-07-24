@@ -9,6 +9,7 @@ import { html } from '@/util/htmlTemplate';
 import { merge } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '../GridMain';
+import { getWhiteSpaceInfo } from '@/util/styleUtils';
 
 /**
  * Summary class
@@ -118,10 +119,9 @@ export class Summary {
       for (const renderer of summaryItems[rowIdx]) {
         const col = renderer.getCol();
 
-        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`)
-          ?.firstElementChild as HTMLElement;
+        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`) as HTMLElement;
 
-        if (cellElement) {
+        if (cellElement.firstElementChild) {
           const cellInfo = {
             r: rowIdx,
             c: col,
@@ -281,6 +281,8 @@ export class Summary {
             <div role="presentation" class="dg-cell-renderer ${field.$alignStyle}"></div>
           </td>`);
         } else {
+          const { style: whiteSpaceStyle, className: whiteSpaceClass } = getWhiteSpaceInfo(field);
+
           cellTemplate.push(html`<td
             scope="col"
             class="dg-cell"
@@ -289,9 +291,9 @@ export class Summary {
           >
             <div
               role="presentation"
-              style="height:${rowHeight - 2}px;max-height:${rowHeight - 2}px"
+              style="height:${rowHeight - 2}px;max-height:${rowHeight - 2}px;${whiteSpaceStyle}"
               class="dg-cell-renderer dg-ellipsis 
-              dg-text ${field.$alignStyle}"
+              dg-text ${field.$alignStyle} ${whiteSpaceClass}"
             ></div>
           </td>`);
         }

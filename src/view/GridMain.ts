@@ -9,7 +9,7 @@ import {
   ROW_FIELD,
   TOOLBAR_HEIGHT,
 } from '@/constants';
-import { GRID_THEME, THEME_TYPE } from '@/constantStyles';
+import { GRID_THEME, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
 import { DEFAULT_OPTIONS } from '@/defaultGridOption';
@@ -1001,7 +1001,7 @@ export class GridMain {
    *
    * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
    */
-  public setTheme(themeName: THEME_TYPE) {
+  public setTheme(themeName: ThemeType) {
     const dgElement = this.gridElement.find('.daracl-grid > div');
 
     const theme = GRID_THEME[themeName];

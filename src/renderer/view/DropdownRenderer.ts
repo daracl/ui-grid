@@ -60,7 +60,7 @@ export class DropdownRenderer extends ViewCellRenderer {
     // 처음 생성 시
     if (!contentElement) {
       contentElement = document.createElement('div');
-      contentElement.className = this.getInteractiveClass('dg-cell-content');
+      contentElement.className = 'dg-cell-content';
 
       const text = document.createElement('div');
 

@@ -1,9 +1,9 @@
-import { TEXT_ALIGN_TYPE, WHITE_SPACE_TYPE } from '@/constantStyles';
+import { TextAlignType, WhiteSpaceType } from '@/constantStyles';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { CellRenderer } from '@/renderer/CellRenderer';
 import { FieldItem } from '@t/GridField';
 import { DisplayFormatOptions, OptionCallback } from './Common';
-import { EditRendererInfo, RendererInfo } from './RendererInfo';
+import { EditRendererInfo, ViewRendererInfo } from './RendererInfo';
 
 /**
  * Field info
@@ -51,16 +51,16 @@ export interface FieldItem {
   /**
    * 글자 정렬
    */
-  align: TEXT_ALIGN_TYPE;
+  align: TextAlignType;
 
   /**
    * word warp
    */
-  whiteSpace?: WHITE_SPACE_TYPE;
+  whiteSpace?: WhiteSpaceType;
   /**
    * renderer info
    */
-  renderer: RendererInfo;
+  renderer: ViewRendererInfo;
   /**
    * edit renderer info
    */
@@ -78,10 +78,6 @@ export interface FieldItem {
    */
   cellClass?: OptionCallback | string;
 
-  /**
-   * renderer add class
-   */
-  rendererClass?: OptionCallback | string;
   /**
    * tooltip 설정
    */

@@ -13,7 +13,6 @@ export abstract class ViewCellRenderer extends CellRenderer {
   private readonly isVauleFunction: boolean;
   protected readonly refValue: any;
   protected isClick = false;
-  protected interactiveClass: string;
   protected readonly cfg: Config;
 
   constructor(field: FieldItem, gridMain: GridMain) {
@@ -31,32 +30,6 @@ export abstract class ViewCellRenderer extends CellRenderer {
     }
 
     this.isClick = isFunction(this.field.renderer.click);
-    this.initEventClass();
-  }
-
-  initEventClass() {
-    const interactiveClass = this.isClick ? 'dg-cell-click' : '';
-
-    this.interactiveClass = interactiveClass;
-  }
-
-  public getRendererClass(className: string) {
-    if (!this.interactiveClass) return className;
-
-    return className ? className + ' ' + this.interactiveClass : this.interactiveClass;
-  }
-
-  /**
-   * interactive class
-   *
-   * @public
-   * @param {string} className
-   * @returns {string}
-   */
-  public getInteractiveClass(className: string) {
-    if (!this.interactiveClass) return className;
-
-    return className ? className + ' ' + this.interactiveClass : this.interactiveClass;
   }
 
   public getRefValue(value: any, rowItem?: any): any {

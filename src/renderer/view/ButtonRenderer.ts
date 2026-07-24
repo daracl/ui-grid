@@ -23,7 +23,7 @@ export class ButtonRenderer extends ViewCellRenderer {
     // 최초 렌더링 시만 생성
     if (!btnElement) {
       btnElement = document.createElement('span');
-      btnElement.className = this.getInteractiveClass('dg-cell-content');
+      btnElement.className = 'dg-cell-content';
       element.appendChild(btnElement);
       this.initEvent(btnElement);
     }

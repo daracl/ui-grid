@@ -1,7 +1,7 @@
-import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
+import { FieldItem } from '@t/GridField';
 
 /**
  * bar renderer
@@ -11,8 +11,9 @@ import { CellInfo } from '@t/GridConfig';
  * @extends {ViewCellRenderer}
  */
 export class BarRenderer extends ViewCellRenderer {
-  private min: number;
-  private max: number;
+  private readonly min: number;
+  private readonly max: number;
+
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
     this.min = field.renderer.rule?.minimum ?? 0;
@@ -41,7 +42,7 @@ export class BarRenderer extends ViewCellRenderer {
 
     if (!text) {
       text = document.createElement('span');
-      text.className = this.getInteractiveClass('dg-bar-label');
+      text.className = 'dg-bar-label';
       element.appendChild(text);
     }
 

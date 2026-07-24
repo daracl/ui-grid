@@ -1,6 +1,10 @@
 import { OptionCallback } from '@/types/Common';
 import { $getElements } from './domUtils';
 import { isFunction } from './utils';
+import { FieldItem } from '@/types/GridField';
+import { RENDERER_VARIANTS, WHITE_SPACE } from '@/constantStyles';
+import { ToolbarFieldItem } from '@/types/Toolbar';
+import { RendererInfo } from '@/types/RendererInfo';
 
 /**
  * @method addStyleTag
@@ -150,7 +154,55 @@ export const resolveClassName = (className: string | OptionCallback | undefined,
     reval = className + '';
   }
 
-  console.log('reval : ', reval);
-
   return styleClassSplit(reval);
+};
+
+/**
+ * Get white-space style information for a field.
+ *
+ * Returns the CSS style string and class name to apply based on the
+ * field's `whiteSpace` option.
+ *
+ * @param field field information
+ * @returns white-space style and class name
+ */
+export const getWhiteSpaceInfo = (
+  field: FieldItem,
+): {
+  style: string;
+  className: string;
+} => {
+  if (!field.whiteSpace) {
+    return {
+      style: '',
+      className: '',
+    };
+  }
+
+  const value = WHITE_SPACE[field.whiteSpace];
+
+  if (!value) {
+    return {
+      style: '',
+      className: '',
+    };
+  }
+
+  return {
+    style: `white-space: ${value}`,
+    className: 'dg-white-space',
+  };
+};
+
+/**
+ * Get renderer variant class name.
+ *
+ * @public
+ * @param {RendererInfo} renderer field info
+ * @returns {string} renderer variant class name
+ */
+export const getRendererVariantClass = (renderer: RendererInfo): string => {
+  const variant = renderer.variant;
+
+  return variant ? RENDERER_VARIANTS[variant] ?? '' : '';
 };

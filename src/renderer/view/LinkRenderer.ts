@@ -27,7 +27,7 @@ export class LinkRenderer extends ViewCellRenderer {
     // 처음 생성 시
     if (!aElement) {
       aElement = document.createElement('a');
-      aElement.className = this.getInteractiveClass('dg-cell-content');
+      aElement.className = 'dg-cell-content';
       aElement.setAttribute('tabindex', '-1');
       element.appendChild(aElement);
       this.initEvent(aElement);

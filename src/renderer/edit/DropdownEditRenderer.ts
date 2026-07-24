@@ -14,6 +14,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
+import { getRendererVariantClass } from '@/util/styleUtils';
 
 /**
  * dropdown edit renderer
@@ -79,7 +80,8 @@ export class DropdownEditRenderer extends EditCellRenderer {
 
     let dropdownElement = this.dropdownElement;
     if (!dropdownElement) {
-      dropdownElement = getLayerElement('div', 'dg-dropdown-menu ' + FIELD_LAYER_CLASS, colIdx);
+      const variantClass = getRendererVariantClass(this.field.editRenderer);
+      dropdownElement = getLayerElement('div', `dg-dropdown-menu ${FIELD_LAYER_CLASS} ${variantClass}`, colIdx);
 
       this.rendererContainer.appendChild(dropdownElement);
       this.dropdownElement = dropdownElement;

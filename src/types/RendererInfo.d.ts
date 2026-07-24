@@ -1,4 +1,5 @@
 import { ORIENTATION_TYPE, REGEXP_TYPE } from '@/constants';
+import { RendererVariant } from '@/constantStyles';
 import { OptionCallback } from '@t/Common';
 
 export interface ValuesInfo {
@@ -13,14 +14,56 @@ export interface ValuesInfo {
 }
 
 /**
- * renderer info
+ * Renderer info
  *
+ * @export
  * @interface RendererInfo
  * @typedef {RendererInfo}
  */
 export interface RendererInfo {
+  /**
+   * Renderer type
+   */
   type: string;
-  customOptions?: any;
+
+  /**
+   * Renderer variant.
+   *
+   * Used to apply a predefined renderer style such as
+   * `round`, `box`, `outline`, etc.
+   */
+  variant?: RendererVariant;
+
+  /**
+   * Click callback
+   */
+  click?: OptionCallback;
+
+  /**
+   * Display condition
+   */
+  conditional?: ConditionInfo;
+}
+
+/**
+ * view renderer
+ *
+ * @export
+ * @interface ViewRendererInfo
+ * @typedef {ViewRendererInfo}
+ * @extends {RendererInfo}
+ */
+export interface ViewRendererInfo extends RendererInfo {
+  /**
+   * Tooltip text
+   */
+  tooltip?: string;
+
+  /**
+   * Reference value
+   */
+  refValue?: OptionCallback | any;
+
   rule?: {
     // 규칙
     minLength: number; // 3
@@ -28,14 +71,9 @@ export interface RendererInfo {
     minimum: number;
     maximum: number;
   };
-  tooltip?: string; // 툴팁 문구
-  refValue?: OptionCallback | any; // value에 대한 참조값 {key: {}} 참조값
-  click?: OptionCallback; // button onclick function
-  conditional?: ConditionInfo; // 보이기 여부
 }
 
-export interface EditRendererInfo {
-  type: string;
+export interface EditRendererInfo extends RendererInfo {
   customOptions?: any;
   required?: boolean; //true // 필수 여부
   regexpType?: REGEXP_TYPE; // 정규식 타입
@@ -70,12 +108,6 @@ export interface EditRendererInfo {
 
   //  입력값 변경시 체크 function
   change?: OptionCallback;
-
-  // button onclick function
-  click?: OptionCallback;
-
-  // 보이기 여부
-  conditional?: ConditionInfo;
 
   // checkbox, Switch true or false 값
   trueValue?: string | boolean;

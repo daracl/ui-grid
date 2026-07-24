@@ -31,7 +31,7 @@ export class SwitchRenderer extends ToolBarRenderer {
 
     const contentElement = document.createElement('div');
 
-    contentElement.className = this.getRendererClass('dg-switch');
+    contentElement.className = this.getRendererClassName('dg-switch');
 
     const slider = document.createElement('div');
     slider.className = 'dg-slider';
