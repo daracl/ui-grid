@@ -119,14 +119,16 @@ export class Summary {
       for (const renderer of summaryItems[rowIdx]) {
         const col = renderer.getCol();
 
-        const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`) as HTMLElement;
+        if (col) {
+          const cellElement = summaryElement.find(`[data-cell-position="${rowIdx},${col}"]`) as HTMLElement;
 
-        if (cellElement.firstElementChild) {
-          const cellInfo = {
-            r: rowIdx,
-            c: col,
-          } as CellPositionInfo;
-          renderer.render(cellInfo, cellElement);
+          if (cellElement.firstElementChild) {
+            const cellInfo = {
+              r: rowIdx,
+              c: col,
+            } as CellPositionInfo;
+            renderer.render(cellInfo, cellElement);
+          }
         }
       }
     }
