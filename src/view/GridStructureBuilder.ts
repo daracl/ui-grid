@@ -181,7 +181,7 @@ export class GridStructureBuilder {
       opts.aside.rowCheckbox.order = opts.aside.rowCheckbox.order ?? 1;
       const fieldItem = merge({ width: 27 }, opts.aside.rowCheckbox, {
         name: ROW_CHECK_NAME,
-        renderer: { type: 'rowCheckbox', customOptions: { allowMultiSelect: opts.aside.rowCheckbox.allowMultiSelect } },
+        renderer: { type: 'rowCheckbox' },
         $isAside: true,
       });
       asideOrder.push(fieldItem);

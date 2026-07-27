@@ -204,5 +204,9 @@ export const getWhiteSpaceInfo = (
 export const getRendererVariantClass = (renderer: RendererInfo): string => {
   const variant = renderer.variant;
 
-  return variant ? RENDERER_VARIANTS[variant] ?? '' : '';
+  if (!variant) return '';
+
+  const rendererType = renderer.type;
+
+  return RENDERER_VARIANTS[rendererType]?.[variant] ?? '';
 };

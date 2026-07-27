@@ -364,13 +364,13 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-radio input[type=radio] {
   display: none;
 }
-.daracl-grid .dg-radio input[type=radio]:checked + .radiomark,
-.dg-hidden-layers .dg-radio input[type=radio]:checked + .radiomark {
+.daracl-grid .dg-radio input[type=radio]:checked + .dg-radiomark,
+.dg-hidden-layers .dg-radio input[type=radio]:checked + .dg-radiomark {
   border-color: var(--radio-color);
   background-color: var(--radio-color);
 }
-.daracl-grid .dg-radio input[type=radio]:checked + .radiomark::after,
-.dg-hidden-layers .dg-radio input[type=radio]:checked + .radiomark::after {
+.daracl-grid .dg-radio input[type=radio]:checked + .dg-radiomark::after,
+.dg-hidden-layers .dg-radio input[type=radio]:checked + .dg-radiomark::after {
   content: "";
   position: absolute;
   top: 4px;
@@ -380,8 +380,8 @@ body .dg-hidden-layers.dg-dark {
   background-color: #fff;
   border-radius: 50%;
 }
-.daracl-grid .dg-radio .radiomark,
-.dg-hidden-layers .dg-radio .radiomark {
+.daracl-grid .dg-radio .dg-radiomark,
+.dg-hidden-layers .dg-radio .dg-radiomark {
   width: 16px;
   height: 16px;
   border: 1.5px solid #999;
@@ -502,17 +502,17 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only):hover .dg-indicator {
   border-color: var(--item-check-color);
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox .dg-indicator,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox .dg-indicator {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox .dg-indicator,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox .dg-indicator {
   border-radius: 4px;
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox.selected .dg-indicator,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox.selected .dg-indicator {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator {
   background: var(--item-check-color);
   border-color: var(--item-check-color);
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox.selected .dg-indicator::after,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).checkbox.selected .dg-indicator::after {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator::after,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator::after {
   content: "";
   position: absolute;
   left: 4px;
@@ -523,16 +523,16 @@ body .dg-hidden-layers.dg-dark {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).radio .dg-indicator,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).radio .dg-indicator {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio .dg-indicator,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio .dg-indicator {
   border-radius: 50%;
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).radio.selected .dg-indicator,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).radio.selected .dg-indicator {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio.dg-selected .dg-indicator,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio.dg-selected .dg-indicator {
   border-color: var(--item-check-color);
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).radio.selected .dg-indicator::after,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).radio.selected .dg-indicator::after {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio.dg-selected .dg-indicator::after,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-radio.dg-selected .dg-indicator::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -543,8 +543,8 @@ body .dg-hidden-layers.dg-dark {
   background: var(--item-check-color);
   transform: translate(-50%, -50%);
 }
-.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).selected .dg-label,
-.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).selected .dg-label {
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-selected .dg-label,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-selected .dg-label {
   font-weight: 600;
 }
 .daracl-grid .dg-choice > .dg-choice-item.dg-label-only,
@@ -560,17 +560,17 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only:hover {
   background: var(--body-bg-hover);
 }
-.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.selected,
-.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.selected {
+.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.dg-selected,
+.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.dg-selected {
   background: var(--item-selected);
 }
-.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.selected .dg-label,
-.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.selected .dg-label {
+.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.dg-selected .dg-label,
+.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.dg-selected .dg-label {
   color: var(--item-check-color);
   font-weight: 600;
 }
-.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.selected:hover,
-.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.selected:hover {
+.daracl-grid .dg-choice > .dg-choice-item.dg-label-only.dg-selected:hover,
+.dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.dg-selected:hover {
   background: #dbeafe;
 }
 .daracl-grid .dg-checkbox,
@@ -595,7 +595,7 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
 .dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark {
-  background-color: var(--check-bg);
+  background-color: var(--check-active-bg);
 }
 .daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
 .dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after {
@@ -613,7 +613,7 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-checkbox .dg-checkmark {
   width: 16px;
   height: 16px;
-  border: 1.5px solid #999;
+  border: 1.5px solid var(--border-color);
   border-radius: 3px;
   position: relative;
   transition: all 0.1s;
@@ -1151,7 +1151,6 @@ body .dg-hidden-layers.dg-dark {
   &.modifi-info {
   }
   */
-  /* switch box */
   /* image */
   /* button */
   /* bar */
@@ -1194,12 +1193,6 @@ body .dg-hidden-layers.dg-dark {
 }
 .daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-start-cell {
   box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-}
-.daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-slider-box .dg-switch .dg-slider {
-  border-radius: 3px;
-}
-.daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-slider-box .dg-switch .dg-slider::before {
-  border-radius: 2px;
 }
 .daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-image {
   display: flex;
@@ -1640,6 +1633,7 @@ body .dg-hidden-layers.dg-dark {
   white-space: nowrap;
   padding: 5px 10px;
   border-radius: 5px;
+  height: auto;
 }
 .daracl-grid .dg-layers .dg-search-simple > .dg-search-field {
   width: 50px;
@@ -1818,12 +1812,12 @@ body .dg-hidden-layers.dg-dark {
   font-weight: bold;
   border-bottom: 1px solid var(--border-color);
 }
-.daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.selected {
+.daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.dg-selected {
   background-color: var(--item-selected);
   font-weight: bold;
   position: relative;
 }
-.daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.selected::before {
+.daracl-grid .dg-layers .dg-dropdown-menu .dg-dropdown-item.dg-selected::before {
   content: "✔";
   position: absolute;
   left: 3px;

@@ -163,6 +163,8 @@ export function innerLayerPosition(
   let layerHeight = layerElement.offsetHeight || getElementRect(layerElement).height;
   const windowBottom = window.innerHeight;
 
+  console.log(rendererContainer, elementRect);
+
   // 버튼 위치를 #grid 기준으로 변환
   const gridTop = rendererContainer.top - elementRect.top;
   const menuOffsetBottom = elementRect.bottom + layerHeight;
@@ -272,15 +274,9 @@ export function getIcon(name: string): string {
  * @returns { top: number, left: number }
  */
 export function getScrollPosition(): { top: number; left: number } {
-  const top =
-    window.pageYOffset !== undefined
-      ? window.pageYOffset
-      : document.documentElement.scrollTop || document.body.scrollTop || 0;
+  const top = window.pageYOffset ?? (document.documentElement.scrollTop || document.body.scrollTop || 0);
 
-  const left =
-    window.pageXOffset !== undefined
-      ? window.pageXOffset
-      : document.documentElement.scrollLeft || document.body.scrollLeft || 0;
+  const left = window.pageXOffset ?? (document.documentElement.scrollLeft || document.body.scrollLeft || 0);
 
   return { top, left };
 }

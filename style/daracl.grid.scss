@@ -376,7 +376,7 @@ body {
     input[type='radio'] {
       display: none;
 
-      &:checked + .radiomark {
+      &:checked + .dg-radiomark {
         border-color: var(--radio-color);
         background-color: var(--radio-color);
 
@@ -393,7 +393,7 @@ body {
       }
     }
 
-    .radiomark {
+    .dg-radiomark {
       width: 16px;
       height: 16px;
       border: 1.5px solid #999;
@@ -527,12 +527,12 @@ body {
           border-color: var(--item-check-color);
         }
 
-        &.checkbox {
+        &.dg-checkbox {
           .dg-indicator {
             border-radius: 4px;
           }
 
-          &.selected .dg-indicator {
+          &.dg-selected .dg-indicator {
             background: var(--item-check-color);
             border-color: var(--item-check-color);
 
@@ -552,12 +552,12 @@ body {
           }
         }
 
-        &.radio {
+        &.dg-radio {
           .dg-indicator {
             border-radius: 50%;
           }
 
-          &.selected .dg-indicator {
+          &.dg-selected .dg-indicator {
             border-color: var(--item-check-color);
 
             &::after {
@@ -578,7 +578,7 @@ body {
           }
         }
 
-        &.selected .dg-label {
+        &.dg-selected .dg-label {
           font-weight: 600;
         }
       }
@@ -601,7 +601,7 @@ body {
           background: var(--body-bg-hover);
         }
 
-        &.selected {
+        &.dg-selected {
           background: var(--item-selected);
 
           .dg-label {
@@ -645,7 +645,7 @@ body {
       display: none;
 
       &:checked + .dg-checkmark {
-        background-color: var(--check-bg);
+        background-color: var(--check-active-bg);
 
         &::after {
           content: '';
@@ -664,7 +664,7 @@ body {
     .dg-checkmark {
       width: 16px;
       height: 16px;
-      border: 1.5px solid #999;
+      border: 1.5px solid var(--border-color);
       border-radius: 3px;
       position: relative;
       transition: all 0.1s;

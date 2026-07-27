@@ -921,7 +921,7 @@ export class GridMain {
         const rowItem = dataManager.getRowItem(rowId);
         let checkItem;
         if (isAll) {
-          checkItem = viewItem;
+          checkItem = rowItem;
         } else {
           checkItem = {} as any;
           for (const name of exportNames) {

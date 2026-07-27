@@ -6,6 +6,7 @@ import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
 import { intValue, isArray, isFunction, isString, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
+import { createHTMLElement } from '@/util/domUtils';
 
 /**
  * Selection renderer
@@ -72,8 +73,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const choiceContainer = document.createElement('div');
-    choiceContainer.className = this.getRendererClassName('dg-choice');
+    const choiceContainer = createHTMLElement('div', this.getRendererClassName('dg-choice'), '');
     choiceContainer.innerHTML = this.template(this.listItems);
     controlElement.appendChild(choiceContainer);
     this.choiceContainer = choiceContainer;
@@ -161,7 +161,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
     const templateParts: string[] = [];
 
-    const inputType = this.isMultiple ? 'checkbox' : 'radio';
+    const inputType = this.isMultiple ? 'dg-checkbox' : 'dg-radio';
     const isLabelOnly = this.labelOnly;
 
     for (let itemIdx = 0; itemIdx < list.length; itemIdx++) {

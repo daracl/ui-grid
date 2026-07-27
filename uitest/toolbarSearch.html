@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Dara toolbar</title>
+    <title>Dara toolbar search</title>
   </head>
 
   <body>
@@ -210,15 +210,9 @@
               children: [
                 {
                   name: 'searchValue',
-                  renderer: 'text',
+                  renderer: 'search',
                   placeholder: '검색어',
                   width: 150,
-                  search: searchFn,
-                },
-                {
-                  name: 'searchBtn',
-                  renderer: 'button',
-                  label: '검색',
                   search: searchFn,
                 },
               ],
@@ -228,6 +222,21 @@
       },
       fields: colItem,
       items: aaa,
+      search: {
+        enabled: true,
+        hideNonMatched: true,
+        enableColumnFix: true,
+        click: false,
+        mode: 'simple', //'full'
+        width: 700,
+        height: 250,
+        onlyCloseButton: true,
+        useRememberValue: true,
+        callback: (data) => {
+          //console.log(data)
+        },
+        rememberValue: { field: '$all', val: 'asdf' },
+      },
     });
   }
 </script>

@@ -1,19 +1,18 @@
+import { FIELD_LAYER_CLASS } from '@/constants';
 import { numberValidator } from '@/rule/numberValidator';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { EditRendererInfo } from '@t/RendererInfo';
-import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { TextAbstractRenderer } from './TextAbstractRenderer';
-import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
  * number renderer
  *
  * @class NumberEditRenderer
  * @typedef {NumberEditRenderer}
- * @extends {EditCellRenderer}
+ * @extends {TextAbstractRenderer}
  */
 export class NumberEditRenderer extends TextAbstractRenderer {
   private readonly editRendererInfo: EditRendererInfo;

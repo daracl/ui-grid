@@ -102,6 +102,7 @@ export class Body {
    * @param {boolean} checked
    */
   public setAllCheckItem(checked: boolean) {
+    console.log('checked : ', checked);
     if (checked) {
       this.gridMain.config().dataManager.setAllCheck();
     } else {
@@ -121,7 +122,7 @@ export class Body {
   public setItemChecked(item: any, checked: boolean) {
     const { isRowAllowMultiSelect, dataManager, dataInfo } = this.gridMain.config();
 
-    dataManager.setItemChecked(item, checked);
+    dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
 
     if (!isRowAllowMultiSelect) {
       return;
@@ -719,10 +720,7 @@ export class Body {
             class="dg-cell dg-aside dg-${camelToKebab(field.name).replace('$', '')}"
             data-cell-position="${rowIdx + ',' + (startCol + j)}"
           >
-            <div
-              role="presentation"
-              class="dg-cell-renderer ${field.name == ROW_CHECK_NAME ? 'dg-checkbox' : ''} ${field.$alignStyle}"
-            ></div>
+            <div role="presentation" class="dg-cell-renderer ${field.$alignStyle}"></div>
           </td>`);
         } else {
           const { style: whiteSpaceStyle, className: whiteSpaceClass } = getWhiteSpaceInfo(field);

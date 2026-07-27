@@ -1,9 +1,11 @@
+import { ROW_FIELD } from '@/constants';
 import { ALIGN_STYLE } from '@/constantStyles';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 
 /**
  * Aside RowCheck Renderer
@@ -18,50 +20,49 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {
     super(field, gridMain);
 
-    this.allowMultiSelect = field.renderer.customOptions?.allowMultiSelect ?? true;
+    this.allowMultiSelect = this.gridMain.options()?.aside?.rowCheckbox?.allowMultiSelect ?? true;
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const isMulti = this.allowMultiSelect;
 
-    let label = element.firstElementChild as HTMLLabelElement;
+    let choiceElement = element.firstElementChild as HTMLElement;
 
     // 최초 렌더링 시 구조 생성
-    if (!label) {
-      label = document.createElement('label');
+    if (!choiceElement) {
+      /*
+      <div class="dg-choice"><div class="dg-choice-item dg-checkbox dg-selected" data-index="0">
+        <div class="dg-indicator"></div>
+      </div></div>
+*/
+      choiceElement = createHTMLElement('div', 'dg-choice', '');
 
-      const input = document.createElement('input');
-      input.type = isMulti ? 'checkbox' : 'radio';
-      input.name = this.field.$uid;
-      if (!isMulti) input.classList.add('childRadio');
+      const itemElement = createHTMLElement('div', 'dg-choice-item ' + isMulti ? 'dg-checkbox' : 'dg-radio', '');
+      itemElement.appendChild(createHTMLElement('div', 'dg-indicator ', ''));
+      choiceElement.appendChild(itemElement);
 
-      const mark = document.createElement('span');
-      mark.className = isMulti ? 'dg-checkmark' : 'radiomark';
+      element.appendChild(choiceElement);
 
-      label.appendChild(input);
-      label.appendChild(mark);
-
-      element.appendChild(label);
-
-      this.initClick(input);
+      this.initClick(itemElement);
     }
-    const input = label.firstChild as HTMLInputElement;
-    input.checked = this.cfg.dataManager.isItemChecked(item);
+    const input = choiceElement.firstChild as HTMLInputElement;
+
+    input.checked = this.cfg.dataManager.isItemChecked(item[ROW_FIELD.ID]);
   }
 
   public isAllowMultiSelect(): boolean {
     return this.allowMultiSelect;
   }
 
-  initClick(contentElement: HTMLInputElement) {
+  initClick(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
 
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const cellElement = this.getClosestCellElement(contentElement);
       const cellInfo = getCellInfo(cfg, cellElement);
 
-      this.gridMain.getBody().setItemChecked(cellInfo.item, contentElement.checked);
+      this.gridMain.getBody().setItemChecked(cellInfo.item, cfg.dataManager.isItemChecked(cellInfo.viewItem?.id ?? ''));
     });
   }
 

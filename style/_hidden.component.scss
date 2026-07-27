@@ -14,6 +14,7 @@
     white-space: nowrap;
     padding: 5px 10px;
     border-radius: 5px;
+    height: auto;
 
     > .dg-search-field {
       width: 50px;
@@ -214,7 +215,7 @@
         border-bottom: 1px solid var(--border-color);
       }
 
-      &.selected {
+      &.dg-selected {
         background-color: var(--item-selected);
         font-weight: bold;
         position: relative;

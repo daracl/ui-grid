@@ -1,5 +1,4 @@
 import { ORIENTATION_TYPE, REGEXP_TYPE } from '@/constants';
-import { RendererVariant } from '@/constantStyles';
 import { OptionCallback } from '@t/Common';
 
 export interface ValuesInfo {
@@ -32,7 +31,7 @@ export interface RendererInfo {
    * Used to apply a predefined renderer style such as
    * `round`, `box`, `outline`, etc.
    */
-  variant?: RendererVariant;
+  variant?: string;
 
   /**
    * Click callback

@@ -1,6 +1,6 @@
 import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
 import { SearchMode } from '@/types/Common';
-import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
+import { getElementRect, getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { html } from '@/util/htmlTemplate';
 import { toggleClass } from '@/util/styleUtils';
@@ -27,7 +27,19 @@ export class SimpleDataSearch extends DataSearch {
   }
 
   openSearch() {
-    this.gridMain.openLayer(this.searchElement);
+    const gridMain = this.gridMain;
+    const rendererContainer = gridMain.getRendererLayerElement();
+    const searchElement = this.searchElement;
+    const searchStyle = searchElement.style;
+
+    const searchIconElement = gridMain.getHeader().getHeaderElement().find('.dg-search-icon');
+
+    const openPosition = innerLayerPosition(rendererContainer, searchIconElement, searchElement);
+
+    searchStyle.top = `${openPosition.top - 5}px`;
+    searchStyle.left = `${openPosition.left + 12}px`;
+
+    gridMain.openLayer(searchElement);
 
     this.searchTextElement.focus();
 
@@ -48,7 +60,8 @@ export class SimpleDataSearch extends DataSearch {
    * @private
    */
   private simpleTemplate() {
-    const rendererContainer = this.gridMain.getRendererLayerElement();
+    const gridMain = this.gridMain;
+    const rendererContainer = gridMain.getRendererLayerElement();
 
     const fields = this.cfg.currentFields;
 
@@ -59,7 +72,7 @@ export class SimpleDataSearch extends DataSearch {
       searchElement = getLayerElement('div', 'dg-search-simple', 'help-tooltip');
 
       template.push(
-        `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${this.gridMain
+        `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${gridMain
           .i18n()
           .getMessage('all')}</option>`,
       );
@@ -80,8 +93,8 @@ export class SimpleDataSearch extends DataSearch {
           </div>
         </div>
         <span class="dg-search-btn">
-          <span class="dg-btn dg-search-prev" title="${this.gridMain.i18n().getMessage('prev')}"></span>
-          <span class="dg-btn dg-search-next" title="${this.gridMain.i18n().getMessage('next')}"></span>
+          <span class="dg-btn dg-search-prev" title="${gridMain.i18n().getMessage('prev')}"></span>
+          <span class="dg-btn dg-search-next" title="${gridMain.i18n().getMessage('next')}"></span>
         </span>
         <span class="dgMatchCount"></span>`);
 
@@ -92,22 +105,9 @@ export class SimpleDataSearch extends DataSearch {
       this.searchElement = searchElement;
     }
 
-    const searchStyle = searchElement.style;
-
-    searchStyle.height = 'auto';
-
-    const headerElement = this.gridMain.getHeader().getHeaderElement();
-
-    const searchIconElement = headerElement.find('.dg-search-icon');
-
-    const openPosition = innerLayerPosition(rendererContainer, searchIconElement, searchElement);
-
-    searchStyle.top = `${openPosition.top - 5}px`;
-    searchStyle.left = `${openPosition.left + 12}px`;
-
-    this.searchTextElement = this.searchElement.querySelector('.dg-search-text') as HTMLInputElement;
-    this.searchFieldElement = this.searchElement.querySelector('.dg-search-field') as HTMLSelectElement;
-    this.matchCountElement = this.searchElement.querySelector('.dgMatchCount') as HTMLSpanElement;
+    this.searchTextElement = searchElement.querySelector('.dg-search-text') as HTMLInputElement;
+    this.searchFieldElement = searchElement.querySelector('.dg-search-field') as HTMLSelectElement;
+    this.matchCountElement = searchElement.querySelector('.dgMatchCount') as HTMLSpanElement;
 
     this.initSimpleModeEvent();
   }
@@ -159,7 +159,7 @@ export class SimpleDataSearch extends DataSearch {
 
       const evtElement = e.currentTarget as HTMLElement;
 
-      const dataSearchType = evtElement.getAttribute('data-search-type');
+      const dataSearchType = evtElement.dataset.searchType; // getAttribute('data-search-type');
 
       const activeFlag = !hasClass(evtElement, 'on');
 

@@ -96,7 +96,7 @@ export abstract class DataManager {
    * @returns 체크 여부
    */
   public isItemChecked(id: RowId): boolean {
-    return this.rowMap.has(id) && this.rowCheckSet.has(id);
+    return this.rowCheckSet.has(id);
   }
 
   getCheckedCount(): number {
