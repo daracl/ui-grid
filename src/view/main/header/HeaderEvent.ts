@@ -20,6 +20,8 @@ import { HeaderCellClickHandler } from './HeaderCellClickHandler';
 import { HelpButtonEvent } from './HelpButtonEvent ';
 import { ResizeHandler } from './ResizeHandler';
 import { SortButtonEvent } from './SortButtonEvent';
+import { hasClass } from '@/util/domUtils';
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 
 /**
  * Header class
@@ -282,11 +284,11 @@ export class HeaderEvent {
    *
    */
   private initHeaderCheckbox() {
-    const dgRowAllCheckElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]');
+    const dgRowAllCheckElement = this.headerElement.getElement().querySelector('.dg-checkbox.dg-all');
 
     this.cfg.eventManager.on({ el: dgRowAllCheckElement, type: 'click' }, (e: UIEvent) => {
-      const eventElement = e.target as HTMLInputElement;
-      this.header.setAllCheckItem(eventElement.checked, eventElement);
+      const eventElement = e.currentTarget as HTMLElement;
+      this.header.setAllCheckItem(!hasClass(eventElement, SELECTED_STYLE_CLASS), eventElement);
     });
   }
 }

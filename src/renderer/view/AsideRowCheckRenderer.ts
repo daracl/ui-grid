@@ -1,5 +1,5 @@
 import { ROW_FIELD } from '@/constants';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { ALIGN_STYLE, SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
@@ -31,14 +31,9 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
 
     // 최초 렌더링 시 구조 생성
     if (!choiceElement) {
-      /*
-      <div class="dg-choice"><div class="dg-choice-item dg-checkbox dg-selected" data-index="0">
-        <div class="dg-indicator"></div>
-      </div></div>
-*/
       choiceElement = createHTMLElement('div', 'dg-choice', '');
 
-      const itemElement = createHTMLElement('div', 'dg-choice-item ' + isMulti ? 'dg-checkbox' : 'dg-radio', '');
+      const itemElement = createHTMLElement('div', 'dg-choice-item ' + (isMulti ? 'dg-checkbox' : 'dg-radio'), '');
       itemElement.appendChild(createHTMLElement('div', 'dg-indicator ', ''));
       choiceElement.appendChild(itemElement);
 
@@ -46,9 +41,12 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
 
       this.initClick(itemElement);
     }
-    const input = choiceElement.firstChild as HTMLInputElement;
 
-    input.checked = this.cfg.dataManager.isItemChecked(item[ROW_FIELD.ID]);
+    if (this.cfg.dataManager.isItemChecked(item[ROW_FIELD.ID])) {
+      choiceElement.firstElementChild?.classList.add(SELECTED_STYLE_CLASS);
+    } else {
+      choiceElement.firstElementChild?.classList.remove(SELECTED_STYLE_CLASS);
+    }
   }
 
   public isAllowMultiSelect(): boolean {
@@ -61,8 +59,11 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
     cfg.eventManager.on({ el: contentElement, type: 'click' }, (e: UIEvent) => {
       const cellElement = this.getClosestCellElement(contentElement);
       const cellInfo = getCellInfo(cfg, cellElement);
+      const checked = !cfg.dataManager.isItemChecked(cellInfo.viewItem?.id ?? '');
 
-      this.gridMain.getBody().setItemChecked(cellInfo.item, cfg.dataManager.isItemChecked(cellInfo.viewItem?.id ?? ''));
+      contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
+
+      this.gridMain.getBody().setItemChecked(cellInfo.item, checked);
     });
   }
 

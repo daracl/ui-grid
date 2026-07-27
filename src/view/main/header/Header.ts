@@ -9,6 +9,8 @@ import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
 import { html } from '@/util/htmlTemplate';
 import { ALL_ICONS } from '@/constantIcons';
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
+import { hasClass } from '@/util/domUtils';
 
 const CHECK_INDETERMINATE = 'dg-indeterminate';
 /**
@@ -78,22 +80,20 @@ export class Header {
    * @param {boolean} checked
    * @param {?HTMLInputElement} [allCheckedElement]
    */
-  public setAllCheckItem(checked: boolean, allCheckedElement?: HTMLInputElement) {
+  public setAllCheckItem(checked: boolean, allCheckedElement?: HTMLElement) {
     if (!allCheckedElement) {
-      allCheckedElement = this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement;
+      allCheckedElement = this.headerElement.getElement().querySelector('.dg-checkbox.dg-all') as HTMLElement;
     }
 
-    if (allCheckedElement.checked != checked) {
-      allCheckedElement.checked = checked;
+    if (checked) {
+      addClass(allCheckedElement, SELECTED_STYLE_CLASS);
+    } else {
+      removeClass(allCheckedElement, SELECTED_STYLE_CLASS);
     }
 
-    const headerCellElement = allCheckedElement.closest('.dg-header-cell');
+    removeClass(allCheckedElement as HTMLElement, CHECK_INDETERMINATE);
 
-    const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
-
-    removeClass(checkEle as HTMLElement, CHECK_INDETERMINATE);
-
-    this.gridMain.getBody().setAllCheckItem(allCheckedElement.checked);
+    this.gridMain.getBody().setAllCheckItem(checked);
   }
 
   /**
@@ -106,19 +106,18 @@ export class Header {
   public setCheckboxStyle(mode: 'all' | 'none' | 'partial') {
     if (!this.gridMain.config().isRowAllowMultiSelect) return;
 
-    const headerCellElement = (
-      this.headerElement.getElement().querySelector('[name="dgRowAllCheck"]') as HTMLInputElement
-    ).closest('.dg-header-cell');
-
-    const checkEle = headerCellElement?.querySelector('.dg-checkbox.dg-all');
+    const checkEle = this.headerElement.getElement().querySelector('.dg-checkbox.dg-all') as HTMLElement;
 
     const classList = checkEle?.classList;
     if (mode == 'partial') {
-      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = false;
-      if (!classList?.contains(CHECK_INDETERMINATE)) classList?.add(CHECK_INDETERMINATE);
+      classList.remove(SELECTED_STYLE_CLASS);
+      if (!classList.contains(CHECK_INDETERMINATE)) classList.add(CHECK_INDETERMINATE);
     } else {
-      (checkEle?.querySelector('[name="dgRowAllCheck"]') as HTMLInputElement).checked = mode == 'all';
-      if (classList?.contains(CHECK_INDETERMINATE)) classList.remove(CHECK_INDETERMINATE);
+      if (mode == 'all') {
+        classList.add(SELECTED_STYLE_CLASS);
+      }
+
+      if (classList.contains(CHECK_INDETERMINATE)) classList.remove(CHECK_INDETERMINATE);
     }
   }
 
@@ -313,11 +312,12 @@ export class Header {
 
         const label =
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
-            ? html`<label class="dg-checkbox dg-all"
-                >${headerItem.label ?? ''}<input type="checkbox" name="dgRowAllCheck" /><span
-                  class="dg-checkmark"
-                ></span
-              ></label>`
+            ? html`<div class="dg-choice">
+                <div class="dg-choice-item dg-checkbox dg-all">
+                  ${headerItem.label ? '' : '<div class="dg-indicator"></div>'}
+                  <span class="dg-label dg-ellipsis">${headerItem.label}</span>
+                </div>
+              </div>`
             : `<div class="centered">${headerItem.label ?? ''}</div>`;
 
         const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : '';

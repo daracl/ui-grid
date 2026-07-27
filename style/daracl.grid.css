@@ -496,7 +496,7 @@ body .dg-hidden-layers.dg-dark {
   border: 1.5px solid var(--border-color);
   background: var(--body-bg);
   position: relative;
-  transition: all 0.2s ease;
+  transition: all 0.1s ease;
 }
 .daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only):hover .dg-indicator,
 .dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only):hover .dg-indicator {
