@@ -253,9 +253,10 @@ export class GridMain {
     this.rendererLayerElement = this.gridElement.find('.dg-layers');
 
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
+
     this.mainElement.addClass(
       `dg-style-${this._BODY_STYLE.includes(opts.style) ? opts.style : 'default'}`,
-      opts.selectionMode === 'none' ? '' : 'daracl-noselect',
+      opts.selectionMode === 'none' ? 'daracl-select' : 'daracl-noselect',
     );
 
     this.setTheme(this.opts.theme);
@@ -1004,13 +1005,15 @@ export class GridMain {
   public setTheme(themeName: ThemeType) {
     const dgElement = this.gridElement.find('.daracl-grid > div');
 
-    const theme = GRID_THEME[themeName];
-
-    if (!theme) return;
+    let theme = GRID_THEME[themeName];
 
     const cfg = this.cfg;
 
-    if (cfg.theme == theme) return;
+    if (!theme && !cfg.theme) {
+      theme = GRID_THEME.light;
+    }
+
+    if ((cfg.theme && !theme) || cfg.theme === theme) return;
 
     const classList = dgElement.classList;
 

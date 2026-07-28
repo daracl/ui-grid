@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara keydown</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara keydown</title>
-</head>
-
-<body>
-  <div class="grid-view-area">
-    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-  </div>
-</body>
-
+  <body>
+    <div class="grid-view-area">
+      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+    </div>
+  </body>
 </html>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
@@ -95,8 +93,8 @@
       element,
       {
         editable: false,
-        styleClass: 'striped',
-        selectionMode: 'multiple-row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        style: 'striped',
+        selectionMode: 'multiRow', // row , cell , multiRow , multiCell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
         height: 350,

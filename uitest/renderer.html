@@ -449,22 +449,15 @@
     gridObj = Daracl.grid.create(
       element,
       {
-        styleClass: 'striped',
+        style: 'striped',
         editable: true,
-        selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
         theme: document.getElementById('theme').value,
         height: 480,
         aside: {
           lineNumber: { enabled: true },
-          rowCheckbox: {
-            enabled: true,
-            key: 'checkbox',
-            width: 27,
-            //, allowMultiSelect: false
-          },
-          modifyInfo: { enabled: true },
         },
         colOptions: {
           maxWidth: 1024,

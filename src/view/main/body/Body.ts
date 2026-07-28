@@ -102,7 +102,6 @@ export class Body {
    * @param {boolean} checked
    */
   public setAllCheckItem(checked: boolean) {
-    console.log('checked : ', checked);
     if (checked) {
       this.gridMain.config().dataManager.setAllCheck();
     } else {
@@ -122,11 +121,13 @@ export class Body {
   public setItemChecked(item: any, checked: boolean) {
     const { isRowAllowMultiSelect, dataManager, dataInfo } = this.gridMain.config();
 
-    dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
-
     if (!isRowAllowMultiSelect) {
+      dataManager.clearAllCheck();
+      dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
       return;
     }
+
+    dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
 
     this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
   }

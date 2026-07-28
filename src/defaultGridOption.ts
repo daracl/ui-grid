@@ -1,207 +1,600 @@
+import { EditRendererInfo, ViewRendererInfo } from '@/types/RendererInfo';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EDIT_RENDERER, VIEW_RENDERER } from './constantRenders';
 import { FOOTER_HEIGHT, SelectionModeMap, TOOLBAR_HEIGHT } from './constants';
-import { EditRendererInfo, ViewRendererInfo } from '@/types/RendererInfo';
+import { BODY_STYLE } from './constantStyles';
 import { ToolbarFieldItem } from './types/Toolbar';
 
 /**
- * grid default option
+ * Grid 생성 시 사용되는 기본 옵션 객체
+ * 사용자가 전달한 옵션은 이 객체와 병합
+ *
+ * @type {GridOptions}
  */
 export const DEFAULT_OPTIONS: GridOptions = {
-  rowIdField: '', // 고유 아이디 키값
-  theme: 'light', // 테마 값
-  height: 'auto', // 높이 값
-  width: 'auto', // 넓이값
+  /**
+   * 행을 구분하기 위한 고유 ID 필드명
+   */
+  rowIdField: '',
+
+  /**
+   * 그리드 테마
+   *
+   * @default 'light'
+   */
+  theme: 'light',
+
+  /**
+   * 그리드 높이
+   *
+   * `auto`, 숫자(px), CSS 크기
+   *
+   * @default 'auto'
+   */
+  height: 'auto',
+
+  /**
+   * 그리드 너비
+   *
+   * `auto`, 숫자(px), CSS 크기
+   *
+   * @default 'auto'
+   */
+  width: 'auto',
+
+  /**
+   * 브라우저 리사이즈 이벤트 처리 지연 시간(ms)
+   *
+   * @default 50
+   */
   windowResizeDelay: 50,
+
+  /**
+   * 왼쪽 고정 컬럼의 마지막 인덱스
+   *
+   * `-1`이면 고정 컬럼을 사용하지 않음
+   */
   fixedLeftIndex: -1,
+
+  /**
+   * 오른쪽 고정 컬럼의 시작 인덱스
+   *
+   * `-1`이면 고정 컬럼을 사용하지 않음
+   */
   fixedRightIndex: -1,
-  style: 'default',
-  enableWidthFixed: false, // 넓이 고정 여부.
-  useDefaultFormatter: true, // 기본 포멧터 사용여부
-  editable: false, // 편집 모드 활성화
-  selectionMode: SelectionModeMap.ROW, //cell 선택 모드 row, cell, multiple-row, multiple-cell
-  enableTooltip: false, // tooltip flag
-  addLimitRow: -1, // add시 item max로 유지할 카운트
-  valueFilter: false, // value filter function (colItem, objectValue)
+
+  /**
+   * 그리드 스타일 프리셋
+   */
+  style: BODY_STYLE.default,
+
+  /**
+   * 컬럼 너비를 고정할지 여부
+   */
+  enableWidthFixed: false,
+
+  /**
+   * 데이터 타입별 기본 포맷터 사용 여부
+   */
+  useDefaultFormatter: true,
+
+  /**
+   * 셀 편집 기능 활성화 여부
+   */
+  editable: false,
+
+  /**
+   * 선택 모드
+   *
+   * - row
+   * - cell
+   * - multiRow
+   * - multiCell
+   */
+  selectionMode: SelectionModeMap.row,
+
+  /**
+   * 툴팁 사용 여부
+   */
+  enableTooltip: false,
+
+  /**
+   * 추가 시 유지할 최대 행 개수
+   *
+   * `-1`이면 제한이 없습니다.
+   */
+  addLimitRow: -1,
+
+  /**
+   * 값 필터 함수 사용 여부
+   */
+  valueFilter: false,
+
+  /**
+   * 데이터 타입별 기본 포맷터 설정
+   */
   dataTypeFormatter: {
-    money: { prefix: '$', suffix: '원', fixed: 0 }, // money 설정 prefix : 앞에 붙일 문구 , suffix : 마지막에 붙일 문구 , fixed : 소수점
-    number: { prefix: '', suffix: '', fixed: 0 }, // number 값 설정
+    /**
+     * 금액 포맷 설정
+     */
+    money: {
+      /**
+       * 앞에 붙는 문자열
+       */
+      prefix: '$',
+
+      /**
+       * 뒤에 붙는 문자열
+       */
+      suffix: '원',
+
+      /**
+       * 소수점 자리수
+       */
+      fixed: 0,
+    },
+
+    /**
+     * 숫자 포맷 설정
+     */
+    number: {
+      prefix: '',
+      suffix: '',
+      fixed: 0,
+    },
   },
+
+  /**
+   * 헤더 영역 설정
+   */
   header: {
-    view: true, //  보기 여부
-    height: 28, //  높이
+    /**
+     * 헤더 표시 여부
+     */
+    view: true,
+
+    /**
+     * 헤더 높이(px)
+     */
+    height: 28,
+
+    /**
+     * 정렬 설정
+     */
     sort: {
+      /**
+       * 정렬 기능 활성화 여부
+       */
       enabled: true,
-      nullsLast: false, // null value 를 항상 끝으로 유지 할지 여부
-      customSorting: undefined, //(data: any[], sortInfos: FieldSortInfo[] = [], emptyValueLast?: boolean) => {return data;}
-      // custom sorting function
-    }, // 초기에 정렬할 값
+
+      /**
+       * null 값을 항상 마지막에 배치할지 여부
+       */
+      nullsLast: false,
+
+      /**
+       * 사용자 정의 정렬 함수
+       */
+      customSorting: undefined,
+    },
+
+    /**
+     * 컬럼 리사이즈 설정
+     */
     resize: {
-      // resize 설정
-      enabled: true, // 활성화여부
-      update: false, // 변경시 콜랙 함수
-      minWidth: 2, // 컬럼 최소 넓이
-      maxWidth: 1500, // 컬럼 최대 넓이
+      /**
+       * 리사이즈 활성화 여부
+       */
+      enabled: true,
+
+      /**
+       * 리사이즈 중 즉시 너비를 적용할지 여부
+       */
+      update: false,
+
+      /**
+       * 최소 컬럼 너비(px)
+       */
+      minWidth: 2,
+
+      /**
+       * 최대 컬럼 너비(px)
+       */
+      maxWidth: 1500,
     },
-    enableAllColumnSelection: true, // 전체 선택 여부.
-    enableScroll: true, // 마우스 휠로 가로 스크롤 이동할지 여부.
+
+    /**
+     * 전체 컬럼 선택 기능 사용 여부
+     */
+    enableAllColumnSelection: true,
+
+    /**
+     * 마우스 휠로 가로 스크롤 이동 여부
+     */
+    enableScroll: true,
+
+    /**
+     * 모든 라벨 표시 여부
+     */
     enableViewAllLabel: false,
+
+    /**
+     * 헤더 도움말 버튼 설정
+     */
     help: {
-      //	header help btn 설정
-      enabled: false, // header help btn 활성 여부.
-      content: '', // content
-      click: undefined, // click event
-      showDelay: 300, // delay
+      /**
+       * 도움말 버튼 활성화 여부
+       */
+      enabled: false,
+
+      /**
+       * 도움말 내용
+       */
+      content: '',
+
+      /**
+       * 클릭 이벤트 콜백
+       */
+      click: undefined,
+
+      /**
+       * 툴팁 표시 지연 시간(ms)
+       */
+      showDelay: 300,
     },
+
+    /**
+     * 컬럼 드래그 설정
+     */
     drag: {
-      enabled: false, // 활성화여부
-      dropSelector: '', // drop selector
-      dropCallback: (colItem: any) => {
-        // drop 전에 이벤트
-        return true;
-      },
+      /**
+       * 드래그 기능 활성화 여부
+       */
+      enabled: false,
+
+      /**
+       * 드롭 대상 셀렉터
+       */
+      dropSelector: '',
+
+      /**
+       * 드롭 전에 호출되는 콜백
+       *
+       * `false`를 반환하면 드롭을 취소
+       */
+      dropCallback: (colItem: any) => true,
     },
   },
+
+  /**
+   * 검색 영역 설정
+   */
   search: {
-    enabled: false, // 활성여부
-    // 그리드 설정
-    mode: 'simple', // simple (search , fixed) , full(column config , filter)
-    click: false, // 직접 처리 할경우. function 으로 처리.
-    onlyCloseButton: false, // button 으로만 닫기 여부
-    useRememberValue: false, // 검색어 local storage에 저장 여부
+    /**
+     * 검색 기능 활성화 여부
+     */
+    enabled: false,
+
+    /**
+     * 검색 UI 모드
+     *
+     * - simple
+     * - full
+     */
+    mode: 'simple',
+
+    /**
+     * 검색 처리를 외부에서 직접 수행할지 여부
+     */
+    click: false,
+
+    /**
+     * 닫기 버튼만 표시할지 여부
+     */
+    onlyCloseButton: false,
+
+    /**
+     * 검색어를 로컬 스토리지에 저장할지 여부
+     */
+    useRememberValue: false,
+
+    /**
+     * 검색 영역 너비(px)
+     */
     width: 250,
+
+    /**
+     * 검색 영역 높이(px)
+     */
     height: 30,
+
     callback: false,
+
     rememberValue: {
       field: '',
       keyword: '',
     },
-    util: {
-      isTypeNumber: (hederInfo: any): boolean => {
-        return hederInfo.type == 'number';
-      },
-    },
   },
+
+  /**
+   * 툴바 설정
+   */
   toolbar: {
     enabled: false,
-    position: 'right', // left, center, right
+
+    /**
+     * 툴바 위치
+     *
+     * - left
+     * - center
+     * - right
+     */
+    position: 'right',
+
     height: TOOLBAR_HEIGHT,
+
+    /**
+     * 툴바 아이템 목록
+     */
     items: [],
   },
+
+  /**
+   * 왼쪽 보조 영역 설정
+   */
   aside: {
-    // aside 옵션
+    /**
+     * 라인 번호 컬럼 설정
+     */
     lineNumber: {
-      // 번호
-      enabled: true, // 활성화 여부
-      label: '', //  컬럼명
-      order: 0, // 순서
-      width: 40, // 넓이
+      enabled: true,
+      label: '',
+      order: 0,
+      width: 40,
     },
+
+    /**
+     * 행 체크박스 컬럼 설정
+     */
     rowCheckbox: {
-      // 체크 박스
-      enabled: false, // 활성화 여부
-      allowMultiSelect: true, // 다중 선택 허용 여부
-      width: 25, // 넓이값
+      enabled: false,
+
+      /**
+       * 다중 선택 허용 여부
+       */
+      allowMultiSelect: true,
+
+      width: 25,
+
       order: 1,
+
+      /**
+       * 체크박스 클릭 시 호출
+       *
+       * `false`를 반환하면 체크되지 않음
+       */
       click: (rowInfo: any) => {
         // click event , return false 일경우 체크 안함.
       },
     },
+
+    /**
+     * 수정 여부 표시 컬럼 설정
+     */
     modifyInfo: {
-      // 수정 여부
-      enabled: false, // 활성화 여부
+      enabled: false,
       order: 3,
-      label: '', // name
-      width: 20, // 넓이값
+      label: '',
+      width: 20,
     },
   },
+
+  /**
+   * 본문(body) 영역 설정
+   */
   body: {
-    // body option
-    cellDblClick: undefined, // body td click
+    /**
+     * 셀 더블클릭 이벤트 핸들러
+     */
+    cellDblClick: undefined,
+
+    /**
+     * 셀 클릭 이벤트 핸들러
+     */
     cellClick: undefined,
-    keyNavHandler: undefined, // arrows key handler function
-    pasteBefore: undefined, // 붙여 넣기 전 호출 메소드
-    pasteAfter: undefined, // 붙여 넣기 후 호출 메소드
+
+    /**
+     * 방향키 이동 핸들러
+     */
+    keyNavHandler: undefined,
+
+    /**
+     * 붙여넣기 전 호출되는 콜백
+     */
+    pasteBefore: undefined,
+
+    /**
+     * 붙여넣기 후 호출되는 콜백
+     */
+    pasteAfter: undefined,
+
+    /**
+     * 행(row) 설정
+     */
     row: {
-      // 로우 옵션.
-      height: 26, // cell 높이
-      addStyle: false, // 추가할 style method
-      dblClick: false, // row dblclick event
-      selectRowOnCellClick: false, // double click row checkbox checked true 여부.
-    },
-    // row 이동 옵션
-    rowMove: {
-      enabled: false, // 기본 비활성화
-      dragHandle: undefined, // 지정하지 않으면 row 전체에서 drag 가능
-      allowChangeParent: false, // tree 구조일 때 부모 이동 제한
-      draggable: undefined, // 기본 모든 row drag 가능
-      dragStart: undefined, // drag 시작 콜백
-      dragOver: undefined, // drag 중 위치 변경 콜백
-      drop: undefined, // drop 완료 콜백
-      dragEnd: undefined, // drag 종료 콜백
       /**
-       * 드래그 중 보여질 템플릿 설정
+       * 행 높이(px)
+       */
+      height: 26,
+
+      /**
+       * 추가 스타일 함수 사용 여부
+       */
+      addStyle: false,
+
+      /**
+       * 행 더블클릭 이벤트 사용 여부
+       */
+      dblClick: false,
+
+      /**
+       * 셀 클릭 시 행 선택 여부
+       */
+      selectRowOnCellClick: false,
+    },
+
+    /**
+     * 행 이동(Drag & Drop) 설정
+     */
+    rowMove: {
+      /**
+       * 행 이동 기능 활성화 여부
+       */
+      enabled: false,
+
+      /**
+       * 드래그 핸들  field name
+       *
+       */
+      dragHandle: undefined,
+
+      /**
+       * 트리 구조에서 부모 변경 허용 여부
+       */
+      allowChangeParent: false,
+
+      /**
+       * 드래그 가능 여부를 결정하는 함수
+       */
+      draggable: undefined,
+
+      dragStart: undefined,
+      dragOver: undefined,
+      drop: undefined,
+      dragEnd: undefined,
+
+      /**
+       * 드래그 중 표시할 템플릿
        */
       dragTemplate: undefined,
     },
   },
-  summary: { height: 28, position: 'bottom', items: [] },
+
+  /**
+   * 요약 영역 설정
+   */
+  summary: {
+    height: 28,
+    position: 'bottom',
+    items: [],
+  },
+
+  /**
+   * 스크롤 설정
+   */
   scroll: {
-    // 스크롤 옵션
-    enableWheelInContainer: false, // 스크롤을 grid 내부 움직임만 사용
-    width: 12, // 세로 스크롤
+    /**
+     * 그리드 내부에서만 휠 스크롤을 사용할지 여부
+     */
+    enableWheelInContainer: false,
+
+    /**
+     * 세로 스크롤바 너비(px)
+     */
+    width: 12,
+
+    /**
+     * 세로 스크롤 설정
+     */
     vertical: {
       enable: true,
-      speed: 3, // 스크롤 스피드 row 1
-      onUpdate: (item) => {
-        // 스크롤 업데이트.
-        return true;
-      },
-      enableTooltip: false, // item count tooltip
+
+      /**
+       * 스크롤 속도(행 단위)
+       */
+      speed: 3,
+
+      /**
+       * 스크롤 위치 변경 시 호출
+       */
+      onUpdate: () => true,
+
+      /**
+       * 아이템 수 툴팁 표시 여부
+       */
+      enableTooltip: false,
     },
+
+    /**
+     * 가로 스크롤 설정
+     */
     horizontal: {
       enable: true,
-      speed: 1, // 스크롤 스피드
-      enableWheel: false, //  wheel 로 스크롤 이동.
+
+      /**
+       * 스크롤 속도
+       */
+      speed: 1,
+
+      /**
+       * 마우스 휠로 가로 스크롤 이동 여부
+       */
+      enableWheel: false,
+
       onUpdate: false,
     },
   },
-  fields: [], //head item
-  items: [], // body item
-  footer: {
-    enabled: false, // footer 사용여부
-    height: FOOTER_HEIGHT, // 높이 값
-    paging: {
-      enabled: false, // 페이지 사용여부
-      /**
-       * 위치 값
-       */
-      position: 'center',
-      /**
-       * 페이지 상태값 포지션션
-       */
-      formatPosition: 'right',
-      /**
-       * 페이지 상태값
-       */
-      format: '{{start}} - {{end}} of {{total}}',
 
-      // 페이지 콜백
-      //callback: (no)=>{},
+  /**
+   * 컬럼 정의 목록
+   */
+  fields: [],
+
+  /**
+   * 그리드 데이터 목록
+   */
+  items: [],
+
+  /**
+   * 푸터 영역 설정
+   */
+  footer: {
+    enabled: false,
+    height: FOOTER_HEIGHT,
+
+    /**
+     * 페이징 표시 설정
+     */
+    paging: {
+      enabled: false,
+      position: 'center',
+      formatPosition: 'right',
+      format: '{{start}} - {{end}} of {{total}}',
     },
 
+    /**
+     * 선택 정보 표시 설정
+     */
     selection: {
       position: 'left',
       format: 'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
     },
   },
+
+  /**
+   * 페이징 정보
+   */
   paging: {
     totalCount: 0,
     currPage: 1,
     countPerPage: 10,
     unitPage: 5,
-  }, // paging info
+  },
+
+  /**
+   * 다국어 리소스
+   */
   i18n: {
     empty: 'no data',
     'search.label': 'Find',
@@ -211,7 +604,16 @@ export const DEFAULT_OPTIONS: GridOptions = {
     'setting.column.fixed.notused': 'Not Used',
   },
 
-  operators: {}, // setting condition operator
+  /**
+   * 사용자 정의 연산자 목록
+   */
+  operators: {},
+
+  /**
+   * 트리 설정
+   *
+   * `undefined`이면 트리 모드를 사용하지 않음
+   */
   tree: undefined,
 };
 

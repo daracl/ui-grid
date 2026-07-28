@@ -30,7 +30,7 @@ export function initConfig(opts: GridOptions): Config {
     rowIdField: rowIdField,
     dataManager: {} as DataManager,
     eventManager: new EventManager(),
-    theme: 'light',
+    theme: '',
     selectRowOnCellClick: opts.body?.row?.selectRowOnCellClick === true,
     enableHeaderHelpButton: opts.header?.help?.enabled,
     dimensions: {

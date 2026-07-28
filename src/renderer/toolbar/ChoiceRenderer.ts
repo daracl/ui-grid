@@ -114,19 +114,29 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
       if (this.selectValues.length < 1) {
         this.setValue(this.field.defaultValue ?? '');
+      } else {
+        this.setValue(this.selectValues);
       }
     });
   }
 
   public getValue() {
     const values = Array.from(
-      this.choiceContainer.querySelectorAll<HTMLElement>('.dg-choice.' + SELECTED_STYLE_CLASS),
+      this.choiceContainer.querySelectorAll<HTMLElement>('.dg-choice-item.' + SELECTED_STYLE_CLASS),
     ).map((ele) => {
       const index = ele.dataset.index;
       if (index) return this.listItems[intValue(index)][this.valueKey];
     });
 
-    return values;
+    if (values.length < 1) {
+      return [];
+    }
+
+    if (this.isMultiple) {
+      return values;
+    } else {
+      return values[0];
+    }
   }
 
   public setValue(value: string | string[]) {
@@ -142,7 +152,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
     for (let i = 0; i < listItems.length; i++) {
       const listItem = listItems[i];
 
-      const element = this.choiceContainer.querySelector(`.dg-choice[data-index="${i}"]`);
+      const element = this.choiceContainer.querySelector(`.dg-choice-item[data-index="${i}"]`);
 
       if (element) {
         if (values.includes(listItem[valueKey])) {

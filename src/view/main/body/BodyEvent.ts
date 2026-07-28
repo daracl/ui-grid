@@ -1,6 +1,12 @@
 import { getCellInfo, isInputField, isMouseMoved } from '@/util/gridUtils';
 
-import { LINE_NUMBER_NAME, MOUSE_MOVE_THRESHOLD, PointerStateMap, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import {
+  LINE_NUMBER_NAME,
+  MOUSE_MOVE_THRESHOLD,
+  PointerStateMap,
+  ROW_DRAG_HANDLE_NAME,
+  SelectionModeMap,
+} from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
@@ -51,11 +57,13 @@ export class BodyEvent {
     this.initPointerEvent();
     this.initMobileTouch();
 
+    const opts = this.gridMain.options();
+
     if (this.gridMain.config().enableCellEdit === true) {
       new PasteEvent(this.gridMain, this.selectionInfo).init();
     }
 
-    if (this.gridMain.options().body.disableKeydown !== true) {
+    if (opts.body.disableKeydown !== true && opts.selectionMode !== SelectionModeMap.none) {
       new KeydownEvent(this.gridMain, this.body, this.selectionInfo).init();
     }
   }

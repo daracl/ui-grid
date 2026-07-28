@@ -343,7 +343,7 @@ export class SelectionInfo {
     for (let i = startIdx; i <= endIdx; i++) {
       const viewItem = viewItems[i];
       const item = dataManager.getRowItem(viewItem.id);
-      const rowOutput: any = isJson ? { _dgIdx: i } : [];
+      const rowOutput: any = isJson ? {} : [];
       let hasSelection = false;
 
       for (let j = startCol; j <= endCol; j++) {
@@ -635,7 +635,7 @@ export class SelectionInfo {
     if (isRowSelectionMode(selectionMode)) {
       startCol = cfg.dataInfo.startCol;
       endCol = cfg.dataInfo.colLength - 1;
-    } else if (selectionMode == SelectionModeMap.MULTIPLE_CELL) {
+    } else if (selectionMode == SelectionModeMap.multiCell) {
       if (isMouseDown) {
         startCol = -1;
       } else if (hasClass(cellElement, 'dg-line-number')) {

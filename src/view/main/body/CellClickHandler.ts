@@ -107,7 +107,7 @@ export class CellClickHandler extends BasePointerHandler {
     }
 
     if (this.multipleFlag && session.cellInfo?.field.name == LINE_NUMBER_NAME) {
-      this.currentSelectionMode = SelectionModeMap.MULTIPLE_ROW;
+      this.currentSelectionMode = SelectionModeMap.multiRow;
     }
   }
 
@@ -290,13 +290,15 @@ export class CellClickHandler extends BasePointerHandler {
   }
 
   onClick(session: PointerSession): void {
-    this.setCellClick(
-      session.event,
-      this.startCellInfo,
-      this.multipleFlag,
-      this.currentSelectionMode,
-      this.cellElement,
-    );
+    if (this.selectionMode != SelectionModeMap.none) {
+      this.setCellClick(
+        session.event,
+        this.startCellInfo,
+        this.multipleFlag,
+        this.currentSelectionMode,
+        this.cellElement,
+      );
+    }
 
     this.cellClickFn?.(this.startCellInfo);
   }
@@ -314,8 +316,6 @@ export class CellClickHandler extends BasePointerHandler {
 
       return;
     }
-
-    if (this.cellDblClick?.(cellInfo) === false) return;
   }
 
   protected setCellClick(

@@ -1,9 +1,10 @@
-import { POSITION_TYPE, SELECTION_MODE, THEME_TYPE } from '@/constants';
+import { POSITION_TYPE, SelectionMode, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
 import { SortOption } from './Header';
 import { ToolbarLayout } from './Toolbar';
+import { BodyStyle } from '@/constantStyles';
 
 /**
  * grid options
@@ -47,7 +48,7 @@ export interface GridOptions {
   /**
    * grid body style
    */
-  style: string;
+  style: BodyStyle;
 
   /**
    * 넓이 고정 여부.
@@ -58,9 +59,9 @@ export interface GridOptions {
    */
   useDefaultFormatter: boolean;
   /**
-   * cell 선택 모드 row, cell, multiple-row, multiple-cell
+   * cell 선택 모드 row, cell, multiRow, multiCell
    */
-  selectionMode: SELECTION_MODE;
+  selectionMode: SelectionMode;
   /**
    * 툴팁 활성화 여부
    */
@@ -407,12 +408,6 @@ export interface SearchOptions {
      */
     keyword?: string;
   };
-  util: {
-    /**
-     * number 타입 체크 callback
-     */
-    isTypeNumber: OptionCallback;
-  };
 }
 
 /**
@@ -495,6 +490,13 @@ export interface AsideOptions {
      * click 콜백
      */
     click?: OptionCallback;
+
+    /**
+     * Row 선택 시 체크박스도 함께 체크
+     *
+     * @default false
+     */
+    checkOnRowSelect?: boolean;
 
     /**
      * 다중 선택 허용 여부

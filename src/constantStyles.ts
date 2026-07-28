@@ -6,6 +6,14 @@ export const GRID_THEME = {
 
 export type ThemeType = keyof typeof GRID_THEME;
 
+export const BODY_STYLE = {
+  default: 'default',
+  striped: 'striped',
+  borderless: 'borderless',
+} as const;
+
+export type BodyStyle = keyof typeof BODY_STYLE;
+
 // align type
 export const ALIGN_STYLE = {
   left: 'text-al',

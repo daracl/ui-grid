@@ -4,10 +4,11 @@ import { TOOLBAR_RENDERER } from '@/constantRenders';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_TOOLBAR_FIELD_INFO } from '@/defaultGridOption';
 import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
-import { isArray, isUndefined, merge } from '@/util/utils';
+import { isArray, isEmpty, isUndefined, merge } from '@/util/utils';
 import { isNumber } from '../../util/utils';
 import { GridMain } from '../GridMain';
 import { normalizeCssLength } from '@/util/styleUtils';
+import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';
 
 /**
  * Toolbar class
@@ -59,6 +60,8 @@ export class Toolbar {
 
     this.createTemplate();
 
+    this.initEvent();
+
     this.refreshConditionFields();
   }
 
@@ -66,7 +69,34 @@ export class Toolbar {
     return this.toolbarElement;
   }
 
-  initRenderer() {
+  private initEvent() {
+    const { eventManager } = this.gridMain.config();
+
+    const toolbarElement = this.toolbarElement;
+
+    eventManager.off(toolbarElement, 'wheel DOMMouseScroll');
+    eventManager.on(
+      { el: toolbarElement, type: 'wheel DOMMouseScroll' },
+      (evt: WheelEvent) => {
+        if (toolbarElement.scrollWidth <= toolbarElement.clientWidth) return;
+
+        const delta = evt.deltaY;
+
+        if (isEmpty(delta)) return;
+
+        if (isShiftKey(evt)) {
+          return;
+        }
+
+        stopPreventCancel(evt);
+
+        toolbarElement.scrollLeft += delta;
+      },
+      { passive: false },
+    );
+  }
+
+  private initRenderer() {
     const items = this.toolbarOpts.items;
 
     const defaultValues = this.toolbarOpts.defaultValues ?? {};

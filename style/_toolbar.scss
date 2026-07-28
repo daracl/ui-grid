@@ -10,6 +10,14 @@
     height: 40px;
     display: none;
     z-index: 2;
+    overflow-y: hidden;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      width: 2px;
+    }
 
     -webkit-touch-callout: text;
     -webkit-user-select: text;

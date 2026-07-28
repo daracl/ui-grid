@@ -3,14 +3,19 @@ export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
 
 export type MODE = 'edit' | 'view';
 
-// copy type
-export type COPY_MODE = 'single' | 'multiple' | 'none';
-
 // align type
 export type ALIGN_TYPE = 'left' | 'center' | 'right';
 
+export const SelectionModeMap = {
+  multiRow: 'multiRow',
+  multiCell: 'multiCell',
+  row: 'row',
+  cell: 'cell',
+  none: 'none',
+} as const;
+
 // 선택 타입
-export type SELECTION_MODE = 'row' | 'cell' | 'multiple-row' | 'multiple-cell' | 'none';
+export type SelectionMode = (typeof SelectionModeMap)[keyof typeof SelectionModeMap];
 
 export const ALIGN = {
   left: 'left',
@@ -41,7 +46,10 @@ export type POSITION_TYPE = 'left' | 'center' | 'right';
 
 export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
 
-export type PASSWORD_TYPE = 'number' | 'upper' | 'upper-special' | 'upper-special-number'; // 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
+/**
+ * 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
+ */
+export type PASSWORD_TYPE = 'number' | 'upper' | 'upper-special' | 'upper-special-number';
 
 export type ORIENTATION_TYPE = 'horizontal' | 'vertical';
 
@@ -169,13 +177,6 @@ export const ScrollDirectionYMap = {
 } as const;
 
 export type ScrollDirectionY = (typeof ScrollDirectionYMap)[keyof typeof ScrollDirectionYMap];
-
-export const SelectionModeMap = {
-  MULTIPLE_ROW: 'multiple-row',
-  MULTIPLE_CELL: 'multiple-cell',
-  ROW: 'row',
-  CELL: 'cell',
-} as const;
 
 /**
  * body cell style class

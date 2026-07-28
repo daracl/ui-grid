@@ -19,9 +19,19 @@
   user-select: none;
 }
 
+.daracl-select {
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
 body {
   &[data-dg-theme='light'] .daracl-grid,
   &[data-dg-theme='light'] .dg-hidden-layers,
+  .daracl-grid,
   .daracl-grid > .dg-light,
   .dg-hidden-layers,
   .dg-hidden-layers.dg-light {
@@ -532,6 +542,22 @@ body {
             border-radius: 4px;
           }
 
+          &.dg-indeterminate {
+            .dg-indicator {
+              &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 10px;
+                height: 3px;
+                background-color: var(--check-indeterminate-bg);
+                border-radius: 1px;
+                transform: translate(-50%, -50%);
+              }
+            }
+          }
+
           &.dg-selected .dg-indicator {
             background: var(--item-check-color);
             border-color: var(--item-check-color);
@@ -618,76 +644,6 @@ body {
   }
 
   /* --//dg-choice */
-
-  /* dg-checkbox */
-  .dg-checkbox {
-    display: inline-flex;
-    cursor: pointer;
-
-    > label {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    &.dg-all {
-      input[type='checkbox'] {
-        &:checked + .dg-checkmark {
-          &::after {
-            border-width: 0 2px 2px 0;
-          }
-        }
-      }
-    }
-
-    input[type='checkbox'] {
-      display: none;
-
-      &:checked + .dg-checkmark {
-        background-color: var(--check-active-bg);
-
-        &::after {
-          content: '';
-          position: absolute;
-          left: 4px;
-          top: 1px;
-          width: 4px;
-          height: 8px;
-          border: solid var(--check-mark-color);
-          border-width: 0 1.5px 1.5px 0;
-          transform: rotate(45deg);
-        }
-      }
-    }
-
-    .dg-checkmark {
-      width: 16px;
-      height: 16px;
-      border: 1.5px solid var(--border-color);
-      border-radius: 3px;
-      position: relative;
-      transition: all 0.1s;
-      box-sizing: border-box;
-    }
-
-    &.dg-indeterminate {
-      .dg-checkmark {
-        &::after {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 10px;
-          height: 3px;
-          background-color: var(--check-indeterminate-bg);
-          border-radius: 1px;
-          transform: translate(-50%, -50%);
-        }
-      }
-    }
-  }
-  /* --// dg-checkbox */
 
   input,
   textarea {

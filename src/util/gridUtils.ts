@@ -35,15 +35,15 @@ export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
  * @type {string} selection mode
  */
 export const isMultipleSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionModeMap.MULTIPLE_ROW || selectionMode == SelectionModeMap.MULTIPLE_CELL;
+  return selectionMode == SelectionModeMap.multiRow || selectionMode == SelectionModeMap.multiCell;
 };
 
 export const isSingleSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionModeMap.CELL || selectionMode == SelectionModeMap.ROW;
+  return selectionMode == SelectionModeMap.cell || selectionMode == SelectionModeMap.row;
 };
 
 export const isMultipleCellSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionModeMap.MULTIPLE_CELL;
+  return selectionMode == SelectionModeMap.multiCell;
 };
 
 /**
@@ -53,7 +53,7 @@ export const isMultipleCellSelectionMode = (selectionMode: string): boolean => {
  * @returns {boolean}
  */
 export const isRowSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionModeMap.MULTIPLE_ROW || selectionMode == SelectionModeMap.ROW;
+  return selectionMode == SelectionModeMap.multiRow || selectionMode == SelectionModeMap.row;
 };
 
 /**
@@ -62,7 +62,7 @@ export const isRowSelectionMode = (selectionMode: string): boolean => {
  * @returns boolean cell selection 여부
  */
 export const isCellSelectionMode = (selectionMode: string): boolean => {
-  return selectionMode == SelectionModeMap.MULTIPLE_CELL || selectionMode == SelectionModeMap.CELL;
+  return selectionMode == SelectionModeMap.multiCell || selectionMode == SelectionModeMap.cell;
 };
 
 /**
@@ -635,5 +635,7 @@ export const parseClipboard = (text: string): string[][] => {
  * @returns 편집 가능 여부
  */
 export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
+  // if (!field) return false;
+
   return field.editable === true || (cfg.enableCellEdit && field.editable !== false);
 };

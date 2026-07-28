@@ -224,7 +224,7 @@ export class DaraGrid {
    *
    * @returns {*}
    */
-  public getSelectedItems() {
+  public getSelection() {
     return this.gridMain.selectionInfo.selectionData('json', false);
   }
 

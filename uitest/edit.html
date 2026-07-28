@@ -417,8 +417,8 @@
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
       editable: true,
-      styleClass: 'striped',
-      selectionMode: 'multiple-cell', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+      style: 'striped',
+      selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
       enableTooltip: true, // tooltip flag
       theme: document.getElementById('theme').value,
       height: 480,

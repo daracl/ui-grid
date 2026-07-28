@@ -24,7 +24,15 @@
   user-select: none;
 }
 
+.daracl-select {
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
 body[data-dg-theme=light] .daracl-grid, body[data-dg-theme=light] .dg-hidden-layers,
+body .daracl-grid,
 body .daracl-grid > .dg-light,
 body .dg-hidden-layers,
 body .dg-hidden-layers.dg-light {
@@ -157,8 +165,6 @@ body .dg-hidden-layers.dg-dark {
   /* --// dg-switch */
   /* dg-choice */
   /* --//dg-choice */
-  /* dg-checkbox */
-  /* --// dg-checkbox */
 }
 .daracl-grid .dg-layout,
 .dg-hidden-layers .dg-layout {
@@ -506,6 +512,18 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox .dg-indicator {
   border-radius: 4px;
 }
+.daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-indeterminate .dg-indicator::after,
+.dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-indeterminate .dg-indicator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 3px;
+  background-color: var(--check-indeterminate-bg);
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+}
 .daracl-grid .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator,
 .dg-hidden-layers .dg-choice > .dg-choice-item:not(.dg-label-only).dg-checkbox.dg-selected .dg-indicator {
   background: var(--item-check-color);
@@ -573,64 +591,6 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-choice > .dg-choice-item.dg-label-only.dg-selected:hover {
   background: #dbeafe;
 }
-.daracl-grid .dg-checkbox,
-.dg-hidden-layers .dg-checkbox {
-  display: inline-flex;
-  cursor: pointer;
-}
-.daracl-grid .dg-checkbox > label,
-.dg-hidden-layers .dg-checkbox > label {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-.daracl-grid .dg-checkbox.dg-all input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-layers .dg-checkbox.dg-all input[type=checkbox]:checked + .dg-checkmark::after {
-  border-width: 0 2px 2px 0;
-}
-.daracl-grid .dg-checkbox input[type=checkbox],
-.dg-hidden-layers .dg-checkbox input[type=checkbox] {
-  display: none;
-}
-.daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark,
-.dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark {
-  background-color: var(--check-active-bg);
-}
-.daracl-grid .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after,
-.dg-hidden-layers .dg-checkbox input[type=checkbox]:checked + .dg-checkmark::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--check-mark-color);
-  border-width: 0 1.5px 1.5px 0;
-  transform: rotate(45deg);
-}
-.daracl-grid .dg-checkbox .dg-checkmark,
-.dg-hidden-layers .dg-checkbox .dg-checkmark {
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid var(--border-color);
-  border-radius: 3px;
-  position: relative;
-  transition: all 0.1s;
-  box-sizing: border-box;
-}
-.daracl-grid .dg-checkbox.dg-indeterminate .dg-checkmark::after,
-.dg-hidden-layers .dg-checkbox.dg-indeterminate .dg-checkmark::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 3px;
-  background-color: var(--check-indeterminate-bg);
-  border-radius: 1px;
-  transform: translate(-50%, -50%);
-}
 .daracl-grid input,
 .daracl-grid textarea,
 .dg-hidden-layers input,
@@ -650,12 +610,19 @@ body .dg-hidden-layers.dg-dark {
   height: 40px;
   display: none;
   z-index: 2;
+  overflow-y: hidden;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
   -webkit-touch-callout: text;
   -webkit-user-select: text;
   -moz-user-select: text;
   user-select: text;
   /* 레이아웃 라인 */
   /* section */
+}
+.daracl-grid .dg-toolbar::-webkit-scrollbar {
+  width: 2px;
 }
 .daracl-grid .dg-toolbar .dg-button {
   display: inline-flex;
@@ -925,6 +892,13 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid .dg-main .dg-panels .dg-header > div > .dg-header-table .dg-header-cell.dg-selection {
   background-color: var(--header-bg-selection) !important;
 }
+.daracl-grid .dg-main .dg-panels .dg-header > div > .dg-header-table .dg-header-cell .dg-choice-item {
+  display: flex;
+  gap: 0px;
+  align-items: center;
+  justify-content: center;
+  margin: 0px;
+}
 .daracl-grid .dg-main .dg-panels .dg-header > div > .dg-header-table .dg-label-wrapper {
   position: relative;
   padding: 0;
@@ -1175,6 +1149,10 @@ body .dg-hidden-layers.dg-dark {
   overflow-wrap: break-word;
   white-space: pre-wrap;
   align-items: flex-start;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell .dg-cell-renderer .dg-choice-item {
+  margin: 0px !important;
+  padding-top: 3px !important;
 }
 .daracl-grid .dg-main .dg-panels .dg-body > div > .dg-body-table .dg-row > .dg-cell.dg-line-number {
   background: linear-gradient(var(--header-gradient1), var(--header-gradient2));

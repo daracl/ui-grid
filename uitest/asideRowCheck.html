@@ -138,8 +138,8 @@
       element,
       {
         editable: true,
-        styleClass: 'striped',
-        selectionMode: 'multiple-row', // row , cell , multiple-row , multiple-cell	// 선택 방법.
+        style: 'striped',
+        selectionMode: 'multiRow', // row , cell , multiRow , multiCell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
         theme: document.getElementById('theme').value,
@@ -149,7 +149,6 @@
           lineNumber: { enabled: true },
           rowCheckbox: {
             enabled: true,
-            key: 'checkbox',
             width: 27,
             allowMultiSelect1: false,
           },
