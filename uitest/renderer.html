@@ -1,25 +1,21 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara renderer</title>
-  </head>
 
-  <body>
-    <div>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
-    </div>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara renderer</title>
+</head>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+<body>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 
+<script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
 <script>
@@ -58,39 +54,8 @@
 
   const allFoods = [...koreanFoods, ...americanFoods, ...chineseFoods, ...japaneseFoods];
 
-  const THEME_KEY = 'grid-theme';
-  const theme = localStorage.getItem(THEME_KEY);
 
-  if (theme) setMainTheme(theme);
-
-  function setMainTheme(theme, persist = false) {
-    const bodyElement = document.body;
-
-    if (gridObj) gridObj.setTheme(theme);
-
-    bodyElement.setAttribute('data-dg-theme', theme);
-
-    if (persist) {
-      localStorage.setItem(THEME_KEY, theme);
-    }
-  }
-
-  function fn_button() {
-    const themeElement = document.getElementById('theme');
-
-    themeElement.addEventListener('change', (e) => {
-      const value = themeElement.value;
-
-      if (value) {
-        setMainTheme(value, true);
-      }
-    });
-  }
-
-  function fn_init(initFlag) {
-    const themeElement = document.getElementById('theme');
-
-    if (themeElement) themeElement.value = theme ?? 'light';
+  function loadGrid(initFlag) {
 
     const jsonInfo = getItem(1, 500, 20);
 
@@ -98,9 +63,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    Daracl.grid.message({ 'no.data': '데이터가 없습니다.', 'select.all': 'ALL' });
-    fn_button();
-    fn_init(true);
+    loadGrid(true);
   });
 
   function generateItems(itemCount, batchSize = 500) {
@@ -454,7 +417,7 @@
         selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
-        theme: document.getElementById('theme').value,
+        theme: G_GRID_THEME,
         height: 480,
         aside: {
           lineNumber: { enabled: true },
@@ -499,23 +462,10 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
+            dropCallback: (data) => { },
           },
         },
-        search: {
-          enabled: true,
-          enableColumnFix: true,
-          click: false,
-          mode: 'simple', //'full'
-          width: 700,
-          height: 250,
-          onlyCloseButton: true,
-          useRememberValue: true,
-          callback: (data) => {
-            //console.log(data)
-          },
-          rememberValue: { field: '$all', val: 'asdf' },
-        },
+
         scroll: {
           enableWheelInContainer: true,
           vertical: {
@@ -530,35 +480,7 @@
             enableWheel: true,
           },
         },
-        footer: {
-          enabled: true,
 
-          height: 35,
-          paging: {
-            enabled1: true,
-            /**
-             * 위치 값
-             */
-            position: 'center',
-            formatPosition: 'right',
-            /**
-             * 페이지 메시지 포멧
-             */
-            format: '{{start}} - {{end}} of {{total}}',
-
-            // 페이지 콜백
-            callback1: function (arg) {
-              //console.log(arg);
-              //gridObj.setItems(aaa);
-            },
-          },
-
-          selection: {
-            position: 'left',
-            format:
-              'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
-          },
-        },
         fields: colItem,
         items: aaa,
         body: {
@@ -584,91 +506,7 @@
             selectRowOnCellClick: true,
           },
         },
-
-        contextMenu: {
-          enableHeader: true,
-          beforeActivate: function (info) {
-            const field = info.field;
-            const item = info.item;
-            if (item) {
-              gridObj.changeContextMenuHeader(item[field.name]);
-            }
-          },
-          callback: function (item) {
-            console.log(item.key, item);
-
-            if (item.key == 'copy') {
-              gridObj.copyData();
-            }
-          },
-          items: [
-            { key: 'refresh', label: '새로고침' },
-            {
-              divider: true,
-            },
-            {
-              key: 'copy',
-              label: '복사',
-              hotkey: 'Ctrl+C',
-              callback: function (item) {
-                console.log('direct copy callback : ', item.key, item);
-
-                if (item.key == 'copy') {
-                  gridObj.copyData();
-                }
-              },
-            },
-            {
-              key: 'sql_create',
-              label: 'sql생성',
-              disabled: true,
-              children: [
-                { key: 'selectStar', label: 'select *' },
-                { key: 'select', label: 'select column' },
-                { key: 'insert', label: 'insert' },
-                { key: 'update', label: 'update' },
-                { key: 'delete', label: 'delete' },
-                { key: 'drop', label: 'drop' },
-              ],
-            },
-            {
-              key: 'download',
-              label: 'download',
-              children: [
-                { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
-                { divider: true },
-                { key: 'download_excel', label: 'EXCEL' },
-                { key: 'download_csv', label: 'CSV' },
-                { key: 'download_xml', label: 'XML' },
-                { key: 'download_json', label: 'json' },
-              ],
-            },
-            {
-              key: 'create_ddl',
-              label: 'DDL 보기',
-              hotkey: 'Ctrl+shift+C',
-            },
-            {
-              key: 'mybatis-sql_create',
-              label: 'mybatis Sql생성',
-              children: [
-                { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
-                { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
-                { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
-              ],
-            },
-            {
-              key: 'export',
-              label: '내보내기',
-              children: [
-                { key: 'export_data', label: '데이타 내보내기' },
-                { key: 'export_column', label: '컬럼정보 내보내기' },
-              ],
-            },
-          ],
-        },
-      },
-      message,
+      }
     );
   }
 

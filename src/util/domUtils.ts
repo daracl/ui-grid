@@ -163,8 +163,6 @@ export function innerLayerPosition(
   let layerHeight = layerElement.offsetHeight || getElementRect(layerElement).height;
   const windowBottom = window.innerHeight;
 
-  console.log(rendererContainer, elementRect);
-
   // 버튼 위치를 #grid 기준으로 변환
   const gridTop = rendererContainer.top - elementRect.top;
   const menuOffsetBottom = elementRect.bottom + layerHeight;

@@ -1,63 +1,65 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara Grid</title>
-  </head>
 
-  <body>
-    <div>
-      row
-      <select id="itemCount">
-        <option value="0">0</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="32">32</option>
-        <option value="38">38</option>
-        <option value="100" selected>100</option>
-        <option value="500">500</option>
-        <option value="1000">1,000</option>
-        <option value="10000">10,000</option>
-        <option value="100000">100,000</option>
-        <option value="1000000">1,000,000</option>
-      </select>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara Grid</title>
+</head>
 
-      cell
-      <select id="cellCount">
-        <option value="1">1</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20" selected>20</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-        <option value="300">300</option>
-        <option value="500">500</option>
-      </select>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
+<body>
+  <div>
+    row
+    <select id="itemCount">
+      <option value="0">0</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="32">32</option>
+      <option value="38">38</option>
+      <option value="100" selected>100</option>
+      <option value="500">500</option>
+      <option value="1000">1,000</option>
+      <option value="10000">10,000</option>
+      <option value="100000">100,000</option>
+      <option value="1000000">1,000,000</option>
+    </select>
 
-      타입
-      <select id="dataType">
-        <option value="1">헤더 2단</option>
-        <option value="2" selected>헤더 3단</option>
-        <option value="3">헤더 1단</option>
-        <option value="4">직원</option>
-      </select>
-      <button type="button" onclick="fn_init()">regrid</button>
-    </div>
+    cell
+    <select id="cellCount">
+      <option value="1">1</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="300">300</option>
+      <option value="500">500</option>
+    </select>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+    타입
+    <select id="dataType">
+      <option value="1">헤더 2단</option>
+      <option value="2" selected>헤더 3단</option>
+      <option value="3">헤더 1단</option>
+      <option value="4">직원</option>
+    </select>
+    <button type="button" onclick="loadGrid()">regrid</button>
+  </div>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
-
+<script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
 <style>
@@ -149,7 +151,7 @@
     });
   }
 
-  function fn_init(initFlag) {
+  function loadGrid(initFlag) {
     const themeElement = document.getElementById('theme');
 
     if (themeElement) themeElement.value = theme ?? 'light';
@@ -193,7 +195,7 @@
   document.addEventListener('DOMContentLoaded', function () {
     Daracl.grid.message({ 'no.data': '데이터가 없습니다.', 'select.all': 'ALL' });
     fn_button();
-    fn_init(true);
+    loadGrid(true);
   });
 
   function generateItems(itemCount, batchSize = 500) {
@@ -839,7 +841,7 @@
         selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
         enableWidthFixed: false,
         enableTooltip: true, // tooltip flag
-        theme: document.getElementById('theme').value,
+        theme: G_GRID_THEME,
         fixedLeftIndex: 2,
         fixedRightIndex: 0,
         height: 'auto',
@@ -892,7 +894,7 @@
           drag: {
             enabled: true,
             dropSelector: '#dropTextArea',
-            dropCallback: (data) => {},
+            dropCallback: (data) => { },
           },
         },
         summary: {
@@ -952,7 +954,7 @@
           items: [
             {
               search: true,
-              callback: (keyword) => {},
+              callback: (keyword) => { },
             },
 
             {

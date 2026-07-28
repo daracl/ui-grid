@@ -1,91 +1,27 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara Grid edit</title>
-  </head>
 
-  <body>
-    <div>
-      row
-      <select id="itemCount">
-        <option value="0">0</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="32">32</option>
-        <option value="38">38</option>
-        <option value="100" selected>100</option>
-        <option value="500">500</option>
-        <option value="1000">1,000</option>
-        <option value="10000">10,000</option>
-        <option value="100000">100,000</option>
-        <option value="1000000">1,000,000</option>
-      </select>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara Grid edit</title>
+</head>
 
-      cell
-      <select id="cellCount">
-        <option value="1">1</option>
-        <option value="5">5</option>
-        <option value="10">10</option>
-        <option value="20" selected>20</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-        <option value="300">300</option>
-        <option value="500">500</option>
-      </select>
-      theme
-      <select id="theme">
-        <option value="light" selected>light</option>
-        <option value="dark">dark</option>
-      </select>
+<body>
 
-      타입
-      <select id="dataType">
-        <option value="1">헤더 2단</option>
-        <option value="2" selected>헤더 3단</option>
-        <option value="3">헤더 1단</option>
-        <option value="4">직원</option>
-      </select>
-      <button type="button" onclick="fn_init()">regrid</button>
-    </div>
 
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
-    </div>
-  </body>
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 
+<script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script src="./data/dropdown.js" type="text/javascript"></script>
 <script src="./data/employee2.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
-<style>
-  .form-button {
-    text-align: center;
-  }
 
-  :root {
-    --bg: #ffffff;
-    --bg-color: #070d19;
-  }
-
-  body[data-dg-theme='dark'] {
-    --bg: #070d19;
-    --bg-color: #ffffff;
-  }
-
-  body {
-    background-color: var(--bg);
-    color: var(--bg-color);
-  }
-
-  .header {
-    color: var(--bg-color);
-  }
-</style>
 <script>
   var gridObj;
 
@@ -113,76 +49,19 @@
     }
   });
 
-  const THEME_KEY = 'grid-theme';
-  const theme = localStorage.getItem(THEME_KEY);
+  function loadGrid(initFlag) {
 
-  if (theme) setMainTheme(theme);
-
-  function setMainTheme(theme, persist = false) {
-    const bodyElement = document.body;
-
-    if (gridObj) gridObj.setTheme(theme);
-
-    bodyElement.setAttribute('data-dg-theme', theme);
-
-    if (persist) {
-      localStorage.setItem(THEME_KEY, theme);
-    }
-  }
-
-  function fn_button() {
-    const themeElement = document.getElementById('theme');
-
-    themeElement.addEventListener('change', (e) => {
-      const value = themeElement.value;
-
-      if (value) {
-        setMainTheme(value, true);
-      }
-    });
-  }
-
-  function fn_init(initFlag) {
-    const themeElement = document.getElementById('theme');
-
-    if (themeElement) themeElement.value = theme ?? 'light';
-
-    if (initFlag) {
-      const dgGridSampleConfig = localStorage.getItem('dgGridSampleConfig');
-
-      if (dgGridSampleConfig) {
-        try {
-          const cfg = JSON.parse(dgGridSampleConfig);
-
-          document.getElementById('dataType').value = cfg.itemType;
-          document.getElementById('itemCount').value = cfg.itemCount;
-          document.getElementById('cellCount').value = cfg.cellCount;
-        } catch (e) {
-          console.log('dgGridSampleConfig : ', dgGridSampleConfig, e);
-        }
-      }
-    }
-
-    const itemType = document.getElementById('dataType').value;
-    const itemCount = parseInt(document.getElementById('itemCount').value, 10);
-    const cellCount = parseInt(document.getElementById('cellCount').value, 10);
-
-    localStorage.setItem('dgGridSampleConfig', JSON.stringify({ itemType, itemCount, cellCount }));
-
-    const jsonInfo = getItem(itemType, itemCount, cellCount);
+    const jsonInfo = getItem();
 
     gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    Daracl.grid.message({ 'no.data': '데이터가 없습니다.', 'select.all': 'ALL' });
-    fn_button();
-    fn_init(true);
+    loadGrid(true);
   });
 
-  var itemIdx = 0;
-  function getItem(type, itemCount, cellCount) {
-    itemIdx++;
+
+  function getItem() {
     let items = [];
     let fields = [];
     items = GRID_EMPLOYEE_DATA;
@@ -406,8 +285,6 @@
       },
     ];
 
-    //console.log(JSON.stringify(aaa));
-
     return {
       items: items,
       fields: fields,
@@ -420,7 +297,7 @@
       style: 'striped',
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
       enableTooltip: true, // tooltip flag
-      theme: document.getElementById('theme').value,
+      theme: G_GRID_THEME,
       height: 480,
       aside: {
         lineNumber: { enabled: true },
@@ -470,25 +347,5 @@
     });
   }
 
-  function getRandomFloatFromInput(a, b) {
-    const min = Math.min(a, b);
-    const max = Math.max(a, b);
-    return Math.floor(Math.random() * (max - min) + min);
-  }
 
-  function generateRandomNumbers(start, end, count) {
-    if (start > end) {
-      throw new Error('시작 값은 끝 값보다 작거나 같아야 합니다.');
-    }
-    if (count <= 0) {
-      throw new Error('생성할 숫자의 개수는 1 이상이어야 합니다.');
-    }
-
-    const result = [];
-    for (let i = 0; i < count; i++) {
-      const random = Math.floor(Math.random() * (end - start + 1)) + start;
-      result.push(random);
-    }
-    return result;
-  }
 </script>

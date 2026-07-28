@@ -186,7 +186,7 @@ export abstract class DataManager {
    * @param start start index
    * @param end end index
    */
-  public setViewItems(ids: ViewItem[], start?: number, end?: number) {
+  public setViewItems(ids: ViewItem[]) {
     const viewItemIds = ids;
     this.viewItems = viewItemIds;
 

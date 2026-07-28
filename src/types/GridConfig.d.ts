@@ -5,6 +5,7 @@ import { FieldItem } from './GridField';
 import { PagingOptions } from './GridOptions';
 import { FieldSortInfo } from '@/type/Header';
 import { EventManager } from '@/event/EventManager';
+import { PagingInfo } from './PagingInfo';
 
 /**
  * grid config info
@@ -121,7 +122,7 @@ export interface Config {
   // 검색 매칭 정보
   searchMatchInfo: SearchMatchInfo;
 
-  paging: PagingOptions;
+  paging: PagingInfo;
   selection: Selection;
   isHeaderResize: boolean;
 

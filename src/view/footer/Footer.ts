@@ -1,14 +1,14 @@
 import { Config, Selection } from '@t/GridConfig';
-import { FooterOptions, PagingParam } from '@t/GridOptions';
+import { FooterOptions } from '@t/GridOptions';
 
+import { ALIGN } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
+import { html } from '@/util/htmlTemplate';
 import { getPagingInfo } from '@/util/pagingUtil';
-import * as utils from '@/util/utils';
 import { PagingInfo } from '@t/PagingInfo';
 import { GridMain } from '../GridMain';
-import { ALIGN } from '@/constants';
-import { html } from '@/util/htmlTemplate';
+import { arrayCopy, intValue, isFunction, isString, isUndefined, replaceMesasgeFormat } from '@/util/utils';
 
 /**
  * Footer class
@@ -48,7 +48,7 @@ export class Footer {
 
     this.selectionInfo = gridMain.selectionInfo;
     this.cfg = this.gridMain.config();
-    this.isSelectionInfo = !utils.isUndefined(this.footerOpts.selection);
+    this.isSelectionInfo = !isUndefined(this.footerOpts.selection);
   }
 
   /**
@@ -74,9 +74,9 @@ export class Footer {
       this.pagingInfoElement = footerElement.findDaraElement('.dg-paging-info');
       this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
       this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
-      this.initPagingEvent();
-
       this.setPagingTemplate(this.cfg.paging);
+
+      this.initPagingEvent();
     }
   }
 
@@ -93,7 +93,7 @@ export class Footer {
     this.cfg.eventManager.on({ el: pagingElement, type: 'click', selector: '.dg-page-num' }, (e: UIEvent) => {
       const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
 
-      const pageNum = utils.intValue(pageNumElement?.getAttribute('pageno') ?? '1');
+      const pageNum = intValue(pageNumElement?.getAttribute('pageno') ?? '1');
 
       if (pagingCallback) {
         pagingCallback(pageNum);
@@ -106,7 +106,7 @@ export class Footer {
   }
 
   public goPage(pageNum: number, drawFlag = true) {
-    if (utils.isUndefined(this.footerOpts.paging)) {
+    if (isUndefined(this.footerOpts.paging)) {
       throw new Error('enablePaging not enabled');
     }
 
@@ -132,7 +132,9 @@ export class Footer {
     const countPerPage = pagingViewInfo?.countPerPage;
     const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
 
-    this.cfg.dataManager.setViewItems(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + countPerPage);
+    const viewItems = arrayCopy(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + countPerPage);
+
+    this.cfg.dataManager.setViewItems(viewItems);
 
     if (drawFlag) {
       this.gridMain.selectionInfo.setSelectionRangeInfo({} as Selection, true);
@@ -151,13 +153,13 @@ export class Footer {
     if (this.isSelectionInfo && this.footerOpts.enabled) {
       const dataInfo = this.selectionInfo.selectionData('json', true);
 
-      if (!utils.isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
+      if (!isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
         const selectionFormat = this.footerOpts.selection?.format;
         let statusText = '';
-        if (utils.isString(selectionFormat)) {
+        if (isString(selectionFormat)) {
           dataInfo.summary.enableSummary = dataInfo.summary.numFieldCount > 0;
-          statusText = utils.replaceMesasgeFormat(selectionFormat, dataInfo.summary);
-        } else if (utils.isFunction(selectionFormat)) {
+          statusText = replaceMesasgeFormat(selectionFormat, dataInfo.summary);
+        } else if (isFunction(selectionFormat)) {
           statusText = selectionFormat(dataInfo);
         }
 
@@ -188,15 +190,15 @@ export class Footer {
       statusInfo.end = statusInfo.end > pagingInfo.totalCount ? pagingInfo.totalCount : statusInfo.end;
 
       if (pagingInfo.totalCount > 0) {
-        const statusFormat = this.footerOpts.paging?.format;
-        let statusText = '';
-        if (utils.isString(statusFormat)) {
-          statusText = utils.replaceMesasgeFormat(statusFormat, statusInfo);
-        } else if (utils.isFunction(statusFormat)) {
-          statusText = statusFormat(statusInfo);
+        const pagingFormat = this.footerOpts.paging?.format;
+        let pagingText = '';
+        if (isString(pagingFormat)) {
+          pagingText = replaceMesasgeFormat(pagingFormat, statusInfo);
+        } else if (isFunction(pagingFormat)) {
+          pagingText = pagingFormat(statusInfo);
         }
 
-        this.pagingInfoElement.text(statusText);
+        this.pagingInfoElement.text(pagingText);
       } else {
         this.pagingInfoElement.text('');
       }

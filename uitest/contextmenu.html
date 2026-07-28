@@ -3,52 +3,74 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Dara move row</title>
+  <title>Dara summary</title>
 </head>
 
 <body>
-
   <div class="grid-view-area">
     <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
   </div>
 </body>
 
 </html>
+
 <script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
+<style>
+  .salary-5 {
+    background-color: #f30606 !important;
+  }
+
+  .salary-10 {
+    background-color: #e48140 !important;
+  }
+
+  .salary-15 {
+    background-color: #b6cc65 !important;
+  }
+
+  .salary-up {
+    background-color: #4df398 !important;
+  }
+</style>
 <script>
   var gridObj;
 
-  function loadGrid(initFlag) {
-
-    const jsonInfo = getItem();
+  function fn_init(initFlag) {
+    const jsonInfo = getItem(4, 100, 20);
 
     gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(true);
+    fn_init(true);
   });
 
-  function getItem() {
-    let items = GRID_EMPLOYEE_DATA;
+  var itemIdx = 0;
+  function getItem(type, itemCount, cellCount) {
+    itemIdx++;
+    let items = [];
     let fields = [];
 
+    const orginItemCount = itemCount;
+
+    itemCount = orginItemCount == 0 ? 1 : itemCount;
+
+    items = GRID_EMPLOYEE_DATA;
     fields = [
       {
         name: 'name',
         label: '이름',
         width: 80,
+        align: 'center',
       },
       {
         name: 'age',
         label: '나이',
         width: 50,
-        renderer: {
-          type: 'number',
-        },
+        renderer: { type: 'number' },
       },
       {
         name: 'email',
@@ -58,16 +80,15 @@
       {
         name: 'birth',
         label: '생년월일',
-        align: 'center',
         width: 120,
         editRenderer: {
           type: 'date',
           /*
-          , rule: {
-            minimum: -100
-            , maximum: 100
-          }
-            */
+        , rule: {
+          minimum: -100
+          , maximum: 100
+        }
+          */
         },
       },
       {
@@ -78,7 +99,8 @@
       {
         name: 'salary',
         label: '월급',
-        width: 80,
+        width: 100,
+        renderer: { type: 'number' },
         displayFormat: {
           type: 'number',
           format: '₩ 0,0 원',
@@ -88,8 +110,11 @@
         name: 'desc',
         label: '설명',
         width: 200,
+        whiteSpace: 'wrap',
       },
     ];
+
+    items = orginItemCount == 0 ? [] : items;
 
     return {
       items: items,
@@ -97,39 +122,42 @@
     };
   } //test
 
-  function gridDraw(element, aaa, colItem, message) {
+  function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(
       element,
       {
-        editable: true,
-        style: 'striped',
-        selectionMode: 'multiRow', // row , cell , multiRow , multiCell	// 선택 방법.
-        enableWidthFixed: false,
-        enableTooltip: true, // tooltip flag
+        selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
         theme: G_GRID_THEME,
-        height: 300,
-        width: 1000,
+        height: 480,
         aside: {
           lineNumber: { enabled: true },
-          rowCheckbox: {
-            enabled: true,
-            width: 27,
-            allowMultiSelect1: false,
-          },
-          modifyInfo: { enabled: true },
         },
         colOptions: {
           maxWidth: 1024,
         },
-        scroll: {
-          enableWheelInContainer: true,
-        },
         valueFilter: function (colInfo, objValue) {
           return objValue[colInfo.key];
         },
+
+
+        scroll: {
+          enableWheelInContainer: true,
+          vertical: {
+            enable1: false,
+            onUpdate: function (item) {
+              // 스크롤 업데이트.
+              //console.log(item);
+              //return true;
+            },
+          },
+          horizontal: {
+            enableWheel: true,
+          },
+        },
+
         fields: colItem,
         items: aaa,
-        body: {},
+
 
         contextMenu: {
           enableHeader: true,
@@ -213,8 +241,7 @@
             },
           ],
         },
-      },
-      message,
+      }
     );
   }
 </script>

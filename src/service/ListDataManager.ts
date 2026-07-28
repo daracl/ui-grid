@@ -14,7 +14,7 @@ import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
-import { multiSort } from '@/util/utils';
+import { arrayCopy, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
@@ -68,7 +68,9 @@ export class ListDataManager extends DataManager {
         const countPerPage = pagingInfo.countPerPage;
         const startIdx = (pagingInfo.currPage - 1) * countPerPage;
 
-        this.setViewItems(viewItemIds, startIdx, startIdx + countPerPage);
+        const viewItems = arrayCopy(viewItemIds, startIdx, startIdx + countPerPage);
+
+        this.setViewItems(viewItems);
       }
     } else {
       this.setViewItems(viewItemIds);

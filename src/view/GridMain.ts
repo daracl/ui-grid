@@ -832,6 +832,7 @@ export class GridMain {
    */
   public setItems(items: any[]) {
     this.cfg.dataManager.setItems(items);
+
     this.scroll.moveVerticalScroll({ rowIdx: 0 });
     this.refreshBody(true, 'setItems');
   }
@@ -1052,7 +1053,9 @@ export class GridMain {
   public setPaging(paging: PagingInfo) {
     this.opts.paging = paging;
     this.cfg.paging = paging;
-    if (this.footer) this.footer.setPagingTemplate(paging);
+    if (this.footer) {
+      this.footer.setPagingTemplate(paging);
+    }
   }
 
   public getToolbar() {
