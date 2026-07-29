@@ -1,0 +1,13 @@
+@use './choice';
+@use './dropdown';
+@use './icon';
+@use './radio';
+@use './switch';
+
+@mixin all {
+  @include choice.choice;
+  @include dropdown.dropdown;
+  @include icon.icon;
+  @include radio.radio;
+  @include switch.switch;
+}

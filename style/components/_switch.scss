@@ -1,0 +1,83 @@
+/**
+* dropdown css
+*/
+
+@mixin switch {
+  .dg-switch {
+    user-select: none;
+    position: relative;
+    height: 19px;
+    display: flex;
+
+    /* Box 스타일 */
+    &.dg-box {
+      .dg-slider {
+        border-radius: 3px;
+        &::before {
+          border-radius: 2px;
+        }
+      }
+    }
+
+    .dg-slider {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--check-bg);
+      border-radius: 20px;
+      transition: background-color 0.3s;
+      --thumb-size: 14px;
+      --thumb-gap: 4px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 3px;
+
+        left: 4px;
+        right: auto;
+
+        width: var(--thumb-size);
+        height: 13px;
+        border-radius: 50%;
+        background: var(--check-mark-color);
+        transition: left 0.3s, right 0.3s;
+      }
+
+      .dg-slider-label {
+        position: absolute;
+        top: 50%;
+        right: 5px;
+        transform: translateY(-50%);
+        color: var(--check-mark-color);
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.3s;
+        pointer-events: none;
+      }
+
+      &.dg-checked {
+        background: var(--check-active-bg);
+
+        &::before {
+          left: auto;
+          right: 4px;
+        }
+
+        .dg-slider-label {
+          left: 5px; // ON = 왼쪽
+          right: auto;
+        }
+      }
+
+      &.dg-disabled {
+        background: var(--disabled-bg);
+
+        &::before {
+          background: var(--check-mark-color);
+        }
+      }
+    }
+  }
+}

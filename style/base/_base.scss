@@ -1,0 +1,73 @@
+/**
+* base css
+*/
+@use '../abstracts' as comm;
+
+@mixin base {
+  @include comm.boxSizing(comm.$box_sizing_border);
+
+  * {
+    border-spacing: 0;
+    border-collapse: separate;
+    color: var(--font-color);
+    font-size: 12px;
+    @include comm.boxSizing(comm.$box_sizing_border);
+
+    &:before,
+    &:after {
+      @include comm.boxSizing(comm.$box_sizing_border);
+    }
+  }
+
+  input,
+  button,
+  select,
+  textarea {
+    border: 1px solid var(--border-color);
+    height: 28px;
+    line-height: 1.2em;
+    border-radius: 4px;
+    padding: 0px 8px 0px 5px;
+    background-color: var(--input-bg);
+    color: inherit;
+    outline: none;
+
+    &:hover,
+    &:focus {
+      border: 1px solid var(--border-thick-color);
+    }
+  }
+
+  button {
+    background: var(--button-bg);
+    color: inherit;
+    cursor: pointer;
+    &:hover {
+      background: var(--button-bg-hover);
+    }
+  }
+
+  input {
+    margin: 0;
+    padding: 0px 5px 0px 8px;
+    display: inline-block;
+
+    &[type='checkbox'] {
+      margin: auto;
+    }
+  }
+
+  textarea {
+    padding: 0px 5px 0px 8px;
+  }
+
+  input,
+  textarea {
+    -webkit-touch-callout: text !important;
+    -webkit-user-select: text !important;
+    -khtml-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
+}

@@ -1,4 +1,4 @@
-@use '../common/common' as comm;
+@use '../abstracts' as comm;
 
 @mixin header {
   .dg-header {

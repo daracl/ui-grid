@@ -1,0 +1,48 @@
+/**
+* dropdown css
+*/
+
+@mixin dropdown {
+  .dg-dropdown-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    width: 100%;
+
+    background: var(--button-bg);
+    border: 1px solid var(--border-color);
+
+    cursor: pointer;
+
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+
+    &:hover {
+      border-color: var(--border-thick-color);
+      background: var(--button-bg-hover);
+    }
+
+    > .dg-dropdown-label {
+      flex: 1;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      &:empty::before {
+        content: '\00a0'; /* non-breaking space */
+      }
+    }
+
+    > .dg-dropdown-icon {
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
+      transform: rotate(45deg);
+      margin-top: -3px;
+      flex-shrink: 0;
+    }
+  }
+}

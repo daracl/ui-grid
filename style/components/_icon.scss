@@ -1,0 +1,36 @@
+/**
+* icon css
+*/
+
+@mixin icon {
+  .dg-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px; /* 또는 18px, 20px */
+    height: 16px;
+
+    > svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      fill: currentColor;
+      background: transparent;
+      transform: translateX(1px);
+    }
+
+    .dg-icon-fill {
+      fill: currentColor;
+    }
+
+    .dg-icon-stroke {
+      fill: none;
+      stroke: var(--icon-stroke-color);
+    }
+
+    .dg-icon-fill-stroke {
+      fill: none;
+      stroke: var(--icon-fill-stroke-color);
+    }
+  }
+}

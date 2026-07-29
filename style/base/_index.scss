@@ -1,0 +1,7 @@
+@use './base';
+@use './utilities';
+
+@mixin all {
+  @include base.base;
+  @include utilities.utilities;
+}

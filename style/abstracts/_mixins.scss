@@ -9,7 +9,7 @@
   opacity: $opacityNum;
   -moz-opacity: $opacityNum;
   -khtml-opacity: $opacityNum;
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$perVal})";
+  -ms-filter: 'progid:DXImageTransform.Microsoft.Alpha(Opacity=#{$perVal})';
   filter: alpha(opacity=$perVal);
 }
 
@@ -21,11 +21,6 @@
   -webkit-box-shadow: inset 0.1px 0px 0px 1px var($color);
   -moz-box-shadow: inset 0.1px 0px 0px 1px var($color);
   box-shadow: inset 0.1px 0px 0px 1px var($color);
-}
-
-@mixin hoverStyle($themeName) {
-  color: map.get($theme_colors, $themeName, "a_hover_font_color");
-  background-color: map.get($theme_colors, $themeName, "a_hover_background_color");
 }
 
 @mixin keyFrame($animation_name) {

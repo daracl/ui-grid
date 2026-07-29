@@ -2,8 +2,6 @@
 * hidden component css
 */
 
-@use './common/common' as comm;
-
 @mixin hiddenComponent {
   /*search-simple*/
   .dg-search-simple {

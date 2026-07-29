@@ -2,8 +2,6 @@
 * hidden helper css
 */
 
-@use './common/common' as comm;
-
 @mixin hiddenHelper {
   /*search-simple*/
   .dg-row-move-helper {

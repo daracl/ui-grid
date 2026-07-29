@@ -1,0 +1,43 @@
+@mixin utilities {
+  .text-a {
+    &l {
+      text-align: left;
+      justify-content: start;
+    }
+    &c {
+      text-align: center;
+      justify-content: center;
+    }
+    &r {
+      text-align: right;
+      justify-content: flex-end;
+    }
+  }
+
+  .dg-hide {
+    display: none !important;
+  }
+
+  .dg-show {
+    display: block !important;
+  }
+
+  .dg-invisible {
+    visibility: hidden !important;
+  }
+
+  .dg-disabled {
+    pointer-events: none !important;
+    opacity: 0.5 !important;
+  }
+
+  .dg-ellipsis,
+  .dg-ellipsis > * {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0px;
+    margin: 0px;
+    min-width: 0;
+  }
+}

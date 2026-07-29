@@ -2,8 +2,6 @@
 * footer css
 */
 
-@use './common/common';
-
 @mixin footer {
   .dg-footer {
     border: 1px solid var(--border-color);

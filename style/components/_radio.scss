@@ -1,0 +1,45 @@
+/**
+* base css
+*/
+
+@mixin radio {
+  .dg-radio {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    gap: 6px;
+    font-size: 14px;
+    margin-bottom: 10px;
+
+    input[type='radio'] {
+      display: none;
+
+      &:checked + .dg-radiomark {
+        border-color: var(--radio-color);
+        background-color: var(--radio-color);
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 4px;
+          left: 4px;
+          width: 6px;
+          height: 6px;
+          background-color: #fff;
+          border-radius: 50%;
+        }
+      }
+    }
+
+    .dg-radiomark {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid #999;
+      border-radius: 50%;
+      position: relative;
+      box-sizing: border-box;
+      transition: all 0.1s ease-in-out;
+    }
+  }
+}
