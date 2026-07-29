@@ -1,4 +1,4 @@
-import { POSITION_TYPE, SelectionMode, THEME_TYPE } from '@/constants';
+import { HoverMode, POSITION_TYPE, SelectionMode, THEME_TYPE } from '@/constants';
 import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
@@ -59,9 +59,14 @@ export interface GridOptions {
    */
   useDefaultFormatter: boolean;
   /**
-   * cell 선택 모드 row, cell, multiRow, multiCell
+   * cell 선택 모드 row, cell, multiRow, multiCell, none
    */
   selectionMode: SelectionMode;
+
+  /**
+   * hover 모드 row, cell, none
+   */
+  hoverMode?: HoverMode;
   /**
    * 툴팁 활성화 여부
    */

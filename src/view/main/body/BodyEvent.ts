@@ -12,7 +12,6 @@ import { ClickManager } from '@/event/ClickManager';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
-import { hasClass } from '@/util/domUtils';
 import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from './Body';
@@ -20,6 +19,8 @@ import { CellClickHandler } from './CellClickHandler';
 import { KeydownEvent } from './KeydownEvent ';
 import { PasteEvent } from './PasteEventHandler';
 import { RowMoveHandler } from './RowMoveHandler';
+import { addClass } from '@/util/styleUtils';
+import { removeClass } from '../../../util/styleUtils';
 
 /**
  * Body event class
@@ -54,6 +55,7 @@ export class BodyEvent {
   }
 
   init() {
+    this.initMouseOver();
     this.initPointerEvent();
     this.initMobileTouch();
 
@@ -150,11 +152,44 @@ export class BodyEvent {
     );
   }
 
+  private initMouseOver() {
+    if (this.gridMain.options().hoverMode !== 'row') {
+      return;
+    }
+
+    const cfg = this.gridMain.config();
+    const bodyElement = this.bodyElement.getElement();
+
+    const eventManager = cfg.eventManager;
+
+    const hoverClassName = 'dg-row-hover';
+
+    eventManager.on(
+      { el: bodyElement, selector: '.dg-row', type: 'mouseover.cell' },
+      (e: UIEvent, rowElement: HTMLElement) => {
+        const rowIdx = rowElement.dataset.row;
+
+        addClass(bodyElement.querySelectorAll(`.dg-row[data-row="${rowIdx}"]`), hoverClassName);
+      },
+    );
+
+    eventManager.on(
+      { el: bodyElement, selector: '.dg-row', type: 'mouseout.cell' },
+      (e: UIEvent, rowElement: HTMLElement) => {
+        if (!rowElement) return;
+
+        const rowIdx = rowElement.dataset.row;
+
+        removeClass(bodyElement.querySelectorAll(`.dg-row[data-row="${rowIdx}"]`), hoverClassName);
+      },
+    );
+  }
+
   /**
    * init pointer event
    * cell click , cell drag, row move event
    */
-  initPointerEvent() {
+  private initPointerEvent() {
     const cfg = this.gridMain.config();
     const bodyElement = this.bodyElement.getElement();
 

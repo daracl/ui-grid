@@ -7,7 +7,7 @@ import { PagingInfo } from '@t/PagingInfo';
  * @param rowLength 전체 row 수
  * @returns
  */
-export const getPagingParamToPagingInfo = (pagingParam: PagingParam, rowLength: number) => {
+export const getPagingParamToPagingInfo = (pagingParam: PagingParam, rowLength: number): PagingInfo => {
   const currPage = pagingParam?.currPage || 1;
   const totalCount = pagingParam?.totalCount ?? rowLength;
   const countPerPage = pagingParam?.countPerPage || 10;

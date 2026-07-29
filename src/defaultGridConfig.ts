@@ -5,19 +5,16 @@ import { isPlainObject } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridOptions, PagingParam } from '@t/GridOptions';
 import { Config, EditInfo, FieldHeaderGroupInfo, ScrollInfo, Selection, SelectionRange } from './types/GridConfig';
+import { getPagingParamToPagingInfo } from './util/pagingUtil';
 
 /**
- * 
- * 
-    mainHeaderHeight: number;
-    mainBodyHeight: number;
-    mainSummaryHeight: number;
-
-
  * grid default config
  */
 export function initConfig(opts: GridOptions): Config {
-  const pagingInfo = (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam;
+  const pagingInfo = getPagingParamToPagingInfo(
+    (isPlainObject(opts.paging) ? opts.paging : {}) as PagingParam,
+    opts.items.length,
+  );
 
   let rowIdField: string = ROW_FIELD.ID;
   if (opts.rowIdField) {

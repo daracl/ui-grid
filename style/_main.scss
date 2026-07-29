@@ -55,6 +55,16 @@
       }
     }
 
+    // none 처리 할것.
+
+    &.dg-body-hover-none {
+      .dg-row > .dg-cell {
+        &:hover {
+          --cell-bg-hover: transparent;
+        }
+      }
+    }
+
     /* grid style 처리*/
     &.dg-style- {
       &default {
@@ -85,19 +95,25 @@
       }
 
       &borderless {
-        border: 1px solid transparent !important;
+        border-color: transparent !important;
+
+        --header-gradient1: transparent;
+        --header-gradient2: transparent;
 
         .dg-header-table {
           tr > {
             .dg-header-cell,
             .dg-header-group-cell {
-              border: 1px solid transparent !important;
+              border-color: transparent !important;
             }
           }
         }
         .dg-body-table {
-          tr > td {
-            border: 1px solid transparent !important;
+          tr {
+            > td,
+            > th {
+              border-color: transparent !important;
+            }
           }
         }
 
@@ -105,6 +121,7 @@
           background-color: transparent !important;
         }
       }
+
       &striped {
         .dg-body {
           &.dg-body-odd {
@@ -118,6 +135,42 @@
               background-color: var(--row-bg);
             }
           }
+        }
+      }
+
+      &list {
+        border-color: transparent !important;
+
+        --header-gradient1: #fafafa;
+        --header-gradient2: #fafafa;
+
+        border-top: 2px solid var(--border-color) !important;
+
+        .dg-header-table {
+          tr > {
+            .dg-header-cell,
+            .dg-header-group-cell {
+              border-color: transparent !important;
+              border-top-color: var(--border-color) !important;
+              border-bottom-color: var(--border-color) !important;
+            }
+          }
+        }
+        .dg-body-table {
+          tr {
+            > td,
+            > th {
+              border-color: transparent !important;
+              border-top-color: var(--border-color) !important;
+              border-bottom-color: var(--border-color) !important;
+            }
+          }
+        }
+
+        .dg-fixed-column-line {
+          background-color: transparent !important;
+          border-top-color: var(--border-color) !important;
+          border-bottom-color: var(--border-color) !important;
         }
       }
     }

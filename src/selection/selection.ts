@@ -413,6 +413,33 @@ export class SelectionInfo {
     };
   }
 
+  public selectionRows(): any[] {
+    const { dataManager, selection, dataInfo } = this.config;
+    const viewItems = dataManager.getViewItems();
+
+    if (dataInfo.rowLength < 1) {
+      return [];
+    }
+
+    const startIdx = selection.minIdx;
+    const endIdx = selection.maxIdx;
+
+    if (startIdx < 0 || endIdx < 0) {
+      return [];
+    }
+
+    const result: any[] = [];
+
+    for (let i = startIdx; i <= endIdx; i++) {
+      const viewItem = viewItems[i];
+      const item = dataManager.getRowItem(viewItem.id);
+
+      result.push(item);
+    }
+
+    return result;
+  }
+
   /**
    * selection check
    *

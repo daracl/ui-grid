@@ -220,12 +220,20 @@ export class DaraGrid {
   }
 
   /**
-   * 선택된 item 얻기
+   * 현재 선택된 정보를 반환
    *
-   * @returns {*}
+   * header field 정보와 선택 모드에 따라 선택된 Row 또는 Cell 정보
+   * 필요 시 숫자 필드의 합계 정보
+   *
+   * @param numberFieldSummary 숫자 필드의 정보를 포함할지 여부
+   * @returns 선택 정보
    */
-  public getSelection() {
-    return this.gridMain.selectionInfo.selectionData('json', false);
+  public getSelection(numberFieldSummary = false) {
+    return this.gridMain.selectionInfo.selectionData('json', numberFieldSummary);
+  }
+
+  public getSelectedRows() {
+    return this.gridMain.selectionInfo.selectionRows();
   }
 
   /**

@@ -4,12 +4,13 @@ import {
   FIELD_LAYER_CLASS,
   FIELD_PREFIX,
   FOOTER_HEIGHT,
+  HoverModeMap,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   ROW_FIELD,
   TOOLBAR_HEIGHT,
 } from '@/constants';
-import { GRID_THEME, ThemeType } from '@/constantStyles';
+import { BODY_STYLE, GRID_THEME, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
 import { DEFAULT_OPTIONS } from '@/defaultGridOption';
@@ -60,8 +61,6 @@ const GRID_TEMPLATE = getGridTemplate();
  * @typedef {GridMain}
  */
 export class GridMain {
-  private readonly _BODY_STYLE: string[] = ['default', 'striped', 'borderless'];
-
   private grid: DaraGrid;
 
   private readonly opts: GridOptions;
@@ -255,8 +254,9 @@ export class GridMain {
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
     this.mainElement.addClass(
-      `dg-style-${this._BODY_STYLE.includes(opts.style) ? opts.style : 'default'}`,
+      `dg-style-${BODY_STYLE[opts.style] ? BODY_STYLE[opts.style] : BODY_STYLE.default}`,
       opts.selectionMode === 'none' ? 'daracl-select' : 'daracl-noselect',
+      opts.hoverMode && HoverModeMap[opts.hoverMode] ? HoverModeMap[opts.hoverMode] : HoverModeMap.cell,
     );
 
     this.setTheme(this.opts.theme);

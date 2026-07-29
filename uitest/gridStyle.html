@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Dara selection</title>
+    <title>Dara Grid style</title>
   </head>
 
   <body>
@@ -11,41 +11,38 @@
     </div>
   </body>
 </html>
-
 <script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
 <script>
   var gridObj;
+  var gridStyleMode = 'default';
 
-  function loadGrid(theme, selectMode) {
+  function loadGrid() {
     const jsonInfo = getItem();
 
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields, theme, selectMode);
+    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(G_GRID_THEME, 'cell');
+    loadGrid();
   });
 
   function getItem() {
-    let items = [];
+    let items = GRID_EMPLOYEE_DATA;
     let fields = [];
 
-    items = GRID_EMPLOYEE_DATA;
     fields = [
       {
         name: 'name',
         label: '이름',
         width: 80,
-        align: 'center',
       },
       {
         name: 'age',
         label: '나이',
         width: 50,
-        renderer: { type: 'number' },
       },
       {
         name: 'email',
@@ -58,6 +55,12 @@
         width: 120,
         editRenderer: {
           type: 'date',
+          /*
+            , rule: {
+              minimum: -100
+              , maximum: 100
+            }
+              */
         },
       },
       {
@@ -68,8 +71,7 @@
       {
         name: 'salary',
         label: '월급',
-        width: 100,
-        renderer: { type: 'number' },
+        width: 80,
         displayFormat: {
           type: 'number',
           format: '₩ 0,0 원',
@@ -79,7 +81,6 @@
         name: 'desc',
         label: '설명',
         width: 200,
-        whiteSpace: 'wrap',
       },
     ];
 
@@ -89,43 +90,61 @@
     };
   } //test
 
-  let toolbarSelectionMode = 'cell';
-  function gridDraw(element, items, fields, theme, selectMode) {
+  function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(element, {
-      //style: 'striped',
-      selectionMode: selectMode, // row, cell, multiRow, multiCell, none// 선택 방법.
-      hoverMode: 'none',
+      style: gridStyleMode,
+      selectionMode: 'multiCell',
       enableWidthFixed: false,
       enableTooltip: true, // tooltip flag
-      theme: theme,
-      height: 480,
+      theme: G_GRID_THEME,
+      height: 324,
       aside: {
         lineNumber: { enabled: true },
-        rowCheckbox: {
-          enabled: true,
-          width: 27,
-          //, allowMultiSelect: false
-        },
       },
       colOptions: {
         maxWidth: 1024,
       },
+      scroll: {
+        enableWheelInContainer: true,
+      },
       valueFilter: function (colInfo, objValue) {
         return objValue[colInfo.key];
       },
-      fields: fields,
-      items: items,
-      body: {
-        row: {
-          height: 60,
-          selectRowOnCellClick: true,
+      fields: colItem,
+      items: aaa,
+      paging: {
+        countPerPage: 10,
+        currPage: 1,
+      },
+      footer: {
+        enabled: true,
+
+        height: 35,
+        paging: {
+          enabled: true,
+
+          /**
+           * 위치 값
+           */
+          position: 'center',
+          formatPosition: 'right',
+          /**
+           * 페이지 메시지 포멧
+           */
+          format: '{{start}} - {{end}} of {{total}}',
+
+          // 페이지 콜백
+          callback1: function (arg) {
+            console.log(arg);
+            //gridObj.setItems(aaa);
+          },
         },
       },
       toolbar: {
         enabled: true,
         height: 40,
         defaultValues: {
-          mode: toolbarSelectionMode,
+          mode: gridStyleMode,
         },
         items: [
           [
@@ -144,20 +163,20 @@
                       multiple: false,
                       list: [
                         {
-                          label: '셀(cell)',
-                          value: 'cell',
+                          label: 'default',
+                          value: 'default',
                         },
                         {
-                          label: '로우(row)',
-                          value: 'row',
+                          label: 'striped',
+                          value: 'striped',
                         },
                         {
-                          label: '다중 셀(multiCell)',
-                          value: 'multiCell',
+                          label: 'borderless',
+                          value: 'borderless',
                         },
                         {
-                          label: '다중 로우(multiRow)',
-                          value: 'multiRow',
+                          label: 'list',
+                          value: 'list',
                         },
                         {
                           label: 'None(none)',
@@ -168,8 +187,8 @@
                   },
 
                   change: (info) => {
-                    toolbarSelectionMode = info.value;
-                    loadGrid(theme, info.value);
+                    gridStyleMode = info.value;
+                    loadGrid();
                   },
                 },
               ],

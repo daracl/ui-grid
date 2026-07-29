@@ -4,7 +4,6 @@ import { ALIGN_STYLE } from '@/constantStyles';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
-import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { Config, FieldHeaderGroupInfo } from '@/types/GridConfig';
 import { FieldItem } from '@/types/GridField';
 import { GridOptions } from '@/types/GridOptions';
@@ -13,9 +12,6 @@ import { getTextWidth, heightOptionValue, isFieldEditable } from '@/util/gridUti
 import { deepCopy, isNumber, isPlainObject, isString, isUndefined, merge } from '@/util/utils';
 import { isArray } from '../util/utils';
 import { GridMain } from './GridMain';
-
-// main-body  margin = border top + border bottom+ 공백1
-const MAIN_MARGIN_BOTTOM = 3;
 
 export class GridStructureBuilder {
   private readonly cfg: Config;

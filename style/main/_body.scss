@@ -105,6 +105,11 @@
 
         .dg-row {
           background-color: var(--body-bg);
+
+          &.dg-row-hover {
+            background-color: var(--cell-bg-hover);
+          }
+
           & > .dg-cell {
             &.dg-search-highlight {
               background-color: var(--search-cell-highlight);

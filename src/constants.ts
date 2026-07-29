@@ -7,15 +7,24 @@ export type MODE = 'edit' | 'view';
 export type ALIGN_TYPE = 'left' | 'center' | 'right';
 
 export const SelectionModeMap = {
-  multiRow: 'multiRow',
+  cell: 'cell',
   multiCell: 'multiCell',
   row: 'row',
-  cell: 'cell',
+  multiRow: 'multiRow',
   none: 'none',
 } as const;
 
 // 선택 타입
 export type SelectionMode = (typeof SelectionModeMap)[keyof typeof SelectionModeMap];
+
+// body hover
+export const HoverModeMap = {
+  cell: 'dg-body-hover-cell',
+  row: 'dg-body-hover-row',
+  none: 'dg-body-hover-none',
+} as const;
+
+export type HoverMode = 'cell' | 'row' | 'none';
 
 export const ALIGN = {
   left: 'left',

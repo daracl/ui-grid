@@ -95,6 +95,12 @@ export const DEFAULT_OPTIONS: GridOptions = {
   selectionMode: SelectionModeMap.row,
 
   /**
+   * hover mode
+   * cell, row, none
+   */
+  hoverMode: 'cell',
+
+  /**
    * 툴팁 사용 여부
    */
   enableTooltip: false,

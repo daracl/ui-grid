@@ -69,18 +69,26 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
       }
 
       if (allowMultiSelect) {
-        this.multipleItemCheck(contentElement, cellInfo, checked);
+        this.multipleRowCheck(contentElement, cellInfo, checked);
       } else {
-        this.singleItemCheck(contentElement, cellInfo, checked);
+        this.singleRowCheck(contentElement, cellInfo, checked);
       }
-
-      //this.gridMain.getBody().dataDraw('refreshRowcheck');
     });
   }
 
-  private singleItemCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
+  /**
+   * 단일 선택(Row Checkbox) 처리
+   *
+   * 다른 Row의 체크를 모두 해제한 후 현재 Row만 체크
+   *
+   * @param contentElement 체크박스 요소
+   * @param cellInfo 현재 Cell 정보
+   * @param currentChecked 현재 체크 여부
+   */
+  private singleRowCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
     if (!currentChecked) {
       const checked = true;
+
       removeClass(
         this.gridMain
           .getBody()
@@ -88,14 +96,25 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
           .finds('.dg-row-check .dg-choice-item.' + SELECTED_STYLE_CLASS),
         SELECTED_STYLE_CLASS,
       );
+
       contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
       this.gridMain.getBody().setItemChecked(cellInfo.item, checked);
     }
   }
-  private multipleItemCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
-    const checked = !currentChecked;
-    contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
 
+  /**
+   * 다중 선택(Row Checkbox) 처리
+   *
+   * 현재 Row의 체크 상태를 토글
+   *
+   * @param contentElement 체크박스 요소
+   * @param cellInfo 현재 Cell 정보
+   * @param currentChecked 현재 체크 여부
+   */
+  private multipleRowCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
+    const checked = !currentChecked;
+
+    contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
     this.gridMain.getBody().setItemChecked(cellInfo.item, checked);
   }
 

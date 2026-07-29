@@ -10,6 +10,7 @@ export const BODY_STYLE = {
   default: 'default',
   striped: 'striped',
   borderless: 'borderless',
+  list: 'list',
 } as const;
 
 export type BodyStyle = keyof typeof BODY_STYLE;
