@@ -1,13 +1,19 @@
 @use './borderbottom';
 @use './borderless';
-@use './list';
+@use './rows';
+@use './cells';
 @use './striped';
+@use './stripedrows';
+@use './stripedcells';
 
 @mixin all {
   & > .dg-style- {
     @include borderbottom.borderbottom;
     @include borderless.borderless;
-    @include list.list;
+    @include rows.rows;
     @include striped.striped;
+    @include cells.cells;
+    @include stripedcells.stripedcells;
+    @include stripedrows.stripedrows;
   }
 }

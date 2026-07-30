@@ -1,0 +1,7 @@
+@use './light';
+@use './dark';
+
+@mixin all {
+  @include light.light;
+  @include dark.dark;
+}

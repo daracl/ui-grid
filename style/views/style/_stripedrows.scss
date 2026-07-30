@@ -1,0 +1,59 @@
+/**
+* list style
+*/
+@mixin stripedrows {
+  &striped-rows {
+    .dg-main {
+      border-color: transparent !important;
+
+      --header-gradient1: #fafafa;
+      --header-gradient2: #fafafa;
+
+      border-top: 1px solid var(--border-thick-color) !important;
+      border-bottom: 1px solid var(--border-color) !important;
+
+      .dg-header-table {
+        .dg-header-row > {
+          .dg-header-cell,
+          .dg-header-group-cell {
+            border-color: transparent !important;
+            border-top-color: var(--border-color) !important;
+            border-bottom-color: var(--border-color) !important;
+          }
+        }
+      }
+
+      .dg-body-table {
+        .dg-row {
+          > td,
+          > th {
+            border-color: transparent !important;
+            border-top-color: var(--border-color) !important;
+            border-bottom-color: var(--border-color) !important;
+          }
+        }
+      }
+
+      .dg-line-number {
+        background: transparent !important;
+      }
+
+      .dg-fixed-column-line {
+        background-color: transparent !important;
+        border-top-color: var(--border-color) !important;
+        border-bottom-color: var(--border-color) !important;
+      }
+
+      .dg-body {
+        &.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+        &.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+          background-color: var(--row-bg);
+        }
+      }
+    }
+
+    .dg-footer {
+      border-color: transparent !important;
+    }
+  }
+}

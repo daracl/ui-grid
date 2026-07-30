@@ -10,7 +10,10 @@ export const BODY_STYLE = {
   default: 'default',
   striped: 'striped',
   borderless: 'borderless',
-  list: 'list',
+  rows: 'rows',
+  cells: 'cells',
+  stripedRows: 'striped-rows',
+  stripedCells: 'striped-cells',
 } as const;
 
 export type BodyStyle = keyof typeof BODY_STYLE;

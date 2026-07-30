@@ -1,23 +1,19 @@
 /**
 * list style
 */
-@mixin list {
-  &list {
+@mixin rows {
+  &rows {
     .dg-main {
       border-color: transparent !important;
 
       --header-gradient1: #fafafa;
       --header-gradient2: #fafafa;
 
-      border-top: 2px solid var(--border-color) !important;
+      border-top: 1px solid var(--border-thick-color) !important;
       border-bottom: 1px solid var(--border-color) !important;
 
-      .dg-footer {
-        border-color: transparent !important;
-      }
-
       .dg-header-table {
-        tr > {
+        .dg-header-row > {
           .dg-header-cell,
           .dg-header-group-cell {
             border-color: transparent !important;
@@ -26,8 +22,9 @@
           }
         }
       }
+
       .dg-body-table {
-        tr {
+        .dg-row {
           > td,
           > th {
             border-color: transparent !important;
@@ -37,11 +34,19 @@
         }
       }
 
+      .dg-line-number {
+        background: transparent !important;
+      }
+
       .dg-fixed-column-line {
         background-color: transparent !important;
         border-top-color: var(--border-color) !important;
         border-bottom-color: var(--border-color) !important;
       }
+    }
+
+    .dg-footer {
+      border-color: transparent !important;
     }
   }
 }

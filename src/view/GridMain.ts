@@ -10,7 +10,7 @@ import {
   ROW_FIELD,
   TOOLBAR_HEIGHT,
 } from '@/constants';
-import { BODY_STYLE, GRID_THEME, ThemeType } from '@/constantStyles';
+import { BODY_STYLE, BodyStyle, GRID_THEME, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
 import { DEFAULT_OPTIONS } from '@/defaultGridOption';
@@ -38,6 +38,7 @@ import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
 import { ALL_ICONS } from '@/constantIcons';
+import { hasClass } from '@/util/domUtils';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -249,7 +250,7 @@ export class GridMain {
 
     this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid > .dg-layout'));
 
-    this.layoutElement.addClass(`dg-style-${BODY_STYLE[opts.style] ? BODY_STYLE[opts.style] : BODY_STYLE.default}`);
+    this.setGridStyle(this.opts.style);
 
     this.rendererLayerElement = this.gridElement.find('.dg-layers');
 
@@ -1027,10 +1028,36 @@ export class GridMain {
   }
 
   /**
+   * 그리드 스타일 변경
+   *
+   *  BodyStyle 스타일
+   *  ex) default, striped, borderless, list
+   *
+   * @param styleName 적용할 그리드 스타일
+   *
+   */
+  public setGridStyle(styleName: BodyStyle) {
+    if (!BODY_STYLE[styleName]) {
+      return;
+    }
+    const values = Object.values(BODY_STYLE)
+      .filter((value) => value !== styleName)
+      .map((value) => `dg-style-${value}`);
+
+    const layoutElement = this.layoutElement;
+    const newStyle = 'dg-style-' + BODY_STYLE[styleName];
+
+    layoutElement.removeClass(...values);
+    if (!layoutElement.hasClass(newStyle)) {
+      layoutElement.addClass(newStyle);
+    }
+  }
+
+  /**
    * tree 확장
    * @param id id
    */
-  expandRow(id: any) {
+  public expandRow(id: any) {
     const cfg = this.cfg;
     cfg.dataManager.expandRow(id);
   }

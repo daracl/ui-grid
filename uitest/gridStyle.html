@@ -175,8 +175,20 @@
                           value: 'borderless',
                         },
                         {
-                          label: 'list',
-                          value: 'list',
+                          label: 'rows',
+                          value: 'rows',
+                        },
+                        {
+                          label: 'stripedRows',
+                          value: 'stripedRows',
+                        },
+                        {
+                          label: 'cells',
+                          value: 'cells',
+                        },
+                        {
+                          label: 'stripedCells',
+                          value: 'stripedCells',
                         },
                       ],
                     },
@@ -184,7 +196,7 @@
 
                   change: (info) => {
                     gridStyleMode = info.value;
-                    loadGrid();
+                    gridObj.setStyle(gridStyleMode);
                   },
                 },
               ],

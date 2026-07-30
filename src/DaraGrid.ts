@@ -1,17 +1,17 @@
 import { GridOptions } from '@t/GridOptions';
 
 import { HIDDEN_ELEMENT_SELECTOR } from './constants';
-import { ThemeType } from './constantStyles';
+import { BodyStyle, ThemeType } from './constantStyles';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
 import { PagingInfo } from '@t/PagingInfo';
+import { ALL_ICONS } from './constantIcons';
 import { AddRowOptions, RowId, RowSelectOptions, SearchMode } from './types/Common';
 import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
-import { ALL_ICONS } from './constantIcons';
 
 declare const APP_VERSION: string;
 
@@ -316,6 +316,19 @@ export class DaraGrid {
    */
   public setTheme(themeName: ThemeType) {
     this.gridMain.setTheme(themeName);
+  }
+
+  /**
+   * 그리드 스타일 변경
+   *
+   *  BodyStyle 스타일
+   *  ex) default, striped, borderless, list
+   *
+   * @param styleName 적용할 그리드 스타일
+   *
+   */
+  public setStyle(styleName: BodyStyle) {
+    this.gridMain.setGridStyle(styleName);
   }
 
   /**
