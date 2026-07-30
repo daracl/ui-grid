@@ -1,10 +1,10 @@
 /**
 * main css
 */
-@use './main/header' as _HEADER;
-@use './main/body' as _BODY;
-@use './main/summary' as _SUMMARY;
-@use './main/scroll' as _SCROLL;
+@use './header' as _HEADER;
+@use './body' as _BODY;
+@use './summary' as _SUMMARY;
+@use './scroll' as _SCROLL;
 
 @mixin main {
   .dg-main {
@@ -36,7 +36,7 @@
         display: flex !important;
       }
 
-      .dg-region-right {
+      .dg-region[data-region='right'] {
         right: 0px !important;
       }
     }
@@ -50,7 +50,7 @@
         display: block !important;
       }
 
-      .dg-region-right {
+      .dg-region[data-region='right'] {
         right: 0px !important;
       }
     }
@@ -73,13 +73,46 @@
       height: 100%;
       z-index: 1;
 
-      .dg-ellipsis,
-      .dg-ellipsis > * {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 0px;
-        margin: 0px;
+      > .dg-panel {
+        position: relative;
+        z-index: 0;
+        > .dg-region {
+          position: absolute;
+
+          &[data-region='left'] {
+            left: 0px;
+            z-index: 1;
+
+            .dg-fixed-column-line {
+              right: 0px;
+            }
+
+            .dg-row > .dg-cell.dg-aside.dg-selection:first-child {
+              background: var(--header-bg-selection) !important;
+            }
+          }
+
+          &[data-region='center'] {
+            z-index: 0;
+          }
+
+          &[data-region='right'] {
+            right: -1px;
+            z-index: 1;
+
+            .dg-fixed-column-line {
+              left: 0px;
+            }
+          }
+
+          > .dg-body-table,
+          > .dg-header-table {
+            table-layout: fixed;
+            width: 0px !important;
+            min-width: auto !important;
+            border-collapse: separate !important;
+          }
+        }
       }
 
       .dg-cell {

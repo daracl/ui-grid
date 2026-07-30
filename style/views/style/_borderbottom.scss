@@ -1,0 +1,32 @@
+/**
+* borderbottom style
+*/
+
+@mixin borderbottom {
+  &borderbottom {
+    .dg-main {
+      .dg-header-table {
+        tr > {
+          .dg-header-cell,
+          .dg-header-group-cell {
+            border-left: 1px solid transparent !important;
+            border-right: 1px solid transparent !important;
+
+            &:last-child {
+              border-right: 1px solid var(--border-color) !important;
+            }
+          }
+        }
+      }
+      .dg-body-table {
+        tr > td {
+          border-left: 1px solid transparent !important;
+          border-right: 1px solid transparent !important;
+          &:last-child {
+            border-right: 1px solid var(--border-color) !important;
+          }
+        }
+      }
+    }
+  }
+}

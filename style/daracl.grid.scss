@@ -2,18 +2,20 @@
 * grid css
 */
 
-@use './base';
+@use './base' as _base;
 
-@use './components';
+@use './components' as _components;
 
-@use './toolbar' as _TOOLBAR;
-@use './main' as _MAIN;
-@use './footer' as _FOOTER;
-@use './hidden.component' as _HIDDEN;
-@use './main/contextmenu' as _CONTEXT;
-@use './hidden.helper' as _HIDDEN_HELPER;
+@use './views/style' as _gridStyle;
 
-.daracl-noselect {
+@use './views/toolbar';
+@use './views/main';
+@use './views/footer';
+@use './views/hidden/component' as _hiddenComponent;
+@use './views/contextmenu' as _context;
+@use './views/hidden/helper' as _hiddenHelper;
+
+.dg-noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -22,7 +24,7 @@
   user-select: none;
 }
 
-.daracl-select {
+.dg-select {
   -webkit-touch-callout: text;
   -webkit-user-select: text;
   -khtml-user-select: text;
@@ -200,19 +202,21 @@ body {
   position: relative;
   line-height: 1.2em;
 
-  @include base.all;
+  @include _base.all;
 
-  @include components.all;
+  @include _components.all;
+
+  @include _gridStyle.all;
+}
+
+.daracl-grid {
+  @include toolbar.all;
+  @include main.all;
+  @include footer.all;
 
   .dg-layout {
     background-color: var(--body-bg);
   }
-}
-
-.daracl-grid {
-  @include _TOOLBAR.toolbar;
-  @include _MAIN.main;
-  @include _FOOTER.footer;
 
   .dg-layers {
     visibility: visible;
@@ -229,13 +233,13 @@ body {
       display: none;
     }
 
-    @include _HIDDEN.hiddenComponent;
+    @include _hiddenComponent.hiddenComponent;
   }
 }
 
 .dg-hidden-layers {
   position: initial;
   height: 0px;
-  @include _CONTEXT.contextMenu;
-  @include _HIDDEN_HELPER.hiddenHelper;
+  @include _context.contextMenu;
+  @include _hiddenHelper.hiddenHelper;
 }

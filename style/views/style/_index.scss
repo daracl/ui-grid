@@ -1,0 +1,13 @@
+@use './borderbottom';
+@use './borderless';
+@use './list';
+@use './striped';
+
+@mixin all {
+  & > .dg-style- {
+    @include borderbottom.borderbottom;
+    @include borderless.borderless;
+    @include list.list;
+    @include striped.striped;
+  }
+}

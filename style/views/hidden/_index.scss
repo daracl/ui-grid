@@ -1,0 +1,7 @@
+@use './component';
+@use './helper';
+
+@mixin all {
+  @include component.hiddenComponent;
+  @include helper.hiddenHelper;
+}

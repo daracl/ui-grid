@@ -280,9 +280,9 @@ export class Body {
   public createTemplate() {
     const bodyElement = this.gridMain.element().findDaraElement('.dg-body');
     this.bodyElement = bodyElement;
-    this.leftElement = bodyElement.findDaraElement('.dg-region-left');
-    this.centerElement = bodyElement.findDaraElement('.dg-region-center');
-    this.rightElement = bodyElement.findDaraElement('.dg-region-right');
+    this.leftElement = bodyElement.findDaraElement('.dg-region[data-region="left"]');
+    this.centerElement = bodyElement.findDaraElement('.dg-region[data-region="center"]');
+    this.rightElement = bodyElement.findDaraElement('.dg-region[data-region="right"]');
 
     this.leftElement.html(this.template('left'));
     this.centerElement.html(this.template('center'));

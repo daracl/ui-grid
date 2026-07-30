@@ -1,0 +1,51 @@
+@mixin summary {
+  .dg-summary {
+    z-index: 2;
+
+    & > .dg-region {
+      background: var(--summary-bg);
+      border-top: 1px solid var(--border-color);
+      padding-top: 1px;
+
+      > .dg-body-table {
+        border-top: 1px solid var(--border-color);
+        .dg-row {
+          background-color: var(--summary-bg);
+        }
+
+        .dg-row > .dg-cell {
+          > .dg-cell-renderer {
+            padding: 0px 5px;
+            margin-top: -2px;
+
+            &.single-line {
+              display: flex;
+              align-items: center;
+            }
+
+            /* 여러 줄 */
+            &.multi-line {
+              display: block;
+            }
+          }
+        }
+      }
+    }
+
+    &.dg-top {
+      & > div {
+        border-top: 0px solid transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding-top: 0px;
+        padding-bottom: 1px;
+
+        > .dg-body-table {
+          border-top: 0px solid transparent;
+          .dg-row > .dg-cell {
+            border: 1px solid var(--border-color);
+          }
+        }
+      }
+    }
+  }
+}

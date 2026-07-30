@@ -190,9 +190,9 @@ export class Header {
   public createTemplate() {
     this.headerElement.css({ height: `${this.gridMain.config().dimensions.mainHeaderHeight}px` });
 
-    this.leftElement = this.headerElement.findDaraElement('.dg-header>.dg-region-left');
-    this.centerElement = this.headerElement.findDaraElement('.dg-header>.dg-region-center');
-    this.rightElement = this.headerElement.findDaraElement('.dg-header>.dg-region-right');
+    this.leftElement = this.headerElement.findDaraElement('.dg-region[data-region="left"]');
+    this.centerElement = this.headerElement.findDaraElement('.dg-region[data-region="center"]');
+    this.rightElement = this.headerElement.findDaraElement('.dg-region[data-region="right"]');
 
     this.leftElement.html(this.template('left'));
     this.centerElement.html(this.template('center'));

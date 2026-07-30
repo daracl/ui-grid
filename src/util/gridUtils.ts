@@ -635,7 +635,7 @@ export const parseClipboard = (text: string): string[][] => {
  * @returns 편집 가능 여부
  */
 export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
-  // if (!field) return false;
+  if (!field) return false;
 
   return field.editable === true || (cfg.enableCellEdit && field.editable !== false);
 };

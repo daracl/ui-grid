@@ -249,13 +249,14 @@ export class GridMain {
 
     this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid > .dg-layout'));
 
+    this.layoutElement.addClass(`dg-style-${BODY_STYLE[opts.style] ? BODY_STYLE[opts.style] : BODY_STYLE.default}`);
+
     this.rendererLayerElement = this.gridElement.find('.dg-layers');
 
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
     this.mainElement.addClass(
-      `dg-style-${BODY_STYLE[opts.style] ? BODY_STYLE[opts.style] : BODY_STYLE.default}`,
-      opts.selectionMode === 'none' ? 'daracl-select' : 'daracl-noselect',
+      opts.selectionMode === 'none' ? 'dg-select' : 'dg-noselect',
       opts.hoverMode && HoverModeMap[opts.hoverMode] ? HoverModeMap[opts.hoverMode] : HoverModeMap.cell,
     );
 
@@ -1004,7 +1005,7 @@ export class GridMain {
    * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
    */
   public setTheme(themeName: ThemeType) {
-    const dgElement = this.gridElement.find('.daracl-grid > div');
+    const dgElement = this.layoutElement.getElement();
 
     let theme = GRID_THEME[themeName];
 
@@ -1115,15 +1116,15 @@ function getGridTemplate() {
         <div class="dg-main" data-scroll="none" style="outline:none !important;" tabindex="-1">
           <div class="dg-panels">
             <div class="dg-panel dg-header">
-              <div class="dg-region-left"></div>
-              <div class="dg-region-center"></div>
-              <div class="dg-region-right"></div>
+              <div class="dg-region" data-region="left"></div>
+              <div class="dg-region" data-region="center"></div>
+              <div class="dg-region" data-region="right"></div>
             </div>
 
             <div class="dg-panel dg-body">
-              <div class="dg-region-left"></div>
-              <div class="dg-region-center"></div>
-              <div class="dg-region-right"></div>
+              <div class="dg-region" data-region="left"></div>
+              <div class="dg-region" data-region="center"></div>
+              <div class="dg-region" data-region="right"></div>
 
               <div class="dg-empty-overlay">
                 <span class="dg-empty-message">
@@ -1136,9 +1137,9 @@ function getGridTemplate() {
             </div>
 
             <div class="dg-panel dg-summary">
-              <div class="dg-region-left"></div>
-              <div class="dg-region-center"></div>
-              <div class="dg-region-right"></div>
+              <div class="dg-region" data-region="left"></div>
+              <div class="dg-region" data-region="center"></div>
+              <div class="dg-region" data-region="right"></div>
             </div>
           </div>
 

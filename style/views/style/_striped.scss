@@ -1,0 +1,16 @@
+/**
+* striped style
+*/
+
+@mixin striped {
+  &striped {
+    .dg-main {
+      .dg-body {
+        &.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+        &.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+          background-color: var(--row-bg);
+        }
+      }
+    }
+  }
+}

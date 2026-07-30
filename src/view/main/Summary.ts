@@ -147,9 +147,9 @@ export class Summary {
       container?.insertBefore(summaryElement.getElement(), container.querySelector('.dg-body'));
     }
 
-    this.leftElement = summaryElement.findDaraElement('.dg-region-left');
-    this.centerElement = summaryElement.findDaraElement('.dg-region-center');
-    this.rightElement = summaryElement.findDaraElement('.dg-region-right');
+    this.leftElement = summaryElement.findDaraElement('.dg-region[data-region="left"]');
+    this.centerElement = summaryElement.findDaraElement('.dg-region[data-region="center"]');
+    this.rightElement = summaryElement.findDaraElement('.dg-region[data-region="right"]');
 
     this.leftElement.html(this.template('left'));
     this.centerElement.html(this.template('center'));

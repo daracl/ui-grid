@@ -1,0 +1,5 @@
+@use './footer';
+
+@mixin all {
+  @include footer.footer;
+}

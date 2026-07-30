@@ -1,0 +1,5 @@
+@use './toolbar';
+
+@mixin all {
+  @include toolbar.toolbar;
+}

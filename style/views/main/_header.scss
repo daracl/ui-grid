@@ -1,43 +1,14 @@
-@use '../abstracts' as comm;
+@use '../../abstracts' as comm;
 
 @mixin header {
   .dg-header {
-    position: relative;
     z-index: 1;
 
-    & > div {
-      position: absolute;
+    & > .dg-region {
       background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
 
-      &.dg-region-left {
-        left: 0px;
-        z-index: 1;
-
-        .dg-fixed-column-line {
-          right: 0px;
-        }
-      }
-
-      &.dg-region-center {
-        z-index: 0;
-      }
-
-      &.dg-region-right {
-        right: -1px;
-        z-index: 1;
-
-        .dg-fixed-column-line {
-          left: 0px;
-        }
-      }
-
       > .dg-header-table {
-        table-layout: fixed;
-        width: 0px !important;
-        min-width: auto !important;
-        border-collapse: separate !important;
-
-        tr > {
+        .dg-header-row > {
           .dg-header-cell,
           .dg-header-group-cell {
             vertical-align: middle;
