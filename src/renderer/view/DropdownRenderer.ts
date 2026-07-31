@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { getLabelsByValue, normalizeChoiceOptions } from '@/util/rendererUtils';
 import { isArray, isFunction } from '@/util/utils';
@@ -124,6 +124,6 @@ export class DropdownRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }

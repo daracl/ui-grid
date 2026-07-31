@@ -142,12 +142,12 @@
         }
 
         /* prev */
-        &.dg-search-prev:before {
+        &.dg-search-prev::before {
           transform: rotate(225deg);
         }
 
         /* next */
-        &.dg-search-next:before {
+        &.dg-search-next::before {
           transform: rotate(45deg);
         }
       }

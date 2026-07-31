@@ -1,7 +1,4 @@
-@use './light';
-@use './dark';
-
-@mixin all {
-  @include light.light;
-  @include dark.dark;
-}
+@forward 'mixin';
+@forward 'common';
+@forward 'light';
+@forward 'dark';

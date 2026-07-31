@@ -28,7 +28,7 @@
       position: relative;
       display: block;
 
-      &:after {
+      &::after {
         content: '';
         position: absolute;
         top: calc(50% - 1px);
@@ -120,7 +120,7 @@
     }
 
     &.disabled {
-      > a:after {
+      > a::after {
         border-left-color: transparent !important;
       }
       .dg-contextmenu {
@@ -138,7 +138,7 @@
       }
     }
 
-    > a:after {
+    > a::after {
       display: block;
       float: right;
       width: 0;

@@ -1,73 +1,96 @@
-/**
+/*
 * base css
 */
+
 @use '../abstracts' as comm;
 
 @mixin base {
-  @include comm.boxSizing(comm.$box_sizing_border);
+  -webkit-box-sizing: border-box !important;
+  -moz-box-sizing: border-box !important;
+  box-sizing: border-box !important;
 
+  /*
+   * Global
+   */
   * {
     border-spacing: 0;
     border-collapse: separate;
+    box-sizing: border-box;
     color: var(--font-color);
     font-size: 12px;
-    @include comm.boxSizing(comm.$box_sizing_border);
 
-    &:before,
-    &:after {
-      @include comm.boxSizing(comm.$box_sizing_border);
+    &::before,
+    &::after {
+      box-sizing: border-box;
     }
   }
 
+  /*
+   * Form Controls
+   */
   input,
   button,
   select,
   textarea {
-    border: 1px solid var(--border-color);
     height: 28px;
-    line-height: 1.2em;
+    padding: 0 8px 0 5px;
+
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    padding: 0px 8px 0px 5px;
+
     background-color: var(--input-bg);
     color: inherit;
+    line-height: 1.2;
     outline: none;
 
     &:hover,
     &:focus {
-      border: 1px solid var(--border-thick-color);
+      border-color: var(--border-thick-color);
     }
   }
 
+  /*
+   * Button
+   */
   button {
-    background: var(--button-bg);
-    color: inherit;
     cursor: pointer;
+    background: var(--button-bg);
+
     &:hover {
       background: var(--button-bg-hover);
     }
   }
 
+  /*
+   * Input
+   */
   input {
-    margin: 0;
-    padding: 0px 5px 0px 8px;
     display: inline-block;
+    margin: 0;
+    padding: 0 5px 0 8px;
 
     &[type='checkbox'] {
       margin: auto;
     }
   }
 
+  /*
+   * Textarea
+   */
   textarea {
-    padding: 0px 5px 0px 8px;
+    padding: 0 5px 0 8px;
   }
 
+  /*
+   * Text Selection
+   */
   input,
   textarea {
-    -webkit-touch-callout: text !important;
-    -webkit-user-select: text !important;
-    -khtml-user-select: text !important;
-    -moz-user-select: text !important;
-    -ms-user-select: text !important;
-    user-select: text !important;
+    -webkit-touch-callout: text;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
   }
 }

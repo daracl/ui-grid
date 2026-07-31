@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { CellInfo } from '@/types/GridConfig';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
@@ -50,6 +50,6 @@ export abstract class CellRenderer {
    * @returns {string} align style
    */
   public alignStyle(): string {
-    return ALIGN_STYLE.left;
+    return TEXT_ALIGN_STYLE.left;
   }
 }

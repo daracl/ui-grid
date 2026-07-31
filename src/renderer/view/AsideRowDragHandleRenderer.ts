@@ -2,7 +2,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 
 /**
  * rowDragHandle renderer
@@ -23,7 +23,7 @@ export class AsideRowDragHandleRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 
   public supportsEdit() {

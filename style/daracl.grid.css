@@ -27,7 +27,16 @@
 * list style
 */
 /**
+* list style
+*/
+/**
 * striped style
+*/
+/**
+* list style
+*/
+/**
+* list style
 */
 /**
 * toolbar css
@@ -66,6 +75,9 @@ body .daracl-grid,
 body .daracl-grid > .dg-light,
 body .dg-hidden-layers,
 body .dg-hidden-layers.dg-light {
+  --field-margin-top: 10px;
+  --bar-positive-bg: #77c0fc;
+  --bar-negative-bg: #ff8989;
   --border-color: #cdcdcd;
   --border-thick-color: #b9bdc1;
   --scroll-bg: #f7f7f7;
@@ -90,7 +102,6 @@ body .dg-hidden-layers.dg-light {
   --tab-bg-hover: #ebebeb;
   --tooltip-bg: #3e3e3e;
   --tooltip-color: #fff;
-  --field-margin-top: 10px;
   --input-bg: #fff;
   --input-color: #212529;
   --header-bg: #e6e6e6;
@@ -117,14 +128,15 @@ body .dg-hidden-layers.dg-light {
   --check-active-bg: #4caf50;
   --check-mark-color: #ffffff;
   --check-indeterminate-bg: #686868;
-  --bar-positive-bg: #77c0fc;
-  --bar-negative-bg: #ff8989;
   --item-selected: #e9faff;
   --item-check-color: #1a73e8;
 }
 body[data-dg-theme=dark] .daracl-grid, body[data-dg-theme=dark] .dg-hidden-layers,
 body .daracl-grid > .dg-dark,
 body .dg-hidden-layers.dg-dark {
+  --field-margin-top: 10px;
+  --bar-positive-bg: #77c0fc;
+  --bar-negative-bg: #ff8989;
   --border-color: #3a3a3a;
   --border-thick-color: #807e7e;
   --scroll-bg: #1e1e1e;
@@ -149,7 +161,6 @@ body .dg-hidden-layers.dg-dark {
   --tab-bg-hover: #3c3c3c;
   --tooltip-bg: #444;
   --tooltip-color: #fff;
-  --field-margin-top: 10px;
   --input-bg: #2a2a2a;
   --input-color: #f0f0f0;
   --header-bg: #1a1717;
@@ -176,8 +187,6 @@ body .dg-hidden-layers.dg-dark {
   --check-active-bg: #00c1ff;
   --check-mark-color: #4e4e4e;
   --check-indeterminate-bg: #fffbfb;
-  --bar-positive-bg: #77c0fc;
-  --bar-negative-bg: #ff8989;
   --item-selected: #264f78;
   --item-check-color: #68a9ff;
 }
@@ -666,44 +675,140 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers > .dg-style-borderless .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
 }
-.daracl-grid > .dg-style-list .dg-main,
-.dg-hidden-layers > .dg-style-list .dg-main {
+.daracl-grid > .dg-style-rows .dg-main,
+.dg-hidden-layers > .dg-style-rows .dg-main {
   border-color: transparent !important;
   --header-gradient1: #fafafa;
   --header-gradient2: #fafafa;
-  border-top: 1px solid var(--border-color) !important;
+  border-top: 1px solid var(--border-thick-color) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-list .dg-main .dg-header-table tr > .dg-header-cell,
-.daracl-grid > .dg-style-list .dg-main .dg-header-table tr > .dg-header-group-cell,
-.dg-hidden-layers > .dg-style-list .dg-main .dg-header-table tr > .dg-header-cell,
-.dg-hidden-layers > .dg-style-list .dg-main .dg-header-table tr > .dg-header-group-cell {
+.daracl-grid > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.daracl-grid > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-list .dg-main .dg-body-table tr > td,
-.daracl-grid > .dg-style-list .dg-main .dg-body-table tr > th,
-.dg-hidden-layers > .dg-style-list .dg-main .dg-body-table tr > td,
-.dg-hidden-layers > .dg-style-list .dg-main .dg-body-table tr > th {
+.daracl-grid > .dg-style-rows .dg-main .dg-body-table .dg-row > td,
+.daracl-grid > .dg-style-rows .dg-main .dg-body-table .dg-row > th,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-body-table .dg-row > td,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-body-table .dg-row > th {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-list .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-list .dg-main .dg-fixed-column-line {
+.daracl-grid > .dg-style-rows .dg-main .dg-line-number,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-line-number {
+  background: transparent !important;
+}
+.daracl-grid > .dg-style-rows .dg-main .dg-fixed-column-line,
+.dg-hidden-layers > .dg-style-rows .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-list .dg-footer,
-.dg-hidden-layers > .dg-style-list .dg-footer {
+.daracl-grid > .dg-style-rows .dg-footer,
+.dg-hidden-layers > .dg-style-rows .dg-footer {
   border-color: transparent !important;
 }
 .daracl-grid > .dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
 .dg-hidden-layers > .dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
 .dg-hidden-layers > .dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
   background-color: var(--row-bg);
+}
+.daracl-grid > .dg-style-cells .dg-main,
+.dg-hidden-layers > .dg-style-cells .dg-main {
+  border-color: transparent !important;
+  --header-gradient1: #fafafa;
+  --header-gradient2: #fafafa;
+  border-top: 1px solid var(--border-thick-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+.daracl-grid > .dg-style-cells .dg-main .dg-line-number,
+.dg-hidden-layers > .dg-style-cells .dg-main .dg-line-number {
+  background: transparent !important;
+}
+.daracl-grid > .dg-style-cells .dg-main .dg-fixed-column-line,
+.dg-hidden-layers > .dg-style-cells .dg-main .dg-fixed-column-line {
+  background-color: transparent !important;
+  border-top-color: var(--border-color) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.daracl-grid > .dg-style-cells .dg-footer,
+.dg-hidden-layers > .dg-style-cells .dg-footer {
+  border-color: transparent !important;
+}
+.daracl-grid > .dg-style-striped-cells .dg-main,
+.dg-hidden-layers > .dg-style-striped-cells .dg-main {
+  border-color: transparent !important;
+  --header-gradient1: #fafafa;
+  --header-gradient2: #fafafa;
+  border-top: 1px solid var(--border-thick-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-cells .dg-main .dg-line-number,
+.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-line-number {
+  background: transparent !important;
+}
+.daracl-grid > .dg-style-striped-cells .dg-main .dg-fixed-column-line,
+.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-fixed-column-line {
+  background-color: transparent !important;
+  border-top-color: var(--border-color) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
+.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+  background-color: var(--row-bg);
+}
+.daracl-grid > .dg-style-striped-cells .dg-footer,
+.dg-hidden-layers > .dg-style-striped-cells .dg-footer {
+  border-color: transparent !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main {
+  border-color: transparent !important;
+  --header-gradient1: #fafafa;
+  --header-gradient2: #fafafa;
+  border-top: 1px solid var(--border-thick-color) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
+  border-color: transparent !important;
+  border-top-color: var(--border-color) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > th,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > th {
+  border-color: transparent !important;
+  border-top-color: var(--border-color) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-line-number,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-line-number {
+  background: transparent !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-fixed-column-line,
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-fixed-column-line {
+  background-color: transparent !important;
+  border-top-color: var(--border-color) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.daracl-grid > .dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+  background-color: var(--row-bg);
+}
+.daracl-grid > .dg-style-striped-rows .dg-footer,
+.dg-hidden-layers > .dg-style-striped-rows .dg-footer {
+  border-color: transparent !important;
 }
 
 .daracl-grid {

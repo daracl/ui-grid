@@ -1,5 +1,5 @@
 import { ROW_FIELD } from '@/constants';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -40,6 +40,6 @@ export class AsideModifyInfoRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }

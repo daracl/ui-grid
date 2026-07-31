@@ -1,7 +1,7 @@
 import { CellInfo, Config, CellPositionInfo, SummaryConfig } from '@t/GridConfig';
 import { SummaryOptions } from '@t/GridOptions';
 
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { DaraElement } from '@/element/DaraElement';
 import { SummaryTextRenderer } from '@/renderer/summary/SummaryTextRenderer';
 import { SummaryRenderer } from '@/renderer/SummaryRenderer';
@@ -77,7 +77,7 @@ export class Summary {
         const fieldName = item.name;
         const fieldInfo = allFieldMap.get(fieldName) ?? (merge({}, item) as FieldItem);
 
-        item.$alignStyle = ALIGN_STYLE[item.align] ?? (fieldInfo.$alignStyle || ALIGN_STYLE.left);
+        item.$alignStyle = TEXT_ALIGN_STYLE[item.align] ?? (fieldInfo.$alignStyle || TEXT_ALIGN_STYLE.left);
 
         summaryRenders.push(new SummaryTextRenderer(fieldInfo, this.gridMain, item));
       }

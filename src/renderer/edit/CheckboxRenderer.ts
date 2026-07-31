@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { ValidResult } from '@/types/ValidResult';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
@@ -98,6 +98,6 @@ export class CheckboxRenderer extends EditCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }

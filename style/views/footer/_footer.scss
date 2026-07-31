@@ -18,16 +18,16 @@
       align-items: center;
       vertical-align: middle;
 
-      &.left {
+      &.dg-left {
         left: 5px;
       }
 
-      &.center {
+      &.dg-center {
         left: 50%;
         transform: translate(-50%, 0%);
       }
 
-      &.right {
+      &.dg-right {
         right: 5px;
       }
     }

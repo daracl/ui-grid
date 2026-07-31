@@ -1,5 +1,5 @@
 import { ROW_FIELD } from '@/constants';
-import { ALIGN_STYLE, SELECTED_STYLE_CLASS } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE, SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
@@ -119,6 +119,6 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }

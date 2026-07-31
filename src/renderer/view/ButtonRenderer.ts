@@ -3,7 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
@@ -58,7 +58,7 @@ export class ButtonRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 
   public supportsEdit() {

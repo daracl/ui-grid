@@ -83,7 +83,7 @@
           overflow: hidden;
           text-overflow: ellipsis;
 
-          &.dg-required:after {
+          &.dg-required::after {
             content: '*';
             margin-left: 2px;
             color: #e53935;

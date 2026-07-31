@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
 import { resolveClassName } from '@/util/styleUtils';
@@ -125,6 +125,6 @@ export abstract class SummaryRenderer {
    * @returns {string} align style
    */
   public alignStyle(): string {
-    return ALIGN_STYLE.right;
+    return TEXT_ALIGN_STYLE.right;
   }
 }

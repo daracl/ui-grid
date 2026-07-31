@@ -19,13 +19,13 @@ export const BODY_STYLE = {
 export type BodyStyle = keyof typeof BODY_STYLE;
 
 // align type
-export const ALIGN_STYLE = {
-  left: 'text-al',
-  center: 'text-ac',
-  right: 'text-ar',
+export const TEXT_ALIGN_STYLE = {
+  left: 'dg-text-al',
+  center: 'dg-text-ac',
+  right: 'dg-text-ar',
 } as const;
 
-export type TextAlignType = keyof typeof ALIGN_STYLE;
+export type TextAlignType = keyof typeof TEXT_ALIGN_STYLE;
 
 export const WHITE_SPACE = {
   pre: 'pre',

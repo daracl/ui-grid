@@ -1,6 +1,6 @@
 import { ASIDE_RENDERER, EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders';
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME } from '@/constants';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
@@ -454,7 +454,7 @@ export class GridStructureBuilder {
       field.$colSeq = fieldGroupInfo.leaf.length;
       field.width = width;
       field.$width = width;
-      field.$alignStyle = ALIGN_STYLE[field.align] ?? (field.$renderer.alignStyle() || ALIGN_STYLE.left);
+      field.$alignStyle = TEXT_ALIGN_STYLE[field.align] ?? (field.$renderer.alignStyle() || TEXT_ALIGN_STYLE.left);
 
       fieldGroupInfo.leaf.push(field);
 

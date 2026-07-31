@@ -1,5 +1,5 @@
 import { ROW_FIELD } from '@/constants';
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { TreeDataManager } from '@/service/TreeDataManager';
 import { TreeViewItem } from '@/types/Common';
 import { createHTMLElement } from '@/util/domUtils';
@@ -128,7 +128,7 @@ export class TreeRenderer extends ViewCellRenderer {
   }
 
   public alignStyle() {
-    return ALIGN_STYLE.left;
+    return TEXT_ALIGN_STYLE.left;
   }
 
   public supportsEdit() {

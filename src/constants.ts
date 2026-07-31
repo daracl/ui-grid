@@ -3,9 +3,6 @@ export const INSTANCE_ATTR_KEY = 'daracl-grid-id';
 
 export type MODE = 'edit' | 'view';
 
-// align type
-export type ALIGN_TYPE = 'left' | 'center' | 'right';
-
 export const SelectionModeMap = {
   cell: 'cell',
   multiCell: 'multiCell',
@@ -26,11 +23,14 @@ export const HoverModeMap = {
 
 export type HoverMode = 'cell' | 'row' | 'none';
 
-export const ALIGN = {
-  left: 'left',
-  center: 'center',
-  right: 'right',
+export const ALIGN_STYLE = {
+  left: 'dg-left',
+  center: 'dg-center',
+  right: 'dg-right',
 } as const;
+
+// align type
+export type AlignStyleType = (typeof ALIGN_STYLE)[keyof typeof ALIGN_STYLE];
 
 export const RULES = {
   NAN: 'nan',

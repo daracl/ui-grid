@@ -1,7 +1,7 @@
 import { Config, Selection } from '@t/GridConfig';
 import { FooterOptions } from '@t/GridOptions';
 
-import { ALIGN } from '@/constants';
+import { ALIGN_STYLE } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { html } from '@/util/htmlTemplate';
@@ -67,13 +67,13 @@ export class Footer {
     this.selectionStatusElement = footerElement.findDaraElement('.dg-selection-status');
 
     footerElement.css({ height: `${this.cfg.dimensions.footerHeight}px` });
-    footerElement.findDaraElement('.dg-status').addClass(ALIGN[this.footerOpts.selection?.position ?? 'center']);
+    footerElement.findDaraElement('.dg-status').addClass(ALIGN_STYLE[this.footerOpts.selection?.position ?? 'center']);
 
     if (this.footerOpts.paging?.enabled) {
       this.paingElement = footerElement.findDaraElement('.dg-paging');
       this.pagingInfoElement = footerElement.findDaraElement('.dg-paging-info');
-      this.paingElement.addClass(ALIGN[this.footerOpts.paging?.position ?? 'center']);
-      this.pagingInfoElement.addClass(ALIGN[this.footerOpts.paging?.formatPosition ?? 'center']);
+      this.paingElement.addClass(ALIGN_STYLE[this.footerOpts.paging?.position ?? 'center']);
+      this.pagingInfoElement.addClass(ALIGN_STYLE[this.footerOpts.paging?.formatPosition ?? 'center']);
       this.setPagingTemplate(this.cfg.paging);
 
       this.initPagingEvent();

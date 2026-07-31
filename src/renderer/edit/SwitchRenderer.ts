@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { ValidResult } from '@/types/ValidResult';
 import { hasClass } from '@/util/domUtils';
@@ -96,6 +96,6 @@ export class SwitchRenderer extends EditCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }

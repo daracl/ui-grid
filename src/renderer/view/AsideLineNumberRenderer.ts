@@ -1,4 +1,4 @@
-import { ALIGN_STYLE } from '@/constantStyles';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -21,6 +21,6 @@ export class AsideLineNumberRenderer extends ViewCellRenderer {
   }
 
   public alignStyle(): string {
-    return ALIGN_STYLE.center;
+    return TEXT_ALIGN_STYLE.center;
   }
 }
