@@ -26,12 +26,16 @@
             background-color: var(--header-bg-selection) !important;
           }
 
-          .dg-choice-item {
-            display: flex;
-            gap: 0px;
-            align-items: center;
-            justify-content: center;
-            margin: 0px;
+          .dg-choice {
+            display: block;
+
+            .dg-choice-item {
+              display: flex;
+              gap: 0px;
+              align-items: center;
+              justify-content: center;
+              margin: 0px;
+            }
           }
         }
 

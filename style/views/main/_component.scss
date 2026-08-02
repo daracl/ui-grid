@@ -1,4 +1,8 @@
 @mixin bodyComponent {
+  .dg-sparkline,
+  .dg-sparklineBar {
+    display: flex;
+  }
   /* image */
   .dg-image {
     display: flex;

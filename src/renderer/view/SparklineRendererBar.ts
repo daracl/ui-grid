@@ -3,6 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { CELL_PADDING } from '@/constants';
 
 /**
  * Sparkline bar renderer
@@ -33,8 +34,8 @@ export class SparklineRendererBar extends ViewCellRenderer {
 
     const rect = getElementRect(cellElement);
 
-    const width = rect.width;
-    const height = rect.height - 5;
+    const width = rect.width - CELL_PADDING.horizontal; // padding = 10
+    const height = rect.height - CELL_PADDING.vertical;
 
     // 기존 canvas가 있으면 재사용, 없으면 생성
     let canvas = element.querySelector('canvas') as HTMLCanvasElement | null;

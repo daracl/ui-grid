@@ -1,25 +1,19 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Dara tree</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <title>Dara tree</title>
-</head>
+  <body>
+    <div class="grid-view-area">
+      <div id="sample" style="height: 300px; width: 100%"></div>
+    </div>
 
-<body>
-  <div>
-    <button onclick="expandAll()">전체열기</button>
-    <button onclick="collapseAll()">전체닫기</button>
-  </div>
-  <div class="grid-view-area">
-    <div id="sample" style="height: 300px; width: 100%"></div>
-  </div>
-
-  <div class="grid-view-area">
-    <div id="sample2" style="height: 250px; width: 100%"></div>
-  </div>
-</body>
-
+    <div class="grid-view-area">
+      <div id="sample2" style="height: 250px; width: 100%"></div>
+    </div>
+  </body>
 </html>
 
 <script src="./data/sampleConfig.js" type="text/javascript"></script>
@@ -62,14 +56,6 @@
   document.addEventListener('DOMContentLoaded', function () {
     loadGrid(true);
   });
-
-  function expandAll() {
-    gridObj.expandAll();
-  }
-
-  function collapseAll() {
-    gridObj.collapseAll();
-  }
 
   function getItem(type, itemCount, cellCount) {
     let items = G_TREE_CHILD_DATA;
@@ -122,65 +108,93 @@
   } //test
 
   function gridDraw(element, aaa, colItem) {
-    gridObj = Daracl.grid.create(
-      element,
-      {
-        selectionMode: 'cell', // row , cell , multiRow , multiCell	// 선택 방법.
-        enableWidthFixed: false,
-        height: 300,
-        editable: true,
-        tree: {
-          expandDepth: 0,
-          defaultExpandedIds: ['1-1'],
-          treeNodeIconClass(item, value) {
-            if ((item.id || '').startsWith('1-1')) {
-              return item._dg$depth === 2 ? 'dg-file-type1' : 'dg-folder-type1';
-            } else if ((item.id || '').startsWith('1-2')) {
-              return item._dg$depth === 2 ? 'dg-file-type2' : 'dg-folder-type2';
-            } else {
-              return '';
-            }
-          },
-        },
-        search: {
-          enabled: true,
-          //hideNonMatched: true,
-          enableColumnFix: true,
-          click: false,
-          mode: 'simple', //'full'
-          width: 700,
-          height: 250,
-          onlyCloseButton: true,
-          useRememberValue: true,
-          callback: (data) => {
-            //console.log(data)
-          },
-          rememberValue: { field: '$all', val: 'asdf' },
-        },
-        fields: colItem,
-        items: aaa,
-        body: {
-          //disableKeydown: true, // 키벤트 비활성화
-          // 방향키 컨트롤 .
-          keyNavHandler: function (moveInfo) {
-            //return false; //console.log(moveInfo);
-          },
-          pasteBefore: function (a) {
-            console.log('pasteBefore', a);
-            return a;
-          },
-          pasteAfter: function (a) {
-            console.log('pasteAfter', a);
-          },
-          cellClick(rowInfo) {
+    gridObj = Daracl.grid.create(element, {
+      selectionMode: 'cell', // row , cell , multiRow , multiCell	// 선택 방법.
+      enableWidthFixed: false,
+      height: 300,
+      editable: true,
+      tree: {
+        expandDepth: 0,
+        defaultExpandedIds: ['1-1'],
+        treeNodeIconClass(item, value) {
+          if ((item.id || '').startsWith('1-1')) {
+            return item._dg$depth === 2 ? 'dg-file-type1' : 'dg-folder-type1';
+          } else if ((item.id || '').startsWith('1-2')) {
+            return item._dg$depth === 2 ? 'dg-file-type2' : 'dg-folder-type2';
+          } else {
             return '';
-          },
-          row: {
-            // height: 30,
-            selectRowOnCellClick: true,
-          },
+          }
         },
-      }
-    );
+      },
+      search: {
+        enabled: true,
+        //hideNonMatched: true,
+        enableColumnFix: true,
+        click: false,
+        mode: 'simple', //'full'
+        width: 700,
+        height: 250,
+        onlyCloseButton: true,
+        useRememberValue: true,
+        callback: (data) => {
+          //console.log(data)
+        },
+        rememberValue: { field: '$all', val: 'asdf' },
+      },
+      fields: colItem,
+      items: aaa,
+      body: {
+        //disableKeydown: true, // 키벤트 비활성화
+        // 방향키 컨트롤 .
+        keyNavHandler: function (moveInfo) {
+          //return false; //console.log(moveInfo);
+        },
+        pasteBefore: function (a) {
+          console.log('pasteBefore', a);
+          return a;
+        },
+        pasteAfter: function (a) {
+          console.log('pasteAfter', a);
+        },
+        cellClick(rowInfo) {
+          return '';
+        },
+        row: {
+          // height: 30,
+          selectRowOnCellClick: true,
+        },
+      },
+      toolbar: {
+        enabled: true,
+        height: 40,
+        items: [
+          [
+            {
+              position: 'left',
+              children: [
+                {
+                  label: '전체열기',
+                  renderer: {
+                    type: 'button',
+                  },
+                  click: (info) => {
+                    gridObj.expandAll();
+                  },
+                },
+                {
+                  label: '전체닫기',
+                  renderer: {
+                    type: 'button',
+                  },
+                  click: (info) => {
+                    gridObj.collapseAll();
+                  },
+                },
+              ],
+            },
+          ],
+        ],
+      },
+    });
   }
 </script>

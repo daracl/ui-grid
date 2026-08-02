@@ -4,6 +4,7 @@
 
 @mixin choice {
   .dg-choice {
+    display: inline-block;
     > .dg-choice-item {
       display: inline-flex;
       align-items: center;

@@ -112,34 +112,7 @@
       },
       fields: colItem,
       items: aaa,
-      paging: {
-        countPerPage: 10,
-        currPage: 1,
-      },
-      footer: {
-        enabled: true,
 
-        height: 35,
-        paging: {
-          enabled: true,
-
-          /**
-           * 위치 값
-           */
-          position: 'center',
-          formatPosition: 'right',
-          /**
-           * 페이지 메시지 포멧
-           */
-          format: '{{start}} - {{end}} of {{total}}',
-
-          // 페이지 콜백
-          callback1: function (arg) {
-            console.log(arg);
-            //gridObj.setItems(aaa);
-          },
-        },
-      },
       toolbar: {
         enabled: true,
         height: 40,

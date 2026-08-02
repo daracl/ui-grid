@@ -73,6 +73,14 @@ export const MovePositionMap = {
 export type MovePosition = (typeof MovePositionMap)[keyof typeof MovePositionMap];
 
 /**
+ * Default cell padding values.
+ */
+export const CELL_PADDING = {
+  horizontal: 10, // left/right padding
+  vertical: 5, // top/bottom padding
+};
+
+/**
  * mouse move threshold
  */
 export const MOUSE_MOVE_THRESHOLD = 5;
