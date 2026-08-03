@@ -27,8 +27,8 @@ export abstract class SummaryRenderer {
   protected gridMain;
   protected language;
 
-  private readonly hasCellClass: boolean;
-  private readonly cellClassCache = new WeakMap<HTMLElement, string[]>();
+  private readonly hasCellClassName: boolean;
+  private readonly cellClassNameCache = new WeakMap<HTMLElement, string[]>();
 
   constructor(field: FieldItem, gridMain: GridMain, summaryItem: SummaryItem) {
     this.field = field;
@@ -39,7 +39,7 @@ export abstract class SummaryRenderer {
     this.cfg = this.gridMain.config();
     this.isVauleFunction = isFunction(field.getValue);
 
-    this.hasCellClass = !!summaryItem.cellClass;
+    this.hasCellClassName = !!summaryItem.cellClassName;
 
     this.summaryItem = summaryItem;
   }
@@ -102,21 +102,21 @@ export abstract class SummaryRenderer {
     return summaryValue;
   }
 
-  public setCellClass(renderValue: any, element: HTMLElement) {
-    if (!this.hasCellClass) return;
+  public setCellClassName(renderValue: any, element: HTMLElement) {
+    if (!this.hasCellClassName) return;
 
-    const prev = this.cellClassCache.get(element);
+    const prev = this.cellClassNameCache.get(element);
 
-    const classNames = resolveClassName(this.summaryItem.cellClass, renderValue);
+    const classNames = resolveClassName(this.summaryItem.cellClassName, renderValue);
 
     if (prev?.length) {
       element.classList.remove(...prev);
     }
     if (classNames.length > 0) {
       element.classList.add(...classNames);
-      this.cellClassCache.set(element, classNames);
+      this.cellClassNameCache.set(element, classNames);
     } else {
-      this.cellClassCache.delete(element);
+      this.cellClassNameCache.delete(element);
     }
   }
 

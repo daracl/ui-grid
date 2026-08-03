@@ -228,7 +228,6 @@
                   width: 90,
                   gap: [10, 20],
                   defaultValue: 'ON',
-                  styleClass: 'dg-slider-box',
                   renderer: {
                     type: 'switch',
                     variant: 'box',
@@ -323,6 +322,7 @@
                 },
                 {
                   renderer: { type: 'button', icon: 'edit' },
+                  rendererClassName: 'dg-primary',
                   label: '편집',
                   click(info) {
                     console.log(info);
@@ -337,6 +337,7 @@
                 },
                 {
                   renderer: { type: 'button', icon: 'mapping' },
+                  rendererClassName: 'dg-secondary',
                   label: '맵핑',
                   click(info) {
                     console.log(info);
@@ -344,6 +345,7 @@
                 },
                 {
                   renderer: { type: 'button', icon: 'preview' },
+                  rendererClassName: 'dg-info',
                   label: '미리보기',
                   click(info) {
                     console.log(info);
@@ -351,13 +353,16 @@
                 },
                 {
                   renderer: { type: 'button', icon: 'permission' },
+                  rendererClassName: 'dg-success',
                   label: '권한',
+
                   click(info) {
                     console.log(info);
                   },
                 },
                 {
                   renderer: { type: 'button', icon: 'parameter' },
+                  rendererClassName: 'dg-warning',
                   label: 'parameter',
                   click(info) {
                     console.log(info);
@@ -365,6 +370,7 @@
                 },
                 {
                   renderer: { type: 'button', icon: 'start' },
+                  rendererClassName: 'dg-danger',
                   label: 'Start',
                   click(info) {
                     console.log(info);

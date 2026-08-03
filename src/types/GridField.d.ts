@@ -74,9 +74,9 @@ export interface FieldItem {
    */
   defaultValue: string;
   /**
-   * cell add class
+   * cell add classname
    */
-  cellClass?: OptionCallback | string;
+  cellClassName?: OptionCallback | string;
 
   /**
    * tooltip 설정

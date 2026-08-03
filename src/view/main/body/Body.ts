@@ -39,7 +39,7 @@ export class Body {
 
   private allCellElements: any;
 
-  private cellClassCache = new WeakMap<HTMLElement, string[]>();
+  private cellClassNameCache = new WeakMap<HTMLElement, string[]>();
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -88,7 +88,7 @@ export class Body {
 
       const cellEle = this.gridMain.getBody().bodyElement.find('[data-cell-position="' + cell.r + ',' + cell.c + '"]');
 
-      this.setCellClass(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
+      this.setCellClassName(cellEle, cell.rowIndex, cell.c, cell.field, cell.item);
       cell.field.$renderer.render(cell, cellEle.querySelector('.dg-cell') as HTMLElement);
 
       return rowItem;
@@ -548,7 +548,7 @@ export class Body {
     //contentEleStyle.height = heightPixel;
 
     // field add class
-    this.setCellClass(cellElement, rowIdx, col, field, item);
+    this.setCellClassName(cellElement, rowIdx, col, field, item);
 
     if (field.$isAside) return;
 
@@ -596,23 +596,23 @@ export class Body {
    * @param {FieldItem} field field info
    * @param {*} item item
    */
-  private setCellClass(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
-    if (!field.cellClass) return;
+  private setCellClassName(cellEle: HTMLElement, rowIdx: number, col: number, field: FieldItem, item: any) {
+    if (!field.cellClassName) return;
 
-    const prevClasses = this.cellClassCache.get(cellEle);
+    const prevClasses = this.cellClassNameCache.get(cellEle);
 
-    // 이전 cellClass 제거
+    // 이전 cellClassName 제거
     if (prevClasses?.length) {
       cellEle.classList.remove(...prevClasses);
     }
 
-    const newClasses = resolveClassName(field.cellClass, { rowIdx, col, field, item });
+    const newClasses = resolveClassName(field.cellClassName, { rowIdx, col, field, item });
 
     if (newClasses.length > 0) {
       cellEle.classList.add(...newClasses);
-      this.cellClassCache.set(cellEle, newClasses);
+      this.cellClassNameCache.set(cellEle, newClasses);
     } else {
-      this.cellClassCache.delete(cellEle);
+      this.cellClassNameCache.delete(cellEle);
     }
 
     //cellEle.className = newClass ? `${CELL_BASE_CLASS} ${newClass}` : CELL_BASE_CLASS;

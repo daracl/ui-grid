@@ -19,7 +19,7 @@ export class SummaryTextRenderer extends SummaryRenderer {
   public render(cellInfo: CellPositionInfo, element: HTMLElement): void {
     const summaryValue = this.getValue();
 
-    this.setCellClass(summaryValue.value, element);
+    this.setCellClassName(summaryValue.value, element);
 
     const renderElement = element.firstElementChild as HTMLElement;
 

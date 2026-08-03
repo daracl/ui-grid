@@ -93,4 +93,59 @@
     -ms-user-select: text;
     user-select: text;
   }
+
+  .dg-primary {
+    background-color: #0d6efd;
+    * {
+      color: #fff;
+      --icon-stroke-color: #ffffff;
+      --icon-fill-stroke-color: #494949;
+    }
+  }
+
+  .dg-secondary {
+    background-color: #6c757d;
+    * {
+      color: #fff;
+      --icon-stroke-color: #ffffff;
+      --icon-fill-stroke-color: #494949;
+    }
+  }
+
+  .dg-info {
+    background-color: #0dcaf0;
+    * {
+      color: #212529;
+      --icon-stroke-color: #494949;
+      --icon-fill-stroke-color: #ffffff;
+    }
+  }
+
+  .dg-success {
+    background-color: #198754;
+    * {
+      color: #fff;
+      --icon-stroke-color: #ffffff;
+      --icon-fill-stroke-color: #494949;
+    }
+  }
+
+  .dg-warning {
+    background-color: #ffc107;
+
+    * {
+      color: #212529;
+      --icon-stroke-color: #494949;
+      --icon-fill-stroke-color: #ffffff;
+    }
+  }
+
+  .dg-danger {
+    background-color: #dc3545;
+    * {
+      color: #fff;
+      --icon-stroke-color: #ffffff;
+      --icon-fill-stroke-color: #494949;
+    }
+  }
 }

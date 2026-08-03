@@ -663,7 +663,7 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   },
   displayFormat: undefined,
   defaultValue: '',
-  cellClass: undefined,
+  cellClassName: undefined,
   tooltip: {
     enabled: false,
     content: undefined,

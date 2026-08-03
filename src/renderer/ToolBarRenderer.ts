@@ -53,11 +53,18 @@ export abstract class ToolBarRenderer {
   public getRendererClassName(addClass: string) {
     const rendererVariant = getRendererVariantClass(this.field.renderer);
 
-    if (!rendererVariant) {
-      return addClass;
+    let className = addClass;
+    if (rendererVariant) {
+      className = addClass + ' ' + rendererVariant;
     }
 
-    return addClass + ' ' + rendererVariant;
+    const classNames = resolveClassName(this.field.rendererClassName);
+
+    if (classNames.length < 1) {
+      return className;
+    }
+
+    return className + ' ' + classNames.join(' ');
   }
 
   /**

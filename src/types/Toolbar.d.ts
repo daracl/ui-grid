@@ -41,7 +41,7 @@ export interface ToolbarFieldItem {
   /**
    * renderer class
    */
-  rendererClass?: OptionCallback | string;
+  rendererClassName?: OptionCallback | string;
 
   /**
    * render type
