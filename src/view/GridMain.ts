@@ -1138,7 +1138,7 @@ function getGridTemplate() {
     <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
       <div class="dg-layout" style="position:absolute;user-select:none;touch-action:manipulation;">
         <div class="dg-layers"></div>
-        <div class="dg-toolbar" role="presentation"></div>
+        <div class="dg-toolbar dg-select" role="presentation"></div>
 
         <div class="dg-main" data-scroll="none" style="outline:none !important;" tabindex="-1">
           <div class="dg-panels">

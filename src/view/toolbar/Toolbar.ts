@@ -161,6 +161,7 @@ export class Toolbar {
     this.toolbarLayouts.forEach((row) => appFragment.appendChild(this.createRow(row)));
     hiddenCheckElement.remove();
     this.toolbarElement.appendChild(appFragment);
+    //this.toolbarElement.querySelector('.dg-toolbar-scroll')?.appendChild(appFragment);
   }
 
   public setValues(values: any) {

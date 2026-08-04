@@ -13,17 +13,35 @@
     overflow-x: auto;
     scroll-behavior: smooth;
     scrollbar-width: none;
+    padding-right: 30px;
 
     &::-webkit-scrollbar {
       width: 2px;
     }
 
-    -webkit-touch-callout: text;
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
+    .dg-scroll-button {
+      position: absolute;
+      right: 0;
+      top: 0;
+
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+
+      width: 34px;
+      height: 100%;
+
+      margin-left: auto;
+
+      background: linear-gradient(to left, var(--toolbar-bg, #fff) 70%, transparent);
+
+      .dg-scroll-left,
+      .dg-scroll-right {
+        width: 15px;
+        height: 24px;
+      }
+    }
 
     .dg-button {
       display: inline-flex;
