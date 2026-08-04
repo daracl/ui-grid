@@ -43,7 +43,7 @@
         content: '';
       }
 
-      &.dg-success {
+      &.dg-drop-valid {
         color: #28a745;
 
         &::before {
@@ -51,7 +51,7 @@
         }
       }
 
-      &.dg-fail {
+      &.dg-drop-invalid {
         color: #dc3545;
 
         &::before {

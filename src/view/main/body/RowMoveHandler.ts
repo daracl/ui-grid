@@ -282,8 +282,8 @@ export class RowMoveHandler extends CellClickHandler {
     }
 
     const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
-    classlist.remove('dg-fail');
-    classlist.add('dg-success');
+    classlist.remove('dg-drop-invalid');
+    classlist.add('dg-drop-valid');
 
     this.isDropForbidden = false;
     const moveRowIndexs = this.moveRowIndexs;
@@ -326,8 +326,8 @@ export class RowMoveHandler extends CellClickHandler {
    */
   preventDrop() {
     const classlist = this.rowMoveElement.querySelector('.dg-row-move-status')!.classList;
-    classlist.remove('dg-success');
-    classlist.add('dg-fail');
+    classlist.remove('dg-drop-valid');
+    classlist.add('dg-drop-invalid');
     this.isDropForbidden = true;
     this.rowMoveDropHelperElement.style.display = 'none';
   }
