@@ -18,7 +18,7 @@ export interface ToolbarLayout {
 
 export interface ToolbarFieldItem {
   placeholder?: string;
-  defaultValue?: string;
+  defaultValue?: any;
   gap?: number | number[];
 
   /**

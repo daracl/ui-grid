@@ -546,6 +546,9 @@ export class GridMain {
 
       if (this.currentSize.height !== newOffset.height || this.currentSize.width !== newOffset.width) {
         this.setSize(newOffset.width, newOffset.height, true);
+        if (this.toolbar) {
+          this.toolbar.resizeArrowVisibility();
+        }
       }
     });
   }
@@ -1138,7 +1141,13 @@ function getGridTemplate() {
     <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
       <div class="dg-layout" style="position:absolute;user-select:none;touch-action:manipulation;">
         <div class="dg-layers"></div>
-        <div class="dg-toolbar dg-select" role="presentation"></div>
+        <div class="dg-toolbar dg-select" role="presentation">
+          <div class="dg-toolbar-scroll"></div>
+          <div class="dg-toolbar-arrow dg-noselect">
+            <button type="button" class="dg-button" data-direction="left">${ALL_ICONS.scrollLeft}</button>
+            <button type="button" class="dg-button" data-direction="right">${ALL_ICONS.scrollRight}</button>
+          </div>
+        </div>
 
         <div class="dg-main" data-scroll="none" style="outline:none !important;" tabindex="-1">
           <div class="dg-panels">

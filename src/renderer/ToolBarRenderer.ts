@@ -1,4 +1,3 @@
-import { RENDERER_VARIANTS } from '@/constantStyles';
 import { OptionCallback } from '@/types/Common';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { createHTMLElement } from '@/util/domUtils';

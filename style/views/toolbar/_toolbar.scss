@@ -1,45 +1,57 @@
 /**
-* toolbar css
-*/
+ * toolbar css
+ */
 
 @mixin toolbar {
   .dg-toolbar {
     position: relative;
-    vertical-align: top;
     height: 40px;
-    display: none;
-    z-index: 2;
-    overflow-y: hidden;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding-right: 30px;
+    overflow: hidden;
 
-    &::-webkit-scrollbar {
-      width: 2px;
+    &.dg-has-scroll {
+      padding-right: 40px; // 스크롤이 있는 경우 오른쪽 패딩 추가
+
+      .dg-toolbar-arrow {
+        display: flex; // 스크롤이 있는 경우 화살표 표시
+      }
     }
 
-    .dg-scroll-button {
+    .dg-toolbar-arrow {
       position: absolute;
-      right: 0;
       top: 0;
-
-      display: flex;
-      gap: 4px;
+      width: 36px;
+      height: 100%;
+      z-index: 100;
+      right: 0px;
+      display: none;
       align-items: center;
       justify-content: center;
 
-      width: 34px;
-      height: 100%;
+      border: 0;
+      cursor: pointer;
 
-      margin-left: auto;
+      > .dg-button {
+        border: 0;
+        height: 100%;
+        width: 18px;
+        padding: 0px;
+        cursor: pointer;
 
-      background: linear-gradient(to left, var(--toolbar-bg, #fff) 70%, transparent);
+        &:hover {
+          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.18);
+        }
+      }
+    }
 
-      .dg-scroll-left,
-      .dg-scroll-right {
-        width: 15px;
-        height: 24px;
+    .dg-toolbar-scroll {
+      overflow-x: auto;
+      overflow-y: hidden;
+
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
       }
     }
 
@@ -57,15 +69,15 @@
       }
     }
 
-    /* 레이아웃 라인 */
+    /* 레이아웃 */
     .dg-toolbar-row {
       display: grid;
       align-items: center;
-      width: 100%;
-      min-width: 0;
+
+      width: max-content; // 중요
+      min-width: 100%; // 중요
     }
 
-    /* section */
     .dg-toolbar-section {
       display: grid;
       min-width: 0;
@@ -95,7 +107,6 @@
         overflow: hidden;
         grid-template-columns: minmax(0, 1fr);
 
-        /* 레이블 처리 */
         .dg-label {
           white-space: nowrap;
           overflow: hidden;
@@ -110,7 +121,6 @@
           }
         }
 
-        /* 컨트롤 내부 요소 방어구조 */
         .dg-control {
           min-width: 0;
           width: 100%;
@@ -129,13 +139,13 @@
             border-radius: 4px;
 
             .dg-search-text {
-              border: 0px;
+              border: 0;
               margin-left: 5px;
             }
 
             .dg-search-btn {
               border: 0;
-              background-color: transparent;
+              background: transparent;
               cursor: pointer;
             }
           }

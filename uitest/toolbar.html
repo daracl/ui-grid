@@ -316,7 +316,7 @@
                       console.log('visible ', toolbarInfo);
                       const field = toolbarInfo.field;
                       const values = toolbarInfo.values;
-                      return values['mode'] == 'Y';
+                      return values['theme'] == 'light';
                     },
                   },
                 },
@@ -331,6 +331,7 @@
                     disabled(toolbarInfo) {
                       const field = toolbarInfo.field;
                       const values = toolbarInfo.values;
+
                       return values['theme'] == 'light';
                     },
                   },
