@@ -1,10 +1,11 @@
 import { HoverMode, POSITION_TYPE, SelectionMode, THEME_TYPE } from '@/constants';
-import { DisplayFormatOptions, OptionCallback, RowId } from './Common';
+import { BodyStyle } from '@/constantStyles';
+import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
 import { SortOption } from './Header';
+import { SummaryOptions } from './Summary';
 import { ToolbarLayout } from './Toolbar';
-import { BodyStyle } from '@/constantStyles';
 
 /**
  * grid options
@@ -22,7 +23,7 @@ export interface GridOptions {
    */
   theme: THEME_TYPE;
   /**
-   * 높이
+   * 높이 O
    */
   height: 'auto' | number;
   /**
@@ -465,7 +466,7 @@ export interface AsideOptions {
      */
     enabled?: boolean;
     /**
-     * 컬럼명
+     * label
      */
     label?: string;
     /**
@@ -518,7 +519,7 @@ export interface AsideOptions {
     /**
      * 활성화 여부
      */
-    enabled: boolean;
+    enabled?: boolean;
     /**
      * 컬럼명
      */
@@ -547,7 +548,7 @@ export interface BodyOptions {
   cellDblClick?: OptionCallback;
 
   /**
-   * row(click) 이벤트
+   * cell (click) 이벤트
    */
   cellClick?: OptionCallback;
 
@@ -750,29 +751,6 @@ export interface ValueFormatter {
    * custom formatter
    */
   formatter?: OptionCallback;
-}
-
-export interface SummaryOptions {
-  /**
-   * header 높이
-   * @type number |number[]
-   */
-  height: number | number[];
-
-  position: top | bottom;
-
-  items: SummaryItem[][];
-}
-
-export interface SummaryItem extends FieldItem {
-  /**
-   * sum, avg 연산
-   */
-  expression: string | OptionCallback;
-  /**
-   *display format
-   */
-  displayFormat?: DisplayFormatOptions;
 }
 
 export interface RowMoveOptions {

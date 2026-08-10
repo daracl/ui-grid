@@ -1,6 +1,8 @@
-export * as DaraGrid from 'src/DaraGrid';
-export * as GridOptions from 'src/types/GridOptions';
-export * as i18n from 'src/types/Message';
+export * as DaraGrid from '@/DaraGrid';
+export * as GridOptions from '@/types/GridOptions';
+export * as FieldItem from '@/types/GridField';
+export * as RendererInfo from '@/types/RendererInfo';
+export * as i18n from '@/types/Message';
 
 /*
  "src/DaraGrid.ts",

@@ -1,15 +1,15 @@
-import { CellInfo, Config, CellPositionInfo, SummaryConfig } from '@t/GridConfig';
-import { SummaryOptions } from '@t/GridOptions';
+import { CellPositionInfo, Config, SummaryConfig } from '@t/GridConfig';
 
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { DaraElement } from '@/element/DaraElement';
 import { SummaryTextRenderer } from '@/renderer/summary/SummaryTextRenderer';
 import { SummaryRenderer } from '@/renderer/SummaryRenderer';
+import { SummaryOptions } from '@/types/Summary';
 import { html } from '@/util/htmlTemplate';
+import { getWhiteSpaceInfo } from '@/util/styleUtils';
 import { merge } from '@/util/utils';
 import { FieldItem } from '@t/GridField';
 import { GridMain } from '../GridMain';
-import { getWhiteSpaceInfo } from '@/util/styleUtils';
 
 /**
  * Summary class

@@ -1,5 +1,4 @@
-import { ADD_ITEM_POSITION, ALL_SELECT_VALUE, SearchDirection } from '../constants';
-import { match } from 'assert';
+import { ADD_ITEM_POSITION, SearchDirection } from '../constants';
 export interface OptionCallback {
   (...params: any[]): any;
 }
@@ -146,4 +145,15 @@ export interface RowSelectOptions {
    * @default true
    */
   scrollIntoView?: boolean;
+}
+
+export interface ValuesInfo {
+  labelField: string;
+  valueField: string;
+  multiple?: boolean;
+  delimiter: string;
+  list: any[] | OptionCallback;
+  orientation: ORIENTATION_TYPE;
+  labelOnly?: boolean;
+  includeAllOption?: boolean;
 }

@@ -1,9 +1,9 @@
 import { CellPositionInfo } from '@/types/GridConfig';
-import { SummaryItem } from '@/types/GridOptions';
 import { isString } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 import { SummaryRenderer } from '../SummaryRenderer';
+import { SummaryItem } from '@/types/Summary';
 
 /**
  * text renderer

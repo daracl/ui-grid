@@ -70,8 +70,6 @@ export class DaraGrid {
   /**
    * grid instance 구하기
    *
-   * @public
-   * @static
    * @param {(HTMLElement | string)} eleOrId grid element, grid uid
    * @returns {DaraGrid} 그리드 object
    */

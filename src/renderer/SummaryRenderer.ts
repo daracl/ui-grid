@@ -1,4 +1,5 @@
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
+import { SummaryItem } from '@/types/Summary';
 import { formatValue } from '@/util/formatUtils';
 import { calcSummary } from '@/util/mathUtils';
 import { resolveClassName } from '@/util/styleUtils';
@@ -6,7 +7,6 @@ import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config, CellPositionInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { SummaryItem } from '../types/GridOptions';
 
 /**
  * summary Render

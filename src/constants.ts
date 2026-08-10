@@ -53,6 +53,8 @@ export const FIELD_PREFIX = 'dg'; // daracl grid field
 
 export type POSITION_TYPE = 'left' | 'center' | 'right';
 
+export type VerticalPosition = 'top' | 'bottom';
+
 export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
 
 /**

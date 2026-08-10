@@ -1,21 +1,9 @@
-import { ORIENTATION_TYPE, REGEXP_TYPE } from '@/constants';
-import { OptionCallback } from '@t/Common';
-
-export interface ValuesInfo {
-  labelField: string;
-  valueField: string;
-  multiple?: boolean;
-  delimiter: string;
-  list: any[] | OptionCallback;
-  orientation: ORIENTATION_TYPE;
-  labelOnly?: boolean;
-  includeAllOption?: boolean;
-}
+import { REGEXP_TYPE } from '@/constants';
+import { OptionCallback, ValuesInfo } from '@t/Common';
 
 /**
  * Renderer info
  *
- * @export
  * @interface RendererInfo
  * @typedef {RendererInfo}
  */
@@ -47,7 +35,6 @@ export interface RendererInfo {
 /**
  * view renderer
  *
- * @export
  * @interface ViewRendererInfo
  * @typedef {ViewRendererInfo}
  * @extends {RendererInfo}
