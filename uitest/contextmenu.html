@@ -7,7 +7,7 @@
 
   <body>
     <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+      <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
     </div>
   </body>
 </html>
@@ -16,23 +16,6 @@
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
-<style>
-  .salary-5 {
-    background-color: #f30606 !important;
-  }
-
-  .salary-10 {
-    background-color: #e48140 !important;
-  }
-
-  .salary-15 {
-    background-color: #b6cc65 !important;
-  }
-
-  .salary-up {
-    background-color: #4df398 !important;
-  }
-</style>
 <script>
   var gridObj;
 
@@ -49,76 +32,14 @@
   var itemIdx = 0;
   function getItem(type, itemCount, cellCount) {
     itemIdx++;
-    let items = [];
-    let fields = [];
-
-    const orginItemCount = itemCount;
-
-    itemCount = orginItemCount == 0 ? 1 : itemCount;
-
-    items = GRID_EMPLOYEE_DATA;
-    fields = [
-      {
-        name: 'name',
-        label: '이름',
-        width: 80,
-        align: 'center',
-      },
-      {
-        name: 'age',
-        label: '나이',
-        width: 50,
-        renderer: { type: 'number' },
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 120,
-      },
-      {
-        name: 'birth',
-        label: '생년월일',
-        width: 120,
-        editRenderer: {
-          type: 'date',
-          /*
-        , rule: {
-          minimum: -100
-          , maximum: 100
-        }
-          */
-        },
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 80,
-      },
-      {
-        name: 'salary',
-        label: '월급',
-        width: 100,
-        renderer: { type: 'number' },
-        displayFormat: {
-          type: 'number',
-          format: '₩ 0,0 원',
-        },
-      },
-      {
-        name: 'desc',
-        label: '설명',
-        width: 200,
-        whiteSpace: 'wrap',
-      },
-    ];
-
-    items = orginItemCount == 0 ? [] : items;
+    let items = GRID_EMPLOYEE_DATA;
+    let fields = GRID_EMPLOYEE_FIELDS;
 
     return {
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(element, {

@@ -1,6 +1,7 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
+import { isFunction } from '@/util/utils';
 
 /**
  * link renderer
@@ -16,10 +17,13 @@ export class LinkRenderer extends ToolBarRenderer {
   public render(element: HTMLElement): void {
     const controlElement = this.getControlElement(element);
 
-    const refValue: any = this.field.renderer.defaultValue ?? {};
+    const defaultValue = this.field.defaultValue;
+
+    if (!defaultValue) return;
+
+    const refValue = isFunction(defaultValue) ? defaultValue(this.field) : defaultValue;
 
     // 최초 렌더링 시만 생성
-
     const aElement = document.createElement('a');
     aElement.className = this.getRendererClassName('dg-link');
     aElement.setAttribute('tabindex', '-1');
@@ -36,12 +40,12 @@ export class LinkRenderer extends ToolBarRenderer {
       }
     }
 
-    aElement.textContent = refValue.label ?? refValue;
+    aElement.textContent = refValue.label ?? this.field.label;
   }
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'mousedown touchstart' }, (e: UIEvent) => {
       this.click(e, contentElement);
     });
   }

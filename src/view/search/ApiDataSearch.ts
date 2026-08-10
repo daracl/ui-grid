@@ -1,9 +1,5 @@
-import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
+import { ALL_SELECT_VALUE } from '@/constants';
 import { SearchMode } from '@/types/Common';
-import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
-import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
-import { html } from '@/util/htmlTemplate';
-import { toggleClass } from '@/util/styleUtils';
 import { merge } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { DataSearch } from './DataSearch';

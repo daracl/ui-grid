@@ -1,5 +1,6 @@
 import { Config } from '@t/GridConfig';
 
+import { ALL_ICONS } from '@/constantIcons';
 import {
   FIELD_LAYER_CLASS,
   FIELD_PREFIX,
@@ -37,8 +38,6 @@ import { Summary } from './main/Summary';
 import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
-import { ALL_ICONS } from '@/constantIcons';
-import { hasClass } from '@/util/domUtils';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 

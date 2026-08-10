@@ -101,7 +101,7 @@ export class TreeRenderer extends ViewCellRenderer {
   initExpanderEvent(expander: HTMLSpanElement) {
     const cfg = this.cfg;
 
-    cfg.eventManager.on({ el: expander, type: 'mousedown' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: expander, type: 'mousedown touchstart' }, (e: UIEvent) => {
       const eventElement = e.target as HTMLElement;
       const cellElement = this.getClosestCellElement(eventElement);
       const cellInfo = getCellInfo(cfg, cellElement);

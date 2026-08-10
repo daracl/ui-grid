@@ -4,7 +4,7 @@
 $theme-dark: map.merge(
   $theme-common,
   (
-    border-color: #3a3a3a,
+    border-color: #585858,
     border-thick-color: #807e7e,
 
     scroll-bg: #1e1e1e,
@@ -41,7 +41,7 @@ $theme-dark: map.merge(
     input-color: #f0f0f0,
 
     header-bg: #1a1717,
-    header-gradient1: #1a1717,
+    header-gradient1: #525252,
     header-gradient2: #000000,
     body-bg: #1a1a1a,
     body-bg-thin: #444343,
@@ -61,7 +61,7 @@ $theme-dark: map.merge(
     cell-selection-border: #47dcfa,
 
     cell-bg-linenumber: #2e2e2e,
-    row-bg: #303236,
+    row-bg: #444546,
 
     empty-icon-color: #888,
 

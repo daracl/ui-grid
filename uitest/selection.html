@@ -7,7 +7,7 @@
 
   <body>
     <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+      <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
     </div>
   </body>
 </html>
@@ -30,58 +30,8 @@
   });
 
   function getItem() {
-    let items = [];
-    let fields = [];
-
-    items = GRID_EMPLOYEE_DATA;
-    fields = [
-      {
-        name: 'name',
-        label: '이름',
-        width: 80,
-        align: 'center',
-      },
-      {
-        name: 'age',
-        label: '나이',
-        width: 50,
-        renderer: { type: 'number' },
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 120,
-      },
-      {
-        name: 'birth',
-        label: '생년월일',
-        width: 120,
-        editRenderer: {
-          type: 'date',
-        },
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 80,
-      },
-      {
-        name: 'salary',
-        label: '월급',
-        width: 100,
-        renderer: { type: 'number' },
-        displayFormat: {
-          type: 'number',
-          format: '₩ 0,0 원',
-        },
-      },
-      {
-        name: 'desc',
-        label: '설명',
-        width: 200,
-        whiteSpace: 'wrap',
-      },
-    ];
+    let items = GRID_EMPLOYEE_DATA;
+    let fields = GRID_EMPLOYEE_FIELDS;
 
     return {
       items: items,

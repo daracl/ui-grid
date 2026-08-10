@@ -66,16 +66,22 @@ export class GridStructureBuilder {
     //세로 스크롭 계산 start
     const verticalEnable = opts.scroll.vertical.enable;
 
-    // 세로 스크롤 비활성화
-    const bodyMainHeight = verticalEnable ? dimensions.mainHeight : rowHeight * rowLength;
+    let mainBodyHeight = 0;
 
-    const mainBodyHeight =
-      bodyMainHeight -
-      (dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? opts.scroll.width : 0)) -
-      1; // 1 border height;
+    const nonMainAreaHeight =
+      dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? opts.scroll.width : 0);
+
+    if (verticalEnable) {
+      const bodyMainHeight = dimensions.mainHeight;
+      mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1; // 1 border height;
+      scroll.enableVertical = rowHeight * rowLength > mainBodyHeight;
+    } else {
+      scroll.enableVertical = false;
+      dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight;
+      mainBodyHeight = rowHeight * rowLength;
+    }
+
     dimensions.mainBodyHeight = mainBodyHeight;
-
-    scroll.enableVertical = verticalEnable === false ? false : rowHeight * rowLength > mainBodyHeight;
     scroll.enableHorizontal = fieldTotalWidth > dimensions.width - (scroll.enableVertical ? opts.scroll.width : 0);
 
     const orginViewRow = mainBodyHeight / rowHeight;

@@ -59,39 +59,7 @@
 
   function getItem(type, itemCount, cellCount) {
     let items = G_TREE_CHILD_DATA;
-    let fields = [];
-
-    fields = [
-      {
-        name: 'id',
-        label: 'ID',
-        editable: false,
-        width: 80,
-      },
-      {
-        name: 'name',
-        label: '이름',
-        width: 80,
-        renderer: {
-          type: 'tree',
-        },
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 80,
-      },
-      {
-        name: 'age',
-        label: '나이',
-        width: 50,
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 120,
-      },
-    ];
+    let fields = G_TREE_CHILD_FIELDS;
 
     if (true) {
       fields.push({

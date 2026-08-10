@@ -329,14 +329,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   toolbar: {
     enabled: false,
 
-    /**
-     * 툴바 위치
-     *
-     * - left
-     * - center
-     * - right
-     */
-    position: 'right',
+    arrowEnabled: false,
 
     height: TOOLBAR_HEIGHT,
 

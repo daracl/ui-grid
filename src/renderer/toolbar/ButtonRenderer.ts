@@ -42,12 +42,10 @@ export class ButtonRenderer extends ToolBarRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'mousedown touchstart' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       this.click(e, contentElement);
-
-      this.search(e);
     });
   }
 

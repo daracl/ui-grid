@@ -426,10 +426,12 @@ export interface ToolbarOptions {
    * 활성화 여부
    */
   enabled: boolean;
+
   /**
-   * 위치
+   * 툴바 스크롤 방향키 비활성화 여부
    */
-  position: POSITION_TYPE;
+  arrowEnabled?: boolean;
+
   /**
    * 높이
    */

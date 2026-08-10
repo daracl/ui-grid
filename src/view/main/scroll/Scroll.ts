@@ -69,6 +69,8 @@ export class Scroll {
     let animationId: number;
     let beforeStartIdx = -1;
 
+    const verticalScrollEnable = opts.scroll.vertical.enable;
+
     eventManager.off(mainElement, 'wheel DOMMouseScroll');
     eventManager.on(
       { el: mainElement, type: 'wheel DOMMouseScroll' },
@@ -78,6 +80,10 @@ export class Scroll {
         if (isEmpty(delta)) return;
 
         const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
+
+        if (!verticalScrollEnable && !isHorizontal) {
+          return;
+        }
 
         const startIdx = scroll.startIdx;
 

@@ -175,7 +175,7 @@ export class SimpleDataSearch extends DataSearch {
     });
   }
 
-  public search(searchText: string, opts: SearchMode): boolean {
+  public search(searchText: string, opts: SearchMode): any {
     const cfg = this.gridMain.config();
 
     const options = merge({}, this.defaultSearchOpts, opts);
@@ -198,7 +198,9 @@ export class SimpleDataSearch extends DataSearch {
     this.gridMain.refreshBody(true, 'search');
     this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
 
-    return true;
+    const searchMatchInfo = this.cfg.searchMatchInfo;
+
+    return { count: searchMatchInfo.matchCount, matchIndex: searchMatchInfo.currentMatchIndex };
   }
 
   private simpleSearch(direction: SearchDirection) {

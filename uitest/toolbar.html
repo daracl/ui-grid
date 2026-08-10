@@ -8,7 +8,7 @@
   <body>
     <div>Toolbar 를 마우스 휠로 이동 가능함.</div>
     <div class="grid-view-area" style="display: flex; align-items: center; justify-content: center">
-      <div id="sample" style="height: calc(100vh - 200px); width: 80%"></div>
+      <div id="sample" style="height: calc(100vh - 50px); width: 80%"></div>
     </div>
   </body>
 </html>
@@ -32,73 +32,13 @@
 
   function getItem() {
     let items = GRID_EMPLOYEE_DATA;
-    let fields = [];
-
-    fields = [
-      {
-        name: 'name',
-        label: '이름',
-        align: 'center',
-        width: 80,
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 150,
-      },
-      {
-        name: 'age',
-        label: '나이',
-        align: 'center',
-        width: 50,
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 200,
-      },
-      {
-        name: 'birth',
-        label: '생년월일',
-        width: 120,
-        align: 'center',
-        editRenderer: {
-          type: 'date',
-          /*
-          , rule: {
-            minimum: -100
-            , maximum: 100
-          }
-            */
-        },
-      },
-
-      {
-        name: 'salary',
-        label: '월급',
-        width: 100,
-        align: 'right',
-        displayFormat: {
-          type: 'number',
-          format: '₩ 0,0 원',
-        },
-        headerHelp(fieldInfo) {
-          const field = fieldInfo.field;
-          return field.label + ' // field 설정';
-        },
-      },
-      {
-        name: 'desc',
-        label: '설명',
-        width: 200,
-      },
-    ];
+    let fields = GRID_EMPLOYEE_FIELDS;
 
     return {
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
@@ -112,10 +52,9 @@
       theme: G_GRID_THEME,
       height: 'auto',
       width: 'auto',
-
       toolbar: {
         enabled: true,
-        height: 40,
+        arrowEnabled: true,
         defaultValues: {
           mode: 'N',
           choice: '대리',

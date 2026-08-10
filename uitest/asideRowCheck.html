@@ -7,7 +7,7 @@
 
   <body>
     <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 200px); width: 100%"></div>
+      <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
     </div>
   </body>
 </html>
@@ -30,68 +30,13 @@
 
   function getItem() {
     let items = GRID_EMPLOYEE_DATA;
-    let fields = [];
-
-    fields = [
-      {
-        name: 'name',
-        label: '이름',
-        width: 80,
-      },
-      {
-        name: 'age',
-        label: '나이',
-        width: 50,
-        renderer: {
-          type: 'number',
-        },
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 120,
-      },
-      {
-        name: 'birth',
-        label: '생년월일',
-        align: 'center',
-        width: 120,
-        editRenderer: {
-          type: 'date',
-          /*
-          , rule: {
-            minimum: -100
-            , maximum: 100
-          }
-            */
-        },
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 80,
-      },
-      {
-        name: 'salary',
-        label: '월급',
-        width: 80,
-        displayFormat: {
-          type: 'number',
-          format: '₩ 0,0 원',
-        },
-      },
-      {
-        name: 'desc',
-        label: '설명',
-        width: 200,
-      },
-    ];
+    let fields = GRID_EMPLOYEE_FIELDS;
 
     return {
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(

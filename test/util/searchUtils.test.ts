@@ -1,5 +1,5 @@
 import { gridDataSearch } from '../../src/util/searchUtils';
-import { ROW_ID_FIELD_NAME } from '../../src/constants';
+import { ROW_FIELD } from '../../src/constants';
 import { ViewItem } from '../../dist/types/Common';
 import { DataManager } from '../../src/service/DataManager';
 import { merge } from '../../src/util/utils';
@@ -175,10 +175,10 @@ function searchExecute(employeeList: any[], keyword: string, opts: any) {
 
   const searchViewItemds: ViewItem[] = [];
   employeeList.forEach((item) => {
-    item[ROW_ID_FIELD_NAME] = item.email;
+    item[ROW_FIELD.ID] = item.email;
     rowMap.set(item.email, item);
 
-    const rowId = item[ROW_ID_FIELD_NAME];
+    const rowId = item[ROW_FIELD.ID];
 
     const viewItem = {
       id: rowId,
