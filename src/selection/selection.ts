@@ -1,13 +1,14 @@
 import { BodyCellStyleMap, SelectionModeMap } from '@/constants';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
-import { escapeCellValue, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
+import { escapeCellValue, getCheckboxMode, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
 import { removeClass } from '@/util/styleUtils';
 import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Config, Selection, SelectionRange } from '@t/GridConfig';
 import { GridOptions } from '@t/GridOptions';
 import { initSelectionInfo } from '../defaultGridConfig';
+import { RowId } from '@/types/Common';
 
 export class SelectionInfo {
   private readonly gridMain: GridMain;
@@ -82,6 +83,10 @@ export class SelectionInfo {
     }
 
     this.selectAnchorCell();
+
+    if (cfg.checkOnRowSelect) {
+      this.gridMain.getBody().setItemsChecked(this.getRowIds(), true);
+    }
 
     this.gridMain.getFooter().setSelectionStatus();
   }
@@ -570,6 +575,19 @@ export class SelectionInfo {
 
   public getRowLine() {
     return this.rowLine;
+  }
+
+  public getRowIds() {
+    const dataManager = this.config.dataManager;
+    const viewItems = dataManager.getViewItems();
+
+    const rowIds: RowId[] = [];
+    this.rowLine.forEach((rowIdx) => {
+      const viewItem = viewItems[rowIdx];
+      rowIds.push(viewItem.id);
+    });
+
+    return rowIds;
   }
 
   /**

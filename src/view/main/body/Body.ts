@@ -1,12 +1,11 @@
 import { CellInfo } from '@t/GridConfig';
 
 import { BodyCellStyleMap, ROW_CHECK_NAME, ROW_FIELD } from '@/constants';
-import { WHITE_SPACE } from '@/constantStyles';
 
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
-import { ViewItem } from '@/types/Common';
-import { getCheckboxMode } from '@/util/gridUtils';
+import { RowId, ViewItem } from '@/types/Common';
+import { getCheckboxMode, isFixedLeftPostion, isFixedRightPostion } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { getRendererVariantClass, getWhiteSpaceInfo, removeClass, resolveClassName } from '@/util/styleUtils';
 import { camelToKebab, copyStringToClipboard, isArray } from '@/util/utils';
@@ -37,7 +36,7 @@ export class Body {
   private centerElement: DaraElement;
   private rightElement: DaraElement;
 
-  private allCellElements: any;
+  private allCellElements: Record<string, HTMLElement[][]>;
 
   private cellClassNameCache = new WeakMap<HTMLElement, string[]>();
 
@@ -96,43 +95,6 @@ export class Body {
   }
 
   /**
-   * all row check;
-   *
-   * @public
-   * @param {boolean} checked
-   */
-  public setAllCheckItem(checked: boolean) {
-    if (checked) {
-      this.gridMain.config().dataManager.setAllCheck();
-    } else {
-      this.gridMain.config().dataManager.clearAllCheck();
-    }
-
-    this.dataDraw('allCheck');
-  }
-
-  /**
-   * set check item
-   *
-   * @public
-   * @param {boolean} checked check flag
-   * @param {*} item row item
-   */
-  public setItemChecked(item: any, checked: boolean) {
-    const { isRowAllowMultiSelect, dataManager, dataInfo } = this.gridMain.config();
-
-    if (!isRowAllowMultiSelect) {
-      dataManager.clearAllCheck();
-      dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
-      return;
-    }
-
-    dataManager.setItemChecked(item[ROW_FIELD.ID], checked);
-
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
-  }
-
-  /**
    * 현재 체크된 항목들에서 지정한 필드(`name`)의 값을 배열로 반환합니다.
    *
    * @param name - 반환할 필드명 (예: 'id', 'code', 'name' 등)
@@ -158,6 +120,138 @@ export class Body {
   }
 
   /**
+   * all row check;
+   *
+   * @public
+   * @param {boolean} checked
+   */
+  public setAllCheckItem(checked: boolean) {
+    if (checked) {
+      this.gridMain.config().dataManager.setAllCheck();
+    } else {
+      this.gridMain.config().dataManager.clearAllCheck();
+    }
+
+    this.dataDraw('allCheck');
+  }
+
+  /**
+   * set check item
+   *
+   * @public
+   * @param {RowId} rowId row id
+   * @param {boolean} checked check flag
+   */
+  public setItemChecked(rowId: RowId, checked: boolean): void {
+    this.setItemsChecked([rowId], checked);
+  }
+
+  /**
+   * 지정된 여러 Row의 Check 상태를 설정
+   *
+   * 기존에 체크된 모든 Row를 초기화한 후 전달받은 Row들을 체크
+   *
+   * @param rowIds 체크 상태를 변경할 Row ID 목록
+   * @param checked 설정할 Check 상태
+   */
+  public setItemsChecked(rowIds: RowId[], checked: boolean): void {
+    this.gridMain.config().dataManager.clearAllCheck();
+
+    this.addItemsChecked(rowIds, checked);
+  }
+
+  /**
+   * set check item
+   *
+   * @public
+   * @param {RowId} rowId row id
+   * @param {boolean} checked check flag
+   */
+  public addItemChecked(rowId: RowId, checked: boolean): void {
+    this.addItemsChecked([rowId], checked);
+  }
+
+  /**
+   * 지정된 여러 Row의 Check 상태를 추가/변경
+   *
+   * 단일 선택 모드에서는 첫 번째 Row만 체크하고,
+   * 다중 선택 모드에서는 전달받은 모든 Row의 Check 상태를 변경
+   *
+   *
+   * @param rowIds 체크 상태를 변경할 Row ID 목록
+   * @param checked 설정할 Check 상태
+   */
+  private addItemsChecked(rowIds: RowId[], checked: boolean): void {
+    if (rowIds.length === 0) return;
+
+    const { isRowAllowMultiSelect, dataManager, dataInfo } = this.gridMain.config();
+
+    if (!isRowAllowMultiSelect) {
+      dataManager.clearAllCheck();
+
+      const rowId = rowIds[0];
+
+      if (rowId !== undefined) {
+        dataManager.setItemChecked(rowId, checked);
+        this.setFieldRefresh(ROW_CHECK_NAME);
+      }
+
+      return;
+    }
+
+    rowIds.forEach((rowId) => {
+      dataManager.setItemChecked(rowId, checked);
+    });
+
+    this.setFieldRefresh(ROW_CHECK_NAME);
+
+    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
+  }
+
+  setFieldRefresh(fieldName: string) {
+    const cfg = this.gridMain.config();
+    const { scroll, paging, dataManager, currentFields } = cfg;
+
+    const refreshField = currentFields.find((field) => field.name === fieldName);
+
+    if (!refreshField) return;
+
+    const opts = this.gridMain.options();
+
+    const viewItems = dataManager.getViewItems();
+
+    const currentViewRow = scroll.viewRow;
+    const startIdx = scroll.startIdx;
+    const pagingStartIdx = opts.footer.paging?.enabled ? (paging.currPage - 1) * paging.countPerPage : 0;
+
+    const colSeq = refreshField.$colSeq;
+
+    let fieldMapElement;
+    if (isFixedLeftPostion(cfg, colSeq)) {
+      fieldMapElement = this.allCellElements['left'];
+    } else if (isFixedRightPostion(cfg, colSeq)) {
+      fieldMapElement = this.allCellElements['right'];
+    } else {
+      fieldMapElement = this.allCellElements['center'];
+    }
+
+    for (let i = 0; i < currentViewRow; i++) {
+      const viewRowIdx = startIdx + i;
+      const viewItem = viewItems[viewRowIdx];
+      if (!viewItem) break;
+      const item = dataManager.getRowItem(viewItem.id);
+
+      const rowIdx = pagingStartIdx + viewRowIdx;
+
+      const rowCellInfo = { rowIndex: rowIdx, r: viewRowIdx, item: item, viewItem: viewItem, c: colSeq } as CellInfo;
+
+      const cell = fieldMapElement[i][colSeq];
+
+      refreshField.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
+    }
+  }
+
+  /**
    * 특정 필드값(`name`)을 기준으로 주어진 값(`values`)과 일치하는 항목을 체크 상태로 설정합니다.
    *
    * @param name - 비교에 사용할 항목의 필드명 (예: 'id', 'code' 등)
@@ -165,26 +259,22 @@ export class Body {
    *
    */
   public setCheckedItemByValue(name: string, values: any) {
-    const isRowAllowMultiSelect = this.gridMain.config().isRowAllowMultiSelect;
-    const { dataManager, dataInfo } = this.gridMain.config();
+    const { dataManager, isRowAllowMultiSelect } = this.gridMain.config();
 
     const checkValues = isArray(values) ? values : [values];
 
     const viewItems = dataManager.getViewItems();
 
-    dataManager.clearAllCheck();
-
+    const rowIdsToCheck: RowId[] = [];
     for (const viewItem of viewItems) {
       if (checkValues.includes(dataManager.getRowItem(viewItem.id)[name])) {
-        dataManager.setItemChecked(viewItem.id, true);
+        rowIdsToCheck.push(viewItem.id);
 
         if (!isRowAllowMultiSelect) break;
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
-
-    this.dataDraw('setCheckedItemByValue');
+    this.setItemsChecked(rowIdsToCheck, true);
   }
 
   /**
@@ -195,20 +285,19 @@ export class Body {
    * @param values - 체크할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public addCheckedItemByValue(name: string, values: any) {
-    const { dataManager, dataInfo } = this.gridMain.config();
+    const { dataManager } = this.gridMain.config();
 
     const checkValue = isArray(values) ? values : [values];
     const viewItems = dataManager.getViewItems();
 
+    const rowIdsToCheck: RowId[] = [];
     for (const viewItem of viewItems) {
       if (checkValue.includes(dataManager.getRowItem(viewItem.id)[name])) {
-        dataManager.setItemChecked(viewItem.id, true);
+        rowIdsToCheck.push(viewItem.id);
       }
     }
 
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
-
-    this.dataDraw('addCheckedItemByValue');
+    this.addItemsChecked(rowIdsToCheck, true);
   }
 
   /**
@@ -219,33 +308,18 @@ export class Body {
    * @param values - 체크 해제할 값 또는 값 배열 (단일 값도 허용됨)
    */
   public unCheckedItemByValue(name: string, values: any) {
-    const { dataManager, dataInfo } = this.gridMain.config();
+    const { dataManager } = this.gridMain.config();
 
     const checkValue = isArray(values) ? values : [values];
     const viewItems = dataManager.getViewItems();
 
+    const rowIdsToCheck: RowId[] = [];
     for (const viewItem of viewItems) {
       if (checkValue.includes(dataManager.getRowItem(viewItem.id)[name])) {
-        dataManager.setItemChecked(viewItem.id, false);
+        rowIdsToCheck.push(viewItem.id);
       }
     }
-
-    this.gridMain.getHeader().setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
-
-    this.dataDraw('unCheckedItemByValue');
-  }
-
-  /**
-   * get rowitem check value
-   *
-   * @public
-   * @param {*} rowItem row item
-   * @param {boolean} checkFlag check 여부
-   * @returns {*}
-   */
-  public setRowCheck(rowItem: any, checkFlag: boolean) {
-    const rowId = rowItem[ROW_FIELD.ID];
-    this.gridMain.config().dataManager.setItemChecked(rowId, checkFlag);
+    this.addItemsChecked(rowIdsToCheck, false);
   }
 
   public setCenterElementStyle(styleCss: any) {
@@ -363,7 +437,7 @@ export class Body {
 
         for (const el of cells) {
           const cell = el;
-          const pos = cell.getAttribute('data-cell-position');
+          const pos = cell.dataset.cellPosition;
           if (!pos) continue;
 
           const [row, col] = pos.split(',').map(Number);
@@ -454,6 +528,7 @@ export class Body {
       matchViewItem: undefined,
       searchMatchedFields: undefined,
     };
+
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       const viewItem = viewItems[viewRowIdx];
@@ -480,7 +555,7 @@ export class Body {
           const cell = rowCells[j];
           rowCellInfo.c = j;
           this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
-          field.$renderer.render(rowCellInfo, cell.firstElementChild);
+          field.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
         }
       }
 
@@ -491,7 +566,7 @@ export class Body {
         const cell = rowCenterCells[j];
         this.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
         rowCellInfo.c = j;
-        field.$renderer.render(rowCellInfo, cell.firstElementChild);
+        field.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
       }
 
       // right panel
@@ -506,7 +581,7 @@ export class Body {
 
           this.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, matchInfo);
 
-          field.$renderer.render(rowCellInfo, cell.firstElementChild);
+          field.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
         }
       }
     }

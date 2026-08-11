@@ -16,21 +16,21 @@ export type SelectionMode = (typeof SelectionModeMap)[keyof typeof SelectionMode
 
 // body hover
 export const HoverModeMap = {
-  cell: 'dg-body-hover-cell',
-  row: 'dg-body-hover-row',
-  none: 'dg-body-hover-none',
+  cell: 'cell',
+  row: 'row',
+  none: 'none',
 } as const;
 
-export type HoverMode = 'cell' | 'row' | 'none';
+export type HoverMode = (typeof HoverModeMap)[keyof typeof HoverModeMap];
 
-export const ALIGN_STYLE = {
+export const AlignStyleMap = {
   left: 'dg-left',
   center: 'dg-center',
   right: 'dg-right',
 } as const;
 
 // align type
-export type AlignStyleType = (typeof ALIGN_STYLE)[keyof typeof ALIGN_STYLE];
+export type AlignStyle = (typeof AlignStyleMap)[keyof typeof AlignStyleMap];
 
 export const RULES = {
   NAN: 'nan',
@@ -51,20 +51,20 @@ export const RULES = {
 
 export const FIELD_PREFIX = 'dg'; // daracl grid field
 
-export type POSITION_TYPE = 'left' | 'center' | 'right';
+export type PositionType = 'left' | 'center' | 'right';
 
 export type VerticalPosition = 'top' | 'bottom';
 
-export type REGEXP_TYPE = 'email' | 'url' | 'alpha' | 'alpha-num';
+export type RegexpType = 'email' | 'url' | 'alpha' | 'alpha-num';
 
 /**
  * 숫자 | 대문자 포함, 대문자 특수문자 포함, 대문자 특수문자 숫자
  */
-export type PASSWORD_TYPE = 'number' | 'upper' | 'upper-special' | 'upper-special-number';
+export type PasswordType = 'number' | 'upper' | 'upper-special' | 'upper-special-number';
 
-export type ORIENTATION_TYPE = 'horizontal' | 'vertical';
+export type OrientationType = 'horizontal' | 'vertical';
 
-export type ADD_ITEM_POSITION = 'before' | 'after' | 'inside';
+export type AddItemPosition = 'before' | 'after' | 'inside';
 
 export const MovePositionMap = {
   BEFORE: 'before',

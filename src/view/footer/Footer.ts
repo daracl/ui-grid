@@ -1,7 +1,7 @@
 import { Config, Selection } from '@t/GridConfig';
 import { FooterOptions } from '@t/GridOptions';
 
-import { ALIGN_STYLE } from '@/constants';
+import { AlignStyleMap } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { html } from '@/util/htmlTemplate';
@@ -67,13 +67,15 @@ export class Footer {
     this.selectionStatusElement = footerElement.findDaraElement('.dg-selection-status');
 
     footerElement.css({ height: `${this.cfg.dimensions.footerHeight}px` });
-    footerElement.findDaraElement('.dg-status').addClass(ALIGN_STYLE[this.footerOpts.selection?.position ?? 'center']);
+    footerElement
+      .findDaraElement('.dg-status')
+      .addClass(AlignStyleMap[this.footerOpts.selection?.position ?? 'center']);
 
     if (this.footerOpts.paging?.enabled) {
       this.paingElement = footerElement.findDaraElement('.dg-paging');
       this.pagingInfoElement = footerElement.findDaraElement('.dg-paging-info');
-      this.paingElement.addClass(ALIGN_STYLE[this.footerOpts.paging?.position ?? 'center']);
-      this.pagingInfoElement.addClass(ALIGN_STYLE[this.footerOpts.paging?.formatPosition ?? 'center']);
+      this.paingElement.addClass(AlignStyleMap[this.footerOpts.paging?.position ?? 'center']);
+      this.pagingInfoElement.addClass(AlignStyleMap[this.footerOpts.paging?.formatPosition ?? 'center']);
       this.setPagingTemplate(this.cfg.paging);
 
       this.initPagingEvent();
@@ -93,7 +95,7 @@ export class Footer {
     this.cfg.eventManager.on({ el: pagingElement, type: 'click', selector: '.dg-page-num' }, (e: UIEvent) => {
       const pageNumElement = (e.target as HTMLElement).closest('.dg-page-num');
 
-      const pageNum = intValue(pageNumElement?.getAttribute('pageno') ?? '1');
+      const pageNum = intValue((pageNumElement as HTMLElement)?.dataset.pageNo) ?? '1';
 
       if (pagingCallback) {
         pagingCallback(pageNum);
@@ -232,11 +234,13 @@ export class Footer {
     if (currP <= 1) {
       strHTML.push(' <li class="disabled page-icon"><a href="javascript:">&laquo;</a></li>');
     } else {
-      strHTML.push(' <li><a href="javascript:" class="dg-page-num page-icon" pageno="' + preO + '">&laquo;</a></li>');
+      strHTML.push(
+        ' <li><a href="javascript:" class="dg-page-num page-icon" data-page-no="' + preO + '">&laquo;</a></li>',
+      );
     }
 
     if (preP_is && currE - pagingInfo.unitPage >= 0) {
-      strHTML.push(' <li class="dg-page-num" pageno="1"><a href="javascript:" >1...</a></li>');
+      strHTML.push(' <li class="dg-page-num" data-page-no="1"><a href="javascript:" >1...</a></li>');
     }
 
     let no = 0;
@@ -244,13 +248,13 @@ export class Footer {
       if (no == currP) {
         strHTML.push(' <li class="active"><a href="javascript:">' + no + '</a></li>');
       } else {
-        strHTML.push(' <li class="dg-page-num" pageno="' + no + '"><a href="javascript:" >' + no + '</a></li>');
+        strHTML.push(' <li class="dg-page-num" data-page-no="' + no + '"><a href="javascript:" >' + no + '</a></li>');
       }
     }
 
     if (currS + pagingInfo.unitPage < pagingInfo.totalPage) {
       strHTML.push(
-        html`<li class="dg-page-num" pageno="${pagingInfo.totalPage}">
+        html`<li class="dg-page-num" data-page-no="${pagingInfo.totalPage}">
           ...<a href="javascript:">${pagingInfo.totalPage}</a>
         </li>`,
       );
@@ -259,7 +263,7 @@ export class Footer {
     if (currP == currE) {
       strHTML.push(' <li class="disabled"><a href="javascript:">&raquo;</a></li>');
     } else {
-      strHTML.push(` <li><a href="javascript:" class="dg-page-num page-icon" pageno="${nextO}">&raquo;</a></li>`);
+      strHTML.push(` <li><a href="javascript:" class="dg-page-num page-icon" data-page-no="${nextO}">&raquo;</a></li>`);
     }
 
     strHTML.push('</ul>');

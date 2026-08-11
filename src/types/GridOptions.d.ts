@@ -1,4 +1,4 @@
-import { HoverMode, POSITION_TYPE, SelectionMode, THEME_TYPE } from '@/constants';
+import { HoverMode, PositionType, SelectionMode, THEME_TYPE } from '@/constants';
 import { BodyStyle } from '@/constantStyles';
 import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
@@ -596,11 +596,6 @@ export interface BodyOptions {
      * row double click 이벤트
      */
     dblClick: boolean | OptionCallback;
-
-    /**
-     * double click 시 row checkbox 체크 여부
-     */
-    selectRowOnCellClick: boolean;
   };
 }
 
@@ -684,11 +679,11 @@ export interface FooterOptions {
     /**
      * 위치 값
      */
-    position?: POSITION_TYPE;
+    position?: PositionType;
     /**
      * 페이지 포켓 위치
      */
-    formatPosition?: POSITION_TYPE;
+    formatPosition?: PositionType;
     /**
      * 페이지 메시지 포멧
      */
@@ -704,7 +699,7 @@ export interface FooterOptions {
     /**
      * 위치 값
      */
-    position?: POSITION_TYPE;
+    position?: PositionType;
     format: string | OptionCallback;
   };
 }

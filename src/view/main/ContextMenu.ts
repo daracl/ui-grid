@@ -49,7 +49,7 @@ export class ContextMenu {
 
   create() {
     const contextElement = document.createElement('ul');
-    contextElement.setAttribute('data-grid-id', this.gridMain.uid());
+    contextElement.dataset.gridId = this.gridMain.uid();
     contextElement.className = 'dg-contextmenu dg-contextmenu-top dg-outer-layer';
     contextElement.setAttribute('draggable', 'false');
     contextElement.setAttribute('onselectstart', 'return false');
@@ -156,7 +156,7 @@ export class ContextMenu {
 
       parentElement.querySelectorAll('input[type="checkbox"]');
 
-      const itemKey = itemElement.getAttribute('data-item-key') || '';
+      const itemKey = itemElement.dataset.itemKey || '';
 
       const clickItem = this.contextData.get(itemKey);
 

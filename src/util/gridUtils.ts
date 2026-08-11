@@ -103,7 +103,7 @@ export const getCellPosition = (cellElement: HTMLElement) => {
 };
 
 export const getCellPositionAttr = (cellElement: HTMLElement) => {
-  return cellElement.getAttribute('data-cell-position');
+  return cellElement.dataset.cellPosition;
 };
 
 /**
@@ -123,7 +123,7 @@ export const getHeaderCellInfo = (cfg: Config, cellElement: HTMLElement): Header
 };
 
 export const getHeaderResizeCellInfo = (cfg: Config, cellElement: HTMLElement): HeaderCellInfo => {
-  const col = intValue(cellElement.getAttribute('data-resize-idx') ?? '-1');
+  const col = intValue(cellElement.dataset.resizeIdx ?? '-1');
 
   return {
     c: col,
@@ -137,7 +137,7 @@ export const getHeaderResizeCellInfo = (cfg: Config, cellElement: HTMLElement): 
  * @returns
  */
 export const getHeaderCellPosition = (cellElement: HTMLElement) => {
-  return intValue(cellElement.getAttribute('data-header-cell-position') ?? '-1');
+  return intValue(cellElement.dataset.headerCellPosition ?? '-1');
 };
 
 /**

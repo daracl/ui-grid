@@ -44,15 +44,14 @@
     gridObj = Daracl.grid.create(element, {
       //style: 'striped',
       selectionMode: selectMode, // row, cell, multiRow, multiCell, none// 선택 방법.
-      hoverMode: 'none',
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
+      //hoverMode: 'none',
       theme: theme,
       height: 480,
       aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
           enabled: true,
+          checkOnRowSelect: true,
           width: 27,
           //, allowMultiSelect: false
         },
@@ -68,7 +67,6 @@
       body: {
         row: {
           height: 60,
-          selectRowOnCellClick: true,
         },
       },
       toolbar: {

@@ -201,7 +201,7 @@ export class Header {
     this.headerCellElements = [];
     this.headerElement.finds('.dg-header-cell').forEach((node) => {
       const ele = node as HTMLElement;
-      const cellIdx = intValue(ele.getAttribute('data-header-cell-position') || '0');
+      const cellIdx = intValue(ele.dataset.headerCellPosition || '0');
       this.headerCellElements[cellIdx] = node;
     });
   }

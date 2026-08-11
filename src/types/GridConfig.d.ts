@@ -137,7 +137,7 @@ export interface Config {
   isHeaderDragging: boolean;
 
   // cell click 시 row 체크 여부
-  selectRowOnCellClick: boolean;
+  checkOnRowSelect: boolean;
   mouseEnter: boolean;
   currentClickInfo: AnyKeyMap;
   allCheck: boolean;

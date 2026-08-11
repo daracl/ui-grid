@@ -2,9 +2,22 @@ import { EditRendererInfo, ViewRendererInfo } from '@/types/RendererInfo';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EDIT_RENDERER, VIEW_RENDERER } from './constantRenders';
-import { FOOTER_HEIGHT, SelectionModeMap, TOOLBAR_HEIGHT } from './constants';
+import { FOOTER_HEIGHT, HoverModeMap, SelectionModeMap, TOOLBAR_HEIGHT } from './constants';
 import { BODY_STYLE } from './constantStyles';
 import { ToolbarFieldItem } from './types/Toolbar';
+import { isRowSelectionMode } from './util/gridUtils';
+import { merge } from './util/utils';
+
+export function initGridOptions(options: GridOptions): GridOptions {
+  const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
+
+  // hover mode selection mode에 따라 기본값 설정
+  if (!options.hoverMode) {
+    opts.hoverMode = isRowSelectionMode(opts.selectionMode) ? 'row' : 'cell';
+  }
+
+  return opts;
+}
 
 /**
  * Grid 생성 시 사용되는 기본 옵션 객체
@@ -98,7 +111,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
    * hover mode
    * cell, row, none
    */
-  hoverMode: 'cell',
+  hoverMode: HoverModeMap.cell,
 
   /**
    * 툴팁 사용 여부
@@ -436,11 +449,6 @@ export const DEFAULT_OPTIONS: GridOptions = {
        * 행 더블클릭 이벤트 사용 여부
        */
       dblClick: false,
-
-      /**
-       * 셀 클릭 시 행 선택 여부
-       */
-      selectRowOnCellClick: false,
     },
 
     /**

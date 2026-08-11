@@ -2,7 +2,7 @@ import { ASIDE_RENDERER, EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders'
 import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME } from '@/constants';
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
-import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_OPTIONS, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
+import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { Config, FieldHeaderGroupInfo } from '@/types/GridConfig';
 import { FieldItem } from '@/types/GridField';
@@ -50,7 +50,7 @@ export class GridStructureBuilder {
         numberField.width = textWidth ?? numberField.width;
         numberField.$width = textWidth ?? numberField.$width;
       } else {
-        const defaultLineNumberWidth = opts.aside.lineNumber.width ?? DEFAULT_OPTIONS.aside.lineNumber.width ?? 40;
+        const defaultLineNumberWidth = opts.aside.lineNumber.width ?? 40;
         numberField.width = defaultLineNumberWidth;
         numberField.$width = defaultLineNumberWidth;
       }

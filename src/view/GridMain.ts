@@ -14,7 +14,7 @@ import {
 import { BODY_STYLE, BodyStyle, GRID_THEME, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
-import { DEFAULT_OPTIONS } from '@/defaultGridOption';
+import { initGridOptions } from '@/defaultGridOption';
 import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { ListDataManager } from '@/service/ListDataManager';
@@ -26,7 +26,7 @@ import { PagingInfo } from '@/types/PagingInfo';
 import { heightOptionValue } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
-import { debounce, isArray, isNumber, isString, isUndefined, isVisible, merge } from '@/util/utils';
+import { debounce, isArray, isNumber, isString, isUndefined, isVisible } from '@/util/utils';
 import { Toolbar } from '@/view/toolbar/Toolbar';
 import { Footer } from './footer/Footer';
 import { GridStructureBuilder } from './GridStructureBuilder';
@@ -116,7 +116,7 @@ export class GridMain {
   private readonly gridStructureBuilder: GridStructureBuilder;
 
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
-    const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
+    const opts = initGridOptions(options);
 
     this.grid = grid;
     this.language = new Language();
@@ -255,10 +255,9 @@ export class GridMain {
 
     this.mainElement = new DaraElement(this.gridElement.find('.dg-main'));
 
-    this.mainElement.addClass(
-      opts.selectionMode === 'none' ? 'dg-select' : 'dg-noselect',
-      opts.hoverMode && HoverModeMap[opts.hoverMode] ? HoverModeMap[opts.hoverMode] : HoverModeMap.cell,
-    );
+    const hoverClassName = opts.hoverMode ? HoverModeMap[opts.hoverMode] ?? HoverModeMap.cell : HoverModeMap.cell;
+
+    this.mainElement.addClass(opts.selectionMode === 'none' ? 'dg-select' : 'dg-noselect', hoverClassName);
 
     this.setTheme(this.opts.theme);
 
@@ -429,7 +428,7 @@ export class GridMain {
       if (relatedTarget?.closest('.dg-hidden-layers') !== null) {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
-        if (outerLayerElement?.getAttribute('data-grid-id') == this.$instanceId) {
+        if (outerLayerElement?.dataset.gridId == this.$instanceId) {
           layoutElement.focus({ preventScroll: true });
           return;
         }

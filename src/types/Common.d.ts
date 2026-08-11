@@ -1,4 +1,4 @@
-import { ADD_ITEM_POSITION, SearchDirection } from '../constants';
+import { AddItemPosition, SearchDirection } from '../constants';
 export interface OptionCallback {
   (...params: any[]): any;
 }
@@ -86,7 +86,7 @@ export type RowId = string | number;
 export type AddRowOptions = {
   rowId?: RowId;
   items: any | any[];
-  position?: ADD_ITEM_POSITION;
+  position?: AddItemPosition;
 };
 
 export interface ViewItem {

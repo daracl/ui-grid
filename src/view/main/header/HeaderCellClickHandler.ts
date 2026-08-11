@@ -82,6 +82,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
 
   onActivate(session: PointerSession) {
     if (!this.multipleFlag) return false;
+
     const cfg = this.cfg;
 
     const position = getElementRect(this.headerElement, true);
@@ -102,7 +103,7 @@ export class HeaderCellClickHandler extends BasePointerHandler {
     this.scrollDirectionX = null;
     this.beforeEndCol = -1;
 
-    if (this.multipleFlag && hasClass(session.cellEl!, 'dg-line-number')) {
+    if (hasClass(session.cellEl!, 'dg-line-number')) {
       this.currentSelectionMode = SelectionModeMap.multiRow;
     }
   }
@@ -253,6 +254,8 @@ export class HeaderCellClickHandler extends BasePointerHandler {
     } else {
       initFlag = true;
     }
+
+    if (!this.multipleFlag) return;
 
     this.selectionInfo.setSelectionRangeInfo(
       {

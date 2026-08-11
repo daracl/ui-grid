@@ -86,20 +86,8 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
    * @param currentChecked 현재 체크 여부
    */
   private singleRowCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
-    if (!currentChecked) {
-      const checked = true;
-
-      removeClass(
-        this.gridMain
-          .getBody()
-          .getBodyElement()
-          .finds('.dg-row-check .dg-choice-item.' + SELECTED_STYLE_CLASS),
-        SELECTED_STYLE_CLASS,
-      );
-
-      contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
-      this.gridMain.getBody().setItemChecked(cellInfo.item, checked);
-    }
+    console.log('cellInfo : ', cellInfo);
+    this.gridMain.getBody().setItemChecked(cellInfo.viewItem?.id ?? '', true);
   }
 
   /**
@@ -113,9 +101,7 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
    */
   private multipleRowCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
     const checked = !currentChecked;
-
-    contentElement.classList.toggle(SELECTED_STYLE_CLASS, checked);
-    this.gridMain.getBody().setItemChecked(cellInfo.item, checked);
+    this.gridMain.getBody().addItemChecked(cellInfo.viewItem?.id ?? '', checked);
   }
 
   public alignStyle(): string {

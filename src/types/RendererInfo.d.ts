@@ -1,4 +1,4 @@
-import { REGEXP_TYPE } from '@/constants';
+import { RegexpType } from '@/constants';
 import { OptionCallback, ValuesInfo } from '@t/Common';
 
 /**
@@ -62,7 +62,7 @@ export interface ViewRendererInfo extends RendererInfo {
 export interface EditRendererInfo extends RendererInfo {
   customOptions?: any;
   required?: boolean; //true // 필수 여부
-  regexpType?: REGEXP_TYPE; // 정규식 타입
+  regexpType?: RegexpType; // 정규식 타입
   rule?: {
     // 규칙
     minLength: number; // 3

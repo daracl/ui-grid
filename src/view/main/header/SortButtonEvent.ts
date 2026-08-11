@@ -55,7 +55,7 @@ export class SortButtonEvent implements EventHandler {
         const currentElement = e.currentTarget as HTMLElement;
 
         const sortCell = intValue(
-          currentElement.closest('.dg-header-cell')?.getAttribute('data-header-cell-position') ?? '0',
+          (currentElement.closest('.dg-header-cell') as HTMLElement)?.dataset.headerCellPosition ?? '0',
         );
 
         const sortField = cfg.currentFields[sortCell];

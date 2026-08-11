@@ -1,4 +1,4 @@
-import { POSITION_TYPE } from '@/constants';
+import { PositionType } from '@/constants';
 import { OptionCallback } from './Common';
 import { EditRendererInfo } from './RendererInfo';
 import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
@@ -10,7 +10,7 @@ import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
  * @typedef {ToolRowItem}
  */
 export interface ToolbarLayout {
-  position: POSITION_TYPE;
+  position: PositionType;
   children: ToolbarFieldItem[];
   height?: number;
   width?: number;

@@ -28,7 +28,7 @@ export function initConfig(opts: GridOptions): Config {
     dataManager: {} as DataManager,
     eventManager: new EventManager(),
     theme: '',
-    selectRowOnCellClick: opts.body?.row?.selectRowOnCellClick === true,
+    checkOnRowSelect: opts.aside?.rowCheckbox?.checkOnRowSelect === true,
     enableHeaderHelpButton: opts.header?.help?.enabled,
     dimensions: {
       width: 0,

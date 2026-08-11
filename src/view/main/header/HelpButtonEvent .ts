@@ -125,9 +125,9 @@ export class HelpButtonEvent implements EventHandler {
   getHeaderHelpCellInfo(cfg: Config, currentElement: HTMLElement) {
     let cell;
     let field;
-    const groupCellElement = currentElement.closest('.dg-header-group-cell');
+    const groupCellElement = currentElement.closest('.dg-header-group-cell') as HTMLElement;
     if (groupCellElement) {
-      const groupPosition = groupCellElement.getAttribute('data-header-group-position')?.split(',');
+      const groupPosition = groupCellElement.dataset.headerGroupPosition?.split(',');
 
       if (groupPosition && groupPosition.length > 0) {
         const row = intValue(groupPosition[0]);
@@ -145,7 +145,7 @@ export class HelpButtonEvent implements EventHandler {
         cell = idx;
       }
     } else {
-      cell = intValue(currentElement.closest('.dg-header-cell')?.getAttribute('data-header-cell-position') ?? '0');
+      cell = intValue((currentElement.closest('.dg-header-cell') as HTMLElement)?.dataset.headerCellPosition ?? '0');
       field = cfg.currentFields[cell];
     }
 
