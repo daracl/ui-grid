@@ -1,7 +1,7 @@
-import { PositionType } from '@/constants';
+import { HorizontalRegion } from '@/constants';
+import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
 import { OptionCallback } from './Common';
 import { EditRendererInfo } from './RendererInfo';
-import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
 
 /**
  * ToolBar item info
@@ -10,7 +10,7 @@ import { ToolBarRenderer } from '@/renderer/ToolBarRenderer';
  * @typedef {ToolRowItem}
  */
 export interface ToolbarLayout {
-  position: PositionType;
+  position: HorizontalRegion;
   children: ToolbarFieldItem[];
   height?: number;
   width?: number;

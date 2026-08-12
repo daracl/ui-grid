@@ -1,4 +1,4 @@
-import { HoverMode, PositionType, SelectionMode, THEME_TYPE } from '@/constants';
+import { HorizontalRegion, HoverMode, HorizontalRegion, SelectionMode, THEME_TYPE } from '@/constants';
 import { BodyStyle } from '@/constantStyles';
 import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
@@ -679,11 +679,11 @@ export interface FooterOptions {
     /**
      * 위치 값
      */
-    position?: PositionType;
+    position?: HorizontalRegion;
     /**
      * 페이지 포켓 위치
      */
-    formatPosition?: PositionType;
+    formatPosition?: HorizontalRegion;
     /**
      * 페이지 메시지 포멧
      */
@@ -699,7 +699,7 @@ export interface FooterOptions {
     /**
      * 위치 값
      */
-    position?: PositionType;
+    position?: HorizontalRegion;
     format: string | OptionCallback;
   };
 }

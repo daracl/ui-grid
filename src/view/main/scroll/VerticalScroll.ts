@@ -238,7 +238,7 @@ export class VerticalScroll {
       const endY = eventPosition(e).y;
       this.moveVerticalScroll({ position: initialTop + (endY - startY) });
 
-      cfg.eventManager.off(document, 'touchmove mousemove touchend mouseup');
+      cfg.eventManager.off(document, 'touchmove mousemove touchcancel touchend mouseup');
 
       if (tooltipFlag) {
         tooltipEle.hide();
@@ -283,7 +283,7 @@ export class VerticalScroll {
 
         // 이벤트 바인딩
         cfg.eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
-        cfg.eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
+        cfg.eventManager.on({ el: document, type: 'touchend touchcancel mouseup' }, onEnd);
 
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId); // 중복 방지

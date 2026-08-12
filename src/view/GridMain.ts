@@ -1109,7 +1109,9 @@ export class GridMain {
 
     const cfg = this.cfg;
 
+    this.body.destroy();
     cfg.eventManager.destroy();
+
     gridElement.removeAttr(INSTANCE_ATTR_KEY);
     const el = gridElement.getElement();
 

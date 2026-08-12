@@ -14,13 +14,13 @@ import { PointerSession } from '@/event/PointerSession';
 import { SelectionInfo } from '@/selection/selection';
 import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
-import { Body } from './Body';
+import { Body } from '../Body';
 import { CellClickHandler } from './CellClickHandler';
 import { KeydownEvent } from './KeydownEvent ';
 import { PasteEvent } from './PasteEventHandler';
 import { RowMoveHandler } from './RowMoveHandler';
 import { addClass } from '@/util/styleUtils';
-import { removeClass } from '../../../util/styleUtils';
+import { removeClass } from '../../../../util/styleUtils';
 
 /**
  * Body event class
@@ -94,7 +94,7 @@ export class BodyEvent {
       { passive: true },
     );
 
-    eventManager.off(bodyElement, 'touchmove');
+    eventManager.off(bodyElement, 'touchmove touchend touchcancel');
     eventManager.on(
       { el: bodyElement, type: 'touchmove' },
       (evt: TouchEvent) => {
@@ -150,6 +150,11 @@ export class BodyEvent {
       },
       { passive: false },
     );
+
+    eventManager.on({ el: bodyElement, type: 'touchend touchcancel' }, () => {
+      cancelAnimationFrame(animationId);
+      animationId = 0;
+    });
   }
 
   private initMouseOver() {
@@ -201,6 +206,16 @@ export class BodyEvent {
     const clickManager = new ClickManager();
 
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
+
+    const cleanupDragEvents = () => {
+      eventManager.off(
+        document,
+        'touchmove.cellclick mousemove.cellclick touchend.cellclick touchcancel.cellclick mouseup.cellclick',
+      );
+
+      cfg.isBodyDragging = false;
+      cfg.isMoveRow = false;
+    };
 
     eventManager.on(
       { el: bodyElement, selector: '.dg-cell', type: 'mousedown.cellclick touchstart.cellclick' },
@@ -275,10 +290,7 @@ export class BodyEvent {
               cfg.isBodyDragging = true;
 
               if (handler.onActivate?.(session) === false) {
-                eventManager.off(
-                  document,
-                  'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick',
-                );
+                cleanupDragEvents();
                 return;
               }
             }
@@ -288,14 +300,17 @@ export class BodyEvent {
             handler.onPointerMove?.(session);
           });
 
-          eventManager.on({ el: document, type: 'touchend.cellclick mouseup.cellclick' }, (moveEvt: Event) => {
-            eventManager.off(document, 'touchmove.cellclick mousemove.cellclick touchend.cellclick mouseup.cellclick');
-            session.state = PointerStateMap.IDLE;
-            session.currentPos = eventPosition(moveEvt);
-            handler.onPointerUp?.(session);
-            cfg.isBodyDragging = false;
-            cfg.isMoveRow = false;
-          });
+          eventManager.on(
+            { el: document, type: 'touchend.cellclick touchcancel.cellclick mouseup.cellclick' },
+            (moveEvt: Event) => {
+              cleanupDragEvents();
+              session.state = PointerStateMap.IDLE;
+              session.currentPos = eventPosition(moveEvt);
+              handler.onPointerUp?.(session);
+              cfg.isBodyDragging = false;
+              cfg.isMoveRow = false;
+            },
+          );
         }
 
         if (editable === true) {
@@ -315,5 +330,9 @@ export class BodyEvent {
       cfg.isMoveRow = false;
       //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
+  }
+
+  public destroy() {
+    //
   }
 }

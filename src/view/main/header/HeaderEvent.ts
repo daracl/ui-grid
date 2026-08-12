@@ -111,6 +111,13 @@ export class HeaderEvent {
 
     const dragThreshold = MOUSE_MOVE_THRESHOLD; // px
 
+    const cleanupDragEvents = () => {
+      eventManager.off(
+        document,
+        'touchmove.header.selection mousemove.header.selection touchend.header.selection touchcancel.header.selection mouseup.header.selection',
+      );
+    };
+
     eventManager.off(headerCellElements, 'mousedown.header.selection touchstart.header.selection');
     eventManager.on(
       { el: headerCellElements, type: 'mousedown.header.selection touchstart.header.selection' },
@@ -159,10 +166,7 @@ export class HeaderEvent {
                 isStarted = true;
 
                 if (handler.onActivate?.(session) === false) {
-                  eventManager.off(
-                    document,
-                    'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
-                  );
+                  cleanupDragEvents();
                   return;
                 }
               }
@@ -174,12 +178,9 @@ export class HeaderEvent {
           );
 
           eventManager.on(
-            { el: document, type: 'touchend.header.selection mouseup.header.selection' },
+            { el: document, type: 'touchend.header.selection touchcancel.header.selection  mouseup.header.selection' },
             (moveEvt: Event) => {
-              eventManager.off(
-                document,
-                'touchmove.header.selection mousemove.header.selection touchend.header.selection mouseup.header.selection',
-              );
+              cleanupDragEvents();
 
               session.state = PointerStateMap.IDLE;
               session.currentPos = eventPosition(moveEvt);

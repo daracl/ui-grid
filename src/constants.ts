@@ -51,7 +51,7 @@ export const RULES = {
 
 export const FIELD_PREFIX = 'dg'; // daracl grid field
 
-export type PositionType = 'left' | 'center' | 'right';
+export type HorizontalRegion = 'left' | 'center' | 'right';
 
 export type VerticalPosition = 'top' | 'bottom';
 

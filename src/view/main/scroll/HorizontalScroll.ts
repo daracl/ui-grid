@@ -114,7 +114,7 @@ export class HorizontalScroll {
     const moveHorizontalScroll = this.moveHorizontalScroll.bind(this);
 
     const cleanup = () => {
-      cfg.eventManager.off(document, 'touchmove mousemove touchend mouseup');
+      cfg.eventManager.off(document, 'touchmove mousemove touchend touchcancel mouseup');
     };
 
     const onMove = (e: MouseEvent | TouchEvent) => {
@@ -150,7 +150,7 @@ export class HorizontalScroll {
 
     const orginHorizontalThumbElement = horizontalThumbElement.getElement();
 
-    eventManager.off(orginHorizontalThumbElement, 'mousedown touchstart touchend mouseup');
+    eventManager.off(orginHorizontalThumbElement, 'mousedown touchstart touchend touchcancel mouseup');
     eventManager.on(
       { el: orginHorizontalThumbElement, type: 'mousedown touchstart' },
       (e: MouseEvent | TouchEvent) => {
@@ -168,7 +168,7 @@ export class HorizontalScroll {
         horizontalThumbElement.addClass('active');
 
         eventManager.on({ el: document, type: 'touchmove mousemove' }, onMove);
-        eventManager.on({ el: document, type: 'touchend mouseup' }, onEnd);
+        eventManager.on({ el: document, type: 'touchend touchcancel mouseup' }, onEnd);
 
         if (animationFrameId !== null) {
           cancelAnimationFrame(animationFrameId);
@@ -201,7 +201,7 @@ export class HorizontalScroll {
 
     const horizontalTrackElement = this.horizontalTrackElement.getElement();
 
-    eventManager.off(horizontalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.off(horizontalTrackElement, 'mousedown touchstart mouseup touchend touchcancel mouseleave');
     eventManager.on(
       { el: horizontalTrackElement, type: 'mousedown touchstart' },
       (e: Event) => {
@@ -228,7 +228,7 @@ export class HorizontalScroll {
       { passive: false },
     );
 
-    eventManager.on({ el: horizontalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+    eventManager.on({ el: horizontalTrackElement, type: 'mouseup touchend touchcancel mouseleave' }, (e: Event) => {
       if (bgMoveMode == 0) return;
 
       stopPreventCancel(e);
@@ -259,7 +259,7 @@ export class HorizontalScroll {
     const scrollButtonElements = this.horizontalElement.finds('.dg-scroll-button');
 
     //세로 방향키
-    eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchend mouseleave');
+    eventManager.off(scrollButtonElements, 'mousedown touchstart mouseup touchcancel touchend mouseleave');
     eventManager.on(
       { el: scrollButtonElements, type: 'mousedown touchstart' },
       (e: Event) => {
@@ -276,7 +276,7 @@ export class HorizontalScroll {
       { passive: false },
     );
 
-    eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
+    eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend touchcancel mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
         const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
         this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });

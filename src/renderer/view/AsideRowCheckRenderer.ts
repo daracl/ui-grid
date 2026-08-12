@@ -86,7 +86,6 @@ export class AsideRowCheckRenderer extends ViewCellRenderer {
    * @param currentChecked 현재 체크 여부
    */
   private singleRowCheck(contentElement: HTMLElement, cellInfo: CellInfo, currentChecked: boolean) {
-    console.log('cellInfo : ', cellInfo);
     this.gridMain.getBody().setItemChecked(cellInfo.viewItem?.id ?? '', true);
   }
 

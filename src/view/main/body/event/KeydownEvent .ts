@@ -15,7 +15,7 @@ import { SelectionInfo } from '@/selection/selection';
 import { eventKeyCode, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { Body } from './Body';
+import { Body } from '../Body';
 
 /**
  * keydown event class
