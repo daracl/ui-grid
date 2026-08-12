@@ -1,29 +1,47 @@
 import { DaraElement } from '@/element/DaraElement';
 import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';
-import { isEmpty } from '@/util/utils';
-import { GridOptions } from '@t/GridOptions';
 import { GridMain } from '@/view/GridMain';
+import { GridOptions } from '@t/GridOptions';
+import { ScrollInfo } from '@t/GridConfig';
 import { HorizontalScroll } from './HorizontalScroll';
 import { VerticalScroll } from './VerticalScroll';
 
-/**
- * body scroll
- */
 export class Scroll {
   private readonly gridMain: GridMain;
-
   private readonly opts: GridOptions;
 
   private readonly horizontalElement: DaraElement;
-
   private readonly verticalElement: DaraElement;
 
   private verticalScroll: VerticalScroll;
   private horizontalScroll: HorizontalScroll;
 
+  // wheel animation frame
+  private wheelAnimationId = 0;
+
+  // 누적된 wheel delta
+  private pendingVerticalDelta = 0;
+  private pendingHorizontalDelta = 0;
+
+  // 현재 wheel 방향
+  private verticalWheelDirection: 'U' | 'D' | null = null;
+  private horizontalWheelDirection: 'L' | 'R' | null = null;
+
+  // 방향이 변경되었는지 여부
+  private verticalDirectionChanged = false;
+  private horizontalDirectionChanged = false;
+
+  // wheel 100 = 1 tick
+  private static readonly WHEEL_TICK = 100;
+
+  // wheel 1 tick당 기본 이동 row
+  private static readonly DEFAULT_WHEEL_SPEED = 3;
+
+  // 한 frame에서 처리할 최대 tick
+  private static readonly MAX_TICKS_PER_FRAME = 2;
+
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
-
     this.opts = this.gridMain.options();
 
     this.horizontalElement = this.gridMain.getMainElement().findDaraElement('.dg-scroll.dg-horizontal');
@@ -32,13 +50,15 @@ export class Scroll {
   }
 
   /**
-   * init scroll
+   * 스크롤을 초기화한다.
    */
   public init() {
     this.verticalScroll = new VerticalScroll(this.gridMain, this, this.verticalElement);
+
     this.horizontalScroll = new HorizontalScroll(this.gridMain, this, this.horizontalElement);
 
     const scrollSize = this.opts.scroll.width;
+
     const edge = this.gridMain.getMainElement().findDaraElement('.dg-scroll-corner');
 
     edge.css({ width: `${scrollSize}px`, height: `${scrollSize}px` });
@@ -54,120 +74,378 @@ export class Scroll {
     this.horizontalScroll.init();
   }
 
+  /**
+   * 스크롤 크기와 위치를 계산한다.
+   */
   public calculate() {
     this.horizontalScroll.calculate();
     this.verticalScroll.calculate();
   }
 
+  /**
+   * 마우스 휠 이벤트를 초기화한다.
+   */
   private initMouseWheel() {
-    const { scroll, dataInfo, eventManager } = this.gridMain.config();
-    const opts = this.opts;
-
-    const enableWheelInContainer = opts.scroll.enableWheelInContainer;
+    const { scroll, eventManager } = this.gridMain.config();
 
     const mainElement = this.gridMain.getMainElement().getElement();
-    let animationId: number;
-    let beforeStartIdx = -1;
-
-    const verticalScrollEnable = opts.scroll.vertical.enable;
 
     eventManager.off(mainElement, 'wheel DOMMouseScroll');
+
     eventManager.on(
-      { el: mainElement, type: 'wheel DOMMouseScroll' },
+      {
+        el: mainElement,
+        type: 'wheel DOMMouseScroll',
+      },
       (evt: WheelEvent) => {
-        const delta = evt.deltaY;
+        const delta = this.normalizeWheelDelta(evt);
 
-        if (isEmpty(delta)) return;
-
-        const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
-
-        if (!verticalScrollEnable && !isHorizontal) {
+        if (delta === 0) {
           return;
         }
 
-        const startIdx = scroll.startIdx;
+        const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
 
-        if (enableWheelInContainer) stopPreventCancel(evt);
-
-        //delta < 0 --up
-        const upFlag = delta < 0;
-
-        const rowLength = dataInfo.rowLength;
-
-        if (scroll.enableVertical && !isHorizontal) {
-          if ((upFlag && startIdx !== 0) || (!upFlag && startIdx + scroll.insideViewRow < rowLength)) {
-            stopPreventCancel(evt);
-          } else {
-            cancelAnimationFrame(animationId);
-            animationId = 0;
-            return;
-          }
-
-          if (animationId != 0 && beforeStartIdx == startIdx) {
-            return;
-          }
-
-          beforeStartIdx = startIdx;
-
-          animationId = requestAnimationFrame(() => {
-            const speed = getFirstDigitMath(Math.abs(delta));
-            const pageCount = Math.ceil(rowLength / scroll.viewRow);
-            this.moveVerticalScroll({
-              direction: upFlag ? 'U' : 'D',
-              speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
-            });
-            beforeStartIdx = -1;
-          });
-        } else if (isHorizontal) {
-          if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
-            stopPreventCancel(evt);
-          } else {
-            cancelAnimationFrame(animationId);
-            animationId = 0;
-            return;
-          }
-
-          animationId = requestAnimationFrame(() => {
-            this.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
-          });
+        if (!this.canScroll(scroll, delta, isHorizontal)) {
+          return;
         }
+
+        if (this.opts.scroll.enableWheelInContainer) {
+          stopPreventCancel(evt);
+        }
+
+        if (isHorizontal) {
+          this.addHorizontalWheel(delta);
+        } else {
+          this.addVerticalWheel(delta);
+        }
+
+        this.requestWheelAnimation();
       },
-      { passive: false },
+      {
+        passive: false,
+      },
     );
   }
 
   /**
-   * 세로 스크롤 이동.
-   *
-   * @param  moveObj.position {Integer} top position
-   * @param  moveObj.direction {String} 'U' or 'D'
-   * @param  moveObj.resizeFlag {boolean} resize flag
-   * @param  moveObj.drawFlag {boolean} redraw flag
-   * @param  moveObj.speed {Integer} row move count
-   * @param  moveObj.rowIdx {Integer} move row idx
+   * 현재 wheel 방향으로 스크롤할 수 있는지 확인한다.
+   */
+  private canScroll(scroll: ScrollInfo, delta: number, isHorizontal: boolean): boolean {
+    if (isHorizontal) {
+      const maxLeft = scroll.hTrackWidth - scroll.hThumbWidth;
+
+      if (delta < 0) {
+        return scroll.left > 0;
+      }
+
+      return scroll.left < maxLeft;
+    }
+
+    if (this.opts.scroll.vertical.enable === false) {
+      return false;
+    }
+
+    const rowLength = this.gridMain.config().dataInfo.rowLength;
+
+    if (delta < 0) {
+      return scroll.startIdx > 0;
+    }
+
+    return scroll.startIdx + scroll.insideViewRow < rowLength;
+  }
+
+  /**
+   * 세로 wheel delta를 누적한다.
+   */
+  private addVerticalWheel(delta: number) {
+    const direction = delta < 0 ? 'U' : 'D';
+
+    if (this.verticalWheelDirection !== null && this.verticalWheelDirection !== direction) {
+      // 방향이 바뀌면 이전 방향의 누적량을 버린다.
+      this.pendingVerticalDelta = delta;
+
+      // 작은 delta라도 방향 변경 직후 바로 반응하도록 한다.
+      this.verticalDirectionChanged = true;
+    } else {
+      this.pendingVerticalDelta += delta;
+    }
+
+    this.verticalWheelDirection = direction;
+  }
+
+  /**
+   * 가로 wheel delta를 누적한다.
+   */
+  private addHorizontalWheel(delta: number) {
+    const direction = delta < 0 ? 'L' : 'R';
+
+    if (this.horizontalWheelDirection !== null && this.horizontalWheelDirection !== direction) {
+      // 방향이 바뀌면 이전 방향의 누적량을 버린다.
+      this.pendingHorizontalDelta = delta;
+
+      // 작은 delta라도 방향 변경 직후 바로 반응하도록 한다.
+      this.horizontalDirectionChanged = true;
+    } else {
+      this.pendingHorizontalDelta += delta;
+    }
+
+    this.horizontalWheelDirection = direction;
+  }
+
+  /**
+   * wheel animation frame을 예약한다.
+   */
+  private requestWheelAnimation() {
+    if (this.wheelAnimationId !== 0) {
+      return;
+    }
+
+    this.wheelAnimationId = requestAnimationFrame(() => {
+      this.wheelAnimationId = 0;
+
+      this.processWheel();
+
+      if (this.hasPendingWheel()) {
+        this.requestWheelAnimation();
+      }
+    });
+  }
+
+  /**
+   * 누적된 vertical/horizontal wheel을 처리한다.
+   */
+  private processWheel() {
+    if (this.pendingVerticalDelta !== 0) {
+      this.processVerticalWheel();
+    }
+
+    if (this.pendingHorizontalDelta !== 0) {
+      this.processHorizontalWheel();
+    }
+  }
+
+  /**
+   * 누적된 세로 wheel을 처리한다.
+   */
+  private processVerticalWheel() {
+    const { scroll, dataInfo } = this.gridMain.config();
+
+    if (this.pendingVerticalDelta === 0 || this.verticalWheelDirection === null) {
+      return;
+    }
+
+    const direction = this.verticalWheelDirection;
+
+    const rowLength = dataInfo.rowLength;
+
+    const canMove = direction === 'U' ? scroll.startIdx > 0 : scroll.startIdx + scroll.insideViewRow < rowLength;
+
+    if (!canMove) {
+      this.clearVerticalWheel();
+      return;
+    }
+
+    const ticks = this.getWheelTicks(this.pendingVerticalDelta, this.verticalDirectionChanged);
+
+    if (ticks <= 0) {
+      return;
+    }
+
+    const speed = this.getVerticalWheelSpeed();
+
+    this.moveVerticalScroll({
+      direction,
+      speed: speed * ticks,
+    });
+
+    this.consumeVerticalDelta(ticks);
+
+    this.verticalDirectionChanged = false;
+
+    const nextCanMove = direction === 'U' ? scroll.startIdx > 0 : scroll.startIdx + scroll.insideViewRow < rowLength;
+
+    if (!nextCanMove) {
+      this.clearVerticalWheel();
+    }
+  }
+
+  /**
+   * 누적된 가로 wheel을 처리한다.
+   */
+  private processHorizontalWheel() {
+    const { scroll } = this.gridMain.config();
+
+    if (this.pendingHorizontalDelta === 0 || this.horizontalWheelDirection === null) {
+      return;
+    }
+
+    const direction = this.horizontalWheelDirection;
+
+    const maxLeft = scroll.hTrackWidth - scroll.hThumbWidth;
+
+    const canMove = direction === 'L' ? scroll.left > 0 : scroll.left < maxLeft;
+
+    if (!canMove) {
+      this.clearHorizontalWheel();
+      return;
+    }
+
+    const ticks = this.getWheelTicks(this.pendingHorizontalDelta, this.horizontalDirectionChanged);
+
+    if (ticks <= 0) {
+      return;
+    }
+
+    const speed = this.getHorizontalWheelSpeed();
+
+    this.moveHorizontalScroll({
+      direction,
+      speed: speed * ticks,
+    });
+
+    this.consumeHorizontalDelta(ticks);
+
+    this.horizontalDirectionChanged = false;
+
+    const nextCanMove = direction === 'L' ? scroll.left > 0 : scroll.left < maxLeft;
+
+    if (!nextCanMove) {
+      this.clearHorizontalWheel();
+    }
+  }
+
+  /**
+   * wheel delta를 tick으로 변환한다.
+   */
+  private getWheelTicks(delta: number, directionChanged: boolean): number {
+    const ticks = Math.floor(Math.abs(delta) / Scroll.WHEEL_TICK);
+
+    if (ticks > 0) {
+      return Math.min(ticks, Scroll.MAX_TICKS_PER_FRAME);
+    }
+
+    // 방향이 바뀐 직후에는 작은 delta라도
+    // 최소 1 tick을 처리한다.
+    if (directionChanged) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  /**
+   * 세로 wheel의 row 이동 속도를 반환한다.
+   */
+  private getVerticalWheelSpeed(): number {
+    const speed = this.opts.scroll.vertical.speed;
+
+    return speed > 0 ? speed : Scroll.DEFAULT_WHEEL_SPEED;
+  }
+
+  /**
+   * 가로 wheel의 이동 속도를 반환한다.
+   */
+  private getHorizontalWheelSpeed(): number {
+    const speed = this.opts.scroll.horizontal.speed;
+
+    return speed > 0 ? speed : Scroll.DEFAULT_WHEEL_SPEED;
+  }
+
+  /**
+   * 처리한 세로 wheel delta를 소비한다.
+   */
+  private consumeVerticalDelta(ticks: number) {
+    const consumed = ticks * Scroll.WHEEL_TICK;
+
+    if (this.pendingVerticalDelta < 0) {
+      this.pendingVerticalDelta += consumed;
+    } else {
+      this.pendingVerticalDelta -= consumed;
+    }
+
+    if (Math.abs(this.pendingVerticalDelta) < Scroll.WHEEL_TICK) {
+      this.pendingVerticalDelta = 0;
+    }
+  }
+
+  /**
+   * 처리한 가로 wheel delta를 소비한다.
+   */
+  private consumeHorizontalDelta(ticks: number) {
+    const consumed = ticks * Scroll.WHEEL_TICK;
+
+    if (this.pendingHorizontalDelta < 0) {
+      this.pendingHorizontalDelta += consumed;
+    } else {
+      this.pendingHorizontalDelta -= consumed;
+    }
+
+    if (Math.abs(this.pendingHorizontalDelta) < Scroll.WHEEL_TICK) {
+      this.pendingHorizontalDelta = 0;
+    }
+  }
+
+  /**
+   * 세로 wheel 상태를 초기화한다.
+   */
+  private clearVerticalWheel() {
+    this.pendingVerticalDelta = 0;
+    this.verticalWheelDirection = null;
+    this.verticalDirectionChanged = false;
+  }
+
+  /**
+   * 가로 wheel 상태를 초기화한다.
+   */
+  private clearHorizontalWheel() {
+    this.pendingHorizontalDelta = 0;
+    this.horizontalWheelDirection = null;
+    this.horizontalDirectionChanged = false;
+  }
+
+  /**
+   * 처리할 wheel이 남아있는지 확인한다.
+   */
+  private hasPendingWheel(): boolean {
+    return (
+      Math.abs(this.pendingVerticalDelta) >= Scroll.WHEEL_TICK ||
+      Math.abs(this.pendingHorizontalDelta) >= Scroll.WHEEL_TICK ||
+      this.verticalDirectionChanged ||
+      this.horizontalDirectionChanged
+    );
+  }
+
+  /**
+   * 브라우저별 wheel delta를 동일한 기준으로 변환한다.
+   */
+  private normalizeWheelDelta(evt: WheelEvent): number {
+    let delta = evt.deltaY;
+
+    if (!Number.isFinite(delta) || delta === 0) {
+      return 0;
+    }
+
+    if (evt.deltaMode === 1) {
+      delta *= 16;
+    } else if (evt.deltaMode === 2) {
+      delta *= this.gridMain.config().dimensions.mainHeight;
+    }
+
+    return delta;
+  }
+
+  /**
+   * 세로 스크롤을 이동한다.
    */
   public moveVerticalScroll(moveObj: any) {
     this.verticalScroll.moveVerticalScroll(moveObj);
   }
 
   /**
-   * @method moveHorizontalScroll
-   * @param  moveObj.position {Integer} left position
-   * @param  moveObj.direction {String} 'L' or 'R'
-   * @param  moveObj.resizeFlag {boolean} resize flag
-   * @param  moveObj.drawFlag {boolean} redraw flag
-   * @param  moveObj.speed {Integer} row move count
-   * @param  moveObj.colIdx {Integer} move col idx
-   * @description 가로 스크롤 이동.
+   * 가로 스크롤을 이동한다.
    */
   public moveHorizontalScroll(moveObj: any) {
     this.horizontalScroll.moveHorizontalScroll(moveObj);
   }
-}
-
-function getFirstDigitMath(num: number) {
-  while (num >= 10) {
-    num = Math.floor(num / 10);
-  }
-  return num;
 }

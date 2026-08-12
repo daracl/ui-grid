@@ -81,7 +81,7 @@ export class BodyRenderer {
 
     this.context.gridMain.hideLayer(mode);
 
-    //this.updateLastRowVisibility(fieldGroups, currentViewRow, viewRow);
+    this.updateLastRowVisibility(fieldGroups, currentViewRow, viewRow);
 
     const bodyClassList = this.context.bodyElement.getElement().classList;
 

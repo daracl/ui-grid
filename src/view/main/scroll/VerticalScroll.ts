@@ -20,6 +20,10 @@ export class VerticalScroll {
   private readonly verticalTrackElement: DaraElement;
   private readonly verticalThumbElement: DaraElement;
 
+  private bodyDrawPending = false;
+  private bodyDrawAnimationId = 0;
+  private lastThumbTop = -1;
+
   constructor(gridMain: GridMain, scroll: Scroll, verticalElement: DaraElement) {
     this.gridMain = gridMain;
     this.scrollOpts = this.gridMain.options().scroll;
@@ -67,35 +71,48 @@ export class VerticalScroll {
 
     const rowHeight = cfg.rowHeight;
     const totalRows = cfg.dataInfo.rowLength;
-    const totalRowHeight = rowHeight * totalRows;
+
     const verticalHeight = dimensions.mainHeight - (scroll.enableHorizontal ? opts.scroll.width : 0);
 
-    const vHeight = verticalHeight - 2; // 2 top bottom border
+    const vHeight = verticalHeight - 2;
     const vTrackHeight = vHeight - arrowButtonSize;
 
-    let thumbHeight = (vTrackHeight * ((dimensions.mainBodyHeight / totalRowHeight) * 100)) / 100;
-    if (vTrackHeight < SCROLL_THUMB_MIN_SIZE) {
-      thumbHeight = 0;
-    } else {
-      thumbHeight = Math.max(SCROLL_THUMB_MIN_SIZE, Math.min(thumbHeight, verticalHeight));
-    }
-    // row 보이기 기준으로 계산
-    scroll.oneRowMove = (vTrackHeight - thumbHeight) / (totalRows - scroll.insideViewRow);
+    const totalScrollableRows = Math.max(0, totalRows - scroll.insideViewRow);
 
-    this.verticalElement.css({ height: vHeight + 'px' });
-    this.verticalThumbElement.css({ height: thumbHeight + 'px' });
+    const totalRowHeight = rowHeight * totalRows;
+
+    let thumbHeight = 0;
+
+    if (vTrackHeight >= SCROLL_THUMB_MIN_SIZE && totalRowHeight > 0) {
+      thumbHeight = vTrackHeight * (dimensions.mainBodyHeight / totalRowHeight);
+
+      thumbHeight = Math.max(SCROLL_THUMB_MIN_SIZE, Math.min(thumbHeight, vTrackHeight));
+    }
+
+    if (totalScrollableRows > 0) {
+      scroll.oneRowMove = (vTrackHeight - thumbHeight) / totalScrollableRows;
+    } else {
+      scroll.oneRowMove = 0;
+    }
 
     scroll.vHeight = vHeight;
     scroll.vTrackHeight = vTrackHeight;
     scroll.vThumbHeight = thumbHeight;
 
-    //console.log("111111111scroll  : ", totalRows, scroll.startIdx, scroll.viewRow, scroll.insideViewRow);
+    this.verticalElement.css({ height: `${vHeight}px` });
 
-    if (totalRows < scroll.startIdx + scroll.viewRow) {
-      this.setVerticalPosition(scroll, (totalRows - scroll.insideViewRow) * scroll.oneRowMove);
-    } else if (scroll.startIdx > 0) {
-      this.setVerticalPosition(scroll, scroll.startIdx * scroll.oneRowMove);
+    this.verticalThumbElement.css({ height: `${thumbHeight}px` });
+
+    if (totalScrollableRows === 0) {
+      this.setVerticalPosition(scroll, 0);
+      return;
     }
+
+    const maxStartIdx = totalScrollableRows;
+
+    const startIdx = Math.min(Math.max(0, scroll.startIdx), maxStartIdx);
+
+    this.setVerticalPosition(scroll, startIdx * scroll.oneRowMove);
   }
 
   /**
@@ -338,7 +355,14 @@ export class VerticalScroll {
    * @param  moveObj.speed {Integer} row move count
    * @param  moveObj.rowIdx {Integer} move row idx
    */
-  moveVerticalScroll(moveObj: any) {
+  moveVerticalScroll(moveObj: {
+    position?: number;
+    direction?: 'U' | 'D';
+    resizeFlag?: boolean;
+    drawFlag?: boolean;
+    speed?: number;
+    rowIdx?: number;
+  }) {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
@@ -358,7 +382,7 @@ export class VerticalScroll {
       topVal = scroll.top + (moveObj.direction == 'U' ? -1 : 1) * speed * scroll.oneRowMove;
     }
 
-    this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
+    this.moveVerticalScrollPosition(topVal, moveObj.drawFlag ?? true);
   }
 
   /**
@@ -368,9 +392,12 @@ export class VerticalScroll {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
-    if (topVal >= scroll.vTrackHeight - scroll.vThumbHeight) {
-      topVal = scroll.vTrackHeight - scroll.vThumbHeight;
-    } else if (topVal <= 0) {
+    const maxTop = Math.max(0, scroll.vTrackHeight - scroll.vThumbHeight);
+
+    // clamp
+    if (topVal > maxTop) {
+      topVal = maxTop;
+    } else if (topVal < 0) {
       topVal = 0;
     }
 
@@ -393,7 +420,27 @@ export class VerticalScroll {
 
     if (drawFlag === false || scroll.startIdx == beforeStartIdx) return;
 
-    this.gridMain.getBody().dataDraw('vscroll');
+    this.scheduleBodyDraw();
+  }
+
+  private scheduleBodyDraw() {
+    this.bodyDrawPending = true;
+
+    if (this.bodyDrawAnimationId !== 0) {
+      return;
+    }
+
+    this.bodyDrawAnimationId = requestAnimationFrame(() => {
+      this.bodyDrawAnimationId = 0;
+
+      if (!this.bodyDrawPending) {
+        return;
+      }
+
+      this.bodyDrawPending = false;
+
+      this.gridMain.getBody().dataDraw('vscroll');
+    });
   }
 
   /**
@@ -404,18 +451,35 @@ export class VerticalScroll {
    * @param {number} topVal 스크롤 바 포지션
    */
   private setVerticalPosition(scroll: ScrollInfo, topVal: number) {
-    if (topVal < 0) return;
+    if (topVal < 0) {
+      topVal = 0;
+    }
+
+    if (scroll.top === topVal) {
+      return;
+    }
 
     scroll.top = topVal;
 
-    this.verticalThumbElement.css({ top: topVal + 'px' });
+    const roundedTop = Math.round(topVal);
+
+    if (this.lastThumbTop !== roundedTop) {
+      this.lastThumbTop = roundedTop;
+      this.verticalThumbElement.css({ top: topVal + 'px' });
+    }
 
     let startIdx = 0;
 
-    if (topVal > 0) {
+    if (scroll.oneRowMove > 0 && topVal > 0) {
       startIdx = Math.round(topVal / scroll.oneRowMove);
     }
+
+    const totalRows = this.gridMain.config().dataInfo.rowLength;
+
+    const maxStartIdx = Math.max(0, totalRows - scroll.insideViewRow);
+
     scroll.before.startIdx = scroll.startIdx;
-    scroll.startIdx = startIdx;
+
+    scroll.startIdx = Math.min(startIdx, maxStartIdx);
   }
 }
