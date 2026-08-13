@@ -507,12 +507,24 @@ export class GridMain {
     const el = this.gridElement;
 
     if (typeof ResizeObserver !== 'undefined') {
-      const resizeObserver = new ResizeObserver(
-        debounce(() => {
+      let resizeScheduled = false;
+      let originalOverflow = '';
+      const mainElement = el.getElement();
+      const resizeObserver = new ResizeObserver(() => {
+        if (resizeScheduled) {
+          return;
+        }
+        mainElement.style.overflow = 'hidden';
+        originalOverflow = mainElement.style.overflow;
+        resizeScheduled = true;
+
+        requestAnimationFrame(() => {
+          resizeScheduled = false;
           this.resize(el);
-        }, threshold),
-      );
-      resizeObserver.observe(el.getElement());
+          mainElement.style.overflow = originalOverflow;
+        });
+      });
+      resizeObserver.observe(mainElement);
       this.resizeObserver = resizeObserver;
     } else {
       window.addEventListener(
@@ -1138,7 +1150,7 @@ function getGridTemplate() {
   const GRID_TEMPLATE = document.createElement('template');
 
   GRID_TEMPLATE.innerHTML = html`
-    <div class="daracl-grid" tabindex="-1" style="outline:none !important;">
+    <div class="daracl-grid" tabindex="-1">
       <div class="dg-layout" style="position:absolute;user-select:none;touch-action:manipulation;">
         <div class="dg-layers"></div>
         <div class="dg-toolbar dg-select" role="presentation">
@@ -1149,7 +1161,7 @@ function getGridTemplate() {
           </div>
         </div>
 
-        <div class="dg-main" data-scroll="none" style="outline:none !important;" tabindex="-1">
+        <div class="dg-main" data-scroll="none" tabindex="-1">
           <div class="dg-panels">
             <div class="dg-panel dg-header">
               <div class="dg-region" data-region="left"></div>

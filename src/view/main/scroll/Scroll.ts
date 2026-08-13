@@ -122,9 +122,7 @@ export class Scroll {
 
         this.requestWheelAnimation();
       },
-      {
-        passive: false,
-      },
+      { passive: false },
     );
   }
 
