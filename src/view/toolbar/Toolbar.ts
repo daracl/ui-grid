@@ -91,7 +91,7 @@ export class Toolbar {
 
     this.toolbarRenderer = new ToolbarRenderer(this.gridMain, this.toolbarElement, this.toolbarOpts);
 
-    this.toolbarScroll = new ToolbarScroll(this.config, this.toolbarElement, this.toolbarOpts);
+    this.toolbarScroll = new ToolbarScroll(this.gridMain, this.toolbarElement, this.toolbarOpts);
 
     this.toolbarRenderer.init();
 

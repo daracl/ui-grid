@@ -7,7 +7,7 @@
 @use './stripedcells';
 
 @mixin all {
-  & > .dg-style- {
+  .dg-layout.dg-style- {
     @include borderbottom.borderbottom;
     @include borderless.borderless;
     @include rows.rows;

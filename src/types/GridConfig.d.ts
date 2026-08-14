@@ -1,10 +1,9 @@
 import { DaraElement } from '@/element/DaraElement';
-import { DataManager } from '@/service/DataManager';
-import { AnyKeyMap, RowId, SearchFields, SearchMatchInfo, ViewItem } from './Common';
-import { FieldItem } from './GridField';
-import { PagingOptions } from './GridOptions';
-import { FieldSortInfo } from '@/type/Header';
 import { EventManager } from '@/event/EventManager';
+import { DataManager } from '@/service/DataManager';
+import { FieldSortInfo } from '@/type/Header';
+import { AnyKeyMap, SearchFields, SearchMatchInfo, ViewItem } from './Common';
+import { FieldItem } from './GridField';
 import { PagingInfo } from './PagingInfo';
 
 /**
@@ -151,6 +150,8 @@ export interface Config {
   fixedLeftIndex: number;
   fixedRightIndex: number;
   scroll: ScrollInfo;
+  // 세로 스크롤 비활성화
+  disableVerticalScroll: boolean;
   edit: EditInfo;
   canvasContext?: CanvasRenderingContext2D;
 }

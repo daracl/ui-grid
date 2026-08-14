@@ -3,16 +3,17 @@ import { Config } from '@t/GridConfig';
 import { ToolbarOptions } from '@/types/GridOptions';
 import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';
 import { isEmpty } from '@/util/utils';
+import { GridMain } from '../GridMain';
 
 export class ToolbarScroll {
-  private readonly config: Config;
+  private readonly gridMain: GridMain;
   private readonly toolbarElement: HTMLElement;
   private readonly toolbarOpts: ToolbarOptions;
 
   private arrowScrollFrame: number | null = null;
 
-  constructor(config: Config, toolbarElement: HTMLElement, toolbarOpts: ToolbarOptions) {
-    this.config = config;
+  constructor(gridMain: GridMain, toolbarElement: HTMLElement, toolbarOpts: ToolbarOptions) {
+    this.gridMain = gridMain;
     this.toolbarElement = toolbarElement;
     this.toolbarOpts = toolbarOpts;
   }
@@ -55,7 +56,7 @@ export class ToolbarScroll {
 
     if (!scrollElement) return;
 
-    const { eventManager } = this.config;
+    const { eventManager } = this.gridMain.config();
 
     eventManager.off(scrollElement, 'wheel DOMMouseScroll');
 
@@ -69,6 +70,8 @@ export class ToolbarScroll {
         if (isEmpty(delta) || isShiftKey(evt)) return;
 
         stopPreventCancel(evt);
+
+        this.gridMain.hideLayer();
 
         scrollElement.scrollLeft += delta;
       },
@@ -95,7 +98,7 @@ export class ToolbarScroll {
   }
 
   private bindArrowEvents(button: HTMLButtonElement, direction: 'left' | 'right'): void {
-    const { eventManager } = this.config;
+    const { eventManager } = this.gridMain.config();
 
     eventManager.on({ el: button, type: 'mousedown touchstart' }, () => this.startArrowScrolling(direction));
 

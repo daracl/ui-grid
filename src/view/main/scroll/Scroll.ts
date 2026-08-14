@@ -67,7 +67,7 @@ export class Scroll {
 
     this.initMouseWheel();
 
-    if (this.opts.scroll.vertical.enable !== false) {
+    if (!this.gridMain.config().disableVerticalScroll) {
       this.verticalScroll.init();
     }
 
@@ -90,8 +90,9 @@ export class Scroll {
 
     const mainElement = this.gridMain.getMainElement().getElement();
 
-    eventManager.off(mainElement, 'wheel DOMMouseScroll');
+    const disableVerticalScroll = this.gridMain.config().disableVerticalScroll;
 
+    eventManager.off(mainElement, 'wheel DOMMouseScroll');
     eventManager.on(
       {
         el: mainElement,
@@ -106,13 +107,15 @@ export class Scroll {
 
         const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
 
-        if (!this.canScroll(scroll, delta, isHorizontal)) {
+        if (!disableVerticalScroll && this.opts.scroll.enableWheelInContainer) {
+          stopPreventCancel(evt);
+        }
+
+        if (!this.canScroll(scroll, delta, isHorizontal, disableVerticalScroll)) {
           return;
         }
 
-        if (this.opts.scroll.enableWheelInContainer) {
-          stopPreventCancel(evt);
-        }
+        stopPreventCancel(evt);
 
         if (isHorizontal) {
           this.addHorizontalWheel(delta);
@@ -129,7 +132,7 @@ export class Scroll {
   /**
    * 현재 wheel 방향으로 스크롤할 수 있는지 확인한다.
    */
-  private canScroll(scroll: ScrollInfo, delta: number, isHorizontal: boolean): boolean {
+  private canScroll(scroll: ScrollInfo, delta: number, isHorizontal: boolean, disableVerticalScroll: boolean): boolean {
     if (isHorizontal) {
       const maxLeft = scroll.hTrackWidth - scroll.hThumbWidth;
 
@@ -140,7 +143,7 @@ export class Scroll {
       return scroll.left < maxLeft;
     }
 
-    if (this.opts.scroll.vertical.enable === false) {
+    if (disableVerticalScroll) {
       return false;
     }
 

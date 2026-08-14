@@ -8,7 +8,7 @@
   <body>
     <div>Toolbar 를 마우스 휠로 이동 가능함.</div>
     <div class="grid-view-area" style="display: flex; align-items: center; justify-content: center">
-      <div id="sample" style="height: calc(100vh - 50px); width: 80%"></div>
+      <div id="sample" style="height: calc(100vh - 50px); width: 80%; min-height: 300px"></div>
     </div>
   </body>
 </html>
@@ -52,6 +52,9 @@
       theme: G_GRID_THEME,
       height: 'auto',
       width: 'auto',
+      scroll: {
+        // enableWheelInContainer: true,
+      },
       toolbar: {
         enabled: true,
         arrowEnabled: true,

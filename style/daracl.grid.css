@@ -70,10 +70,123 @@
   user-select: text;
 }
 
-body[data-dg-theme=light] .daracl-grid, body[data-dg-theme=light] .dg-hidden-layers,
-body .daracl-grid,
-body .daracl-grid > .dg-light,
-body .dg-hidden-layers,
+body[data-dg-theme=light] .daracl-grid,
+body[data-dg-theme=light] .dg-hidden-layers {
+  --field-margin-top: 10px;
+  --bar-positive-bg: #77c0fc;
+  --bar-negative-bg: #ff8989;
+  --border-color: #cdcdcd;
+  --border-thick-color: #b9bdc1;
+  --scroll-bg: #f7f7f7;
+  --scroll-track-bg: #f7f7f7;
+  --scroll-thumb-bg: #a5a5a5;
+  --scroll-thumb-hover-bg: #696969;
+  --scroll-button-bg: #c5c3c3;
+  --search-cell-highlight: #fffebc;
+  --search-cell-match: #fffc7f;
+  --status-danger-color: #d9534f;
+  --status-danger-bg: #d9534f;
+  --font-color: #686868;
+  --font-hover-color: #3a3d41;
+  --font-disable-color: #ebebeb;
+  --invalid-font-color: #ff4136;
+  --invalid-border-color: #ffb6b4;
+  --invalid-bg: #fdd;
+  --button-bg: #ffffff;
+  --button-bg-hover: #e3e3e3;
+  --button-bg-active: #dfe7f3;
+  --tab-bg: #f6f6f6;
+  --tab-bg-hover: #ebebeb;
+  --tooltip-bg: #3e3e3e;
+  --tooltip-color: #fff;
+  --input-bg: #fff;
+  --input-color: #212529;
+  --header-bg: #e6e6e6;
+  --header-gradient1: #ffffff;
+  --header-gradient2: #f1f1f1;
+  --body-bg: #ffffff;
+  --body-bg-thin: #f0f0f0;
+  --body-bg-hover: #d2d2d2;
+  --summary-bg: #e6e6e6;
+  --disabled-bg: #ebebeb;
+  --fixed-column-bg: #9b9a9a;
+  --header-help-bg: #6789f1;
+  --header-help-bg-hover: #89a5f9;
+  --header-bg-selection: #e9e9e9;
+  --cell-bg-hover: #f3f3f3;
+  --cell-bg-selection: #e9faff;
+  --cell-selection-border: #4762fa;
+  --cell-bg-linenumber: #f9f9f9;
+  --row-bg: #f3f6fa;
+  --empty-icon-color: #adabab;
+  --icon-stroke-color: #5a5858;
+  --icon-fill-stroke-color: #ffffff;
+  --check-bg: #dfdfdf;
+  --check-active-bg: #4caf50;
+  --check-mark-color: #ffffff;
+  --check-indeterminate-bg: #686868;
+  --item-selected: #e9faff;
+  --item-check-color: #1a73e8;
+}
+body[data-dg-theme=dark] .daracl-grid,
+body[data-dg-theme=dark] .dg-hidden-layers {
+  --field-margin-top: 10px;
+  --bar-positive-bg: #77c0fc;
+  --bar-negative-bg: #ff8989;
+  --border-color: #585858;
+  --border-thick-color: #807e7e;
+  --scroll-bg: #1e1e1e;
+  --scroll-track-bg: #1e1e1e;
+  --scroll-thumb-bg: #555;
+  --scroll-thumb-hover-bg: #777;
+  --scroll-button-bg: #333;
+  --search-cell-highlight: #565552;
+  --search-cell-match: #776b51;
+  --status-danger-color: #ff6b6b;
+  --status-danger-bg: #ff6b6b;
+  --font-color: #e0e0e0;
+  --font-hover-color: #ffffff;
+  --font-disable-color: #ebebeb;
+  --invalid-font-color: #ff9b9b;
+  --invalid-border-color: #ff5e5e;
+  --invalid-bg: #3a1f1f;
+  --button-bg: #5a5a5a;
+  --button-bg-hover: #727272;
+  --button-bg-active: #616161;
+  --tab-bg: #2c2c2c;
+  --tab-bg-hover: #3c3c3c;
+  --tooltip-bg: #444;
+  --tooltip-color: #fff;
+  --input-bg: #2a2a2a;
+  --input-color: #f0f0f0;
+  --header-bg: #1a1717;
+  --header-gradient1: #525252;
+  --header-gradient2: #000000;
+  --body-bg: #1a1a1a;
+  --body-bg-thin: #444343;
+  --body-bg-hover: #565555;
+  --summary-bg: #2c2c2c;
+  --disabled-bg: #555;
+  --fixed-column-bg: #cfcfcf;
+  --header-help-bg: #e8e8e8;
+  --header-help-bg-hover: #e8e8e8;
+  --header-bg-selection: #565656;
+  --cell-bg-hover: #2b2b2b;
+  --cell-bg-selection: #264f78;
+  --cell-selection-border: #47dcfa;
+  --cell-bg-linenumber: #2e2e2e;
+  --row-bg: #444546;
+  --empty-icon-color: #888;
+  --icon-stroke-color: #fffbfb;
+  --icon-fill-stroke-color: #1a1a1a;
+  --check-bg: #979797;
+  --check-active-bg: #00c1ff;
+  --check-mark-color: #4e4e4e;
+  --check-indeterminate-bg: #fffbfb;
+  --item-selected: #264f78;
+  --item-check-color: #68a9ff;
+}
+body .daracl-grid .dg-layout.dg-light,
 body .dg-hidden-layers.dg-light {
   --field-margin-top: 10px;
   --bar-positive-bg: #77c0fc;
@@ -131,8 +244,7 @@ body .dg-hidden-layers.dg-light {
   --item-selected: #e9faff;
   --item-check-color: #1a73e8;
 }
-body[data-dg-theme=dark] .daracl-grid, body[data-dg-theme=dark] .dg-hidden-layers,
-body .daracl-grid > .dg-dark,
+body .daracl-grid .dg-layout.dg-dark,
 body .dg-hidden-layers.dg-dark {
   --field-margin-top: 10px;
   --bar-positive-bg: #77c0fc;
@@ -712,192 +824,197 @@ body .dg-hidden-layers.dg-dark {
 .dg-hidden-layers .dg-switch .dg-slider.dg-disabled::before {
   background: var(--check-mark-color);
 }
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell,
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell {
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell,
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell {
   border-left: 1px solid transparent !important;
   border-right: 1px solid transparent !important;
 }
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell:last-child,
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell:last-child,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell:last-child,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell:last-child {
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell:last-child,
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell:last-child,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-cell:last-child,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-header-table tr > .dg-header-group-cell:last-child {
   border-right: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-body-table tr > td,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-body-table tr > td {
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-body-table tr > td,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-body-table tr > td {
   border-left: 1px solid transparent !important;
   border-right: 1px solid transparent !important;
 }
-.daracl-grid > .dg-style-borderbottom .dg-main .dg-body-table tr > td:last-child,
-.dg-hidden-layers > .dg-style-borderbottom .dg-main .dg-body-table tr > td:last-child {
+.daracl-grid .dg-layout.dg-style-borderbottom .dg-main .dg-body-table tr > td:last-child,
+.dg-hidden-layers .dg-layout.dg-style-borderbottom .dg-main .dg-body-table tr > td:last-child {
   border-right: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-borderless .dg-main,
-.dg-hidden-layers > .dg-style-borderless .dg-main {
+.daracl-grid .dg-layout.dg-style-borderless .dg-main,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main {
   border-color: transparent !important;
   --header-gradient1: transparent;
   --header-gradient2: transparent;
 }
-.daracl-grid > .dg-style-borderless .dg-main .dg-header-table tr > .dg-header-cell,
-.daracl-grid > .dg-style-borderless .dg-main .dg-header-table tr > .dg-header-group-cell,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-header-table tr > .dg-header-cell,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-header-table tr > .dg-header-group-cell {
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-header-table tr > .dg-header-cell,
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-header-table tr > .dg-header-group-cell,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-header-table tr > .dg-header-cell,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-header-table tr > .dg-header-group-cell {
   border-color: transparent !important;
 }
-.daracl-grid > .dg-style-borderless .dg-main .dg-body-table tr > td,
-.daracl-grid > .dg-style-borderless .dg-main .dg-body-table tr > th,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-body-table tr > td,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-body-table tr > th {
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-body-table tr > td,
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-body-table tr > th,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-body-table tr > td,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-body-table tr > th {
   border-color: transparent !important;
 }
-.daracl-grid > .dg-style-borderless .dg-main .dg-line-number,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-line-number {
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-line-number,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-line-number {
   background: transparent !important;
 }
-.daracl-grid > .dg-style-borderless .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-borderless .dg-main .dg-fixed-column-line {
+.daracl-grid .dg-layout.dg-style-borderless .dg-main .dg-fixed-column-line,
+.dg-hidden-layers .dg-layout.dg-style-borderless .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
 }
-.daracl-grid > .dg-style-rows .dg-main,
-.dg-hidden-layers > .dg-style-rows .dg-main {
+.daracl-grid .dg-layout.dg-style-rows .dg-main,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main {
   border-color: transparent !important;
   border-top: 1px solid var(--border-thick-color) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
-.daracl-grid > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-rows .dg-main .dg-body-table .dg-row > td,
-.daracl-grid > .dg-style-rows .dg-main .dg-body-table .dg-row > th,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-body-table .dg-row > td,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-body-table .dg-row > th {
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-body-table .dg-row > td,
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-body-table .dg-row > th,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-body-table .dg-row > td,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-body-table .dg-row > th {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-rows .dg-main .dg-line-number,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-line-number {
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-line-number,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-line-number {
   background: transparent !important;
 }
-.daracl-grid > .dg-style-rows .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-rows .dg-main .dg-fixed-column-line {
+.daracl-grid .dg-layout.dg-style-rows .dg-main .dg-fixed-column-line,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-rows .dg-footer,
-.dg-hidden-layers > .dg-style-rows .dg-footer {
+.daracl-grid .dg-layout.dg-style-rows .dg-footer,
+.dg-hidden-layers .dg-layout.dg-style-rows .dg-footer {
   border-color: transparent !important;
 }
-.daracl-grid > .dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
-.dg-hidden-layers > .dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
-.dg-hidden-layers > .dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+.daracl-grid .dg-layout.dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid .dg-layout.dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
+.dg-hidden-layers .dg-layout.dg-style-striped .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+.dg-hidden-layers .dg-layout.dg-style-striped .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
   background-color: var(--row-bg);
 }
-.daracl-grid > .dg-style-cells .dg-main,
-.dg-hidden-layers > .dg-style-cells .dg-main {
+.daracl-grid .dg-layout.dg-style-cells .dg-main,
+.dg-hidden-layers .dg-layout.dg-style-cells .dg-main {
   border-color: transparent !important;
   border-top: 1px solid var(--border-thick-color) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-cells .dg-main .dg-line-number,
-.dg-hidden-layers > .dg-style-cells .dg-main .dg-line-number {
+.daracl-grid .dg-layout.dg-style-cells .dg-main .dg-line-number,
+.dg-hidden-layers .dg-layout.dg-style-cells .dg-main .dg-line-number {
   background: transparent !important;
 }
-.daracl-grid > .dg-style-cells .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-cells .dg-main .dg-fixed-column-line {
+.daracl-grid .dg-layout.dg-style-cells .dg-main .dg-fixed-column-line,
+.dg-hidden-layers .dg-layout.dg-style-cells .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-cells .dg-footer,
-.dg-hidden-layers > .dg-style-cells .dg-footer {
+.daracl-grid .dg-layout.dg-style-cells .dg-footer,
+.dg-hidden-layers .dg-layout.dg-style-cells .dg-footer {
   border-color: transparent !important;
 }
-.daracl-grid > .dg-style-striped-cells .dg-main,
-.dg-hidden-layers > .dg-style-striped-cells .dg-main {
+.daracl-grid .dg-layout.dg-style-striped-cells .dg-main,
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-main {
   border-color: transparent !important;
   border-top: 1px solid var(--border-thick-color) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-cells .dg-main .dg-line-number,
-.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-line-number {
+.daracl-grid .dg-layout.dg-style-striped-cells .dg-main .dg-line-number,
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-main .dg-line-number {
   background: transparent !important;
 }
-.daracl-grid > .dg-style-striped-cells .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-fixed-column-line {
+.daracl-grid .dg-layout.dg-style-striped-cells .dg-main .dg-fixed-column-line,
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
-.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
-.dg-hidden-layers > .dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+.daracl-grid .dg-layout.dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid .dg-layout.dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
   background-color: var(--row-bg);
 }
-.daracl-grid > .dg-style-striped-cells .dg-footer,
-.dg-hidden-layers > .dg-style-striped-cells .dg-footer {
+.daracl-grid .dg-layout.dg-style-striped-cells .dg-footer,
+.dg-hidden-layers .dg-layout.dg-style-striped-cells .dg-footer {
   border-color: transparent !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main {
   border-color: transparent !important;
   border-top: 1px solid var(--border-thick-color) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-cell,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-header-table .dg-header-row > .dg-header-group-cell {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > th,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body-table .dg-row > th {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-body-table .dg-row > th,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-body-table .dg-row > td,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-body-table .dg-row > th {
   border-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-line-number,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-line-number {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-line-number,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-line-number {
   background: transparent !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-fixed-column-line,
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-fixed-column-line {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-fixed-column-line,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-fixed-column-line {
   background-color: transparent !important;
   border-top-color: var(--border-color) !important;
   border-bottom-color: var(--border-color) !important;
 }
-.daracl-grid > .dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid > .dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
-.dg-hidden-layers > .dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd), .daracl-grid .dg-layout.dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even),
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-body.dg-body-odd .dg-body-table .dg-row:nth-child(odd),
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-main .dg-body.dg-body-even .dg-body-table .dg-row:nth-child(even) {
   background-color: var(--row-bg);
 }
-.daracl-grid > .dg-style-striped-rows .dg-footer,
-.dg-hidden-layers > .dg-style-striped-rows .dg-footer {
+.daracl-grid .dg-layout.dg-style-striped-rows .dg-footer,
+.dg-hidden-layers .dg-layout.dg-style-striped-rows .dg-footer {
   border-color: transparent !important;
 }
 
 .daracl-grid {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   outline: none !important;
   /* main scroll */
+}
+.daracl-grid.dg-auto-height {
+  overflow: initial;
 }
 .daracl-grid .dg-toolbar {
   position: relative;
   height: 40px;
   overflow: hidden;
+  background-color: var(--body-bg);
   /* 레이아웃 */
 }
 .daracl-grid .dg-toolbar.dg-has-scroll {
@@ -1794,7 +1911,12 @@ body .dg-hidden-layers.dg-dark {
   display: table-cell;
   vertical-align: middle;
 }
+.daracl-grid .dg-viewport {
+  display: flex;
+  position: relative;
+}
 .daracl-grid .dg-layout {
+  flex: 1 1 auto;
   background-color: var(--body-bg);
 }
 .daracl-grid .dg-layers {

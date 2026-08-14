@@ -246,8 +246,10 @@ export class GridMain {
 
     // append
     this.gridElement.getElement().appendChild(gridElement);
-
-    this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid > .dg-layout'));
+    if (this.cfg.disableVerticalScroll) {
+      gridElement.classList.add('dg-auto-height');
+    }
+    this.layoutElement = new DaraElement(this.gridElement.find('.daracl-grid .dg-layout'));
 
     this.setGridStyle(this.opts.style);
 
@@ -508,20 +510,17 @@ export class GridMain {
 
     if (typeof ResizeObserver !== 'undefined') {
       let resizeScheduled = false;
-      let originalOverflow = '';
       const mainElement = el.getElement();
       const resizeObserver = new ResizeObserver(() => {
         if (resizeScheduled) {
           return;
         }
-        mainElement.style.overflow = 'hidden';
-        originalOverflow = mainElement.style.overflow;
+
         resizeScheduled = true;
 
         requestAnimationFrame(() => {
           resizeScheduled = false;
           this.resize(el);
-          mainElement.style.overflow = originalOverflow;
         });
       });
       resizeObserver.observe(mainElement);
@@ -546,11 +545,12 @@ export class GridMain {
 
     const isWidthResize = initGridSize.width < 0;
     const isHeightResize = initGridSize.height < 0;
+    const disableVerticalScroll = this.cfg.disableVerticalScroll;
     requestAnimationFrame(() => {
       if (!isVisible(el.getElement())) return;
 
       const newOffset = {
-        width: isWidthResize ? el.width() : initGridSize.width,
+        width: isWidthResize ? (disableVerticalScroll ? el.clientWidth() : el.width()) : initGridSize.width,
         height: isHeightResize ? el.height() : initGridSize.height,
       };
 
@@ -661,9 +661,9 @@ export class GridMain {
    * @param {?number} [height] 높이
    */
   public setSize(width: number, height: number, drawFlag = false) {
-    const { dimensions, rowHeight } = this.cfg;
+    const { dimensions, rowHeight, disableVerticalScroll, scroll, dataInfo } = this.cfg;
 
-    dimensions.width = width < 0 ? this.gridElement.width() : width;
+    dimensions.width = width < 0 ? this.gridElement.clientWidth() : width;
     let changeHeight = height < 0 ? this.gridElement.height() : height;
 
     const minHeightSize = dimensions.toolbarHeight + dimensions.footerHeight + dimensions.mainHeaderHeight + rowHeight;
@@ -673,7 +673,20 @@ export class GridMain {
     this.currentSize = { width: dimensions.width, height: changeHeight };
 
     dimensions.mainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
-    dimensions.height = changeHeight;
+
+    if (disableVerticalScroll) {
+      const nonMainAreaHeight =
+        dimensions.mainHeaderHeight +
+        dimensions.mainSummaryHeight +
+        (scroll.enableHorizontal ? this.opts.scroll.width : 0);
+
+      const totRowHeight = rowHeight * dataInfo.rowLength;
+
+      dimensions.mainHeight = totRowHeight + nonMainAreaHeight;
+      dimensions.height = dimensions.mainHeight + dimensions.toolbarHeight + dimensions.footerHeight;
+    } else {
+      dimensions.height = changeHeight;
+    }
 
     if (drawFlag) {
       this.resizeDraw();
@@ -1151,78 +1164,80 @@ function getGridTemplate() {
 
   GRID_TEMPLATE.innerHTML = html`
     <div class="daracl-grid" tabindex="-1">
-      <div class="dg-layout" style="position:absolute;user-select:none;touch-action:manipulation;">
-        <div class="dg-layers"></div>
-        <div class="dg-toolbar dg-select" role="presentation">
-          <div class="dg-toolbar-scroll"></div>
-          <div class="dg-toolbar-arrow dg-noselect">
-            <button type="button" class="dg-button" data-direction="left">${ALL_ICONS.scrollLeft}</button>
-            <button type="button" class="dg-button" data-direction="right">${ALL_ICONS.scrollRight}</button>
-          </div>
-        </div>
-
-        <div class="dg-main" data-scroll="none" tabindex="-1">
-          <div class="dg-panels">
-            <div class="dg-panel dg-header">
-              <div class="dg-region" data-region="left"></div>
-              <div class="dg-region" data-region="center"></div>
-              <div class="dg-region" data-region="right"></div>
+      <div class="dg-viewport">
+        <div class="dg-layout" style="user-select:none;touch-action:manipulation;">
+          <div class="dg-layers"></div>
+          <div class="dg-toolbar dg-select" role="presentation">
+            <div class="dg-toolbar-scroll"></div>
+            <div class="dg-toolbar-arrow dg-noselect">
+              <button type="button" class="dg-button" data-direction="left">${ALL_ICONS.scrollLeft}</button>
+              <button type="button" class="dg-button" data-direction="right">${ALL_ICONS.scrollRight}</button>
             </div>
+          </div>
 
-            <div class="dg-panel dg-body">
-              <div class="dg-region" data-region="left"></div>
-              <div class="dg-region" data-region="center"></div>
-              <div class="dg-region" data-region="right"></div>
-
-              <div class="dg-empty-overlay">
-                <span class="dg-empty-message">
-                  <i class="dg-icon-info"></i>
-                  <span class="empty-text"></span>
-                </span>
+          <div class="dg-main" data-scroll="none" tabindex="-1">
+            <div class="dg-panels">
+              <div class="dg-panel dg-header">
+                <div class="dg-region" data-region="left"></div>
+                <div class="dg-region" data-region="center"></div>
+                <div class="dg-region" data-region="right"></div>
               </div>
 
-              <div class="dg-drop-indicator"></div>
+              <div class="dg-panel dg-body">
+                <div class="dg-region" data-region="left"></div>
+                <div class="dg-region" data-region="center"></div>
+                <div class="dg-region" data-region="right"></div>
+
+                <div class="dg-empty-overlay">
+                  <span class="dg-empty-message">
+                    <i class="dg-icon-info"></i>
+                    <span class="empty-text"></span>
+                  </span>
+                </div>
+
+                <div class="dg-drop-indicator"></div>
+              </div>
+
+              <div class="dg-panel dg-summary">
+                <div class="dg-region" data-region="left"></div>
+                <div class="dg-region" data-region="center"></div>
+                <div class="dg-region" data-region="right"></div>
+              </div>
             </div>
 
-            <div class="dg-panel dg-summary">
-              <div class="dg-region" data-region="left"></div>
-              <div class="dg-region" data-region="center"></div>
-              <div class="dg-region" data-region="right"></div>
+            <div class="dg-resize-helper"></div>
+
+            <div class="dg-scroll-container">
+              <div class="dg-scroll dg-vertical">
+                <div class="dg-scroll-track"></div>
+                <div class="dg-scroll-thumb"></div>
+                <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">${ALL_ICONS.scrollUp}</div>
+                <div class="dg-scroll-button" data-dg-mode="down" style="bottom:0px;">${ALL_ICONS.scrollDown}</div>
+              </div>
+
+              <div class="dg-scroll dg-horizontal">
+                <div class="dg-scroll-track"></div>
+                <div class="dg-scroll-thumb"></div>
+                <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollLeft}</div>
+                <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">${ALL_ICONS.scrollRight}</div>
+              </div>
+              <div class="dg-scroll-corner"></div>
+
+              <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
+                <textarea class="dg-paste-area"></textarea>
+              </div>
             </div>
           </div>
 
-          <div class="dg-resize-helper"></div>
+          <div class="dg-footer" role="presentation">
+            <span class="dg-status">
+              <span class="dg-selection-status"></span>
+            </span>
 
-          <div class="dg-scroll-container">
-            <div class="dg-scroll dg-vertical">
-              <div class="dg-scroll-track"></div>
-              <div class="dg-scroll-thumb"></div>
-              <div class="dg-scroll-button" data-dg-mode="up" style="top:0px;">${ALL_ICONS.scrollUp}</div>
-              <div class="dg-scroll-button" data-dg-mode="down" style="bottom:0px;">${ALL_ICONS.scrollDown}</div>
-            </div>
+            <span class="dg-paging"></span>
 
-            <div class="dg-scroll dg-horizontal">
-              <div class="dg-scroll-track"></div>
-              <div class="dg-scroll-thumb"></div>
-              <div class="dg-scroll-button" data-dg-mode="left" style="left:0px;">${ALL_ICONS.scrollLeft}</div>
-              <div class="dg-scroll-button" data-dg-mode="right" style="right:0px;">${ALL_ICONS.scrollRight}</div>
-            </div>
-            <div class="dg-scroll-corner"></div>
-
-            <div style="top:-9999px;left:-9999px;position:fixed;z-index:9999;">
-              <textarea class="dg-paste-area"></textarea>
-            </div>
+            <span class="dg-paging-info"></span>
           </div>
-        </div>
-
-        <div class="dg-footer" role="presentation">
-          <span class="dg-status">
-            <span class="dg-selection-status"></span>
-          </span>
-
-          <span class="dg-paging"></span>
-
-          <span class="dg-paging-info"></span>
         </div>
       </div>
     </div>

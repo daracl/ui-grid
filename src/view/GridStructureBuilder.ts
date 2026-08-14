@@ -63,22 +63,19 @@ export class GridStructureBuilder {
     dimensions.fieldTotalWidth = fieldTotalWidth;
     scroll.enableHorizontal = fieldTotalWidth > dimensions.width;
 
-    //세로 스크롭 계산 start
-    const verticalEnable = opts.scroll.vertical.enable;
-
     let mainBodyHeight = 0;
 
     const nonMainAreaHeight =
       dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? opts.scroll.width : 0);
 
-    if (verticalEnable) {
-      const bodyMainHeight = dimensions.mainHeight;
-      mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1; // 1 border height;
-      scroll.enableVertical = rowHeight * rowLength > mainBodyHeight;
-    } else {
+    if (cfg.disableVerticalScroll) {
       scroll.enableVertical = false;
       dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight;
       mainBodyHeight = rowHeight * rowLength;
+    } else {
+      const bodyMainHeight = dimensions.mainHeight;
+      mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1; // 1 border height;
+      scroll.enableVertical = rowHeight * rowLength > mainBodyHeight;
     }
 
     dimensions.mainBodyHeight = mainBodyHeight;

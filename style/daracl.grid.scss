@@ -36,18 +36,26 @@
 }
 
 body {
-  &[data-dg-theme='light'] .daracl-grid,
-  &[data-dg-theme='light'] .dg-hidden-layers,
-  .daracl-grid,
-  .daracl-grid > .dg-light,
-  .dg-hidden-layers,
+  &[data-dg-theme='light'] {
+    .daracl-grid,
+    .dg-hidden-layers {
+      @include theme.theme(theme.$theme-light);
+    }
+  }
+
+  &[data-dg-theme='dark'] {
+    .daracl-grid,
+    .dg-hidden-layers {
+      @include theme.theme(theme.$theme-dark);
+    }
+  }
+
+  .daracl-grid .dg-layout.dg-light,
   .dg-hidden-layers.dg-light {
     @include theme.theme(theme.$theme-light);
   }
 
-  &[data-dg-theme='dark'] .daracl-grid,
-  &[data-dg-theme='dark'] .dg-hidden-layers,
-  .daracl-grid > .dg-dark,
+  .daracl-grid .dg-layout.dg-dark,
   .dg-hidden-layers.dg-dark {
     @include theme.theme(theme.$theme-dark);
   }
@@ -72,13 +80,24 @@ body {
 .daracl-grid {
   width: 100%;
   height: 100%;
+  overflow: hidden;
   outline: none !important;
+
+  &.dg-auto-height {
+    overflow: initial;
+  }
 
   @include toolbar.all;
   @include main.all;
   @include footer.all;
 
+  .dg-viewport {
+    display: flex;
+    position: relative;
+  }
+
   .dg-layout {
+    flex: 1 1 auto;
     background-color: var(--body-bg);
   }
 

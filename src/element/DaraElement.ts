@@ -10,7 +10,13 @@ export class DaraElement {
   }
 
   findDaraElement(selector: string): DaraElement {
-    return new DaraElement(this.element.querySelector(selector));
+    const element = this.element.querySelector(selector) as HTMLElement;
+
+    if (element) {
+      return new DaraElement(element);
+    }
+
+    return element;
   }
 
   find(selector: string): HTMLElement {
