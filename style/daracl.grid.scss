@@ -1,13 +1,10 @@
 /**
-* grid css
-*/
+ * Grid CSS
+ */
 
 @use './base' as _base;
-
 @use './components' as _components;
-
 @use './views/style' as _gridStyle;
-
 @use './themes' as theme;
 
 @use './views/toolbar';
@@ -16,6 +13,10 @@
 @use './views/hidden/component' as _hiddenComponent;
 @use './views/contextmenu' as _context;
 @use './views/hidden/helper' as _hiddenHelper;
+
+/* ==========================================================================
+   Selection
+   ========================================================================== */
 
 .dg-noselect {
   -webkit-touch-callout: none;
@@ -35,7 +36,12 @@
   user-select: text;
 }
 
+/* ==========================================================================
+   Theme
+   ========================================================================== */
+
 body {
+  // Global theme
   &[data-dg-theme='light'] {
     .daracl-grid,
     .dg-hidden-layers {
@@ -50,36 +56,43 @@ body {
     }
   }
 
-  .daracl-grid .dg-layout.dg-light,
-  .dg-hidden-layers.dg-light {
-    @include theme.theme(theme.$theme-light);
-  }
+  // Grid-specific theme
+  .daracl-grid .dg-layout,
+  .dg-hidden-layers {
+    &.dg-light {
+      @include theme.theme(theme.$theme-light);
+    }
 
-  .daracl-grid .dg-layout.dg-dark,
-  .dg-hidden-layers.dg-dark {
-    @include theme.theme(theme.$theme-dark);
+    &.dg-dark {
+      @include theme.theme(theme.$theme-dark);
+    }
   }
 }
+
+/* ==========================================================================
+   Common
+   ========================================================================== */
 
 .daracl-grid,
 .dg-hidden-layers {
-  background: transparent;
-  margin: 0px auto;
+  position: relative;
   width: 100%;
   height: 100%;
-  position: relative;
+  margin: 0 auto;
+
+  background: transparent;
   line-height: 1.2em;
 
   @include _base.all;
-
   @include _components.all;
-
   @include _gridStyle.all;
 }
 
+/* ==========================================================================
+   Grid
+   ========================================================================== */
+
 .daracl-grid {
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   outline: none !important;
 
@@ -91,6 +104,10 @@ body {
   @include main.all;
   @include footer.all;
 
+  /* ------------------------------------------------------------------------
+     Layout
+     ------------------------------------------------------------------------ */
+
   .dg-viewport {
     display: flex;
     position: relative;
@@ -101,18 +118,26 @@ body {
     background-color: var(--body-bg);
   }
 
+  /* ------------------------------------------------------------------------
+     Layers
+     ------------------------------------------------------------------------ */
+
   .dg-layers {
-    visibility: visible;
-    width: 0;
-    height: 0px;
-    z-index: 10;
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 0;
+    left: 0;
+
+    z-index: 10;
+
+    width: 0;
+    height: 0;
+
+    visibility: visible;
 
     & > * {
       position: absolute;
       z-index: 1000;
+
       display: none;
     }
 
@@ -120,9 +145,14 @@ body {
   }
 }
 
+/* ==========================================================================
+   Hidden Layers
+   ========================================================================== */
+
 .dg-hidden-layers {
   position: initial;
-  height: 0px;
+  height: 0;
+
   @include _context.contextMenu;
   @include _hiddenHelper.hiddenHelper;
 }

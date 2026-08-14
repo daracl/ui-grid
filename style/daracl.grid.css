@@ -54,8 +54,11 @@
 * hidden helper css
 */
 /**
-* grid css
-*/
+ * Grid CSS
+ */
+/* ==========================================================================
+   Selection
+   ========================================================================== */
 .dg-noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -70,6 +73,9 @@
   user-select: text;
 }
 
+/* ==========================================================================
+   Theme
+   ========================================================================== */
 body[data-dg-theme=light] .daracl-grid,
 body[data-dg-theme=light] .dg-hidden-layers {
   --field-margin-top: 10px;
@@ -303,13 +309,16 @@ body .dg-hidden-layers.dg-dark {
   --item-check-color: #68a9ff;
 }
 
+/* ==========================================================================
+   Common
+   ========================================================================== */
 .daracl-grid,
 .dg-hidden-layers {
-  background: transparent;
-  margin: 0px auto;
+  position: relative;
   width: 100%;
   height: 100%;
-  position: relative;
+  margin: 0 auto;
+  background: transparent;
   line-height: 1.2em;
   box-sizing: border-box !important;
   /*
@@ -1000,12 +1009,19 @@ body .dg-hidden-layers.dg-dark {
   border-color: transparent !important;
 }
 
+/* ==========================================================================
+   Grid
+   ========================================================================== */
 .daracl-grid {
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   outline: none !important;
   /* main scroll */
+  /* ------------------------------------------------------------------------
+     Layout
+     ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+     Layers
+     ------------------------------------------------------------------------ */
 }
 .daracl-grid.dg-auto-height {
   overflow: initial;
@@ -1920,13 +1936,13 @@ body .dg-hidden-layers.dg-dark {
   background-color: var(--body-bg);
 }
 .daracl-grid .dg-layers {
-  visibility: visible;
-  width: 0;
-  height: 0px;
-  z-index: 10;
   position: absolute;
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 0;
+  height: 0;
+  visibility: visible;
   /*search-simple*/
   /* validator message */
   /*edit */
@@ -2143,9 +2159,12 @@ body .dg-hidden-layers.dg-dark {
   background-color: var(--body-bg-thin);
 }
 
+/* ==========================================================================
+   Hidden Layers
+   ========================================================================== */
 .dg-hidden-layers {
   position: initial;
-  height: 0px;
+  height: 0;
   /*search-simple*/
 }
 .dg-hidden-layers .dg-contextmenu {
