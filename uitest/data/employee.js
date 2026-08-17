@@ -2,12 +2,12 @@ var GRID_EMPLOYEE_FIELDS = [
   {
     name: 'name',
     label: '이름',
-    width: 80,
+    width: 60,
   },
   {
     name: 'age',
     label: '나이',
-    width: 50,
+    width: 60,
   },
   {
     name: 'email',

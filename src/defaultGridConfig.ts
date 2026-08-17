@@ -113,6 +113,7 @@ export function initConfig(opts: GridOptions): Config {
     fixedRightIndex: Math.max(opts.fixedRightIndex, 0),
     scroll: initScrollInfo(),
     disableVerticalScroll: opts.scroll?.vertical?.enable === false,
+    disableHorizontalScroll: opts.scroll?.horizontal?.enable === false,
     edit: initEditInfo(),
     canvasContext: undefined,
     activeComponent: '',

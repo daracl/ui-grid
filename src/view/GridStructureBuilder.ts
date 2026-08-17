@@ -121,8 +121,10 @@ export class GridStructureBuilder {
     for (const field of fields) {
       fieldTotalWidth += isHeaderResize ? field.$width : field.width;
     }
+
     dimensions.fieldTotalWidth = fieldTotalWidth;
-    scroll.enableHorizontal = fieldTotalWidth > dimensions.width;
+
+    this.calculateHorizontalScroll(fieldTotalWidth);
 
     let mainBodyHeight = 0;
 
@@ -131,64 +133,62 @@ export class GridStructureBuilder {
 
     if (cfg.disableVerticalScroll) {
       scroll.enableVertical = false;
-      dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight + 1; // 1 border height;
+      dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight + 1;
+
       mainBodyHeight = rowHeight * rowLength;
+
       dimensions.height = dimensions.mainHeight + dimensions.toolbarHeight + dimensions.footerHeight;
     } else {
       const bodyMainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
+
       dimensions.mainHeight = bodyMainHeight;
-      mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1; // 1 border height;
+
+      mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1;
+
       scroll.enableVertical = rowHeight * rowLength > mainBodyHeight;
     }
 
     dimensions.mainBodyHeight = mainBodyHeight;
-    scroll.enableHorizontal = fieldTotalWidth > dimensions.width - (scroll.enableVertical ? opts.scroll.width : 0);
+
+    this.calculateHorizontalScroll(fieldTotalWidth);
 
     const orginViewRow = mainBodyHeight / rowHeight;
+
     const viewRow = Math.min(Math.max(1, Math.ceil(orginViewRow)), rowLength);
 
     scroll.insideViewRow = viewRow - (viewRow > 1 && viewRow > Math.floor(orginViewRow) ? 1 : 0);
+
     scroll.viewRow = viewRow;
 
-    const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2; // +2 마지막 여백처리;
+    const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2;
+
     const verticalScrollWidth = scroll.enableVertical ? opts.scroll.width + centerMargin : 0;
 
-    let remainderWidth = 0,
-      lastSpaceW = 0;
+    const { remainderWidth, lastSpaceW, isAddSpaceWidth } = this.calculateFieldSpace(
+      fieldTotalWidth,
+      verticalScrollWidth,
+    );
 
-    let isAddSpaceWidth;
+    let remainSpaceWidth = lastSpaceW;
 
-    if (!scroll.enableHorizontal) {
-      const viewGridWidth = fieldTotalWidth + verticalScrollWidth;
-      const overWidth = dimensions.width - viewGridWidth;
-      isAddSpaceWidth = true;
-      const absOverWidth = overWidth < 0 ? Math.abs(overWidth) : overWidth;
-
-      remainderWidth = Math.floor(absOverWidth / (fieldLength - dataInfo.asideLength));
-      lastSpaceW = absOverWidth - remainderWidth * (fieldLength - dataInfo.asideLength);
-
-      if (overWidth < 0) {
-        isAddSpaceWidth = false;
-        remainderWidth = -remainderWidth;
-      }
-    }
-
-    let leftWidth = 0,
-      centerWidth = 0,
-      rightWidth = 0;
+    let leftWidth = 0;
+    let centerWidth = 0;
+    let rightWidth = 0;
 
     for (let j = 0; j < fieldLength; j++) {
       const field = fields[j];
+
       let fieldWidth = isHeaderResize ? field.$width : field.width;
 
-      // 그리드 남는 영역을 계산 해서 컬럼에 추가.
       if (!isHeaderResize && !field.$isAside && opts.enableWidthFixed !== true) {
-        fieldWidth = fieldWidth + remainderWidth;
+        fieldWidth += remainderWidth;
 
-        if (lastSpaceW > 0) {
-          const addSpaceW = Math.min(lastSpaceW, 1);
-          fieldWidth = fieldWidth + (isAddSpaceWidth ? 1 : -1) * addSpaceW;
-          lastSpaceW = lastSpaceW - 1;
+        if (remainSpaceWidth > 0) {
+          const addSpaceW = Math.min(remainSpaceWidth, 1);
+
+          fieldWidth += (isAddSpaceWidth ? 1 : -1) * addSpaceW;
+
+          remainSpaceWidth -= addSpaceW;
         }
 
         fieldWidth = Math.max(fieldWidth, this.cellMinWidth);
@@ -208,10 +208,98 @@ export class GridStructureBuilder {
     dimensions.mainLeftWidth = leftWidth;
     dimensions.mainCenterWidth = centerWidth;
     dimensions.mainRightWidth = rightWidth;
+
     dimensions.mainTotalWidth = leftWidth + centerWidth + rightWidth;
-    dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth; // 마지막 여백처리;
-    dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth; // 마지막 여백처리;
+    dimensions.mainInsideWidth = dimensions.width - verticalScrollWidth;
+    dimensions.mainCenterOverWidth = dimensions.mainTotalWidth - dimensions.mainInsideWidth;
     dimensions.mainCenterViewWidth = dimensions.mainInsideWidth - (leftWidth + rightWidth);
+  }
+
+  /**
+   * 가로 스크롤 사용 여부 계산
+   *
+   * disableHorizontalScroll=true 이면
+   * 가로 스크롤을 강제로 비활성화합니다.
+   *
+   * @param fieldTotalWidth 전체 필드 너비
+   */
+  private calculateHorizontalScroll(fieldTotalWidth: number): void {
+    const cfg = this.cfg;
+    const { dimensions, scroll } = cfg;
+    const opts = this.opts;
+
+    if (cfg.disableHorizontalScroll === true) {
+      scroll.enableHorizontal = false;
+      return;
+    }
+
+    const verticalScrollWidth = scroll.enableVertical ? opts.scroll.width : 0;
+
+    const availableWidth = dimensions.width - verticalScrollWidth;
+
+    scroll.enableHorizontal = fieldTotalWidth > availableWidth;
+  }
+
+  /**
+   * 컬럼 남는 영역 계산
+   *
+   * 가로 스크롤이 없을 경우
+   * 컬럼 너비를 자동으로 늘리거나 줄입니다.
+   */
+  private calculateFieldSpace(
+    fieldTotalWidth: number,
+    verticalScrollWidth: number,
+  ): {
+    remainderWidth: number;
+    lastSpaceW: number;
+    isAddSpaceWidth: boolean;
+  } {
+    const cfg = this.cfg;
+    const { dimensions, dataInfo, currentFields: fields, scroll } = cfg;
+
+    const fieldLength = fields.length;
+    const resizeFieldCount = fieldLength - dataInfo.asideLength;
+
+    let remainderWidth = 0;
+    let lastSpaceW = 0;
+    let isAddSpaceWidth = true;
+
+    if (cfg.disableHorizontalScroll !== true && scroll.enableHorizontal) {
+      return {
+        remainderWidth,
+        lastSpaceW,
+        isAddSpaceWidth,
+      };
+    }
+
+    if (resizeFieldCount <= 0) {
+      return {
+        remainderWidth,
+        lastSpaceW,
+        isAddSpaceWidth,
+      };
+    }
+
+    const viewGridWidth = fieldTotalWidth + verticalScrollWidth;
+
+    const overWidth = dimensions.width - viewGridWidth;
+
+    const absOverWidth = Math.abs(overWidth);
+
+    remainderWidth = Math.floor(absOverWidth / resizeFieldCount);
+
+    lastSpaceW = absOverWidth - remainderWidth * resizeFieldCount;
+
+    if (overWidth < 0) {
+      isAddSpaceWidth = false;
+      remainderWidth = -remainderWidth;
+    }
+
+    return {
+      remainderWidth,
+      lastSpaceW,
+      isAddSpaceWidth,
+    };
   }
 
   /**

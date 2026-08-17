@@ -152,6 +152,8 @@ export interface Config {
   scroll: ScrollInfo;
   // 세로 스크롤 비활성화
   disableVerticalScroll: boolean;
+  // 가로 스크롤 비활성화
+  disableHorizontalScroll: boolean;
   edit: EditInfo;
   canvasContext?: CanvasRenderingContext2D;
 }

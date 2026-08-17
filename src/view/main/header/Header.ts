@@ -132,6 +132,10 @@ export class Header {
     const cfg = this.gridMain.config();
     cfg.isHeaderResize = true;
 
+    //
+    // resize 처리
+    //
+
     const minWidth = this.headerOpts.resize.minWidth,
       maxWidth = this.headerOpts.resize.maxWidth;
     if (minWidth !== -1 && w < minWidth) {
