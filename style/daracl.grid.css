@@ -330,15 +330,6 @@ body .dg-hidden-layers.dg-dark {
   /*
    * Button
    */
-  /*
-   * Input
-   */
-  /*
-   * Textarea
-   */
-  /*
-   * Text Selection
-   */
 }
 .daracl-grid *,
 .dg-hidden-layers * {
@@ -369,6 +360,10 @@ body .dg-hidden-layers.dg-dark {
   color: inherit;
   line-height: 1.2;
   outline: none;
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
 }
 .daracl-grid input:hover, .daracl-grid input:focus,
 .daracl-grid button:hover,
@@ -395,29 +390,6 @@ body .dg-hidden-layers.dg-dark {
 .daracl-grid button:hover,
 .dg-hidden-layers button:hover {
   background: var(--button-bg-hover);
-}
-.daracl-grid input,
-.dg-hidden-layers input {
-  display: inline-block;
-  margin: 0;
-  padding: 0 5px 0 8px;
-}
-.daracl-grid input[type=checkbox],
-.dg-hidden-layers input[type=checkbox] {
-  margin: auto;
-}
-.daracl-grid textarea,
-.dg-hidden-layers textarea {
-  padding: 0 5px 0 8px;
-}
-.daracl-grid input,
-.daracl-grid textarea,
-.dg-hidden-layers input,
-.dg-hidden-layers textarea {
-  -webkit-touch-callout: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  user-select: text;
 }
 .daracl-grid .dg-primary,
 .dg-hidden-layers .dg-primary {
@@ -1024,7 +996,10 @@ body .dg-hidden-layers.dg-dark {
      ------------------------------------------------------------------------ */
 }
 .daracl-grid.dg-auto-height {
-  overflow: initial;
+  overflow: visible;
+  height: -webkit-max-content;
+  height: -moz-max-content;
+  height: max-content;
 }
 .daracl-grid .dg-toolbar {
   position: relative;

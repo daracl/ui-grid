@@ -1,5 +1,5 @@
 import { ASIDE_RENDERER, EDIT_RENDERER, VIEW_RENDERER } from '@/constantRenders';
-import { LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME } from '@/constants';
+import { FOOTER_HEIGHT, LINE_NUMBER_NAME, ROW_CHECK_NAME, ROW_DRAG_HANDLE_NAME, TOOLBAR_HEIGHT } from '@/constants';
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 import { DEFAULT_EDIT_RENDERER_INFO, DEFAULT_RENDERER_INFO } from '@/defaultGridOption';
@@ -26,12 +26,66 @@ export class GridStructureBuilder {
   }
 
   /**
+   * 사이즈 계산 후
+   */
+  calcGridDimention() {
+    const cfg = this.cfg;
+    const dimensions = cfg.dimensions;
+
+    const opts = this.opts;
+
+    if (opts.toolbar.enabled) {
+      const toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
+      const items = opts.toolbar.items;
+      let totHeight = 0;
+      let rowHeight = 0;
+      items.forEach((row) => {
+        if (row.length > 0) {
+          rowHeight = isNumber(row[0].height) ? row[0].height : toolbarHeight;
+          row[0].height = rowHeight;
+        }
+
+        totHeight += rowHeight;
+      });
+
+      dimensions.toolbarHeight = totHeight;
+    }
+
+    if (opts.footer.enabled) {
+      dimensions.footerHeight = isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
+    }
+
+    if (!isUndefined(opts.summary) && opts.summary.items.length > 0) {
+      const heightOption = heightOptionValue(opts.summary.height, 28);
+      const { height, heights } = heightOption;
+
+      const len = opts.summary.items.length;
+
+      cfg.summary.heights = new Array(len);
+
+      let totalHeight = 0;
+
+      let summaryHeight = height;
+      for (let i = 0; i < len; i++) {
+        if (heights.length > i) {
+          summaryHeight = heights[i];
+          summaryHeight = summaryHeight > 0 ? summaryHeight : height;
+        }
+        totalHeight += summaryHeight;
+        cfg.summary.heights[i] = summaryHeight;
+      }
+
+      dimensions.mainSummaryHeight = totalHeight + Math.min(totalHeight, 2); // 2 border + 1 padding
+    }
+  }
+
+  /**
    * body layout 계산
    *
    * @param {boolean} [isInit] 초기화 여부
    * @returns {void}
    */
-  public calculateBodyLayout() {
+  public calculateBodyLayout(width: number, height: number) {
     const cfg = this.cfg;
     const { dimensions, rowHeight, dataInfo, currentFields: fields, scroll } = cfg;
     const opts = this.opts;
@@ -41,6 +95,13 @@ export class GridStructureBuilder {
     const rowLength = dataInfo.rowLength;
 
     const isHeaderResize = cfg.isHeaderResize;
+
+    const gridElement = this.gridMain.element();
+    const changeHeight = height < 0 ? gridElement.height() : height;
+    const minHeightSize = dimensions.toolbarHeight + dimensions.footerHeight + dimensions.mainHeaderHeight + rowHeight;
+
+    dimensions.width = width < 0 ? gridElement.clientWidth() : width;
+    dimensions.height = Math.max(minHeightSize, changeHeight);
 
     const lineNumberCol = cfg.allFieldMap.get(LINE_NUMBER_NAME)?.$colSeq;
     if (!isUndefined(lineNumberCol)) {
@@ -70,10 +131,12 @@ export class GridStructureBuilder {
 
     if (cfg.disableVerticalScroll) {
       scroll.enableVertical = false;
-      dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight;
+      dimensions.mainHeight = rowHeight * rowLength + nonMainAreaHeight + 1; // 1 border height;
       mainBodyHeight = rowHeight * rowLength;
+      dimensions.height = dimensions.mainHeight + dimensions.toolbarHeight + dimensions.footerHeight;
     } else {
-      const bodyMainHeight = dimensions.mainHeight;
+      const bodyMainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
+      dimensions.mainHeight = bodyMainHeight;
       mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1; // 1 border height;
       scroll.enableVertical = rowHeight * rowLength > mainBodyHeight;
     }

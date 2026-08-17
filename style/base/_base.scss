@@ -42,6 +42,12 @@
     color: inherit;
     line-height: 1.2;
     outline: none;
+    -webkit-touch-callout: text;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
 
     &:hover,
     &:focus {
@@ -59,39 +65,6 @@
     &:hover {
       background: var(--button-bg-hover);
     }
-  }
-
-  /*
-   * Input
-   */
-  input {
-    display: inline-block;
-    margin: 0;
-    padding: 0 5px 0 8px;
-
-    &[type='checkbox'] {
-      margin: auto;
-    }
-  }
-
-  /*
-   * Textarea
-   */
-  textarea {
-    padding: 0 5px 0 8px;
-  }
-
-  /*
-   * Text Selection
-   */
-  input,
-  textarea {
-    -webkit-touch-callout: text;
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
   }
 
   .dg-primary {

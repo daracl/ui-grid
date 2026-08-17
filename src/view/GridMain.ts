@@ -161,9 +161,6 @@ export class GridMain {
       width: opts.width == 'auto' ? -1 : opts.width,
     };
 
-    this.calcGridDimention();
-    this.setSize(this.initGridSize.width, this.initGridSize.height, false);
-
     this.initElement();
 
     this.calculation();
@@ -569,11 +566,15 @@ export class GridMain {
   public calculation() {
     this.gridStructureBuilder.buildFields();
     this.cfg.dataManager.setItems(this.opts.items);
+
+    this.setSize(this.initGridSize.width, this.initGridSize.height, false);
+    this.gridStructureBuilder.calcGridDimention();
+
     this.calcBody();
   }
 
   public calcBody() {
-    this.gridStructureBuilder.calculateBodyLayout();
+    this.gridStructureBuilder.calculateBodyLayout(this.currentSize.width, this.currentSize.height);
   }
 
   /**
@@ -661,32 +662,7 @@ export class GridMain {
    * @param {?number} [height] 높이
    */
   public setSize(width: number, height: number, drawFlag = false) {
-    const { dimensions, rowHeight, disableVerticalScroll, scroll, dataInfo } = this.cfg;
-
-    dimensions.width = width < 0 ? this.gridElement.clientWidth() : width;
-    let changeHeight = height < 0 ? this.gridElement.height() : height;
-
-    const minHeightSize = dimensions.toolbarHeight + dimensions.footerHeight + dimensions.mainHeaderHeight + rowHeight;
-
-    changeHeight = Math.max(minHeightSize, changeHeight);
-
-    this.currentSize = { width: dimensions.width, height: changeHeight };
-
-    dimensions.mainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
-
-    if (disableVerticalScroll) {
-      const nonMainAreaHeight =
-        dimensions.mainHeaderHeight +
-        dimensions.mainSummaryHeight +
-        (scroll.enableHorizontal ? this.opts.scroll.width : 0);
-
-      const totRowHeight = rowHeight * dataInfo.rowLength;
-
-      dimensions.mainHeight = totRowHeight + nonMainAreaHeight;
-      dimensions.height = dimensions.mainHeight + dimensions.toolbarHeight + dimensions.footerHeight;
-    } else {
-      dimensions.height = changeHeight;
-    }
+    this.currentSize = { width: width, height: height };
 
     if (drawFlag) {
       this.resizeDraw();
@@ -767,60 +743,6 @@ export class GridMain {
     this.summary.setGridPanelWidth(mainLeftWidth, mainCenterWidth, mainRightWidth);
 
     this.changeScrollMode();
-  }
-
-  /**
-   * 사이즈 계산 후
-   */
-  calcGridDimention() {
-    const cfg = this.cfg;
-    const dimensions = cfg.dimensions;
-
-    const opts = this.opts;
-
-    if (opts.toolbar.enabled) {
-      const toolbarHeight = isNumber(opts.toolbar.height) ? opts.toolbar.height : TOOLBAR_HEIGHT;
-      const items = opts.toolbar.items;
-      let totHeight = 0;
-      let rowHeight = 0;
-      items.forEach((row) => {
-        if (row.length > 0) {
-          rowHeight = isNumber(row[0].height) ? row[0].height : toolbarHeight;
-          row[0].height = rowHeight;
-        }
-
-        totHeight += rowHeight;
-      });
-
-      dimensions.toolbarHeight = totHeight;
-    }
-
-    if (opts.footer.enabled) {
-      dimensions.footerHeight = isNumber(opts.footer.height) ? opts.footer.height : FOOTER_HEIGHT;
-    }
-
-    if (!isUndefined(opts.summary) && opts.summary.items.length > 0) {
-      const heightOption = heightOptionValue(opts.summary.height, 28);
-      const { height, heights } = heightOption;
-
-      const len = opts.summary.items.length;
-
-      cfg.summary.heights = new Array(len);
-
-      let totalHeight = 0;
-
-      let summaryHeight = height;
-      for (let i = 0; i < len; i++) {
-        if (heights.length > i) {
-          summaryHeight = heights[i];
-          summaryHeight = summaryHeight > 0 ? summaryHeight : height;
-        }
-        totalHeight += summaryHeight;
-        cfg.summary.heights[i] = summaryHeight;
-      }
-
-      dimensions.mainSummaryHeight = totalHeight + Math.min(totalHeight, 2); // 2 border + 1 padding
-    }
   }
 
   /**

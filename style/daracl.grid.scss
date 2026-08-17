@@ -97,7 +97,8 @@ body {
   outline: none !important;
 
   &.dg-auto-height {
-    overflow: initial;
+    overflow: visible;
+    height: max-content;
   }
 
   @include toolbar.all;
