@@ -4,12 +4,10 @@ import { ALL_ICONS } from '@/constantIcons';
 import {
   FIELD_LAYER_CLASS,
   FIELD_PREFIX,
-  FOOTER_HEIGHT,
   HoverModeMap,
   INSTANCE_ATTR_KEY,
   LAYER_ATTR_NAME,
   ROW_FIELD,
-  TOOLBAR_HEIGHT,
 } from '@/constants';
 import { BODY_STYLE, BodyStyle, GRID_THEME, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
@@ -23,13 +21,11 @@ import { AddRowOptions } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
-import { heightOptionValue } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
-import { debounce, isArray, isNumber, isString, isUndefined, isVisible } from '@/util/utils';
+import { debounce, isArray, isString, isUndefined, isVisible } from '@/util/utils';
 import { Toolbar } from '@/view/toolbar/Toolbar';
 import { Footer } from './footer/Footer';
-import { GridStructureBuilder } from './GridStructureBuilder';
 import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
 import { Header } from './main/header/Header';
@@ -38,6 +34,7 @@ import { Summary } from './main/Summary';
 import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
+import { StructureBuilder } from './builder/StructureBuilder';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -113,7 +110,7 @@ export class GridMain {
 
   private resizeObserver: ResizeObserver;
 
-  private readonly gridStructureBuilder: GridStructureBuilder;
+  private readonly structureBuilder: StructureBuilder;
 
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
     const opts = initGridOptions(options);
@@ -130,7 +127,7 @@ export class GridMain {
       this.cfg.dataManager = new ListDataManager(opts, this);
     }
 
-    this.gridStructureBuilder = new GridStructureBuilder(opts, this);
+    this.structureBuilder = new StructureBuilder(opts, this);
 
     this.opts = opts;
 
@@ -564,17 +561,17 @@ export class GridMain {
    * grid size 및 field 정보 계산
    */
   public calculation() {
-    this.gridStructureBuilder.buildFields();
+    this.structureBuilder.buildFields();
     this.cfg.dataManager.setItems(this.opts.items);
 
     this.setSize(this.initGridSize.width, this.initGridSize.height, false);
-    this.gridStructureBuilder.calcGridDimention();
+    this.structureBuilder.calcGridDimension();
 
     this.calcBody();
   }
 
   public calcBody() {
-    this.gridStructureBuilder.calculateBodyLayout(this.currentSize.width, this.currentSize.height);
+    this.structureBuilder.calculateBodyLayout(this.currentSize.width, this.currentSize.height);
   }
 
   /**
@@ -599,6 +596,10 @@ export class GridMain {
    */
   public getBody() {
     return this.body;
+  }
+
+  public getStructureBuilder() {
+    return this.structureBuilder;
   }
 
   /**
@@ -713,7 +714,7 @@ export class GridMain {
     }
   }
 
-  setElementDimentions() {
+  setElementDimensions() {
     const cfg = this.cfg;
     const dimensions = cfg.dimensions;
     this.mainElement.setHeight(dimensions.mainHeight);
@@ -752,7 +753,7 @@ export class GridMain {
    */
   private changeScrollMode() {
     const cfg = this.cfg;
-    const scrollWidth = this.opts.scroll.width;
+    const scrollbarSize = cfg.scrollbarSize;
     const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
 
     const mainPanelStyle = this.mainElement.find('.dg-panels').style;
@@ -761,11 +762,11 @@ export class GridMain {
     mainPanelStyle.removeProperty('width');
 
     if (cfg.scroll.enableHorizontal) {
-      mainPanelStyle.height = `calc(100% - ${scrollWidth})`;
+      mainPanelStyle.height = `calc(100% - ${scrollbarSize})`;
     }
 
     if (cfg.scroll.enableVertical) {
-      mainPanelStyle.width = `calc(100% - ${scrollWidth})`;
+      mainPanelStyle.width = `calc(100% - ${scrollbarSize})`;
     }
 
     if (scrollMode == 0) {
@@ -789,7 +790,7 @@ export class GridMain {
 
   public refreshBody(drawFlag: boolean, mode: string) {
     this.scroll.calculate();
-    this.setElementDimentions();
+    this.setElementDimensions();
     this.fieldResize();
 
     if (drawFlag) {

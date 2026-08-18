@@ -67,12 +67,12 @@ export class VerticalScroll {
 
     const dimensions = cfg.dimensions;
     const opts = this.gridMain.options();
-    const arrowButtonSize = opts.scroll.width * 2;
+    const arrowButtonSize = cfg.scrollbarSize * 2;
 
     const rowHeight = cfg.rowHeight;
     const totalRows = cfg.dataInfo.rowLength;
 
-    const verticalHeight = dimensions.mainHeight - (scroll.enableHorizontal ? opts.scroll.width : 0);
+    const verticalHeight = dimensions.mainHeight - (scroll.enableHorizontal ? cfg.scrollbarSize : 0);
 
     const vHeight = verticalHeight - 2;
     const vTrackHeight = vHeight - arrowButtonSize;

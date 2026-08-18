@@ -69,11 +69,11 @@ export class HorizontalScroll {
 
     const dimensions = cfg.dimensions;
     const opts = this.gridMain.options();
-    const arrowButtonSize = opts.scroll.width * 2;
+    const arrowButtonSize = cfg.scrollbarSize * 2;
 
     const totalColWidth = dimensions.mainTotalWidth;
 
-    const hWidth = dimensions.width - (scroll.enableVertical ? opts.scroll.width : 0) - 2; // 2 left right border
+    const hWidth = dimensions.width - (scroll.enableVertical ? cfg.scrollbarSize : 0) - 2; // 2 left right border
 
     const hTrackWidth = hWidth - arrowButtonSize;
     let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;

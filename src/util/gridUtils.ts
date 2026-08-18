@@ -148,6 +148,7 @@ export const getHeaderCellPosition = (cellElement: HTMLElement) => {
  * @returns {*}
  */
 export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
+  if (!text) return padding;
   const metrics = cfg.canvasContext?.measureText(text);
   return (metrics?.width ?? 0) + padding;
 };
@@ -638,4 +639,12 @@ export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
   if (!field) return false;
 
   return field.editable === true || (cfg.enableCellEdit && field.editable !== false);
+};
+
+export const gridAvailableWidth = (cfg: Config): number => {
+  const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2;
+
+  const verticalScrollWidth = cfg.scroll.enableVertical ? cfg.scrollbarSize + centerMargin : 0;
+
+  return cfg.dimensions.width - verticalScrollWidth - 1;
 };

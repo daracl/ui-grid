@@ -2,7 +2,14 @@ import { EditRendererInfo, ViewRendererInfo } from '@/types/RendererInfo';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EDIT_RENDERER, VIEW_RENDERER } from './constantRenders';
-import { FOOTER_HEIGHT, HoverModeMap, SelectionModeMap, TOOLBAR_HEIGHT } from './constants';
+import {
+  DEFAULT_LINE_NUMBER_WIDTH,
+  DEFAULT_ROW_CHECK_WIDTH,
+  FOOTER_HEIGHT,
+  HoverModeMap,
+  SelectionModeMap,
+  TOOLBAR_HEIGHT,
+} from './constants';
 import { BODY_STYLE } from './constantStyles';
 import { ToolbarFieldItem } from './types/Toolbar';
 import { isRowSelectionMode } from './util/gridUtils';
@@ -215,7 +222,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       /**
        * 최소 컬럼 너비(px)
        */
-      minWidth: 2,
+      minWidth: 10,
 
       /**
        * 최대 컬럼 너비(px)
@@ -363,7 +370,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       enabled: true,
       label: '',
       order: 0,
-      width: 40,
+      width: DEFAULT_LINE_NUMBER_WIDTH,
     },
 
     /**
@@ -377,7 +384,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
        */
       allowMultiSelect: true,
 
-      width: 25,
+      width: DEFAULT_ROW_CHECK_WIDTH,
 
       order: 1,
 

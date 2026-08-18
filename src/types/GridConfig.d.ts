@@ -150,6 +150,8 @@ export interface Config {
   fixedLeftIndex: number;
   fixedRightIndex: number;
   scroll: ScrollInfo;
+  // 스크롤bar 사이즈
+  scrollbarSize: number;
   // 세로 스크롤 비활성화
   disableVerticalScroll: boolean;
   // 가로 스크롤 비활성화

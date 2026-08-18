@@ -94,6 +94,10 @@ export const MOUSE_MOVE_THRESHOLD = 5;
  */
 export const TOOLBAR_HEIGHT = 35;
 
+export const DEFAULT_LINE_NUMBER_WIDTH = 40;
+
+export const DEFAULT_ROW_CHECK_WIDTH = 27;
+
 /**
  * default footer height
  *

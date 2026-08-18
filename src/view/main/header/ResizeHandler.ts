@@ -105,9 +105,8 @@ export class ResizeHandler extends BasePointerHandler {
 
     const w = currentFireld.$width + resizeWidth;
 
-    const header = this.context.header;
+    this.context.gridMain.getStructureBuilder().setColumnWidth(resizeIdx, w);
 
-    header?.setColumnWidth(resizeIdx, w);
     if (this.resizeUpdate) {
       this.resizeUpdate.call(null, { index: this.resizeIdx, width: w });
     }
@@ -120,6 +119,6 @@ export class ResizeHandler extends BasePointerHandler {
 
     const resizeW = getMaxColumnSize(this.cfg, this.opts, field, 0);
 
-    this.context.header?.setColumnWidth(resizeIdx, resizeW);
+    this.context.gridMain.getStructureBuilder().setColumnWidth(resizeIdx, resizeW);
   }
 }

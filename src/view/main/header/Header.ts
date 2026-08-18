@@ -3,14 +3,13 @@ import { HeaderOptions } from '@t/GridOptions';
 import { DaraElement } from '@/element/DaraElement';
 import { GridMain } from '@/view/GridMain';
 
+import { ALL_ICONS } from '@/constantIcons';
 import { BodyCellStyleMap, LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants';
+import { SELECTED_STYLE_CLASS } from '@/constantStyles';
+import { html } from '@/util/htmlTemplate';
 import { addClass, removeClass } from '@/util/styleUtils';
 import { intValue } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
-import { html } from '@/util/htmlTemplate';
-import { ALL_ICONS } from '@/constantIcons';
-import { SELECTED_STYLE_CLASS } from '@/constantStyles';
-import { hasClass } from '@/util/domUtils';
 
 const CHECK_INDETERMINATE = 'dg-indeterminate';
 /**
@@ -119,37 +118,6 @@ export class Header {
 
       if (classList.contains(CHECK_INDETERMINATE)) classList.remove(CHECK_INDETERMINATE);
     }
-  }
-
-  /**
-   * set column width
-   *
-   * @public
-   * @param {number} idx column index
-   * @param {number} w  column width
-   */
-  public setColumnWidth(idx: number, w: number) {
-    const cfg = this.gridMain.config();
-    cfg.isHeaderResize = true;
-
-    //
-    // resize 처리
-    //
-
-    const minWidth = this.headerOpts.resize.minWidth,
-      maxWidth = this.headerOpts.resize.maxWidth;
-    if (minWidth !== -1 && w < minWidth) {
-      w = minWidth;
-    } else if (maxWidth !== -1 && w > maxWidth) {
-      w = maxWidth;
-    }
-    if (cfg.isHeaderResize) {
-      cfg.currentFields[idx].$width = w;
-    } else {
-      cfg.currentFields[idx].width = w;
-    }
-
-    this.gridMain.resizeDraw();
   }
 
   /**
@@ -318,8 +286,8 @@ export class Header {
           headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect
             ? html`<div class="dg-choice">
                 <div class="dg-choice-item dg-checkbox dg-all">
-                  ${headerItem.label ? '' : '<div class="dg-indicator"></div>'}
-                  <span class="dg-label dg-ellipsis">${headerItem.label}</span>
+                  <div class="dg-indicator"></div>
+                  ${headerItem.label ? `<span class="dg-label dg-ellipsis">${headerItem.label}</span>` : ''}
                 </div>
               </div>`
             : `<div class="centered">${headerItem.label ?? ''}</div>`;

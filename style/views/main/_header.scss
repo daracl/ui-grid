@@ -18,6 +18,7 @@
             position: relative;
             margin: 0px !important;
             padding: 0px !important;
+            overflow: hidden;
           }
         }
 
@@ -31,7 +32,7 @@
 
             .dg-choice-item {
               display: flex;
-              gap: 0px;
+              gap: 5px;
               align-items: center;
               justify-content: center;
               margin: 0px;
