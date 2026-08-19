@@ -87,17 +87,13 @@ export class DimensionCalculator {
     this.fieldWidthCalculator.calculateHorizontalScroll(fieldTotalWidth);
 
     // Row 개수 계산
-    const orginViewRow = dimensions.mainBodyHeight / rowHeight;
-    const viewRow = Math.min(Math.max(1, Math.ceil(orginViewRow)), dataInfo.rowLength);
+    const originViewRow = dimensions.mainBodyHeight / rowHeight;
+    const viewRow = Math.min(Math.max(1, Math.ceil(originViewRow)), dataInfo.rowLength);
 
-    scroll.insideViewRow = viewRow - (viewRow > 1 && viewRow > Math.floor(orginViewRow) ? 1 : 0);
+    scroll.insideViewRow = viewRow - (viewRow > 1 && viewRow > Math.floor(originViewRow) ? 1 : 0);
     scroll.viewRow = viewRow;
 
-    // 너비 분배 처리
-    const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2;
-    const verticalScrollWidth = scroll.enableVertical ? opts.scroll.width + centerMargin : 0;
-
-    this.fieldWidthCalculator.distributeWidths(fields, fieldTotalWidth, verticalScrollWidth, cfg.isHeaderResize);
+    this.fieldWidthCalculator.distributeWidths(fields, fieldTotalWidth, cfg.isHeaderResize);
   }
 
   /**
@@ -106,7 +102,7 @@ export class DimensionCalculator {
   private calculateToolbarDimension() {
     const { toolbar } = this.opts;
 
-    if (!toolbar.enabled) return;
+    if (!toolbar?.enabled || !toolbar.items?.length) return;
 
     const toolbarHeight = isNumber(toolbar.height) ? toolbar.height : TOOLBAR_HEIGHT;
     let totHeight = 0;
@@ -129,7 +125,7 @@ export class DimensionCalculator {
   private calculateFooterDimension() {
     const { footer } = this.opts;
 
-    if (footer.enabled) {
+    if (footer?.enabled) {
       this.gridMain.config().dimensions.footerHeight = isNumber(footer.height) ? footer.height : FOOTER_HEIGHT;
     }
   }
@@ -140,7 +136,7 @@ export class DimensionCalculator {
   private calculateSummaryDimension() {
     const { summary } = this.opts;
 
-    if (isUndefined(summary) || summary.items.length === 0) return;
+    if (!summary || !summary.items || summary.items.length === 0) return;
 
     const cfg = this.gridMain.config();
     const len = summary.items.length;
@@ -167,29 +163,27 @@ export class DimensionCalculator {
   /**
    * Line Number width 계산
    */
-  private adjustLineNumberWidth() {
+  private adjustLineNumberWidth(): void {
     const cfg = this.gridMain.config();
-    const { dataInfo, currentFields: fields } = cfg;
+    const { dataInfo, currentFields: fields, allFieldMap } = cfg;
 
-    const lineNumberCol = cfg.allFieldMap.get(LINE_NUMBER_NAME)?.$colSeq;
-
+    const lineNumberCol = allFieldMap.get(LINE_NUMBER_NAME)?.$colSeq;
     if (isUndefined(lineNumberCol)) return;
 
     const numberField = fields[lineNumberCol];
+    if (!numberField) return; // 방어적 코드: 필드가 실제로 존재하지 않을 경우 예외 방지
+
+    let targetWidth: number;
 
     // 데이터가 많을 때 글자 폭에 맞춰 자동 리사이즈
     if (dataInfo.rowLength >= LARGE_DATA_THRESHOLD) {
       const textWidth = getTextWidth(cfg, String(dataInfo.rowLength));
-
-      if (textWidth) {
-        numberField.width = textWidth;
-        numberField.$width = textWidth;
-      }
+      targetWidth = textWidth || (this.opts.aside.lineNumber.width ?? DEFAULT_LINE_NUMBER_WIDTH);
     } else {
-      const defaultWidth = this.opts.aside.lineNumber.width ?? DEFAULT_LINE_NUMBER_WIDTH;
-
-      numberField.width = defaultWidth;
-      numberField.$width = defaultWidth;
+      targetWidth = this.opts.aside.lineNumber.width ?? DEFAULT_LINE_NUMBER_WIDTH;
     }
+
+    numberField.width = targetWidth;
+    numberField.$width = targetWidth;
   }
 }

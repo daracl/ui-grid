@@ -25,6 +25,7 @@ import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
 import { debounce, isArray, isString, isUndefined, isVisible } from '@/util/utils';
 import { Toolbar } from '@/view/toolbar/Toolbar';
+import { StructureBuilder } from './builder/StructureBuilder';
 import { Footer } from './footer/Footer';
 import { Body } from './main/body/Body';
 import { ContextMenu } from './main/ContextMenu';
@@ -34,7 +35,6 @@ import { Summary } from './main/Summary';
 import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
-import { StructureBuilder } from './builder/StructureBuilder';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -88,8 +88,6 @@ export class GridMain {
   private layoutElement: DaraElement;
 
   private rendererLayerElement: HTMLElement;
-
-  private readonly cellMinWidth: number;
 
   public selectionInfo: SelectionInfo;
 
@@ -145,9 +143,6 @@ export class GridMain {
     this.gridElement = new DaraElement(element);
 
     ALL_INSTANCE.set(this.$instanceId, this);
-
-    const headerOpts = opts.header;
-    this.cellMinWidth = headerOpts.resize.minWidth;
   }
 
   public init() {

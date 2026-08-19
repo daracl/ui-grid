@@ -626,10 +626,7 @@ export const parseClipboard = (text: string): string[][] => {
 };
 
 /**
- * 필드의 편집 가능 여부를 반환한다.
- *
- * Grid의 편집 기능이 활성화되어 있고,
- * 필드에서 editable이 명시적으로 false가 아닌 경우 편집 가능으로 판단한다.
+ * 필드의 편집 가능 여부를 반환
  *
  * @param cfg Grid 설정 정보
  * @param field 편집 가능 여부를 확인할 필드 정보
@@ -641,6 +638,12 @@ export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
   return field.editable === true || (cfg.enableCellEdit && field.editable !== false);
 };
 
+/**
+ * grid 가용 가능한 넓이
+ *
+ * @param cfg Grid 설정 정보
+ * @returns
+ */
 export const gridAvailableWidth = (cfg: Config): number => {
   const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2;
 
