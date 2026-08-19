@@ -44,7 +44,7 @@ export class DimensionCalculator {
   public calculateBodyLayout(width: number, height: number) {
     const cfg = this.gridMain.config();
     const { dimensions, rowHeight, dataInfo, currentFields: fields, scroll } = cfg;
-    const opts = this.opts;
+
     const gridElement = this.gridMain.element();
 
     // 전체 컨테이너 사이즈 초기 설정
@@ -53,6 +53,15 @@ export class DimensionCalculator {
 
     dimensions.width = width < 0 ? gridElement.clientWidth() : width;
     dimensions.height = Math.max(minHeightSize, changeHeight);
+
+    console.log(
+      minHeightSize,
+      changeHeight,
+      dimensions.toolbarHeight,
+      dimensions.footerHeight,
+      dimensions.mainHeaderHeight,
+      rowHeight,
+    );
 
     // Line Number 너비 동적 계산
     this.adjustLineNumberWidth();

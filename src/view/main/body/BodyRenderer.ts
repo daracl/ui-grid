@@ -65,7 +65,7 @@ export class BodyRenderer {
 
       this.context.gridMain.getScroll().moveVerticalScroll({
         rowIdx: startIdx,
-        dragFlag: false,
+        drawFlag: false,
       });
 
       currentViewRow = 1;

@@ -248,7 +248,10 @@ export class GridMain {
 
     const hoverClassName = opts.hoverMode ? HoverModeMap[opts.hoverMode] ?? HoverModeMap.cell : HoverModeMap.cell;
 
-    this.mainElement.addClass(opts.selectionMode === 'none' ? 'dg-select' : 'dg-noselect', hoverClassName);
+    this.mainElement.addClass(
+      opts.selectionMode === 'none' ? 'dg-select' : 'dg-noselect',
+      'dg-body-hover-' + hoverClassName,
+    );
 
     this.setTheme(this.opts.theme);
 
@@ -808,33 +811,37 @@ export class GridMain {
   }
 
   /**
-   * add row
+   * 데이터를 추가
    *
-   * @param {any[]} items items
-   * @param {?number} [rowIndex] row index
+   * @param items - 추가할 행 데이터 배열
+   * @param addOpts - 행 추가 위치 및 대상에 대한 옵션
+   * @returns void
    */
-  public addRows(addOpts: AddRowOptions) {
+  public addItems(items: any[], addOpts?: AddRowOptions) {
     const cfg = this.cfg;
 
-    const rowIdx = cfg.dataManager.addRows(addOpts);
+    const rowIdx = cfg.dataManager.addItems(items, addOpts);
 
-    this.scroll.moveVerticalScroll({ rowIdx: rowIdx });
+    if (rowIdx > -1) {
+      this.scroll.moveVerticalScroll({ rowIdx: rowIdx, drawFlag: false });
+      this.getBody().dataDraw('refreshBody-addItems');
+    }
   }
 
   /**
-   * remove row data
+   * item을 삭제
    *
-   * @param {any[]} ids row positions
+   * @param {any[]} ids rowId
    */
-  public removeRows(ids: any[]) {
+  public removeItems(ids: any[]) {
     const cfg = this.cfg;
 
-    cfg.dataManager.removeRows(ids);
-    this.refreshBody(true, 'removeRows');
+    cfg.dataManager.removeItems(ids);
+    this.refreshBody(true, 'removeItems');
   }
 
   /**
-   * all data clear
+   * all items clear
    *
    * @public
    */

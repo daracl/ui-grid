@@ -194,14 +194,38 @@ export class DaraGrid {
   }
 
   /**
-   * add row items
+   * 행 데이터를 추가
    *
-   * @param items add items
-   * @param position add position
-   * @param addRowIndex add row index
+   * @param items - 추가할 행 데이터 배열
+   * @param addOpts - 행 추가 위치 및 대상에 대한 옵션
+   *
+   * @example
+   * // 기본 추가
+   * grid.addItems(items, {});
+   *
+   * @example
+   * // 특정 행의 앞에 추가
+   * grid.addItems(items, {
+   *   rowId: targetRowId,
+   *   position: 'before',
+   * });
+   *
+   * @example
+   * // 특정 행의 뒤에 추가
+   * grid.addItems(items, {
+   *   rowId: targetRowId,
+   *   position: 'after',
+   * });
+   *
+   * @example
+   * // 특정 행의 내부에 추가
+   * grid.addItems(items, {
+   *   rowId: targetRowId,
+   *   position: 'inside',
+   * });
    */
-  public addRows(addOpts: AddRowOptions) {
-    this.gridMain.addRows(addOpts);
+  public addItems(items: any[], addOpts?: AddRowOptions) {
+    this.gridMain.addItems(items, addOpts);
   }
 
   /**
@@ -209,8 +233,8 @@ export class DaraGrid {
    *
    * @param {any[]} ids row positions
    */
-  public removeRows = (ids: any[]) => {
-    this.gridMain.removeRows(ids);
+  public removeItems = (ids: any[]) => {
+    this.gridMain.removeItems(ids);
   };
 
   public setSize(width: number, height: number) {

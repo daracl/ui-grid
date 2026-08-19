@@ -143,7 +143,7 @@ export abstract class DataManager {
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
 
-  protected createRowItem(item: any, depth: number): any {
+  protected createRowItem(item: any, depth = 0): any {
     const rowIdField = this.rowIdField;
     const rowId = item[rowIdField] ?? this.generateUUID();
 
@@ -197,7 +197,7 @@ export abstract class DataManager {
 
     if (this.beforeDataRowLength != -1 && this.beforeDataRowLength !== dataInfo.rowLength) {
       this.gridMain.calcBody();
-      this.gridMain.refreshBody(false, 'search');
+      this.gridMain.refreshBody(false, 'setViewItems');
     }
 
     this.beforeDataRowLength = dataInfo.rowLength;
@@ -248,14 +248,14 @@ export abstract class DataManager {
    * row 추가
    * @param addOpts add options
    */
-  public abstract addRows(addOpts: AddRowOptions): void;
+  public abstract addItems(items: any[], addOpts?: AddRowOptions): number;
 
   /**
    * row 삭제
    * @param ids 삭제할 row id 배열
    * @returns 삭제된 row id 배열
    */
-  public abstract removeRows(ids: RowId[]): RowId[];
+  public abstract removeItems(ids: RowId[]): RowId[];
 
   protected abstract getRowIndexById(rowId: RowId): number;
 

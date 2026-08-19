@@ -51,7 +51,7 @@
       </select>
       <button type="button" onclick="loadGrid()">regrid</button>
     </div>
-
+    <div style="height: 100px"></div>
     <div class="grid-view-area">
       <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
     </div>
@@ -996,7 +996,7 @@
         scroll: {
           width: 12,
           vertical: {
-            enable1: false,
+            enable: true,
             onUpdate: function (item) {
               // 스크롤 업데이트.
               //console.log(item);
@@ -1004,7 +1004,7 @@
             },
           },
           horizontal: {
-            enable: false,
+            enable: true,
             enableWheel: true,
           },
         },

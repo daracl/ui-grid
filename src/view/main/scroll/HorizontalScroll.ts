@@ -1,4 +1,4 @@
-import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE } from '@/constants';
+import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE, ScrollDirectionXMap } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
@@ -8,6 +8,7 @@ import { GridMain } from '@/view/GridMain';
 import { Config } from '@t/GridConfig';
 import { ScrollOptions } from '@t/GridOptions';
 import { Scroll } from './Scroll';
+import { ScrollMoveOptions } from '@/types/Scroll';
 
 /**
  * horizontal scroll event
@@ -68,7 +69,7 @@ export class HorizontalScroll {
     }
 
     const dimensions = cfg.dimensions;
-    const opts = this.gridMain.options();
+
     const arrowButtonSize = cfg.scrollbarSize * 2;
 
     const totalColWidth = dimensions.mainTotalWidth;
@@ -270,7 +271,7 @@ export class HorizontalScroll {
 
         scrollBtnTimer = setInterval(() => {
           buttonMoveMode = 2;
-          this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
+          this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
         }, vBtnDelay);
       },
       { passive: false },
@@ -279,7 +280,7 @@ export class HorizontalScroll {
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend touchcancel mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
         const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
-        this.moveHorizontalScroll({ direction: mode ? 'L' : 'R' });
+        this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
       }
       clearInterval(scrollBtnTimer);
       buttonMoveMode = 0;
@@ -319,21 +320,16 @@ export class HorizontalScroll {
    * @method moveHorizontalScroll
    * @param  moveObj.position {Integer} left position
    * @param  moveObj.direction {String} 'L' or 'R'
-   * @param  moveObj.resizeFlag {boolean} resize flag
    * @param  moveObj.drawFlag {boolean} redraw flag
    * @param  moveObj.speed {Integer} row move count
    * @description 가로 스크롤 이동.
    */
-  public moveHorizontalScroll(moveObj: any) {
+  public moveHorizontalScroll(moveObj: ScrollMoveOptions) {
     const cfg = this.gridMain.config();
 
     if (!cfg.scroll.enableHorizontal) {
       if (cfg.scroll.left > 0) {
         this.moveHorizontalScrollPosition(0, moveObj.drawFlag);
-      }
-
-      if (moveObj.resizeFlag !== true) {
-        return;
       }
     }
 
@@ -361,7 +357,8 @@ export class HorizontalScroll {
       leftVal = getHorizontalScrollPosition(cfg, leftVal, moveObj.direction);
     } else if (isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
-      leftVal = cfg.scroll.left + (moveObj.direction == 'L' ? -1 : 1) * speed * cfg.scroll.oneColMove;
+      leftVal =
+        cfg.scroll.left + (moveObj.direction == ScrollDirectionXMap.LEFT ? -1 : 1) * speed * cfg.scroll.oneColMove;
     }
 
     this.moveHorizontalScrollPosition(leftVal, moveObj.drawFlag);
@@ -374,7 +371,7 @@ export class HorizontalScroll {
    * @param updateChkFlag {Boolean} 업데이트 여부.
    * @description 가로 스크롤바 위치 이동
    */
-  public moveHorizontalScrollPosition(leftVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
+  public moveHorizontalScrollPosition(leftVal: number, drawFlag = true, updateChkFlag?: boolean) {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 

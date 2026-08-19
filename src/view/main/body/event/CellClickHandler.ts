@@ -329,8 +329,6 @@ export class CellClickHandler extends BasePointerHandler {
     const cfg = context.gridMain.config();
     const gridMain = context.gridMain;
 
-    //gridMain.setGridFocusIn(e, true);
-
     if (!(cellInfo.field.renderer.type == 'dropdown' && cellInfo.c == +cfg.activeComponent)) {
       gridMain.hideLayer();
     }
@@ -340,9 +338,9 @@ export class CellClickHandler extends BasePointerHandler {
 
     if (!isFixedLeftPostion(cfg, cellIdx) && !isFixedRightPostion(cfg, cellIdx)) {
       if (cellIdx < cfg.scroll.insideStartCol) {
-        gridMain.getScroll().moveHorizontalScroll({ direction: 'L', colIdx: cellIdx });
+        gridMain.getScroll().moveHorizontalScroll({ direction: ScrollDirectionXMap.LEFT, colIdx: cellIdx });
       } else if (cellIdx > cfg.scroll.insideEndCol) {
-        gridMain.getScroll().moveHorizontalScroll({ direction: 'R', colIdx: cellIdx });
+        gridMain.getScroll().moveHorizontalScroll({ direction: ScrollDirectionXMap.RIGHT, colIdx: cellIdx });
       }
     }
 

@@ -5,6 +5,8 @@ import {
   MOUSE_MOVE_THRESHOLD,
   PointerStateMap,
   ROW_DRAG_HANDLE_NAME,
+  ScrollDirectionXMap,
+  ScrollDirectionYMap,
   SelectionModeMap,
 } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
@@ -119,7 +121,10 @@ export class BodyEvent {
             return;
           }
           animationId = requestAnimationFrame(() => {
-            scrollInfo.moveHorizontalScroll({ direction: upFlag ? 'L' : 'R', speed: opts.scroll.horizontal.speed });
+            scrollInfo.moveHorizontalScroll({
+              direction: upFlag ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT,
+              speed: opts.scroll.horizontal.speed,
+            });
           });
         } else if (scroll.enableVertical) {
           const startIdx = scroll.startIdx;
@@ -139,7 +144,7 @@ export class BodyEvent {
             const speed = Math.abs(dy) / rowHeight;
             const pageCount = Math.ceil(dataInfo.rowLength / scroll.viewRow);
             scrollInfo.moveVerticalScroll({
-              direction: upFlag ? 'U' : 'D',
+              direction: upFlag ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN,
               speed: pageCount < 2 ? 1 : opts.scroll.vertical.speed * speed,
             });
           });

@@ -503,19 +503,169 @@ export class TreeDataManager extends DataManager {
   }
 
   /**
-   * 행 삭제
-   * @param ids 삭제할 행의 ID 배열
-   * @returns 삭제된 행의 ID 배열
+   * 트리 구조에 신규 행 아이템들을 추가
+   *
+   * @param items 추가할 아이템 배열
+   * @param addOpts 추가 옵션 { rowId?, position? ('before' | 'after' | 'inside') }
    */
-  public removeRows(ids: RowId[]): RowId[] {
-    throw new Error('Method not implemented.');
+  public addItems(items: any[], addOpts: AddRowOptions = {}): number {
+    if (!items || items.length === 0) return -1;
+
+    let parentId: RowId = 'dg$root';
+    let depth = 0;
+    let targetSiblings: TreeViewItem[] = this.viewTreeItems;
+    let insertIndex = targetSiblings.length;
+
+    // 1. 기준 위치(targetNode) 탐색 및 삽입 타겟 배열/인덱스/depth 결정
+    if (addOpts?.rowId !== undefined) {
+      const targetNode = this.idViewItemMap.get(addOpts.rowId);
+      if (targetNode) {
+        if (addOpts.position === 'inside') {
+          // 지정한 행의 자식 노드로 추가
+          parentId = targetNode.id;
+          depth = targetNode.depth + 1;
+          if (!targetNode.children) {
+            targetNode.children = [];
+          }
+          targetNode.isLeaf = false;
+          // 추가된 자식이 보일 수 있도록 부모 노드 펼침
+          targetNode.expanded = EXPAND_TYPE.USER;
+          targetSiblings = targetNode.children;
+          insertIndex = targetSiblings.length;
+        } else {
+          // 'before' 또는 'after': 지정한 행과 동일한 계층(형제 노드)에 추가
+          parentId = targetNode.pid;
+          depth = targetNode.depth;
+
+          if (parentId === 'dg$root' || !parentId) {
+            targetSiblings = this.viewTreeItems;
+          } else {
+            const parentNode = this.idViewItemMap.get(parentId);
+            targetSiblings = parentNode?.children ?? this.viewTreeItems;
+          }
+
+          const foundIdx = targetSiblings.findIndex((node) => node.id === targetNode.id);
+          if (foundIdx !== -1) {
+            insertIndex = addOpts.position === 'before' ? foundIdx : foundIdx + 1;
+          }
+        }
+      }
+    } else if (addOpts?.position === 'before') {
+      insertIndex = 0;
+    }
+
+    // 2. 신규 아이템을 재귀적으로 TreeViewItem으로 변환하는 내부 헬퍼 함수
+    const createTreeViewNodes = (list: any[], currentDepth: number, currentPid: RowId): TreeViewItem[] => {
+      let orderIdx = 0;
+      const nodes: TreeViewItem[] = [];
+
+      for (const item of list) {
+        this.createRowItem(item, currentDepth);
+        const newRowId = item[ROW_FIELD.ID];
+        item[this.pidKey] = currentPid;
+        this.setRowItem(newRowId, item);
+
+        const children = item[this.childrenKey];
+        const hasChildren = Array.isArray(children) && children.length > 0;
+
+        const treeNode: TreeViewItem = {
+          id: newRowId,
+          pid: currentPid,
+          sortOrder: orderIdx++,
+          depth: currentDepth,
+          isLeaf: !hasChildren,
+          expanded: 0,
+          children: [],
+        };
+
+        if (hasChildren) {
+          treeNode.children = createTreeViewNodes(children, currentDepth + 1, newRowId);
+          item[this.childrenKey] = null;
+        }
+
+        nodes.push(treeNode);
+      }
+
+      return nodes;
+    };
+
+    // 3. 신규 트리 노드 생성 및 대상 위치에 삽입
+    const newTreeNodes = createTreeViewNodes(items, depth, parentId);
+    targetSiblings.splice(insertIndex, 0, ...newTreeNodes);
+
+    // 4. 형제 노드 간 sortOrder 재정렬
+    targetSiblings.forEach((node, idx) => {
+      node.sortOrder = idx;
+    });
+
+    // 5. 트리 뷰 갱신
+    this.buildViewItems();
+
+    return insertIndex;
   }
 
   /**
-   * 행 추가
-   * @param addOpts 추가 옵션 (예: 부모 행 ID, 추가할 데이터 등)
+   * 행 삭제 구현
+   * @param ids 삭제할 행의 ID 배열
+   * @returns 삭제된 행 ID 배열
    */
-  public addRows(addOpts: AddRowOptions): void {
-    throw new Error('Method not implemented.');
+  public removeItems(ids: RowId[]): RowId[] {
+    if (!ids || ids.length === 0) return [];
+
+    const removeSet = new Set(ids);
+    const removedIds: RowId[] = [];
+
+    // 삭제 대상 노드 및 그 모든 하위 자식 노드를 맵과 캐시에서 제거하는 재귀 함수
+    const collectAndClean = (node: TreeViewItem) => {
+      removedIds.push(node.id);
+
+      if (typeof (this as any).deleteRowItem === 'function') {
+        (this as any).deleteRowItem(node.id);
+      } else if (typeof (this as any).removeRowItem === 'function') {
+        (this as any).removeRowItem(node.id);
+      }
+
+      this.idViewItemMap.delete(node.id);
+      this.visibleIndexMap.delete(node.id);
+      this.matchOffsetMap.delete(node.id);
+
+      if (node.children && node.children.length > 0) {
+        node.children.forEach(collectAndClean);
+      }
+    };
+
+    // 트리 구조 순회하며 삭제 수행
+    const filterNodes = (nodes: TreeViewItem[]): TreeViewItem[] => {
+      const result: TreeViewItem[] = [];
+
+      for (const node of nodes) {
+        if (removeSet.has(node.id)) {
+          collectAndClean(node);
+        } else {
+          if (node.children && node.children.length > 0) {
+            node.children = filterNodes(node.children);
+            if (node.children.length === 0) {
+              node.isLeaf = true;
+            }
+          }
+          result.push(node);
+        }
+      }
+
+      result.forEach((node, idx) => {
+        node.sortOrder = idx;
+      });
+
+      return result;
+    };
+
+    // 1. 트리 데이터 필터링
+    this.viewTreeItems = filterNodes(this.viewTreeItems);
+    this.originalTreeItems = filterNodes(this.originalTreeItems);
+
+    // 2. 트리 뷰 갱신
+    this.buildViewItems();
+
+    return removedIds;
   }
 }

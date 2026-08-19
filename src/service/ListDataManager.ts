@@ -54,9 +54,16 @@ export class ListDataManager extends DataManager {
     super.setItems(items);
     super.setOriginalViewItems(viewItemIds);
 
+    this.updatePagingAndViewItems(viewItemIds);
+  }
+
+  /**
+   * 페이징 옵션 여부에 따라 현재 ViewItems 및 페이징 정보를 업데이트합니다.
+   */
+  private updatePagingAndViewItems(viewItemIds: ViewItem[]): void {
     const footerOpts = this.opts.footer;
     if (footerOpts?.enabled && footerOpts.paging?.enabled) {
-      const itemLength = items.length;
+      const itemLength = viewItemIds.length;
       const pagingParam = this.opts.paging;
 
       const pagingInfo = getPagingParamToPagingInfo(pagingParam ?? ({} as PagingParam), itemLength);
@@ -205,11 +212,107 @@ export class ListDataManager extends DataManager {
     return this.getViewItemIndex(rowId);
   }
 
-  public addRows(addOpts: AddRowOptions): void {
-    throw new Error('Method not implemented.');
+  /**
+   * 신규 행 아이템들을 지정된 기준 위치(rowId, position)에 추가
+   *
+   * @param items 추가할 아이템 배열
+   * @param addOpts AddRowOptions { rowId?, position? }
+   */
+  public addItems(items: any[], addOpts: AddRowOptions = { position: 'after' }): number {
+    if (!items || items.length === 0) return -1;
+
+    const originalViewItems = [...this.getOriginalViewItems()];
+    let targetIndex = originalViewItems.length; // 기본값: 리스트 맨 끝
+
+    const isPositionBefore = addOpts?.position === 'before';
+
+    // 삽입 위치(targetIndex) 계산
+    const addRowId = addOpts?.rowId;
+    if (addRowId !== undefined) {
+      const foundIdx = originalViewItems.findIndex((v) => v.id === addRowId);
+      if (foundIdx !== -1) {
+        if (isPositionBefore) {
+          targetIndex = foundIdx;
+        } else {
+          // 'after' 또는 'inside' (단순 리스트 형태에서는 기준 행 다음 위치에 삽입)
+          targetIndex = foundIdx + 1;
+        }
+      }
+    } else if (isPositionBefore) {
+      // addRowId가 없고 position이 'before'인 경우 가장 맨 앞으로 설정
+      targetIndex = 0;
+    }
+
+    // ViewItem 생성
+    const newViewItems: ViewItem[] = items.map((item) => {
+      this.createRowItem(item);
+      const rowId = item[ROW_FIELD.ID];
+      this.setRowItem(rowId, item);
+
+      return {
+        id: rowId,
+        sortOrder: 0,
+      };
+    });
+
+    // 신규 ViewItem 추가
+    originalViewItems.splice(targetIndex, 0, ...newViewItems);
+
+    // 재정렬
+    originalViewItems.forEach((vItem, idx) => {
+      vItem.sortOrder = idx;
+    });
+
+    // 갱신
+    this.setOriginalViewItems(originalViewItems);
+    this.updatePagingAndViewItems(originalViewItems);
+
+    return targetIndex;
   }
-  public removeRows(ids: RowId[]): RowId[] {
-    throw new Error('Method not implemented.');
+
+  /**
+   * ID 목록에 해당하는 행들을 삭제
+   *
+   * @param ids 삭제할 행 ID 배열
+   * @returns 실제 삭제된 행 ID 배열
+   */
+  public removeItems(ids: RowId[]): RowId[] {
+    if (!ids || ids.length === 0) return [];
+
+    const removeSet = new Set(ids);
+    const originalViewItems = this.getOriginalViewItems();
+    const removedIds: RowId[] = [];
+    const remainingViewItems: ViewItem[] = [];
+
+    // 제거
+    originalViewItems.forEach((viewItem) => {
+      if (removeSet.has(viewItem.id)) {
+        removedIds.push(viewItem.id);
+
+        // DataManager 내 데이터 삭제 처리
+        if (typeof (this as any).deleteRowItem === 'function') {
+          (this as any).deleteRowItem(viewItem.id);
+        } else if (typeof (this as any).removeRowItem === 'function') {
+          (this as any).removeRowItem(viewItem.id);
+        }
+        this.matchOffsetMap.delete(viewItem.id);
+      } else {
+        remainingViewItems.push(viewItem);
+      }
+    });
+
+    if (removedIds.length === 0) return [];
+
+    // 재정렬
+    remainingViewItems.forEach((vItem, idx) => {
+      vItem.sortOrder = idx;
+    });
+
+    // 갱신
+    this.setOriginalViewItems(remainingViewItems);
+    this.updatePagingAndViewItems(remainingViewItems);
+
+    return removedIds;
   }
 
   public expandRow(rowId: RowId) {

@@ -16,6 +16,7 @@ import { eventKeyCode, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from '../Body';
+import { ScrollDirectionXMap, ScrollDirectionYMap } from '@/constants';
 
 /**
  * keydown event class
@@ -211,7 +212,7 @@ export class KeydownEvent implements EventHandler {
         }
 
         if (moveRowIdx < scrollInfo.startIdx) {
-          scrollCtrl.moveVerticalScroll({ direction: 'U', rowIdx: moveRowIdx });
+          scrollCtrl.moveVerticalScroll({ direction: ScrollDirectionYMap.UP, rowIdx: moveRowIdx });
         }
 
         break;
@@ -233,7 +234,7 @@ export class KeydownEvent implements EventHandler {
         }
 
         if (!isFixedLeftPostion(cfg, moveCol) && moveCol < scrollInfo.insideStartCol) {
-          scrollCtrl.moveHorizontalScroll({ direction: 'L', colIdx: moveCol });
+          scrollCtrl.moveHorizontalScroll({ direction: ScrollDirectionXMap.LEFT, colIdx: moveCol });
         }
 
         break;
@@ -325,7 +326,7 @@ export class KeydownEvent implements EventHandler {
 
       if (horizontal > 0) {
         scrollCtrl.moveHorizontalScroll({
-          direction: horizontal == 1 ? 'L' : 'R',
+          direction: horizontal == 1 ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT,
           colIdx: moveColIdx,
           drawFlag: vertical < 1,
         });

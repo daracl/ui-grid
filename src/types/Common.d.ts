@@ -85,8 +85,7 @@ export type RowId = string | number;
 
 export type AddRowOptions = {
   rowId?: RowId;
-  items: any | any[];
-  position?: AddItemPosition;
+  position?: 'before' | 'after' | 'inside';
 };
 
 export interface ViewItem {

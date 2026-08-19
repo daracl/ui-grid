@@ -5,6 +5,8 @@ import { GridOptions } from '@t/GridOptions';
 import { ScrollInfo } from '@t/GridConfig';
 import { HorizontalScroll } from './HorizontalScroll';
 import { VerticalScroll } from './VerticalScroll';
+import { ScrollMoveOptions } from '@/types/Scroll';
+import { ScrollDirectionX, ScrollDirectionXMap, ScrollDirectionY, ScrollDirectionYMap } from '@/constants';
 
 export class Scroll {
   private readonly gridMain: GridMain;
@@ -24,8 +26,8 @@ export class Scroll {
   private pendingHorizontalDelta = 0;
 
   // 현재 wheel 방향
-  private verticalWheelDirection: 'U' | 'D' | null = null;
-  private horizontalWheelDirection: 'L' | 'R' | null = null;
+  private verticalWheelDirection: ScrollDirectionY | null = null;
+  private horizontalWheelDirection: ScrollDirectionX | null = null;
 
   // 방향이 변경되었는지 여부
   private verticalDirectionChanged = false;
@@ -160,7 +162,7 @@ export class Scroll {
    * 세로 wheel delta를 누적한다.
    */
   private addVerticalWheel(delta: number) {
-    const direction = delta < 0 ? 'U' : 'D';
+    const direction = delta < 0 ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN;
 
     if (this.verticalWheelDirection !== null && this.verticalWheelDirection !== direction) {
       // 방향이 바뀌면 이전 방향의 누적량을 버린다.
@@ -179,7 +181,7 @@ export class Scroll {
    * 가로 wheel delta를 누적한다.
    */
   private addHorizontalWheel(delta: number) {
-    const direction = delta < 0 ? 'L' : 'R';
+    const direction = delta < 0 ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT;
 
     if (this.horizontalWheelDirection !== null && this.horizontalWheelDirection !== direction) {
       // 방향이 바뀌면 이전 방향의 누적량을 버린다.
@@ -227,6 +229,20 @@ export class Scroll {
   }
 
   /**
+   * 지정된 방향으로 세로 스크롤 이동이 가능한지 확인합니다.
+   *
+   * @param direction - 세로 스크롤 이동 방향
+   * @param scroll - 현재 스크롤 위치 및 표시 영역 정보
+   * @param rowLength - 전체 행의 개수
+   * @returns 해당 방향으로 이동할 수 있으면 true, 그렇지 않으면 false
+   */
+  private canMoveVertical(direction: ScrollDirectionY, scroll: ScrollInfo, rowLength: number) {
+    return direction === ScrollDirectionYMap.UP
+      ? scroll.startIdx > 0
+      : scroll.startIdx + scroll.insideViewRow < rowLength;
+  }
+
+  /**
    * 누적된 세로 wheel을 처리한다.
    */
   private processVerticalWheel() {
@@ -240,7 +256,7 @@ export class Scroll {
 
     const rowLength = dataInfo.rowLength;
 
-    const canMove = direction === 'U' ? scroll.startIdx > 0 : scroll.startIdx + scroll.insideViewRow < rowLength;
+    const canMove = this.canMoveVertical(direction, scroll, rowLength);
 
     if (!canMove) {
       this.clearVerticalWheel();
@@ -264,11 +280,15 @@ export class Scroll {
 
     this.verticalDirectionChanged = false;
 
-    const nextCanMove = direction === 'U' ? scroll.startIdx > 0 : scroll.startIdx + scroll.insideViewRow < rowLength;
+    const nextCanMove = this.canMoveVertical(direction, scroll, rowLength);
 
     if (!nextCanMove) {
       this.clearVerticalWheel();
     }
+  }
+
+  private canMoveHorizontal(direction: ScrollDirectionX, scroll: ScrollInfo, maxLeft: number) {
+    return direction === ScrollDirectionXMap.LEFT ? scroll.left > 0 : scroll.left < maxLeft;
   }
 
   /**
@@ -285,7 +305,7 @@ export class Scroll {
 
     const maxLeft = scroll.hTrackWidth - scroll.hThumbWidth;
 
-    const canMove = direction === 'L' ? scroll.left > 0 : scroll.left < maxLeft;
+    const canMove = this.canMoveHorizontal(direction, scroll, maxLeft);
 
     if (!canMove) {
       this.clearHorizontalWheel();
@@ -309,7 +329,7 @@ export class Scroll {
 
     this.horizontalDirectionChanged = false;
 
-    const nextCanMove = direction === 'L' ? scroll.left > 0 : scroll.left < maxLeft;
+    const nextCanMove = this.canMoveHorizontal(direction, scroll, maxLeft);
 
     if (!nextCanMove) {
       this.clearHorizontalWheel();
@@ -439,7 +459,7 @@ export class Scroll {
   /**
    * 세로 스크롤을 이동한다.
    */
-  public moveVerticalScroll(moveObj: any) {
+  public moveVerticalScroll(moveObj: ScrollMoveOptions) {
     this.verticalScroll.moveVerticalScroll(moveObj);
   }
 

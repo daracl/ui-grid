@@ -1,4 +1,4 @@
-import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE } from '@/constants';
+import { SCROLL_INSET, SCROLL_THUMB_MIN_SIZE, ScrollDirectionYMap } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { eqAttributeValue } from '@/util/domUtils';
 import { eventPosition, isClickEvent, stopPreventCancel } from '@/util/eventUtils';
@@ -7,6 +7,7 @@ import { GridMain } from '@/view/GridMain';
 import { Config, ScrollInfo } from '@t/GridConfig';
 import { ScrollOptions } from '@t/GridOptions';
 import { Scroll } from './Scroll';
+import { ScrollMoveOptions } from '@/types/Scroll';
 
 /**
  * vertical event
@@ -203,7 +204,7 @@ export class VerticalScroll {
 
         scrollBtnTimer = setInterval(() => {
           buttonMoveMode = 2;
-          this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
+          this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
         }, vBtnDelay);
       },
       { passive: false },
@@ -212,7 +213,7 @@ export class VerticalScroll {
     eventManager.on({ el: scrollButtonElements, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (buttonMoveMode == 1) {
         const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'up');
-        this.moveVerticalScroll({ direction: mode ? 'U' : 'D' });
+        this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
       }
 
       clearInterval(scrollBtnTimer);
@@ -350,23 +351,15 @@ export class VerticalScroll {
    *
    * @param  moveObj.position {Integer} top position
    * @param  moveObj.direction {String} 'U' or 'D'
-   * @param  moveObj.resizeFlag {boolean} resize flag
    * @param  moveObj.drawFlag {boolean} redraw flag
    * @param  moveObj.speed {Integer} row move count
    * @param  moveObj.rowIdx {Integer} move row idx
    */
-  moveVerticalScroll(moveObj: {
-    position?: number;
-    direction?: 'U' | 'D';
-    resizeFlag?: boolean;
-    drawFlag?: boolean;
-    speed?: number;
-    rowIdx?: number;
-  }) {
+  moveVerticalScroll(moveObj: ScrollMoveOptions) {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
-    if (!scroll.enableVertical && moveObj.resizeFlag !== true) {
+    if (!scroll.enableVertical) {
       scroll.startIdx = 0;
       return;
     }
@@ -379,16 +372,16 @@ export class VerticalScroll {
       topVal = moveObj.rowIdx * scroll.oneRowMove;
     } else if (isString(moveObj.direction)) {
       const speed = moveObj.speed || 1;
-      topVal = scroll.top + (moveObj.direction == 'U' ? -1 : 1) * speed * scroll.oneRowMove;
+      topVal = scroll.top + (moveObj.direction == ScrollDirectionYMap.UP ? -1 : 1) * speed * scroll.oneRowMove;
     }
 
-    this.moveVerticalScrollPosition(topVal, moveObj.drawFlag ?? true);
+    this.moveVerticalScrollPosition(topVal, moveObj.drawFlag);
   }
 
   /**
    *세로 스크롤 위치 이동.
    */
-  private moveVerticalScrollPosition(topVal: number, drawFlag: boolean, updateChkFlag?: boolean) {
+  private moveVerticalScrollPosition(topVal: number, drawFlag = true, updateChkFlag?: boolean) {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
