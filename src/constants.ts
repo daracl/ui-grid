@@ -14,6 +14,9 @@ export const SelectionModeMap = {
 // 선택 타입
 export type SelectionMode = (typeof SelectionModeMap)[keyof typeof SelectionModeMap];
 
+// 삭제 모드
+export type DeleteMode = 'soft' | 'hard';
+
 // body hover
 export const HoverModeMap = {
   cell: 'cell',
@@ -65,6 +68,20 @@ export type PasswordType = 'number' | 'upper' | 'upper-special' | 'upper-special
 export type OrientationType = 'horizontal' | 'vertical';
 
 export type AddItemPosition = 'before' | 'after' | 'inside';
+
+// item 상태
+export const ItemStatusMap = {
+  // 생성
+  CREATE: 'C',
+  // 수정
+  MODIFY: 'U',
+  // 삭제
+  DELETE: 'D',
+  // 읽기
+  READ: 'R',
+};
+
+export type ItemStatus = (typeof ItemStatusMap)[keyof typeof ItemStatusMap];
 
 export const MovePositionMap = {
   BEFORE: 'before',

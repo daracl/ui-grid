@@ -56,12 +56,11 @@ export abstract class EditCellRenderer extends CellRenderer {
     }
 
     if (this.changeEventCall(e, item, value)) {
-      if (item[this.fieldName] == value) return;
+      const result = this.gridMain.config().dataManager.setChangeValue(item, this.field, value);
 
-      if (item[ROW_FIELD.CUD] == 'R') {
-        item[ROW_FIELD.CUD] = 'U';
+      if (!result) {
+        return false;
       }
-      item[this.fieldName] = value;
 
       // 데이터 변경후 그리드 리프레시
       this.gridMain.getBody().dataDraw('dataChange');

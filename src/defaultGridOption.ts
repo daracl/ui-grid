@@ -125,6 +125,12 @@ export const DEFAULT_OPTIONS: GridOptions = {
   hoverMode: HoverModeMap.cell,
 
   /**
+   * delete mode
+   * hard, soft
+   */
+  deleteMode: 'hard',
+
+  /**
    * 툴팁 사용 여부
    */
   enableTooltip: false,

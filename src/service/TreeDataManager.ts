@@ -1,4 +1,4 @@
-import { ROW_FIELD, SearchDirectionMap } from '@/constants';
+import { ItemStatusMap, ROW_FIELD, SearchDirectionMap } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
@@ -93,7 +93,7 @@ export class TreeDataManager extends DataManager {
       let orderIdx = 0;
 
       for (const item of list) {
-        this.createRowItem(item, depth);
+        this.initializeRowItem(item, depth, ItemStatusMap.READ);
 
         const rowId = item[ROW_FIELD.ID];
         this.setRowItem(rowId, item);
@@ -508,7 +508,7 @@ export class TreeDataManager extends DataManager {
    * @param items 추가할 아이템 배열
    * @param addOpts 추가 옵션 { rowId?, position? ('before' | 'after' | 'inside') }
    */
-  public addItems(items: any[], addOpts: AddRowOptions = {}): number {
+  public addItems(items: any[], addOpts: AddRowOptions = {}, status = ItemStatusMap.READ): number {
     if (!items || items.length === 0) return -1;
 
     let parentId: RowId = 'dg$root';
@@ -560,7 +560,7 @@ export class TreeDataManager extends DataManager {
       const nodes: TreeViewItem[] = [];
 
       for (const item of list) {
-        this.createRowItem(item, currentDepth);
+        this.initializeRowItem(item, currentDepth, status);
         const newRowId = item[ROW_FIELD.ID];
         item[this.pidKey] = currentPid;
         this.setRowItem(newRowId, item);

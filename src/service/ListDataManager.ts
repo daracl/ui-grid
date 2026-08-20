@@ -1,4 +1,4 @@
-import { ROW_FIELD, SearchDirectionMap } from '@/constants';
+import { ItemStatusMap, ROW_FIELD, SearchDirectionMap } from '@/constants';
 import { DataManager } from '@/service/DataManager';
 import {
   AddRowOptions,
@@ -35,7 +35,7 @@ export class ListDataManager extends DataManager {
     this.clearRowMap();
 
     items.forEach((item) => {
-      this.createRowItem(item, depth);
+      this.initializeRowItem(item, depth, ItemStatusMap.READ);
 
       const rowId = item[ROW_FIELD.ID];
       viewItems.push({
@@ -218,7 +218,7 @@ export class ListDataManager extends DataManager {
    * @param items 추가할 아이템 배열
    * @param addOpts AddRowOptions { rowId?, position? }
    */
-  public addItems(items: any[], addOpts: AddRowOptions = { position: 'after' }): number {
+  public addItems(items: any[], addOpts: AddRowOptions = { position: 'after' }, status = ItemStatusMap.READ): number {
     if (!items || items.length === 0) return -1;
 
     const originalViewItems = [...this.getOriginalViewItems()];
@@ -245,7 +245,7 @@ export class ListDataManager extends DataManager {
 
     // ViewItem 생성
     const newViewItems: ViewItem[] = items.map((item) => {
-      this.createRowItem(item);
+      this.initializeRowItem(item, 0, status);
       const rowId = item[ROW_FIELD.ID];
       this.setRowItem(rowId, item);
 
@@ -284,22 +284,29 @@ export class ListDataManager extends DataManager {
     const removedIds: RowId[] = [];
     const remainingViewItems: ViewItem[] = [];
 
-    // 제거
-    originalViewItems.forEach((viewItem) => {
-      if (removeSet.has(viewItem.id)) {
-        removedIds.push(viewItem.id);
-
-        // DataManager 내 데이터 삭제 처리
-        if (typeof (this as any).deleteRowItem === 'function') {
-          (this as any).deleteRowItem(viewItem.id);
-        } else if (typeof (this as any).removeRowItem === 'function') {
-          (this as any).removeRowItem(viewItem.id);
-        }
-        this.matchOffsetMap.delete(viewItem.id);
-      } else {
-        remainingViewItems.push(viewItem);
+    if (this.opts.deleteMode == 'soft') {
+      for (const rowId of ids) {
+        this.setItemStatus(this.getRowItem(rowId), ItemStatusMap.DELETE);
       }
-    });
+    } else {
+      // 제거
+      originalViewItems.forEach((viewItem) => {
+        const rowId = viewItem.id;
+        if (removeSet.has(rowId)) {
+          removedIds.push(rowId);
+
+          // DataManager 내 데이터 삭제 처리
+          if (typeof (this as any).deleteRowItem === 'function') {
+            (this as any).deleteRowItem(rowId);
+          } else if (typeof (this as any).removeRowItem === 'function') {
+            (this as any).removeRowItem(rowId);
+          }
+          this.matchOffsetMap.delete(rowId);
+        } else {
+          remainingViewItems.push(viewItem);
+        }
+      });
+    }
 
     if (removedIds.length === 0) return [];
 

@@ -1,4 +1,4 @@
-import { HorizontalRegion, HoverMode, HorizontalRegion, SelectionMode, THEME_TYPE } from '@/constants';
+import { HorizontalRegion, HoverMode, HorizontalRegion, SelectionMode, THEME_TYPE, DeleteMode } from '@/constants';
 import { BodyStyle } from '@/constantStyles';
 import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
@@ -68,6 +68,11 @@ export interface GridOptions {
    * hover 모드 row, cell, none
    */
   hoverMode?: HoverMode;
+
+  /**
+   * 삭제 모드 soft, hard
+   */
+  deleteMode?: DeleteMode;
   /**
    * 툴팁 활성화 여부
    */

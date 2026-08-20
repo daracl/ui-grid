@@ -6,7 +6,6 @@ import { BodyEvent } from './event/BodyEvent';
 
 import { BodyCell } from './BodyCell';
 import { BodyContext } from './BodyContext';
-import { BodyData } from './BodyData';
 import { BodyRenderer } from './BodyRenderer';
 import { BodySelection } from './BodySelection';
 import { BodyTemplate } from './BodyTemplate';
@@ -32,9 +31,6 @@ export class Body {
   /** Row 선택 및 체크 관리 */
   private readonly selectionManager: BodySelection;
 
-  /** 데이터 변경 관리 */
-  private readonly dataManager: BodyData;
-
   /** Body 이벤트 관리 */
   private readonly bodyEvent: BodyEvent;
 
@@ -43,7 +39,7 @@ export class Body {
    *
    * @param gridMain GridMain
    */
-  constructor(gridMain: GridMain) {
+  constructor(private gridMain: GridMain) {
     this.context = new BodyContext(gridMain);
 
     this.templateManager = new BodyTemplate(this.context);
@@ -53,8 +49,6 @@ export class Body {
     this.renderer = new BodyRenderer(this.context, this.cellManager, this.templateManager);
 
     this.selectionManager = new BodySelection(this.context, this.renderer);
-
-    this.dataManager = new BodyData(this.context, this.cellManager);
 
     this.templateManager.create();
 
@@ -74,18 +68,6 @@ export class Body {
   /** Body Cell Element 반환 */
   public getBodyCellElements() {
     return this.context.allCellElements;
-  }
-
-  /**
-   * Row 변경 상태 설정
-   *
-   * @param mode 변경 모드
-   * @param rowItem Row 데이터
-   * @param colInfo Field 정보
-   * @param newValue 변경 값
-   */
-  public setChangeValue(mode: string, rowItem: any, colInfo?: FieldItem, newValue?: any) {
-    return this.dataManager.setChangeValue(mode, rowItem, colInfo, newValue);
   }
 
   /**

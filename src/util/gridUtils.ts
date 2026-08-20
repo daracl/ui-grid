@@ -1,4 +1,4 @@
-import { ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
+import { ItemStatusMap, ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
 import { PointerPosition } from '@/event/PointerSession';
 import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -431,7 +431,7 @@ export const createNewItems = (fields: FieldItem[], createCount = 1): any[] => {
   const result = [];
   for (let i = 0; i < createCount; i++) {
     const newItem: any = {};
-    newItem[ROW_FIELD.CUD] = 'C';
+    newItem[ROW_FIELD.CUD] = ItemStatusMap.CREATE;
     for (let j = 0; j < len; j++) {
       const field = fields[j];
       newItem[field.name] = field.defaultValue ?? '';

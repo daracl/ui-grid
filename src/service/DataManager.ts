@@ -1,4 +1,4 @@
-import { ROW_FIELD, ROW_KEY_PREFIX } from '@/constants';
+import { ItemStatus, ItemStatusMap, ROW_FIELD, ROW_KEY_PREFIX } from '@/constants';
 import {
   AddRowOptions,
   CURRENT_MATCH_INFO,
@@ -16,6 +16,7 @@ import { FieldSortInfo } from '@/types/Header';
 import { isArray } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
+import { FieldItem } from '@/types/GridField';
 
 export abstract class DataManager {
   protected readonly rowHeight;
@@ -34,14 +35,22 @@ export abstract class DataManager {
   private beforeSearchMode: SearchMode;
   private beforeSearchSortInfo: string;
 
+  // 정렬 순서 정보
   private sortOrders: FieldSortInfo[] = [];
+
+  // 정렬 정보
   private sortOpts: SortOption;
 
+  // search item
   private readonly searchMap = new Map<RowId, ViewItem>();
 
+  // all item info
   private readonly rowMap = new Map<RowId, any>();
+
+  // row check item row id
   private readonly rowCheckSet = new Set<RowId>();
 
+  // search match
   protected readonly matchOffsetMap = new Map<RowId, number>();
 
   private beforeDataRowLength = -1;
@@ -59,6 +68,28 @@ export abstract class DataManager {
   protected generateUUID(): string {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => ((Math.random() * 16) | 0).toString(16));
+  }
+
+  /**
+   * CUD 모드 변경.
+   * new = create, modify = update, remove = delete
+   */
+  public setChangeValue(rowItem: any, field: FieldItem, newValue: any) {
+    if (rowItem[field.name] === newValue) {
+      return false;
+    }
+
+    rowItem[field.name] = newValue;
+
+    if (rowItem[ROW_FIELD.CUD] === ItemStatusMap.READ) {
+      this.setItemStatus(rowItem, ItemStatusMap.MODIFY);
+    }
+
+    return true;
+  }
+
+  public setItemStatus(item: any, status: ItemStatus) {
+    item[ROW_FIELD.CUD] = status;
   }
 
   /**
@@ -143,7 +174,7 @@ export abstract class DataManager {
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
 
-  protected createRowItem(item: any, depth = 0): any {
+  protected initializeRowItem(item: any, depth = 0, status = ItemStatusMap.READ): any {
     const rowIdField = this.rowIdField;
     const rowId = item[rowIdField] ?? this.generateUUID();
 
@@ -156,7 +187,7 @@ export abstract class DataManager {
     }
 
     item[ROW_FIELD.DEPTH] = depth;
-    item[ROW_FIELD.CUD] = 'R';
+    item[ROW_FIELD.CUD] = status;
     item[ROW_FIELD.HEIGHT] = this.rowHeight;
 
     return item;
@@ -248,7 +279,7 @@ export abstract class DataManager {
    * row 추가
    * @param addOpts add options
    */
-  public abstract addItems(items: any[], addOpts?: AddRowOptions): number;
+  public abstract addItems(items: any[], addOpts?: AddRowOptions, status?: ItemStatus): number;
 
   /**
    * row 삭제

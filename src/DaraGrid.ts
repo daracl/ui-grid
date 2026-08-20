@@ -229,6 +229,23 @@ export class DaraGrid {
   }
 
   /**
+   * 새로운 item을 Grid에 추가
+   *
+   *
+   * @param item 추가할 item
+   * @param addOpts - 행 추가 위치 및 대상에 대한 옵션
+   * @example
+   * // 특정 행의 내부에 생성
+   * grid.createItem(item, {
+   *   rowId: targetRowId,
+   *   position: 'before'|'after'|'inside', <-- inside 트리 형식일때 사용.
+   * });
+   */
+  public createItem(item: any, addOpts?: AddRowOptions) {
+    this.gridMain.createItem(item, addOpts);
+  }
+
+  /**
    * remove row item
    *
    * @param {any[]} ids rowid

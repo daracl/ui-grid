@@ -6,6 +6,7 @@ import {
   FIELD_PREFIX,
   HoverModeMap,
   INSTANCE_ATTR_KEY,
+  ItemStatusMap,
   LAYER_ATTR_NAME,
   ROW_FIELD,
 } from '@/constants';
@@ -818,9 +819,25 @@ export class GridMain {
    * @returns void
    */
   public addItems(items: any[], addOpts?: AddRowOptions) {
-    const cfg = this.cfg;
+    const rowIdx = this.cfg.dataManager.addItems(items, addOpts, ItemStatusMap.READ);
 
-    const rowIdx = cfg.dataManager.addItems(items, addOpts);
+    if (rowIdx > -1) {
+      this.scroll.moveVerticalScroll({ rowIdx: rowIdx, drawFlag: false });
+      this.getBody().dataDraw('refreshBody-addItems');
+    }
+  }
+
+  /**
+   * 새로운 item을 Grid에 추가합니다.
+   *
+   * item을 데이터 매니저에 추가하면서 신규 생성 상태(CREATE)를 설정하고,
+   * 정상적으로 추가된 경우 해당 row 위치로 스크롤을 이동한 후 body를 갱신합니다.
+   *
+   * @param item 추가할 item
+   * @param addOpts item 추가 옵션
+   */
+  public createItem(item: any, addOpts: AddRowOptions | undefined) {
+    const rowIdx = this.cfg.dataManager.addItems([item], addOpts, ItemStatusMap.CREATE);
 
     if (rowIdx > -1) {
       this.scroll.moveVerticalScroll({ rowIdx: rowIdx, drawFlag: false });

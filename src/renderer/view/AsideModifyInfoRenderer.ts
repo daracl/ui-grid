@@ -1,4 +1,4 @@
-import { ROW_FIELD } from '@/constants';
+import { ItemStatusMap, ROW_FIELD } from '@/constants';
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -21,17 +21,17 @@ export class AsideModifyInfoRenderer extends ViewCellRenderer {
     const item = cellInfo.item;
 
     const cudValue = item[ROW_FIELD.CUD];
-    if (cudValue == 'C') {
+    if (cudValue == ItemStatusMap.CREATE) {
       element.textContent = 'C';
       return;
     }
 
-    if (cudValue == 'U') {
+    if (cudValue == ItemStatusMap.MODIFY) {
       element.textContent = 'M';
       return;
     }
 
-    if (cudValue == 'D') {
+    if (cudValue == ItemStatusMap.DELETE) {
       element.textContent = 'D';
       return;
     }
