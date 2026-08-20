@@ -1,4 +1,12 @@
+@use 'light';
+@use 'dark';
+
 @forward 'mixin';
 @forward 'common';
-@forward 'light';
-@forward 'dark';
+
+$themes: (
+  light: light.$theme,
+  dark: dark.$theme,
+);
+
+$default-theme: light;

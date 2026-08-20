@@ -37,16 +37,13 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   let toolbarSelectionMode = 'cell';
   function gridDraw(element, items, fields, theme, selectMode) {
     gridObj = Daracl.grid.create(element, {
-      //style: 'striped',
       selectionMode: selectMode, // row, cell, multiRow, multiCell, none// 선택 방법.
-      //hoverMode: 'none',
       theme: theme,
-      height: 480,
       aside: {
         lineNumber: { enabled: true },
         rowCheckbox: {
@@ -56,19 +53,8 @@
           //, allowMultiSelect: false
         },
       },
-      colOptions: {
-        maxWidth: 1024,
-      },
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
-      },
       fields: fields,
       items: items,
-      body: {
-        row: {
-          height: 60,
-        },
-      },
       toolbar: {
         enabled: true,
         height: 40,
@@ -91,26 +77,11 @@
                     listItem: {
                       multiple: false,
                       list: [
-                        {
-                          label: '셀(cell)',
-                          value: 'cell',
-                        },
-                        {
-                          label: '로우(row)',
-                          value: 'row',
-                        },
-                        {
-                          label: '다중 셀(multiCell)',
-                          value: 'multiCell',
-                        },
-                        {
-                          label: '다중 로우(multiRow)',
-                          value: 'multiRow',
-                        },
-                        {
-                          label: 'None(none)',
-                          value: 'none',
-                        },
+                        { label: '셀(cell)', value: 'cell' },
+                        { label: '로우(row)', value: 'row' },
+                        { label: '다중 셀(multiCell)', value: 'multiCell' },
+                        { label: '다중 로우(multiRow)', value: 'multiRow' },
+                        { label: 'None(none)', value: 'none' },
                       ],
                     },
                   },

@@ -37,23 +37,13 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
-      editable: true,
-      rowIdField: 'email',
       style: 'striped',
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      fixedLeftIndex: 2,
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
-      height: 335,
-      width: 'auto',
-      aside: {
-        //lineNumber: { enabled: true },
-      },
       search: {
         enabled: true,
         hideNonMatched: true,

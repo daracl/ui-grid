@@ -37,39 +37,15 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   let toolbarSelectionMode = 'cell';
   function gridDraw(element, items, fields, theme, selectMode) {
     gridObj = Daracl.grid.create(element, {
-      //style: 'striped',
-      selectionMode: 'none', // row, cell, multiRow, multiCell, none// 선택 방법.
       hoverMode: selectMode,
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: theme,
-      height: 480,
-      aside: {
-        lineNumber: { enabled: true },
-        rowCheckbox: {
-          enabled: true,
-          width: 50,
-          //, allowMultiSelect: false
-        },
-      },
-      colOptions: {
-        maxWidth: 1024,
-      },
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
-      },
       fields: fields,
       items: items,
-      body: {
-        row: {
-          height: 60,
-        },
-      },
       toolbar: {
         enabled: true,
         height: 40,
@@ -84,7 +60,6 @@
                 {
                   label: '선택모드',
                   name: 'mode',
-                  //width: 150,
                   gap: [10, 20],
 
                   renderer: {
@@ -92,18 +67,9 @@
                     listItem: {
                       multiple: false,
                       list: [
-                        {
-                          label: '셀(cell)',
-                          value: 'cell',
-                        },
-                        {
-                          label: '로우(row)',
-                          value: 'row',
-                        },
-                        {
-                          label: 'None(none)',
-                          value: 'none',
-                        },
+                        { label: '셀(cell)', value: 'cell' },
+                        { label: '로우(row)', value: 'row' },
+                        { label: 'None(none)', value: 'none' },
                       ],
                     },
                   },

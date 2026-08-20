@@ -7,7 +7,7 @@
 
   <body>
     <div class="grid-view-area">
-      <div id="sample" style="width: 100%; height: calc(100vh - 50px); overflow: auto"></div>
+      <div id="sample" style="width: 100%; height: calc(100vh - 50px)"></div>
     </div>
   </body>
 </html>
@@ -45,20 +45,17 @@
       enableWidthFixed: false,
       enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
-      height: '100%',
       aside: {
         lineNumber: { enabled: true },
       },
-      colOptions: {
-        maxWidth: 1024,
-      },
+
       scroll: {
         vertical: {
+          enable: true,
+        },
+        horizontal: {
           enable: false,
         },
-      },
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
       },
       fields: colItem,
       items: aaa,

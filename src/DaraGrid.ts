@@ -231,11 +231,11 @@ export class DaraGrid {
   /**
    * remove row item
    *
-   * @param {any[]} ids row positions
+   * @param {any[]} ids rowid
    */
-  public removeItems = (ids: any[]) => {
+  public removeItems(ids: any[]) {
     this.gridMain.removeItems(ids);
-  };
+  }
 
   public setSize(width: number, height: number) {
     this.gridMain.setSize(width, height, true);

@@ -9,10 +9,6 @@
     <div class="grid-view-area">
       <div id="sample" style="height: 300px; width: 100%"></div>
     </div>
-
-    <div class="grid-view-area">
-      <div id="sample2" style="height: 250px; width: 100%"></div>
-    </div>
   </body>
 </html>
 
@@ -73,14 +69,11 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(element, {
       selectionMode: 'cell', // row , cell , multiRow , multiCell	// 선택 방법.
-      enableWidthFixed: false,
-      height: 300,
-      editable: true,
       tree: {
         expandDepth: 0,
         defaultExpandedIds: ['1-1'],
@@ -111,26 +104,6 @@
       },
       fields: colItem,
       items: aaa,
-      body: {
-        //disableKeydown: true, // 키벤트 비활성화
-        // 방향키 컨트롤 .
-        keyNavHandler: function (moveInfo) {
-          //return false; //console.log(moveInfo);
-        },
-        pasteBefore: function (a) {
-          console.log('pasteBefore', a);
-          return a;
-        },
-        pasteAfter: function (a) {
-          console.log('pasteAfter', a);
-        },
-        cellClick(rowInfo) {
-          return '';
-        },
-        row: {
-          // height: 30,
-        },
-      },
       toolbar: {
         enabled: true,
         height: 40,

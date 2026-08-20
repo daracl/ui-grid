@@ -49,19 +49,10 @@ export class DimensionCalculator {
 
     // 전체 컨테이너 사이즈 초기 설정
     const minHeightSize = dimensions.toolbarHeight + dimensions.footerHeight + dimensions.mainHeaderHeight + rowHeight;
-    const changeHeight = height < 0 ? gridElement.height() : height;
-
+    let changeHeight = height < 0 ? gridElement.height() : height;
+    changeHeight = Math.max(minHeightSize, changeHeight);
+    dimensions.height = changeHeight;
     dimensions.width = width < 0 ? gridElement.clientWidth() : width;
-    dimensions.height = Math.max(minHeightSize, changeHeight);
-
-    console.log(
-      minHeightSize,
-      changeHeight,
-      dimensions.toolbarHeight,
-      dimensions.footerHeight,
-      dimensions.mainHeaderHeight,
-      rowHeight,
-    );
 
     // Line Number 너비 동적 계산
     this.adjustLineNumberWidth();

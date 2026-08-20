@@ -1,6 +1,7 @@
 /**
  * Grid CSS
  */
+@use 'sass:map';
 
 @use './base' as _base;
 @use './components' as _components;
@@ -39,32 +40,35 @@
 /* ==========================================================================
    Theme
    ========================================================================== */
+$default-theme: theme.$default-theme;
+$default-theme-value: map.get(theme.$themes, $default-theme);
 
-body {
-  // Global theme
-  &[data-dg-theme='light'] {
-    .daracl-grid,
-    .dg-hidden-layers {
-      @include theme.theme(theme.$theme-light);
+// Default theme
+.daracl-grid,
+.dg-hidden-layers,
+.daracl-grid .dg-layout.dg-#{$default-theme},
+.dg-hidden-layers.dg-#{$default-theme} {
+  @include theme.theme($default-theme-value);
+}
+
+// Global theme
+@each $name, $theme-value in theme.$themes {
+  @if $name != $default-theme {
+    [data-daracl-theme='#{$name}'] {
+      .daracl-grid,
+      .dg-hidden-layers {
+        @include theme.theme($theme-value);
+      }
     }
   }
+}
 
-  &[data-dg-theme='dark'] {
-    .daracl-grid,
-    .dg-hidden-layers {
-      @include theme.theme(theme.$theme-dark);
-    }
-  }
-
-  // Grid-specific theme
-  .daracl-grid .dg-layout,
-  .dg-hidden-layers {
-    &.dg-light {
-      @include theme.theme(theme.$theme-light);
-    }
-
-    &.dg-dark {
-      @include theme.theme(theme.$theme-dark);
+// Grid-specific theme
+@each $name, $theme-value in theme.$themes {
+  @if $name != $default-theme {
+    .daracl-grid .dg-layout.dg-#{$name},
+    .dg-hidden-layers.dg-#{$name} {
+      @include theme.theme($theme-value);
     }
   }
 }

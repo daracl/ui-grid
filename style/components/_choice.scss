@@ -112,10 +112,6 @@
             }
           }
         }
-
-        &.dg-selected .dg-label {
-          font-weight: 600;
-        }
       }
 
       // ========================================
@@ -141,7 +137,6 @@
 
           .dg-label {
             color: var(--item-check-color);
-            font-weight: 600;
           }
 
           &:hover {

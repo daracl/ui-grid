@@ -37,7 +37,7 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     const searchFn = (info) => {
@@ -50,17 +50,9 @@
     };
 
     gridObj = Daracl.grid.create(element, {
-      editable: true,
-      rowIdField: 'email',
       style: 'striped',
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      fixedLeftIndex: 2,
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
-      height: 'auto',
-      width: 'auto',
-
       toolbar: {
         enabled: true,
         arrowEnabled: true,

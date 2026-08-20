@@ -42,19 +42,10 @@
     gridObj = Daracl.grid.create(element, {
       style: 'striped',
       selectionMode: 'multiCell',
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
       height: 324,
       aside: {
         lineNumber: { enabled: true },
-      },
-      colOptions: {
-        maxWidth: 1024,
-      },
-
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
       },
       fields: colItem,
       items: aaa,

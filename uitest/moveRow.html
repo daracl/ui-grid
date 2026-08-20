@@ -36,27 +36,15 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
-      editable: true,
       style: 'striped',
-      selectionMode: 'multiRow', // row , cell , multiRow , multiCell	// 선택 방법.
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
+      selectionMode: 'row', // row , cell , multiRow , multiCell	// 선택 방법.
       theme: G_GRID_THEME,
-      height: 300,
-      width: 1000,
       aside: {
         lineNumber: { enabled: true },
-      },
-      colOptions: {
-        maxWidth: 1024,
-      },
-
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
       },
       fields: colItem,
       items: aaa,

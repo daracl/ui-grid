@@ -70,7 +70,7 @@
     --bg-color: #070d19;
   }
 
-  body[data-dg-theme='dark'] {
+  body[data-daracl-theme='dark'] {
     --bg: #070d19;
     --bg-color: #ffffff;
   }
@@ -130,7 +130,7 @@
 
     if (gridObj) gridObj.setTheme(theme);
 
-    bodyElement.setAttribute('data-dg-theme', theme);
+    bodyElement.setAttribute('data-daracl-theme', theme);
 
     if (persist) {
       localStorage.setItem(THEME_KEY, theme);
@@ -828,7 +828,7 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(
@@ -851,12 +851,7 @@
           },
           modifyInfo: { enabled: true },
         },
-        colOptions: {
-          maxWidth: 1024,
-        },
-        valueFilter: function (colInfo, objValue) {
-          return objValue[colInfo.key];
-        },
+
         header: {
           view: true,
           enableViewAllLabel: true,

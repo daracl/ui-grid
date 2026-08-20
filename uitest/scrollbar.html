@@ -51,21 +51,6 @@
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
-      search: {
-        enabled: true,
-        hideNonMatched: true,
-        enableColumnFix: true,
-        click: false,
-        mode: 'simple', //'full'
-        width: 700,
-        height: 250,
-        onlyCloseButton: true,
-        useRememberValue: true,
-        callback: (data) => {
-          //console.log(data)
-        },
-        rememberValue: { field: '$all', val: 'asdf' },
-      },
       fields: colItem,
       items: aaa,
       scroll: {

@@ -959,12 +959,12 @@ export class GridMain {
   public setTheme(themeName: ThemeType) {
     const dgElement = this.layoutElement.getElement();
 
-    let theme = GRID_THEME[themeName];
+    const theme = GRID_THEME[themeName];
 
     const cfg = this.cfg;
 
     if (!theme && !cfg.theme) {
-      theme = GRID_THEME.light;
+      return;
     }
 
     if ((cfg.theme && !theme) || cfg.theme === theme) return;

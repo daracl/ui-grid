@@ -13,10 +13,14 @@ import {
 import { BODY_STYLE } from './constantStyles';
 import { ToolbarFieldItem } from './types/Toolbar';
 import { isRowSelectionMode } from './util/gridUtils';
-import { merge } from './util/utils';
+import { isNumber, merge } from './util/utils';
 
 export function initGridOptions(options: GridOptions): GridOptions {
   const opts = merge({}, DEFAULT_OPTIONS, options) as GridOptions;
+
+  if (opts.height != 'auto' && !isNumber(opts.height)) throw new Error('invalid height : ' + opts.height);
+
+  if (opts.width != 'auto' && !isNumber(opts.width)) throw new Error('invalid width : ' + opts.width);
 
   // hover mode selection mode에 따라 기본값 설정
   if (!options.hoverMode) {

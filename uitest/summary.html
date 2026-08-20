@@ -58,59 +58,13 @@
 
   function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(element, {
-      editable: true,
       style: 'striped',
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
-      height: 480,
       aside: {
         lineNumber: { enabled: true },
       },
-      colOptions: {
-        maxWidth: 1024,
-      },
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
-      },
-      header: {
-        view: true,
-        enableViewAllLabel_1: true,
-        //, heights: [20, 50, 50]
-        sort: {
-          //정렬 활성화 여부
-          enabled: true,
-          // null value 를 항상 끝으로 유지 할지 여부
-          nullsLast: true,
-          // custom sorting function
-          //,customSorting: ()=>{console.log(arguments)}
-        },
-        //,height :30
-        resize: {
-          enabled: true,
-          update: function (item) {
-            //console.log(item);
-          },
-          minWidth: 10,
-          maxWidth: 1000,
-        },
-        help: {
-          enabled: true, // header help btn 활성 여부.
-          tootip: (field) => {
-            return 'test';
-          },
-          click: (clickInfo) => {
-            // click event
-            console.log('clickInfo : ', clickInfo);
-          },
-        },
-        drag: {
-          enabled: true,
-          dropSelector: '#dropTextArea',
-          dropCallback: (data) => {},
-        },
-      },
+
       summary: {
         position: 'top',
         height: [50, 40],
@@ -169,44 +123,9 @@
           ],
         ],
       },
-      scroll: {
-        vertical: {
-          enable1: false,
-          onUpdate: function (item) {
-            // 스크롤 업데이트.
-            //console.log(item);
-            //return true;
-          },
-        },
-        horizontal: {
-          enableWheel: true,
-        },
-      },
 
       fields: colItem,
       items: aaa,
-      body: {
-        cellDblClick: function (itemInfo) {
-          //console.log('cellDblClick', itemInfo)
-        },
-        cellClick: function (itemInfo) {
-          //console.log('cellClick', itemInfo)
-        },
-        // 방향키 컨트롤 .
-        keyNavHandler: function (moveInfo) {
-          //console.log(moveInfo);
-        },
-        pasteBefore: function (a) {
-          console.log('pasteBefore', a);
-          return a;
-        },
-        pasteAfter: function (a) {
-          console.log('pasteAfter', a);
-        },
-        row: {
-          height: 60,
-        },
-      },
     });
   }
 </script>

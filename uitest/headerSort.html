@@ -36,59 +36,14 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
-      editable: true,
-      rowIdField: 'email',
-      style: 'striped',
-      selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
       theme: G_GRID_THEME,
-      height: 335,
-      width: 'auto',
       header: {
         sort: {
-          customSorting: (data, sortFields, sortOpts) => {
-            const { nullsLast = true } = sortOpts ?? {};
-
-            console.log(data);
-
-            return [...data]
-              .sort((a, b) => {
-                for (const { name, ascOrder = true } of sortFields) {
-                  const aValue = a[name];
-                  const bValue = b[name];
-
-                  const aIsNull = aValue == null;
-                  const bIsNull = bValue == null;
-
-                  if (aIsNull || bIsNull) {
-                    if (aIsNull && bIsNull) continue;
-
-                    return aIsNull ? (nullsLast ? 1 : -1) : nullsLast ? -1 : 1;
-                  }
-
-                  let result = 0;
-
-                  if (typeof aValue === 'string' && typeof bValue === 'string') {
-                    result = aValue.localeCompare(bValue);
-                  } else {
-                    if (aValue > bValue) result = 1;
-                    else if (aValue < bValue) result = -1;
-                  }
-
-                  if (result !== 0) {
-                    return ascOrder ? result : -result;
-                  }
-                }
-
-                return 0;
-              })
-              .map((item) => ({ id: item.email }));
-          },
+          enabled: true,
         },
       },
       fields: colItem,

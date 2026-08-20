@@ -36,30 +36,16 @@
       items: items,
       fields: fields,
     };
-  } //test
+  }
 
   function gridDraw(element, aaa, colItem) {
     gridObj = Daracl.grid.create(element, {
-      editable: false,
-      //style: 'striped',
       selectionMode: 'cell', // row , cell , multiRow , multiCell	// 선택 방법.
-      enableWidthFixed: false,
-      enableTooltip: true, // tooltip flag
-      height: 300,
-
       tree: {
         isFlatData: true,
-        expandDepth: 3,
+        expandDepth: 2,
         //defaultExpandedIds: ['1-1'],
       },
-
-      colOptions: {
-        maxWidth: 1024,
-      },
-      valueFilter: function (colInfo, objValue) {
-        return objValue[colInfo.key];
-      },
-
       search: {
         enabled: true,
         enableColumnFix: true,
@@ -76,23 +62,6 @@
       },
       fields: colItem,
       items: aaa,
-      body: {
-        //disableKeydown: true, // 키벤트 비활성화
-        // 방향키 컨트롤 .
-        keyNavHandler: function (moveInfo) {
-          //return false; //console.log(moveInfo);
-        },
-        pasteBefore: function (a) {
-          console.log('pasteBefore', a);
-          return a;
-        },
-        pasteAfter: function (a) {
-          console.log('pasteAfter', a);
-        },
-        row: {
-          height: 30,
-        },
-      },
     });
   }
 </script>

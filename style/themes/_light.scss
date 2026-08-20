@@ -1,7 +1,7 @@
 @use 'sass:map';
 @use './common' as *;
 
-$theme-light: map.merge(
+$theme: map.merge(
   $theme-common,
   (
     border-color: #cdcdcd,
