@@ -185,6 +185,26 @@ export function isHTMLElement(target: any): target is HTMLElement {
 }
 
 /**
+ * 두 값의 타입과 관계없이 동일한 값인지 비교
+ *
+ * 예:
+ * - 1과 '1' → true
+ * - true와 'true' → true
+ * - null과 undefined → true
+ *
+ * @param value1 비교할 첫 번째 값
+ * @param value2 비교할 두 번째 값
+ * @returns 두 값이 동일하면 true, 그렇지 않으면 false
+ */
+export function isSameValue(value1: any, value2: any) {
+  if (value1 == null && value2 == null) {
+    return true;
+  }
+
+  return String(value1) === String(value2);
+}
+
+/**
  * 값있는지 여부 체크.
  *
  * @param {*} value

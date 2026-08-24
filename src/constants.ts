@@ -149,8 +149,9 @@ export const ROW_FIELD = {
   ID: `${ROW_KEY_PREFIX}$rowid`,
   DEPTH: `${ROW_KEY_PREFIX}$depth`,
   HEIGHT: `${ROW_KEY_PREFIX}$rowHeight`,
-  CUD: `${ROW_KEY_PREFIX}$CUD`,
+  CUD: '_$CUD',
   ORIGINAL_ORDER: `${ROW_KEY_PREFIX}$originOrder`,
+  ORIGINAL_VALUE: `${ROW_KEY_PREFIX}$ov`,
 } as const;
 
 /**

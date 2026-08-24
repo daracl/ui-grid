@@ -439,6 +439,11 @@ export interface ToolbarOptions {
   arrowEnabled?: boolean;
 
   /**
+   * 툴바 스크롤바 활성화 여부
+   */
+  scrollbarEnabled?: boolean;
+
+  /**
    * 높이
    */
   height: number;

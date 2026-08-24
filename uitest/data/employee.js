@@ -10,6 +10,9 @@ var GRID_EMPLOYEE_FIELDS = [
     label: '나이',
     width: 60,
     align: 'center',
+    editRenderer: {
+      type: 'number',
+    },
   },
   {
     name: 'email',

@@ -836,8 +836,8 @@ export class GridMain {
    * @param item 추가할 item
    * @param addOpts item 추가 옵션
    */
-  public createItem(item: any, addOpts: AddRowOptions | undefined) {
-    const rowIdx = this.cfg.dataManager.addItems([item], addOpts, ItemStatusMap.CREATE);
+  public createItem(item: any, addOpts?: AddRowOptions) {
+    const rowIdx = this.cfg.dataManager.createItem(item, addOpts);
 
     if (rowIdx > -1) {
       this.scroll.moveVerticalScroll({ rowIdx: rowIdx, drawFlag: false });
@@ -966,6 +966,12 @@ export class GridMain {
    */
   public unCheckedItemByValue(name: string, values: any) {
     this.getBody().unCheckedItemByValue(name, values);
+  }
+  /**
+   * 변경된 아이템 얻기
+   */
+  public getChangedItems() {
+    return this.cfg.dataManager.getChangedItems();
   }
 
   /**

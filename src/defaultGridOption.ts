@@ -361,6 +361,8 @@ export const DEFAULT_OPTIONS: GridOptions = {
 
     arrowEnabled: false,
 
+    scrollbarEnabled: false,
+
     height: TOOLBAR_HEIGHT,
 
     /**

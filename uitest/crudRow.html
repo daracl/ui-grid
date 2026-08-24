@@ -41,10 +41,16 @@
   function gridDraw(element, aaa, colItem, message) {
     gridObj = Daracl.grid.create(element, {
       style: 'striped',
-      selectionMode: 'row', // row , cell , multiRow , multiCell	// 선택 방법.
+      selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
       theme: G_GRID_THEME,
+      editable: true,
       aside: {
         lineNumber: { enabled: true },
+        rowCheckbox: {
+          enabled: true,
+          width: 27,
+        },
+        modifyInfo: { enabled: true },
       },
       fields: colItem,
       items: aaa,
@@ -60,14 +66,21 @@
                   renderer: { type: 'button', icon: 'add' },
                   label: '행 추가',
                   click(info) {
-                    gridObj.createItem();
+                    gridObj.createItem({});
                   },
                 },
                 {
                   renderer: { type: 'button', icon: 'delete' },
                   label: '선택 행 삭제',
                   click(info) {
-                    console.log(info);
+                    gridObj.removeItems(gridObj.getSelectedRowIds());
+                  },
+                },
+                {
+                  renderer: { type: 'button', icon: 'delete' },
+                  label: '체크된 행 삭제',
+                  click(info) {
+                    gridObj.removeItems(gridObj.getCheckedIds());
                   },
                 },
               ],

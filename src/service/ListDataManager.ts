@@ -249,6 +249,9 @@ export class ListDataManager extends DataManager {
       const rowId = item[ROW_FIELD.ID];
       this.setRowItem(rowId, item);
 
+      // History
+      this.addHistory(rowId, item);
+
       return {
         id: rowId,
         sortOrder: 0,

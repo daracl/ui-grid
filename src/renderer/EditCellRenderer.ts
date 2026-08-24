@@ -50,7 +50,7 @@ export abstract class EditCellRenderer extends CellRenderer {
    * @param {HTMLElement} element cell element
    * @param {any} value row value
    */
-  public setValue(e: Event, item: any, value: any) {
+  public setValue(e: Event, item: any, value: any, refresh = true) {
     if (!this.valid(value)) {
       return false;
     }
@@ -62,8 +62,10 @@ export abstract class EditCellRenderer extends CellRenderer {
         return false;
       }
 
-      // 데이터 변경후 그리드 리프레시
-      this.gridMain.getBody().dataDraw('dataChange');
+      if (refresh) {
+        // 데이터 변경후 그리드 리프레시
+        this.gridMain.getBody().dataDraw('dataChange');
+      }
     }
   }
 

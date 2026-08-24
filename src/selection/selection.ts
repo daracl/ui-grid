@@ -445,6 +445,30 @@ export class SelectionInfo {
     return result;
   }
 
+  public selectionRowIds(): any[] {
+    const { dataManager, selection, dataInfo } = this.config;
+    const viewItems = dataManager.getViewItems();
+
+    if (dataInfo.rowLength < 1) {
+      return [];
+    }
+
+    const startIdx = selection.minIdx;
+    const endIdx = selection.maxIdx;
+
+    if (startIdx < 0 || endIdx < 0) {
+      return [];
+    }
+
+    const result: RowId[] = [];
+
+    for (let i = startIdx; i <= endIdx; i++) {
+      result.push(viewItems[i].id);
+    }
+
+    return result;
+  }
+
   /**
    * selection check
    *
@@ -698,12 +722,12 @@ export class SelectionInfo {
    * set range info
    *
    * @public
-   * @param {number} evtKey event key
+   * @param {number} evtCode event key
    * @param {Event} evt event
    * @param {number} endIdx end row index
    * @param {number} moveCol  move cell position
    */
-  public setRangeInfo(evtKey: number, evt: Event, endIdx: number, moveCol: number) {
+  public setRangeInfo(evtCode: string, evt: Event, endIdx: number, moveCol: number) {
     let startCol = moveCol,
       endCol = moveCol;
 
@@ -714,7 +738,7 @@ export class SelectionInfo {
 
     const multipleFlag = isMultipleSelectionMode(this.options.selectionMode);
 
-    if (multipleFlag && evtKey != 9 && isShiftKey(evt)) {
+    if (multipleFlag && evtCode != 'Tab' && isShiftKey(evt)) {
       this.setSelectionRangeInfo(
         {
           range: { endIdx: endIdx, endCol: endCol },

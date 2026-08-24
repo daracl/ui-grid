@@ -1,6 +1,6 @@
 import { ItemStatusMap, ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
 import { PointerPosition } from '@/event/PointerSession';
-import { CellInfo, Config, HeaderCellInfo } from '@t/GridConfig';
+import { CellInfo, Config, HeaderCellInfo, ScrollInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EditRendererInfo } from '@t/RendererInfo';
@@ -650,4 +650,49 @@ export const gridAvailableWidth = (cfg: Config): number => {
   const verticalScrollWidth = cfg.scroll.enableVertical ? cfg.scrollbarSize + centerMargin : 0;
 
   return cfg.dimensions.width - verticalScrollWidth - 1;
+};
+
+/**
+ * 이동 대상의 위치를 기준으로 필요한 스크롤 방향 코드를 반환한다.
+ *
+ * 현재 표시 영역의 행/열 범위를 벗어난 경우 해당 방향의 스크롤 코드를 반환하며,
+ * 고정 영역에 해당하는 컬럼은 가로 스크롤 검사에서 제외한다.
+ *
+ * @param cfg 그리드 설정
+ * @param scrollInfo 현재 스크롤 및 표시 영역 정보
+ * @param moveRowIdx 이동할 행의 인덱스
+ * @param moveColIdx 이동할 컬럼의 인덱스
+ * @returns 스크롤 방향 코드
+ * - -1: 스크롤 불필요
+ * - 1: 위쪽 스크롤
+ * - 2: 아래쪽 스크롤
+ * - 10: 왼쪽 스크롤
+ * - 20: 오른쪽 스크롤
+ */
+const SCROLL_DIRECTION_CODE = {
+  NONE: -1,
+  UP: 1,
+  DOWN: 2,
+  LEFT: 10,
+  RIGHT: 20,
+} as const;
+
+export const getScrollDirectionCode = (cfg: Config, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) => {
+  let directionCode: number = SCROLL_DIRECTION_CODE.NONE;
+
+  if (moveRowIdx < scrollInfo.startIdx) {
+    directionCode = SCROLL_DIRECTION_CODE.UP;
+  } else if (moveRowIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
+    directionCode = SCROLL_DIRECTION_CODE.DOWN;
+  }
+
+  if (!isFixedLeftPostion(cfg, moveColIdx) && !isFixedRightPostion(cfg, moveColIdx)) {
+    if (moveColIdx < scrollInfo.insideStartCol) {
+      directionCode = Math.max(directionCode, 0) + SCROLL_DIRECTION_CODE.LEFT;
+    } else if (moveColIdx > scrollInfo.insideEndCol) {
+      directionCode = Math.max(directionCode, 0) + SCROLL_DIRECTION_CODE.RIGHT;
+    }
+  }
+
+  return directionCode;
 };

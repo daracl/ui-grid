@@ -2,6 +2,7 @@ import { ScrollInfo } from '@t/GridConfig';
 
 import {
   getCellInfo,
+  getScrollDirectionCode,
   isFieldEditable,
   isFixedLeftPostion,
   isFixedRightPostion,
@@ -9,14 +10,14 @@ import {
   isMultipleSelectionMode,
 } from '@/util/gridUtils';
 
+import { ScrollDirectionXMap, ScrollDirectionYMap } from '@/constants';
 import { DaraElement } from '@/element/DaraElement';
 import { EventHandler } from '@/event/EventHandler';
 import { SelectionInfo } from '@/selection/selection';
-import { eventKeyCode, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
+import { eventCodeValue, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from '../Body';
-import { ScrollDirectionXMap, ScrollDirectionYMap } from '@/constants';
 
 /**
  * keydown event class
@@ -63,6 +64,9 @@ export class KeydownEvent implements EventHandler {
         return true;
       }
 
+      // 한글(IME) 글자 조합 중일 때는 단축키 중복 실행 방지
+      if (e.isComposing) return;
+
       this.gridMain.hideLayer();
 
       if (isEsc(e)) {
@@ -72,7 +76,7 @@ export class KeydownEvent implements EventHandler {
       // 설정 영역 keydown 처리
       if (targetElement.closest('.dg-setting-area')) return true;
 
-      const evtKey = eventKeyCode(e);
+      const code = eventCodeValue(e);
 
       const startCell = cfg.selection.startCell;
 
@@ -92,7 +96,7 @@ export class KeydownEvent implements EventHandler {
 
         if (editable) {
           // 스크롤 이동
-          this.insideScrollCheck(evtKey, e, cfg.scroll, startCell.startIdx, startCell.startCol);
+          this.insideScrollCheck(code, e, cfg.scroll, startCell.startIdx, startCell.startCol);
 
           field.$editRenderer.render(cellInfo, startElement);
           return;
@@ -100,10 +104,8 @@ export class KeydownEvent implements EventHandler {
       }
 
       if (e.metaKey || isCtrlKey(e)) {
-        // copy
-
-        if (evtKey == 67) {
-          // ctrl+ c
+        if (code === 'KeyC') {
+          // ctrl + c
           if (selectionMode == 'none') {
             return;
           }
@@ -111,27 +113,42 @@ export class KeydownEvent implements EventHandler {
           this.body.copyData();
 
           return;
-        } else if (evtKey == 65) {
+        } else if (code === 'KeyA') {
           // ctrl + a
           if (isMultiple) this.selectionInfo.setAllSelection(true);
           return false;
-        } else if (evtKey == 86) {
+        } else if (code === 'KeyV') {
           // ctrl + v
           pasteElement.focus();
           return true;
-        } else if (evtKey == 70) {
-          // ctrl+f
+        } else if (code === 'KeyF') {
+          // ctrl + f
           stopPreventCancel(e);
 
           if (searchEnabled) {
             this.gridMain.getDataSearch().openSearch();
           }
           return true;
+        } else if (code === 'KeyZ') {
+          // ctrl + z (Undo / Redo)
+          stopPreventCancel(e);
+          if (e.shiftKey) {
+            cfg.dataManager.redo();
+          } else {
+            cfg.dataManager.undo();
+          }
+          return true;
+        } else if (code === 'KeyY') {
+          // ctrl + y (Redo)
+          stopPreventCancel(e);
+          cfg.dataManager.redo();
+          return true;
         }
       }
 
       if (editable) {
-        if ((65 <= evtKey && evtKey <= 90) || (48 <= evtKey && evtKey <= 57)) {
+        // 영문 알파벳(KeyA~KeyZ) 또는 숫자(Digit0~Digit9)
+        if (code.startsWith('Key') || code.startsWith('Digit')) {
           // const clickInfo = _this.getCurrentClickInfo();
           // const cellInfo = _$util.getCellInfo(_this, _$util.getCellElement(_this, clickInfo.r, clickInfo.c));
           // _$renderer.editCell(_this, cellInfo, e);
@@ -139,10 +156,20 @@ export class KeydownEvent implements EventHandler {
         }
       }
 
-      if ((32 < evtKey && evtKey < 41) || evtKey == 13 || evtKey == 9) {
+      // 방향키, Home, End, PageUp, PageDown, Enter, Tab
+      const isNavigationOrActionKey =
+        code.startsWith('Arrow') ||
+        code === 'Home' ||
+        code === 'End' ||
+        code === 'PageUp' ||
+        code === 'PageDown' ||
+        code === 'Enter' ||
+        code === 'Tab';
+
+      if (isNavigationOrActionKey) {
         stopPreventCancel(e);
         this.selectionInfo.setAllSelection(false);
-        this.arrowKeydownEvent(e, evtKey);
+        this.arrowKeydownEvent(e, code);
       }
     });
   }
@@ -152,9 +179,9 @@ export class KeydownEvent implements EventHandler {
    *
    * @private
    * @param {UIEvent} evt key event
-   * @param {number} evtKey key code
+   * @param {number} evtCode key code
    */
-  private arrowKeydownEvent(evt: UIEvent, evtKey: number) {
+  private arrowKeydownEvent(evt: UIEvent, evtCode: string) {
     const cfg = this.gridMain.config();
     const scrollCtrl = this.gridMain.getScroll();
 
@@ -172,21 +199,21 @@ export class KeydownEvent implements EventHandler {
     const gridStartCol = cfg.dataInfo.startCol;
 
     const isCtrl = isCtrlKey(evt);
-    switch (evtKey) {
-      case 34: // PageDown
-      case 13: // enter
-      case 40: {
-        //down
+    switch (evtCode) {
+      case 'PageDown':
+      case 'Enter':
+      case 'ArrowDown': {
+        // down
         let moveRowIdx = 0;
-        if (evtKey == 40 && isCtrl) {
+        if (evtCode === 'ArrowDown' && isCtrl) {
           moveRowIdx = dataInfo.rowLength - 1;
         } else {
-          moveRowIdx = endIdx + (evtKey == 34 ? insideViewRow : 1);
+          moveRowIdx = endIdx + (evtCode === 'PageDown' ? insideViewRow : 1);
           moveRowIdx = moveRowIdx >= dataInfo.rowLength ? dataInfo.rowLength - 1 : moveRowIdx;
         }
 
         // 스크롤 밖에 있을때
-        if (this.insideScrollCheck(evtKey, evt, scrollInfo, moveRowIdx, endCol)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
 
@@ -196,18 +223,19 @@ export class KeydownEvent implements EventHandler {
 
         break;
       }
-      case 33: //PageUp
-      case 38: {
-        //up
+
+      case 'PageUp':
+      case 'ArrowUp': {
+        // up
         let moveRowIdx = 0;
-        if (evtKey == 38 && isCtrl) {
+        if (evtCode === 'ArrowUp' && isCtrl) {
           moveRowIdx = 0;
         } else {
-          moveRowIdx = endIdx - (evtKey == 33 ? insideViewRow : 1);
+          moveRowIdx = endIdx - (evtCode === 'PageUp' ? insideViewRow : 1);
           moveRowIdx = Math.max(moveRowIdx, 0);
         }
 
-        if (this.insideScrollCheck(evtKey, evt, scrollInfo, moveRowIdx, endCol)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, endCol)) {
           return;
         }
 
@@ -217,19 +245,19 @@ export class KeydownEvent implements EventHandler {
 
         break;
       }
-      case 36: // Home
-      case 37: {
-        //left
 
+      case 'Home':
+      case 'ArrowLeft': {
+        // left
         let moveCol = gridStartCol;
-        if (evtKey == 37 && isCtrl) {
+        if (evtCode === 'ArrowLeft' && isCtrl) {
           moveCol = gridStartCol;
         } else {
-          moveCol = evtKey == 36 ? gridStartCol : endCol - 1;
+          moveCol = evtCode === 'Home' ? gridStartCol : endCol - 1;
           moveCol = Math.max(moveCol, gridStartCol);
         }
 
-        if (this.insideScrollCheck(evtKey, evt, scrollInfo, endIdx, moveCol)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -239,18 +267,20 @@ export class KeydownEvent implements EventHandler {
 
         break;
       }
-      case 35: // End
-      case 9: // tab
-      case 39: {
+
+      case 'End':
+      case 'Tab':
+      case 'ArrowRight': {
+        // right
         let moveCol;
-        if (evtKey == 39 && isCtrl) {
+        if (evtCode === 'ArrowRight' && isCtrl) {
           moveCol = dataInfo.colLength - 1;
         } else {
-          moveCol = evtKey == 35 ? dataInfo.colLength - 1 : endCol + 1;
+          moveCol = evtCode === 'End' ? dataInfo.colLength - 1 : endCol + 1;
           moveCol = moveCol >= dataInfo.colLength ? dataInfo.colLength - 1 : moveCol;
         }
 
-        if (this.insideScrollCheck(evtKey, evt, scrollInfo, endIdx, moveCol)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, endIdx, moveCol)) {
           return;
         }
 
@@ -271,10 +301,10 @@ export class KeydownEvent implements EventHandler {
    * cursor scroll inside check
    *
    * @private
-   * @type {function (ctx, evtKey, evt, endCol, scrollInfo, moveRowIdx, moveColIdx)}
+   * @type {function (evtKey, evt, endCol, scrollInfo, moveRowIdx, moveColIdx)}
    */
   private insideScrollCheck(
-    evtKey: number,
+    evtCode: string,
     evt: UIEvent,
     scrollInfo: ScrollInfo,
     moveRowIdx: number,
@@ -286,7 +316,7 @@ export class KeydownEvent implements EventHandler {
     if (
       isFunction(opts.body.keyNavHandler) &&
       opts.body.keyNavHandler({
-        key: evtKey,
+        code: evtCode,
         moveCol: moveColIdx,
         moveRow: moveRowIdx,
         item: cfg.dataManager.getRowItem(cfg.dataManager.getViewItems()[moveRowIdx]?.id),
@@ -296,27 +326,9 @@ export class KeydownEvent implements EventHandler {
       return false;
     }
 
-    this.selectionInfo.setRangeInfo(evtKey, evt, moveRowIdx, moveColIdx);
+    this.selectionInfo.setRangeInfo(evtCode, evt, moveRowIdx, moveColIdx);
 
-    let checkCode = -1;
-
-    if (moveRowIdx < scrollInfo.startIdx) {
-      // 'U'
-      checkCode = 1;
-    } else if (moveRowIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
-      // 'D'
-      checkCode = 2;
-    }
-
-    if (!isFixedLeftPostion(cfg, moveColIdx) && !isFixedRightPostion(cfg, moveColIdx)) {
-      if (moveColIdx < scrollInfo.insideStartCol) {
-        // 'L'
-        checkCode = Math.max(checkCode, 0) + 10;
-      } else if (moveColIdx > scrollInfo.insideEndCol) {
-        // 'R'
-        checkCode = Math.max(checkCode, 0) + 20;
-      }
-    }
+    const checkCode = getScrollDirectionCode(cfg, scrollInfo, moveRowIdx, moveColIdx);
 
     if (checkCode > 0) {
       const horizontal = Math.floor(checkCode / 10);

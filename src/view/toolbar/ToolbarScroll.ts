@@ -21,6 +21,10 @@ export class ToolbarScroll {
   public init(): void {
     this.initWheelEvent();
     this.initArrowEvents();
+
+    if (this.toolbarOpts.scrollbarEnabled === true) {
+      this.toolbarElement.classList.add('dg-has-scrollbar');
+    }
   }
 
   public resizeArrowVisibility(): void {
@@ -29,7 +33,7 @@ export class ToolbarScroll {
     }
 
     if (this.toolbarOpts.arrowEnabled === false) {
-      this.toolbarElement.classList.remove('dg-has-scroll');
+      this.toolbarElement.classList.remove('dg-has-arrow');
       return;
     }
 
@@ -40,9 +44,9 @@ export class ToolbarScroll {
     const hasScroll = scrollElement.scrollWidth > scrollElement.clientWidth;
 
     if (hasScroll) {
-      this.toolbarElement.classList.add('dg-has-scroll');
+      this.toolbarElement.classList.add('dg-has-arrow');
     } else {
-      this.toolbarElement.classList.remove('dg-has-scroll');
+      this.toolbarElement.classList.remove('dg-has-arrow');
       scrollElement.scrollLeft = 0;
     }
   }

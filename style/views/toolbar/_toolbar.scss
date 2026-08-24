@@ -9,7 +9,7 @@
     overflow: hidden;
     background-color: var(--body-bg);
 
-    &.dg-has-scroll {
+    &.dg-has-arrow {
       padding-right: 40px; // 스크롤이 있는 경우 오른쪽 패딩 추가
 
       .dg-toolbar-arrow {
@@ -18,6 +18,16 @@
 
       .dg-toolbar-scroll {
         padding-right: 2px;
+      }
+    }
+
+    &.dg-has-scrollbar {
+      .dg-toolbar-scroll {
+        scrollbar-width: thin;
+
+        &::-webkit-scrollbar {
+          display: inline;
+        }
       }
     }
 
@@ -54,6 +64,7 @@
 
       scroll-behavior: smooth;
       scrollbar-width: none;
+      height: 100%;
 
       &::-webkit-scrollbar {
         display: none;

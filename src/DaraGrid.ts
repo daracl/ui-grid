@@ -271,8 +271,20 @@ export class DaraGrid {
     return this.gridMain.selectionInfo.selectionData('json', numberFieldSummary);
   }
 
+  /**
+   * 현재 선택된 row 를 반환
+   * @returns 선택 row
+   */
   public getSelectedRows() {
     return this.gridMain.selectionInfo.selectionRows();
+  }
+
+  /**
+   * 현재 선택된 row ids 를 반환
+   * @returns 선택된 row id 배열
+   */
+  public getSelectedRowIds() {
+    return this.gridMain.selectionInfo.selectionRowIds();
   }
 
   /**
@@ -346,6 +358,17 @@ export class DaraGrid {
    */
   public unCheckedItemByValue(name: string, values: any) {
     this.gridMain.unCheckedItemByValue(name, values);
+  }
+
+  /**
+   * 변경된 행 데이터를 반환
+   *
+   * 추가, 수정, 삭제 등 데이터 변경 상태가 있는 item만 반환
+   *
+   * @returns 변경된 행 데이터 배열
+   */
+  public getChangedItems() {
+    return this.gridMain.getChangedItems();
   }
 
   /**

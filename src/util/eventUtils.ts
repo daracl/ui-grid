@@ -92,8 +92,8 @@ export const stopPreventCancel = (e: Event) => {
  * @param e Event
  * @returns
  */
-export const eventKeyCode = (e: any) => {
-  return window.event ? e.keyCode : e.which;
+export const eventCodeValue = (e: any) => {
+  return e.code;
 };
 
 /**
