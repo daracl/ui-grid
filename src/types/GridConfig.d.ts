@@ -213,6 +213,10 @@ export interface CellInfo {
    * view item
    */
   viewItem?: ViewItem;
+  /**
+   * 외부에서 입력된 수정 값
+   */
+  inputValue?: any;
 }
 
 export interface EditInfo {

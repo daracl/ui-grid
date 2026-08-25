@@ -109,7 +109,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
       dropdownElement.innerHTML = this.dropdownMenuTemplate(listItems);
       this.openMenu(dropdownElement, eventElement);
 
-      this.setDropItemCheck(this.getValue(cellInfo.item));
+      this.setDropItemCheck(this.getValue(cellInfo));
     };
 
     if (Array.isArray(list)) {
@@ -141,7 +141,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
         return item[valueKey];
       });
 
-      const itemValue = this.getValue(cellInfo.item) ?? '';
+      const itemValue = this.getValue(cellInfo) ?? '';
       let currentValues: string[] = itemValue;
 
       if (isString(itemValue)) {
@@ -163,6 +163,8 @@ export class DropdownEditRenderer extends EditCellRenderer {
       if (!isMultiple) {
         dropdownElement.style.display = 'none';
       }
+
+      this.completeEdit();
     });
   }
 
@@ -188,7 +190,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
     menuStyle.left = `${openPosition.left}px`;
     menuStyle.height = `${openPosition.height}px`;
 
-    bindHideOnBlur(dropdownElement, this.gridMain.config().eventManager);
+    //bindHideOnBlur(dropdownElement, this.gridMain.config().eventManager);
   }
 
   public setDropItemCheck(value: string | string[] = '') {

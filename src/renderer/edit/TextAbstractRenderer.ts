@@ -1,10 +1,10 @@
+import { FIELD_LAYER_CLASS } from '@/constants';
+import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { stringValidator } from '@/rule/stringValidator';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditCellRenderer } from '@/renderer/EditCellRenderer';
-import { FIELD_LAYER_CLASS } from '@/constants';
 
 /**
  * text renderer
@@ -106,10 +106,10 @@ export abstract class TextAbstractRenderer extends EditCellRenderer {
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
-    editElement.value = item[this.fieldName] ?? '';
 
-    setTimeout(() => {
-      editElement.focus();
-    }, 100);
+    const value = this.getValue(cellInfo);
+    editElement.value = value;
+    editElement.focus();
+    //setTimeout(() => {}, 100);
   }
 }

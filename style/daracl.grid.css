@@ -942,6 +942,14 @@
   height: -moz-max-content;
   height: max-content;
 }
+.daracl-grid .dg-text-editor {
+  z-index: -1;
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  left: -9999;
+  top: 0px;
+}
 .daracl-grid .dg-toolbar {
   position: relative;
   height: 40px;
@@ -949,14 +957,20 @@
   background-color: var(--body-bg);
   /* 레이아웃 */
 }
-.daracl-grid .dg-toolbar.dg-has-scroll {
+.daracl-grid .dg-toolbar.dg-has-arrow {
   padding-right: 40px;
 }
-.daracl-grid .dg-toolbar.dg-has-scroll .dg-toolbar-arrow {
+.daracl-grid .dg-toolbar.dg-has-arrow .dg-toolbar-arrow {
   display: flex;
 }
-.daracl-grid .dg-toolbar.dg-has-scroll .dg-toolbar-scroll {
+.daracl-grid .dg-toolbar.dg-has-arrow .dg-toolbar-scroll {
   padding-right: 2px;
+}
+.daracl-grid .dg-toolbar.dg-has-scrollbar .dg-toolbar-scroll {
+  scrollbar-width: thin;
+}
+.daracl-grid .dg-toolbar.dg-has-scrollbar .dg-toolbar-scroll::-webkit-scrollbar {
+  display: inline;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-arrow {
   position: absolute;
@@ -986,6 +1000,7 @@
   overflow-y: hidden;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  height: 100%;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-scroll::-webkit-scrollbar {
   display: none;

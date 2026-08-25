@@ -28,7 +28,6 @@ export class LinkRenderer extends ViewCellRenderer {
     if (!aElement) {
       aElement = document.createElement('a');
       aElement.className = 'dg-cell-content';
-      aElement.setAttribute('tabindex', '-1');
       element.appendChild(aElement);
       this.initEvent(aElement);
     }

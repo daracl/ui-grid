@@ -53,19 +53,18 @@ export class KeydownEvent implements EventHandler {
     const searchEnabled = opts.search.enabled;
 
     const pasteElement = this.pasteElement.getElement();
-    const mainElement = this.gridMain.getMainElement().getElement();
+    const gridKeyInputElement = this.gridMain.getGridKeyInputElement();
 
-    cfg.eventManager.off(mainElement, 'keydown');
+    cfg.eventManager.off(gridKeyInputElement, 'keydown');
 
-    cfg.eventManager.on({ el: mainElement, type: 'keydown' }, (e: KeyboardEvent) => {
+    cfg.eventManager.on({ el: gridKeyInputElement, type: 'keydown' }, (e: KeyboardEvent) => {
       const targetElement = e.target as HTMLElement;
 
-      if (isInputField(targetElement.tagName)) {
-        return true;
-      }
+      // console.log('22222222');
 
-      // 한글(IME) 글자 조합 중일 때는 단축키 중복 실행 방지
-      if (e.isComposing) return;
+      // if (isInputField(targetElement.tagName)) {
+      //   return true;
+      // }
 
       this.gridMain.hideLayer();
 
@@ -78,32 +77,7 @@ export class KeydownEvent implements EventHandler {
 
       const code = eventCodeValue(e);
 
-      const startCell = cfg.selection.startCell;
-
-      const field = cfg.currentFields[startCell.startCol];
-
-      const editable = isFieldEditable(cfg, field);
-
-      if (isSpacebar(e)) {
-        stopPreventCancel(e);
-
-        const startElement = this.gridMain.getBody().getStartCellElement();
-
-        const cellInfo = getCellInfo(cfg, startElement);
-        if (field.renderer.type === 'tree') {
-          if (field.$renderer.bindEvents('space', cellInfo, startElement)) return true;
-        }
-
-        if (editable) {
-          // 스크롤 이동
-          this.insideScrollCheck(code, e, cfg.scroll, startCell.startIdx, startCell.startCol);
-
-          field.$editRenderer.render(cellInfo, startElement);
-          return;
-        }
-      }
-
-      if (e.metaKey || isCtrlKey(e)) {
+      if (isCtrlKey(e)) {
         if (code === 'KeyC') {
           // ctrl + c
           if (selectionMode == 'none') {
@@ -120,6 +94,10 @@ export class KeydownEvent implements EventHandler {
         } else if (code === 'KeyV') {
           // ctrl + v
           pasteElement.focus();
+
+          requestAnimationFrame(() => {
+            this.gridMain.setGridFocusIn();
+          });
           return true;
         } else if (code === 'KeyF') {
           // ctrl + f
@@ -146,13 +124,36 @@ export class KeydownEvent implements EventHandler {
         }
       }
 
+      const startCell = cfg.selection.startCell;
+      const field = cfg.currentFields[startCell.startCol];
+      const editable = isFieldEditable(cfg, field);
+      const isSpace = isSpacebar(e);
+
+      if (isSpace) {
+        stopPreventCancel(e);
+
+        if (field.renderer.type === 'tree') {
+          const startElement = this.gridMain.getBody().getStartCellElement();
+          const cellInfo = getCellInfo(cfg, startElement);
+          if (field.$renderer.bindEvents('space', cellInfo, startElement)) return true;
+        }
+      }
+
       if (editable) {
         // 영문 알파벳(KeyA~KeyZ) 또는 숫자(Digit0~Digit9)
-        if (code.startsWith('Key') || code.startsWith('Digit')) {
-          // const clickInfo = _this.getCurrentClickInfo();
-          // const cellInfo = _$util.getCellInfo(_this, _$util.getCellElement(_this, clickInfo.r, clickInfo.c));
-          // _$renderer.editCell(_this, cellInfo, e);
-          // return false;
+        if (isSpace || code.startsWith('Key') || code.startsWith('Digit')) {
+          // 스크롤 이동
+          this.insideScrollCheck(code, e, cfg.scroll, startCell.startIdx, startCell.startCol);
+          const startElement = this.gridMain.getBody().getStartCellElement();
+          const cellInfo = getCellInfo(cfg, startElement);
+
+          if (!isSpace) {
+            cellInfo.inputValue = '';
+          }
+
+          field.$editRenderer.render(cellInfo, startElement);
+
+          return;
         }
       }
 

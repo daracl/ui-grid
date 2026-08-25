@@ -90,6 +90,8 @@ export class GridMain {
 
   private rendererLayerElement: HTMLElement;
 
+  private gridKeyInput: HTMLInputElement;
+
   public selectionInfo: SelectionInfo;
 
   private currentSize: GridSize;
@@ -206,6 +208,10 @@ export class GridMain {
     return this.gridElement;
   }
 
+  public getGridKeyInputElement() {
+    return this.gridKeyInput;
+  }
+
   public config() {
     return this.cfg;
   }
@@ -236,6 +242,10 @@ export class GridMain {
 
     // append
     this.gridElement.getElement().appendChild(gridElement);
+
+    this.gridKeyInput = gridElement.querySelector('.dg-text-editor') as HTMLInputElement;
+    this.gridKeyInput.id = 'dg_text_' + this.$instanceId;
+
     if (this.cfg.disableVerticalScroll) {
       gridElement.classList.add('dg-auto-height');
     }
@@ -337,12 +347,22 @@ export class GridMain {
 
     const rendererLayerElement = this.rendererLayerElement;
 
+    cfg.eventManager.on({ el: this.gridKeyInput, type: 'focus' }, (e: UIEvent) => {
+      console.log('aaa');
+    });
+
+    cfg.eventManager.on({ el: this.gridKeyInput, type: 'blur' }, (e: UIEvent) => {
+      console.log('22blur22');
+      //debugger;
+    });
+
     // focus in, mousedown
     cfg.eventManager.on({ el: containerElement.getElement(), type: 'mousedown' }, (e: UIEvent) => {
       const path = e.composedPath();
       if (path.includes(rendererLayerElement)) {
         return;
       }
+      e?.preventDefault();
       this.setGridFocusIn(e);
     });
 
@@ -393,8 +413,8 @@ export class GridMain {
       }
     }
 
-    if (document.activeElement != this.mainElement.getElement()) {
-      this.mainElement.getElement().focus({ preventScroll: true });
+    if (document.activeElement != this.gridKeyInput) {
+      this.gridKeyInput.focus();
     }
 
     this.cfg.focus = true;
@@ -416,7 +436,7 @@ export class GridMain {
     }
 
     if ((e as MouseEvent).button !== 2) {
-      const layoutElement = this.layoutElement.getElement();
+      const gridKeyInputElement = this.gridKeyInput;
 
       const relatedTarget = (e as any).relatedTarget as HTMLElement;
 
@@ -424,7 +444,7 @@ export class GridMain {
         const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
 
         if (outerLayerElement?.dataset.gridId == this.$instanceId) {
-          layoutElement.focus({ preventScroll: true });
+          gridKeyInputElement.focus();
           return;
         }
       }
@@ -1111,8 +1131,9 @@ function getGridTemplate() {
   const GRID_TEMPLATE = document.createElement('template');
 
   GRID_TEMPLATE.innerHTML = html`
-    <div class="daracl-grid" tabindex="-1">
+    <div class="daracl-grid">
       <div class="dg-viewport">
+        <input type="text" class="dg-text-editor" inputmode="none" />
         <div class="dg-layout" style="user-select:none;touch-action:manipulation;">
           <div class="dg-layers"></div>
           <div class="dg-toolbar dg-select" role="presentation">
@@ -1123,7 +1144,7 @@ function getGridTemplate() {
             </div>
           </div>
 
-          <div class="dg-main" data-scroll="none" tabindex="-1">
+          <div class="dg-main" data-scroll="none">
             <div class="dg-panels">
               <div class="dg-panel dg-header">
                 <div class="dg-region" data-region="left"></div>

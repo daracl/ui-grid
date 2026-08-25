@@ -105,6 +105,15 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
     height: max-content;
   }
 
+  .dg-text-editor {
+    z-index: -1;
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    left: -9999;
+    top: 0px;
+  }
+
   @include toolbar.all;
   @include main.all;
   @include footer.all;
@@ -112,7 +121,6 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
   /* ------------------------------------------------------------------------
      Layout
      ------------------------------------------------------------------------ */
-
   .dg-viewport {
     display: flex;
     position: relative;

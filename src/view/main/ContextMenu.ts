@@ -144,8 +144,8 @@ export class ContextMenu {
     const eventManager = this.gridMain.config().eventManager;
 
     // contextmenu item click
-    eventManager.off(contextItemElements, 'click');
-    eventManager.on({ el: contextItemElements, type: 'click' }, (e: Event) => {
+    eventManager.off(contextItemElements, 'pointerdown');
+    eventManager.on({ el: contextItemElements, type: 'pointerdown' }, (e: Event) => {
       const itemElement = e.currentTarget as HTMLElement;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {

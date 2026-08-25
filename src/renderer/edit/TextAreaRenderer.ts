@@ -58,11 +58,11 @@ export class TextAreaRenderer extends TextAbstractRenderer {
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
-    textareaElement.value = item[this.fieldName] ?? '';
 
-    setTimeout(() => {
-      textareaElement.focus();
-    }, 100);
+    const value = this.getValue(cellInfo);
+
+    textareaElement.value = value;
+    textareaElement.focus();
   }
 
   public getElementValue(): string {

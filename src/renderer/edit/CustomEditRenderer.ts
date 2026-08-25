@@ -15,10 +15,6 @@ export class CustomEditRenderer extends EditCellRenderer {
     super(field, gridMain);
   }
 
-  public getValue(value: any) {
-    return value[this.field.name];
-  }
-
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     element.innerHTML = '<input type="text">';

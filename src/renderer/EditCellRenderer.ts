@@ -7,6 +7,7 @@ import { GridMain } from '@/view/GridMain';
 import { ValidResult } from '@t/ValidResult';
 import { CellRenderer } from './CellRenderer';
 import { isFieldEditable } from '@/util/gridUtils';
+import { CellInfo } from '@/types/GridConfig';
 
 export abstract class EditCellRenderer extends CellRenderer {
   protected readonly rendererContainer: HTMLElement;
@@ -35,8 +36,9 @@ export abstract class EditCellRenderer extends CellRenderer {
    * @param {any} value row item
    * @returns {any} field value
    */
-  public getValue(value: any) {
-    return value[this.field.name];
+  public getValue(cellInfo: CellInfo) {
+    const item = cellInfo.item;
+    return cellInfo.inputValue ?? item[this.field.name] ?? '';
   }
 
   public completeEdit() {

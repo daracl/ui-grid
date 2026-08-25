@@ -29,9 +29,7 @@ export class CheckboxRenderer extends EditCellRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const item = cellInfo.item;
-
-    const val = this.getValue(item);
+    const val = this.getValue(cellInfo);
 
     let label = element.firstElementChild as HTMLLabelElement;
 
