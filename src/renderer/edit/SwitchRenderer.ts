@@ -1,10 +1,11 @@
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { EditCellRenderer } from '@/renderer/EditCellRenderer';
+import { GridOptions } from '@/types/GridOptions';
 import { ValidResult } from '@/types/ValidResult';
 import { hasClass } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 
 /**
@@ -29,7 +30,7 @@ export class SwitchRenderer extends EditCellRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    const val = this.getValue(cellInfo);
+    const val = this.getValue(cellInfo.item, cellInfo.inputValue);
 
     let slider = element.firstElementChild as HTMLElement;
 
@@ -95,5 +96,9 @@ export class SwitchRenderer extends EditCellRenderer {
 
   public alignStyle(): string {
     return TEXT_ALIGN_STYLE.center;
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 50;
   }
 }

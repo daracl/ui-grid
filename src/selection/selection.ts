@@ -453,17 +453,19 @@ export class SelectionInfo {
       return [];
     }
 
+    const itemLength = viewItems.length;
+
     const startIdx = selection.minIdx;
     const endIdx = selection.maxIdx;
 
-    if (startIdx < 0 || endIdx < 0) {
+    if (startIdx < 0 || endIdx < 0 || startIdx >= itemLength) {
       return [];
     }
 
     const result: RowId[] = [];
 
     for (let i = startIdx; i <= endIdx; i++) {
-      result.push(viewItems[i].id);
+      if (viewItems[i]) result.push(viewItems[i].id);
     }
 
     return result;

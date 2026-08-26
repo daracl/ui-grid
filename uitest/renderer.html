@@ -352,6 +352,10 @@
               return 'aaffe' + rowItem['e'];
             },
           },
+          getValue(obj) {
+            const item = obj.item;
+            return item['e'];
+          },
         },
         {
           name: 'f',
@@ -408,6 +412,9 @@
       style: 'striped',
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
       theme: G_GRID_THEME,
+      header: {
+        enableViewAllLabel: true,
+      },
       aside: {
         lineNumber: { enabled: true },
       },

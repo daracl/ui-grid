@@ -179,7 +179,7 @@ export class GridMain {
         const gridElement = grid.gridElement.getElement();
 
         if (!path.includes(gridElement)) {
-          grid.setGridFocusOut();
+          grid.setGridFocusOut(e);
         }
       });
     });
@@ -347,15 +347,6 @@ export class GridMain {
 
     const rendererLayerElement = this.rendererLayerElement;
 
-    cfg.eventManager.on({ el: this.gridKeyInput, type: 'focus' }, (e: UIEvent) => {
-      console.log('aaa');
-    });
-
-    cfg.eventManager.on({ el: this.gridKeyInput, type: 'blur' }, (e: UIEvent) => {
-      console.log('22blur22');
-      //debugger;
-    });
-
     // focus in, mousedown
     cfg.eventManager.on({ el: containerElement.getElement(), type: 'mousedown' }, (e: UIEvent) => {
       const path = e.composedPath();
@@ -438,13 +429,20 @@ export class GridMain {
     if ((e as MouseEvent).button !== 2) {
       const gridKeyInputElement = this.gridKeyInput;
 
-      const relatedTarget = (e as any).relatedTarget as HTMLElement;
+      let targetElement;
+      if (e.type.startsWith('focus')) {
+        targetElement = (e as any).relatedTarget as HTMLElement;
+      } else {
+        targetElement = e.target as HTMLElement;
+      }
 
-      if (relatedTarget?.closest('.dg-hidden-layers') !== null) {
-        const outerLayerElement = relatedTarget.closest('.dg-outer-layer') as HTMLElement;
+      if (targetElement?.closest('.dg-hidden-layers') !== null) {
+        const outerLayerElement = targetElement.closest('.dg-outer-layer') as HTMLElement;
 
-        if (outerLayerElement?.dataset.gridId == this.$instanceId) {
-          gridKeyInputElement.focus();
+        if (outerLayerElement?.dataset.gridLayerId == this.$instanceId) {
+          requestAnimationFrame(() => {
+            gridKeyInputElement.focus();
+          });
           return;
         }
       }

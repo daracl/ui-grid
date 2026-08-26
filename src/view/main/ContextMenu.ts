@@ -49,7 +49,7 @@ export class ContextMenu {
 
   create() {
     const contextElement = document.createElement('ul');
-    contextElement.dataset.gridId = this.gridMain.uid();
+    contextElement.dataset.gridLayerId = this.gridMain.uid();
     contextElement.className = 'dg-contextmenu dg-contextmenu-top dg-outer-layer';
     contextElement.setAttribute('draggable', 'false');
     contextElement.setAttribute('onselectstart', 'return false');
@@ -154,7 +154,15 @@ export class ContextMenu {
 
       const parentElement = itemElement.closest('.dg-contextmenu') as HTMLElement;
 
-      parentElement.querySelectorAll('input[type="checkbox"]');
+      const checkboxes = parentElement.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
+
+      const result: Record<string, boolean> = {};
+
+      checkboxes.forEach((checkbox) => {
+        if (checkbox?.dataset?.itemKey) {
+          result[checkbox?.dataset?.itemKey] = checkbox.checked;
+        }
+      });
 
       const itemKey = itemElement.dataset.itemKey || '';
 
@@ -163,12 +171,12 @@ export class ContextMenu {
       this.gridMain.hideLayer();
 
       if (clickItem?.callback) {
-        clickItem.callback(clickItem);
+        clickItem.callback(clickItem, result);
         return;
       }
 
       if (isContextCallback) {
-        fnContextCallback(clickItem);
+        fnContextCallback(clickItem, result);
       }
     });
   }
@@ -269,8 +277,9 @@ export class ContextMenu {
       if (item.checkbox === true) {
         htmlTemplate.push(html`<li class="dg-contextmenu-check ${classNames}">
           <a tabindex="-1">
-            <label for="dgcontext_${item.key}"
-              ><input type="checkbox" id="dgcontext_${item.key}" /> <span>${item.label}</span>
+            <label
+              ><input type="checkbox" data-item-key="${item.key}" />
+              <span>${item.label}</span>
             </label></a
           >
         </li>`);

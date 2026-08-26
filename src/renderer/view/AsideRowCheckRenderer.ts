@@ -1,9 +1,8 @@
 import { ROW_FIELD } from '@/constants';
-import { TEXT_ALIGN_STYLE, SELECTED_STYLE_CLASS } from '@/constantStyles';
+import { SELECTED_STYLE_CLASS, TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { createHTMLElement } from '@/util/domUtils';
 import { getCellInfo } from '@/util/gridUtils';
-import { removeClass } from '@/util/styleUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';

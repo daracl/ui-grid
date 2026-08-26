@@ -1,7 +1,8 @@
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
+import { GridOptions } from '@/types/GridOptions';
 /**
  * image renderer
  *
@@ -52,5 +53,9 @@ export class ImageRenderer extends ViewCellRenderer {
       // 필요 없는 label은 제거
       label.remove();
     }
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 60;
   }
 }

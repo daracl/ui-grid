@@ -47,7 +47,7 @@ export class ButtonRenderer extends ViewCellRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown touchstart' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'pointerdown' }, (e: UIEvent) => {
       stopPreventCancel(e);
       const eventElement = e.target as HTMLElement;
       const cellElement = this.getClosestCellElement(eventElement);

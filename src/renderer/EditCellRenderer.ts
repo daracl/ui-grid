@@ -36,9 +36,8 @@ export abstract class EditCellRenderer extends CellRenderer {
    * @param {any} value row item
    * @returns {any} field value
    */
-  public getValue(cellInfo: CellInfo) {
-    const item = cellInfo.item;
-    return cellInfo.inputValue ?? item[this.field.name] ?? '';
+  public getValue(item: any, inputValue?: any) {
+    return inputValue ?? item[this.field.name] ?? '';
   }
 
   public completeEdit() {

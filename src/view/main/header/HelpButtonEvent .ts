@@ -42,9 +42,9 @@ export class HelpButtonEvent implements EventHandler {
 
     if (isFunction(helpOpts.click)) {
       const helpClickFn = helpOpts.click ?? (() => void 0);
-      eventManager.off(helpElements, 'mousedown touchstart');
+      eventManager.off(helpElements, 'pointerdown');
       eventManager.on(
-        { el: helpElements, type: 'mousedown touchstart' },
+        { el: helpElements, type: 'pointerdown' },
         (e: UIEvent) => {
           if (!isClickEvent(e)) {
             return;

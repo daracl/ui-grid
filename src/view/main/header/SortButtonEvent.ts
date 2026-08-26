@@ -42,9 +42,9 @@ export class SortButtonEvent implements EventHandler {
     const headerCellElements = this.header.getHeaderCellElements();
 
     let beforeSortOrderLength = 0;
-    eventManager.off(sortElements, 'mousedown touchstart');
+    eventManager.off(sortElements, 'pointerdown');
     eventManager.on(
-      { el: sortElements, type: 'mousedown touchstart' },
+      { el: sortElements, type: 'pointerdown' },
       (e: MouseEvent | TouchEvent) => {
         if (!isClickEvent(e)) {
           return;

@@ -344,7 +344,7 @@ export function multiSort(
     const item = dataManager.getRowItem(viewItem.id);
 
     viewItem.sortValues = sortInfos.map(({ name, field, isValue }) =>
-      isValue ? field.$renderer.getValue({ field, item }) : item[name],
+      isValue ? field.$renderer.getValue(item) : item[name],
     );
   });
 

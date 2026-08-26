@@ -20,7 +20,7 @@ export class CustomEditRenderer extends EditCellRenderer {
     element.innerHTML = '<input type="text">';
     const value = item[cellInfo.field.name];
 
-    this.getValue(value);
+    this.getValue(item, cellInfo.inputValue);
   }
 
   valid(element: HTMLElement): any {

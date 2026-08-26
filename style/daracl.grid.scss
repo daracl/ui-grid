@@ -110,7 +110,7 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
     position: fixed;
     width: 1px;
     height: 1px;
-    left: -9999;
+    left: -9999px;
     top: 0px;
   }
 

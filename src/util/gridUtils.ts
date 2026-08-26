@@ -162,7 +162,7 @@ export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
  * @param {number} checkWidth check width
  * @returns {number} max width size
  */
-export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem, checkWidth: number): number => {
+export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem): number => {
   const dataManager = cfg.dataManager;
   const items = dataManager.getViewItems();
   const maxWidth = opts.header.resize.maxWidth;
@@ -171,6 +171,8 @@ export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldIte
   const context = cfg.canvasContext as CanvasRenderingContext2D;
 
   const startIdx = cfg.scroll.startIdx;
+
+  let checkWidth = 0;
 
   for (let i = startIdx, len = Math.min(cfg.dataInfo.rowLength, startIdx + 100); i < len; i++) {
     const tmpVal = field.$renderer.getValue(dataManager.getRowItem(items[i].id));

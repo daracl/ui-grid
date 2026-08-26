@@ -147,7 +147,22 @@ export abstract class DataManager {
    * @param status item status
    */
   public setItemStatus(item: any, status: ItemStatus) {
+    const beforeValue = item[ROW_FIELD.CUD];
     item[ROW_FIELD.CUD] = status;
+
+    if (status === ItemStatusMap.DELETE) {
+      const deleteHistory: UpdateHistoryChange = {
+        type: 'update',
+        rowId: item[ROW_FIELD.ID],
+        fieldName: ROW_FIELD.CUD,
+        beforeValue: beforeValue,
+        afterValue: ItemStatusMap.DELETE,
+        beforeStatus: beforeValue,
+        afterStatus: ItemStatusMap.DELETE,
+      };
+
+      this.history.add(deleteHistory);
+    }
   }
 
   /**

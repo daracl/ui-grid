@@ -137,24 +137,24 @@ export class SimpleDataSearch extends DataSearch {
 
     const searchPrevBtnElement = this.searchElement.querySelector('.dg-search-prev') as HTMLElement;
 
-    eventManager.off(searchPrevBtnElement, 'mousedown');
-    eventManager.on({ el: searchPrevBtnElement, type: 'mousedown' }, (e: UIEvent) => {
+    eventManager.off(searchPrevBtnElement, 'pointerdown');
+    eventManager.on({ el: searchPrevBtnElement, type: 'pointerdown' }, (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch(SearchDirectionMap.PREV);
     });
 
     const searchNextBtnElement = this.searchElement.querySelector('.dg-search-next') as HTMLElement;
 
-    eventManager.off(searchNextBtnElement, 'mousedown');
-    eventManager.on({ el: searchNextBtnElement, type: 'mousedown' }, (e: UIEvent) => {
+    eventManager.off(searchNextBtnElement, 'pointerdown');
+    eventManager.on({ el: searchNextBtnElement, type: 'pointerdown' }, (e: UIEvent) => {
       stopPreventCancel(e);
       this.simpleSearch(SearchDirectionMap.NEXT);
     });
 
     const searchIconElement = this.searchElement.querySelectorAll('.dg-icon-button');
 
-    eventManager.off(searchIconElement, 'mousedown');
-    eventManager.on({ el: searchIconElement, type: 'mousedown' }, (e: UIEvent) => {
+    eventManager.off(searchIconElement, 'pointerdown');
+    eventManager.on({ el: searchIconElement, type: 'pointerdown' }, (e: UIEvent) => {
       stopPreventCancel(e);
 
       const evtElement = e.currentTarget as HTMLElement;

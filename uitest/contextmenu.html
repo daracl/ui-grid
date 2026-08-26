@@ -75,8 +75,8 @@
             gridObj.changeContextMenuHeader(item[field.name]);
           }
         },
-        callback: function (item) {
-          console.log(item.key, item);
+        callback: function (item, checkValue) {
+          console.log(item.key, item, checkValue);
 
           if (item.key == 'copy') {
             gridObj.copyData();

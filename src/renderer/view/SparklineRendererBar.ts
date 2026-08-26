@@ -1,9 +1,10 @@
 import { getElementRect } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { CELL_PADDING } from '@/constants';
+import { GridOptions } from '@/types/GridOptions';
 
 interface TooltipState {
   data: number[];
@@ -336,5 +337,9 @@ export class SparklineRendererBar extends ViewCellRenderer {
     }
 
     return id;
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 60;
   }
 }

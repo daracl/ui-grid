@@ -44,7 +44,7 @@ export class LinkRenderer extends ToolBarRenderer {
 
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'mousedown touchstart' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: contentElement, type: 'pointerdown' }, (e: UIEvent) => {
       this.click(e, contentElement);
     });
   }

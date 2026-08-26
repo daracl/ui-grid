@@ -109,7 +109,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
       dropdownElement.innerHTML = this.dropdownMenuTemplate(listItems);
       this.openMenu(dropdownElement, eventElement);
 
-      this.setDropItemCheck(this.getValue(cellInfo));
+      this.setDropItemCheck(this.getValue(cellInfo.item, cellInfo.inputValue));
     };
 
     if (Array.isArray(list)) {
@@ -141,7 +141,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
         return item[valueKey];
       });
 
-      const itemValue = this.getValue(cellInfo) ?? '';
+      const itemValue = this.getValue(cellInfo.item, cellInfo.inputValue);
       let currentValues: string[] = itemValue;
 
       if (isString(itemValue)) {

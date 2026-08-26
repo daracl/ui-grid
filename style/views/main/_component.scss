@@ -23,7 +23,7 @@
 
   /* button */
   .dg-button {
-    height: calc(100% - 4px);
+    display: flex;
     > .dg-cell-content {
       padding: 1px 10px;
       border: 1px solid var(--border-color);

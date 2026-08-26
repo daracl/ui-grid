@@ -1,8 +1,9 @@
-import { isHTMLElement } from '@/util/utils';
+import { hasOwnProp, isHTMLElement } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { GridOptions } from '@/types/GridOptions';
 
 /**
  * html renderer
@@ -38,5 +39,9 @@ export class HtmlRenderer extends ViewCellRenderer {
     } else {
       element.innerHTML = value;
     }
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 60;
   }
 }

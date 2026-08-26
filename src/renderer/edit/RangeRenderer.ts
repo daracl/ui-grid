@@ -18,9 +18,8 @@ export class RangeRenderer extends EditCellRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     element.innerHTML = '<input type="range">';
-    const value = item[cellInfo.field.name];
 
-    this.getValue(value);
+    this.getValue(item, cellInfo.inputValue);
   }
 
   valid(element: HTMLElement): any {

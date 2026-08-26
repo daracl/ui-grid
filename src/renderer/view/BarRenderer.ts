@@ -1,6 +1,7 @@
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { GridOptions } from '@/types/GridOptions';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 
 /**
@@ -89,5 +90,9 @@ export class BarRenderer extends ViewCellRenderer {
     if (text.textContent !== label) {
       text.textContent = label;
     }
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 50;
   }
 }

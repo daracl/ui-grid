@@ -3,9 +3,10 @@ import { getCellInfo, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { getLabelsByValue, normalizeChoiceOptions } from '@/util/rendererUtils';
 import { isArray, isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
-import { CellInfo } from '@t/GridConfig';
+import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { GridOptions } from '@/types/GridOptions';
 
 /**
  * dropdown renderer
@@ -125,5 +126,9 @@ export class DropdownRenderer extends ViewCellRenderer {
 
   public alignStyle(): string {
     return TEXT_ALIGN_STYLE.center;
+  }
+
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return 70;
   }
 }

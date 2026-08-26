@@ -3,7 +3,7 @@ import { PointerContext } from '@/event/PointerContext';
 import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { HeaderResize } from '@/types/GridOptions';
-import { getMaxColumnSize, isFixedLeftPostion, isFixedRightPostion } from '@/util/gridUtils';
+import { isFixedLeftPostion, isFixedRightPostion } from '@/util/gridUtils';
 import { isFunction } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
 
@@ -117,7 +117,7 @@ export class ResizeHandler extends BasePointerHandler {
 
     const field = this.cfg.currentFields[resizeIdx];
 
-    const resizeW = getMaxColumnSize(this.cfg, this.opts, field, 0);
+    const resizeW = field.$renderer.getMinWidth(this.cfg, this.opts);
 
     this.context.gridMain.getStructureBuilder().setColumnWidth(resizeIdx, resizeW);
   }

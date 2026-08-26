@@ -107,7 +107,7 @@ export abstract class TextAbstractRenderer extends EditCellRenderer {
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
 
-    const value = this.getValue(cellInfo);
+    const value = this.getValue(item, cellInfo.inputValue);
     editElement.value = value;
     editElement.focus();
     //setTimeout(() => {}, 100);

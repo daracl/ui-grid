@@ -1,5 +1,7 @@
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
-import { CellInfo } from '@/types/GridConfig';
+import { CellInfo, Config } from '@/types/GridConfig';
+import { GridOptions } from '@/types/GridOptions';
+import { getMaxColumnSize } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { FieldItem } from '@t/GridField';
 
@@ -31,7 +33,7 @@ export abstract class CellRenderer {
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
-  public abstract getValue(rowItem: any): any;
+  public abstract getValue(rowItem: any, initValue?: any): any;
 
   public getClosestCellElement(target: HTMLElement) {
     return target.closest('.dg-cell') as HTMLElement;
@@ -51,5 +53,16 @@ export abstract class CellRenderer {
    */
   public alignStyle(): string {
     return TEXT_ALIGN_STYLE.left;
+  }
+
+  /**
+   *
+   * @param cfg 설정
+   * @param opts 옵션
+   * @param checkWidth
+   * @returns
+   */
+  public getMinWidth(cfg: Config, opts: GridOptions) {
+    return getMaxColumnSize(cfg, opts, this.field);
   }
 }
