@@ -802,9 +802,6 @@ export abstract class DataManager {
     const cfg = this.cfg;
     const moveRowIdx = this.getViewItemIndex(entry.changes[0].rowId);
 
-    // 처리할것.
-    //moveColindex;
-
     const isMoveScroll = getScrollDirectionCode(cfg, cfg.scroll, moveRowIdx, -1) > 0;
 
     //this.gridMain.calcBody();
