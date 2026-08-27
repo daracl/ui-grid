@@ -288,9 +288,7 @@ export class ListDataManager extends DataManager {
     const remainingViewItems: ViewItem[] = [];
 
     if (this.opts.deleteMode == 'soft') {
-      for (const rowId of ids) {
-        this.setItemStatus(this.getRowItem(rowId), ItemStatusMap.DELETE);
-      }
+      this.removeSoftItem(ids);
     } else {
       // 제거
       originalViewItems.forEach((viewItem) => {

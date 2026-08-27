@@ -165,6 +165,21 @@ export abstract class DataManager {
     }
   }
 
+  public removeSoftItem(ids: RowId[]) {
+    this.beginHistory();
+
+    try {
+      for (const rowId of ids) {
+        this.setItemStatus(this.getRowItem(rowId), ItemStatusMap.DELETE);
+      }
+      this.commitHistory();
+    } catch (error) {
+      this.rollbackHistory();
+
+      throw error;
+    }
+  }
+
   /**
    * 변경된 아이템 얻기
    *
@@ -326,6 +341,7 @@ export abstract class DataManager {
     dataInfo.lastRow = dataInfo.rowLength > 0 ? dataInfo.rowLength - 1 : 0;
 
     if (this.beforeDataRowLength != -1 && this.beforeDataRowLength !== dataInfo.rowLength) {
+      this.gridMain.selectionInfo.initSelection();
       this.gridMain.calcBody();
       this.gridMain.refreshBody(false, 'setViewItems');
     }

@@ -14,6 +14,7 @@ export class BodyContext {
   public centerElement: DaraElement;
   public rightElement: DaraElement;
 
+  public allRowElements: Record<string, HTMLElement[]> = {};
   public allCellElements: Record<string, HTMLElement[][]> = {};
 
   public cellClassNameCache = new WeakMap<HTMLElement, string[]>();
@@ -30,6 +31,7 @@ export class BodyContext {
 
   public resetCellState(): void {
     this.cellClassNameCache = new WeakMap<HTMLElement, string[]>();
+    this.allRowElements = {};
     this.allCellElements = {};
   }
 }

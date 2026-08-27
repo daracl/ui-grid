@@ -343,12 +343,10 @@ export class GridMain {
       this.initResizeEvent();
     }
 
-    const containerElement = this.layoutElement;
-
     const rendererLayerElement = this.rendererLayerElement;
 
     // focus in, mousedown
-    cfg.eventManager.on({ el: containerElement.getElement(), type: 'mousedown' }, (e: UIEvent) => {
+    cfg.eventManager.on({ el: this.mainElement.getElement(), type: 'mousedown' }, (e: UIEvent) => {
       const path = e.composedPath();
       if (path.includes(rendererLayerElement)) {
         return;
@@ -357,7 +355,7 @@ export class GridMain {
       this.setGridFocusIn(e);
     });
 
-    const dgLayersElement = containerElement.findDaraElement('.dg-layers').getElement();
+    const dgLayersElement = this.layoutElement.findDaraElement('.dg-layers').getElement();
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
 

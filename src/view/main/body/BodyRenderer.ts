@@ -1,6 +1,6 @@
 import { CellInfo } from '@t/GridConfig';
 
-import { BodyCellStyleMap } from '@/constants';
+import { BodyCellStyleMap, ItemStatusMap, ROW_FIELD } from '@/constants';
 
 import { BodyCell } from './BodyCell';
 import { BodyContext } from './BodyContext';
@@ -8,7 +8,7 @@ import { BodyTemplate } from './BodyTemplate';
 import { BodyFieldGroup, BodyMatchInfo } from '@/types/Body';
 
 /**
- * Body의 virtualized row / cell 렌더링을 담당합니다.
+ * Body의 virtualized row / cell 렌더링을 담당
  */
 export class BodyRenderer {
   constructor(
@@ -79,9 +79,9 @@ export class BodyRenderer {
       return;
     }
 
-    this.context.gridMain.hideLayer(mode);
-
     this.updateLastRowVisibility(fieldGroups, currentViewRow, viewRow);
+
+    this.context.gridMain.hideLayer(mode);
 
     const bodyClassList = this.context.bodyElement.getElement().classList;
 
@@ -125,6 +125,10 @@ export class BodyRenderer {
       c: -1,
     } as CellInfo;
 
+    const allRowElements = this.context.allRowElements;
+
+    const deleteRowClassName = 'dg-status-delete';
+
     for (let i = 0; i < currentViewRow; i++) {
       const viewRowIdx = startIdx + i;
       const viewItem = viewItems[viewRowIdx];
@@ -135,6 +139,20 @@ export class BodyRenderer {
 
       const item = dataManager.getRowItem(viewItem.id);
       const rowIdx = pagingStartIdx + viewRowIdx;
+
+      if (item[ROW_FIELD.CUD] === ItemStatusMap.DELETE) {
+        if (!allRowElements.center[i].classList.contains(deleteRowClassName)) {
+          allRowElements.center[i].classList.add(deleteRowClassName);
+
+          if (enableLeftField) allRowElements.left[i].classList.add(deleteRowClassName);
+          if (enableRightField) allRowElements.right[i].classList.add(deleteRowClassName);
+        }
+      } else if (allRowElements.center[i].classList.contains(deleteRowClassName)) {
+        if (enableLeftField) allRowElements.left[i].classList.remove(deleteRowClassName);
+        if (enableRightField) allRowElements.right[i].classList.remove(deleteRowClassName);
+
+        allRowElements.center[i].classList.remove(deleteRowClassName);
+      }
 
       matchInfo.matchViewItem = undefined;
       matchInfo.searchMatchedFields = undefined;
@@ -200,7 +218,7 @@ export class BodyRenderer {
     const cfg = this.context.gridMain.config();
     const beforeViewRow = cfg.scroll.before.viewRow;
 
-    if (beforeViewRow > 1 && beforeViewRow > viewRow) {
+    if (beforeViewRow > 0 && beforeViewRow > viewRow) {
       for (let i = viewRow; i < beforeViewRow; i++) {
         for (const { fields, element } of fieldGroups) {
           if (fields.length === 0) {
@@ -289,6 +307,7 @@ export class BodyRenderer {
 
   private refreshCellElements(fieldGroups: BodyFieldGroup[], viewRow: number): void {
     const allCellMap: Record<string, HTMLElement[][]> = {};
+    const allRowMap: Record<string, HTMLElement[]> = {};
 
     for (const group of fieldGroups) {
       const { name, element } = group;
@@ -298,6 +317,7 @@ export class BodyRenderer {
       }
 
       const cellElements: HTMLElement[][] = new Array(viewRow);
+      const rowElements: HTMLElement[] = new Array(viewRow);
 
       for (let i = 0; i < viewRow; i++) {
         cellElements[i] = [];
@@ -308,9 +328,7 @@ export class BodyRenderer {
       for (let rowIndex = 0; rowIndex < viewRow; rowIndex++) {
         const row = rows[rowIndex];
 
-        if (!row) {
-          continue;
-        }
+        rowElements[rowIndex] = row;
 
         const cells = row.children;
 
@@ -318,10 +336,10 @@ export class BodyRenderer {
           cellElements[rowIndex][group.startCol + colIndex] = cells[colIndex] as HTMLElement;
         }
       }
-
+      allRowMap[name] = rowElements;
       allCellMap[name] = cellElements;
     }
-
+    this.context.allRowElements = allRowMap;
     this.context.allCellElements = allCellMap;
   }
 
@@ -359,6 +377,7 @@ export class BodyRenderer {
   }
 
   public destroy(): void {
+    this.context.allRowElements = {};
     this.context.allCellElements = {};
   }
 }

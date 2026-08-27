@@ -19,9 +19,8 @@ export class BodySelection {
    */
   constructor(private readonly context: BodyContext, private readonly renderer: BodyRenderer) {}
 
-  /** Selection 초기화 */
   public init(): void {
-    // BodyEvent의 초기화는 Body에서 담당
+    //
   }
 
   /**

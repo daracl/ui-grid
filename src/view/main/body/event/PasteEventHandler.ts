@@ -83,20 +83,12 @@ export class PasteEvent implements EventHandler {
         let pasteResultItems: ViewItem[] = dataManager.getViewItems();
 
         /**
-         * Paste 전체를 하나의 History 단위로 처리합니다.
-         *
-         * beginHistory 시점:
-         *   beforeSelection 저장
+         * Paste 전체를 하나의 History 단위로 처리
          */
         dataManager.beginHistory();
 
         try {
-          // ----------------------------------------------------------
-          // row 부족하면 추가
-          //
-          // createItem() -> addItems()에서
-          // add History가 기록되어야 합니다.
-          // ----------------------------------------------------------
+          //row 부족하면 추가
           if (startIdx + parsed.length > itemLength) {
             const addCount = startIdx + parsed.length - itemLength;
 
@@ -109,9 +101,7 @@ export class PasteEvent implements EventHandler {
             itemLength = pasteResultItems.length;
           }
 
-          // ----------------------------------------------------------
-          // 데이터 적용
-          // ----------------------------------------------------------
+          //데이터 적용
           for (let i = 0; i < parsed.length; i++) {
             const rowIdx = startIdx + i;
 
@@ -162,12 +152,6 @@ export class PasteEvent implements EventHandler {
 
           this.gridMain.refreshBody(false, 'paste');
 
-          // ----------------------------------------------------------
-          // Selection 갱신
-          //
-          // commitHistory()보다 먼저 실행해야
-          // afterSelection으로 저장됩니다.
-          // ----------------------------------------------------------
           this.selectionInfo.setSelectionRangeInfo(
             {
               range: {
@@ -182,13 +166,6 @@ export class PasteEvent implements EventHandler {
             false,
           );
 
-          /**
-           * commitHistory()
-           *
-           * beginHistory()에서 beforeSelection
-           * commitHistory()에서 afterSelection
-           * 이 저장됩니다.
-           */
           dataManager.commitHistory();
         } catch (error) {
           dataManager.rollbackHistory();

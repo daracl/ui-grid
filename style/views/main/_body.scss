@@ -12,6 +12,12 @@
         .dg-row {
           background-color: var(--body-bg);
 
+          &.dg-status-delete {
+            pointer-events: none;
+            cursor: not-allowed;
+            opacity: 0.5;
+          }
+
           &.dg-row-hover {
             background-color: var(--cell-bg-hover);
             > .dg-line-number {
@@ -92,10 +98,7 @@
 
     &[data-view-mode='empty'] {
       .dg-empty-overlay {
-        display: -webkit-box;
-        display: -ms-flexbox;
         display: flex;
-        display: -webkit-flex;
       }
     }
 
@@ -107,6 +110,7 @@
       bottom: 0;
       left: 0;
       z-index: 10;
+      background-color: var(--body-bg);
       align-items: center;
       -webkit-align-item: center;
       justify-content: center;

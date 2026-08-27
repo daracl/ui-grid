@@ -333,7 +333,6 @@ export class BodyEvent {
       cfg.selection.isMouseDown = false;
       cfg.isBodyDragging = false;
       cfg.isMoveRow = false;
-      //this.selectionInfo.setSelectionRangeInfo({ isMouseDown: false } as Selection);
     });
   }
 
