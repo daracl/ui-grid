@@ -61,11 +61,9 @@ export class NumberEditRenderer extends TextAbstractRenderer {
     style.left = `${cellRect.left - rendererContainer.left}px`;
     style.width = `${cellRect.width}px`;
     style.height = `${cellRect.height}px`;
-    editElement.value = item[this.fieldName] ?? '';
+    editElement.value = this.getValue(item, cellInfo.inputValue);
 
-    setTimeout(() => {
-      editElement.focus();
-    }, 100);
+    editElement.focus();
   }
 
   valid(value: string): boolean {
