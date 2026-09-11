@@ -1,5 +1,7 @@
 # DaraGrid (@daracl/grid)
 
+**한국어** | [English](./README.en.md)
+
 프레임워크 의존성 없는 데이터 그리드 라이브러리입니다.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/daracl/ui-grid/blob/main/LICENSE)
