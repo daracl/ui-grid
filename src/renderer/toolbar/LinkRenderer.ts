@@ -28,10 +28,9 @@ export class LinkRenderer extends ToolBarRenderer {
     aElement.className = this.getRendererClassName('dg-link');
     controlElement.appendChild(aElement);
     this.initEvent(aElement);
+    aElement.href = 'javascript:void(0);';
 
-    if (this.isClick) {
-      aElement.href = 'javascript:void(0);';
-    } else if (refValue?.href) {
+    if (refValue?.href) {
       aElement.href = refValue.href;
 
       if (refValue.target) {

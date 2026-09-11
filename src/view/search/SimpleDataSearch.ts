@@ -186,17 +186,17 @@ export class SimpleDataSearch extends DataSearch {
 
     this.searchTextElement.value = searchText;
     if (searchText == '') {
-      cfg.searchEnable = false;
+      cfg.searchEnabled = false;
       this.setMatchCountText(true);
       this.gridMain.getBody().clearSearchHighlight();
     } else {
-      cfg.searchEnable = true;
+      cfg.searchEnabled = true;
     }
 
     cfg.dataManager.search(searchText, options);
 
     this.gridMain.refreshBody(true, 'search');
-    this.gridMain.getHeader().setSearchIcon(cfg.searchEnable);
+    this.gridMain.getHeader().setSearchIcon(cfg.searchEnabled);
 
     const searchMatchInfo = this.cfg.searchMatchInfo;
 

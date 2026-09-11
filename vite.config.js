@@ -52,12 +52,14 @@ export default defineConfig(({ mode }) => {
           },
         },
         plugins: [
+          /*  레포트 확인 할때 주석 제거 하고 확인할것
           visualizer({
             filename: 'bundle-report.html',
             open: true, // 자동으로 브라우저에서 보고서 열기
             gzipSize: true,
             brotliSize: true,
           }),
+          */
         ],
       },
     },

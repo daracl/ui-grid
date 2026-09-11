@@ -30,8 +30,8 @@ export class BodyRenderer {
     const fixedLeftIndex = cfg.fixedLeftIndex;
     const fixedRightIndex = cfg.fixedRightIndex;
 
-    const enableLeftField = leftFields.length > 0;
-    const enableRightField = rightFields.length > 0;
+    const enabledLeftField = leftFields.length > 0;
+    const enabledRightField = rightFields.length > 0;
 
     const fieldGroups: BodyFieldGroup[] = [
       {
@@ -107,11 +107,11 @@ export class BodyRenderer {
     const centerElements = this.context.allCellElements.center;
     const rightElements = this.context.allCellElements.right;
 
-    const searchEnable = cfg.searchEnable;
+    const searchEnabled = cfg.searchEnabled;
     const searchMatchInfo = cfg.searchMatchInfo;
 
     const matchInfo: BodyMatchInfo = {
-      searchEnable,
+      searchEnabled,
       cellIndex: searchMatchInfo.cellIndex,
       matchViewItem: undefined,
       searchMatchedFields: undefined,
@@ -144,12 +144,12 @@ export class BodyRenderer {
         if (!allRowElements.center[i].classList.contains(deleteRowClassName)) {
           allRowElements.center[i].classList.add(deleteRowClassName);
 
-          if (enableLeftField) allRowElements.left[i].classList.add(deleteRowClassName);
-          if (enableRightField) allRowElements.right[i].classList.add(deleteRowClassName);
+          if (enabledLeftField) allRowElements.left[i].classList.add(deleteRowClassName);
+          if (enabledRightField) allRowElements.right[i].classList.add(deleteRowClassName);
         }
       } else if (allRowElements.center[i].classList.contains(deleteRowClassName)) {
-        if (enableLeftField) allRowElements.left[i].classList.remove(deleteRowClassName);
-        if (enableRightField) allRowElements.right[i].classList.remove(deleteRowClassName);
+        if (enabledLeftField) allRowElements.left[i].classList.remove(deleteRowClassName);
+        if (enabledRightField) allRowElements.right[i].classList.remove(deleteRowClassName);
 
         allRowElements.center[i].classList.remove(deleteRowClassName);
       }
@@ -157,7 +157,7 @@ export class BodyRenderer {
       matchInfo.matchViewItem = undefined;
       matchInfo.searchMatchedFields = undefined;
 
-      if (searchEnable) {
+      if (searchEnabled) {
         const matchViewItem = dataManager.getSearchMapItem(viewItem.id);
 
         matchInfo.matchViewItem = matchViewItem;
@@ -170,7 +170,7 @@ export class BodyRenderer {
       rowCellInfo.viewItem = viewItem;
 
       // left panel
-      if (enableLeftField) {
+      if (enabledLeftField) {
         const rowCells = leftElements[i];
 
         for (let j = 0; j < leftFields.length; j++) {
@@ -197,7 +197,7 @@ export class BodyRenderer {
       }
 
       // right panel
-      if (enableRightField) {
+      if (enabledRightField) {
         const rowCells = rightElements[i];
         for (let j = 0; j < rightFields.length; j++) {
           const field = rightFields[j];

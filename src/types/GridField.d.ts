@@ -174,5 +174,5 @@ export interface FieldItem {
   /**
    * enable help button
    */
-  $enableHelp: boolean;
+  $enabledHelp: boolean;
 }

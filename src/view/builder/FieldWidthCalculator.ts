@@ -193,12 +193,12 @@ export class FieldWidthCalculator {
     const cfg = this.gridMain.config();
 
     if (cfg.disableHorizontalScroll) {
-      cfg.scroll.enableHorizontal = false;
+      cfg.scroll.enabledHorizontal = false;
       return;
     }
 
     const availableWidth = gridAvailableWidth(cfg);
-    cfg.scroll.enableHorizontal = fieldTotalWidth > availableWidth;
+    cfg.scroll.enabledHorizontal = fieldTotalWidth > availableWidth;
   }
 
   /**
@@ -233,7 +233,7 @@ export class FieldWidthCalculator {
 
       let fieldWidth = isHeaderResize ? field.$width : field.width;
 
-      if (!isHeaderResize && !this.opts.enableWidthFixed) {
+      if (!isHeaderResize && !this.opts.enabledWidthFixed) {
         fieldWidth += remainderWidth;
 
         if (remainSpaceWidth > 0) {
@@ -302,7 +302,7 @@ export class FieldWidthCalculator {
     const cfg = this.gridMain.config();
     const { dataInfo, currentFields: fields, scroll } = cfg;
 
-    if (cfg.disableHorizontalScroll || scroll.enableHorizontal) {
+    if (cfg.disableHorizontalScroll || scroll.enabledHorizontal) {
       return { remainderWidth: 0, lastSpaceW: 0, isAddSpaceWidth: true };
     }
 

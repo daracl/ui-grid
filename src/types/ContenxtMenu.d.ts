@@ -29,7 +29,7 @@ export interface ContextMenuOptions {
   /**
    * enable header
    */
-  enableHeader: boolean;
+  enabledHeader: boolean;
 }
 
 /**

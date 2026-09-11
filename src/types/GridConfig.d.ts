@@ -15,7 +15,7 @@ export interface Config {
   // theme
   theme: string;
   // header help button
-  enableHeaderHelpButton: boolean;
+  enabledHeaderHelpButton: boolean;
   // data manager
   dataManager: DataManager;
   // event manager
@@ -76,7 +76,7 @@ export interface Config {
    */
   fontSize: string;
 
-  enableCellEdit: boolean;
+  enabledCellEdit: boolean;
 
   isOpenLayer: boolean;
 
@@ -86,7 +86,7 @@ export interface Config {
    * @type {boolean}
    */
   isRowAllowMultiSelect: boolean;
-  searchEnable: boolean;
+  searchEnabled: boolean;
   fieldHeaderGroup: FieldHeaderGroupInfo;
   footer: { height: number; width: number };
   navi: { height: number; width: number };
@@ -106,7 +106,7 @@ export interface Config {
   // row height
   rowHeight: number;
   // enable sort button
-  enableSortButton: boolean;
+  enabledSortButton: boolean;
   sort: {
     orders: FieldSortInfo[];
   };
@@ -283,8 +283,8 @@ export interface ScrollInfo {
    * 스크롤 데이터 초기화
    */
 
-  enableVertical: boolean;
-  enableHorizontal: boolean;
+  enabledVertical: boolean;
+  enabledHorizontal: boolean;
   centerLeftPosition: number;
   before: {
     startIdx: number;

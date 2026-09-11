@@ -55,7 +55,7 @@ export class ContextMenu {
     contextElement.setAttribute('onselectstart', 'return false');
 
     const htmlTemplate = [];
-    if (this.contextOpts.enableHeader) {
+    if (this.contextOpts.enabledHeader) {
       htmlTemplate.push('<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>');
       htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
     }

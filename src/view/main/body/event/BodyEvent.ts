@@ -63,7 +63,7 @@ export class BodyEvent {
 
     const opts = this.gridMain.options();
 
-    if (this.gridMain.config().enableCellEdit === true) {
+    if (this.gridMain.config().enabledCellEdit === true) {
       new PasteEvent(this.gridMain, this.selectionInfo).init();
     }
 
@@ -111,7 +111,7 @@ export class BodyEvent {
         }
 
         // ✔ 더 크게 움직인 방향만 선택
-        if (scroll.enableHorizontal && Math.abs(dx) > Math.abs(dy)) {
+        if (scroll.enabledHorizontal && Math.abs(dx) > Math.abs(dy)) {
           const upFlag = dx > 0;
           cancelAnimationFrame(animationId);
           if ((upFlag && scroll.left != 0) || (!upFlag && scroll.left != scroll.hTrackWidth - scroll.hThumbWidth)) {
@@ -126,7 +126,7 @@ export class BodyEvent {
               speed: opts.scroll.horizontal.speed,
             });
           });
-        } else if (scroll.enableVertical) {
+        } else if (scroll.enabledVertical) {
           const startIdx = scroll.startIdx;
           const upFlag = dy < 0;
           cancelAnimationFrame(animationId);
@@ -206,7 +206,7 @@ export class BodyEvent {
     const eventManager = cfg.eventManager;
 
     let session: PointerSession;
-    const editable = cfg.enableCellEdit;
+    const editable = cfg.enabledCellEdit;
 
     const clickManager = new ClickManager();
 

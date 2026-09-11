@@ -1,4 +1,7 @@
 @charset "UTF-8";
+/**
+ * Grid CSS
+ */
 /*
 * base css
 */
@@ -53,23 +56,24 @@
 /**
 * hidden helper css
 */
-/**
- * Grid CSS
- */
 /* ==========================================================================
    Selection
    ========================================================================== */
 .dg-noselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
+  -khtml-user-select: none;
   -moz-user-select: none;
+  -ms-user-select: none;
   user-select: none;
 }
 
 .dg-select {
   -webkit-touch-callout: text;
   -webkit-user-select: text;
+  -khtml-user-select: text;
   -moz-user-select: text;
+  -ms-user-select: text;
   user-select: text;
 }
 
@@ -266,6 +270,8 @@
   margin: 0 auto;
   background: transparent;
   line-height: 1.2em;
+  -webkit-box-sizing: border-box !important;
+  -moz-box-sizing: border-box !important;
   box-sizing: border-box !important;
   /*
    * Global
@@ -308,7 +314,9 @@
   outline: none;
   -webkit-touch-callout: text;
   -webkit-user-select: text;
+  -khtml-user-select: text;
   -moz-user-select: text;
+  -ms-user-select: text;
   user-select: text;
 }
 .daracl-grid input:hover, .daracl-grid input:focus,
@@ -450,9 +458,7 @@
   align-items: center;
   gap: 5px;
   cursor: pointer;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
+  user-select: none;
   margin: 0px 5px 0px 0px;
 }
 .daracl-grid .dg-choice > .dg-choice-item .dg-label,
@@ -632,9 +638,7 @@
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
+  user-select: none;
   gap: 6px;
   font-size: 14px;
   margin-bottom: 10px;
@@ -671,9 +675,7 @@
 }
 .daracl-grid .dg-switch,
 .dg-hidden-layers .dg-switch {
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
+  user-select: none;
   position: relative;
   height: 19px;
   display: flex;
@@ -938,8 +940,6 @@
 }
 .daracl-grid.dg-auto-height {
   overflow: visible;
-  height: -webkit-max-content;
-  height: -moz-max-content;
   height: max-content;
 }
 .daracl-grid .dg-text-editor {
@@ -1019,8 +1019,6 @@
 .daracl-grid .dg-toolbar .dg-toolbar-row {
   display: grid;
   align-items: center;
-  width: -webkit-max-content;
-  width: -moz-max-content;
   width: max-content;
   min-width: 100%;
 }
@@ -1089,8 +1087,7 @@
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field.dg-group {
   grid-template-columns: auto minmax(0, 1fr);
-  -moz-column-gap: 5px;
-       column-gap: 5px;
+  column-gap: 5px;
 }
 .daracl-grid .dg-main {
   border: 1px solid var(--border-color);
@@ -1358,6 +1355,11 @@
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row {
   background-color: var(--body-bg);
 }
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row.dg-status-delete {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row.dg-row-hover {
   background-color: var(--cell-bg-hover);
 }
@@ -1414,6 +1416,8 @@
   color: var(--font-color);
 }
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell.dg-start-cell {
+  -webkit-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
+  -moz-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
   box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
 }
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-cell-click {
@@ -1436,15 +1440,18 @@
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-image > .dg-cell-content {
   width: auto;
   height: 100%;
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
   display: block;
 }
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-image > .dg-cell-content + .dg-cell-content-label {
   margin-left: 8px;
 }
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-link > .dg-cell-content {
+  text-decoration: underline;
+  cursor: pointer;
+}
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button {
-  height: calc(100% - 4px);
+  display: flex;
 }
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button > .dg-cell-content {
   padding: 1px 10px;
@@ -1579,7 +1586,6 @@
 }
 .daracl-grid .dg-main .dg-panels .dg-body[data-view-mode=empty] .dg-empty-overlay {
   display: flex;
-  display: -webkit-flex;
 }
 .daracl-grid .dg-main .dg-panels .dg-body .dg-empty-overlay {
   display: none;
@@ -1589,6 +1595,7 @@
   bottom: 0;
   left: 0;
   z-index: 10;
+  background-color: var(--body-bg);
   align-items: center;
   -webkit-align-item: center;
   justify-content: center;
@@ -1701,6 +1708,7 @@
   position: absolute;
   z-index: 1;
   border-radius: 0.5em !important;
+  -ms-touch-action: none;
   touch-action: none;
   background-color: var(--scroll-thumb-bg);
 }
@@ -1889,8 +1897,6 @@
   border: 1px solid var(--border-color);
   background-color: var(--body-bg);
   min-width: 255px;
-  width: -webkit-max-content;
-  width: -moz-max-content;
   width: max-content;
   white-space: nowrap;
   padding: 5px 10px;
@@ -2019,8 +2025,6 @@
   border: 2px solid var(--invalid-border-color);
   background-color: var(--invalid-bg);
   color: var(--invalid-font-color);
-  width: -webkit-max-content;
-  width: -moz-max-content;
   width: max-content;
   white-space: nowrap;
   padding: 5px 10px;
@@ -2029,8 +2033,6 @@
 .daracl-grid .dg-layers .dg-header-help-tooltip {
   border: 2px solid var(--border-color);
   background-color: var(--body-bg);
-  width: -webkit-max-content;
-  width: -moz-max-content;
   width: max-content;
   white-space: nowrap;
   padding: 5px 10px;
@@ -2038,18 +2040,14 @@
 }
 .daracl-grid .dg-layers .dg-edit-input {
   background-color: var(--body-bg);
-  -webkit-user-select: none !important;
-     -moz-user-select: none !important;
-          user-select: none !important;
+  user-select: none !important;
   padding: 0px 5px;
   overflow: hidden;
   border: 2px solid var(--cell-selection-border);
   outline: none;
 }
 .daracl-grid .dg-layers .dg-dropdown-menu {
-  -webkit-user-select: none;
-     -moz-user-select: none;
-          user-select: none;
+  user-select: none;
   margin-top: 1px;
   border: 1px solid var(--border-color);
   background-color: var(--body-bg);
@@ -2147,6 +2145,19 @@
   text-decoration: none;
   outline: none;
   margin: 0px 5px;
+  display: flex;
+  height: 20px;
+}
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-check > a input[type=checkbox] {
+  margin: 0;
+}
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-check > a > label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dg-hidden-layers .dg-contextmenu > .dg-contextmenu-check > a > label span {
+  line-height: 1;
 }
 .dg-hidden-layers .dg-contextmenu > .dg-contextmenu-item > a {
   display: flex;
@@ -2294,4 +2305,5 @@
 .dg-hidden-layers .dg-row-move-helper > .dg-icon.dg-drop-invalid::before {
   content: "✖";
 }
+
 /*# sourceMappingURL=daracl.grid.css.map */

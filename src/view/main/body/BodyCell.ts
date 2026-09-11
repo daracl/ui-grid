@@ -120,7 +120,7 @@ export class BodyCell {
 
     if (field.$isAside) return;
 
-    if (matchInfo.searchEnable) {
+    if (matchInfo.searchEnabled) {
       const classList = cellElement.classList;
       const matchedFields = matchInfo.searchMatchedFields ?? [];
 

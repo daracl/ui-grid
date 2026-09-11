@@ -637,7 +637,7 @@ export const parseClipboard = (text: string): string[][] => {
 export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
   if (!field) return false;
 
-  return field.editable === true || (cfg.enableCellEdit && field.editable !== false);
+  return field.editable === true || (cfg.enabledCellEdit && field.editable !== false);
 };
 
 /**
@@ -649,7 +649,7 @@ export const isFieldEditable = (cfg: Config, field: FieldItem): boolean => {
 export const gridAvailableWidth = (cfg: Config): number => {
   const centerMargin = cfg.fixedRightIndex > 0 ? 1 : 2;
 
-  const verticalScrollWidth = cfg.scroll.enableVertical ? cfg.scrollbarSize + centerMargin : 0;
+  const verticalScrollWidth = cfg.scroll.enabledVertical ? cfg.scrollbarSize + centerMargin : 0;
 
   return cfg.dimensions.width - verticalScrollWidth - 1;
 };

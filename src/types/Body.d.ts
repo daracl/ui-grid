@@ -1,7 +1,7 @@
 import { HorizontalRegion } from '@/constants';
 
 export interface BodyMatchInfo {
-  searchEnable: boolean;
+  searchEnabled: boolean;
   cellIndex: number;
   matchViewItem: ViewItem | undefined;
   searchMatchedFields: string[] | undefined;

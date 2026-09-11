@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Dara renderer</title>
-  </head>
 
-  <body>
-    <div class="grid-view-area">
-      <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
-    </div>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <title>Dara renderer</title>
+</head>
+
+<body>
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
+  </div>
+</body>
+
 </html>
 
 <script src="./data/sampleConfig.js" type="text/javascript"></script>
@@ -413,7 +415,7 @@
       selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
       theme: G_GRID_THEME,
       header: {
-        enableViewAllLabel: true,
+        enabledViewAllLabel: true,
       },
       aside: {
         lineNumber: { enabled: true },
@@ -429,7 +431,7 @@
           },
         },
         horizontal: {
-          enableWheel: true,
+          enabledWheel: true,
         },
       },
 

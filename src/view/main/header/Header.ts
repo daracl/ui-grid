@@ -240,7 +240,7 @@ export class Header {
     if (!headerGroups?.length || !headerGroups[0]?.length) return '';
 
     const rowsHtml: string[] = [];
-    const searchEnabled = opts.search.enabled;
+    const searchEnabledd = opts.search.enabled;
     const helpEnabled = opts.header.help.enabled;
     const headerGroupLength = headerGroups.length;
 
@@ -248,7 +248,7 @@ export class Header {
 
     const sortEnabled = opts.header.sort.enabled;
 
-    const searchIcon = searchEnabled ? html`<div class="dg-search-icon">${ALL_ICONS.search}</div>` : '';
+    const searchIcon = searchEnabledd ? html`<div class="dg-search-icon">${ALL_ICONS.search}</div>` : '';
 
     headerGroups.forEach((headerGroup, rowIndex) => {
       const trHeight = cfg.fieldHeaderGroup.heights[rowIndex];
@@ -276,7 +276,7 @@ export class Header {
             ? html`<div class="dg-sort-icon"><span class="dg-sort-num"></span>${ALL_ICONS.headerSort}</div>`
             : '';
 
-        const isheaderHelp = headerItem.$enableHelp;
+        const isheaderHelp = headerItem.$enabledHelp;
         const helpIcon =
           !headerItem.$isAside && (helpEnabled || isheaderHelp !== false)
             ? html`<div class="dg-header-help-button">${ALL_ICONS.help}</div>`

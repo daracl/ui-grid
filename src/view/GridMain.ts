@@ -769,18 +769,18 @@ export class GridMain {
   private changeScrollMode() {
     const cfg = this.cfg;
     const scrollbarSize = cfg.scrollbarSize;
-    const scrollMode = (cfg.scroll.enableHorizontal ? 1 : 0) + (cfg.scroll.enableVertical ? 2 : 0);
+    const scrollMode = (cfg.scroll.enabledHorizontal ? 1 : 0) + (cfg.scroll.enabledVertical ? 2 : 0);
 
     const mainPanelStyle = this.mainElement.find('.dg-panels').style;
 
     mainPanelStyle.removeProperty('height');
     mainPanelStyle.removeProperty('width');
 
-    if (cfg.scroll.enableHorizontal) {
+    if (cfg.scroll.enabledHorizontal) {
       mainPanelStyle.height = `calc(100% - ${scrollbarSize})`;
     }
 
-    if (cfg.scroll.enableVertical) {
+    if (cfg.scroll.enabledVertical) {
       mainPanelStyle.width = `calc(100% - ${scrollbarSize})`;
     }
 

@@ -21,6 +21,13 @@
     }
   }
 
+  .dg-link {
+    > .dg-cell-content {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
   /* button */
   .dg-button {
     display: flex;

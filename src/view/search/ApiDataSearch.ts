@@ -29,11 +29,11 @@ export class ApiDataSearch extends DataSearch {
     }
 
     if (searchText == '') {
-      cfg.searchEnable = false;
+      cfg.searchEnabled = false;
       this.setMatchCountText(true);
       this.gridMain.getBody().clearSearchHighlight();
     } else {
-      cfg.searchEnable = true;
+      cfg.searchEnabled = true;
     }
 
     cfg.dataManager.search(searchText, options);

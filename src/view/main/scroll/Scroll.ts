@@ -107,9 +107,9 @@ export class Scroll {
           return;
         }
 
-        const isHorizontal = scroll.enableHorizontal && isShiftKey(evt);
+        const isHorizontal = scroll.enabledHorizontal && isShiftKey(evt);
 
-        if (!disableVerticalScroll && this.opts.scroll.enableWheelInContainer) {
+        if (!disableVerticalScroll && this.opts.scroll.enabledWheelInContainer) {
           stopPreventCancel(evt);
         }
 

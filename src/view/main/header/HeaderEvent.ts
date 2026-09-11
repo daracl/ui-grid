@@ -57,11 +57,11 @@ export class HeaderEvent {
       this.initSearchButton();
     }
 
-    if (this.gridMain.config().enableHeaderHelpButton) {
+    if (this.gridMain.config().enabledHeaderHelpButton) {
       new HelpButtonEvent(this.gridMain, this.header).init();
     }
 
-    if (this.gridMain.config().enableSortButton) {
+    if (this.gridMain.config().enabledSortButton) {
       new SortButtonEvent(this.gridMain, this.header).init();
     }
 
@@ -95,7 +95,7 @@ export class HeaderEvent {
 
     const allHandlers: BasePointerHandler[] = [];
 
-    if (this.headerOpts.enableAllColumnSelection && !isSingleSelectionMode(selectionMode)) {
+    if (this.headerOpts.enabledAllColumnSelection && !isSingleSelectionMode(selectionMode)) {
       allHandlers.push(new HeaderCellClickHandler({ gridMain: this.gridMain, header: this.header }, this));
     }
 

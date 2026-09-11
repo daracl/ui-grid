@@ -62,7 +62,7 @@ export class HorizontalScroll {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
-    if (!scroll.enableHorizontal) {
+    if (!scroll.enabledHorizontal) {
       scroll.left = 0;
       this.setHorizontalPosition(cfg);
       return;
@@ -74,7 +74,7 @@ export class HorizontalScroll {
 
     const totalColWidth = dimensions.mainTotalWidth;
 
-    const hWidth = dimensions.width - (scroll.enableVertical ? cfg.scrollbarSize : 0) - 2; // 2 left right border
+    const hWidth = dimensions.width - (scroll.enabledVertical ? cfg.scrollbarSize : 0) - 2; // 2 left right border
 
     const hTrackWidth = hWidth - arrowButtonSize;
     let thumbWidth = (hTrackWidth * ((hTrackWidth / totalColWidth) * 100)) / 100;
@@ -327,7 +327,7 @@ export class HorizontalScroll {
   public moveHorizontalScroll(moveObj: ScrollMoveOptions) {
     const cfg = this.gridMain.config();
 
-    if (!cfg.scroll.enableHorizontal) {
+    if (!cfg.scroll.enabledHorizontal) {
       if (cfg.scroll.left > 0) {
         this.moveHorizontalScrollPosition(0, moveObj.drawFlag);
       }

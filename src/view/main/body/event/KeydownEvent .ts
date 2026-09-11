@@ -77,7 +77,7 @@ export class KeydownEvent implements EventHandler {
 
     const selectionMode = opts.selectionMode;
     const isMultiple = isMultipleSelectionMode(selectionMode);
-    const searchEnabled = opts.search.enabled;
+    const searchEnabledd = opts.search.enabled;
 
     const pasteElement = this.pasteElement.getElement();
     const gridKeyInputElement = this.gridMain.getGridKeyInputElement();
@@ -129,7 +129,7 @@ export class KeydownEvent implements EventHandler {
           if (code === 'KeyF') {
             stopPreventCancel(e);
 
-            if (searchEnabled) {
+            if (searchEnabledd) {
               this.gridMain.getDataSearch().openSearch();
             }
 

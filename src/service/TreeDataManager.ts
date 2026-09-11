@@ -183,7 +183,7 @@ export class TreeDataManager extends DataManager {
     const result: TreeViewItem[] = [];
     const flatList: TreeViewItem[] = [];
 
-    const searchEnable = this.cfg.searchEnable;
+    const searchEnabled = this.cfg.searchEnabled;
 
     let offset = 0;
     const dfs = (list: ViewItem[], parentExpanded: boolean) => {
@@ -192,7 +192,7 @@ export class TreeDataManager extends DataManager {
 
         const rowId = treeItem.id;
 
-        if (searchEnable) {
+        if (searchEnabled) {
           const matchViewItem = this.getSearchMapItem(rowId);
           if (matchViewItem) {
             this.matchOffsetMap.set(rowId, offset);
@@ -478,7 +478,7 @@ export class TreeDataManager extends DataManager {
 
     const result = this.getTreeToList(sortedTree);
 
-    if (!this.cfg.searchEnable) {
+    if (!this.cfg.searchEnabled) {
       return result;
     }
 

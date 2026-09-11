@@ -96,7 +96,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   /**
    * 컬럼 너비를 고정할지 여부
    */
-  enableWidthFixed: false,
+  enabledWidthFixed: false,
 
   /**
    * 데이터 타입별 기본 포맷터 사용 여부
@@ -133,7 +133,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
   /**
    * 툴팁 사용 여부
    */
-  enableTooltip: false,
+  enabledTooltip: false,
 
   /**
    * 추가 시 유지할 최대 행 개수
@@ -243,17 +243,17 @@ export const DEFAULT_OPTIONS: GridOptions = {
     /**
      * 전체 컬럼 선택 기능 사용 여부
      */
-    enableAllColumnSelection: true,
+    enabledAllColumnSelection: true,
 
     /**
      * 마우스 휠로 가로 스크롤 이동 여부
      */
-    enableScroll: true,
+    enabledScroll: true,
 
     /**
      * 모든 라벨 표시 여부
      */
-    enableViewAllLabel: false,
+    enabledViewAllLabel: false,
 
     /**
      * 헤더 도움말 버튼 설정
@@ -523,7 +523,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
     /**
      * 그리드 내부에서만 휠 스크롤을 사용할지 여부
      */
-    enableWheelInContainer: false,
+    enabledWheelInContainer: false,
 
     /**
      * 세로 스크롤바 너비(px)
@@ -534,7 +534,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
      * 세로 스크롤 설정
      */
     vertical: {
-      enable: true,
+      enabled: true,
 
       /**
        * 스크롤 속도(행 단위)
@@ -549,14 +549,14 @@ export const DEFAULT_OPTIONS: GridOptions = {
       /**
        * 아이템 수 툴팁 표시 여부
        */
-      enableTooltip: false,
+      enabledTooltip: false,
     },
 
     /**
      * 가로 스크롤 설정
      */
     horizontal: {
-      enable: true,
+      enabled: true,
 
       /**
        * 스크롤 속도
@@ -566,7 +566,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
       /**
        * 마우스 휠로 가로 스크롤 이동 여부
        */
-      enableWheel: false,
+      enabledWheel: false,
 
       onUpdate: false,
     },
@@ -604,7 +604,7 @@ export const DEFAULT_OPTIONS: GridOptions = {
      */
     selection: {
       position: 'left',
-      format: 'Count : {{count}} {{if(enableSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
+      format: 'Count : {{count}} {{if(enabledSummary)}} Avg : {{avg}} Min : {{min}} Max : {{max}} Sum : {{sum}}{{/if}}',
     },
   },
 
@@ -709,5 +709,5 @@ export const DEFAULT_FIELD_INFO: FieldItem = {
   $panel: 'center',
   $uid: '',
   $colSeq: 0,
-  $enableHelp: false,
+  $enabledHelp: false,
 };

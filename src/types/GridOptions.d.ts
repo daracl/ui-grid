@@ -54,7 +54,7 @@ export interface GridOptions {
   /**
    * 넓이 고정 여부.
    */
-  enableWidthFixed: boolean;
+  enabledWidthFixed: boolean;
   /**
    * 기본 포멧터 사용여부
    */
@@ -76,7 +76,7 @@ export interface GridOptions {
   /**
    * 툴팁 활성화 여부
    */
-  enableTooltip: boolean;
+  enabledTooltip: boolean;
   /**
    * add시 item max로 유지할 카운트
    */
@@ -252,15 +252,15 @@ export interface HeaderOptions {
   /**
    * 전체 선택 활성화 여부
    */
-  enableAllColumnSelection: boolean;
+  enabledAllColumnSelection: boolean;
   /**
    * 마우스 휠로 가로 스크롤 이동할지 여부.
    */
-  enableScroll: boolean;
+  enabledScroll: boolean;
   /**
    * 모든 header label 활성화 할지 여부
    */
-  enableViewAllLabel: boolean;
+  enabledViewAllLabel: boolean;
 
   /**
    * help 버튼 옵션
@@ -374,7 +374,7 @@ export interface SearchOptions {
   /**
    * 고정 컬럼 활성여부
    */
-  enableColumnFix?: boolean;
+  enabledColumnFix?: boolean;
 
   /**
    * 직접 처리 할경우. function 으로 처리.
@@ -624,7 +624,7 @@ export interface ScrollOptions {
   /**
    * 이벤트 전파 여부.
    */
-  enableWheelInContainer?: boolean;
+  enabledWheelInContainer?: boolean;
   /**
    * size
    */
@@ -633,7 +633,7 @@ export interface ScrollOptions {
    * 세로 스크롤 옵션
    */
   vertical: {
-    enable: boolean;
+    enabled: boolean;
     /**
      * 스크롤 스피드 row 1
      */
@@ -645,13 +645,13 @@ export interface ScrollOptions {
     /**
      * item 카운트 tooltip
      */
-    enableTooltip: boolean;
+    enabledTooltip: boolean;
   };
   /**
    * 가로 스크롤 옵션
    */
   horizontal: {
-    enable: boolean;
+    enabled: boolean;
     /**
      * 스크롤 스피드
      */
@@ -659,7 +659,7 @@ export interface ScrollOptions {
     /**
      * 마우스 wheel 로 스크롤 이동 여부
      */
-    enableWheel: boolean;
+    enabledWheel: boolean;
     /**
      * 스크롤 이벤트 콜백
      */
@@ -711,6 +711,8 @@ export interface FooterOptions {
      */
     position?: HorizontalRegion;
     format: string | OptionCallback;
+
+    showSummary?: boolean;
   };
 }
 
@@ -764,7 +766,7 @@ export interface RowMoveOptions {
    */
   enabled: boolean;
 
-  enableDragHandle?: boolean;
+  enabledDragHandle?: boolean;
 
   /**
    * 드래그 핸들 컬럼 지정

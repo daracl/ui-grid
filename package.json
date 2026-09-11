@@ -1,6 +1,6 @@
 {
   "name": "@daracl/grid",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "sideEffects": false,
   "description": "Daracl Grid",
   "author": {

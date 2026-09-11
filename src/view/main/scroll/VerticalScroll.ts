@@ -61,7 +61,7 @@ export class VerticalScroll {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
-    if (!scroll.enableVertical) {
+    if (!scroll.enabledVertical) {
       this.setVerticalPosition(scroll, 0);
       return;
     }
@@ -73,7 +73,7 @@ export class VerticalScroll {
     const rowHeight = cfg.rowHeight;
     const totalRows = cfg.dataInfo.rowLength;
 
-    const verticalHeight = dimensions.mainHeight - (scroll.enableHorizontal ? cfg.scrollbarSize : 0);
+    const verticalHeight = dimensions.mainHeight - (scroll.enabledHorizontal ? cfg.scrollbarSize : 0);
 
     const vHeight = verticalHeight - 2;
     const vTrackHeight = vHeight - arrowButtonSize;
@@ -225,7 +225,7 @@ export class VerticalScroll {
     const scrollOpts = this.scrollOpts;
     const cfg = this.gridMain.config();
     /* 스크롤 바 button drag */
-    const tooltipFlag = scrollOpts.vertical.enableTooltip;
+    const tooltipFlag = scrollOpts.vertical.enabledTooltip;
     const tooltipEle = this.verticalElement.findDaraElement('.dg-vscroll-bar-tip');
     const verticalThumbElement = this.verticalThumbElement;
 
@@ -359,7 +359,7 @@ export class VerticalScroll {
     const cfg = this.gridMain.config();
     const scroll = cfg.scroll;
 
-    if (!scroll.enableVertical) {
+    if (!scroll.enabledVertical) {
       scroll.startIdx = 0;
       return;
     }

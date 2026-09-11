@@ -69,10 +69,10 @@ export class DimensionCalculator {
     this.fieldWidthCalculator.calculateHorizontalScroll(fieldTotalWidth);
 
     const nonMainAreaHeight =
-      dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enableHorizontal ? cfg.scrollbarSize : 0);
+      dimensions.mainHeaderHeight + dimensions.mainSummaryHeight + (scroll.enabledHorizontal ? cfg.scrollbarSize : 0);
 
     if (cfg.disableVerticalScroll) {
-      scroll.enableVertical = false;
+      scroll.enabledVertical = false;
       dimensions.mainHeight = rowHeight * dataInfo.rowLength + nonMainAreaHeight + 1;
       dimensions.mainBodyHeight = rowHeight * dataInfo.rowLength;
       dimensions.height = dimensions.mainHeight + dimensions.toolbarHeight + dimensions.footerHeight;
@@ -80,7 +80,7 @@ export class DimensionCalculator {
       const bodyMainHeight = changeHeight - (dimensions.toolbarHeight + dimensions.footerHeight);
       dimensions.mainHeight = bodyMainHeight;
       dimensions.mainBodyHeight = bodyMainHeight - nonMainAreaHeight - 1;
-      scroll.enableVertical = rowHeight * dataInfo.rowLength > dimensions.mainBodyHeight;
+      scroll.enabledVertical = rowHeight * dataInfo.rowLength > dimensions.mainBodyHeight;
     }
 
     // 세로 스크롤 상태가 확정된 후 가로 스크롤 재계산

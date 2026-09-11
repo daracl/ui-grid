@@ -109,7 +109,7 @@ export class Footer {
 
   public goPage(pageNum: number, drawFlag = true) {
     if (isUndefined(this.footerOpts.paging)) {
-      throw new Error('enablePaging not enabled');
+      throw new Error('Paging is not enabled');
     }
 
     const pagingInfo = this.cfg.paging;
@@ -152,14 +152,15 @@ export class Footer {
    * @param {string} info selection info
    */
   public setSelectionStatus(dataInfo?: any) {
-    if (this.isSelectionInfo && this.footerOpts.enabled) {
+    console.log(this.footerOpts.selection);
+    if (this.isSelectionInfo && this.footerOpts.enabled && this.footerOpts.selection) {
       const dataInfo = this.selectionInfo.selectionData('json', true);
 
       if (!isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
         const selectionFormat = this.footerOpts.selection?.format;
         let statusText = '';
         if (isString(selectionFormat)) {
-          dataInfo.summary.enableSummary = dataInfo.summary.numFieldCount > 0;
+          dataInfo.summary.enabledSummary = dataInfo.summary.numFieldCount > 0;
           statusText = replaceMesasgeFormat(selectionFormat, dataInfo.summary);
         } else if (isFunction(selectionFormat)) {
           statusText = selectionFormat(dataInfo);

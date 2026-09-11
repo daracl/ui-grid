@@ -116,7 +116,7 @@ export class ListDataManager extends DataManager {
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
     const sortData = multiSort(this.getViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
-    if (!this.cfg.searchEnable) {
+    if (!this.cfg.searchEnabled) {
       return sortData;
     }
 

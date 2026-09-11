@@ -20,7 +20,7 @@ export abstract class ToolBarRenderer {
 
   protected fieldElement: HTMLElement;
 
-  private enableView = true;
+  private enabledView = true;
 
   protected readonly rendererContainer: HTMLElement;
 
@@ -169,8 +169,8 @@ export abstract class ToolBarRenderer {
     return true;
   }
 
-  public isEnableView() {
-    return this.enableView;
+  public isEnabledView() {
+    return this.enabledView;
   }
 
   private getFieldElement() {
@@ -184,12 +184,12 @@ export abstract class ToolBarRenderer {
   }
 
   public show() {
-    this.enableView = true;
+    this.enabledView = true;
     this.getFieldElement().classList.remove('dg-hide');
   }
 
   public hide() {
-    this.enableView = false;
+    this.enabledView = false;
     this.getFieldElement().classList.add('dg-hide');
   }
 

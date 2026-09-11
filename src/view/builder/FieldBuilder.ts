@@ -11,7 +11,7 @@ import { defaultFieldGroupInfo } from '@/defaultGridConfig';
 
 export class FieldBuilder {
   private readonly cellMinWidth: number;
-  private readonly enableViewAllLabel: boolean;
+  private readonly enabledViewAllLabel: boolean;
 
   constructor(
     private readonly opts: GridOptions,
@@ -20,7 +20,7 @@ export class FieldBuilder {
   ) {
     const headerOpts = opts.header;
     this.cellMinWidth = headerOpts.resize.minWidth;
-    this.enableViewAllLabel = headerOpts.enableViewAllLabel === true;
+    this.enabledViewAllLabel = headerOpts.enabledViewAllLabel === true;
   }
 
   public buildFields() {
@@ -107,7 +107,7 @@ export class FieldBuilder {
     }
 
     // Row Drag Handle
-    if (opts.body.rowMove?.enabled === true && opts.body.rowMove?.enableDragHandle !== false) {
+    if (opts.body.rowMove?.enabled === true && opts.body.rowMove?.enabledDragHandle !== false) {
       asideItems.push({
         field: merge(
           {},
@@ -244,8 +244,8 @@ export class FieldBuilder {
     const cfg = this.gridMain.config();
     const enableHelp = !isUndefined(field.headerHelp);
 
-    if (!cfg.enableHeaderHelpButton && enableHelp) cfg.enableHeaderHelpButton = true;
-    if (!cfg.enableSortButton && field.sort) cfg.enableSortButton = true;
+    if (!cfg.enabledHeaderHelpButton && enableHelp) cfg.enabledHeaderHelpButton = true;
+    if (!cfg.enabledSortButton && field.sort) cfg.enabledSortButton = true;
 
     const children = field.children;
     const childrenLen = isArray(children) ? children.length : 0;
@@ -264,12 +264,12 @@ export class FieldBuilder {
     field.$rowspan = field.rowspan ?? 1;
     field.$depth = depth;
     field.$uid = `${this.gridMain.uid()}_${field.$depth}_${fieldIndex}`; //  템플릿 리터럴 적용
-    field.$enableHelp = enableHelp;
+    field.$enabledHelp = enableHelp;
 
     if (isLeaf) {
       let width = isNumber(field.width) ? field.width : this.cellMinWidth;
 
-      if (this.enableViewAllLabel) {
+      if (this.enabledViewAllLabel) {
         width = Math.max(width, getTextWidth(cfg, field.label, 20));
       }
       if (!field.$isAside) {
@@ -315,7 +315,7 @@ function cloneFieldMeta(field: any): FieldItem {
     '$panel',
     '$uid',
     '$colSeq',
-    '$enableHelp',
+    '$enabledHelp',
   ];
 
   for (const key of cloneKeys) {

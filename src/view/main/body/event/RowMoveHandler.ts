@@ -87,7 +87,7 @@ export class RowMoveHandler extends CellClickHandler {
     if (
       dragHandle !== 'ALL' &&
       dragHandle !== fieldName &&
-      !(rowMoveOptions?.enableDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)
+      !(rowMoveOptions?.enabledDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)
     ) {
       return false;
     }

@@ -88,12 +88,12 @@ export class CellClickHandler extends BasePointerHandler {
 
     this.cellClickFn = this.opts.body.cellClick;
 
-    const { rowHeight, enableCellEdit } = this.cfg;
+    const { rowHeight, enabledCellEdit } = this.cfg;
     this.rowHeight = rowHeight;
 
     this.cellDblClick = this.opts.body.cellDblClick;
 
-    this.isCellDbClickEvent = enableCellEdit || utils.isFunction(this.cellDblClick);
+    this.isCellDbClickEvent = enabledCellEdit || utils.isFunction(this.cellDblClick);
   }
 
   onPointerDown(session: PointerSession): void {

@@ -557,8 +557,8 @@ export class SelectionInfo {
       right: rightElements,
     } = this.gridMain.getBody().getBodyCellElements();
 
-    const enableLeftField = fixedLeftIndex > 0 && fixedLeftIndex > startCol;
-    const enableRightField = fixedRightIndex > 0 && fixedRightIndex <= endCol;
+    const enabledLeftField = fixedLeftIndex > 0 && fixedLeftIndex > startCol;
+    const enabledRightField = fixedRightIndex > 0 && fixedRightIndex <= endCol;
 
     const { startIdx: startCellIdx, startCol: startCellCol } = selection.startCell;
     const minFixedLeftCol = Math.min(fixedLeftIndex - 1, endCol);
@@ -572,7 +572,7 @@ export class SelectionInfo {
       const currRow = scrollStartIdx + i;
 
       // 왼쪽 고정 영역
-      if (enableLeftField) {
+      if (enabledLeftField) {
         for (let j = gridStartCol; j <= minFixedLeftCol; j++) {
           this.updateCellSelectionClass(leftElements[i][j], currRow, j, startCellIdx, startCellCol);
         }
@@ -584,7 +584,7 @@ export class SelectionInfo {
       }
 
       // 오른쪽 고정 영역
-      if (enableRightField) {
+      if (enabledRightField) {
         for (let j = fixedRightIndex; j <= endCol; j++) {
           this.updateCellSelectionClass(rightElements[i][j], currRow, j, startCellIdx, startCellCol);
         }

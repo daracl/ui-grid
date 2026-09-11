@@ -32,16 +32,18 @@ export class LinkRenderer extends ViewCellRenderer {
       this.initEvent(aElement);
     }
 
+    aElement.href = 'javascript:void(0);';
+
     if (refValue) {
-      aElement.href = this.isClick ? '#' : refValue.href;
       if (!this.isClick) {
+        aElement.href = refValue.href;
         aElement.target = refValue.target ?? '_blank';
       }
       aElement.textContent = refValue.label ?? value;
     } else {
-      aElement.href = this.isClick ? '#' : value;
       if (!this.isClick) {
         aElement.target = '_blank';
+        aElement.href = value;
       }
       aElement.textContent = value;
     }
