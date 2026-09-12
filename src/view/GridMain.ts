@@ -355,7 +355,7 @@ export class GridMain {
       this.setGridFocusIn(e);
     });
 
-    const dgLayersElement = this.layoutElement.findDaraElement('.dg-layers').getElement();
+    const dgLayersElement = rendererLayerElement;
 
     const layerSelector = `[${LAYER_ATTR_NAME}]`;
 
@@ -1128,10 +1128,10 @@ function getGridTemplate() {
 
   GRID_TEMPLATE.innerHTML = html`
     <div class="daracl-grid">
+      <div class="dg-layers"></div>
       <div class="dg-viewport">
         <input type="text" class="dg-text-editor" inputmode="none" />
         <div class="dg-layout" style="user-select:none;touch-action:manipulation;">
-          <div class="dg-layers"></div>
           <div class="dg-toolbar dg-select" role="presentation">
             <div class="dg-toolbar-scroll"></div>
             <div class="dg-toolbar-arrow dg-noselect">

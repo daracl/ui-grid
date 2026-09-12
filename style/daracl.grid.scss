@@ -97,12 +97,20 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
    ========================================================================== */
 
 .daracl-grid {
-  overflow: hidden;
   outline: none !important;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 
   &.dg-auto-height {
     overflow: visible;
     height: max-content;
+
+    > .dg-viewport {
+      overflow: visible;
+      overflow-x: clip;
+    }
   }
 
   .dg-text-editor {
@@ -123,7 +131,12 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
      ------------------------------------------------------------------------ */
   .dg-viewport {
     display: flex;
-    position: relative;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .dg-layout {

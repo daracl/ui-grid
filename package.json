@@ -1,6 +1,6 @@
 {
   "name": "@daracl/grid",
-  "version": "0.0.5",
+  "version": "0.0.8",
   "sideEffects": false,
   "description": "Daracl Grid",
   "author": {
@@ -89,6 +89,7 @@
     "style-loader": "^3.3.3",
     "terser": "^5.47.0",
     "ts-jest": "^29.4.6",
+    "tsc-alias": "^1.9.5",
     "typedoc": "^0.26.7",
     "typescript": "^5.1.6",
     "url-loader": "^4.1.1",
@@ -96,11 +97,11 @@
     "vite-plugin-banner": "^0.7.1"
   },
   "scripts": {
-    "build": "yarn build:escjs && yarn build:umd && yarn mergenclean",
+    "build": "npm run build:escjs && npm run build:umd && npm run mergenclean",
     "build:umd": "vite build --config vite.config.umd.js --mode production && vite build --config vite.config.umd.js --mode development",
     "build:escjs": "vite build --config vite.config.js --mode production && vite build --config vite.config.js --mode development",
-    "mergenclean": "yarn copy-dts && yarn build:tsc && yarn copy-unmin && yarn clean:unmin && yarn copy-html",
-    "build:tsc": "tsc --emitDeclarationOnly",
+    "mergenclean": "npm run copy-dts && npm run build:tsc && npm run copy-unmin && npm run clean:unmin && npm run copy-html",
+    "build:tsc": "tsc --emitDeclarationOnly && tsc-alias -p tsconfig.json",
     "dev": "vite",
     "preview": "vite preview",
     "docs:gen": "typedoc --tsconfig tsconfig.doc.json",
@@ -110,7 +111,8 @@
     "clean:unmin": "rimraf dist/unmin",
     "copy-html": "cpx \"public/index.html\" dist",
     "copy-unmin": "cpx \"dist/unmin/**.*\" dist",
-    "copy-dts": "cpx \"src/**/*.d.ts\" dist"
+    "copy-dts": "cpx \"src/**/*.d.ts\" dist",
+    "prepublishOnly": "npm run build"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

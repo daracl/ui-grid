@@ -228,7 +228,7 @@ export function defaultFieldGroupInfo(): FieldHeaderGroupInfo {
  */
 export function initEditInfo(): EditInfo {
   return {
-    enable: false,
+    enabled: false,
     cell: {
       r: -1,
       c: -1,

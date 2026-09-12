@@ -220,7 +220,7 @@ export interface CellInfo {
 }
 
 export interface EditInfo {
-  enable: boolean;
+  enabled: boolean;
   cell: CellInfo;
 }
 

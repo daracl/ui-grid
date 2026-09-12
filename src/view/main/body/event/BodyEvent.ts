@@ -320,7 +320,7 @@ export class BodyEvent {
 
         if (editable === true) {
           if (clickManager.getClickCount() == 0) {
-            cfg.edit.enable = false;
+            cfg.edit.enabled = false;
           }
         }
 
