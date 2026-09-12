@@ -6,7 +6,7 @@ import { eventPosition, stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { addClass, removeClass, resolveClassName } from '@/util/styleUtils';
-import { isFunction, isUndefined } from '@/util/utils';
+import { isFunction, isUndefined, replaceXss } from '@/util/utils';
 import { GridMain } from '../GridMain';
 
 const CONTEXT_MENU_ON = 'dg-on';
@@ -280,8 +280,8 @@ export class ContextMenu {
         htmlTemplate.push(html`<li class="dg-contextmenu-check ${classNames}">
           <a tabindex="-1">
             <label
-              ><input type="checkbox" data-item-key="${item.key}" />
-              <span>${item.label}</span>
+              ><input type="checkbox" data-item-key="${replaceXss(String(item.key ?? ''))}" />
+              <span>${replaceXss(String(item.label ?? ''))}</span>
             </label></a
           >
         </li>`);
@@ -291,9 +291,9 @@ export class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${classNames}" data-item-key="${itemKey}">
+        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
           <a tabindex="-1">
-            <span class="dg-contextmenu-label">${item.label}</span>
+            <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ''))}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>
           <ul class="dg-contextmenu dg-contextmenu-submenu">
@@ -301,9 +301,11 @@ export class ContextMenu {
           </ul>
         </li>`);
       } else {
-        const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${item.hotkey}</span>` : '';
-        htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${itemKey}">
-          <a tabindex="-1"> <span class="dg-contextmenu-label">${item.label}</span>${hotkeyHtm} </a>
+        const hotkeyHtm = !isUndefined(item.hotkey)
+          ? `<span class="dg-contextmenu-hotkey">${replaceXss(String(item.hotkey))}</span>`
+          : '';
+        htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
+          <a tabindex="-1"> <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ''))}</span>${hotkeyHtm} </a>
         </li>`);
       }
       htmlTemplate.push('</li>');

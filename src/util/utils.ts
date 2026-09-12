@@ -580,6 +580,8 @@ function cloneDeep(dst: any, src: any): any {
   return src;
 }
 
+const PROTO_POLLUTION_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /*eslint no-param-reassign: "error"*/
 function cloneObjectDeep(dst: any, src: any): object {
   if (isFunction(src)) {
@@ -587,6 +589,10 @@ function cloneObjectDeep(dst: any, src: any): object {
   }
 
   for (const key of Object.keys(src)) {
+    if (PROTO_POLLUTION_KEYS.has(key)) {
+      continue; // __proto__/constructor/prototype 오염 방지
+    }
+
     const val = (src as any)[key];
 
     if (isUndefined(val)) {

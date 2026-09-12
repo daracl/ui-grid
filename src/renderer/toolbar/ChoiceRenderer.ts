@@ -3,7 +3,7 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
-import { intValue, isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { intValue, isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 import { createHTMLElement } from '@/util/domUtils';
@@ -188,7 +188,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
 
       const checkTemplate = `<div class="dg-choice-item ${classes}" data-index="${itemIdx}">
         ${isLabelOnly ? '' : '<div class="dg-indicator"></div>'}
-        <span class="dg-label dg-ellipsis">${label}</span>
+        <span class="dg-label dg-ellipsis">${replaceXss(String(label))}</span>
       </div>`;
 
       templateParts.push(checkTemplate);

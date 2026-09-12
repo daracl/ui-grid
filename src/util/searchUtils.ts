@@ -3,6 +3,8 @@ import { DataManager } from '@/service/DataManager';
 import { MatchedField, SearchFields, SearchMode, SearchResult, ViewItem } from '@t/Common';
 import { arrayCopy, hasOwnProp } from './utils';
 
+const MAX_REGEX_PATTERN_LENGTH = 200;
+
 export function gridDataSearch(
   searchList: ViewItem[],
   dataManager: DataManager,
@@ -47,11 +49,17 @@ export function gridDataSearch(
   let wordBoundaryRegex: RegExp | null = null;
 
   if (useRegex) {
-    try {
-      const flags = matchCase ? '' : 'i'; // 'g' 플래그 제거 (첫 번째 매칭만 찾기)
-      compiledRegex = new RegExp(searchText, flags);
-    } catch (error) {
-      console.warn('Invalid regex, falling back to text search:', error);
+    if (searchText.length > MAX_REGEX_PATTERN_LENGTH) {
+      console.warn('Search pattern too long, falling back to text search.');
+    } else if (isPotentiallyCatastrophicRegex(searchText)) {
+      console.warn('Search pattern looks unsafe (possible catastrophic backtracking), falling back to text search.');
+    } else {
+      try {
+        const flags = matchCase ? '' : 'i'; // 'g' 플래그 제거 (첫 번째 매칭만 찾기)
+        compiledRegex = new RegExp(searchText, flags);
+      } catch (error) {
+        console.warn('Invalid regex, falling back to text search:', error);
+      }
     }
   } else if (matchWholeWord) {
     const flags = matchCase ? '' : 'i'; // 'g' 플래그 제거
@@ -211,6 +219,19 @@ export function highlightSingleMatch(
   const after = text.substring(match.end);
 
   return `${before}<${highlightTag}>${matchedText}</${highlightTag}>${after}`;
+}
+
+/**
+ * Best-effort heuristic to reject regex patterns shaped like classic catastrophic-backtracking
+ * cases, e.g. /(a+)+$/, /(a*)*$/, /(a|a)+$/. Not a full static analyzer — just a cheap guard
+ * against the most common dangerous shapes before ever running `new RegExp(...).exec(...)`
+ * on user-typed search text.
+ */
+function isPotentiallyCatastrophicRegex(pattern: string): boolean {
+  const nestedQuantifier = /\([^()]*[+*][^()]*\)[+*]/; // e.g. (a+)+ , (a*)*
+  const nestedAlternationQuantifier = /\([^()]*\|[^()]*\)[+*]/; // e.g. (a|a)+
+
+  return nestedQuantifier.test(pattern) || nestedAlternationQuantifier.test(pattern);
 }
 
 function escapeRegExp(string: string): string {

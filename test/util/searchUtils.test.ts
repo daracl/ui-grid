@@ -113,6 +113,37 @@ describe('gridDataSearch', () => {
     expect(result.length).toBe(0);
   });
 
+  it('useRegex: catastrophic-backtracking pattern falls back to text search', () => {
+    // (a+)+$ 형태는 nested quantifier로 ReDoS 위험 패턴 -> 정규식 컴파일을 건너뛰고 텍스트 검색으로 폴백
+    const result = searchExecute(employeeList, '(a+)+$', {
+      searchFields: 'desc',
+      useRegex: true,
+      hideNonMatched: true,
+    });
+    // 폴백된 텍스트 검색에서는 '(a+)+$' 라는 리터럴 문자열이 desc에 없으므로 매칭 없음
+    expect(result.length).toBe(0);
+  });
+
+  it('useRegex: pattern with overlapping alternation quantifier falls back to text search', () => {
+    // (a|a)+ 형태도 nested alternation quantifier로 위험 패턴 판정 대상
+    const result = searchExecute(employeeList, '(a|a)+', {
+      searchFields: 'desc',
+      useRegex: true,
+      hideNonMatched: true,
+    });
+    expect(result.length).toBe(0);
+  });
+
+  it('useRegex: overly long pattern falls back to text search', () => {
+    const longPattern = 'a'.repeat(201); // MAX_REGEX_PATTERN_LENGTH(200) 초과
+    const result = searchExecute(employeeList, longPattern, {
+      searchFields: 'desc',
+      useRegex: true,
+      hideNonMatched: true,
+    });
+    expect(result.length).toBe(0);
+  });
+
   it('searchFields: $all$ should search all fields', () => {
     const result = searchExecute(employeeList, 'PM', { hideNonMatched: true });
     // "PM"이 포함된 사람: "프로덕트 매니저"의 배수지

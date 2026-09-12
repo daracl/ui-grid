@@ -9,7 +9,7 @@ import {
   updateDropdownSelection,
   updateSelectValues,
 } from '@/util/rendererUtils';
-import { isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -225,7 +225,9 @@ export class DropdownEditRenderer extends EditCellRenderer {
         className += ' dg-all';
       }
 
-      html.push(`<div data-index="${i}" class="${className}">${item[labelKey] ?? ''}</div>`);
+      const labelValue = item[labelKey] ?? '';
+
+      html.push(`<div data-index="${i}" class="${className}">${replaceXss(String(labelValue))}</div>`);
     }
 
     return html.join('');

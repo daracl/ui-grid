@@ -11,7 +11,7 @@ import {
   updateDropdownSelection,
   updateSelectValues,
 } from '@/util/rendererUtils';
-import { arrayEquals, isArray, isFunction, isString, stringSplit } from '@/util/utils';
+import { arrayEquals, isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -241,7 +241,8 @@ export class DropdownRenderer extends ToolBarRenderer {
         className += ' dg-all';
       }
 
-      html.push(`<div data-index="${i}" class="${className}">${item[labelKey]}</div>`);
+      const labelValue = item[labelKey] ?? '';
+      html.push(`<div data-index="${i}" class="${className}">${replaceXss(String(labelValue))}</div>`);
     }
 
     return html.join('');
