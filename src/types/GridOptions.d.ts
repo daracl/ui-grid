@@ -169,14 +169,14 @@ export interface TreeOptions {
    * 예: 'id'
    * 모든 row는 반드시 unique 해야 함
    */
-  idField: string;
+  idField?: string;
 
   /**
    * 부모 row의 id를 참조하는 필드명
    * 예: 'parentId'
    * - 루트 노드는 null, undefined, '0' 등으로 처리 가능
    */
-  parentIdField: string;
+  parentIdField?: string;
 
   /**
    * 자식 노드 배열이 저장되는 필드명

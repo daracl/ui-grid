@@ -25,11 +25,6 @@ export interface RendererInfo {
    * Click callback
    */
   click?: OptionCallback;
-
-  /**
-   * Display condition
-   */
-  conditional?: ConditionInfo;
 }
 
 /**

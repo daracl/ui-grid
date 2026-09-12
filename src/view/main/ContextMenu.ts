@@ -95,12 +95,14 @@ export class ContextMenu {
 
       if (isDisableItemKeyFn) {
         const disableItem = contextOpts.disableItem(contextOpts.items);
-        const disableItemLen = disableItem.length;
-        let item;
-        if (disableItemLen > 0) {
-          for (let i = 0; i < disableItemLen; i++) {
-            item = disableItem[i];
-            addClass(this.contextElement.find('[context-key="' + item.depth + '_' + item.key + '"]'), 'disabled');
+        if (disableItem) {
+          const disableItemLen = disableItem.length;
+          let item;
+          if (disableItemLen > 0) {
+            for (let i = 0; i < disableItemLen; i++) {
+              item = disableItem[i];
+              addClass(this.contextElement.find('[context-key="' + item.depth + '_' + item.key + '"]'), 'disabled');
+            }
           }
         }
       }

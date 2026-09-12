@@ -152,8 +152,7 @@ export class Footer {
    * @param {string} info selection info
    */
   public setSelectionStatus(dataInfo?: any) {
-    console.log(this.footerOpts.selection);
-    if (this.isSelectionInfo && this.footerOpts.enabled && this.footerOpts.selection) {
+    if (this.isSelectionInfo && this.footerOpts.enabled && this.footerOpts.selection?.showSummary) {
       const dataInfo = this.selectionInfo.selectionData('json', true);
 
       if (!isUndefined(dataInfo) && dataInfo?.summary?.count > 1) {
