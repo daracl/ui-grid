@@ -2,7 +2,7 @@ import { ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { createHTMLElement, getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
-import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { getListItemValue, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import {
   bindHideOnBlur,
   getLabelsByValue,
@@ -195,7 +195,7 @@ export class DropdownRenderer extends ToolBarRenderer {
   }
 
   public setValue(value: string | string[]) {
-    const values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+    const values = getListItemValue(value, this.valueDelimiter);
 
     const listItems = this.listItems;
 

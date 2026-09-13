@@ -111,6 +111,8 @@ export class GridMain {
 
   private resizeObserver: ResizeObserver;
 
+  private windowResizeHandler?: () => void;
+
   private readonly structureBuilder: StructureBuilder;
 
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
@@ -535,12 +537,11 @@ export class GridMain {
       resizeObserver.observe(mainElement);
       this.resizeObserver = resizeObserver;
     } else {
-      window.addEventListener(
-        'resize',
-        debounce(() => {
-          this.resize(el);
-        }, threshold),
-      );
+      const handler = debounce(() => {
+        this.resize(el);
+      }, threshold);
+      this.windowResizeHandler = handler;
+      window.addEventListener('resize', handler);
     }
   }
 
@@ -1107,6 +1108,8 @@ export class GridMain {
     if (this.resizeObserver) {
       this.resizeObserver.unobserve(el);
       this.resizeObserver.disconnect();
+    } else if (this.windowResizeHandler) {
+      window.removeEventListener('resize', this.windowResizeHandler);
     }
 
     el.style.cssText = this.orginStyle;

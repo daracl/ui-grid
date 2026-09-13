@@ -1,7 +1,7 @@
 import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
-import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { getListItemValue, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
 import { intValue, isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -140,7 +140,7 @@ export class ChoiceRenderer extends ToolBarRenderer {
   }
 
   public setValue(value: string | string[]) {
-    let values = isString(value) ? (value ?? '').split(this.valueDelimiter) : value;
+    let values = getListItemValue(value, this.valueDelimiter);
 
     if (!this.isMultiple && values.length > 1) {
       values = values.slice(0, 1);

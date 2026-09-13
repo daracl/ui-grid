@@ -1,7 +1,7 @@
 import { ALL_SELECT_VALUE, FIELD_LAYER_CLASS } from '@/constants';
 import { ValidResult } from '@/types/ValidResult';
 import { getElementRect, getLayerElement, innerLayerPosition } from '@/util/domUtils';
-import { valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
+import { getListItemValue, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import {
   bindHideOnBlur,
   normalizeChoiceOptions,
@@ -9,7 +9,7 @@ import {
   updateDropdownSelection,
   updateSelectValues,
 } from '@/util/rendererUtils';
-import { isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
+import { isArray, isFunction, isNumber, isString, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -142,21 +142,13 @@ export class DropdownEditRenderer extends EditCellRenderer {
       });
 
       const itemValue = this.getValue(cellInfo.item, cellInfo.inputValue);
-      let currentValues: string[] = itemValue;
-
-      if (isString(itemValue)) {
-        if (itemValue) {
-          currentValues = stringSplit(itemValue, valueDelimiter);
-        } else {
-          currentValues = [];
-        }
-      }
+      const currentValues: string[] = getListItemValue(itemValue, valueDelimiter);
 
       const addItemValue = listItems[addItemIndex][valueKey];
 
       const selectValues = updateSelectValues(currentValues, addItemValue, isMultiple, enabledValues, required);
 
-      this.setValue(e, cellInfo.item, selectValues.join(this.valueDelimiter));
+      this.setValue(e, cellInfo.item, selectValues.join(valueDelimiter));
 
       this.setDropItemCheck(selectValues);
 
@@ -194,7 +186,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
   }
 
   public setDropItemCheck(value: string | string[] = '') {
-    const values = isString(value) ? stringSplit(value, this.valueDelimiter) : value;
+    const values = getListItemValue(value, this.valueDelimiter);
 
     let isAll = false;
     if (this.useIncludeAllOption) {

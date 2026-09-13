@@ -5,7 +5,7 @@ import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
 import { EditRendererInfo } from '@t/RendererInfo';
 import { ScrollDirectionYMap } from '../constants';
-import { intValue, isArray, isEmpty, isNumber } from './utils';
+import { intValue, isArray, isEmpty, isNumber, isString, stringSplit } from './utils';
 
 /**
  * 왼쪽 고정 컬럼 여부 체크.
@@ -697,4 +697,25 @@ export const getScrollDirectionCode = (cfg: Config, scrollInfo: ScrollInfo, move
   }
 
   return directionCode;
+};
+
+/**
+ * 입력된 값을 리스트 형태의 문자열 배열로 변환합니다.
+ *
+ * - 배열인 경우: 입력된 배열을 그대로 반환합니다.
+ * - 문자열인 경우: valueDelimiter를 기준으로 문자열을 분리하여 반환합니다.
+ * - 그 외의 경우: 입력된 값을 배열의 단일 요소로 감싸서 반환합니다.
+ *
+ * @param value 변환할 값 또는 값의 배열
+ * @param valueDelimiter 문자열을 분리할 때 사용할 구분자
+ * @returns 리스트 형태로 변환된 값
+ */
+export const getListItemValue = (value: any | any[], valueDelimiter: string): string[] => {
+  if (isArray(value)) {
+    return value;
+  } else if (isString(value)) {
+    return stringSplit(value, valueDelimiter);
+  } else {
+    return [String(value)];
+  }
 };
