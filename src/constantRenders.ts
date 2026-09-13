@@ -62,6 +62,7 @@ export const TOOLBAR_RENDERER: any = {
   link: ToolbarRenderer.LinkRenderer,
   search: ToolbarRenderer.SearchRenderer,
   hidden: ToolbarRenderer.HiddenRenderer,
+  label: ToolbarRenderer.LabelRenderer,
 };
 
 export type TOOLBAR_RENDERER_TYPE = keyof typeof TOOLBAR_RENDERER;

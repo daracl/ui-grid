@@ -385,7 +385,7 @@ export class ToolbarRenderer {
 
     const { type: rendererType, required: isRequired } = field.renderer;
 
-    const hasLabel = isRequired === true || (rendererType !== 'button' && !!field.label);
+    const hasLabel = isRequired === true || (rendererType !== 'label' && rendererType !== 'button' && !!field.label);
 
     element.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
 

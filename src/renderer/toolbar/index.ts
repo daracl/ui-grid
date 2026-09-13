@@ -12,3 +12,4 @@ export { DateRenderer } from './DateRenderer';
 export { HiddenRenderer } from './HiddenRenderer';
 export { SearchRenderer } from './SearchRenderer';
 export { SwitchRenderer } from './SwitchRenderer';
+export { LabelRenderer } from './LabelRenderer';
