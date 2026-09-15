@@ -12,6 +12,7 @@ import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
+import { setDefaultOptions } from './defaultGridOption';
 
 declare const APP_VERSION: string;
 
@@ -50,6 +51,10 @@ export class DaraGrid {
 
   public static message(message: Message): void {
     Language.setGlobalMessage(message);
+  }
+
+  public static setDefaultOptions(options: GridOptions): void {
+    setDefaultOptions(options);
   }
 
   private createGrid(gridElement: HTMLElement, opts: GridOptions, message?: Message) {

@@ -31,12 +31,21 @@ export function initGridOptions(options: GridOptions): GridOptions {
 }
 
 /**
+ * 전역으로 옵션 설정.
+ *
+ * @param options 옵션
+ */
+export function setDefaultOptions(options: Partial<GridOptions>): void {
+  DEFAULT_OPTIONS = merge({}, DEFAULT_OPTIONS, options);
+}
+
+/**
  * Grid 생성 시 사용되는 기본 옵션 객체
  * 사용자가 전달한 옵션은 이 객체와 병합
  *
  * @type {GridOptions}
  */
-export const DEFAULT_OPTIONS: GridOptions = {
+let DEFAULT_OPTIONS: GridOptions = {
   /**
    * 행을 구분하기 위한 고유 ID 필드명
    */
