@@ -8,6 +8,14 @@
 [![npm version](https://badge.fury.io/js/@daracl%2Fgrid.svg)](https://badge.fury.io/js/@daracl%2Fgrid)
 [![npm](https://img.shields.io/npm/d18m/%40daracl%2Fgrid)](https://github.com/daracl/ui-grid/releases)
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/@daracl%2Fgrid)](https://bundlephobia.com/package/@daracl%2Fgrid)
+[![Documentation](https://img.shields.io/badge/docs-daracl.github.io-4c9aff)](https://daracl.github.io/ui-grid/)
+
+## 문서
+
+📖 **<https://daracl.github.io/ui-grid/>**
+
+옵션, 렌더러, API 설명과 동작하는 예제를 문서 사이트에서 확인할 수 있습니다.
+위 주소는 항상 최신 버전 문서로 연결되며, 특정 버전이 필요하면 `https://daracl.github.io/ui-grid/<version>/` 형식으로 접근할 수 있습니다(예: [0.0.12](https://daracl.github.io/ui-grid/0.0.12/)).
 
 ## Browser Support
 

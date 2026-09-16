@@ -8,6 +8,14 @@ A framework-agnostic data grid library written in pure TypeScript.
 [![npm version](https://badge.fury.io/js/@daracl%2Fgrid.svg)](https://badge.fury.io/js/@daracl%2Fgrid)
 [![npm](https://img.shields.io/npm/d18m/%40daracl%2Fgrid)](https://github.com/daracl/ui-grid/releases)
 [![minzipped size](https://img.shields.io/bundlephobia/minzip/@daracl%2Fgrid)](https://bundlephobia.com/package/@daracl%2Fgrid)
+[![Documentation](https://img.shields.io/badge/docs-daracl.github.io-4c9aff)](https://daracl.github.io/ui-grid/)
+
+## Documentation
+
+📖 **<https://daracl.github.io/ui-grid/>**
+
+The documentation site covers every option, renderer, and API method, along with live examples.
+That URL always points to the newest release; to open a specific version, use `https://daracl.github.io/ui-grid/<version>/` (for example, [0.0.12](https://daracl.github.io/ui-grid/0.0.12/)).
 
 ## Browser Support
 
