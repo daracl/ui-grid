@@ -147,7 +147,9 @@ export interface Config {
     searchCheckItem: boolean; // 검색 정규식
     filterCheckItem: boolean; // filter info {checkFn; check condition}
   };
+  // 왼쪽 고정영역
   fixedLeftIndex: number;
+  // 오른쪽 고정영역
   fixedRightIndex: number;
   scroll: ScrollInfo;
   // 스크롤bar 사이즈
