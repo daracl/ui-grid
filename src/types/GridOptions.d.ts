@@ -1,5 +1,5 @@
-import { HorizontalRegion, HoverMode, HorizontalRegion, SelectionMode, THEME_TYPE, DeleteMode } from '@/constants';
-import { BodyStyle } from '@/constantStyles';
+import { DeleteMode, HorizontalRegion, HoverMode, SelectionMode } from '@/constants';
+import { BodyStyle, ThemeType } from '@/constantStyles';
 import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
@@ -20,8 +20,11 @@ export interface GridOptions {
   rowIdField?: string;
   /**
    *  테마 값
+   *
+   *  지정하지 않으면 상위 요소의 `data-daracl-theme` 속성(light | dark)을 따르고,
+   *  속성도 없으면 기본 테마(light)로 표시한다. 지정하면 해당 그리드만 그 테마로 고정된다.
    */
-  theme: THEME_TYPE;
+  theme?: ThemeType;
   /**
    * 높이 O
    */

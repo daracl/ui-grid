@@ -379,9 +379,10 @@ export class DaraGrid {
   /**
    * 그리드 테마를 변경합니다.
    *
-   * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
+   * @param themeName - 변경할 테마 이름 (예: 'light', 'dark').
+   *                    생략하거나 빈 값이면 그리드별 테마 지정을 해제하고 상위 요소의 data-daracl-theme 를 따른다.
    */
-  public setTheme(themeName: ThemeType) {
+  public setTheme(themeName?: ThemeType | '') {
     this.gridMain.setTheme(themeName);
   }
 

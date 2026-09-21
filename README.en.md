@@ -116,7 +116,7 @@ You can also use it directly via a `<script>` tag with the UMD build.
 | key | Description | Default |
 |-----|------|-----|
 | rowIdField | Field name used as the unique row identifier | `''` |
-| theme | Grid theme (`light`, `dark`) | `light` |
+| theme | Grid theme (`light`, `dark`). When omitted the grid follows the closest ancestor's `data-daracl-theme` attribute, and falls back to `light` without one | not set |
 | height, width | Grid height/width (`auto` or a pixel number) | `auto` |
 | style | Body style preset (`default`, `striped`, `borderless`, `list`) | `default` |
 | selectionMode | Selection mode (`row`, `cell`, `multiRow`, `multiCell`, `none`) | `row` |

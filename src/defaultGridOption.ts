@@ -54,9 +54,13 @@ let DEFAULT_OPTIONS: GridOptions = {
   /**
    * 그리드 테마
    *
-   * @default 'light'
+   * 기본값은 "지정 안 함"이다. 지정하지 않으면 그리드는 상위 요소의 `data-daracl-theme` 속성
+   * (예: <html data-daracl-theme="dark">)을 따르고, 속성도 없으면 기본 테마(light)로 표시된다.
+   * 값을 지정하면 그 그리드만 해당 테마로 고정된다.
+   *
+   * @default undefined
    */
-  theme: 'light',
+  theme: undefined,
 
   /**
    * 그리드 높이

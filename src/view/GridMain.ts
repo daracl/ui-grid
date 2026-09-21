@@ -994,28 +994,29 @@ export class GridMain {
   /**
    * 그리드 테마를 변경합니다.
    *
-   * @param themeName - 변경할 테마 이름 (THEME_TYPE enum 값: 예: 'light', 'dark' 등)
+   * @param themeName - 변경할 테마 이름 (예: 'light', 'dark').
+   *                    생략하거나 빈 값이면 그리드별 테마 지정을 해제한다.
+   *                    (해제되면 상위 요소의 data-daracl-theme 속성, 없으면 기본 테마를 따른다.)
    */
-  public setTheme(themeName: ThemeType) {
-    const dgElement = this.layoutElement.getElement();
+  public setTheme(themeName?: ThemeType | '') {
+    // 지정하지 않은 상태 = 테마 클래스(dg-light/dg-dark)를 붙이지 않는다.
+    // 클래스가 붙으면 그 스타일이 전역 [data-daracl-theme] 보다 우선하므로 페이지 테마를 따라갈 수 없다.
+    const theme: string = themeName ? GRID_THEME[themeName] : '';
 
-    const theme = GRID_THEME[themeName];
+    // 알 수 없는 테마 이름은 무시한다.
+    if (themeName && !theme) return;
 
     const cfg = this.cfg;
 
-    if (!theme && !cfg.theme) {
-      return;
-    }
+    if (cfg.theme === theme) return;
 
-    if ((cfg.theme && !theme) || cfg.theme === theme) return;
+    const classList = this.layoutElement.getElement().classList;
 
-    const classList = dgElement.classList;
-
-    if (classList.contains(cfg.theme)) classList.remove(cfg.theme);
+    if (cfg.theme && classList.contains(cfg.theme)) classList.remove(cfg.theme);
 
     cfg.theme = theme;
 
-    if (!classList.contains(theme)) classList.add(theme);
+    if (theme && !classList.contains(theme)) classList.add(theme);
   }
 
   /**

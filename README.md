@@ -116,7 +116,7 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | key | 설명 | 기본값 |
 |-----|------|-----|
 | rowIdField | row 고유 식별 필드명 | `''` |
-| theme | 그리드 테마 (`light`, `dark`) | `light` |
+| theme | 그리드 테마 (`light`, `dark`). 지정하지 않으면 상위 요소의 `data-daracl-theme` 속성을 따르고, 속성이 없으면 `light` | 미지정 |
 | height, width | 그리드 높이/너비 (`auto` 또는 px 숫자) | `auto` |
 | style | 바디 스타일 프리셋 (`default`, `striped`, `borderless`, `list`) | `default` |
 | selectionMode | 선택 모드 (`row`, `cell`, `multiRow`, `multiCell`, `none`) | `row` |
