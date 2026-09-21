@@ -25,12 +25,38 @@
     > .dg-cell-content {
       text-decoration: underline;
       cursor: pointer;
+      display: inline-flex;
     }
   }
 
   /* button */
   .dg-button {
     display: flex;
+
+    &.dg-primary > .dg-cell-content {
+      background-color: #0d6efd;
+    }
+
+    &.dg-secondary > .dg-cell-content {
+      background-color: #6c757d;
+    }
+
+    &.dg-info > .dg-cell-content {
+      background-color: #0dcaf0;
+    }
+
+    &.dg-success > .dg-cell-content {
+      background-color: #198754;
+    }
+
+    &.dg-warning > .dg-cell-content {
+      background-color: #ffc107;
+    }
+
+    &.dg-danger > .dg-cell-content {
+      background-color: #dc3545;
+    }
+
     > .dg-cell-content {
       padding: 1px 10px;
       border: 1px solid var(--border-color);

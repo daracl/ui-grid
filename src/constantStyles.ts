@@ -61,7 +61,14 @@ export const RENDERER_VARIANTS: Record<string, Record<string, string>> = {
   bar: {},
 
   /** Button Renderer */
-  button: {},
+  button: {
+    primary: 'dg-primary',
+    secondary: 'dg-secondary',
+    info: 'dg-info',
+    success: 'dg-success',
+    warning: 'dg-warning',
+    danger: 'dg-danger',
+  },
 
   /** Checkbox Renderer */
   checkbox: {},

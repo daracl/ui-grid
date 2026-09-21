@@ -131,7 +131,7 @@
           &.dg-required::after {
             content: '*';
             margin-left: 2px;
-            color: #e53935;
+            color: var(--required-color);
             font-size: 1.2em;
             font-weight: bold;
           }
