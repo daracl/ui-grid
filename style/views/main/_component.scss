@@ -26,6 +26,10 @@
       text-decoration: underline;
       cursor: pointer;
       display: inline-flex;
+
+      &.dg-disabled {
+        text-decoration: none;
+      }
     }
   }
 

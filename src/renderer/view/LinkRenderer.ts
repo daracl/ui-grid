@@ -34,19 +34,22 @@ export class LinkRenderer extends ViewCellRenderer {
 
     aElement.href = 'javascript:void(0);';
 
-    if (refValue) {
-      if (!this.isClick) {
-        aElement.href = refValue.href;
-        aElement.target = refValue.target ?? '_blank';
-      }
-      aElement.textContent = refValue.label ?? value;
-    } else {
-      if (!this.isClick) {
-        aElement.target = '_blank';
-        aElement.href = value;
-      }
-      aElement.textContent = value;
+    const href = refValue?.href ?? value;
+    const target = refValue?.target ?? '_blank';
+    const label = refValue?.label ?? value;
+    const isDisabled = refValue?.disabled ?? false;
+    const classList = aElement.classList;
+
+    if (classList.contains('dg-disabled') !== isDisabled) {
+      classList.toggle('dg-disabled', isDisabled);
     }
+
+    if (!this.isClick) {
+      aElement.href = href;
+      aElement.target = target;
+    }
+
+    aElement.textContent = label;
   }
 
   initEvent(contentElement: HTMLElement) {

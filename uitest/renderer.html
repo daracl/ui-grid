@@ -218,7 +218,7 @@
 
             refValue: (field, value, rowItem) => {
               //console.log(field, value, rowItem);
-              return { label: value };
+              return { label: value, disabled: true };
             },
             click: function (item) {
               console.log('link ', item);
