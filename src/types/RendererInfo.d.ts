@@ -98,8 +98,8 @@ export interface EditRendererInfo extends RendererInfo {
   showLabel?: boolean;
 
   // icon style class
-  iconStyle?: 'string';
+  iconStyle?: string;
 
   // icon type
-  icon?: 'string';
+  icon?: string;
 }
