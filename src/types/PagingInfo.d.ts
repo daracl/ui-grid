@@ -5,7 +5,7 @@ export interface PagingInfo {
   /**
    * 현재 페이지
    */
-  currPage: number;
+  page: number;
   /**
    * 페이지 row
    */
@@ -37,7 +37,7 @@ export interface PagingInfo {
   /**
    * 한페이지에 보여지는 row 수
    */
-  countPerPage: number;
+  pageSize: number;
   /**
    * 전체 row 수
    */
@@ -45,5 +45,5 @@ export interface PagingInfo {
   /**
    * 전체 페이지 수
    */
-  totalPage: number;
+  totalPages: number;
 }

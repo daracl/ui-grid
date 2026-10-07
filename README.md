@@ -136,7 +136,7 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | toolbar | 툴바 옵션 (`enabled`, `items`) | 비활성 |
 | summary | 요약 행 옵션 (`position`, `items`) | - |
 | footer | 하단 페이징/선택정보 표시 옵션 | 비활성 |
-| paging | 페이징 정보 (`totalCount`, `currPage`, `countPerPage`, `unitPage`) | - |
+| paging | 페이징 정보 (`totalCount`, `page`, `pageSize`, `unitPage`) | - |
 | contextMenu | 우클릭 컨텍스트 메뉴 옵션 | - |
 | tree | 트리 모드 옵션 (`idField`, `parentIdField`, `childrenField`, `isFlatData` 등). 설정하지 않으면 목록형으로 동작 | `undefined` |
 | dataTypeFormatter | `money`, `number` 타입 기본 포맷(prefix/suffix/fixed) | - |

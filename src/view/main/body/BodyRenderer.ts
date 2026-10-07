@@ -99,7 +99,7 @@ export class BodyRenderer {
 
     this.context.selectionInfo.removeStartAnchorCell();
 
-    const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.currPage - 1) * cfg.paging.countPerPage : 0;
+    const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0;
 
     const leafAllFields = cfg.currentFields;
 

@@ -154,7 +154,7 @@ export class BodySelection {
     const currentViewRow = scroll.viewRow;
     const startIdx = scroll.startIdx;
 
-    const pagingStartIdx = opts.footer.paging?.enabled ? (paging.currPage - 1) * paging.countPerPage : 0;
+    const pagingStartIdx = opts.footer.paging?.enabled ? (paging.page - 1) * paging.pageSize : 0;
 
     const colSeq = refreshField.$colSeq;
 

@@ -733,11 +733,11 @@ export interface PagingParam {
   /**
    * 현재 페이지 정보
    */
-  currPage: number;
+  page: number;
   /**
    * 페이지 row 카운트
    */
-  countPerPage: number;
+  pageSize: number;
   /**
    * 페이지 카운트
    */

@@ -113,7 +113,7 @@ export class Footer {
     }
 
     const pagingInfo = this.cfg.paging;
-    pagingInfo.currPage = pageNum;
+    pagingInfo.page = pageNum;
     pagingInfo.totalCount = pagingInfo.totalCount > 0 ? pagingInfo.totalCount : this.cfg.dataInfo.rowLength;
 
     if (pagingInfo.totalCount < 1) {
@@ -124,17 +124,17 @@ export class Footer {
 
     const pagingViewInfo = getPagingInfo(
       pagingInfo.totalCount,
-      pagingInfo.currPage,
-      pagingInfo.countPerPage,
+      pagingInfo.page,
+      pagingInfo.pageSize,
       pagingInfo.unitPage,
     );
 
     this.setPagingTemplate(pagingViewInfo);
 
-    const countPerPage = pagingViewInfo?.countPerPage;
-    const startIdx = (pagingViewInfo?.currPage - 1) * countPerPage;
+    const pageSize = pagingViewInfo?.pageSize;
+    const startIdx = (pagingViewInfo?.page - 1) * pageSize;
 
-    const viewItems = arrayCopy(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + countPerPage);
+    const viewItems = arrayCopy(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + pageSize);
 
     this.cfg.dataManager.setViewItems(viewItems);
 
@@ -179,13 +179,13 @@ export class Footer {
    */
   private setPagingInfo(pagingInfo: PagingInfo) {
     if (this.footerOpts.paging?.enabled) {
-      const countPerPage = pagingInfo.countPerPage;
+      const pageSize = pagingInfo.pageSize;
 
-      const start = (pagingInfo.currPage - 1) * countPerPage;
+      const start = (pagingInfo.page - 1) * pageSize;
 
       const statusInfo: any = {
         start: start + 1,
-        end: start + countPerPage,
+        end: start + pageSize,
         total: pagingInfo.totalCount,
       };
 
@@ -219,19 +219,19 @@ export class Footer {
 
     this.setPagingInfo(pagingInfo);
 
-    let currP = pagingInfo.currPage;
-    if (currP == 0) currP = 1;
+    let currentPage = pagingInfo.page;
+    if (currentPage == 0) currentPage = 1;
     const preP_is = pagingInfo.prePage_is;
     const currS = pagingInfo.currStartPage;
     let currE = pagingInfo.currEndPage;
     if (currE == 0) currE = 1;
-    const nextO = 1 * currP + 1;
-    const preO = currP - 1;
+    const nextO = 1 * currentPage + 1;
+    const preO = currentPage - 1;
     const strHTML = [];
 
     strHTML.push('<ul >');
 
-    if (currP <= 1) {
+    if (currentPage <= 1) {
       strHTML.push(' <li class="disabled page-icon"><a href="javascript:">&laquo;</a></li>');
     } else {
       strHTML.push(
@@ -245,22 +245,22 @@ export class Footer {
 
     let no = 0;
     for (no = currS * 1; no <= currE * 1; no++) {
-      if (no == currP) {
+      if (no == currentPage) {
         strHTML.push(' <li class="active"><a href="javascript:">' + no + '</a></li>');
       } else {
         strHTML.push(' <li class="dg-page-num" data-page-no="' + no + '"><a href="javascript:" >' + no + '</a></li>');
       }
     }
 
-    if (currS + pagingInfo.unitPage < pagingInfo.totalPage) {
+    if (currS + pagingInfo.unitPage < pagingInfo.totalPages) {
       strHTML.push(
-        html`<li class="dg-page-num" data-page-no="${pagingInfo.totalPage}">
-          ...<a href="javascript:">${pagingInfo.totalPage}</a>
+        html`<li class="dg-page-num" data-page-no="${pagingInfo.totalPages}">
+          ...<a href="javascript:">${pagingInfo.totalPages}</a>
         </li>`,
       );
     }
 
-    if (currP == currE) {
+    if (currentPage == currE) {
       strHTML.push(' <li class="disabled"><a href="javascript:">&raquo;</a></li>');
     } else {
       strHTML.push(` <li><a href="javascript:" class="dg-page-num page-icon" data-page-no="${nextO}">&raquo;</a></li>`);

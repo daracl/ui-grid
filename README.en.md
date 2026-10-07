@@ -136,7 +136,7 @@ You can also use it directly via a `<script>` tag with the UMD build.
 | toolbar | Toolbar options (`enabled`, `items`) | disabled |
 | summary | Summary row options (`position`, `items`) | - |
 | footer | Footer paging/selection-info display options | disabled |
-| paging | Paging info (`totalCount`, `currPage`, `countPerPage`, `unitPage`) | - |
+| paging | Paging info (`totalCount`, `page`, `pageSize`, `unitPage`) | - |
 | contextMenu | Right-click context menu options | - |
 | tree | Tree mode options (`idField`, `parentIdField`, `childrenField`, `isFlatData`, etc.). Omit it to use list mode | `undefined` |
 | dataTypeFormatter | Default formatting (prefix/suffix/fixed) for `money` and `number` types | - |

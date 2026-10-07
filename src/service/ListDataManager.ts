@@ -69,13 +69,13 @@ export class ListDataManager extends DataManager {
       const pagingInfo = getPagingParamToPagingInfo(pagingParam ?? ({} as PagingParam), itemLength);
 
       this.gridMain.setPaging(pagingInfo);
-      if (itemLength < pagingInfo.countPerPage) {
+      if (itemLength < pagingInfo.pageSize) {
         this.setViewItems(viewItemIds);
       } else {
-        const countPerPage = pagingInfo.countPerPage;
-        const startIdx = (pagingInfo.currPage - 1) * countPerPage;
+        const pageSize = pagingInfo.pageSize;
+        const startIdx = (pagingInfo.page - 1) * pageSize;
 
-        const viewItems = arrayCopy(viewItemIds, startIdx, startIdx + countPerPage);
+        const viewItems = arrayCopy(viewItemIds, startIdx, startIdx + pageSize);
 
         this.setViewItems(viewItems);
       }

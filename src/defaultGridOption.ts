@@ -626,8 +626,8 @@ let DEFAULT_OPTIONS: GridOptions = {
    */
   paging: {
     totalCount: 0,
-    currPage: 1,
-    countPerPage: 10,
+    page: 1,
+    pageSize: 10,
     unitPage: 5,
   },
 
