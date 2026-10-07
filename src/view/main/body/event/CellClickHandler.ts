@@ -309,7 +309,9 @@ export class CellClickHandler extends BasePointerHandler {
     const cellInfo = session.cellInfo as CellInfo;
     const field = cellInfo.field;
 
-    this.cellDblClick?.(this.startCellInfo);
+    if (this.cellDblClick) {
+      this.cellDblClick(this.startCellInfo);
+    }
 
     if (!field.$isAside && isFieldEditable(this.cfg, field)) {
       setTimeout(() => {
