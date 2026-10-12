@@ -32,6 +32,13 @@ export class ButtonRenderer extends ViewCellRenderer {
     const value = this.getValue(item);
     const refValue = this.getRefValue(value, item);
 
+    const isDisabled = refValue?.disabled ?? false;
+    const classList = btnElement.classList;
+
+    if (classList.contains('dg-disabled') !== isDisabled) {
+      classList.toggle('dg-disabled', isDisabled);
+    }
+
     let buttonLabel;
     if (refValue) {
       buttonLabel = refValue?.label ?? refValue;

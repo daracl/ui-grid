@@ -19,13 +19,13 @@ export class SparklineRendererBar extends ViewCellRenderer {
   /**
    * Renderer 하나당 tooltip 하나만 생성하여 재사용한다.
    */
-  private tooltip: HTMLDivElement | null = null;
+  private rendererTooltip: HTMLDivElement | null = null;
 
   /**
    * Grid에서 canvas가 다른 row에 재사용될 수 있으므로
    * canvas별 최신 tooltip 상태를 관리한다.
    */
-  private readonly tooltipStates = new WeakMap<HTMLCanvasElement, TooltipState>();
+  private readonly rendererTooltipStates = new WeakMap<HTMLCanvasElement, TooltipState>();
 
   /**
    * Array reference 기반 render cache
@@ -202,7 +202,7 @@ export class SparklineRendererBar extends ViewCellRenderer {
    * Canvas가 재사용되어도 이벤트를 중복 등록하지 않는다.
    */
   private bindTooltip(canvas: HTMLCanvasElement, data: number[], width: number, barWidth: number): void {
-    let state = this.tooltipStates.get(canvas);
+    let state = this.rendererTooltipStates.get(canvas);
 
     // 최초 등록
     if (!state) {
@@ -212,7 +212,7 @@ export class SparklineRendererBar extends ViewCellRenderer {
         barWidth,
       };
 
-      this.tooltipStates.set(canvas, state);
+      this.rendererTooltipStates.set(canvas, state);
 
       canvas.addEventListener('mousemove', (event: MouseEvent) => {
         this.handleTooltipMouseMove(canvas, event);
@@ -235,7 +235,7 @@ export class SparklineRendererBar extends ViewCellRenderer {
    * Bar tooltip 처리
    */
   private handleTooltipMouseMove(canvas: HTMLCanvasElement, event: MouseEvent): void {
-    const state = this.tooltipStates.get(canvas);
+    const state = this.rendererTooltipStates.get(canvas);
 
     if (!state || state.data.length === 0) {
       this.hideTooltip();
@@ -279,10 +279,10 @@ export class SparklineRendererBar extends ViewCellRenderer {
    * Tooltip 표시
    */
   private showTooltip(x: number, y: number, value: string): void {
-    if (!this.tooltip) {
-      this.tooltip = document.createElement('div');
+    if (!this.rendererTooltip) {
+      this.rendererTooltip = document.createElement('div');
 
-      this.tooltip.style.cssText = `
+      this.rendererTooltip.style.cssText = `
         position: fixed;
         z-index: 99999;
         padding: 4px 7px;
@@ -296,24 +296,24 @@ export class SparklineRendererBar extends ViewCellRenderer {
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
       `;
 
-      document.body.appendChild(this.tooltip);
+      document.body.appendChild(this.rendererTooltip);
     }
 
-    this.tooltip.textContent = value;
+    this.rendererTooltip.textContent = value;
 
-    this.tooltip.style.left = `${x + 10}px`;
+    this.rendererTooltip.style.left = `${x + 10}px`;
 
-    this.tooltip.style.top = `${y + 10}px`;
+    this.rendererTooltip.style.top = `${y + 10}px`;
 
-    this.tooltip.style.display = 'block';
+    this.rendererTooltip.style.display = 'block';
   }
 
   /**
    * Tooltip 숨김
    */
   private hideTooltip(): void {
-    if (this.tooltip) {
-      this.tooltip.style.display = 'none';
+    if (this.rendererTooltip) {
+      this.rendererTooltip.style.display = 'none';
     }
   }
 
