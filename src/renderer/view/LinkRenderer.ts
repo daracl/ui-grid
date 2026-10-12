@@ -50,6 +50,7 @@ export class LinkRenderer extends ViewCellRenderer {
     }
 
     aElement.textContent = label;
+    this.tooltip(aElement, label);
   }
 
   initEvent(contentElement: HTMLElement) {

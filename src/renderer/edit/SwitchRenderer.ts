@@ -52,6 +52,7 @@ export class SwitchRenderer extends EditCellRenderer {
       }
     }
 
+    this.tooltip(slider, val);
     this.toggle(slider, val);
   }
 

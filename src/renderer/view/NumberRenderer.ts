@@ -22,6 +22,7 @@ export class NumberRenderer extends ViewCellRenderer {
 
     if (element.textContent !== renderValue) {
       element.textContent = renderValue;
+      this.tooltip(element, renderValue);
     }
   }
 

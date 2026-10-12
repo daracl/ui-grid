@@ -64,6 +64,8 @@ export class CheckboxRenderer extends EditCellRenderer {
       choiceElement.firstElementChild?.classList.remove(SELECTED_STYLE_CLASS);
     }
 
+    this.tooltip(choiceElement, val);
+
     if (this.showLabel) {
       const labelElement = element.querySelector('.dg-cell-content-label');
       if (labelElement) labelElement.textContent = val;

@@ -10,12 +10,14 @@ export abstract class CellRenderer {
   protected fieldName;
   protected gridMain;
   protected language;
+  protected readonly enabledTooltip: boolean;
 
   constructor(field: FieldItem, gridMain: GridMain) {
     this.field = field;
     this.fieldName = field.name;
     this.gridMain = gridMain;
     this.language = this.gridMain.i18n();
+    this.enabledTooltip = gridMain.options().enabledTooltip;
   }
 
   /**
@@ -32,6 +34,8 @@ export abstract class CellRenderer {
    * @param {*} value value row item
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
+
+  public abstract tooltip(element: HTMLElement, value: any): void;
 
   public abstract getValue(rowItem: any, initValue?: any): any;
 

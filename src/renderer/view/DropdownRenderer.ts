@@ -79,8 +79,9 @@ export class DropdownRenderer extends ViewCellRenderer {
 
     const textElement = contentElement.querySelector('.dg-cell-content-label') as HTMLElement;
 
+    let textContent = '';
     if (refValue) {
-      textElement.textContent = refValue.label ?? refValue;
+      textContent = refValue.label ?? refValue;
     } else {
       let viewLabel = value;
       if (this.valueLabelMap.size > 0) {
@@ -91,8 +92,11 @@ export class DropdownRenderer extends ViewCellRenderer {
         }
         viewLabel = labels.join(this.valueDelimiter);
       }
-      textElement.textContent = viewLabel;
+      textContent = viewLabel;
     }
+
+    this.tooltip(textElement, textContent);
+    textElement.textContent = textContent;
   }
 
   public getLabel(value: string | string[]) {

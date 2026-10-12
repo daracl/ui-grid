@@ -65,6 +65,12 @@ export abstract class ViewCellRenderer extends CellRenderer {
     return val;
   }
 
+  public tooltip(element: HTMLElement, value: any) {
+    if (this.enabledTooltip) {
+      element.setAttribute('title', value);
+    }
+  }
+
   /**
    * cell click event
    * @param e click event object

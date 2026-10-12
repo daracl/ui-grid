@@ -97,6 +97,7 @@ export class TreeRenderer extends ViewCellRenderer {
     contentElement.style.paddingLeft = `${depth * 16}px`;
 
     title.textContent = renderValue;
+    this.tooltip(element, renderValue);
   }
 
   initExpanderEvent(expander: HTMLSpanElement) {

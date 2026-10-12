@@ -48,10 +48,13 @@ export class ImageRenderer extends ViewCellRenderer {
 
       if (label.textContent !== labelText) {
         label.textContent = labelText;
+
+        this.tooltip(element, labelText);
       }
     } else if (label) {
       // 필요 없는 label은 제거
       label.remove();
+      this.tooltip(element, '');
     }
   }
 

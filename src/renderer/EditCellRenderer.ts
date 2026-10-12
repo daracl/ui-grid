@@ -91,6 +91,12 @@ export abstract class EditCellRenderer extends CellRenderer {
     return true;
   }
 
+  public tooltip(element: HTMLElement, value: any) {
+    if (this.enabledTooltip) {
+      element.setAttribute('title', value);
+    }
+  }
+
   /**
    * 유효성 검증 html element
    * @returns div element
