@@ -3,6 +3,7 @@ import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
+import { RefImgValue } from '@/types/RefValue';
 /**
  * image renderer
  *
@@ -18,7 +19,7 @@ export class ImageRenderer extends ViewCellRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefImgValue;
     const labelText = refValue?.label ?? null;
     const src = refValue?.src ?? value;
     const alt = refValue?.alt ?? '';

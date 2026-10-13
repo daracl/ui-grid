@@ -1,5 +1,6 @@
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridOptions } from '@/types/GridOptions';
+import { RefChartValue } from '@/types/RefValue';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -24,7 +25,7 @@ export class BarRenderer extends ViewCellRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const fieldValue = this.getValue(item);
-    const refValue = this.getRefValue(fieldValue, item);
+    const refValue = this.getRefValue(fieldValue, item) as RefChartValue;
 
     const min = this.min;
     const max = this.max;

@@ -7,6 +7,8 @@ import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridOptions } from '@/types/GridOptions';
+import { RefOptionValue } from '@/types/RefValue';
+import { isString, isEmpty } from '../../util/utils';
 
 /**
  * dropdown renderer
@@ -54,7 +56,7 @@ export class DropdownRenderer extends ViewCellRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefOptionValue;
 
     let contentElement = element.firstElementChild as HTMLElement;
 
@@ -79,9 +81,13 @@ export class DropdownRenderer extends ViewCellRenderer {
 
     const textElement = contentElement.querySelector('.dg-cell-content-label') as HTMLElement;
 
+    if (this.applyRendererRefState(contentElement, refValue) === false) {
+      return;
+    }
+
     let textContent = '';
     if (refValue) {
-      textContent = refValue.label ?? refValue;
+      textContent = refValue.label ?? (isString(refValue) ? refValue : '');
     } else {
       let viewLabel = value;
       if (this.valueLabelMap.size > 0) {

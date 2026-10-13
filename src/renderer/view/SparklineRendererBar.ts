@@ -5,6 +5,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { CELL_PADDING } from '@/constants';
 import { GridOptions } from '@/types/GridOptions';
+import { RefChartValue, RefOptionValue } from '@/types/RefValue';
 
 interface TooltipState {
   data: number[];
@@ -42,9 +43,9 @@ export class SparklineRendererBar extends ViewCellRenderer {
     const item = cellInfo.item;
 
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefChartValue;
 
-    const data = refValue.value;
+    const data = refValue?.value;
 
     // -------------------------
     // 데이터 없음

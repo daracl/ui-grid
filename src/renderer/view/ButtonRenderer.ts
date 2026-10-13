@@ -1,10 +1,11 @@
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { RefOptionValue } from '@/types/RefValue';
+import { stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
-import { TEXT_ALIGN_STYLE } from '@/constantStyles';
-import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
  * button renderer
@@ -30,13 +31,10 @@ export class ButtonRenderer extends ViewCellRenderer {
 
     const item = cellInfo.item;
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefOptionValue;
 
-    const isDisabled = refValue?.disabled ?? false;
-    const classList = btnElement.classList;
-
-    if (classList.contains('dg-disabled') !== isDisabled) {
-      classList.toggle('dg-disabled', isDisabled);
+    if (this.applyRendererRefState(btnElement, refValue) === false) {
+      return;
     }
 
     let buttonLabel;

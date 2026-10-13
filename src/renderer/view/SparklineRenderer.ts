@@ -1,6 +1,7 @@
 import { CELL_PADDING } from '@/constants';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridOptions } from '@/types/GridOptions';
+import { RefChartValue } from '@/types/RefValue';
 import { getElementRect } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
@@ -34,7 +35,7 @@ export class SparklineRenderer extends ViewCellRenderer {
     const item = cellInfo.item;
 
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefChartValue;
     const data = refValue.value;
 
     // -------------------------

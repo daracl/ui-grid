@@ -21,7 +21,7 @@ export class HtmlRenderer extends ViewCellRenderer {
     const item = cellInfo.item;
     const value = this.getValue(item);
 
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as any;
 
     if (refValue) {
       const template = refValue;

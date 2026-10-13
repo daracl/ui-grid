@@ -6,6 +6,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { isBlank } from '../util/utils';
 import { CellRenderer } from './CellRenderer';
+import { RefOptionValue, RefValue } from '@/types/RefValue';
 
 export abstract class ViewCellRenderer extends CellRenderer {
   private readonly isRefFunction: boolean;
@@ -32,12 +33,12 @@ export abstract class ViewCellRenderer extends CellRenderer {
     this.isClick = isFunction(this.field.renderer.click);
   }
 
-  public getRefValue(value: any, rowItem?: any): any {
+  public getRefValue(value: any, rowItem?: any): RefValue {
     if (this.isRefFunction) {
       return this.refValue.call(null, this.field, value, rowItem);
     }
 
-    if (this.isRefString) return { label: this.refValue };
+    if (this.isRefString) return { label: this.refValue } as RefValue;
 
     return this.refValue[value];
   }

@@ -1,9 +1,10 @@
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { RefOptionValue } from '@/types/RefValue';
+import { stopPreventCancel } from '@/util/eventUtils';
 import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
-import { stopPreventCancel } from '@/util/eventUtils';
 
 /**
  * link renderer
@@ -20,7 +21,7 @@ export class LinkRenderer extends ViewCellRenderer {
   public render(cellInfo: CellInfo, element: HTMLElement): void {
     const item = cellInfo.item;
     const value = this.getValue(item);
-    const refValue = this.getRefValue(value, item);
+    const refValue = this.getRefValue(value, item) as RefOptionValue;
 
     let aElement = element.firstElementChild as HTMLAnchorElement | null;
 
@@ -37,11 +38,9 @@ export class LinkRenderer extends ViewCellRenderer {
     const href = refValue?.href ?? value;
     const target = refValue?.target ?? '_blank';
     const label = refValue?.label ?? value;
-    const isDisabled = refValue?.disabled ?? false;
-    const classList = aElement.classList;
 
-    if (classList.contains('dg-disabled') !== isDisabled) {
-      classList.toggle('dg-disabled', isDisabled);
+    if (this.applyRendererRefState(aElement, refValue) === false) {
+      return;
     }
 
     if (!this.isClick) {

@@ -69,4 +69,21 @@ export abstract class CellRenderer {
   public getMinWidth(cfg: Config, opts: GridOptions) {
     return getMaxColumnSize(cfg, opts, this.field);
   }
+
+  public applyRendererRefState(contentElement: HTMLElement, refValue: any) {
+    const isHide = refValue?.hide ?? false;
+
+    const classList = contentElement.classList;
+    if (classList.contains('dg-hide') !== isHide) {
+      classList.toggle('dg-hide', isHide);
+    }
+
+    if (isHide) return false;
+
+    const isDisabled = refValue?.disabled ?? false;
+
+    if (classList.contains('dg-disabled') !== isDisabled) {
+      classList.toggle('dg-disabled', isDisabled);
+    }
+  }
 }
