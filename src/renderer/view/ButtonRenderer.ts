@@ -1,8 +1,7 @@
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
+import { viewRendererClickEvent } from '@/event/renderEvents';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { RefOptionValue } from '@/types/RefValue';
-import { stopPreventCancel } from '@/util/eventUtils';
-import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -51,15 +50,7 @@ export class ButtonRenderer extends ViewCellRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'pointerdown' }, (e: UIEvent) => {
-      stopPreventCancel(e);
-      const eventElement = e.target as HTMLElement;
-      const cellElement = this.getClosestCellElement(eventElement);
-      const cellInfo = getCellInfo(cfg, cellElement);
-
-      this.click(e, cellElement, cellInfo);
-    });
+    viewRendererClickEvent(this.gridMain.config(), contentElement, this);
   }
 
   public alignStyle(): string {

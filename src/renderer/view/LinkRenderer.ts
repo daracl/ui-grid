@@ -1,7 +1,6 @@
+import { viewRendererClickEvent } from '@/event/renderEvents';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { RefOptionValue } from '@/types/RefValue';
-import { stopPreventCancel } from '@/util/eventUtils';
-import { getCellInfo } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -43,9 +42,11 @@ export class LinkRenderer extends ViewCellRenderer {
       return;
     }
 
-    if (!this.isClick) {
+    if (!this.isClick && refValue) {
       aElement.href = href;
       aElement.target = target;
+    } else {
+      aElement.removeAttribute('target');
     }
 
     aElement.textContent = label;
@@ -53,14 +54,6 @@ export class LinkRenderer extends ViewCellRenderer {
   }
 
   initEvent(contentElement: HTMLElement) {
-    const cfg = this.gridMain.config();
-    cfg.eventManager.on({ el: contentElement, type: 'pointerdown' }, (e: UIEvent) => {
-      stopPreventCancel(e);
-      const eventElement = e.target as HTMLElement;
-      const cellElement = this.getClosestCellElement(eventElement);
-      const cellInfo = getCellInfo(cfg, cellElement);
-
-      this.click(e, cellElement, cellInfo);
-    });
+    viewRendererClickEvent(this.gridMain.config(), contentElement, this);
   }
 }

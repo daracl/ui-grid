@@ -1,12 +1,12 @@
 import { FieldItem } from '@t/GridField';
 
+import { RefValue } from '@/types/RefValue';
 import { formatValue } from '@/util/formatUtils';
 import { isFunction, isString } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { isBlank } from '../util/utils';
 import { CellRenderer } from './CellRenderer';
-import { RefOptionValue, RefValue } from '@/types/RefValue';
 
 export abstract class ViewCellRenderer extends CellRenderer {
   private readonly isRefFunction: boolean;
@@ -91,5 +91,9 @@ export abstract class ViewCellRenderer extends CellRenderer {
    */
   public supportsEdit() {
     return false;
+  }
+
+  public isClickEnabled() {
+    return this.isClick;
   }
 }
