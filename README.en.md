@@ -139,6 +139,10 @@ You can also use it directly via a `<script>` tag with the UMD build.
 | paging | Paging info (`totalCount`, `page`, `pageSize`, `unitPage`) | - |
 | contextMenu | Right-click context menu options | - |
 | tree | Tree mode options (`idField`, `parentIdField`, `childrenField`, `isFlatData`, etc.). Omit it to use list mode | `undefined` |
+| groupingFields | Fields used to order nested detail groups; repeated values display only on the first row | `[]` |
+| rowSpanFields | Fields whose consecutive equal values are vertically merged, from outermost to innermost; independent of `groupingFields` | `[]` |
+| sumFields | Numeric fields to total in group subtotal and grand-total rows | `[]` |
+| showGroupSum / showGrandSum | Whether to show leaf-group subtotal / grand-total rows | `true` |
 | dataTypeFormatter | Default formatting (prefix/suffix/fixed) for `money` and `number` types | - |
 | i18n | Localization message resources | - |
 

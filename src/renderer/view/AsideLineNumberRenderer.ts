@@ -17,7 +17,23 @@ export class AsideLineNumberRenderer extends ViewCellRenderer {
   }
 
   public render(cellInfo: CellInfo, element: HTMLElement): void {
-    element.textContent = cellInfo.rowIndex + 1 + '';
+    const viewItem = cellInfo.viewItem;
+
+    if (this.cfg.dataManager.getDataType() === 'group' && viewItem) {
+      const viewItems = this.cfg.dataManager.getViewItems();
+      const viewItemIndex = viewItems.findIndex((item) => item.id === viewItem.id);
+
+      if (viewItemIndex > -1) {
+        const pagingStartIdx = this.gridMain.options().footer.paging?.enabled
+          ? (this.cfg.paging.page - 1) * this.cfg.paging.pageSize
+          : 0;
+
+        element.textContent = String(pagingStartIdx + viewItemIndex + 1);
+        return;
+      }
+    }
+
+    element.textContent = String(cellInfo.rowIndex + 1);
   }
 
   public alignStyle(): string {

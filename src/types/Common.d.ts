@@ -95,6 +95,12 @@ export interface ViewItem {
   matchedFields?: MatchedField[];
   matchCount?: number;
   isCurrentMatch?: boolean;
+  groupRowType?: 'group' | 'groupSummary' | 'grandSummary';
+  groupDepth?: number;
+  groupField?: string;
+  groupValue?: any;
+  groupValues?: any[];
+  groupSums?: Record<string, number>;
 }
 
 export interface TreeViewItem extends ViewItem {

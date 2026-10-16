@@ -18,8 +18,8 @@ import { arrayCopy, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
-  constructor(opts: GridOptions, gridMain: GridMain) {
-    super(opts, gridMain, 'list');
+  constructor(opts: GridOptions, gridMain: GridMain, type = 'list') {
+    super(opts, gridMain, type);
   }
 
   /**

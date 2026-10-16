@@ -347,6 +347,7 @@ export class SelectionInfo {
 
     for (let i = startIdx; i <= endIdx; i++) {
       const viewItem = viewItems[i];
+      if (viewItem.groupRowType) continue;
       const item = dataManager.getRowItem(viewItem.id);
       const rowOutput: any = isJson ? {} : [];
       let hasSelection = false;
@@ -437,6 +438,7 @@ export class SelectionInfo {
 
     for (let i = startIdx; i <= endIdx; i++) {
       const viewItem = viewItems[i];
+      if (viewItem.groupRowType) continue;
       const item = dataManager.getRowItem(viewItem.id);
 
       result.push(item);
@@ -465,7 +467,7 @@ export class SelectionInfo {
     const result: RowId[] = [];
 
     for (let i = startIdx; i <= endIdx; i++) {
-      if (viewItems[i]) result.push(viewItems[i].id);
+      if (viewItems[i] && !viewItems[i].groupRowType) result.push(viewItems[i].id);
     }
 
     return result;

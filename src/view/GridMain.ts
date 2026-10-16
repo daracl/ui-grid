@@ -18,6 +18,7 @@ import { DaraElement } from '@/element/DaraElement';
 import { SelectionInfo } from '@/selection/selection';
 import { ListDataManager } from '@/service/ListDataManager';
 import { TreeDataManager } from '@/service/TreeDataManager';
+import { GroupDataManager } from '@/service/GroupDataManager';
 import { AddRowOptions } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
@@ -124,7 +125,9 @@ export class GridMain {
     if (message) this.language.setMessage(message);
 
     this.cfg = initConfig(opts);
-    if (opts.tree) {
+    if (opts.groupingFields?.length) {
+      this.cfg.dataManager = new GroupDataManager(opts, this);
+    } else if (opts.tree) {
       this.cfg.dataManager = new TreeDataManager(opts, this);
     } else {
       this.cfg.dataManager = new ListDataManager(opts, this);

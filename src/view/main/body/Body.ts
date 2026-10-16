@@ -7,6 +7,8 @@ import { BodyEvent } from './event/BodyEvent';
 import { BodyCell } from './BodyCell';
 import { BodyContext } from './BodyContext';
 import { BodyRenderer } from './BodyRenderer';
+import { GroupBodyRenderer } from './GroupBodyRenderer';
+import { SimpleBodyRenderer } from './SimpleBodyRenderer';
 import { BodySelection } from './BodySelection';
 import { BodyTemplate } from './BodyTemplate';
 
@@ -46,7 +48,9 @@ export class Body {
 
     this.cellManager = new BodyCell(this.context);
 
-    this.renderer = new BodyRenderer(this.context, this.cellManager, this.templateManager);
+    this.renderer = gridMain.options().groupingFields?.length || gridMain.options().rowSpanFields?.length
+      ? new GroupBodyRenderer(this.context, this.cellManager, this.templateManager)
+      : new SimpleBodyRenderer(this.context, this.cellManager, this.templateManager);
 
     this.selectionManager = new BodySelection(this.context, this.renderer);
 

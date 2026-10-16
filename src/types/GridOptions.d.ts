@@ -164,6 +164,26 @@ export interface GridOptions {
   contextMenu?: ContextMenuOptions;
 
   tree?: TreeOptions;
+
+  /**
+   * Fields used to build nested body groups, from outermost to innermost.
+   */
+  groupingFields?: string[];
+
+  /**
+   * Fields whose consecutive equal values are displayed as vertically merged cells.
+   * Field order defines the nested merge levels, from outermost to innermost.
+   */
+  rowSpanFields?: string[];
+
+  /** Numeric fields to total in group and grand-total rows. */
+  sumFields?: string[];
+
+  /** Whether each leaf group gets a subtotal row. Defaults to true. */
+  showGroupSum?: boolean;
+
+  /** Whether the body ends with a grand-total row. Defaults to true. */
+  showGrandSum?: boolean;
 }
 
 export interface TreeOptions {

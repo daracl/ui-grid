@@ -137,7 +137,7 @@ export class CellClickHandler extends BasePointerHandler {
   }
 
   onPointerMove(session: PointerSession) {
-    if (!this.multipleFlag) return;
+    if (!this.multipleFlag || this.startCellInfo?.viewItem?.groupRowType === 'group') return;
 
     const cfg = this.cfg;
     const bounds = this.gridBounds;
@@ -290,6 +290,10 @@ export class CellClickHandler extends BasePointerHandler {
   }
 
   onClick(session: PointerSession): void {
+    if (this.startCellInfo?.viewItem?.groupRowType === 'group') {
+      return;
+    }
+
     if (this.selectionMode != SelectionModeMap.none) {
       this.setCellClick(
         session.event,
@@ -307,6 +311,8 @@ export class CellClickHandler extends BasePointerHandler {
     if (!this.isCellDbClickEvent) return;
 
     const cellInfo = session.cellInfo as CellInfo;
+    if (cellInfo.viewItem?.groupRowType) return;
+
     const field = cellInfo.field;
 
     if (this.cellDblClick) {

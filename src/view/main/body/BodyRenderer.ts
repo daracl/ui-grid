@@ -6,18 +6,24 @@ import { BodyCell } from './BodyCell';
 import { BodyContext } from './BodyContext';
 import { BodyTemplate } from './BodyTemplate';
 import { BodyFieldGroup, BodyMatchInfo } from '@/types/Body';
+import { ViewItem } from '@/types/Common';
 
 /**
  * Body의 virtualized row / cell 렌더링을 담당
  */
-export class BodyRenderer {
+export abstract class BodyRenderer {
   constructor(
-    private readonly context: BodyContext,
-    private readonly cell: BodyCell,
-    private readonly template: BodyTemplate,
+    protected readonly context: BodyContext,
+    protected readonly cell: BodyCell,
+    protected readonly template: BodyTemplate,
   ) {}
 
-  public dataDraw(mode?: string): void {
+  public abstract dataDraw(mode?: string): void;
+
+  protected drawData(
+    mode: string | undefined,
+    renderSpecialRow: (viewItem: ViewItem, rowIndex: number) => boolean,
+  ): void {
     const opts = this.context.gridMain.options();
     const cfg = this.context.gridMain.config();
     const dataManager = cfg.dataManager;
@@ -137,6 +143,14 @@ export class BodyRenderer {
         break;
       }
 
+      if (renderSpecialRow(viewItem, i)) {
+        continue;
+      }
+
+      for (const rowElement of [allRowElements.left?.[i], allRowElements.center?.[i], allRowElements.right?.[i]]) {
+        rowElement?.classList.remove('dg-group-row', 'dg-group-header', 'dg-group-summary', 'dg-grand-summary');
+      }
+
       const item = dataManager.getRowItem(viewItem.id);
       const rowIdx = pagingStartIdx + viewRowIdx;
 
@@ -177,6 +191,8 @@ export class BodyRenderer {
           const field = leftFields[j];
           const cell = rowCells[j];
 
+          cell.classList.remove('dg-group-cell');
+          (cell.firstElementChild as HTMLElement).style.removeProperty('padding-left');
           rowCellInfo.c = j;
 
           this.cell.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
@@ -191,6 +207,8 @@ export class BodyRenderer {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
 
+        cell.classList.remove('dg-group-cell');
+        (cell.firstElementChild as HTMLElement).style.removeProperty('padding-left');
         this.cell.setCellStyle(startCell, viewRowIdx, j, cell, field, item, matchInfo);
         rowCellInfo.c = j;
         field.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
@@ -204,6 +222,8 @@ export class BodyRenderer {
           const cellIdx = fixedRightIndex + j;
           const cell = rowCells[cellIdx];
 
+          cell.classList.remove('dg-group-cell');
+          (cell.firstElementChild as HTMLElement).style.removeProperty('padding-left');
           rowCellInfo.c = cellIdx;
           this.cell.setCellStyle(startCell, viewRowIdx, cellIdx, cell, field, item, matchInfo);
           field.$renderer.render(rowCellInfo, cell.firstElementChild as HTMLElement);
@@ -356,6 +376,7 @@ export class BodyRenderer {
     const viewRow = cfg.scroll.viewRow;
     const selectionClass = BodyCellStyleMap.SELECTION;
     const isAll = this.context.selectionInfo.isAllSelect();
+    const viewItems = cfg.dataManager.getViewItems();
 
     if (!leftElements) {
       return;
@@ -363,7 +384,9 @@ export class BodyRenderer {
 
     if (isAll) {
       for (let i = 0; i < viewRow; i++) {
-        leftElements[i][0]?.classList.add(selectionClass);
+        if (viewItems[startIdx + i]?.groupRowType !== 'group') {
+          leftElements[i][0]?.classList.add(selectionClass);
+        }
       }
 
       return;
@@ -372,6 +395,9 @@ export class BodyRenderer {
     const rowLine = this.context.selectionInfo.getRowLine();
 
     for (let i = 0; i < viewRow; i++) {
+      if (viewItems[startIdx + i]?.groupRowType === 'group') {
+        continue;
+      }
       leftElements[i][0]?.classList.toggle(selectionClass, rowLine.has(i + startIdx));
     }
   }

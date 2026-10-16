@@ -79,6 +79,10 @@ export class RowMoveHandler extends CellClickHandler {
 
   canHandle(session: PointerSession) {
     const moveRowItem = session.cellInfo as CellInfo;
+    if (moveRowItem.viewItem?.groupRowType) {
+      return false;
+    }
+
     const rowMoveOptions = this.rowMoveOptions;
     const fieldName = moveRowItem.field?.name;
 

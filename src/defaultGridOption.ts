@@ -22,6 +22,10 @@ export function initGridOptions(options: GridOptions): GridOptions {
 
   if (opts.width != 'auto' && !isNumber(opts.width)) throw new Error('invalid width : ' + opts.width);
 
+  if (opts.tree && (opts.groupingFields?.length || opts.rowSpanFields?.length)) {
+    throw new Error('tree cannot be used together with groupingFields or rowSpanFields');
+  }
+
   // hover mode selection mode에 따라 기본값 설정
   if (!options.hoverMode) {
     opts.hoverMode = isRowSelectionMode(opts.selectionMode) ? 'row' : 'cell';
@@ -654,6 +658,11 @@ let DEFAULT_OPTIONS: GridOptions = {
    * `undefined`이면 트리 모드를 사용하지 않음
    */
   tree: undefined,
+  groupingFields: [],
+  rowSpanFields: [],
+  sumFields: [],
+  showGroupSum: true,
+  showGrandSum: true,
 };
 
 export const DEFAULT_RENDERER_INFO: ViewRendererInfo = {

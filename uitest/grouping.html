@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dara Grid - Grouping</title>
+  <style>
+    body {
+      margin: 24px;
+      font-family: Arial, sans-serif;
+    }
+
+    #sample {
+      width: 100%;
+      height: 420px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Body grouping and totals</h1>
+  <p>100 detail rows | Groups: country → product → name | Repeated values shown once | Subtotals per name</p>
+  <div id="sample"></div>
+  <script type="module">
+    import { DaraGrid } from '/src/index.ts';
+
+    const countries = ['Korea', 'Japan', 'USA', 'Italy'];
+    const products = ['Tea', 'Coffee', 'Phone', 'Tablet'];
+    const names = ['Green tea', 'Black tea', 'Americano', 'Latte', 'Matcha', 'Galaxy S25'];
+    const items = Array.from({ length: 100 }, (_, index) => {
+      const quantity = (index % 9) + 1;
+      return {
+        id: index + 1,
+        country: countries[Math.floor(index / 25)],
+        product: products[Math.floor((index % 25) / 5) % products.length],
+        name: names[index % names.length],
+        quantity,
+        amount: quantity * 1000 + index * 250,
+      };
+    });
+
+    DaraGrid.create(document.getElementById('sample'), {
+      groupingFields: ['country', 'product', 'name'],
+      selectionMode: 'multiCell',
+      sumFields: ['quantity', 'amount'],
+      showGroupSum: true,
+      showGrandSum: false,
+      fields: [
+        { name: 'country', label: 'Country', width: 140 },
+        { name: 'product', label: 'Product', width: 140 },
+        { name: 'name', label: 'Name', width: 180 },
+        { name: 'quantity', label: 'Quantity', width: 120, align: 'right', renderer: { type: 'number' } },
+        { name: 'amount', label: 'Amount', width: 140, align: 'right', renderer: { type: 'number' } },
+      ],
+      items,
+    });
+  </script>
+</body>
+
+</html>

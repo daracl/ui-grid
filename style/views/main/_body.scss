@@ -18,6 +18,10 @@
             opacity: 0.5;
           }
 
+          &.dg-group-row {
+            font-weight: 600;
+          }
+
           &.dg-row-hover {
             background-color: var(--cell-bg-hover);
             > .dg-line-number {
@@ -26,6 +30,14 @@
           }
 
           & > .dg-cell {
+            &.dg-group-cell {
+              background-color: var(--cell-bg-linenumber);
+            }
+
+            &.dg-group-continuation {
+              border-bottom-color: transparent !important;
+            }
+
             &.dg-search-highlight {
               background-color: var(--search-cell-highlight);
 

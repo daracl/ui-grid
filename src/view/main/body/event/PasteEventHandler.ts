@@ -110,6 +110,9 @@ export class PasteEvent implements EventHandler {
             }
 
             const viewItem = pasteResultItems[rowIdx];
+            if (viewItem.groupRowType) {
+              continue;
+            }
 
             const row = parsed[i];
 

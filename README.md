@@ -139,6 +139,10 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | paging | 페이징 정보 (`totalCount`, `page`, `pageSize`, `unitPage`) | - |
 | contextMenu | 우클릭 컨텍스트 메뉴 옵션 | - |
 | tree | 트리 모드 옵션 (`idField`, `parentIdField`, `childrenField`, `isFlatData` 등). 설정하지 않으면 목록형으로 동작 | `undefined` |
+| groupingFields | 상세 행을 계층 그룹으로 정렬하고 같은 그룹 값은 첫 행에만 표시할 필드 목록(바깥 그룹부터 지정) | `[]` |
+| rowSpanFields | 연속된 같은 값을 세로 병합할 필드 목록(바깥 그룹부터 지정). `groupingFields`와 별도로 사용할 수 있습니다. | `[]` |
+| sumFields | 그룹 소계/전체 합계를 계산할 숫자 필드 목록 | `[]` |
+| showGroupSum / showGrandSum | 최하위 그룹 소계 / 전체 합계 행 표시 여부 | `true` |
 | dataTypeFormatter | `money`, `number` 타입 기본 포맷(prefix/suffix/fixed) | - |
 | i18n | 다국어 메시지 리소스 | - |
 

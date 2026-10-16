@@ -176,6 +176,10 @@ export class BodySelection {
         break;
       }
 
+      if (viewItem.groupRowType) {
+        continue;
+      }
+
       const item = dataManager.getRowItem(viewItem.id);
 
       const rowIdx = pagingStartIdx + viewRowIdx;
