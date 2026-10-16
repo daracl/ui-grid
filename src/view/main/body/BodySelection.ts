@@ -301,6 +301,7 @@ export class BodySelection {
     const startIdx = cfg.scroll.startIdx;
     const viewRow = cfg.scroll.viewRow;
     const selectionClass = BodyCellStyleMap.SELECTION;
+    const viewItems = cfg.dataManager.getViewItems();
 
     const isAll = this.context.selectionInfo.isAllSelect();
 
@@ -310,7 +311,7 @@ export class BodySelection {
 
     if (isAll) {
       for (let i = 0; i < viewRow; i++) {
-        leftElements[i][0]?.classList.add(selectionClass);
+        leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
       }
 
       return;
@@ -319,7 +320,7 @@ export class BodySelection {
     const rowLine = this.context.selectionInfo.getRowLine();
 
     for (let i = 0; i < viewRow; i++) {
-      leftElements[i][0]?.classList.toggle(selectionClass, rowLine.has(i + startIdx));
+      leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
     }
   }
 

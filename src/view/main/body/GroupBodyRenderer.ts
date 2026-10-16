@@ -232,16 +232,14 @@ export class GroupBodyRenderer extends BodyRenderer {
       const renderer = cell.firstElementChild as HTMLElement;
       renderer.textContent = '';
 
-      if (viewItem.groupRowType !== 'group') {
-        const { startIdx, startCol } = cfg.selection.startCell;
-        this.context.selectionInfo.updateCellSelectionClass(
-          cell,
-          cfg.scroll.startIdx + rowIndex,
-          colIndex,
-          startIdx,
-          startCol,
-        );
-      }
+      const { startIdx, startCol } = cfg.selection.startCell;
+      this.context.selectionInfo.updateCellSelectionClass(
+        cell,
+        cfg.scroll.startIdx + rowIndex,
+        colIndex,
+        startIdx,
+        startCol,
+      );
 
       if (field.name === LINE_NUMBER_NAME) {
         const pagingStartIdx = this.context.gridMain.options().footer.paging?.enabled

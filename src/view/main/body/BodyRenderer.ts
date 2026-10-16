@@ -384,9 +384,7 @@ export abstract class BodyRenderer {
 
     if (isAll) {
       for (let i = 0; i < viewRow; i++) {
-        if (viewItems[startIdx + i]?.groupRowType !== 'group') {
-          leftElements[i][0]?.classList.add(selectionClass);
-        }
+        leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
       }
 
       return;
@@ -395,10 +393,7 @@ export abstract class BodyRenderer {
     const rowLine = this.context.selectionInfo.getRowLine();
 
     for (let i = 0; i < viewRow; i++) {
-      if (viewItems[startIdx + i]?.groupRowType === 'group') {
-        continue;
-      }
-      leftElements[i][0]?.classList.toggle(selectionClass, rowLine.has(i + startIdx));
+      leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
     }
   }
 

@@ -344,10 +344,14 @@ export class SelectionInfo {
     const result: any[] = [];
     const keyInfoMap = new Map<number, any>();
     const summary = { count: 0, numbers: [] as number[] };
+    const sumFields = new Set(this.options.sumFields ?? []);
+    const firstDataField = currentFields.find((field) => !field.$isAside);
+    const summaryLabelField = currentFields.find((field) => !field.$isAside && !sumFields.has(field.name)) ?? firstDataField;
 
     for (let i = startIdx; i <= endIdx; i++) {
       const viewItem = viewItems[i];
-      if (viewItem.groupRowType) continue;
+      if (!viewItem) continue;
+      const isGroupRow = !!viewItem.groupRowType;
       const item = dataManager.getRowItem(viewItem.id);
       const rowOutput: any = isJson ? {} : [];
       let hasSelection = false;
@@ -361,12 +365,29 @@ export class SelectionInfo {
 
         let cellValue: any = '';
         if (selected) {
-          cellValue = field.$renderer.getValue(item);
+          if (
+            (viewItem.groupRowType === 'groupSummary' || viewItem.groupRowType === 'group') &&
+            viewItem.groupField &&
+            field.name === viewItem.groupField
+          ) {
+            cellValue =
+              viewItem.groupRowType === 'group'
+                ? `${viewItem.groupField}: ${String(viewItem.groupValue ?? '')}`
+                : `${String(viewItem.groupValue ?? '')} 합계`;
+          } else if (viewItem.groupRowType === 'groupSummary' && field === summaryLabelField) {
+            cellValue = 'Subtotal';
+          } else if (viewItem.groupRowType === 'grandSummary' && field === summaryLabelField) {
+            cellValue = 'Grand Total';
+          } else if (viewItem.groupRowType && viewItem.groupRowType !== 'group' && sumFields.has(field.name)) {
+            cellValue = viewItem.groupSums?.[field.name] ?? '';
+          } else if (!isGroupRow) {
+            cellValue = field.$renderer.getValue(item);
+          }
           hasSelection = true;
 
           if (!keyInfoMap.has(j)) keyInfoMap.set(j, field);
 
-          if (!utils.isBlank(cellValue)) {
+          if (!isGroupRow && !utils.isBlank(cellValue)) {
             summary.count++;
             if (utils.isNumber(cellValue)) {
               summary.numbers.push(Number(cellValue));
