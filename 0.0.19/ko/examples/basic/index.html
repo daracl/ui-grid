@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="../../../favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- 첫 페인트 전에 dark 클래스와 data-daracl-theme 속성(@daracl/grid 가 따르는 전역 테마)을 붙여
+         테마 깜빡임을 막는다. (ThemeProvider 의 저장값 로직과 동일) -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('ui-grid-docs-theme');
+          if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          if (t === 'dark') document.documentElement.classList.add('dark');
+          document.documentElement.setAttribute('data-daracl-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <script>
+      window.__APP_BASE__ = "../../../";
+      // 페이지 로드 시점(pushState 이전)의 절대 경로. 예: /ui-grid/latest/
+      window.__APP_ROOT__ = new URL("../../../", location.href).pathname;
+      (function () {
+        var p = location.pathname;
+        if (p.slice(-1) !== '/' && !/\.html?$/.test(p)) {
+          location.replace(p + '/' + location.search + location.hash);
+        } else if (location.hash.indexOf('#/') === 0) {
+          location.replace("../../../" + location.hash.slice(2).replace(/\/?$/, '/') + location.search);
+        }
+      })();
+    </script>
+    <title data-seo>Basic Grid | Dara Grid</title>
+    <meta name="description" content="가장 작은 형태로 동작하는 그리드입니다: 컬럼 정의 목록(`fields`)과 행 데이터(`items`)만 있으면 됩니다." data-seo>
+    <meta name="robots" content="index, follow" data-seo>
+    <link rel="canonical" href="https://daracl.github.io/ui-grid/latest/ko/examples/basic/" data-seo>
+    <link rel="alternate" hreflang="en" href="https://daracl.github.io/ui-grid/latest/examples/basic/" data-seo>
+    <link rel="alternate" hreflang="ko" href="https://daracl.github.io/ui-grid/latest/ko/examples/basic/" data-seo>
+    <link rel="alternate" hreflang="x-default" href="https://daracl.github.io/ui-grid/latest/examples/basic/" data-seo>
+    <meta property="og:type" content="article" data-seo>
+    <meta property="og:site_name" content="Dara Grid" data-seo>
+    <meta property="og:title" content="Basic Grid | Dara Grid" data-seo>
+    <meta property="og:description" content="가장 작은 형태로 동작하는 그리드입니다: 컬럼 정의 목록(`fields`)과 행 데이터(`items`)만 있으면 됩니다." data-seo>
+    <meta property="og:url" content="https://daracl.github.io/ui-grid/latest/ko/examples/basic/" data-seo>
+    <meta property="og:image" content="https://daracl.github.io/ui-grid/latest/logo.png" data-seo>
+    <meta property="og:locale" content="ko_KR" data-seo>
+    <meta property="og:locale:alternate" content="en_US" data-seo>
+    <meta name="twitter:card" content="summary" data-seo>
+    <meta name="twitter:title" content="Basic Grid | Dara Grid" data-seo>
+    <meta name="twitter:description" content="가장 작은 형태로 동작하는 그리드입니다: 컬럼 정의 목록(`fields`)과 행 데이터(`items`)만 있으면 됩니다." data-seo>
+    <meta name="twitter:image" content="https://daracl.github.io/ui-grid/latest/logo.png" data-seo>
+    <script type="application/ld+json" data-seo>{"@context":"https://schema.org","@graph":[{"@type":"TechArticle","headline":"Basic Grid","description":"가장 작은 형태로 동작하는 그리드입니다: 컬럼 정의 목록(`fields`)과 행 데이터(`items`)만 있으면 됩니다.","url":"https://daracl.github.io/ui-grid/latest/ko/examples/basic/","image":"https://daracl.github.io/ui-grid/latest/logo.png","inLanguage":"ko","isPartOf":{"@type":"WebSite","name":"Dara Grid","url":"https://daracl.github.io/ui-grid/latest/"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Dara Grid","item":"https://daracl.github.io/ui-grid/latest/ko/"},{"@type":"ListItem","position":2,"name":"예제","item":"https://daracl.github.io/ui-grid/latest/ko/examples/basic/"},{"@type":"ListItem","position":3,"name":"Basic Grid","item":"https://daracl.github.io/ui-grid/latest/ko/examples/basic/"}]}]}</script>
+    <script type="module" crossorigin src="../../../assets/index-CSYm9vuO.js"></script>
+    <link rel="stylesheet" crossorigin href="../../../assets/index-Cx-ba-CF.css">
+  </head>
+  <body>
+    <div id="root"><link rel="preload" as="image" href="../../../logo.png"/><div class="min-h-screen bg-[var(--bg)] text-[var(--fg)]"><header class="sticky top-0 z-40 flex h-14 items-center gap-1 border-b border-[var(--border)] bg-[var(--bg)]/90 px-4 backdrop-blur"><button type="button" class="rounded-md p-1.5 text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] lg:hidden" aria-label="메뉴 열기/닫기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"></path></svg></button><div class="flex shrink-0 items-center gap-1"><a class="flex items-center gap-1 font-semibold text-[var(--fg)]" href="../../../ko/"><img src="../../../logo.png" alt="" width="32" height="32" class="h-8 w-8 shrink-0 object-contain"/><span>Dara Grid</span></a><span class="shrink-0 whitespace-nowrap rounded-full border border-[var(--border)] px-2 py-0.5 text-xs font-medium text-[var(--fg-muted)]" title="@daracl/grid v0.0.19">v.<!-- -->0.0.19</span></div><button type="button" class="flex flex-1 max-w-sm items-center gap-2 rounded-md border border-[var(--border)] bg-[var(--bg-subtle)] px-3 py-1.5 text-left text-sm text-[var(--fg-muted)] hover:border-[var(--brand)]/50"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0"><circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3" stroke-linecap="round"></path></svg><span class="hidden sm:inline">문서 검색...</span><span class="sm:hidden">검색...</span><kbd class="ml-auto hidden rounded border border-[var(--border)] bg-[var(--bg)] px-1.5 py-0.5 text-[10px] text-[var(--fg-muted)] sm:block">Ctrl K</kbd></button><div class="ml-auto flex items-center gap-1"><a href="https://github.com/daracl/ui-grid" target="_blank" rel="noreferrer" class="rounded-md p-2 text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" aria-label="GitHub 저장소"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.67 0-1.25.44-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.8 1.18 1.83 1.18 3.08 0 4.4-2.7 5.38-5.26 5.66.41.36.78 1.06.78 2.14v3.17c0 .3.2.66.79.55A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path></svg></a><select aria-label="언어" class="cursor-pointer rounded-md border-0 bg-transparent px-1.5 py-1.5 text-xs font-semibold text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)] focus:outline-none"><option value="en">EN</option><option value="ko" selected="">KO</option></select><button type="button" aria-label="다크 모드 전환" class="rounded-md p-2 text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79Z"></path></svg></button></div></header><nav class="sticky top-14 z-30 flex h-11 items-center gap-1 overflow-x-auto border-b border-[var(--border)] bg-[var(--bg)]/90 px-4 backdrop-blur thin-scroll sm:px-8 lg:px-10"><a class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]" href="../../../ko/introduction/overview/">소개</a><a class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]" href="../../../ko/guide/basic-grid/">가이드</a><a class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors border-transparent text-[var(--fg-muted)] hover:text-[var(--fg)]" href="../../../ko/api/grid-options/">API 레퍼런스</a><a class="shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium transition-colors border-[var(--brand)] text-[var(--brand)]" href="../../../ko/examples/basic/">예제</a></nav><div class="mx-auto flex max-w-[1400px]"><aside class="hidden w-64 shrink-0 border-r border-[var(--border)] lg:block"><div class="sticky top-[6.25rem] h-[calc(100vh-6.25rem)]"><nav class="thin-scroll overflow-y-auto px-4 py-6 h-full" aria-label="예제"><ul class="space-y-0.5 text-sm"><li><a aria-current="page" class="block rounded-md px-2 py-1.5 transition-colors bg-[var(--brand)]/10 font-medium text-[var(--brand)]" href="../../../ko/examples/basic/">기본</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/large-data/">대용량 (1만·10만·100만)</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/grouping/">그룹 합계 및 PDF</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/selection/">선택</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/editing/">편집</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/sorting/">정렬</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/paging/">페이징</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/footer/">푸터</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/toolbar/">툴바</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/tree/">트리</a></li><li><a class="block rounded-md px-2 py-1.5 transition-colors text-[var(--fg-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--fg)]" href="../../../ko/examples/row-move/">행 이동</a></li></ul></nav></div></aside><main class="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-10"><div class="mx-auto max-w-3xl"><article><div class="mb-1 text-sm font-medium text-[var(--brand)]">기본 예제</div><h1 class="text-3xl font-bold tracking-tight">Basic Grid</h1><p class="mt-3 text-base leading-relaxed text-[var(--fg-muted)]">가장 작은 형태로 동작하는 그리드입니다: 컬럼 정의 목록(`fields`)과 행 데이터(`items`)만 있으면 됩니다.</p><div class="mt-3 flex flex-wrap gap-2 text-xs"><a class="rounded-full border border-[var(--border)] px-2.5 py-1 text-[var(--brand)] hover:bg-[var(--brand)]/10" href="../../../ko/api/grid-options/">GridOptions<!-- --> →</a><a class="rounded-full border border-[var(--border)] px-2.5 py-1 text-[var(--brand)] hover:bg-[var(--brand)]/10" href="../../../ko/api/field-item/">GridField<!-- --> →</a></div><h2 class="mb-3 mt-8 text-lg font-semibold">미리보기</h2><div class="rounded-lg bg-[var(--bg)] "><div style="height:300px"></div></div><h2 class="mb-3 mt-8 text-lg font-semibold">소스 코드</h2><div class="overflow-hidden rounded-lg border border-[var(--border)]"><div class="flex gap-1 border-b border-[var(--border)] bg-[var(--bg-inset)] px-2 pt-2"><button type="button" class="rounded-t-md px-3 py-1.5 text-xs font-medium transition-colors bg-[var(--bg)] text-[var(--fg)] border border-b-0 border-[var(--border)]">TypeScript</button><button type="button" class="rounded-t-md px-3 py-1.5 text-xs font-medium transition-colors text-[var(--fg-muted)] hover:text-[var(--fg)]">JavaScript</button></div><div class="overflow-hidden rounded-lg border border-[var(--border)] border-0 rounded-none"><div class="relative group"><button type="button" aria-label="코드 복사" class="absolute right-2 top-2 z-10 rounded-md border border-white/10 bg-white/10 px-2 py-1 text-xs font-medium text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100 focus-visible:opacity-100 hover:bg-white/20">복사</button><pre class="thin-scroll overflow-x-auto p-4 !bg-[var(--code-bg)]"><code class="language-typescript">import { DaraGrid } from &#x27;@daracl/grid&#x27;;
+import &#x27;@daracl/grid/style/daracl.grid.css&#x27;;
+
+const grid = DaraGrid.create(document.getElementById(&#x27;grid&#x27;)!, {
+  height: 280,
+  fields: [
+  {
+    &quot;name&quot;: &quot;id&quot;,
+    &quot;label&quot;: &quot;ID&quot;,
+    &quot;width&quot;: 60,
+    &quot;align&quot;: &quot;center&quot;
+  },
+  {
+    &quot;name&quot;: &quot;name&quot;,
+    &quot;label&quot;: &quot;Name&quot;,
+    &quot;width&quot;: 140
+  },
+  {
+    &quot;name&quot;: &quot;position&quot;,
+    &quot;label&quot;: &quot;Position&quot;,
+    &quot;width&quot;: 180
+  },
+  {
+    &quot;name&quot;: &quot;department&quot;,
+    &quot;label&quot;: &quot;Department&quot;,
+    &quot;width&quot;: 140
+  }
+],
+  items: [
+  {
+    &quot;id&quot;: 1,
+    &quot;name&quot;: &quot;John Carter&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;john.carter@example.com&quot;,
+    &quot;age&quot;: 25,
+    &quot;salary&quot;: 82000,
+    &quot;joinDate&quot;: &quot;2025-01-01&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 2,
+    &quot;name&quot;: &quot;Emma Carter&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.carter@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 88300,
+    &quot;joinDate&quot;: &quot;2018-06-04&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 3,
+    &quot;name&quot;: &quot;Michael Carter&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.carter@example.com&quot;,
+    &quot;age&quot;: 29,
+    &quot;salary&quot;: 103800,
+    &quot;joinDate&quot;: &quot;2023-11-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 4,
+    &quot;name&quot;: &quot;Sophia Carter&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;sophia.carter@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 128100,
+    &quot;joinDate&quot;: &quot;2016-04-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 5,
+    &quot;name&quot;: &quot;David Carter&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.carter@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 98600,
+    &quot;joinDate&quot;: &quot;2021-09-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 6,
+    &quot;name&quot;: &quot;Olivia Carter&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;olivia.carter@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 93900,
+    &quot;joinDate&quot;: &quot;2014-02-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 7,
+    &quot;name&quot;: &quot;James Carter&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.carter@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 110400,
+    &quot;joinDate&quot;: &quot;2019-07-19&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 8,
+    &quot;name&quot;: &quot;Grace Carter&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.carter@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 101400,
+    &quot;joinDate&quot;: &quot;2024-12-22&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 9,
+    &quot;name&quot;: &quot;Daniel Carter&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;daniel.carter@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 120700,
+    &quot;joinDate&quot;: &quot;2017-05-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 10,
+    &quot;name&quot;: &quot;Ava Carter&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;ava.carter@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 70200,
+    &quot;joinDate&quot;: &quot;2022-10-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 11,
+    &quot;name&quot;: &quot;Ethan Carter&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.carter@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 121500,
+    &quot;joinDate&quot;: &quot;2015-03-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 12,
+    &quot;name&quot;: &quot;Mia Carter&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;mia.carter@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 82000,
+    &quot;joinDate&quot;: &quot;2020-08-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 13,
+    &quot;name&quot;: &quot;Lucas Carter&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;lucas.carter@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 84500,
+    &quot;joinDate&quot;: &quot;2025-01-09&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 14,
+    &quot;name&quot;: &quot;Chloe Carter&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.carter@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 90800,
+    &quot;joinDate&quot;: &quot;2018-06-12&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 15,
+    &quot;name&quot;: &quot;Henry Carter&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.carter@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 102800,
+    &quot;joinDate&quot;: &quot;2023-11-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 16,
+    &quot;name&quot;: &quot;Isabella Carter&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;isabella.carter@example.com&quot;,
+    &quot;age&quot;: 40,
+    &quot;salary&quot;: 127100,
+    &quot;joinDate&quot;: &quot;2016-04-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 17,
+    &quot;name&quot;: &quot;Noah Carter&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.carter@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 97600,
+    &quot;joinDate&quot;: &quot;2021-09-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 18,
+    &quot;name&quot;: &quot;Amelia Carter&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;amelia.carter@example.com&quot;,
+    &quot;age&quot;: 44,
+    &quot;salary&quot;: 92900,
+    &quot;joinDate&quot;: &quot;2014-02-24&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 19,
+    &quot;name&quot;: &quot;Leo Carter&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.carter@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 109400,
+    &quot;joinDate&quot;: &quot;2019-07-27&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 20,
+    &quot;name&quot;: &quot;Charlotte Carter&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.carter@example.com&quot;,
+    &quot;age&quot;: 27,
+    &quot;salary&quot;: 103900,
+    &quot;joinDate&quot;: &quot;2024-12-02&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 21,
+    &quot;name&quot;: &quot;John Wilson&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;john.wilson@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 123200,
+    &quot;joinDate&quot;: &quot;2017-05-05&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 22,
+    &quot;name&quot;: &quot;Emma Wilson&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.wilson@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 69200,
+    &quot;joinDate&quot;: &quot;2022-10-08&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 23,
+    &quot;name&quot;: &quot;Michael Wilson&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.wilson@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 120500,
+    &quot;joinDate&quot;: &quot;2015-03-11&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 24,
+    &quot;name&quot;: &quot;Sophia Wilson&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;sophia.wilson@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 81000,
+    &quot;joinDate&quot;: &quot;2020-08-14&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 25,
+    &quot;name&quot;: &quot;David Wilson&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.wilson@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 83500,
+    &quot;joinDate&quot;: &quot;2025-01-17&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 26,
+    &quot;name&quot;: &quot;Olivia Wilson&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;olivia.wilson@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 89800,
+    &quot;joinDate&quot;: &quot;2018-06-20&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 27,
+    &quot;name&quot;: &quot;James Wilson&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.wilson@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 105300,
+    &quot;joinDate&quot;: &quot;2023-11-23&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 28,
+    &quot;name&quot;: &quot;Grace Wilson&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.wilson@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 129600,
+    &quot;joinDate&quot;: &quot;2016-04-26&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 29,
+    &quot;name&quot;: &quot;Daniel Wilson&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;daniel.wilson@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 96600,
+    &quot;joinDate&quot;: &quot;2021-09-01&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 30,
+    &quot;name&quot;: &quot;Ava Wilson&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;ava.wilson@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 91900,
+    &quot;joinDate&quot;: &quot;2014-02-04&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 31,
+    &quot;name&quot;: &quot;Ethan Wilson&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.wilson@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 108400,
+    &quot;joinDate&quot;: &quot;2019-07-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 32,
+    &quot;name&quot;: &quot;Mia Wilson&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;mia.wilson@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 102900,
+    &quot;joinDate&quot;: &quot;2024-12-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 33,
+    &quot;name&quot;: &quot;Lucas Wilson&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;lucas.wilson@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 122200,
+    &quot;joinDate&quot;: &quot;2017-05-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 34,
+    &quot;name&quot;: &quot;Chloe Wilson&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.wilson@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 71700,
+    &quot;joinDate&quot;: &quot;2022-10-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 35,
+    &quot;name&quot;: &quot;Henry Wilson&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.wilson@example.com&quot;,
+    &quot;age&quot;: 42,
+    &quot;salary&quot;: 123000,
+    &quot;joinDate&quot;: &quot;2015-03-19&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 36,
+    &quot;name&quot;: &quot;Isabella Wilson&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;isabella.wilson@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 80000,
+    &quot;joinDate&quot;: &quot;2020-08-22&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 37,
+    &quot;name&quot;: &quot;Noah Wilson&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.wilson@example.com&quot;,
+    &quot;age&quot;: 25,
+    &quot;salary&quot;: 82500,
+    &quot;joinDate&quot;: &quot;2025-01-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 38,
+    &quot;name&quot;: &quot;Amelia Wilson&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;amelia.wilson@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 88800,
+    &quot;joinDate&quot;: &quot;2018-06-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 39,
+    &quot;name&quot;: &quot;Leo Wilson&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.wilson@example.com&quot;,
+    &quot;age&quot;: 29,
+    &quot;salary&quot;: 104300,
+    &quot;joinDate&quot;: &quot;2023-11-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 40,
+    &quot;name&quot;: &quot;Charlotte Wilson&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.wilson@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 128600,
+    &quot;joinDate&quot;: &quot;2016-04-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 41,
+    &quot;name&quot;: &quot;John Lee&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;john.lee@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 99100,
+    &quot;joinDate&quot;: &quot;2021-09-09&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 42,
+    &quot;name&quot;: &quot;Emma Lee&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;emma.lee@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 94400,
+    &quot;joinDate&quot;: &quot;2014-02-12&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 43,
+    &quot;name&quot;: &quot;Michael Lee&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.lee@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 107400,
+    &quot;joinDate&quot;: &quot;2019-07-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 44,
+    &quot;name&quot;: &quot;Sophia Lee&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;sophia.lee@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 101900,
+    &quot;joinDate&quot;: &quot;2024-12-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 45,
+    &quot;name&quot;: &quot;David Lee&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;david.lee@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 121200,
+    &quot;joinDate&quot;: &quot;2017-05-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 46,
+    &quot;name&quot;: &quot;Olivia Lee&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;olivia.lee@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 70700,
+    &quot;joinDate&quot;: &quot;2022-10-24&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 47,
+    &quot;name&quot;: &quot;James Lee&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.lee@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 122000,
+    &quot;joinDate&quot;: &quot;2015-03-27&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 48,
+    &quot;name&quot;: &quot;Grace Lee&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;grace.lee@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 82500,
+    &quot;joinDate&quot;: &quot;2020-08-02&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 49,
+    &quot;name&quot;: &quot;Daniel Lee&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;daniel.lee@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 85000,
+    &quot;joinDate&quot;: &quot;2025-01-05&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 50,
+    &quot;name&quot;: &quot;Ava Lee&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;ava.lee@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 87800,
+    &quot;joinDate&quot;: &quot;2018-06-08&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 51,
+    &quot;name&quot;: &quot;Ethan Lee&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.lee@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 103300,
+    &quot;joinDate&quot;: &quot;2023-11-11&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 52,
+    &quot;name&quot;: &quot;Mia Lee&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;mia.lee@example.com&quot;,
+    &quot;age&quot;: 40,
+    &quot;salary&quot;: 127600,
+    &quot;joinDate&quot;: &quot;2016-04-14&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 53,
+    &quot;name&quot;: &quot;Lucas Lee&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;lucas.lee@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 98100,
+    &quot;joinDate&quot;: &quot;2021-09-17&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 54,
+    &quot;name&quot;: &quot;Chloe Lee&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;chloe.lee@example.com&quot;,
+    &quot;age&quot;: 44,
+    &quot;salary&quot;: 93400,
+    &quot;joinDate&quot;: &quot;2014-02-20&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 55,
+    &quot;name&quot;: &quot;Henry Lee&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.lee@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 109900,
+    &quot;joinDate&quot;: &quot;2019-07-23&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 56,
+    &quot;name&quot;: &quot;Isabella Lee&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;isabella.lee@example.com&quot;,
+    &quot;age&quot;: 27,
+    &quot;salary&quot;: 104400,
+    &quot;joinDate&quot;: &quot;2024-12-26&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 57,
+    &quot;name&quot;: &quot;Noah Lee&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;noah.lee@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 120200,
+    &quot;joinDate&quot;: &quot;2017-05-01&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 58,
+    &quot;name&quot;: &quot;Amelia Lee&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;amelia.lee@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 69700,
+    &quot;joinDate&quot;: &quot;2022-10-04&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 59,
+    &quot;name&quot;: &quot;Leo Lee&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.lee@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 121000,
+    &quot;joinDate&quot;: &quot;2015-03-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 60,
+    &quot;name&quot;: &quot;Charlotte Lee&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;charlotte.lee@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 81500,
+    &quot;joinDate&quot;: &quot;2020-08-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 61,
+    &quot;name&quot;: &quot;John Park&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;john.park@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 84000,
+    &quot;joinDate&quot;: &quot;2025-01-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 62,
+    &quot;name&quot;: &quot;Emma Park&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.park@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 90300,
+    &quot;joinDate&quot;: &quot;2018-06-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 63,
+    &quot;name&quot;: &quot;Michael Park&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.park@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 105800,
+    &quot;joinDate&quot;: &quot;2023-11-19&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 64,
+    &quot;name&quot;: &quot;Sophia Park&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;sophia.park@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 126600,
+    &quot;joinDate&quot;: &quot;2016-04-22&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 65,
+    &quot;name&quot;: &quot;David Park&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.park@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 97100,
+    &quot;joinDate&quot;: &quot;2021-09-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 66,
+    &quot;name&quot;: &quot;Olivia Park&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;olivia.park@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 92400,
+    &quot;joinDate&quot;: &quot;2014-02-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 67,
+    &quot;name&quot;: &quot;James Park&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.park@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 108900,
+    &quot;joinDate&quot;: &quot;2019-07-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 68,
+    &quot;name&quot;: &quot;Grace Park&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.park@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 103400,
+    &quot;joinDate&quot;: &quot;2024-12-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 69,
+    &quot;name&quot;: &quot;Daniel Park&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;daniel.park@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 122700,
+    &quot;joinDate&quot;: &quot;2017-05-09&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 70,
+    &quot;name&quot;: &quot;Ava Park&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;ava.park@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 72200,
+    &quot;joinDate&quot;: &quot;2022-10-12&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 71,
+    &quot;name&quot;: &quot;Ethan Park&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.park@example.com&quot;,
+    &quot;age&quot;: 42,
+    &quot;salary&quot;: 120000,
+    &quot;joinDate&quot;: &quot;2015-03-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 72,
+    &quot;name&quot;: &quot;Mia Park&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;mia.park@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 80500,
+    &quot;joinDate&quot;: &quot;2020-08-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 73,
+    &quot;name&quot;: &quot;Lucas Park&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;lucas.park@example.com&quot;,
+    &quot;age&quot;: 25,
+    &quot;salary&quot;: 83000,
+    &quot;joinDate&quot;: &quot;2025-01-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 74,
+    &quot;name&quot;: &quot;Chloe Park&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.park@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 89300,
+    &quot;joinDate&quot;: &quot;2018-06-24&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 75,
+    &quot;name&quot;: &quot;Henry Park&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.park@example.com&quot;,
+    &quot;age&quot;: 29,
+    &quot;salary&quot;: 104800,
+    &quot;joinDate&quot;: &quot;2023-11-27&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 76,
+    &quot;name&quot;: &quot;Isabella Park&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;isabella.park@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 129100,
+    &quot;joinDate&quot;: &quot;2016-04-02&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 77,
+    &quot;name&quot;: &quot;Noah Park&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.park@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 99600,
+    &quot;joinDate&quot;: &quot;2021-09-05&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 78,
+    &quot;name&quot;: &quot;Amelia Park&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;amelia.park@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 91400,
+    &quot;joinDate&quot;: &quot;2014-02-08&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 79,
+    &quot;name&quot;: &quot;Leo Park&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.park@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 107900,
+    &quot;joinDate&quot;: &quot;2019-07-11&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 80,
+    &quot;name&quot;: &quot;Charlotte Park&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.park@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 102400,
+    &quot;joinDate&quot;: &quot;2024-12-14&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 81,
+    &quot;name&quot;: &quot;John Kim&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;john.kim@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 121700,
+    &quot;joinDate&quot;: &quot;2017-05-17&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 82,
+    &quot;name&quot;: &quot;Emma Kim&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.kim@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 71200,
+    &quot;joinDate&quot;: &quot;2022-10-20&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 83,
+    &quot;name&quot;: &quot;Michael Kim&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.kim@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 122500,
+    &quot;joinDate&quot;: &quot;2015-03-23&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 84,
+    &quot;name&quot;: &quot;Sophia Kim&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;sophia.kim@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 83000,
+    &quot;joinDate&quot;: &quot;2020-08-26&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 85,
+    &quot;name&quot;: &quot;David Kim&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.kim@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 82000,
+    &quot;joinDate&quot;: &quot;2025-01-01&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 86,
+    &quot;name&quot;: &quot;Olivia Kim&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;olivia.kim@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 88300,
+    &quot;joinDate&quot;: &quot;2018-06-04&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 87,
+    &quot;name&quot;: &quot;James Kim&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.kim@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 103800,
+    &quot;joinDate&quot;: &quot;2023-11-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 88,
+    &quot;name&quot;: &quot;Grace Kim&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.kim@example.com&quot;,
+    &quot;age&quot;: 40,
+    &quot;salary&quot;: 128100,
+    &quot;joinDate&quot;: &quot;2016-04-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 89,
+    &quot;name&quot;: &quot;Daniel Kim&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;daniel.kim@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 98600,
+    &quot;joinDate&quot;: &quot;2021-09-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 90,
+    &quot;name&quot;: &quot;Ava Kim&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;ava.kim@example.com&quot;,
+    &quot;age&quot;: 44,
+    &quot;salary&quot;: 93900,
+    &quot;joinDate&quot;: &quot;2014-02-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 91,
+    &quot;name&quot;: &quot;Ethan Kim&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.kim@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 110400,
+    &quot;joinDate&quot;: &quot;2019-07-19&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 92,
+    &quot;name&quot;: &quot;Mia Kim&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;mia.kim@example.com&quot;,
+    &quot;age&quot;: 27,
+    &quot;salary&quot;: 101400,
+    &quot;joinDate&quot;: &quot;2024-12-22&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 93,
+    &quot;name&quot;: &quot;Lucas Kim&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;lucas.kim@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 120700,
+    &quot;joinDate&quot;: &quot;2017-05-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 94,
+    &quot;name&quot;: &quot;Chloe Kim&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.kim@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 70200,
+    &quot;joinDate&quot;: &quot;2022-10-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 95,
+    &quot;name&quot;: &quot;Henry Kim&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.kim@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 121500,
+    &quot;joinDate&quot;: &quot;2015-03-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 96,
+    &quot;name&quot;: &quot;Isabella Kim&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;isabella.kim@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 82000,
+    &quot;joinDate&quot;: &quot;2020-08-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 97,
+    &quot;name&quot;: &quot;Noah Kim&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.kim@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 84500,
+    &quot;joinDate&quot;: &quot;2025-01-09&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 98,
+    &quot;name&quot;: &quot;Amelia Kim&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;amelia.kim@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 90800,
+    &quot;joinDate&quot;: &quot;2018-06-12&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 99,
+    &quot;name&quot;: &quot;Leo Kim&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.kim@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 102800,
+    &quot;joinDate&quot;: &quot;2023-11-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 100,
+    &quot;name&quot;: &quot;Charlotte Kim&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.kim@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 127100,
+    &quot;joinDate&quot;: &quot;2016-04-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 101,
+    &quot;name&quot;: &quot;John Chen&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;john.chen@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 97600,
+    &quot;joinDate&quot;: &quot;2021-09-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 102,
+    &quot;name&quot;: &quot;Emma Chen&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;emma.chen@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 92900,
+    &quot;joinDate&quot;: &quot;2014-02-24&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 103,
+    &quot;name&quot;: &quot;Michael Chen&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.chen@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 109400,
+    &quot;joinDate&quot;: &quot;2019-07-27&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 104,
+    &quot;name&quot;: &quot;Sophia Chen&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;sophia.chen@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 103900,
+    &quot;joinDate&quot;: &quot;2024-12-02&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 105,
+    &quot;name&quot;: &quot;David Chen&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;david.chen@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 123200,
+    &quot;joinDate&quot;: &quot;2017-05-05&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 106,
+    &quot;name&quot;: &quot;Olivia Chen&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;olivia.chen@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 69200,
+    &quot;joinDate&quot;: &quot;2022-10-08&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 107,
+    &quot;name&quot;: &quot;James Chen&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.chen@example.com&quot;,
+    &quot;age&quot;: 42,
+    &quot;salary&quot;: 120500,
+    &quot;joinDate&quot;: &quot;2015-03-11&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 108,
+    &quot;name&quot;: &quot;Grace Chen&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;grace.chen@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 81000,
+    &quot;joinDate&quot;: &quot;2020-08-14&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 109,
+    &quot;name&quot;: &quot;Daniel Chen&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;daniel.chen@example.com&quot;,
+    &quot;age&quot;: 25,
+    &quot;salary&quot;: 83500,
+    &quot;joinDate&quot;: &quot;2025-01-17&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 110,
+    &quot;name&quot;: &quot;Ava Chen&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;ava.chen@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 89800,
+    &quot;joinDate&quot;: &quot;2018-06-20&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 111,
+    &quot;name&quot;: &quot;Ethan Chen&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.chen@example.com&quot;,
+    &quot;age&quot;: 29,
+    &quot;salary&quot;: 105300,
+    &quot;joinDate&quot;: &quot;2023-11-23&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 112,
+    &quot;name&quot;: &quot;Mia Chen&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;mia.chen@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 129600,
+    &quot;joinDate&quot;: &quot;2016-04-26&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 113,
+    &quot;name&quot;: &quot;Lucas Chen&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;lucas.chen@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 96600,
+    &quot;joinDate&quot;: &quot;2021-09-01&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 114,
+    &quot;name&quot;: &quot;Chloe Chen&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;chloe.chen@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 91900,
+    &quot;joinDate&quot;: &quot;2014-02-04&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 115,
+    &quot;name&quot;: &quot;Henry Chen&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.chen@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 108400,
+    &quot;joinDate&quot;: &quot;2019-07-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 116,
+    &quot;name&quot;: &quot;Isabella Chen&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;isabella.chen@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 102900,
+    &quot;joinDate&quot;: &quot;2024-12-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 117,
+    &quot;name&quot;: &quot;Noah Chen&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;noah.chen@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 122200,
+    &quot;joinDate&quot;: &quot;2017-05-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 118,
+    &quot;name&quot;: &quot;Amelia Chen&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;amelia.chen@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 71700,
+    &quot;joinDate&quot;: &quot;2022-10-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 119,
+    &quot;name&quot;: &quot;Leo Chen&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.chen@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 123000,
+    &quot;joinDate&quot;: &quot;2015-03-19&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 120,
+    &quot;name&quot;: &quot;Charlotte Chen&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;charlotte.chen@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 80000,
+    &quot;joinDate&quot;: &quot;2020-08-22&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 121,
+    &quot;name&quot;: &quot;John Song&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;john.song@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 82500,
+    &quot;joinDate&quot;: &quot;2025-01-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 122,
+    &quot;name&quot;: &quot;Emma Song&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.song@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 88800,
+    &quot;joinDate&quot;: &quot;2018-06-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 123,
+    &quot;name&quot;: &quot;Michael Song&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.song@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 104300,
+    &quot;joinDate&quot;: &quot;2023-11-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 124,
+    &quot;name&quot;: &quot;Sophia Song&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;sophia.song@example.com&quot;,
+    &quot;age&quot;: 40,
+    &quot;salary&quot;: 128600,
+    &quot;joinDate&quot;: &quot;2016-04-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 125,
+    &quot;name&quot;: &quot;David Song&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.song@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 99100,
+    &quot;joinDate&quot;: &quot;2021-09-09&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 126,
+    &quot;name&quot;: &quot;Olivia Song&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;olivia.song@example.com&quot;,
+    &quot;age&quot;: 44,
+    &quot;salary&quot;: 94400,
+    &quot;joinDate&quot;: &quot;2014-02-12&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 127,
+    &quot;name&quot;: &quot;James Song&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.song@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 107400,
+    &quot;joinDate&quot;: &quot;2019-07-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 128,
+    &quot;name&quot;: &quot;Grace Song&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.song@example.com&quot;,
+    &quot;age&quot;: 27,
+    &quot;salary&quot;: 101900,
+    &quot;joinDate&quot;: &quot;2024-12-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 129,
+    &quot;name&quot;: &quot;Daniel Song&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;daniel.song@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 121200,
+    &quot;joinDate&quot;: &quot;2017-05-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 130,
+    &quot;name&quot;: &quot;Ava Song&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;ava.song@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 70700,
+    &quot;joinDate&quot;: &quot;2022-10-24&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 131,
+    &quot;name&quot;: &quot;Ethan Song&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.song@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 122000,
+    &quot;joinDate&quot;: &quot;2015-03-27&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 132,
+    &quot;name&quot;: &quot;Mia Song&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;mia.song@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 82500,
+    &quot;joinDate&quot;: &quot;2020-08-02&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 133,
+    &quot;name&quot;: &quot;Lucas Song&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;lucas.song@example.com&quot;,
+    &quot;age&quot;: 31,
+    &quot;salary&quot;: 85000,
+    &quot;joinDate&quot;: &quot;2025-01-05&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 134,
+    &quot;name&quot;: &quot;Chloe Song&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.song@example.com&quot;,
+    &quot;age&quot;: 39,
+    &quot;salary&quot;: 87800,
+    &quot;joinDate&quot;: &quot;2018-06-08&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 135,
+    &quot;name&quot;: &quot;Henry Song&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.song@example.com&quot;,
+    &quot;age&quot;: 35,
+    &quot;salary&quot;: 103300,
+    &quot;joinDate&quot;: &quot;2023-11-11&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 136,
+    &quot;name&quot;: &quot;Isabella Song&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;isabella.song@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 127600,
+    &quot;joinDate&quot;: &quot;2016-04-14&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 137,
+    &quot;name&quot;: &quot;Noah Song&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.song@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 98100,
+    &quot;joinDate&quot;: &quot;2021-09-17&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 138,
+    &quot;name&quot;: &quot;Amelia Song&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;amelia.song@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 93400,
+    &quot;joinDate&quot;: &quot;2014-02-20&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 139,
+    &quot;name&quot;: &quot;Leo Song&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.song@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 109900,
+    &quot;joinDate&quot;: &quot;2019-07-23&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 140,
+    &quot;name&quot;: &quot;Charlotte Song&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.song@example.com&quot;,
+    &quot;age&quot;: 30,
+    &quot;salary&quot;: 104400,
+    &quot;joinDate&quot;: &quot;2024-12-26&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 141,
+    &quot;name&quot;: &quot;John Bae&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;john.bae@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 120200,
+    &quot;joinDate&quot;: &quot;2017-05-01&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 142,
+    &quot;name&quot;: &quot;Emma Bae&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;emma.bae@example.com&quot;,
+    &quot;age&quot;: 34,
+    &quot;salary&quot;: 69700,
+    &quot;joinDate&quot;: &quot;2022-10-04&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 143,
+    &quot;name&quot;: &quot;Michael Bae&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;michael.bae@example.com&quot;,
+    &quot;age&quot;: 42,
+    &quot;salary&quot;: 121000,
+    &quot;joinDate&quot;: &quot;2015-03-07&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 144,
+    &quot;name&quot;: &quot;Sophia Bae&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;sophia.bae@example.com&quot;,
+    &quot;age&quot;: 38,
+    &quot;salary&quot;: 81500,
+    &quot;joinDate&quot;: &quot;2020-08-10&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 145,
+    &quot;name&quot;: &quot;David Bae&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;david.bae@example.com&quot;,
+    &quot;age&quot;: 25,
+    &quot;salary&quot;: 84000,
+    &quot;joinDate&quot;: &quot;2025-01-13&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 146,
+    &quot;name&quot;: &quot;Olivia Bae&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;olivia.bae@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 90300,
+    &quot;joinDate&quot;: &quot;2018-06-16&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 147,
+    &quot;name&quot;: &quot;James Bae&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;james.bae@example.com&quot;,
+    &quot;age&quot;: 29,
+    &quot;salary&quot;: 105800,
+    &quot;joinDate&quot;: &quot;2023-11-19&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 148,
+    &quot;name&quot;: &quot;Grace Bae&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;grace.bae@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 126600,
+    &quot;joinDate&quot;: &quot;2016-04-22&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 149,
+    &quot;name&quot;: &quot;Daniel Bae&quot;,
+    &quot;position&quot;: &quot;Mobile Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;daniel.bae@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 97100,
+    &quot;joinDate&quot;: &quot;2021-09-25&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 150,
+    &quot;name&quot;: &quot;Ava Bae&quot;,
+    &quot;position&quot;: &quot;QA Engineer&quot;,
+    &quot;department&quot;: &quot;Quality&quot;,
+    &quot;email&quot;: &quot;ava.bae@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 92400,
+    &quot;joinDate&quot;: &quot;2014-02-28&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 151,
+    &quot;name&quot;: &quot;Ethan Bae&quot;,
+    &quot;position&quot;: &quot;Fullstack Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;ethan.bae@example.com&quot;,
+    &quot;age&quot;: 37,
+    &quot;salary&quot;: 108900,
+    &quot;joinDate&quot;: &quot;2019-07-03&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 152,
+    &quot;name&quot;: &quot;Mia Bae&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;mia.bae@example.com&quot;,
+    &quot;age&quot;: 33,
+    &quot;salary&quot;: 103400,
+    &quot;joinDate&quot;: &quot;2024-12-06&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 153,
+    &quot;name&quot;: &quot;Lucas Bae&quot;,
+    &quot;position&quot;: &quot;Data Engineer&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;lucas.bae@example.com&quot;,
+    &quot;age&quot;: 41,
+    &quot;salary&quot;: 122700,
+    &quot;joinDate&quot;: &quot;2017-05-09&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 154,
+    &quot;name&quot;: &quot;Chloe Bae&quot;,
+    &quot;position&quot;: &quot;Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;chloe.bae@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 72200,
+    &quot;joinDate&quot;: &quot;2022-10-12&quot;,
+    &quot;active&quot;: false
+  },
+  {
+    &quot;id&quot;: 155,
+    &quot;name&quot;: &quot;Henry Bae&quot;,
+    &quot;position&quot;: &quot;DevOps Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;henry.bae@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 120000,
+    &quot;joinDate&quot;: &quot;2015-03-15&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 156,
+    &quot;name&quot;: &quot;Isabella Bae&quot;,
+    &quot;position&quot;: &quot;Data Analyst&quot;,
+    &quot;department&quot;: &quot;Data&quot;,
+    &quot;email&quot;: &quot;isabella.bae@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 80500,
+    &quot;joinDate&quot;: &quot;2020-08-18&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 157,
+    &quot;name&quot;: &quot;Noah Bae&quot;,
+    &quot;position&quot;: &quot;Frontend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;noah.bae@example.com&quot;,
+    &quot;age&quot;: 28,
+    &quot;salary&quot;: 83000,
+    &quot;joinDate&quot;: &quot;2025-01-21&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 158,
+    &quot;name&quot;: &quot;Amelia Bae&quot;,
+    &quot;position&quot;: &quot;UX Designer&quot;,
+    &quot;department&quot;: &quot;Design&quot;,
+    &quot;email&quot;: &quot;amelia.bae@example.com&quot;,
+    &quot;age&quot;: 36,
+    &quot;salary&quot;: 89300,
+    &quot;joinDate&quot;: &quot;2018-06-24&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 159,
+    &quot;name&quot;: &quot;Leo Bae&quot;,
+    &quot;position&quot;: &quot;Backend Engineer&quot;,
+    &quot;department&quot;: &quot;Platform&quot;,
+    &quot;email&quot;: &quot;leo.bae@example.com&quot;,
+    &quot;age&quot;: 32,
+    &quot;salary&quot;: 104800,
+    &quot;joinDate&quot;: &quot;2023-11-27&quot;,
+    &quot;active&quot;: true
+  },
+  {
+    &quot;id&quot;: 160,
+    &quot;name&quot;: &quot;Charlotte Bae&quot;,
+    &quot;position&quot;: &quot;Product Manager&quot;,
+    &quot;department&quot;: &quot;Product&quot;,
+    &quot;email&quot;: &quot;charlotte.bae@example.com&quot;,
+    &quot;age&quot;: 40,
+    &quot;salary&quot;: 129100,
+    &quot;joinDate&quot;: &quot;2016-04-02&quot;,
+    &quot;active&quot;: true
+  }
+],
+});</code></pre></div></div></div></article></div></main></div></div></div>
+  </body>
+</html>
