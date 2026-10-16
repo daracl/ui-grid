@@ -297,12 +297,7 @@ export class ListDataManager extends DataManager {
           removedIds.push(rowId);
 
           // DataManager 내 데이터 삭제 처리
-          if (typeof (this as any).deleteRowItem === 'function') {
-            (this as any).deleteRowItem(rowId);
-          } else if (typeof (this as any).removeRowItem === 'function') {
-            (this as any).removeRowItem(rowId);
-          }
-          this.matchOffsetMap.delete(rowId);
+          this.deleteRowItem(rowId);
         } else {
           remainingViewItems.push(viewItem);
         }

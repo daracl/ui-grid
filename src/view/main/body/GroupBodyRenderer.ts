@@ -227,7 +227,16 @@ export class GroupBodyRenderer extends BodyRenderer {
         continue;
       }
 
-      cell.classList.remove('dg-group-continuation', BodyCellStyleMap.SELECTION, BodyCellStyleMap.START_CELL);
+      const previousClasses = this.context.cellClassNameCache.get(cell);
+      if (previousClasses?.length) cell.classList.remove(...previousClasses);
+      this.context.cellClassNameCache.delete(cell);
+      cell.classList.remove(
+        'dg-group-continuation',
+        'dg-search-highlight',
+        'dg-search-match',
+        BodyCellStyleMap.SELECTION,
+        BodyCellStyleMap.START_CELL,
+      );
       cell.classList.add('dg-group-cell');
       const renderer = cell.firstElementChild as HTMLElement;
       renderer.textContent = '';

@@ -154,18 +154,8 @@ export abstract class BodyRenderer {
       const item = dataManager.getRowItem(viewItem.id);
       const rowIdx = pagingStartIdx + viewRowIdx;
 
-      if (item[ROW_FIELD.CUD] === ItemStatusMap.DELETE) {
-        if (!allRowElements.center[i].classList.contains(deleteRowClassName)) {
-          allRowElements.center[i].classList.add(deleteRowClassName);
-
-          if (enabledLeftField) allRowElements.left[i].classList.add(deleteRowClassName);
-          if (enabledRightField) allRowElements.right[i].classList.add(deleteRowClassName);
-        }
-      } else if (allRowElements.center[i].classList.contains(deleteRowClassName)) {
-        if (enabledLeftField) allRowElements.left[i].classList.remove(deleteRowClassName);
-        if (enabledRightField) allRowElements.right[i].classList.remove(deleteRowClassName);
-
-        allRowElements.center[i].classList.remove(deleteRowClassName);
+      for (const rowElement of [allRowElements.left?.[i], allRowElements.center?.[i], allRowElements.right?.[i]]) {
+        rowElement?.classList.toggle(deleteRowClassName, item[ROW_FIELD.CUD] === ItemStatusMap.DELETE);
       }
 
       matchInfo.matchViewItem = undefined;
@@ -202,8 +192,8 @@ export abstract class BodyRenderer {
       }
 
       // center panel
-      const rowCenterCells = centerElements[i];
-      for (let j = startCol; j <= endCol; j++) {
+      const rowCenterCells = centerElements?.[i];
+      for (let j = startCol; rowCenterCells && j <= endCol; j++) {
         const field = leafAllFields[j];
         const cell = rowCenterCells[j];
 
@@ -367,7 +357,7 @@ export abstract class BodyRenderer {
     const cfg = this.context.gridMain.config();
     const leafLeft = cfg.fieldHeaderGroup.leafLeft;
 
-    if (leafLeft && !leafLeft[0].$isAside) {
+    if (!leafLeft?.[0]?.$isAside) {
       return;
     }
 

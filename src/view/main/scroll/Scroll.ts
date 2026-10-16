@@ -9,6 +9,13 @@ import { ScrollMoveOptions } from '@/types/Scroll';
 import { ScrollDirectionX, ScrollDirectionXMap, ScrollDirectionY, ScrollDirectionYMap } from '@/constants';
 
 export class Scroll {
+  public destroy(): void {
+    if (this.wheelAnimationId !== 0) cancelAnimationFrame(this.wheelAnimationId);
+    this.wheelAnimationId = 0;
+    this.pendingVerticalDelta = 0;
+    this.pendingHorizontalDelta = 0;
+    this.verticalScroll?.destroy();
+  }
   private readonly gridMain: GridMain;
   private readonly opts: GridOptions;
 

@@ -59,7 +59,7 @@ export abstract class ViewCellRenderer extends CellRenderer {
       return formatValue(val, this.field.displayFormat);
     }
 
-    if (!val && !isBlank(this.field.defaultValue)) {
+    if (isBlank(val) && !isBlank(this.field.defaultValue)) {
       return this.field.defaultValue;
     }
 

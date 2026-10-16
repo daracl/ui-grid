@@ -4,7 +4,7 @@ const currentScriptUrl =
 
 export function getKoreanFontUrl(): string {
   if (currentScriptUrl) {
-    return new URL(fontAssetPath, currentScriptUrl).href;
+    return new URL(fontAssetPath, new URL(currentScriptUrl, document.baseURI)).href;
   }
 
   if (import.meta.env.DEV) {

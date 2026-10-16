@@ -1,4 +1,6 @@
 import { GridOptions } from '@/types/GridOptions';
+import { GridMain } from '@/view/GridMain';
+import { SearchMode } from '@/types/Common';
 
 const canvasContext = {
   font: '',
@@ -50,6 +52,116 @@ describe('Grid workflows', () => {
 
   const centerRows = (element: HTMLElement) =>
     Array.from(element.querySelectorAll('.dg-region[data-region="center"] .dg-row'));
+
+  const mainOf = (grid: GridInstance) => (grid as unknown as { gridMain: GridMain }).gridMain;
+
+  it.each([false, true])('renders without aside columns (grouped: %s)', (grouped) => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320,
+      aside: { lineNumber: { enabled: false } },
+      groupingFields: grouped ? ['category'] : [],
+      sumFields: grouped ? ['amount'] : [],
+      fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
+      items: [{ category: 'A', amount: 5 }],
+    } as unknown as GridOptions);
+    expect(element.querySelector('.dg-region[data-region="left"] .dg-row')).toBeNull();
+    expect(centerRows(element)[0].textContent).toContain('A');
+    expect(grid.getItems()).toHaveLength(1);
+  });
+
+  it.each([false, true])('renders with every data column fixed left (grouped: %s)', (grouped) => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320, fixedLeftIndex: 2,
+      groupingFields: grouped ? ['category'] : [],
+      sumFields: grouped ? ['amount'] : [],
+      fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
+      items: [{ category: 'A', amount: 5 }],
+    } as unknown as GridOptions);
+    expect(centerRows(element)).toHaveLength(0);
+    expect(element.querySelector('.dg-region[data-region="left"] .dg-row')?.textContent).toContain('A');
+    const main = mainOf(grid);
+    const manager = main.config().dataManager;
+    const id = manager.getViewItems()[0].id;
+    manager.removeSoftItem([id]);
+    main.getBody().dataDraw();
+    expect(element.querySelector('.dg-region[data-region="left"] .dg-row')?.classList.contains('dg-status-delete')).toBe(true);
+    manager.undo();
+    expect(element.querySelector('.dg-region[data-region="left"] .dg-row')?.classList.contains('dg-status-delete')).toBe(false);
+  });
+
+  it('clears detail classes and search highlights when scrolling a subtotal into a recycled cell', () => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 180, groupingFields: ['category'], sumFields: ['amount'],
+      fields: [{ name: 'category', width: 160, cellClassName: 'detail-only' }, { name: 'amount', width: 100 }],
+      items: Array.from({ length: 30 }, (_, i) => ({ category: `A${String(i).padStart(2, '0')}`, amount: i })),
+    } as unknown as GridOptions);
+    grid.search('A00', { searchFields: ['category'] } as SearchMode);
+    const cell = element.querySelector('.dg-region[data-region="center"] .dg-row .dg-cell')!;
+    expect(cell.classList.contains('detail-only')).toBe(true);
+    expect(cell.classList.contains('dg-search-match')).toBe(true);
+    const main = mainOf(grid);
+    main.getScroll().moveVerticalScroll({ rowIdx: 1, drawFlag: false });
+    main.getBody().dataDraw();
+    expect(cell.classList.contains('dg-group-cell')).toBe(true);
+    for (const name of ['detail-only', 'dg-search-match', 'dg-search-highlight']) {
+      expect(cell.classList.contains(name)).toBe(false);
+    }
+    main.getScroll().moveVerticalScroll({ rowIdx: 0, drawFlag: false });
+    main.getBody().dataDraw();
+    expect(cell.classList.contains('detail-only')).toBe(true);
+    expect(cell.classList.contains('dg-search-match')).toBe(true);
+  });
+
+  it.each([false, true])('removes hard-deleted row data and check state (grouped: %s)', (grouped) => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320, rowIdField: 'id', deleteMode: 'hard',
+      groupingFields: grouped ? ['category'] : [], sumFields: grouped ? ['amount'] : [],
+      fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
+      items: [{ id: 'a', category: 'A', amount: 5 }, { id: 'b', category: 'B', amount: 7 }],
+    } as unknown as GridOptions);
+    const manager = mainOf(grid).config().dataManager;
+    manager.setItemChecked('a', true);
+    grid.removeItems(['a']);
+    expect(manager.getRowItem('a')).toBeUndefined();
+    expect(manager.getCheckedCount()).toBe(0);
+    expect(grid.getItems().map((item: any) => item.id)).toEqual(['b']);
+    if (grouped) expect(element.querySelector('.dg-region[data-region="center"] .dg-grand-summary')?.textContent).toContain('7');
+  });
+
+  it.each([false, true])('supports grouped add undo/redo and sum updates (sorted: %s)', (sorted) => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320, rowIdField: 'id', groupingFields: ['category'], sumFields: ['amount'],
+      fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
+      items: [{ id: 'a', category: 'A', amount: 5 }, { id: 'b', category: 'B', amount: 7 }],
+    } as unknown as GridOptions);
+    const main = mainOf(grid);
+    const manager = main.config().dataManager;
+    const field = main.config().currentFields.find((field) => field.name === 'amount')!;
+    if (sorted) manager.dataSort([{ name: 'amount', field, ascOrder: true, sortCell: field.$colSeq }], grid.getOptions().header.sort);
+    grid.createItem({ id: 'c', category: 'C', amount: 3 });
+    const total = () => manager.getViewItems().find((item) => item.groupRowType === 'grandSummary')?.groupSums?.amount;
+    expect(total()).toBe(15);
+    expect(manager.undo()).toBe(true);
+    expect(grid.getItems().map((item: any) => item.id)).not.toContain('c');
+    expect(total()).toBe(12);
+    expect(manager.redo()).toBe(true);
+    expect(grid.getItems().map((item: any) => item.id)).toContain('c');
+    expect(total()).toBe(15);
+    manager.setChangeValue(manager.getRowItem('c'), field, 8);
+    expect(total()).toBe(20);
+    manager.undo();
+    expect(total()).toBe(15);
+  });
 
   it('renders list data and reflects replacement through the public API', () => {
     const element = document.createElement('div');
@@ -201,6 +313,33 @@ describe('Grid workflows', () => {
     expect(mockPdfConvert).toHaveBeenCalledWith(expect.anything(), {});
   });
 
+  it('exports display labels, masking, and effective column alignment', async () => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 800,
+      height: 320,
+      fields: [
+        { name: 'secret', renderer: { type: 'password' } },
+        { name: 'empty', renderer: { type: 'hidden' } },
+        { name: 'url', renderer: { type: 'link', refValue: () => ({ label: 'Open' }) } },
+        {
+          name: 'status',
+          renderer: { type: 'dropdown' },
+          editRenderer: { type: 'dropdown', listItem: { list: [{ value: 'A', label: 'Active' }] } },
+        },
+        { name: 'amount', renderer: { type: 'number' } },
+      ],
+      items: [{ secret: 'private', empty: 'invisible', url: 'https://example.com', status: 'A', amount: 10 }],
+    } as unknown as GridOptions);
+    mockPdfConvert.mockClear();
+    await grid.exportPdf();
+    const data = mockPdfConvert.mock.calls[0][0];
+    expect(data.rows[0]).toEqual(['1', '********', '', 'Open', 'Active', '10']);
+    expect(data.columns.find((column: { name: string }) => column.name === 'amount').align).toBe('right');
+    expect(data.columns.find((column: { name: string }) => column.name === 'status').align).toBe('center');
+  });
+
   it('exports bar and sparkline fields as chart graphics', async () => {
     const element = document.createElement('div');
     document.body.appendChild(element);
@@ -251,6 +390,9 @@ describe('Grid workflows', () => {
       .dg-body .dg-group-cell { background-color: rgb(240, 240, 240); }
       .dg-body .dg-cell { border-right: 1px solid rgb(100, 100, 100); border-bottom: 1px solid rgb(100, 100, 100); }
       .dg-body .dg-group-continuation { border-bottom-color: transparent !important; }
+      .dg-header th { background-color: rgb(20, 30, 40); color: rgb(240, 240, 240); }
+      .dg-main { border: 2px dashed rgb(30, 40, 50); }
+      .dg-body .dg-cell { color: rgb(80, 90, 100); }
     `;
     document.head.appendChild(style);
 
@@ -303,6 +445,11 @@ describe('Grid workflows', () => {
       'rgb(240, 240, 240)',
     ]);
     expect(exportedData.cellBorders).toHaveLength(8);
+    expect(exportedData.tableBorders.top).toEqual({ color: 'rgb(30, 40, 50)', width: 2, style: 'dashed' });
+    expect(exportedData.tableBorders.left).toEqual(exportedData.tableBorders.top);
+    expect(exportedData.cellTextColors[0][1]).toBe('rgb(80, 90, 100)');
+    expect(exportedData.headerBackgrounds[1]).toBe('rgb(20, 30, 40)');
+    expect(exportedData.headerTextColors[1]).toBe('rgb(240, 240, 240)');
     expect(exportedData.cellBorders[1][1].right).toEqual({ color: 'rgb(100, 100, 100)', width: 1 });
     expect(exportedData.cellBorders[1][1].bottom).toBeUndefined();
     expect(mockPdfConvert).toHaveBeenCalledWith(expect.anything(), {});

@@ -15,16 +15,19 @@ import TimesItalic from 'pdfkit/standard-fonts/TimesItalic';
 import TimesRoman from 'pdfkit/standard-fonts/TimesRoman';
 import ZapfDingbats from 'pdfkit/standard-fonts/ZapfDingbats';
 import { getKoreanFontUrl } from '@/pdf/PdfFontUrl';
+export { normalizePdfCellValue } from './PdfValue';
 
 export interface PdfColumn {
   name: string;
   label: string;
   width?: number;
+  align?: 'left' | 'center' | 'right';
 }
 
 export interface PdfBorderSide {
   color: string;
   width: number;
+  style?: 'solid' | 'dashed' | 'dotted' | 'double';
 }
 
 export interface PdfCellBorders {
@@ -45,6 +48,10 @@ export interface PdfTableData {
   cellBorders?: (PdfCellBorders | undefined)[][];
   headerCellBorders?: (PdfCellBorders | undefined)[];
   cellCharts?: (PdfCellChart | undefined)[][];
+  cellTextColors?: (string | undefined)[][];
+  headerBackgrounds?: (string | undefined)[];
+  headerTextColors?: (string | undefined)[];
+  tableBorders?: PdfCellBorders;
 }
 
 export interface PdfExportOptions {
@@ -92,12 +99,18 @@ if (typeof registerStdFonts === 'function') {
 let koreanFontData: Promise<ArrayBuffer> | undefined;
 
 function loadKoreanFont(): Promise<ArrayBuffer> {
-  koreanFontData ??= fetch(getKoreanFontUrl()).then((response) => {
-    if (!response.ok) {
-      throw new Error(`Unable to load the bundled Korean PDF font: ${response.status} ${response.statusText}`);
-    }
-    return response.arrayBuffer();
-  });
+  koreanFontData ??= fetch(getKoreanFontUrl())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Unable to load the bundled Korean PDF font: ${response.status} ${response.statusText}`);
+      }
+      return response.arrayBuffer();
+    })
+    .catch((error) => {
+      // 실패한 요청은 캐시하지 않아 다음 내보내기에서 재시도할 수 있게 한다.
+      koreanFontData = undefined;
+      throw error;
+    });
   return koreanFontData;
 }
 
@@ -108,9 +121,6 @@ export class PdfConverter {
     }
 
     const fontName = options.customFont?.name ?? options.fontName ?? DEFAULT_FONT_NAME;
-    const fontData =
-      options.customFont?.data ??
-      (!options.fontName || options.fontName === DEFAULT_FONT_NAME ? await loadKoreanFont() : undefined);
     const fontSize = options.fontSize ?? DEFAULT_FONT_SIZE;
     const margin = options.margin ?? 36;
     if (!Number.isFinite(fontSize) || fontSize <= 0) {
@@ -119,6 +129,9 @@ export class PdfConverter {
     if (!Number.isFinite(margin) || margin < 0) {
       throw new RangeError('PDF margin must be a non-negative number');
     }
+    const fontData =
+      options.customFont?.data ??
+      (!options.fontName || options.fontName === DEFAULT_FONT_NAME ? await loadKoreanFont() : undefined);
 
     const doc = new PDFDocument({
       size: options.pageSize ?? 'A4',
@@ -146,7 +159,30 @@ export class PdfConverter {
         return;
       }
       const columnWidths = this.getColumnWidths(doc, data, pageWidth, fontSize);
+      const headerValues = data.columns.map((column) => column.label);
+      const headerHeight = this.getRowHeight(doc, headerValues, columnWidths, fontSize);
+      if (headerHeight > doc.page.height - margin * 2) {
+        reject(new RangeError('PDF header exceeds the available page height'));
+        doc.end();
+        return;
+      }
       let y = margin;
+      let tableTop = y;
+      const borderRows: { y: number; height: number; borders?: (PdfCellBorders | undefined)[] }[] = [];
+      // 인접 셀·행의 배경이 선을 덮지 않도록 페이지 내용 뒤에 테두리를 그린다.
+      const drawPageBorders = () => {
+        for (const row of borderRows) {
+          let cellX = margin;
+          columnWidths.forEach((width, index) => {
+            this.drawCellBorders(doc, cellX, row.y, width, row.height, row.borders?.[index]);
+            cellX += width;
+          });
+        }
+        if (data.tableBorders) {
+          this.drawCellBorders(doc, margin, tableTop, pageWidth, y - tableTop, data.tableBorders);
+        }
+        borderRows.length = 0;
+      };
 
       if (options.title) {
         doc.fontSize(fontSize + 4).text(options.title, margin, y, { width: pageWidth });
@@ -154,18 +190,27 @@ export class PdfConverter {
         doc.fontSize(fontSize);
       }
 
+      if (y + headerHeight > doc.page.height - margin) {
+        doc.addPage();
+        y = margin;
+      }
+
       const drawHeader = () => {
+        tableTop = y;
+        borderRows.push({ y, height: headerHeight, borders: data.headerCellBorders });
         y = this.drawRow(
           doc,
-          data.columns.map((column) => column.label),
+          headerValues,
           columnWidths,
           margin,
           y,
           fontSize,
           true,
-          MIN_ROW_HEIGHT,
+          headerHeight,
+          data.headerBackgrounds,
           undefined,
-          data.headerCellBorders,
+          undefined,
+          data.headerTextColors,
         );
       };
 
@@ -174,10 +219,12 @@ export class PdfConverter {
       for (const [rowIndex, row] of data.rows.entries()) {
         const rowHeight = this.getRowHeight(doc, row, columnWidths, fontSize);
         if (y + rowHeight > doc.page.height - margin) {
+          drawPageBorders();
           doc.addPage();
           y = margin;
           drawHeader();
         }
+        borderRows.push({ y, height: rowHeight, borders: data.cellBorders?.[rowIndex] });
         y = this.drawRow(
           doc,
           row,
@@ -188,11 +235,13 @@ export class PdfConverter {
           false,
           rowHeight,
           data.cellBackgrounds?.[rowIndex],
-          data.cellBorders?.[rowIndex],
           data.cellCharts?.[rowIndex],
+          data.columns.map((column) => column.align),
+          data.cellTextColors?.[rowIndex],
         );
       }
 
+      drawPageBorders();
       doc.end();
     });
   }
@@ -218,11 +267,18 @@ export class PdfConverter {
   ): number[] {
     doc.fontSize(fontSize);
     const measuredWidths = data.columns.map((column, index) => {
-      const longestText = data.rows.reduce((longest, row) => {
-        const text = row[index] ?? '';
-        return doc.widthOfString(text) > doc.widthOfString(longest) ? text : longest;
-      }, column.label);
-      return Math.max(column.width ?? 40, doc.widthOfString(longestText) + CELL_PADDING * 2);
+      const textWidth = (text: string) =>
+        text.split(/\r\n|\r|\n/).reduce((longest, line) => Math.max(longest, doc.widthOfString(line)), 0);
+      const longestWidth = data.rows.reduce(
+        (longest, row) => Math.max(longest, textWidth(row[index] ?? '')),
+        textWidth(column.label),
+      );
+      const configuredWidth = column.width;
+      const baseWidth =
+        configuredWidth !== undefined && Number.isFinite(configuredWidth) && configuredWidth > 0 ? configuredWidth : 40;
+      return configuredWidth !== undefined && Number.isFinite(configuredWidth) && configuredWidth > 0
+        ? configuredWidth
+        : Math.max(baseWidth, longestWidth + CELL_PADDING * 2);
     });
     const totalWidth = measuredWidths.reduce((sum, width) => sum + width, 0);
     const scale = availableWidth / totalWidth;
@@ -232,9 +288,9 @@ export class PdfConverter {
 
   private getRowHeight(doc: PDFKit.PDFDocument, values: string[], widths: number[], fontSize: number): number {
     doc.fontSize(fontSize);
-    const textHeight = values.reduce((height, value, index) => {
-      const cellHeight = doc.heightOfString(value, {
-        width: Math.max(widths[index] - CELL_PADDING * 2, 1),
+    const textHeight = widths.reduce((height, width, index) => {
+      const cellHeight = doc.heightOfString(values[index] ?? '', {
+        width: Math.max(width - CELL_PADDING * 2, 1),
       });
       return Math.max(height, cellHeight);
     }, 0);
@@ -252,8 +308,9 @@ export class PdfConverter {
     header: boolean,
     rowHeight = MIN_ROW_HEIGHT,
     cellBackgrounds?: (string | undefined)[],
-    cellBorders?: (PdfCellBorders | undefined)[],
     cellCharts?: (PdfCellChart | undefined)[],
+    aligns?: PdfColumn['align'][],
+    textColors?: (string | undefined)[],
   ): number {
     let cellX = x;
     doc.fontSize(fontSize);
@@ -261,7 +318,12 @@ export class PdfConverter {
     for (let index = 0; index < widths.length; index++) {
       const width = widths[index];
       if (header) {
-        doc.save().fillColor('#e9edf2').rect(cellX, y, width, rowHeight).fill().restore();
+        doc
+          .save()
+          .fillColor(normalizePdfColor(cellBackgrounds?.[index] || '#e9edf2'))
+          .rect(cellX, y, width, rowHeight)
+          .fill()
+          .restore();
       } else {
         const cellBackground = cellBackgrounds?.[index];
         if (cellBackground) {
@@ -273,17 +335,17 @@ export class PdfConverter {
             .restore();
         }
       }
-      this.drawCellBorders(doc, cellX, y, width, rowHeight, cellBorders?.[index]);
       const chart = cellCharts?.[index];
       if (chart) {
         this.drawCellChart(doc, chart, cellX, y, width, rowHeight, fontSize);
       } else {
         doc
-          .fillColor('#222222')
+          .fillColor(normalizePdfColor(textColors?.[index] || '#222222'))
           .text(values[index] ?? '', cellX + CELL_PADDING, y + CELL_PADDING, {
             width: Math.max(width - CELL_PADDING * 2, 1),
             height: rowHeight - CELL_PADDING * 2,
             lineBreak: true,
+            align: header ? 'center' : aligns?.[index] ?? 'left',
           });
       }
       cellX += width;
@@ -404,7 +466,7 @@ export class PdfConverter {
     const sides = borders ?? { right: { color: '#cdcdcd', width: 1 }, bottom: { color: '#cdcdcd', width: 1 } };
 
     for (const [side, border] of Object.entries(sides) as [keyof PdfCellBorders, PdfBorderSide | undefined][]) {
-      if (!border || border.width <= 0) {
+      if (!border || !Number.isFinite(border.width) || border.width <= 0) {
         continue;
       }
 
@@ -414,29 +476,30 @@ export class PdfConverter {
         side === 'top' || side === 'bottom'
           ? [x + width, side === 'top' ? y : y + height]
           : [side === 'left' ? x : x + width, y + height];
-      doc
-        .save()
-        .strokeColor(normalizePdfColor(border.color))
-        .lineWidth((border.width * 72) / 96)
-        .moveTo(start[0], start[1])
-        .lineTo(end[0], end[1])
-        .stroke()
-        .restore();
+      const lineWidth = (border.width * 72) / 96;
+      doc.save().strokeColor(normalizePdfColor(border.color)).lineWidth(lineWidth);
+      if (border.style === 'dashed') {
+        doc.dash(lineWidth * 3, { space: lineWidth * 3 });
+      } else if (border.style === 'dotted') {
+        doc.lineCap('round').dash(0.01, { space: lineWidth * 2 });
+      } else {
+        doc.undash();
+      }
+      if (border.style === 'double') {
+        const horizontal = side === 'top' || side === 'bottom';
+        doc.lineWidth(lineWidth / 3);
+        for (const offset of [-lineWidth / 3, lineWidth / 3]) {
+          doc
+            .moveTo(start[0] + (horizontal ? 0 : offset), start[1] + (horizontal ? offset : 0))
+            .lineTo(end[0] + (horizontal ? 0 : offset), end[1] + (horizontal ? offset : 0))
+            .stroke();
+        }
+      } else {
+        doc.moveTo(start[0], start[1]).lineTo(end[0], end[1]).stroke();
+      }
+      doc.restore();
     }
   }
-}
-
-export function normalizePdfCellValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  if (value instanceof Date) {
-    return value.toISOString();
-  }
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
-  }
-  return String(value);
 }
 
 export function normalizePdfColor(value: string): string {

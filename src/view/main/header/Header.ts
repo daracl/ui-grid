@@ -108,13 +108,12 @@ export class Header {
     const checkEle = this.headerElement.getElement().querySelector('.dg-checkbox.dg-all') as HTMLElement;
 
     const classList = checkEle?.classList;
+    if (!classList) return;
     if (mode == 'partial') {
       classList.remove(SELECTED_STYLE_CLASS);
       if (!classList.contains(CHECK_INDETERMINATE)) classList.add(CHECK_INDETERMINATE);
     } else {
-      if (mode == 'all') {
-        classList.add(SELECTED_STYLE_CLASS);
-      }
+      classList.toggle(SELECTED_STYLE_CLASS, mode === 'all');
 
       if (classList.contains(CHECK_INDETERMINATE)) classList.remove(CHECK_INDETERMINATE);
     }

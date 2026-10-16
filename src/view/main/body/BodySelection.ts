@@ -103,11 +103,7 @@ export class BodySelection {
    * @param checked 체크 여부
    */
   private addItemsChecked(rowIds: RowId[], checked: boolean): void {
-    if (rowIds.length === 0) {
-      return;
-    }
-
-    const { isRowAllowMultiSelect, dataManager, dataInfo } = this.context.gridMain.config();
+    const { isRowAllowMultiSelect, dataManager } = this.context.gridMain.config();
 
     if (!isRowAllowMultiSelect) {
       dataManager.clearAllCheck();
@@ -127,10 +123,12 @@ export class BodySelection {
     });
 
     this.setFieldRefresh(ROW_CHECK_NAME);
-
+    const detailItems = dataManager.getViewItems().filter((item) => !item.groupRowType);
     this.context.gridMain
       .getHeader()
-      .setCheckboxStyle(getCheckboxMode(dataManager.getCheckedCount(), dataInfo.rowLength));
+      .setCheckboxStyle(
+        getCheckboxMode(detailItems.filter((item) => dataManager.isItemChecked(item.id)).length, detailItems.length),
+      );
   }
 
   /**

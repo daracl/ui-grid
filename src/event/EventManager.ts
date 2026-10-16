@@ -1,20 +1,20 @@
 import { EventElementType, EventOptions } from '@/types/Event';
 import { getEventTargets } from '@/util/eventUtils';
-type EventStore = Record<string, EventListener | undefined>;
+type EventStore = Record<string, { listener: EventListener; capture: boolean }[] | undefined>;
 
 export class EventManager {
   private readonly EVENT_HANDLER_MAP = new WeakMap<any, EventStore>();
   private readonly ELEMENTS = new Set<any>();
 
-  private addEventInfo(el: any, eventType: string, listener: EventListener) {
+  private addEventInfo(el: any, eventType: string, listener: EventListener, capture: boolean) {
     if (!this.EVENT_HANDLER_MAP.has(el)) {
       this.EVENT_HANDLER_MAP.set(el, {});
     }
 
     const store = this.EVENT_HANDLER_MAP.get(el);
 
-    if (store && !store?.[eventType]) {
-      store[eventType] = listener;
+    if (store) {
+      (store[eventType] ??= []).push({ listener, capture });
     }
 
     this.ELEMENTS.add(el);
@@ -60,7 +60,7 @@ export class EventManager {
       const event = eventType.split('.')[0];
 
       elements.forEach((target) => {
-        this.addEventInfo(target, eventType, fn);
+        this.addEventInfo(target, eventType, fn, fnOpts?.capture ?? false);
         target.addEventListener(event, fn, fnOpts ?? {});
       });
     }
@@ -82,7 +82,7 @@ export class EventManager {
         if (!handler) continue;
 
         const event = eventType.split('.')[0];
-        target.removeEventListener(event, handler);
+        for (const entry of handler) target.removeEventListener(event, entry.listener, entry.capture);
 
         store[eventType] = undefined;
 
@@ -116,7 +116,7 @@ export class EventManager {
 
       for (const type in store) {
         const event = type.split('.')[0];
-        el.removeEventListener(event, store[type]);
+        for (const entry of store[type] ?? []) el.removeEventListener(event, entry.listener, entry.capture);
       }
 
       this.EVENT_HANDLER_MAP.delete(el);

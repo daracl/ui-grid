@@ -14,14 +14,14 @@ import { resolveClassName } from './util/styleUtils';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
 import { setDefaultOptions } from './defaultGridOption';
-import {
-  normalizePdfCellValue,
+import type {
   PdfCellBorders,
   PdfCellChart,
-  PdfConverter,
   PdfExportOptions,
   PdfTableData,
 } from './pdf/PdfConverter';
+import { normalizePdfCellValue } from './pdf/PdfValue';
+import { loadPdfModule } from '@/pdf/loadPdfModule';
 import { GroupPdfRenderer } from './pdf/GroupPdfRenderer';
 import { PdfRendererContext } from './pdf/PdfRenderer';
 import { SimplePdfRenderer } from './pdf/SimplePdfRenderer';
@@ -119,6 +119,7 @@ export class DaraGrid {
    * 사용자 정의 글꼴은 fetch 등의 방법으로 읽은 ArrayBuffer 또는 Uint8Array로 전달합니다.
    */
   public async exportPdf(options: PdfExportOptions = {}): Promise<Blob> {
+    const { PdfConverter } = await loadPdfModule();
     const cfg = this.gridMain.config();
     const fields = cfg.currentFields.filter((field) => !field.hidden && !field.$isAside);
     const lineNumberField = cfg.currentFields.find((field) => field.name === LINE_NUMBER_NAME && !field.hidden);
@@ -142,6 +143,8 @@ export class DaraGrid {
         return fields.map((field) => this.getPdfCellChart(field, item));
       },
       getHeaderCellBorders: cellStyleProbe.getHeaderCellBorders,
+      getHeaderCellStyles: cellStyleProbe.getHeaderCellStyles,
+      tableBorders: cellStyleProbe.tableBorders,
     };
     const renderer = rendererContext.groupingFields.length
       ? new GroupPdfRenderer(rendererContext)
@@ -163,6 +166,10 @@ export class DaraGrid {
     const gridOptions = this.gridMain.options();
     const viewItems = cfg.dataManager.getViewItems();
     const gridElement = this.gridMain.element().getElement();
+    const opaqueBackground = (...elements: Element[]) =>
+      elements
+        .map((element) => window.getComputedStyle(element).backgroundColor)
+        .find((color) => color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)');
     const body = gridElement.querySelector('.dg-body');
     const tableBody =
       body?.querySelector('.dg-region[data-region="center"] .dg-body-table tbody') ??
@@ -192,19 +199,13 @@ export class DaraGrid {
         : cfg.fieldHeaderGroup.leafRight.includes(field)
           ? 'right'
           : 'center';
-      const regionFields =
-        region === 'left'
-          ? cfg.fieldHeaderGroup.leafLeft
-          : region === 'right'
-            ? cfg.fieldHeaderGroup.leafRight
-            : cfg.fieldHeaderGroup.leafCenter;
-      const headerRow = gridElement.querySelector(
-        `.dg-header .dg-region[data-region="${region}"] .dg-header-table .dg-header-row:last-child`,
-      );
-      return headerRow?.children[regionFields.indexOf(field)] as HTMLElement | undefined;
+      return gridElement.querySelector<HTMLElement>(
+        `.dg-header .dg-region[data-region="${region}"] [data-header-cell-position="${field.$resizeIdx}"]`,
+      ) ?? undefined;
     });
 
     return {
+      tableBorders: this.getPdfCellBorders(gridElement.querySelector('.dg-main') ?? gridElement),
       getCellStyles: (viewItem: ViewItem, rowIndex: number) => {
         const rowClasses = ['dg-row'];
         if (viewItem.groupRowType) {
@@ -270,14 +271,21 @@ export class DaraGrid {
               ? cellBackground
               : rowBackground && rowBackground !== 'transparent' && rowBackground !== 'rgba(0, 0, 0, 0)'
                 ? rowBackground
-                : undefined;
-          return { background, borders: this.getPdfCellBorders(cell) };
+                : opaqueBackground(body, gridElement);
+          return { background, borders: this.getPdfCellBorders(cell), textColor: window.getComputedStyle(cell).color };
         });
         const backgrounds = styles.map((style) => style.background);
         const borders = styles.map((style) => style.borders);
-        return { backgrounds, borders };
+        return { backgrounds, borders, textColors: styles.map((style) => style.textColor || undefined) };
       },
       getHeaderCellBorders: () => headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
+      getHeaderCellStyles: () => ({
+        backgrounds: headerCells.map((cell) =>
+          cell ? opaqueBackground(cell, cell.parentElement ?? gridElement, gridElement) : undefined,
+        ),
+        borders: headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
+        textColors: headerCells.map((cell) => (cell ? window.getComputedStyle(cell).color || undefined : undefined)),
+      }),
       destroy: () => probeRow.remove(),
     };
   }
@@ -310,7 +318,10 @@ export class DaraGrid {
       ) {
         return undefined;
       }
-      return { width: numericWidth, color };
+      const style = ['dashed', 'dotted', 'double'].includes(borderStyle)
+        ? borderStyle as 'dashed' | 'dotted' | 'double'
+        : undefined;
+      return { width: numericWidth, color, ...(style ? { style } : {}) };
     };
 
     return {

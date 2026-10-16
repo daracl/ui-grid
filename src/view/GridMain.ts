@@ -111,6 +111,7 @@ export class GridMain {
   private readonly openLayers: HTMLElement[] = [];
 
   private resizeObserver: ResizeObserver;
+  private destroyed = false;
 
   private windowResizeHandler?: () => void;
 
@@ -554,12 +555,14 @@ export class GridMain {
    * @param el grid element
    */
   public resize(el: DaraElement) {
+    if (this.destroyed) return;
     const initGridSize = this.initGridSize;
 
     const isWidthResize = initGridSize.width < 0;
     const isHeightResize = initGridSize.height < 0;
     const disableVerticalScroll = this.cfg.disableVerticalScroll;
     requestAnimationFrame(() => {
+      if (this.destroyed) return;
       if (!isVisible(el.getElement())) return;
 
       const newOffset = {
@@ -802,6 +805,7 @@ export class GridMain {
    */
   public setItems(items: any[]) {
     this.cfg.dataManager.setItems(items);
+    this.header?.setCheckboxStyle('none');
 
     this.scroll.moveVerticalScroll({ rowIdx: 0 });
     this.refreshBody(true, 'setItems');
@@ -1098,11 +1102,15 @@ export class GridMain {
   }
 
   public destroy() {
+    if (this.destroyed) return;
+    this.destroyed = true;
     const gridElement = this.gridElement;
     const uid = this.$instanceId;
 
     const cfg = this.cfg;
 
+    this.scroll?.destroy();
+    this.toolbar?.destroy();
     this.body.destroy();
     cfg.eventManager.destroy();
 

@@ -436,6 +436,12 @@ export class VerticalScroll {
     });
   }
 
+  public destroy(): void {
+    if (this.bodyDrawAnimationId !== 0) cancelAnimationFrame(this.bodyDrawAnimationId);
+    this.bodyDrawAnimationId = 0;
+    this.bodyDrawPending = false;
+  }
+
   /**
    * 세로 스크롤 위치 설정
    *

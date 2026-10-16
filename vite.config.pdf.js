@@ -1,0 +1,25 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { defineConfig } from 'vite';
+import { createCommonConfig, MODULE_NAME } from './vite.common.js';
+
+const directory = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig(({ mode }) => {
+  const isProd = mode === 'production';
+  return {
+    ...createCommonConfig(isProd),
+    build: {
+      outDir: isProd ? 'dist' : 'dist/unmin',
+      emptyOutDir: false,
+      sourcemap: !isProd,
+      minify: isProd ? 'esbuild' : false,
+      lib: {
+        entry: path.resolve(directory, 'src/pdf/PdfConverter.ts'),
+        formats: ['es'],
+        fileName: () => `${MODULE_NAME}.pdf${isProd ? '.min' : ''}.mjs`,
+      },
+      rollupOptions: { output: { inlineDynamicImports: true } },
+    },
+  };
+});

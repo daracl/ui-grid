@@ -1,10 +1,16 @@
 import { RowId, ViewItem } from '@/types/Common';
 import { FieldItem } from '@/types/GridField';
-import { normalizePdfCellValue, PdfCellBorders, PdfCellChart, PdfTableData } from './PdfConverter';
+import { TEXT_ALIGN_STYLE } from '@/constantStyles';
+import { DropdownRenderer } from '@/renderer/view/DropdownRenderer';
+import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { RefOptionValue } from '@/types/RefValue';
+import type { PdfCellBorders, PdfCellChart, PdfTableData } from './PdfConverter';
+import { normalizePdfCellValue } from './PdfValue';
 
 export interface PdfCellStyles {
   backgrounds: (string | undefined)[];
   borders: (PdfCellBorders | undefined)[];
+  textColors?: (string | undefined)[];
 }
 
 export interface PdfRendererContext {
@@ -18,6 +24,8 @@ export interface PdfRendererContext {
   getCellStyles?: (viewItem: ViewItem, rowIndex: number) => PdfCellStyles;
   getCellCharts?: (viewItem: ViewItem, rowIndex: number) => (PdfCellChart | undefined)[];
   getHeaderCellBorders?: () => (PdfCellBorders | undefined)[];
+  getHeaderCellStyles?: () => PdfCellStyles;
+  tableBorders?: PdfCellBorders;
 }
 
 export abstract class PdfRenderer {
@@ -30,6 +38,13 @@ export abstract class PdfRenderer {
         name: field.name,
         label: field.label,
         width: field.$width,
+        align:
+          field.align ??
+          (field.$alignStyle === TEXT_ALIGN_STYLE.right
+            ? 'right'
+            : field.$alignStyle === TEXT_ALIGN_STYLE.center
+            ? 'center'
+            : 'left'),
       })),
       rows: viewItems.map((viewItem, rowIndex) => {
         const row = this.renderRow(viewItem);
@@ -38,6 +53,7 @@ export abstract class PdfRenderer {
           : row;
       }),
     };
+    if (this.context.tableBorders) data.tableBorders = this.context.tableBorders;
     const getCellStyles = this.context.getCellStyles;
     if (getCellStyles) {
       const cellStyles = viewItems.map((viewItem, rowIndex) => getCellStyles(viewItem, rowIndex));
@@ -46,6 +62,7 @@ export abstract class PdfRenderer {
         data.cellBackgrounds = cellBackgrounds;
       }
       data.cellBorders = cellStyles.map((style) => style.borders);
+      data.cellTextColors = cellStyles.map((style) => style.textColors ?? []);
     }
     if (this.context.getCellCharts) {
       const charts = viewItems.map((viewItem, rowIndex) => this.context.getCellCharts?.(viewItem, rowIndex) ?? []);
@@ -53,6 +70,11 @@ export abstract class PdfRenderer {
     }
     if (this.context.getHeaderCellBorders) {
       data.headerCellBorders = this.context.getHeaderCellBorders();
+    }
+    if (this.context.getHeaderCellStyles) {
+      const styles = this.context.getHeaderCellStyles();
+      data.headerBackgrounds = styles.backgrounds;
+      data.headerTextColors = styles.textColors;
     }
     return data;
   }
@@ -67,6 +89,23 @@ export abstract class PdfRenderer {
   }
 
   protected renderDataRow(item: Record<string, unknown>): string[] {
-    return this.context.fields.map((field) => normalizePdfCellValue(field.$renderer.getValue(item)));
+    return this.context.fields.map((field) => {
+      const renderer = field.$renderer;
+      if (field.renderer?.type === 'password') return '********';
+      if (field.renderer?.type === 'hidden') return '';
+      const value = renderer.getValue(item);
+      if (renderer instanceof ViewCellRenderer && ['dropdown', 'link', 'button'].includes(field.renderer?.type)) {
+        const ref = renderer.getRefValue(value, item) as RefOptionValue | string | undefined;
+        if (typeof ref === 'string') return ref;
+        if (ref?.hide) return '';
+        if (ref?.label !== undefined) return normalizePdfCellValue(ref.label);
+        if (renderer instanceof DropdownRenderer) {
+          let labels = renderer.getLabel(value);
+          if (labels.length === 0 && field.defaultValue) labels = renderer.getLabel(field.defaultValue);
+          if (labels.length > 0) return labels.join(field.editRenderer?.listItem?.delimiter ?? ',');
+        }
+      }
+      return normalizePdfCellValue(value);
+    });
   }
 }

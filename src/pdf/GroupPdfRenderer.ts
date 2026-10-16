@@ -1,9 +1,15 @@
 import { ViewItem } from '@/types/Common';
-import { normalizePdfCellValue } from './PdfConverter';
+import type { PdfTableData } from './PdfConverter';
+import { normalizePdfCellValue } from './PdfValue';
 import { PdfRenderer } from './PdfRenderer';
 
 export class GroupPdfRenderer extends PdfRenderer {
   private previousDataItem?: Record<string, unknown>;
+
+  public render(): PdfTableData {
+    this.previousDataItem = undefined;
+    return super.render();
+  }
 
   protected renderRow(viewItem: ViewItem): string[] {
     const { fields, getRowItem } = this.context;

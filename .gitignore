@@ -1,6 +1,7 @@
 /vscode
 .DS_Store
 /node_modules
+/.tmp/
 
 # ignore code scanning from package-lock
 package-lock.json

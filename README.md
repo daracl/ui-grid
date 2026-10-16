@@ -202,6 +202,8 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 
 `exportPdf()`는 `fileName`, `title`, `author`, `pageSize`, `orientation`, `margin`, `fontName`, `fontSize` 옵션을 지원합니다. 그룹 그리드는 반복되는 그룹 값을 화면처럼 숨기고 셀 배경색과 테두리를 반영합니다. 막대 및 스파크라인 계열 renderer는 PDF에서도 벡터 차트로 출력됩니다. 기본으로 포함된 Noto Sans KR 글꼴을 사용해 한글을 표시하며, 필요하면 사용자 정의 TTF/OTF 글꼴 데이터를 지정할 수 있습니다.
 
+PDF 변환 코드와 PDFKit은 `exportPdf()` 호출 시 처음 로드됩니다. ESM/CJS 배포 파일은 생성된 청크 파일도 함께 배포해야 합니다. UMD 빌드는 `daracl.grid.min.umd.js` 옆에 `daracl.grid.pdf.min.mjs`를 배포하며, 비압축 버전은 `daracl.grid.umd.js`와 `daracl.grid.pdf.mjs`를 사용합니다. PDF 모듈을 미리 `<script>`로 추가할 필요는 없습니다. 기본 한글 글꼴을 사용하려면 `assets/NotoSansKR-Regular.ttf`와 `assets/OFL.txt`도 동일한 디렉터리 구조로 배포해야 합니다.
+
 ```ts
 await grid.exportPdf({
   fileName: 'orders.pdf',

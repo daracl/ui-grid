@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig } from 'vite';
+import { build, defineConfig } from 'vite';
 import { fileURLToPath } from 'url';
 import { createAssetFileNames, createCommonConfig, MODULE_NAME } from './vite.common.js';
 
@@ -9,9 +9,34 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
+  const common = createCommonConfig(isProd);
 
   return {
-    ...createCommonConfig(isProd),
+    ...common,
+    resolve: {
+      ...common.resolve,
+      alias: {
+        '@/pdf/loadPdfModule': path.resolve(__dirname, 'src/pdf/loadPdfModule.umd.ts'),
+        ...common.resolve.alias,
+      },
+    },
+    define: {
+      ...common.define,
+      GRID_PDF_FILE: JSON.stringify(`${MODULE_NAME}.pdf${isProd ? '.min' : ''}.mjs`),
+    },
+    plugins: [
+      ...common.plugins,
+      {
+        name: 'grid-lazy-pdf',
+        async writeBundle(output) {
+          await build({
+            configFile: path.resolve(__dirname, 'vite.config.pdf.js'),
+            mode,
+            build: { outDir: output.dir },
+          });
+        },
+      },
+    ],
 
     build: {
       outDir: isProd ? 'dist' : 'dist/unmin',

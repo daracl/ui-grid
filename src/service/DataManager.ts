@@ -249,6 +249,7 @@ export abstract class DataManager {
    */
   public setItems(items: any[]) {
     this.history.clear();
+    this.clearAllCheck();
     this.originalItems = items;
   }
 
@@ -363,6 +364,13 @@ export abstract class DataManager {
 
   public getRowItem(rowId: RowId): any {
     return this.rowMap.get(rowId);
+  }
+
+  protected deleteRowItem(rowId: RowId): void {
+    this.rowMap.delete(rowId);
+    this.rowCheckSet.delete(rowId);
+    this.searchMap.delete(rowId);
+    this.matchOffsetMap.delete(rowId);
   }
 
   public getAllRowItems(rowIdInclude = false) {
@@ -808,10 +816,10 @@ export abstract class DataManager {
    * 현재 정렬 상태라면 현재 데이터 기준으로 다시 정렬합니다.
    */
   protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void {
+    this.syncHistoryViewItems(entry, undo);
     if (this.sortOrders.length > 0) {
       this.dataSort(this.sortOrders, this.sortOpts);
     } else {
-      this.syncHistoryViewItems(entry, undo);
       this.setViewItems(this.viewItems);
     }
 
@@ -842,14 +850,15 @@ export abstract class DataManager {
       }
 
       const shouldExist = change.type === 'add' ? !undo : undo;
-      const viewIndex = this.getViewItemIndex(change.rowId);
-
-      if (shouldExist) {
-        if (viewIndex === -1) {
-          this.viewItems.push({ id: change.rowId } as ViewItem);
+      for (const items of new Set([this.originalViewItems, this.viewItems])) {
+        const viewIndex = items.findIndex((item) => item.id === change.rowId);
+        if (shouldExist) {
+          if (viewIndex === -1) {
+            items.push({ id: change.rowId, sortOrder: items.length });
+          }
+        } else if (viewIndex > -1) {
+          items.splice(viewIndex, 1);
         }
-      } else if (viewIndex > -1) {
-        this.viewItems.splice(viewIndex, 1);
       }
     }
   }
