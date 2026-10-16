@@ -192,12 +192,24 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | `getSelection()` / `getSelectedRows()` / `getSelectedRowIds()` | 선택 정보 조회 |
 | `getCheckedItems(names?)` / `setAllCheckedItems(checked)` | 체크박스 상태 조회/설정 |
 | `search(keyword, opts)` | 데이터 검색 |
+| `exportPdf(options?)` | 현재 뷰의 전체 행과 그룹 합계 행을 PDF로 다운로드 |
 | `setTheme(themeName)` / `setStyle(styleName)` | 테마/스타일 변경 |
 | `expandAll()` / `collapseAll()` | 트리 모드 전체 펼치기/접기 |
 | `copyData()` | 선택 영역 클립보드 복사 |
 | `destroy()` | 그리드 인스턴스 제거 |
 
 전체 API는 [`src/DaraGrid.ts`](./src/DaraGrid.ts)와 [typedoc 문서](https://ui.daracl.com)를 참고하세요.
+
+`exportPdf()`는 `fileName`, `title`, `author`, `pageSize`, `orientation`, `margin`, `fontName`, `fontSize` 옵션을 지원합니다. 그룹 그리드는 반복되는 그룹 값을 화면처럼 숨기고 셀 배경색과 테두리를 반영합니다. 막대 및 스파크라인 계열 renderer는 PDF에서도 벡터 차트로 출력됩니다. 기본으로 포함된 Noto Sans KR 글꼴을 사용해 한글을 표시하며, 필요하면 사용자 정의 TTF/OTF 글꼴 데이터를 지정할 수 있습니다.
+
+```ts
+await grid.exportPdf({
+  fileName: 'orders.pdf',
+  title: '주문 목록',
+  orientation: 'landscape',
+  fontSize: 9,
+});
+```
 
 ## 개발
 

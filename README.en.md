@@ -192,12 +192,24 @@ Renderers are registered in [`src/constantRenders.ts`](./src/constantRenders.ts)
 | `getSelection()` / `getSelectedRows()` / `getSelectedRowIds()` | Get selection info |
 | `getCheckedItems(names?)` / `setAllCheckedItems(checked)` | Get/set checkbox state |
 | `search(keyword, opts)` | Search the data |
+| `exportPdf(options?)` | Download all rows in the current view, including group summaries, as PDF |
 | `setTheme(themeName)` / `setStyle(styleName)` | Change theme/style |
 | `expandAll()` / `collapseAll()` | Expand/collapse all nodes in tree mode |
 | `copyData()` | Copy the current selection to the clipboard |
 | `destroy()` | Destroy the grid instance |
 
 See [`src/DaraGrid.ts`](./src/DaraGrid.ts) and the [typedoc API docs](https://ui.daracl.com) for the full API.
+
+`exportPdf()` accepts `fileName`, `title`, `author`, `pageSize`, `orientation`, `margin`, `fontName`, and `fontSize`. Grouped grids suppress repeated group values like the grid view and preserve cell background colors and borders. Bar and sparkline renderers are exported as vector charts. The bundled Noto Sans KR font supports Korean text by default; custom TTF/OTF font data can still be provided when needed.
+
+```ts
+await grid.exportPdf({
+  fileName: 'orders.pdf',
+  title: 'Orders',
+  orientation: 'landscape',
+  fontSize: 9,
+});
+```
 
 ## Development
 

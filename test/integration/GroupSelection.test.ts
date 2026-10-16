@@ -7,6 +7,14 @@ const canvasContext = {
 
 type GridInstance = InstanceType<typeof import('@/DaraGrid').DaraGrid>;
 
+jest.mock('@/pdf/PdfConverter', () => ({
+  PdfConverter: jest.fn().mockImplementation(() => ({
+    convert: jest.fn(),
+    download: jest.fn(),
+  })),
+  normalizePdfCellValue: (value: unknown) => (value == null ? '' : String(value)),
+}));
+
 describe('Grouped row selection', () => {
   let DaraGrid: typeof import('@/DaraGrid').DaraGrid;
   let grid: GridInstance | undefined;

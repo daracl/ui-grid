@@ -1,18 +1,34 @@
 import { GridOptions } from '@t/GridOptions';
 
-import { HIDDEN_ELEMENT_SELECTOR } from './constants';
+import { HIDDEN_ELEMENT_SELECTOR, LINE_NUMBER_NAME } from './constants';
 import { BodyStyle, ThemeType } from './constantStyles';
 
 import { FieldItem } from '@t/GridField';
 import { Message } from '@t/Message';
 import { PagingInfo } from '@t/PagingInfo';
 import { ALL_ICONS } from './constantIcons';
-import { AddRowOptions, RowId, RowSelectOptions, SearchMode } from './types/Common';
+import { AddRowOptions, RowId, RowSelectOptions, SearchMode, ViewItem } from './types/Common';
 import { createHTMLElement } from './util/domUtils';
 import { Language } from './util/Language';
+import { resolveClassName } from './util/styleUtils';
 import { isUndefined } from './util/utils';
 import { GridMain } from './view/GridMain';
 import { setDefaultOptions } from './defaultGridOption';
+import {
+  normalizePdfCellValue,
+  PdfCellBorders,
+  PdfCellChart,
+  PdfConverter,
+  PdfExportOptions,
+  PdfTableData,
+} from './pdf/PdfConverter';
+import { GroupPdfRenderer } from './pdf/GroupPdfRenderer';
+import { PdfRendererContext } from './pdf/PdfRenderer';
+import { SimplePdfRenderer } from './pdf/SimplePdfRenderer';
+import { BarRenderer } from './renderer/view/BarRenderer';
+import { SparklineRenderer } from './renderer/view/SparklineRenderer';
+import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
+import { RefChartValue } from './types/RefValue';
 
 declare const APP_VERSION: string;
 
@@ -95,6 +111,251 @@ export class DaraGrid {
    */
   public getItems() {
     return this.gridMain.config().dataManager.getAllRowItems();
+  }
+
+  /**
+   * 내보내기 가능한 현재 뷰의 모든 행을 PDF로 다운로드합니다.
+   *
+   * 사용자 정의 글꼴은 fetch 등의 방법으로 읽은 ArrayBuffer 또는 Uint8Array로 전달합니다.
+   */
+  public async exportPdf(options: PdfExportOptions = {}): Promise<Blob> {
+    const cfg = this.gridMain.config();
+    const fields = cfg.currentFields.filter((field) => !field.hidden && !field.$isAside);
+    const lineNumberField = cfg.currentFields.find((field) => field.name === LINE_NUMBER_NAME && !field.hidden);
+    const displayFields = lineNumberField ? [lineNumberField, ...fields] : fields;
+    const gridOptions = this.gridMain.options();
+    const cellStyleProbe = this.createPdfCellStyleResolver(displayFields, fields);
+    const rendererContext: PdfRendererContext = {
+      fields,
+      lineNumberField,
+      lineNumberStart: gridOptions.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
+      viewItems: cfg.dataManager.getViewItems(),
+      groupingFields: gridOptions.groupingFields ?? [],
+      sumFields: gridOptions.sumFields ?? [],
+      getRowItem: (id) => cfg.dataManager.getRowItem(id),
+      getCellStyles: cellStyleProbe.getCellStyles,
+      getCellCharts: (viewItem) => {
+        if (viewItem.groupRowType) {
+          return fields.map(() => undefined);
+        }
+        const item = cfg.dataManager.getRowItem(viewItem.id);
+        return fields.map((field) => this.getPdfCellChart(field, item));
+      },
+      getHeaderCellBorders: cellStyleProbe.getHeaderCellBorders,
+    };
+    const renderer = rendererContext.groupingFields.length
+      ? new GroupPdfRenderer(rendererContext)
+      : new SimplePdfRenderer(rendererContext);
+    const converter = new PdfConverter();
+    let tableData: PdfTableData;
+    try {
+      tableData = renderer.render();
+    } finally {
+      cellStyleProbe.destroy();
+    }
+    const blob = await converter.convert(tableData, options);
+    converter.download(blob, options.fileName);
+    return blob;
+  }
+
+  private createPdfCellStyleResolver(displayFields: FieldItem[], dataFields: FieldItem[]) {
+    const cfg = this.gridMain.config();
+    const gridOptions = this.gridMain.options();
+    const viewItems = cfg.dataManager.getViewItems();
+    const gridElement = this.gridMain.element().getElement();
+    const body = gridElement.querySelector('.dg-body');
+    const tableBody =
+      body?.querySelector('.dg-region[data-region="center"] .dg-body-table tbody') ??
+      body?.querySelector('.dg-body-table tbody');
+
+    if (!body || !tableBody) {
+      throw new Error('Unable to resolve grid cell styles for PDF export');
+    }
+
+    const probeRow = document.createElement('tr');
+    probeRow.className = 'dg-row';
+    probeRow.style.visibility = 'hidden';
+    probeRow.style.height = '0';
+    probeRow.setAttribute('aria-hidden', 'true');
+
+    const probeCells = displayFields.map(() => {
+      const cell = document.createElement('td');
+      cell.className = 'dg-cell';
+      probeRow.appendChild(cell);
+      return cell;
+    });
+
+    tableBody.appendChild(probeRow);
+    const headerCells = displayFields.map((field) => {
+      const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
+        ? 'left'
+        : cfg.fieldHeaderGroup.leafRight.includes(field)
+          ? 'right'
+          : 'center';
+      const regionFields =
+        region === 'left'
+          ? cfg.fieldHeaderGroup.leafLeft
+          : region === 'right'
+            ? cfg.fieldHeaderGroup.leafRight
+            : cfg.fieldHeaderGroup.leafCenter;
+      const headerRow = gridElement.querySelector(
+        `.dg-header .dg-region[data-region="${region}"] .dg-header-table .dg-header-row:last-child`,
+      );
+      return headerRow?.children[regionFields.indexOf(field)] as HTMLElement | undefined;
+    });
+
+    return {
+      getCellStyles: (viewItem: ViewItem, rowIndex: number) => {
+        const rowClasses = ['dg-row'];
+        if (viewItem.groupRowType) {
+          rowClasses.push(
+            'dg-group-row',
+            viewItem.groupRowType === 'group'
+              ? 'dg-group-header'
+              : viewItem.groupRowType === 'groupSummary'
+                ? 'dg-group-summary'
+                : 'dg-grand-summary',
+          );
+        }
+        probeRow.className = rowClasses.join(' ');
+
+        const item = viewItem.groupRowType ? undefined : cfg.dataManager.getRowItem(viewItem.id);
+        const rowBackground = window.getComputedStyle(probeRow).backgroundColor;
+        let previousDataItem: Record<string, unknown> | undefined;
+        if (!viewItem.groupRowType && rowIndex > 0) {
+          for (let previousIndex = rowIndex - 1; previousIndex >= 0; previousIndex--) {
+            const previousViewItem = viewItems[previousIndex];
+            if (previousViewItem && !previousViewItem.groupRowType) {
+              previousDataItem = cfg.dataManager.getRowItem(previousViewItem.id);
+              break;
+            }
+          }
+        }
+
+        const styles = displayFields.map((field, fieldIndex) => {
+          const cell = probeCells[fieldIndex];
+          const classes = ['dg-cell'];
+          if (field.name === LINE_NUMBER_NAME) {
+            classes.push('dg-aside', 'dg-line-number');
+          }
+          if (viewItem.groupRowType) {
+            classes.push('dg-group-cell');
+          } else if (item) {
+            if (field.cellClassName && dataFields.includes(field)) {
+              classes.push(
+                ...resolveClassName(field.cellClassName, {
+                  rowIdx: rowIndex,
+                  col: field.$colSeq,
+                  field,
+                  item,
+                }),
+              );
+            }
+            const groupingFieldIndex = (gridOptions.groupingFields ?? []).indexOf(field.name);
+            const sameGroup =
+              groupingFieldIndex >= 0 &&
+              previousDataItem !== undefined &&
+              (gridOptions.groupingFields ?? [])
+                .slice(0, groupingFieldIndex + 1)
+                .every((name) => Object.is(item[name], previousDataItem?.[name]));
+            if (sameGroup && rowIndex < viewItems.length - 1) {
+              classes.push('dg-group-continuation');
+            }
+          }
+          cell.className = classes.join(' ');
+
+          const cellBackground = window.getComputedStyle(cell).backgroundColor;
+          const background =
+            cellBackground && cellBackground !== 'transparent' && cellBackground !== 'rgba(0, 0, 0, 0)'
+              ? cellBackground
+              : rowBackground && rowBackground !== 'transparent' && rowBackground !== 'rgba(0, 0, 0, 0)'
+                ? rowBackground
+                : undefined;
+          return { background, borders: this.getPdfCellBorders(cell) };
+        });
+        const backgrounds = styles.map((style) => style.background);
+        const borders = styles.map((style) => style.borders);
+        return { backgrounds, borders };
+      },
+      getHeaderCellBorders: () => headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
+      destroy: () => probeRow.remove(),
+    };
+  }
+
+  private getPdfCellBorders(cell: Element): PdfCellBorders | undefined {
+    const style = window.getComputedStyle(cell);
+    const styleValues = [
+      style.borderTopWidth,
+      style.borderRightWidth,
+      style.borderBottomWidth,
+      style.borderLeftWidth,
+      style.borderTopStyle,
+      style.borderRightStyle,
+      style.borderBottomStyle,
+      style.borderLeftStyle,
+    ];
+    if (styleValues.every((value) => value === '')) {
+      return undefined;
+    }
+
+    const readSide = (width: string, color: string, borderStyle: string) => {
+      const numericWidth = Number.parseFloat(width);
+      if (
+        !Number.isFinite(numericWidth) ||
+        numericWidth <= 0 ||
+        borderStyle === 'none' ||
+        borderStyle === 'hidden' ||
+        color === 'transparent' ||
+        color === 'rgba(0, 0, 0, 0)'
+      ) {
+        return undefined;
+      }
+      return { width: numericWidth, color };
+    };
+
+    return {
+      top: readSide(style.borderTopWidth, style.borderTopColor, style.borderTopStyle),
+      right: readSide(style.borderRightWidth, style.borderRightColor, style.borderRightStyle),
+      bottom: readSide(style.borderBottomWidth, style.borderBottomColor, style.borderBottomStyle),
+      left: readSide(style.borderLeftWidth, style.borderLeftColor, style.borderLeftStyle),
+    };
+  }
+
+  private getPdfCellChart(field: FieldItem, item: Record<string, unknown>): PdfCellChart | undefined {
+    const rendererType = field.renderer.type;
+    const value = field.$renderer.getValue(item);
+
+    if (rendererType === 'bar' && field.$renderer instanceof BarRenderer) {
+      const refValue = field.$renderer.getRefValue(value, item) as RefChartValue | undefined;
+      const chartValue = Number(refValue?.percent ?? value);
+      if (!Number.isFinite(chartValue)) {
+        return undefined;
+      }
+      const positiveColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--bar-positive-bg').trim();
+      const negativeColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--bar-negative-bg').trim();
+      return {
+        type: 'bar',
+        value: chartValue,
+        minimum: field.renderer.rule?.minimum ?? 0,
+        maximum: field.renderer.rule?.maximum ?? 100,
+        label: normalizePdfCellValue(refValue?.label ?? value),
+        color: chartValue < 0 ? negativeColor || '#ff8989' : positiveColor || '#77c0fc',
+      };
+    }
+
+    if (
+      (rendererType === 'sparkline' && field.$renderer instanceof SparklineRenderer) ||
+      (rendererType === 'sparklineBar' && field.$renderer instanceof SparklineRendererBar)
+    ) {
+      const refValue = field.$renderer.getRefValue(value, item) as RefChartValue | undefined;
+      const values = refValue?.value ?? value;
+      if (!Array.isArray(values) || !values.every((entry) => typeof entry === 'number' && Number.isFinite(entry))) {
+        return undefined;
+      }
+      return { type: rendererType, values: [...values] };
+    }
+
+    return undefined;
   }
 
   /**

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dara Grid - Chart PDF export</title>
+    <style>
+      body {
+        margin: 24px;
+        font-family: Arial, sans-serif;
+      }
+
+      #sample {
+        width: 100%;
+        height: 420px;
+      }
+    </style>
+  </head>
+  <body>
+    <p><a href="./index.html">UI tests</a> | <a href="./pdf-export-simple.html">Simple</a> | <a href="./pdf-export-group.html">Grouped</a></p>
+    <h1>Chart grid PDF export</h1>
+    <p>The grid displays bar and sparkline charts. The PDF exports them as vector charts rather than raw data text.</p>
+    <button id="export-pdf" type="button">Export PDF</button>
+    <span id="export-status" role="status" aria-live="polite"></span>
+    <div id="sample"></div>
+
+    <script type="module">
+      import { DaraGrid } from '/src/index.ts';
+
+      const items = [
+        { product: 'Tea', revenue: 4200, trend: [12, 16, 14, 21, 24, 27, 31] },
+        { product: 'Coffee', revenue: 6800, trend: [18, 17, 22, 25, 23, 29, 34] },
+        { product: 'Juice', revenue: 3900, trend: [20, 18, 16, 19, 21, 23, 25] },
+        { product: 'Water', revenue: 2700, trend: [10, 12, 13, 11, 15, 16, 18] },
+        { product: 'Soda', revenue: 5100, trend: [24, 22, 25, 21, 27, 28, 26] },
+      ];
+
+      const grid = DaraGrid.create(document.getElementById('sample'), {
+        fields: [
+          { name: 'product', label: 'Product', width: 160 },
+          {
+            name: 'revenue',
+            label: 'Revenue',
+            width: 150,
+            align: 'right',
+            renderer: { type: 'bar', rule: { minimum: 0, maximum: 8000 } },
+          },
+          {
+            name: 'trend',
+            label: 'Weekly trend',
+            width: 220,
+            renderer: {
+              type: 'sparklineBar',
+              refValue: (_field, value) => ({ value }),
+            },
+          },
+        ],
+        items,
+      });
+
+      document.getElementById('export-pdf').addEventListener('click', async () => {
+        const status = document.getElementById('export-status');
+        status.textContent = ' Creating PDF...';
+        try {
+          await grid.exportPdf({
+            fileName: 'chart-grid.pdf',
+            title: 'Product revenue and weekly trend',
+            author: 'Dara Grid UI test',
+            orientation: 'landscape',
+          });
+          status.textContent = ' PDF downloaded.';
+        } catch (error) {
+          status.textContent = ` PDF export failed: ${error.message}`;
+          console.error(error);
+        }
+      });
+    </script>
+  </body>
+</html>
