@@ -1,0 +1,30 @@
+import { ToolbarOptions } from '../../types/GridOptions.js';
+import { ToolbarFieldItem, ToolbarLayout } from '../../types/Toolbar.js';
+import { GridMain } from '../GridMain.js';
+export declare class ToolbarRenderer {
+    private readonly gridMain;
+    private readonly toolbarElement;
+    private readonly toolbarOpts;
+    private readonly toolbarFields;
+    private readonly conditionFields;
+    private readonly fieldElements;
+    private toolbarLayouts;
+    constructor(gridMain: GridMain, toolbarElement: HTMLElement, toolbarOpts: ToolbarOptions);
+    init(): void;
+    getLayouts(): ToolbarLayout[][];
+    getFields(): ToolbarFieldItem[];
+    getConditionFields(): ToolbarFieldItem[];
+    setValues(values: Record<string, unknown>): void;
+    getValues(): Record<string, unknown>;
+    refreshConditionFields(): void;
+    refreshLayout(): void;
+    private initRenderer;
+    private createToolbarField;
+    private createTemplate;
+    private createRow;
+    private createSection;
+    private buildSectionLayout;
+    private createField;
+    private setWidth;
+    private refreshRowWidths;
+}

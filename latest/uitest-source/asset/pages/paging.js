@@ -1,0 +1,53 @@
+var gridObj;
+
+function loadGrid(initFlag) {
+  const jsonInfo = getItem();
+
+  gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  loadGrid(true);
+});
+
+function gridDraw(element, aaa, colItem) {
+  gridObj = Daracl.grid.create(element, {
+    style: 'striped',
+    selectionMode: 'multiCell',
+    theme: G_GRID_THEME,
+    height: 324,
+    aside: {
+      lineNumber: { enabled: true },
+    },
+    fields: colItem,
+    items: aaa,
+    paging: {
+      pageSize: 10,
+      page: 1,
+    },
+    footer: {
+      enabled: true,
+
+      height: 35,
+      paging: {
+        enabled: true,
+
+        /**
+         * 위치 값
+         */
+        position: 'center',
+        formatPosition: 'right',
+        /**
+         * 페이지 메시지 포멧
+         */
+        format: '{{start}} - {{end}} of {{total}}',
+
+        // 페이지 콜백
+        callback1: function (arg) {
+          console.log(arg);
+          //gridObj.setItems(aaa);
+        },
+      },
+    },
+  });
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./asset/examples.css" />
+  <meta charset="utf-8" />
+  <title>그리드 종합 데모</title>
+  <script src="./data/businessFixtures.js"></script>
+<link rel="stylesheet" href="./grid/daracl.grid.css" /><meta name="robots" content="noindex, follow" /></head>
+
+<body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>그리드 종합 데모</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
+  <div>
+    Excel export examples:
+    <a href="./excel-export.html">Basic / rowSpan</a>
+    <a href="./excel-export-chart.html">Charts</a>
+    <a href="./excel-export-group.html">Grouping</a>
+    <a href="./excel-export-tree.html">Tree</a>
+    <a href="./csv-export.html">CSV · 모든 그리드 유형</a>
+    <a href="./builder/builder.html">그리드 옵션 빌더</a>
+    | PDF export examples:
+    <a href="./pdf-export-simple.html">Simple</a>
+    <a href="./pdf-export-group.html">Grouped</a>
+    <a href="./pdf-export-chart.html">Charts</a>
+  </div>
+  <div>
+    row
+    <select id="itemCount">
+      <option value="0">0</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="30">30</option>
+      <option value="32">32</option>
+      <option value="38">38</option>
+      <option value="100" selected>100</option>
+      <option value="500">500</option>
+      <option value="1000">1,000</option>
+      <option value="10000">10,000</option>
+      <option value="100000">100,000</option>
+      <option value="1000000">1,000,000</option>
+    </select>
+
+    cell
+    <select id="cellCount">
+      <option value="1">1</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="300">300</option>
+      <option value="500">500</option>
+    </select>
+    theme
+    <select id="theme">
+      <option value="light" selected>light</option>
+      <option value="dark">dark</option>
+    </select>
+
+    타입
+    <select id="dataType">
+      <option value="1">헤더 2단</option>
+      <option value="2" selected>헤더 3단</option>
+      <option value="3">헤더 1단</option>
+      <option value="4">직원</option>
+    </select>
+    <button type="button" onclick="loadGrid()">regrid</button>
+  </div>
+
+  <div class="grid-view-area">
+    <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
+  </div>
+  </section>
+</body>
+
+</html>
+<script src="./data/sampleConfig.js" type="text/javascript"></script>
+<script type="module" src="./grid-entry.js"></script>
+
+<style>
+  .form-button {
+    text-align: center;
+  }
+
+  :root {
+    --bg: #ffffff;
+    --bg-color: #070d19;
+  }
+
+  body[data-daracl-theme='dark'] {
+    --bg: #070d19;
+    --bg-color: #ffffff;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--bg-color);
+  }
+
+  .header {
+    color: var(--bg-color);
+  }
+</style>
+<script src="./data/examples/demo.js"></script>
+<script src="./asset/pages/demo.js"></script>
+
+<script src="./data/examples/demo-2.js"></script>
+<script src="./asset/pages/demo-2.js"></script>

@@ -1,0 +1,381 @@
+import { DaraElement } from '../element/DaraElement.js';
+import { EventManager } from '../event/EventManager.js';
+import { DataManager } from '../service/DataManager.js';
+import { FieldSortInfo } from '@/type/Header';
+import { AnyKeyMap, SearchFields, SearchMatchInfo, ViewItem } from './Common';
+import { FieldItem } from './GridField';
+import { PagingInfo } from './PagingInfo';
+
+/**
+ * grid config info
+ */
+export interface Config {
+  // row id seq
+  rowIdField: string;
+  // theme
+  theme: string;
+  // header help button
+  enabledHeaderHelpButton: boolean;
+  // data manager
+  dataManager: DataManager;
+  // event manager
+  eventManager: EventManager;
+  dimensions: {
+    // grid total width
+    width: number;
+    // grid total height
+    height: number;
+    // toolbar height
+    toolbarHeight: number;
+    // footer height
+    footerHeight: number;
+    // main inside  width
+    mainInsideWidth: number;
+    // main element height
+    mainHeight: number;
+
+    mainHeaderHeight: number;
+    mainBodyHeight: number;
+    mainSummaryHeight: number;
+
+    // main left panel width
+    mainLeftWidth: number;
+    // main center panel width
+    mainCenterWidth: number;
+    // main right panel width
+    mainRightWidth: number;
+    // grid total width
+    mainTotalWidth: number;
+
+    // center over width;
+    mainCenterOverWidth: number;
+
+    // center view width;
+    mainCenterViewWidth: number;
+
+    // field total width;
+    fieldTotalWidth: number;
+  };
+
+  // summary info
+  summary: SummaryConfig;
+
+  currentFields: FieldItem[];
+
+  allFieldMap: Map<string, FieldItem>;
+
+  activeComponent: string;
+
+  /**
+   * font Family
+   */
+  fontFamily: string;
+
+  /**
+   * font size
+   */
+  fontSize: string;
+
+  enabledCellEdit: boolean;
+
+  isOpenLayer: boolean;
+
+  /**
+   * row 다중 체크 여부
+   *
+   * @type {boolean}
+   */
+  isRowAllowMultiSelect: boolean;
+  searchEnabled: boolean;
+  fieldHeaderGroup: FieldHeaderGroupInfo;
+  footer: { height: number; width: number };
+  navi: { height: number; width: number };
+  toolbar: { height: number; width: number };
+  initSettingFlag: boolean;
+  template: AnyKeyMap;
+  dataInfo: {
+    colLength: number;
+    rowLength: number;
+    startCol: number;
+    lastRow: number;
+    orginLeafHeaders: Array;
+    orginLeafHeaderKeyMap: AnyKeyMap;
+    asideLength: number;
+  };
+  cellWidths: Array;
+  // row height
+  rowHeight: number;
+  // enable sort button
+  enabledSortButton: boolean;
+  sort: {
+    orders: FieldSortInfo[];
+  };
+  searchParameter: {
+    matchCase: boolean;
+    matchWholeWord: boolean;
+    useRegex: boolean;
+    searchFields: SearchFields;
+    searchText: string;
+  };
+
+  // 검색 매칭 정보
+  searchMatchInfo: SearchMatchInfo;
+
+  paging: PagingInfo;
+  selection: Selection;
+  isHeaderResize: boolean;
+
+  focus: boolean;
+  // row 이동 여부
+  isMoveRow: boolean;
+
+  // body dragging 여부
+  isBodyDragging: boolean;
+
+  // header dragging 여부
+  isHeaderDragging: boolean;
+
+  // cell click 시 row 체크 여부
+  checkOnRowSelect: boolean;
+  mouseEnter: boolean;
+  currentClickInfo: AnyKeyMap;
+  allCheck: boolean;
+  settingConfig: {
+    viewInitFlag: boolean;
+    filterTemplate: string;
+    filterOperatorTemplate: AnyKeyMap; // filter html template
+    searchCheckItem: boolean; // 검색 정규식
+    filterCheckItem: boolean; // filter info {checkFn; check condition}
+  };
+  // 왼쪽 고정영역
+  fixedLeftIndex: number;
+  // 오른쪽 고정영역
+  fixedRightIndex: number;
+  scroll: ScrollInfo;
+  // 스크롤bar 사이즈
+  scrollbarSize: number;
+  // 세로 스크롤 비활성화
+  disableVerticalScroll: boolean;
+  // 가로 스크롤 비활성화
+  disableHorizontalScroll: boolean;
+  edit: EditInfo;
+  canvasContext?: CanvasRenderingContext2D;
+}
+
+export interface SummaryConfig {
+  heights: number[];
+}
+
+export interface CellPositionInfo {
+  /**
+   * view column index
+   */
+  c: number;
+
+  /**
+   * view row index
+   */
+  r: number;
+}
+
+export interface HeaderCellInfo {
+  /**
+   * view column index
+   */
+  c: number;
+
+  /**
+   * field info
+   */
+  field: FieldItem;
+}
+
+export interface CellInfo {
+  /**
+   * view row index
+   */
+  r: number;
+  /**
+   * view column index
+   */
+  c: number;
+  /**
+   * row index
+   */
+  rowIndex: number;
+  /**
+   * field info
+   */
+  field: FieldItem;
+  /**
+   * item
+   */
+  item: any;
+  /**
+   * view item
+   */
+  viewItem?: ViewItem;
+  /**
+   * 외부에서 입력된 수정 값
+   */
+  inputValue?: any;
+}
+
+export interface EditInfo {
+  enabled: boolean;
+  cell: CellInfo;
+}
+
+export interface Selection {
+  /**
+   * selection id
+   */
+  id: string;
+  /**
+   * 현재 설정 range
+   */
+  range: SelectionRange;
+  /**
+   * 모든 선택 영역 정보
+   */
+  allRange: Map<string, SelectionRange>;
+  /**
+   * 선택여부
+   */
+  isSelect: boolean;
+  /**
+   * 마우스 다운여부
+   */
+  isMouseDown: boolean;
+
+  /**
+   * 전체 선택 여부
+   */
+  all: boolean;
+
+  minIdx: number;
+  maxIdx: number;
+  minCol: number;
+  maxCol: number;
+  /**
+   * 시작 위치 값
+   */
+  startCell: { startIdx: number; startCol: number };
+}
+
+export interface SelectionRange {
+  /**
+   *
+   */
+  modifierKey: -1 | 1 | 2; // 1 = ctrl, 2 = shift
+  type?: 'column' | 'row' | 'cell';
+  mode?: '' | 'add' | 'remove' | 'drag';
+  startIdx: number;
+  endIdx: number;
+  startCol: number;
+  endCol: number;
+  minIdx: number;
+  maxIdx: number;
+  minCol: number;
+  maxCol: number;
+}
+
+export interface ScrollInfo {
+  /**
+   * 스크롤 데이터 초기화
+   */
+
+  enabledVertical: boolean;
+  enabledHorizontal: boolean;
+  centerLeftPosition: number;
+  before: {
+    startIdx: number;
+    viewRow: number;
+    startCol: number;
+    endCol: number;
+    hideLastRow: boolean;
+  };
+  top: number;
+  left: number;
+  startCol: number;
+  endCol: number;
+  insideStartCol: number;
+  insideEndCol: number;
+
+  // grid 보여지는 row 수
+  viewRow: number;
+  // 화면에 완전하게 보여지는 row 수
+  insideViewRow: number;
+  // 시작 start row
+  startIdx: number;
+
+  vHeight: number;
+  vBarPosition: number;
+  vThumbHeight: number;
+  vTrackHeight: number;
+
+  hWidth: number;
+  hBarPosition: number;
+  hThumbWidth: number;
+  hTrackWidth: number;
+
+  oneColMove: number;
+  oneRowMove: number;
+  verticalScrollTimer: any;
+  horizontalScrollTimer: any;
+  mouseDown: boolean;
+}
+
+// element 처리할것.
+export interface GridElement {
+  grid?: DaraElement;
+  container?: DaraElement;
+  toolbar?: DaraElement;
+  main?: DaraElement;
+
+  // main header
+  mainHeaderLeft?: DaraElement;
+  mainHeaderCenter?: DaraElement;
+  mainHeaderRight?: DaraElement;
+
+  // main body
+  mainBodyLeft?: DaraElement;
+  mainBodyCenter?: DaraElement;
+  mainBodyRight?: DaraElement;
+
+  // main summary
+  mainSummaryLeft?: DaraElement;
+  mainSummaryBody?: DaraElement;
+  mainSummaryRight?: DaraElement;
+
+  footer?: DaraElement;
+
+  status?: DaraElement;
+
+  hScrollBar?: DaraElement;
+  vScrollBar?: DaraElement;
+
+  hScrollEdge?: DaraElement;
+  resizeHelper?: DaraElement;
+
+  pasteArea?: DaraElement;
+}
+
+/**
+ * field header group
+ *
+ * @interface FieldHeaderGroupInfo
+ * @typedef {FieldHeaderGroupInfo}
+ */
+export interface FieldHeaderGroupInfo {
+  left: FieldItem[][];
+  center: FieldItem[][];
+  right: FieldItem[][];
+  leaf: FieldItem[];
+
+  leafLeft: FieldItem[];
+  leafCenter: FieldItem[];
+  leafRight: FieldItem[];
+  heights: number[];
+  depth: number;
+}

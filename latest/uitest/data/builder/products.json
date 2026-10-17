@@ -1,0 +1,22 @@
+{
+  "id": "products",
+  "label": "상품 · 매출 데이터",
+  "groupField": "category",
+  "sumField": "amount",
+  "treeField": "name",
+  "chartField": "stock",
+  "fields": [
+    { "name": "category", "label": "분류", "width": 120 },
+    { "name": "name", "label": "품목", "width": 200 },
+    { "name": "amount", "label": "금액", "width": 160, "renderer": { "type": "number" } },
+    { "name": "stock", "label": "재고", "width": 120, "renderer": { "type": "number" } }
+  ],
+  "items": [
+    { "id": 1, "category": "음료", "name": "커피", "amount": 12000, "stock": 42 },
+    { "id": 2, "category": "음료", "name": "녹차", "amount": 8000, "stock": 28 },
+    { "id": 3, "category": "음료", "name": "생수", "amount": 3000, "stock": 90 },
+    { "id": 4, "category": "식품", "name": "빵", "amount": 6000, "stock": 35 },
+    { "id": 5, "category": "식품", "name": "과일", "amount": 15000, "stock": 18 },
+    { "id": 6, "category": "생활", "name": "수건", "amount": 9000, "stock": 60 }
+  ]
+}

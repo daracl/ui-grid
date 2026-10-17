@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DaraGrid 옵션 빌더</title>
+    <link rel="stylesheet" href="../asset/examples.css" />
+  </head>
+  <body class="builder-page">
+    <header class="page-header">
+      <div>
+        <a href="../index.html">DaraGrid / UI 테스트</a>
+        <h1>그리드 빌더</h1>
+      </div>
+      <p>옵션을 바꾸고, 결과를 바로 확인하세요.</p>
+    </header>
+    <main>
+      <form id="options" class="panel settings">
+        <div class="panel-title">
+          <h2>옵션 설정</h2>
+          <div class="settings-actions">
+            <button type="button" id="reset">초기화</button>
+            <button class="primary" type="submit">미리보기 적용</button>
+          </div>
+        </div>
+        <fieldset>
+          <legend>기본 설정</legend>
+          <label>그리드 유형<select id="preset"></select></label>
+          <div class="pair">
+            <label
+              >테마<select id="theme">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select></label
+            >
+            <label>그리드 높이<input id="height" type="number" value="440" min="180" max="1200" /></label>
+          </div>
+          <div class="pair">
+            <label>행 높이<input id="rowHeight" type="number" value="32" min="20" max="100" /></label>
+            <label>왼쪽 고정 열 수<input id="fixed" type="number" value="0" min="0" max="10" /></label>
+          </div>
+          <div class="checks">
+            <label><input id="editable" type="checkbox" />셀 편집</label
+            ><label><input id="header" type="checkbox" checked />헤더 표시</label
+            ><label><input id="lineNumber" type="checkbox" checked />행 번호</label
+            ><label><input id="checkbox" type="checkbox" />행 체크박스</label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>데이터 표시</legend>
+          <label>데이터 세트<select id="dataset"></select></label>
+          <label>표시 컬럼<select id="columns" multiple size="4" aria-describedby="columnsHint"></select></label>
+          <p class="hint" id="columnsHint">
+            Ctrl / Command 키로 여러 컬럼을 선택하세요. 데이터 세트를 변경하면 컬럼·행 데이터가 교체됩니다.
+          </p>
+          <div class="pair">
+            <label>그룹 / 병합 필드<select id="groupField"></select></label
+            ><label>합계 필드<select id="sumField"></select></label>
+          </div>
+          <div class="pair">
+            <label class="inline"><input id="paging" type="checkbox" />페이징</label
+            ><label>페이지당 행 수<input id="pageSize" type="number" value="10" min="1" max="1000" /></label>
+          </div>
+          <p class="hint">
+            그룹·트리는 샘플 필드에 맞춰 적용됩니다. 유형을 바꾸면 필드와 데이터가 해당 샘플로 교체됩니다.
+          </p>
+        </fieldset>
+        <details open>
+          <summary>컬럼 정의 · fields</summary>
+          <label class="sr-only" for="fields">컬럼 정의 JSON</label
+          ><textarea id="fields" rows="10" spellcheck="false"></textarea>
+        </details>
+        <details>
+          <summary>행 데이터 · items</summary>
+          <label class="sr-only" for="items">행 데이터 JSON</label
+          ><textarea id="items" rows="14" spellcheck="false"></textarea>
+        </details>
+        <div class="apply-bar">
+          <label class="inline"><input id="auto" type="checkbox" checked />자동 적용</label>
+        </div>
+        <p id="error" role="alert"></p>
+      </form>
+      <section class="workspace">
+        <section class="panel preview-panel">
+          <div class="panel-title">
+            <div>
+              <h2>미리보기</h2>
+              <span id="status" role="status" aria-live="polite"></span>
+            </div>
+            <div>
+              <button id="expand" type="button" hidden>전체 펼치기</button
+              ><button id="collapse" type="button" hidden>전체 접기</button>
+            </div>
+          </div>
+          <div class="export-actions" role="group" aria-label="파일 다운로드">
+            <span>다운로드</span>
+            <button type="button" data-export="excel">Excel (.xlsx)</button>
+            <button type="button" data-export="csv">CSV</button>
+            <button type="button" data-export="json">JSON</button>
+            <button type="button" data-export="pdf">PDF</button>
+          </div>
+          <p id="exportStatus" role="status" aria-live="polite"></p>
+          <div class="preview-scroll"><div id="preview"></div></div>
+        </section>
+        <section class="panel code-panel">
+          <div class="panel-title">
+            <h2>생성된 옵션</h2>
+            <button id="copy" type="button">옵션 복사</button>
+          </div>
+          <p class="hint">DaraGrid.create(element, options)에 사용할 수 있는 JSON입니다.</p>
+          <pre id="code" tabindex="0"></pre>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="./builder.js"></script>
+  </body>
+</html>

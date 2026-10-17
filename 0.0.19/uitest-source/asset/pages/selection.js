@@ -1,0 +1,71 @@
+var gridObj;
+
+function loadGrid(theme, selectMode) {
+  const jsonInfo = getItem();
+
+  gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields, theme, selectMode);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  loadGrid(G_GRID_THEME, 'cell');
+});
+
+let toolbarSelectionMode = 'cell';
+function gridDraw(element, items, fields, theme, selectMode) {
+  gridObj = Daracl.grid.create(element, {
+    selectionMode: selectMode, // row, cell, multiRow, multiCell, none// 선택 방법.
+    theme: theme,
+    aside: {
+      lineNumber: { enabled: true },
+      rowCheckbox: {
+        enabled: true,
+        checkOnRowSelect: true,
+        width: 27,
+        //, allowMultiSelect: false
+      },
+    },
+    fields: fields,
+    items: items,
+    toolbar: {
+      enabled: true,
+      height: 40,
+      defaultValues: {
+        mode: toolbarSelectionMode,
+      },
+      items: [
+        [
+          {
+            position: 'left',
+            children: [
+              {
+                label: '선택모드',
+                name: 'mode',
+                //width: 150,
+                gap: [10, 20],
+
+                renderer: {
+                  type: 'choice',
+                  listItem: {
+                    multiple: false,
+                    list: [
+                      { label: '셀(cell)', value: 'cell' },
+                      { label: '로우(row)', value: 'row' },
+                      { label: '다중 셀(multiCell)', value: 'multiCell' },
+                      { label: '다중 로우(multiRow)', value: 'multiRow' },
+                      { label: 'None(none)', value: 'none' },
+                    ],
+                  },
+                },
+
+                change: (info) => {
+                  toolbarSelectionMode = info.value;
+                  loadGrid(theme, info.value);
+                },
+              },
+            ],
+          },
+        ],
+      ],
+    },
+  });
+}

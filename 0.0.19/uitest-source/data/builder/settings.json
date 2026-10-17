@@ -1,0 +1,11 @@
+{
+  "types": [
+    { "value": "list", "label": "목록" },
+    { "value": "group", "label": "그룹 · 합계" },
+    { "value": "tree", "label": "트리" },
+    { "value": "rowspan", "label": "셀 병합 · rowSpan" },
+    { "value": "chart", "label": "셀 차트" }
+  ],
+  "chart": { "minimum": 0, "maximum": 100 },
+  "tree": { "idField": "id", "childrenField": "children", "expandDepth": 2 }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+  <link rel="stylesheet" href="./asset/examples.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSV 내보내기</title>
+    <style>
+
+      label, button { margin-right: 12px; }
+      #sample { height: 420px; margin-top: 16px; }
+    </style>
+    <script src="./data/businessFixtures.js"></script>
+</head>
+  <body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>CSV 내보내기</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
+    <a href="./index.html">UI 테스트</a>
+    <p>기본으로 전체 데이터 행을 내보냅니다. 현재 표시 행만 선택하면 페이지·검색·트리 접기가 반영됩니다. 그룹 합계 가상 행은 제외하며, 차트는 값으로 출력합니다.</p>
+    <label>유형 <select id="type">
+      <option value="list">목록 · 페이징</option><option value="group">Grouping</option>
+      <option value="rowspan">rowSpan</option><option value="chart">차트</option><option value="tree">트리</option>
+    </select></label>
+    <label><input id="visible" type="checkbox" />현재 표시 행만</label>
+    <label><input id="selected" type="checkbox" />선택 행만</label>
+    <label><input id="hidden" type="checkbox" />숨김 열 포함</label>
+    <label><input id="formatted" type="checkbox" checked />표시 포맷 적용</label>
+    <button id="export">CSV 다운로드</button><span id="status" role="status"></span>
+    <div id="sample"></div>
+    <script type="module" src="./asset/pages/csv-export.js"></script>
+    </section>
+</body>
+</html>

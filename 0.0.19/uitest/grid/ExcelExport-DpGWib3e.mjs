@@ -1,0 +1,323 @@
+/*!
+* @daracl/grid v0.0.20
+* Copyright 2023-2026 darainfo;
+* Licensed MIT
+*/
+import { d as me } from "./downloadExport-BTOtQUXd.mjs";
+import { G as pe, S as de } from "./index-Dr_a9YvP.mjs";
+function j(o) {
+  let t = "";
+  for (let i = o + 1; i > 0; i = Math.floor((i - 1) / 26))
+    t = String.fromCharCode(65 + (i - 1) % 26) + t;
+  return t;
+}
+function we(o, t = []) {
+  var d;
+  const c = (o.groupingFields.length ? new pe(o) : new de(o)).render(), n = o.lineNumberField ? 1 : 0, y = o.fields.some((m) => {
+    var w;
+    return ((w = m.renderer) == null ? void 0 : w.type) === "tree";
+  }), v = o.viewItems.map((m) => Math.max(0, Math.floor(m.depth ?? 0))), e = y ? o.viewItems.map((m, w) => [
+    ...n ? [0] : [],
+    ...o.fields.map((x) => {
+      var $;
+      return (($ = x.renderer) == null ? void 0 : $.type) === "tree" ? Math.min(250, v[w]) : 0;
+    })
+  ]) : void 0, S = c.rows.map((m, w) => {
+    const x = [...m], $ = o.viewItems[w];
+    return n && (x[0] = (o.lineNumberStart ?? 0) + w + 1), o.fields.forEach((f, I) => {
+      var k, b;
+      if ($.groupRowType) {
+        const g = (k = $.groupSums) == null ? void 0 : k[f.name];
+        g !== void 0 && o.sumFields.includes(f.name) && m[I + n] === String(g) && (x[I + n] = g);
+      } else if (!f.displayFormat && ["text", "number"].includes(((b = f.renderer) == null ? void 0 : b.type) ?? "text")) {
+        const g = f.$renderer.getValue(o.getRowItem($.id));
+        (typeof g == "number" && Number.isFinite(g) || typeof g == "boolean") && m[I + n] === String(g) && (x[I + n] = g);
+      }
+    }), x;
+  }), p = [];
+  return (d = c.cellCharts) == null || d.forEach(
+    (m, w) => m.forEach((x, $) => {
+      x && (S[w][$] = "");
+    })
+  ), t.forEach((m, w) => {
+    var $;
+    const x = o.fields.findIndex((f) => f.name === m);
+    if (!(x < 0))
+      for (let f = 0; f < o.viewItems.length; ) {
+        const I = o.viewItems[f];
+        if (I.groupRowType) {
+          f++;
+          continue;
+        }
+        const k = o.getRowItem(I.id);
+        let b = f + 1;
+        for (; b < o.viewItems.length && !o.viewItems[b].groupRowType && t.slice(0, w + 1).every((g) => Object.is(k[g], o.getRowItem(o.viewItems[b].id)[g])); )
+          b++;
+        if (b - f > 1) {
+          const g = j(x + n);
+          p.push(`${g}${f + 2}:${g}${b + 1}`);
+          for (let T = f + 1; T < b; T++)
+            S[T][x + n] = "", ($ = c.cellCharts) != null && $[T] && (c.cellCharts[T][x + n] = void 0);
+        }
+        f = b;
+      }
+  }), {
+    ...c,
+    rows: S,
+    merges: p,
+    cellIndents: e,
+    outlineLevels: y ? v.map((m) => Math.min(7, m)) : void 0,
+    rowHeight: o.rowHeight
+  };
+}
+const oe = new TextEncoder(), fe = Uint32Array.from({ length: 256 }, (o, t) => {
+  let i = t;
+  for (let c = 0; c < 8; c++) i = i >>> 1 ^ (i & 1 ? 3988292384 : 0);
+  return i >>> 0;
+});
+function he(o) {
+  const t = Object.entries(o).map(([p, d]) => ({
+    name: oe.encode(p),
+    data: oe.encode(d)
+  })), i = t.reduce((p, d) => p + d.data.length + d.name.length * 2 + 76, 22);
+  if (t.length > 65535 || i > 4294967295) throw new RangeError("XLSX exceeds ZIP32 limits");
+  const c = new Uint8Array(i), n = new DataView(c.buffer), y = [], v = [];
+  let e = 0;
+  for (const p of t) {
+    let d = 4294967295;
+    for (const m of p.data) d = d >>> 8 ^ fe[(d ^ m) & 255];
+    d = (d ^ 4294967295) >>> 0, y.push(e), v.push(d), n.setUint32(e, 67324752, !0), n.setUint16(e + 4, 20, !0), n.setUint16(e + 6, 2048, !0), n.setUint16(e + 12, 33, !0), n.setUint32(e + 14, d, !0), n.setUint32(e + 18, p.data.length, !0), n.setUint32(e + 22, p.data.length, !0), n.setUint16(e + 26, p.name.length, !0), c.set(p.name, e + 30), c.set(p.data, e + 30 + p.name.length), e += 30 + p.name.length + p.data.length;
+  }
+  const S = e;
+  return t.forEach((p, d) => {
+    n.setUint32(e, 33639248, !0), n.setUint16(e + 4, 20, !0), n.setUint16(e + 6, 20, !0), n.setUint16(e + 8, 2048, !0), n.setUint16(e + 14, 33, !0), n.setUint32(e + 16, v[d], !0), n.setUint32(e + 20, p.data.length, !0), n.setUint32(e + 24, p.data.length, !0), n.setUint16(e + 28, p.name.length, !0), n.setUint32(e + 42, y[d], !0), c.set(p.name, e + 46), e += 46 + p.name.length;
+  }), n.setUint32(e, 101010256, !0), n.setUint16(e + 8, t.length, !0), n.setUint16(e + 10, t.length, !0), n.setUint32(e + 12, e - S, !0), n.setUint32(e + 16, S, !0), c;
+}
+function xe(o, t, i, c = 1) {
+  var S;
+  const n = [];
+  let y = 1;
+  const v = (p, d = "FF222222") => t(p, d).slice(2), e = (p) => Math.round(p);
+  return (S = o.cellCharts) == null || S.forEach(
+    (p, d) => p.forEach((m, w) => {
+      var T, O;
+      if (!m || !o.columns[w]) return;
+      const x = Math.max(12, o.columns[w].width ?? 100), $ = Math.max(12, o.rowHeight ?? 26), f = x - 8, I = $ - 8, k = [], b = (h, u, F, P) => `<a:xfrm><a:off x="${e(h)}" y="${e(u)}"/><a:ext cx="${Math.max(1, e(F))}" cy="${Math.max(
+        1,
+        e(P)
+      )}"/></a:xfrm>`, g = (h, u, F, P, R, r) => {
+        k.push(
+          `<xdr:sp><xdr:nvSpPr><xdr:cNvPr id="${y++}" name="${h} ${y}"/><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr>${b(
+            u,
+            F,
+            P,
+            R
+          )}<a:prstGeom prst="${h}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${r}"/></a:solidFill><a:ln><a:noFill/></a:ln></xdr:spPr></xdr:sp>`
+        );
+      };
+      if (m.type === "bar") {
+        if (![m.value, m.minimum, m.maximum].every(Number.isFinite)) return;
+        const h = Math.min(m.minimum, m.maximum), u = Math.max(m.minimum, m.maximum), F = u - h || 1, P = Math.max(h, Math.min(u, m.value)), R = h < 0 && u > 0 ? -h / F * f : h >= 0 ? 0 : f, r = h < 0 && u > 0 ? Math.abs(P) / F * f : h >= 0 ? (P - h) / F * f : Math.abs(P - u) / F * f;
+        r > 0 && g("rect", 4 + R - (h < 0 && P < 0 || u <= 0 ? r : 0), 4, r, I, v(m.color));
+        const s = v((O = (T = o.cellTextColors) == null ? void 0 : T[d]) == null ? void 0 : O[w]);
+        k.push(
+          `<xdr:sp><xdr:nvSpPr><xdr:cNvPr id="${y++}" name="Bar label"/><xdr:cNvSpPr txBox="1"/></xdr:nvSpPr><xdr:spPr>${b(
+            0,
+            0,
+            x,
+            $
+          )}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln><a:noFill/></a:ln></xdr:spPr><xdr:txBody><a:bodyPr wrap="none" anchor="ctr" lIns="0" rIns="0" tIns="0" bIns="0"/><a:lstStyle/><a:p><a:pPr algn="ctr"/><a:r><a:rPr lang="ko-KR" sz="900"><a:solidFill><a:srgbClr val="${s}"/></a:solidFill><a:latin typeface="Calibri"/></a:rPr><a:t>${i(
+            m.label
+          )}</a:t></a:r><a:endParaRPr lang="ko-KR"/></a:p></xdr:txBody></xdr:sp>`
+        );
+      } else {
+        const h = m.values;
+        if (!h.length || !h.every(Number.isFinite)) return;
+        let u = 1 / 0, F = -1 / 0;
+        for (const r of h)
+          u = Math.min(u, r), F = Math.max(F, r);
+        const P = F - u || 1, R = (r, s) => r === F ? "28A745" : r === u ? "DC3545" : s === 0 || s === h.length - 1 ? "0000FF" : "FF9900";
+        if (m.type === "sparklineBar") {
+          const r = f / h.length;
+          h.forEach((s, l) => {
+            const a = (s - u) / P * I;
+            a > 0 && g(
+              "rect",
+              4 + l * r + Math.min(1, r / 4),
+              4 + I - a,
+              Math.max(0.5, r - 2),
+              a,
+              R(s, l)
+            );
+          });
+        } else {
+          const r = h.map((l, a) => ({
+            x: 4 + (h.length > 1 ? a / (h.length - 1) * f : f / 2),
+            y: 4 + (1 - (l - u) / P) * I
+          })), s = r.map(
+            (l, a) => `<a:${a ? "lnTo" : "moveTo"}><a:pt x="${e(l.x)}" y="${e(l.y)}"/></a:${a ? "lnTo" : "moveTo"}>`
+          ).join("");
+          k.push(
+            `<xdr:sp><xdr:nvSpPr><xdr:cNvPr id="${y++}" name="Sparkline"/><xdr:cNvSpPr/></xdr:nvSpPr><xdr:spPr>${b(
+              0,
+              0,
+              x,
+              $
+            )}<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst><a:path w="${e(
+              x
+            )}" h="${e(
+              $
+            )}" fill="none">${s}</a:path></a:pathLst></a:custGeom><a:noFill/><a:ln w="7144"><a:solidFill><a:srgbClr val="007ACC"/></a:solidFill></a:ln></xdr:spPr></xdr:sp>`
+          ), r.forEach(
+            (l, a) => g("ellipse", l.x - 1.875, l.y - 1.875, 3.75, 3.75, R(h[a], a))
+          );
+        }
+      }
+      k.length && n.push(
+        `<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>${w}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${d + c}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>${w + 1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${d + c + 1}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:grpSp><xdr:nvGrpSpPr><xdr:cNvPr id="${y++}" name="Cell chart ${d + c + 1}-${w + 1}"/><xdr:cNvGrpSpPr/></xdr:nvGrpSpPr><xdr:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${e(
+          x * 9525
+        )}" cy="${e($ * 9525)}"/><a:chOff x="0" y="0"/><a:chExt cx="${e(x)}" cy="${e(
+          $
+        )}"/></a:xfrm></xdr:grpSpPr>${k.join("")}</xdr:grpSp><xdr:clientData/></xdr:twoCellAnchor>`
+      );
+    })
+  ), n.length ? `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">${n.join(
+    ""
+  )}</xdr:wsDr>` : void 0;
+}
+const ge = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", G = "http://schemas.openxmlformats.org/spreadsheetml/2006/main", E = "http://schemas.openxmlformats.org/officeDocument/2006/relationships", B = (o) => Array.from(o).filter((t) => {
+  const i = t.codePointAt(0);
+  return i === 9 || i === 10 || i === 13 || i >= 32 && i <= 55295 || i >= 57344 && i <= 65533 || i >= 65536;
+}).join("").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+function L(o, t) {
+  if (!o) return t;
+  const i = o.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+  if (i) return "FF" + (i[1].length === 3 ? [...i[1]].map((e) => e + e).join("") : i[1]).toUpperCase();
+  const c = o.match(/^rgba?\(([^)]+)\)$/i);
+  if (!c) return t;
+  const n = c[1].split(/[,\s/]+/).filter(Boolean), y = n[3] === void 0 ? 1 : Math.min(1, Math.max(0, parseFloat(n[3]) / (n[3].endsWith("%") ? 100 : 1))), v = n.slice(0, 3).map((e) => Math.max(0, Math.min(255, parseFloat(e) * (e.endsWith("%") ? 2.55 : 1))));
+  return v.length !== 3 || v.some((e) => !Number.isFinite(e)) || !Number.isFinite(y) ? t : "FF" + v.map(
+    (e) => Math.round(e * y + 255 * (1 - y)).toString(16).padStart(2, "0")
+  ).join("").toUpperCase();
+}
+class ye {
+  convert(t, i = {}) {
+    var F, P, R;
+    const c = ((F = t.headerRows) == null ? void 0 : F.length) || 1;
+    if (!t.columns.length || t.columns.length > 16384 || t.rows.length + c > 1048576)
+      throw new RangeError("Invalid XLSX worksheet dimensions");
+    const n = i.sheetName ?? "Grid";
+    if (!n.trim() || n.length > 31 || /[\\/*?:\[\]]/.test(n) || /^'|'$/.test(n))
+      throw new Error("Invalid Excel sheet name");
+    const y = ['<font><sz val="11"/><color rgb="FF222222"/><name val="Calibri"/></font>'], v = [
+      '<fill><patternFill patternType="none"/></fill>',
+      '<fill><patternFill patternType="gray125"/></fill>'
+    ], e = ["<border><left/><right/><top/><bottom/><diagonal/></border>"], S = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'], p = /* @__PURE__ */ new Map(), d = (r, s) => {
+      const l = r.indexOf(s);
+      return l >= 0 ? l : (r.push(s), r.length - 1);
+    }, m = (r, s, l, a) => {
+      var W, Z, K, q, J, Q, Y, ee, te, re, ne, se;
+      const M = L(
+        r ? (a == null ? void 0 : a.textColor) ?? ((W = t.headerTextColors) == null ? void 0 : W[s]) : (K = (Z = t.cellTextColors) == null ? void 0 : Z[l]) == null ? void 0 : K[s],
+        "FF222222"
+      ), U = r ? (a == null ? void 0 : a.background) ?? ((q = t.headerBackgrounds) == null ? void 0 : q[s]) ?? "#e9edf2" : (Q = (J = t.cellBackgrounds) == null ? void 0 : J[l]) == null ? void 0 : Q[s], N = r ? (a == null ? void 0 : a.gradient) ?? ((Y = t.headerGradients) == null ? void 0 : Y[s]) : void 0, _ = (r ? (a == null ? void 0 : a.borders) ?? ((ee = t.headerCellBorders) == null ? void 0 : ee[s]) : (re = (te = t.cellBorders) == null ? void 0 : te[l]) == null ? void 0 : re[s]) ?? {
+        right: { color: "#cdcdcd", width: 1 },
+        bottom: { color: "#cdcdcd", width: 1 }
+      }, D = r ? 0 : Math.max(0, Math.min(250, Math.floor(((se = (ne = t.cellIndents) == null ? void 0 : ne[l]) == null ? void 0 : se[s]) ?? 0))), H = D ? "left" : r ? "center" : t.columns[s].align ?? "left", z = JSON.stringify([r, M, U, N, _, H, D]), X = p.get(z);
+      if (X !== void 0) return X;
+      const le = d(
+        y,
+        `<font><sz val="11"/><color rgb="${M}"/><name val="Calibri"/>${r ? "<b/>" : ""}</font>`
+      ), ie = N ? d(
+        v,
+        `<fill><gradientFill degree="90"><stop position="0"><color rgb="${L(
+          N.startColor,
+          "FFFFFFFF"
+        )}"/></stop><stop position="1"><color rgb="${L(
+          N.endColor,
+          "FFF1F1F1"
+        )}"/></stop></gradientFill></fill>`
+      ) : U ? d(
+        v,
+        `<fill><patternFill patternType="solid"><fgColor rgb="${L(
+          U,
+          "FFFFFFFF"
+        )}"/><bgColor indexed="64"/></patternFill></fill>`
+      ) : 0, ae = d(
+        e,
+        "<border>" + ["left", "right", "top", "bottom"].map((A) => {
+          const C = _[A];
+          if (!C || !Number.isFinite(C.width) || C.width <= 0) return `<${A}/>`;
+          const ce = C.style === "dashed" || C.style === "dotted" || C.style === "double" ? C.style : C.width >= 3 ? "thick" : C.width >= 2 ? "medium" : "thin";
+          return `<${A} style="${ce}"><color rgb="${L(C.color, "FFCDCDCD")}"/></${A}>`;
+        }).join("") + "<diagonal/></border>"
+      ), V = S.length;
+      return S.push(
+        `<xf numFmtId="0" fontId="${le}" fillId="${ie}" borderId="${ae}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${H}" vertical="center" wrapText="1"${D ? ` indent="${D}"` : ""}/></xf>`
+      ), p.set(z, V), V;
+    }, w = (r, s, l) => {
+      var N;
+      const a = `${j(l)}${s + 1}`, M = `r="${a}" s="${m(
+        s < c,
+        l,
+        s - c,
+        (N = $[s]) == null ? void 0 : N[l]
+      )}"`;
+      if (typeof r == "number" && Number.isFinite(r)) return `<c ${M}><v>${r}</v></c>`;
+      if (typeof r == "boolean") return `<c ${M} t="b"><v>${r ? 1 : 0}</v></c>`;
+      const U = String(r ?? "");
+      if (U.length > 32767) throw new RangeError(`Excel cell ${a} exceeds 32767 characters`);
+      return `<c ${M} t="inlineStr"><is><t xml:space="preserve">${B(U)}</t></is></c>`;
+    }, x = Array.from({ length: c }, () => t.columns.map(() => "")), $ = Array.from({ length: c }, () => []), f = [];
+    (P = t.headerRows) != null && P.length ? t.headerRows.forEach(
+      (r, s) => r.forEach((l) => {
+        x[s][l.column] = l.label;
+        for (let a = s; a < s + l.rowSpan; a++)
+          for (let M = l.column; M < l.column + l.colSpan; M++) $[a][M] = l;
+        (l.rowSpan > 1 || l.colSpan > 1) && f.push(
+          `${j(l.column)}${s + 1}:${j(l.column + l.colSpan - 1)}${s + l.rowSpan}`
+        );
+      })
+    ) : x[0] = t.columns.map((r) => r.label ?? "");
+    const I = Math.max(12, t.rowHeight ?? 26) * 0.75, k = [...x, ...t.rows].map(
+      (r, s) => `<row r="${s + 1}" ht="${I}" customHeight="1"${s >= c && t.outlineLevels ? ` outlineLevel="${t.outlineLevels[s - c]}"` : ""}>${t.columns.map((l, a) => w(r[a] ?? "", s, a)).join("")}</row>`
+    ).join(""), b = `${j(t.columns.length - 1)}${t.rows.length + c}`, g = i.mergeCells === !1 ? [] : [
+      ...f,
+      ...t.merges.map(
+        (r) => r.replace(/([A-Z]+)(\d+)/g, (s, l, a) => `${l}${Number(a) + c - 1}`)
+      )
+    ], T = xe(t, L, B, c), O = ((R = t.outlineLevels) == null ? void 0 : R.reduce((r, s) => Math.max(r, s), 0)) ?? 0, h = `<worksheet xmlns="${G}" xmlns:r="${E}">${t.outlineLevels ? '<sheetPr><outlinePr summaryBelow="0"/></sheetPr>' : ""}<dimension ref="A1:${b}"/><sheetViews><sheetView workbookViewId="0">${i.freezeHeader === !1 ? "" : `<pane ySplit="${c}" topLeftCell="A${c + 1}" activePane="bottomLeft" state="frozen"/>`}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="${I}"${O ? ` outlineLevelRow="${O}"` : ""}/><cols>${t.columns.map(
+      (r, s) => `<col min="${s + 1}" max="${s + 1}" width="${Math.min(
+        255,
+        Math.max(1, ((r.width ?? 100) - 5) / 7)
+      ).toFixed(2)}" customWidth="1"/>`
+    ).join("")}</cols><sheetData>${k}</sheetData>${i.autoFilter ? `<autoFilter ref="A${c}:${b}"/>` : ""}${g.length ? `<mergeCells count="${g.length}">${g.map((r) => `<mergeCell ref="${B(r)}"/>`).join("")}</mergeCells>` : ""}${T ? '<drawing r:id="rId1"/>' : ""}</worksheet>`, u = {
+      "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+      "_rels/.rels": `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${E}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+      "xl/workbook.xml": `<workbook xmlns="${G}" xmlns:r="${E}"><sheets><sheet name="${B(
+        n
+      )}" sheetId="1" r:id="rId1"/></sheets></workbook>`,
+      "xl/_rels/workbook.xml.rels": `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${E}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${E}/styles" Target="styles.xml"/></Relationships>`,
+      "xl/styles.xml": `<styleSheet xmlns="${G}"><fonts count="${y.length}">${y.join(
+        ""
+      )}</fonts><fills count="${v.length}">${v.join("")}</fills><borders count="${e.length}">${e.join(
+        ""
+      )}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${S.length}">${S.join(
+        ""
+      )}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+      "xl/worksheets/sheet1.xml": h
+    };
+    return T && (u["[Content_Types].xml"] = u["[Content_Types].xml"].replace(
+      "</Types>",
+      '<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>'
+    ), u["xl/drawings/drawing1.xml"] = T, u["xl/worksheets/_rels/sheet1.xml.rels"] = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${E}/drawing" Target="../drawings/drawing1.xml"/></Relationships>`), new Blob([he(u)], { type: ge });
+  }
+  download(t, i = "grid-export.xlsx") {
+    me(t, i, "grid-export.xlsx", "xlsx");
+  }
+}
+export {
+  ye as ExcelConverter,
+  we as createExcelData
+};
+//# sourceMappingURL=ExcelExport-DpGWib3e.mjs.map

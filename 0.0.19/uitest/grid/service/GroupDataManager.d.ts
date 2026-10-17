@@ -1,0 +1,30 @@
+import { RowId, ViewItem } from '../types/Common.js';
+import { FieldItem } from '../types/GridField.js';
+import { GridOptions, SortOption } from '../types/GridOptions.js';
+import { FieldSortInfo } from '../types/Header.js';
+import { GridMain } from '../view/GridMain.js';
+import { ListDataManager } from './ListDataManager';
+import { HistoryEntry } from './HistoryManager';
+export declare class GroupDataManager extends ListDataManager {
+    private readonly groupRows;
+    private sourceViewItems;
+    private groupRowId;
+    private historyBatchDepth;
+    private groupingRefreshPending;
+    constructor(opts: GridOptions, gridMain: GridMain);
+    setViewItems(items: ViewItem[]): void;
+    setChangeValue(rowItem: any, field: FieldItem, newValue: any, applyValue?: (rowItem: any, field: FieldItem, newValue: any) => boolean | void): boolean;
+    beginHistory(): void;
+    commitHistory(): void;
+    rollbackHistory(): void;
+    getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[];
+    protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void;
+    getRowItem(rowId: RowId): any;
+    getAllRowItems(rowIdInclude?: boolean): any[];
+    convertViewItemsToRowItems(): any[];
+    setAllCheck(): void;
+    setItemChecked(id: RowId, checked: boolean): void;
+    private createGroupRow;
+    private sumRows;
+    private refreshGroupingIfReady;
+}

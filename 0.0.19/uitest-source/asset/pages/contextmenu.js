@@ -1,0 +1,121 @@
+var gridObj;
+
+function fn_init(initFlag) {
+  const jsonInfo = getItem(4, 100, 20);
+
+  gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  fn_init(true);
+});
+
+function gridDraw(element, aaa, colItem) {
+  gridObj = Daracl.grid.create(element, {
+    selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
+    theme: G_GRID_THEME,
+    height: 480,
+    aside: {
+      lineNumber: { enabled: true },
+    },
+    scroll: {
+      vertical: {
+        enable1: false,
+        onUpdate: function (item) {
+          // 스크롤 업데이트.
+          //console.log(item);
+          //return true;
+        },
+      },
+      horizontal: {
+        enabledWheel: true,
+      },
+    },
+
+    fields: colItem,
+    items: aaa,
+
+    contextMenu: {
+      enabledHeader: true,
+      beforeActivate: function (info) {
+        const field = info.field;
+        const item = info.item;
+        if (item) {
+          gridObj.changeContextMenuHeader(item[field.name]);
+        }
+      },
+      callback: function (item, checkValue) {
+        console.log(item.key, item, checkValue);
+
+        if (item.key == 'copy') {
+          gridObj.copyData();
+        }
+      },
+      items: [
+        { key: 'refresh', label: '새로고침' },
+        {
+          divider: true,
+        },
+        {
+          key: 'copy',
+          label: '복사',
+          hotkey: 'Ctrl+C',
+          callback: function (item) {
+            console.log('direct copy callback : ', item.key, item);
+
+            if (item.key == 'copy') {
+              gridObj.copyData();
+            }
+          },
+        },
+        {
+          key: 'sql_create',
+          label: 'sql생성',
+          disabled: true,
+          children: [
+            { key: 'selectStar', label: 'select *' },
+            { key: 'select', label: 'select column' },
+            { key: 'insert', label: 'insert' },
+            { key: 'update', label: 'update' },
+            { key: 'delete', label: 'delete' },
+            { key: 'drop', label: 'drop' },
+          ],
+        },
+        {
+          key: 'download',
+          label: 'download',
+          children: [
+            { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
+            { divider: true },
+            { key: 'download_excel', label: 'EXCEL' },
+            { key: 'download_csv', label: 'CSV' },
+            { key: 'download_xml', label: 'XML' },
+            { key: 'download_json', label: 'json' },
+          ],
+        },
+        {
+          key: 'create_ddl',
+          label: 'DDL 보기',
+          hotkey: 'Ctrl+shift+C',
+        },
+        {
+          key: 'mybatis-sql_create',
+          label: 'mybatis Sql생성',
+          children: [
+            { key: 'mybatis_insert', label: 'insert', mode: 'insert', param_yn: 'Y' },
+            { key: 'mybatis_update', label: 'update', mode: 'update', param_yn: 'Y' },
+            { key: 'mybatis_delete', label: 'delete', mode: 'delete', param_yn: 'Y' },
+          ],
+        },
+        {
+          key: 'export',
+          label: '내보내기',
+          children: [
+            { key: 'export_data', label: '데이타 내보내기' },
+            { key: 'export_column', label: '컬럼정보 내보내기' },
+          ],
+        },
+      ],
+    },
+  });
+}

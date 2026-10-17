@@ -1,0 +1,22 @@
+import { CellInfo, HeaderCellInfo } from '../types/GridConfig.js';
+import { BasePointerHandler } from './PointerHandler.js';
+import { ClickManager } from './ClickManager';
+export interface PointerPosition {
+    x: number;
+    y: number;
+    clientX: number;
+    clientY: number;
+}
+export type PointerState = 'IDLE' | 'PRESSED' | 'DRAGGING';
+export interface PointerSession {
+    state?: PointerState;
+    event: Event;
+    startPos: PointerPosition;
+    currentPos: PointerPosition;
+    startTime: number;
+    lastClickTime: number;
+    clickManager: ClickManager;
+    handler?: BasePointerHandler;
+    cellInfo?: CellInfo | HeaderCellInfo;
+    cellEl?: HTMLElement;
+}

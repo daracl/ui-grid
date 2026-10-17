@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+  <link rel="stylesheet" href="./asset/examples.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>기본 그리드 PDF 내보내기</title>
+    <style>
+
+
+      #sample {
+        width: 100%;
+        height: 420px;
+      }
+    </style>
+    <script src="./data/businessFixtures.js"></script>
+<link rel="stylesheet" href="./grid/daracl.grid.css" /><meta name="robots" content="noindex, follow" /></head>
+  <body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>기본 그리드 PDF 내보내기</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
+    <p><a href="./index.html">UI tests</a> | <a href="./pdf-export-group.html">Grouped</a> | <a href="./pdf-export-chart.html">Charts</a></p>
+    <p>Exports the visible columns and all rows in the current grid view.</p>
+    <button id="export-pdf" type="button">Export PDF</button>
+    <span id="export-status" role="status" aria-live="polite"></span>
+    <div id="sample"></div>
+
+    <script type="module" src="./asset/pages/pdf-export-simple.js"></script>
+    </section>
+</body>
+</html>
