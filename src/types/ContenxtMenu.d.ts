@@ -1,4 +1,5 @@
 import { OptionCallback } from './Common';
+import type { ExportFileOptions } from '@/export/exportGridFile';
 
 /**
  * context menu
@@ -48,11 +49,13 @@ export interface ContextMenuItem {
   header?: string;
 
   /**
-   * key
+   * 항목 키. copy는 선택 영역 복사, exportFile의 하위 excel(xlsx)·csv·pdf·json은 파일 다운로드.
    *
    * @type {?string}
    */
   key?: string;
+  /** exportFile 부모 또는 형식별 하위 항목의 다운로드 옵션. 하위 항목이 우선한다. */
+  exportOptions?: ExportFileOptions;
   /**
    * click disabled
    */
@@ -64,7 +67,7 @@ export interface ContextMenuItem {
   /**
    * context menu label
    */
-  label: string;
+  label?: string;
   /**
    * checkbox
    */

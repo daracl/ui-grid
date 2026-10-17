@@ -1,5 +1,6 @@
 import { RegexpType } from '@/constants';
 import { OptionCallback, ValuesInfo } from '@t/Common';
+import type { ExportFileOptions } from '@/export/exportGridFile';
 
 /**
  * Renderer info
@@ -55,6 +56,10 @@ export interface ViewRendererInfo extends RendererInfo {
 }
 
 export interface EditRendererInfo extends RendererInfo {
+  /** exportFile 버튼 문구. 생략하면 다국어 메시지 'export.download'를 사용한다. */
+  downloadLabel?: string;
+  /** exportFile: listItem 값으로 excel(xlsx), csv, json, pdf를 사용한다. */
+  exportOptions?: ExportFileOptions;
   customOptions?: any;
   required?: boolean; //true // 필수 여부
   regexpType?: RegexpType; // 정규식 타입

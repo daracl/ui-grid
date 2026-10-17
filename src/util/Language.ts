@@ -47,6 +47,14 @@ let localeMessage: Message = {
   next: '다음',
   row: '행',
   column: '열',
+  'export.format': '내보내기 형식',
+  'context.copy': 'Copy',
+  'context.exportFile': 'Export file',
+  'export.download': '다운로드',
+  'export.creating': '파일 생성 중',
+  'export.completed': '다운로드 완료',
+  'export.failed': '다운로드 실패',
+  'export.unsupportedFormat': '내보내기 형식을 선택하세요. 지원 형식: excel, xlsx, csv, json, pdf',
 };
 
 /**

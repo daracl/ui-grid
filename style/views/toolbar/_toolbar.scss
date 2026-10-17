@@ -138,6 +138,20 @@
         }
 
         .dg-control {
+          .dg-export-file {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 6px;
+            align-items: center;
+            .dg-export-status {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              overflow: hidden;
+              clip-path: inset(50%);
+            }
+            .dg-export-download { white-space: nowrap; }
+          }
           min-width: 0;
           width: 100%;
 

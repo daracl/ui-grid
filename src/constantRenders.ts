@@ -54,6 +54,7 @@ export const TOOLBAR_RENDERER: any = {
   custom: ToolbarRenderer.CustomRenderer,
   date: ToolbarRenderer.DateRenderer,
   dropdown: ToolbarRenderer.DropdownRenderer,
+  exportFile: ToolbarRenderer.ExportFileRenderer,
   number: ToolbarRenderer.NumberRenderer,
   switch: ToolbarRenderer.SwitchRenderer,
   text: ToolbarRenderer.TextRenderer,

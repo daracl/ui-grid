@@ -305,3 +305,77 @@ await grid.exportJson({ visibleOnly: true, useFormatter: true, space: 0 });
 기본은 숫자·boolean·배열·객체 값을 유지하며 누락된 필드·undefined는 null로 출력합니다. Date 등은 표준 JSON.stringify 규칙을 따르고, 순환 참조·BigInt처럼 JSON으로 변환할 수 없는 값은 오류를 전달합니다. 두 행 옵션을 함께 지정하면 교집합을 출력합니다.
 
 코드는 exportJson 호출 시 로드합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.json.min.mjs`(비압축은 `daracl.grid.json.mjs`)를 함께 배포합니다. ESM/CJS는 생성된 청크를 함께 배포합니다.
+### 툴바 파일 다운로드
+
+`renderer.type: 'exportFile'`은 `renderer.listItem`에서 형식을 고르는 드롭다운과 다운로드 버튼을 표시합니다. 선택만으로는 내보내지 않으며 버튼을 눌러 실행합니다. 형식은 단일 선택이며 `excel`/`xlsx`, `csv`, `json`, `pdf`를 지원합니다. 목록의 `labelField`·`valueField`와 목록 콜백은 기존 dropdown 규칙을 따릅니다.
+
+```ts
+toolbar: {
+  enabled: true,
+  items: [[{
+    position: 'left',
+    children: [{
+      name: 'fileFormat',
+      label: '파일 형식',
+      width: 280,
+      defaultValue: 'excel',
+      renderer: {
+        type: 'exportFile',
+        downloadLabel: '다운로드',
+        listItem: {
+          list: [
+            { label: '엑셀', value: 'excel' },
+            { label: 'CSV', value: 'csv' },
+            { label: 'JSON', value: 'json' },
+            { label: 'PDF', value: 'pdf' },
+          ],
+        },
+        exportOptions: {
+          excel: { fileName: 'sales.xlsx', sheetName: '매출' },
+          csv: { fileName: 'sales.csv' },
+          json: { fileName: 'sales.json', space: 2 },
+          pdf: { fileName: 'sales.pdf', orientation: 'landscape' },
+        },
+      },
+    }],
+  }]],
+}
+```
+
+각 형식의 `exportOptions`는 해당 `exportExcel`/`exportCsv`/`exportJson`/`exportPdf` 옵션을 사용합니다. 다운로드 중에는 중복 실행을 막고, 실패하면 버튼 문구와 툴팁으로 오류를 알립니다. `getToolbarValues`·`setToolbarValues` 및 `change` 콜백은 기존 드롭다운처럼 선택 값 배열을 사용합니다. 예제: `uitest/toolbar-export-file.html`.
+`exportFile`의 기본 문구는 기존 `DaraGrid.message()` 전역 메시지 또는 `DaraGrid.create()`의 세 번째 메시지 인수로 설정합니다. `renderer.downloadLabel`과 필드 `label`을 지정하면 해당 문구가 우선합니다. 드롭다운 항목 라벨은 `renderer.listItem`에서 직접 지정합니다.
+
+| 다국어 키 | 기본 문구 |
+| --- | --- |
+| `export.format` | 내보내기 형식 |
+| `export.download` | 다운로드 |
+| `export.creating` | 파일 생성 중 |
+| `export.completed` | 다운로드 완료 |
+| `export.failed` | 다운로드 실패 |
+| `export.unsupportedFormat` | 내보내기 형식을 선택하세요. 지원 형식: excel, xlsx, csv, json, pdf |
+
+내보내기 API가 전달한 오류 원인은 원문을 유지하고, 실패 안내 문구만 다국어 메시지를 사용합니다.
+### 컨텍스트 메뉴 복사·파일 내보내기
+
+```ts
+contextMenu: {
+  items: [
+    { key: 'copy', label: '복사', hotkey: 'Ctrl+C' },
+    {
+      key: 'exportFile', label: '파일 다운로드',
+      exportOptions: { csv: { fileName: 'sales.csv' } },
+      children: [
+        { key: 'excel', label: '엑셀' },
+        { key: 'csv', label: 'CSV' },
+        { key: 'pdf', label: 'PDF' },
+        { key: 'json', label: 'JSON' },
+      ],
+    },
+  ],
+}
+```
+
+`copy`는 현재 선택 영역을 복사합니다. `exportFile`의 하위 항목은 `excel`/`xlsx`, `csv`, `pdf`, `json` 키에 따라 다운로드합니다. `exportOptions`는 툴바와 같은 형식이며 부모와 하위 항목 설정을 병합하고 하위 설정을 우선합니다. 파일명이 없으면 GridOptions.title, 제목도 없으면 형식별 기본 파일명을 사용합니다.
+
+항목에 직접 지정한 callback은 기본 동작보다 우선합니다. 기본 복사·다운로드를 처리한 항목에는 공통 callback을 중복 호출하지 않으며, 일반 사용자 메뉴는 기존 공통 callback으로 처리합니다. 비활성 항목·비활성 부모 아래의 항목은 실행하지 않습니다. 다운로드 중 중복 실행을 막고 실패 원인은 콘솔에 기록합니다.
+컨텍스트 메뉴는 `{ key: 'copy' }`, `{ key: 'exportFile', children: [{ key: 'csv' }, { key: 'pdf' }] }`처럼 키만 지정할 수도 있습니다. 메뉴 생성 시 항목 사본에 기본 label과 callback을 채워 기존 콜백 실행 경로를 사용합니다. 원본 배열은 변경하지 않으며 직접 지정한 label·callback이 우선합니다. 기본 Copy / Export file 문구는 `context.copy`, `context.exportFile` 다국어 메시지로 변경할 수 있습니다.

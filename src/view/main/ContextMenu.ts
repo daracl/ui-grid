@@ -8,6 +8,7 @@ import { html } from '@/util/htmlTemplate';
 import { addClass, removeClass, resolveClassName } from '@/util/styleUtils';
 import { isFunction, isUndefined, replaceXss } from '@/util/utils';
 import { GridMain } from '../GridMain';
+import { exportGridFile, ExportFileOptions } from '@/export/exportGridFile';
 
 const CONTEXT_MENU_ON = 'dg-on';
 /**
@@ -26,6 +27,7 @@ export class ContextMenu {
   private _isActive = false;
 
   private readonly contextData: Map<string, ContextMenuItem> = new Map();
+  private exportBusy = false;
 
   constructor(gridMain: GridMain) {
     this.gridMain = gridMain;
@@ -56,11 +58,12 @@ export class ContextMenu {
 
     const htmlTemplate = [];
     if (this.contextOpts.enabledHeader) {
-      htmlTemplate.push('<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>');
-      htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
+      htmlTemplate.push(`<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>
+        <li><a class="dg-divider" tabindex="-1"></a></li>
+      `);
     }
 
-    htmlTemplate.push(this.template(this.contextOpts.items, 'top', 0));
+    htmlTemplate.push(this.template(this.createItems(this.contextOpts.items), 'top', 0));
 
     contextElement.innerHTML = htmlTemplate.join('');
 
@@ -149,6 +152,7 @@ export class ContextMenu {
     eventManager.off(contextItemElements, 'pointerdown');
     eventManager.on({ el: contextItemElements, type: 'pointerdown' }, (e: Event) => {
       const itemElement = e.currentTarget as HTMLElement;
+      if (itemElement.closest('.disabled')) return;
 
       if (hasClass(itemElement, 'dg-submenu-item')) {
         return;
@@ -180,6 +184,45 @@ export class ContextMenu {
       if (isContextCallback) {
         fnContextCallback(clickItem, result);
       }
+    });
+  }
+
+  /** 키 전용 설정에 기본 라벨·콜백을 채워 기존 메뉴 실행 경로에 전달한다. */
+  private createItems(items: ContextMenuItem[], exportOptions?: ExportFileOptions): ContextMenuItem[] {
+    const language = this.gridMain.i18n();
+    return items.filter((item) => !isUndefined(item)).map((source) => {
+      const item = { ...source };
+      const key = item.key ?? '';
+      let options = exportOptions;
+      if (key === 'exportFile' || exportOptions) {
+        options = { ...exportOptions };
+        for (const type of ['excel', 'csv', 'json', 'pdf'] as const) {
+          if (item.exportOptions?.[type]) options[type] = { ...options[type], ...item.exportOptions[type] };
+        }
+      }
+      const labels: Record<string, string> = {
+        copy: language.getMessage('context.copy'),
+        exportFile: language.getMessage('context.exportFile'),
+        excel: 'Excel', xlsx: 'Excel', csv: 'CSV', pdf: 'PDF', json: 'JSON',
+      };
+      item.label = item.label ?? ((key === 'copy' || key === 'exportFile' || exportOptions) ? labels[key] : undefined) ?? key;
+      if (!item.callback && key === 'copy') {
+        item.callback = () => GridMain.getInstance(this.gridMain.element().getElement())?.copyData();
+      } else if (!item.callback && exportOptions && ['excel', 'xlsx', 'csv', 'pdf', 'json'].includes(key.toLowerCase())) {
+        item.callback = async () => {
+          if (this.exportBusy) return;
+          const grid = GridMain.getInstance(this.gridMain.element().getElement());
+          if (!grid) return;
+          this.exportBusy = true;
+          try {
+            await exportGridFile(grid, key, options, language.getMessage('export.unsupportedFormat'));
+          } catch (error) {
+            console.error(language.getMessage('export.failed'), error);
+          } finally { this.exportBusy = false; }
+        };
+      }
+      if (item.children) item.children = this.createItems(item.children, options);
+      return item;
     });
   }
 
@@ -269,7 +312,7 @@ export class ContextMenu {
 
       classNames = resolveClassName(item.itemClass, { item }).join(' ') + (item.disabled === true ? ' disabled' : '');
 
-      itemKey = depth + '_' + (item.key || '');
+      itemKey = (id === 'top' ? '' : id + '_') + depth + '_' + (item.key || '');
 
       if (item.divider === true) {
         htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
@@ -291,13 +334,16 @@ export class ContextMenu {
       this.contextData.set(itemKey, item);
 
       if (!isUndefined(item.children)) {
-        htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
+        htmlTemplate.push(html`<li
+          class="dg-contextmenu-item dg-submenu-item ${classNames}"
+          data-item-key="${replaceXss(itemKey)}"
+        >
           <a tabindex="-1">
             <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ''))}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>
           <ul class="dg-contextmenu dg-contextmenu-submenu">
-            ${this.template(item.children, id, depth + 1)}
+            ${this.template(item.children, itemKey, depth + 1)}
           </ul>
         </li>`);
       } else {
@@ -305,7 +351,9 @@ export class ContextMenu {
           ? `<span class="dg-contextmenu-hotkey">${replaceXss(String(item.hotkey))}</span>`
           : '';
         htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
-          <a tabindex="-1"> <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ''))}</span>${hotkeyHtm} </a>
+          <a tabindex="-1">
+            <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ''))}</span>${hotkeyHtm}
+          </a>
         </li>`);
       }
       htmlTemplate.push('</li>');

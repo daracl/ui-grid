@@ -15,6 +15,10 @@ import { ToolbarLayout } from './Toolbar';
  */
 export interface GridOptions {
   /**
+   * 그리드명
+   */
+  title?: string;
+  /**
    * 고유 아이디 키값
    */
   rowIdField?: string;
