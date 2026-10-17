@@ -7,6 +7,29 @@ import { normalizePdfColor, PdfConverter } from '@/export/pdf/PdfConverter';
 import PDFDocument from 'pdfkit';
 
 describe('PdfConverter', () => {
+  it('draws the full merged header once and repeats only leaf headers on subsequent pages', async () => {
+    const text = jest.spyOn(PDFDocument.prototype, 'text');
+    try {
+      const blob = await new PdfConverter().convert({
+        columns: [{ name: 'a', label: 'Leaf A' }, { name: 'b', label: 'Leaf B' }],
+        rows: Array.from({ length: 30 }, (_, index) => [`Row ${index}`, 'Data']),
+        firstPageHeader: [
+          [{ label: 'Parent', column: 0, colSpan: 2, rowSpan: 1 }],
+          [{ label: 'Middle', column: 0, colSpan: 2, rowSpan: 1 }],
+          [{ label: 'Leaf A', column: 0, colSpan: 1, rowSpan: 1 }, { label: 'Leaf B', column: 1, colSpan: 1, rowSpan: 1 }],
+        ],
+      }, { pageSize: [240, 240], margin: 20, orientation: 'portrait', fontName: 'Helvetica' });
+      const pdf = Buffer.from(await blob.arrayBuffer()).toString('latin1');
+      const pages = (pdf.match(/\/Type \/Page\b/g) ?? []).length;
+      expect(pages).toBeGreaterThan(1);
+      expect(text.mock.calls.filter(([value]) => value === 'Parent')).toHaveLength(1);
+      expect(text.mock.calls.filter(([value]) => value === 'Middle')).toHaveLength(1);
+      expect(text.mock.calls.filter(([value]) => value === 'Leaf A')).toHaveLength(pages);
+      expect(text.mock.calls.filter(([value]) => value === 'Leaf B')).toHaveLength(pages);
+      expect(text.mock.calls.filter(([value]) => /^Row \d+$/.test(String(value)))).toHaveLength(30);
+    } finally { text.mockRestore(); }
+  });
+
   it('repeats dark header gradients with readable text on every page', async () => {
     const gradient = jest.spyOn(PDFDocument.prototype, 'linearGradient');
     const color = jest.spyOn(PDFDocument.prototype, 'fillColor');

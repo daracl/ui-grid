@@ -1,5 +1,5 @@
 import { downloadExport } from '../downloadExport';
-import type { PdfCellBorders, PdfCellGradient } from '../pdf/PdfConverter';
+import type { PdfCellBorders, PdfCellGradient, PdfHeaderCell } from '../pdf/PdfConverter';
 import type { ExcelTableData } from './ExcelData';
 import { columnName } from './ExcelData';
 import { createZip } from './ZipWriter';
@@ -68,7 +68,8 @@ function color(value: string | undefined, fallback: string): string {
 
 export class ExcelConverter {
   public convert(data: ExcelTableData, options: ExcelExportOptions = {}): Blob {
-    if (!data.columns.length || data.columns.length > 16384 || data.rows.length > 1048575)
+    const headerCount = data.headerRows?.length || 1;
+    if (!data.columns.length || data.columns.length > 16384 || data.rows.length + headerCount > 1048576)
       throw new RangeError('Invalid XLSX worksheet dimensions');
     const sheetName = options.sheetName ?? 'Grid';
     if (!sheetName.trim() || sheetName.length > 31 || /[\\/*?:\[\]]/.test(sheetName) || /^'|'$/.test(sheetName))
@@ -87,14 +88,20 @@ export class ExcelConverter {
       list.push(value);
       return list.length - 1;
     };
-    const style = (header: boolean, column: number, row: number) => {
+    const style = (header: boolean, column: number, row: number, headerCell?: PdfHeaderCell) => {
       const foreground = color(
-        header ? data.headerTextColors?.[column] : data.cellTextColors?.[row]?.[column],
+        header ? headerCell?.textColor ?? data.headerTextColors?.[column] : data.cellTextColors?.[row]?.[column],
         'FF222222',
       );
-      const background = header ? data.headerBackgrounds?.[column] ?? '#e9edf2' : data.cellBackgrounds?.[row]?.[column];
-      const gradient: PdfCellGradient | undefined = header ? data.headerGradients?.[column] : undefined;
-      const sides: PdfCellBorders = (header ? data.headerCellBorders?.[column] : data.cellBorders?.[row]?.[column]) ?? {
+      const background = header
+        ? headerCell?.background ?? data.headerBackgrounds?.[column] ?? '#e9edf2'
+        : data.cellBackgrounds?.[row]?.[column];
+      const gradient: PdfCellGradient | undefined = header
+        ? headerCell?.gradient ?? data.headerGradients?.[column]
+        : undefined;
+      const sides: PdfCellBorders = (header
+        ? headerCell?.borders ?? data.headerCellBorders?.[column]
+        : data.cellBorders?.[row]?.[column]) ?? {
         right: { color: '#cdcdcd', width: 1 },
         bottom: { color: '#cdcdcd', width: 1 },
       };
@@ -158,7 +165,12 @@ export class ExcelConverter {
     };
     const cell = (value: string | number | boolean, row: number, column: number) => {
       const reference = `${columnName(column)}${row + 1}`;
-      const attrs = `r="${reference}" s="${style(row === 0, column, row - 1)}"`;
+      const attrs = `r="${reference}" s="${style(
+        row < headerCount,
+        column,
+        row - headerCount,
+        headerOwners[row]?.[column],
+      )}"`;
       if (typeof value === 'number' && Number.isFinite(value)) return `<c ${attrs}><v>${value}</v></c>`;
       if (typeof value === 'boolean') return `<c ${attrs} t="b"><v>${value ? 1 : 0}</v></c>`;
       const text = String(value ?? '');
@@ -166,24 +178,53 @@ export class ExcelConverter {
       // inlineStr를 사용해 '=' 등으로 시작하는 사용자 값을 수식으로 해석하지 않는다.
       return `<c ${attrs} t="inlineStr"><is><t xml:space="preserve">${xml(text)}</t></is></c>`;
     };
-    const header = data.columns.map((column) => column.label ?? '');
+    const headers = Array.from({ length: headerCount }, () => data.columns.map(() => ''));
+    const headerOwners: (PdfHeaderCell | undefined)[][] = Array.from({ length: headerCount }, () => []);
+    const headerMerges: string[] = [];
+    if (data.headerRows?.length) {
+      data.headerRows.forEach((cells, row) =>
+        cells.forEach((item) => {
+          headers[row][item.column] = item.label;
+          for (let r = row; r < row + item.rowSpan; r++) {
+            for (let c = item.column; c < item.column + item.colSpan; c++) headerOwners[r][c] = item;
+          }
+          if (item.rowSpan > 1 || item.colSpan > 1) {
+            headerMerges.push(
+              `${columnName(item.column)}${row + 1}:${columnName(item.column + item.colSpan - 1)}${row + item.rowSpan}`,
+            );
+          }
+        }),
+      );
+    } else headers[0] = data.columns.map((column) => column.label ?? '');
     const rowHeight = Math.max(12, data.rowHeight ?? 26) * 0.75;
-    const sheetRows = [header, ...data.rows]
+    const sheetRows = [...headers, ...data.rows]
       .map(
         (row, rowIndex) =>
           `<row r="${rowIndex + 1}" ht="${rowHeight}" customHeight="1"${
-            rowIndex && data.outlineLevels ? ` outlineLevel="${data.outlineLevels[rowIndex - 1]}"` : ''
+            rowIndex >= headerCount && data.outlineLevels
+              ? ` outlineLevel="${data.outlineLevels[rowIndex - headerCount]}"`
+              : ''
           }>${data.columns.map((_, column) => cell(row[column] ?? '', rowIndex, column)).join('')}</row>`,
       )
       .join('');
-    const end = `${columnName(data.columns.length - 1)}${data.rows.length + 1}`;
-    const merges = options.mergeCells === false ? [] : data.merges;
-    const drawing = createChartDrawing(data, color, xml);
+    const end = `${columnName(data.columns.length - 1)}${data.rows.length + headerCount}`;
+    const merges =
+      options.mergeCells === false
+        ? []
+        : [
+            ...headerMerges,
+            ...data.merges.map((ref) =>
+              ref.replace(/([A-Z]+)(\d+)/g, (_, column, row) => `${column}${Number(row) + headerCount - 1}`),
+            ),
+          ];
+    const drawing = createChartDrawing(data, color, xml, headerCount);
     const outlineLevel = data.outlineLevels?.reduce((max, level) => Math.max(max, level), 0) ?? 0;
     const worksheet = `<worksheet xmlns="${NS}" xmlns:r="${REL}">${
       data.outlineLevels ? '<sheetPr><outlinePr summaryBelow="0"/></sheetPr>' : ''
     }<dimension ref="A1:${end}"/><sheetViews><sheetView workbookViewId="0">${
-      options.freezeHeader === false ? '' : '<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>'
+      options.freezeHeader === false
+        ? ''
+        : `<pane ySplit="${headerCount}" topLeftCell="A${headerCount + 1}" activePane="bottomLeft" state="frozen"/>`
     }</sheetView></sheetViews><sheetFormatPr defaultRowHeight="${rowHeight}"${
       outlineLevel ? ` outlineLevelRow="${outlineLevel}"` : ''
     }/><cols>${data.columns
@@ -194,7 +235,9 @@ export class ExcelConverter {
             Math.max(1, ((column.width ?? 100) - 5) / 7),
           ).toFixed(2)}" customWidth="1"/>`,
       )
-      .join('')}</cols><sheetData>${sheetRows}</sheetData>${options.autoFilter ? `<autoFilter ref="A1:${end}"/>` : ''}${
+      .join('')}</cols><sheetData>${sheetRows}</sheetData>${
+      options.autoFilter ? `<autoFilter ref="A${headerCount}:${end}"/>` : ''
+    }${
       merges.length
         ? `<mergeCells count="${merges.length}">${merges
             .map((ref) => `<mergeCell ref="${xml(ref)}"/>`)

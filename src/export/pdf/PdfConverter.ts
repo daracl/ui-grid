@@ -48,6 +48,7 @@ export type PdfCellChart =
   | { type: 'sparkline' | 'sparklineBar'; values: number[] };
 
 export interface PdfTableData {
+  firstPageHeader?: PdfHeaderCell[][];
   columns: PdfColumn[];
   rows: string[][];
   cellBackgrounds?: (string | undefined)[][];
@@ -59,6 +60,17 @@ export interface PdfTableData {
   headerTextColors?: (string | undefined)[];
   headerGradients?: (PdfCellGradient | undefined)[];
   tableBorders?: PdfCellBorders;
+}
+
+export interface PdfHeaderCell {
+  label: string;
+  column: number;
+  colSpan: number;
+  rowSpan: number;
+  background?: string;
+  textColor?: string;
+  gradient?: PdfCellGradient;
+  borders?: PdfCellBorders;
 }
 
 export interface PdfExportOptions {
@@ -168,7 +180,17 @@ export class PdfConverter {
       const columnWidths = this.getColumnWidths(doc, data, pageWidth, fontSize);
       const headerValues = data.columns.map((column) => column.label);
       const headerHeight = this.getRowHeight(doc, headerValues, columnWidths, fontSize);
-      if (headerHeight > doc.page.height - margin * 2) {
+      const fullHeader = data.firstPageHeader;
+      const headerRowHeights = fullHeader?.map(() => MIN_ROW_HEIGHT) ?? [];
+      fullHeader?.forEach((cells, row) => cells.forEach((cell) => {
+        const width = columnWidths.slice(cell.column, cell.column + cell.colSpan).reduce((sum, width) => sum + width, 0);
+        const needed = this.getRowHeight(doc, [cell.label], [width], fontSize);
+        const end = row + cell.rowSpan;
+        const current = headerRowHeights.slice(row, end).reduce((sum, height) => sum + height, 0);
+        if (needed > current) headerRowHeights[end - 1] += needed - current;
+      }));
+      const firstHeaderHeight = fullHeader ? headerRowHeights.reduce((sum, height) => sum + height, 0) : headerHeight;
+      if (Math.max(headerHeight, firstHeaderHeight) > doc.page.height - margin * 2) {
         reject(new RangeError('PDF header exceeds the available page height'));
         doc.end();
         return;
@@ -176,8 +198,11 @@ export class PdfConverter {
       let y = margin;
       let tableTop = y;
       const borderRows: { y: number; height: number; borders?: (PdfCellBorders | undefined)[] }[] = [];
+      const mergedHeaderBorders: { x: number; y: number; width: number; height: number; borders?: PdfCellBorders }[] = [];
       // 인접 셀·행의 배경이 선을 덮지 않도록 페이지 내용 뒤에 테두리를 그린다.
       const drawPageBorders = () => {
+        for (const cell of mergedHeaderBorders) this.drawCellBorders(doc, cell.x, cell.y, cell.width, cell.height, cell.borders);
+        mergedHeaderBorders.length = 0;
         for (const row of borderRows) {
           let cellX = margin;
           columnWidths.forEach((width, index) => {
@@ -197,7 +222,7 @@ export class PdfConverter {
         doc.fontSize(fontSize);
       }
 
-      if (y + headerHeight > doc.page.height - margin) {
+      if (y + firstHeaderHeight > doc.page.height - margin) {
         doc.addPage();
         y = margin;
       }
@@ -222,7 +247,22 @@ export class PdfConverter {
         );
       };
 
-      drawHeader();
+      if (fullHeader) {
+        tableTop = y;
+        let rowY = y;
+        fullHeader.forEach((cells, row) => {
+          for (const cell of cells) {
+            const x = margin + columnWidths.slice(0, cell.column).reduce((sum, width) => sum + width, 0);
+            const width = columnWidths.slice(cell.column, cell.column + cell.colSpan).reduce((sum, width) => sum + width, 0);
+            const height = headerRowHeights.slice(row, row + cell.rowSpan).reduce((sum, height) => sum + height, 0);
+            this.drawRow(doc, [cell.label], [width], x, rowY, fontSize, true, height,
+              [cell.background], undefined, undefined, [cell.textColor], [cell.gradient]);
+            mergedHeaderBorders.push({ x, y: rowY, width, height, borders: cell.borders });
+          }
+          rowY += headerRowHeights[row];
+        });
+        y = rowY;
+      } else drawHeader();
 
       for (const [rowIndex, row] of data.rows.entries()) {
         const rowHeight = this.getRowHeight(doc, row, columnWidths, fontSize);

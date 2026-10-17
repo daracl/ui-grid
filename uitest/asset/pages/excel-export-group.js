@@ -13,6 +13,7 @@ const grid = DaraGrid.create(document.getElementById('sample'), {
   sumFields: ['quantity', 'amount'],
   showGroupSum: true,
   showGrandSum: true,
+  header: { height: [32, 30, 30] },
   fields: createExampleFields1(),
   items: createExampleItems2(),
 });

@@ -29,6 +29,47 @@ function unzip(bytes: Uint8Array): Record<string, string> {
 }
 
 describe('dependency-free XLSX export', () => {
+  it('exports every header level and shifts merges, filters, outlines and charts below it', async () => {
+    const data = {
+      columns: [
+        { name: 'a', label: 'A' },
+        { name: 'b', label: 'B' },
+      ],
+      rows: [
+        ['one', ''],
+        ['two', ''],
+      ],
+      merges: ['A2:A3'],
+      outlineLevels: [1, 2],
+      headerRows: [
+        [{ label: 'Top', column: 0, colSpan: 2, rowSpan: 1 }],
+        [{ label: 'Middle', column: 0, colSpan: 2, rowSpan: 1 }],
+        [
+          { label: 'A', column: 0, colSpan: 1, rowSpan: 1 },
+          { label: 'B', column: 1, colSpan: 1, rowSpan: 1 },
+        ],
+      ],
+      cellCharts: [[undefined, { type: 'sparkline' as const, values: [1, 2, 3] }]],
+    };
+    const blob = new ExcelConverter().convert(data, { autoFilter: true });
+    const files = unzip(new Uint8Array(await blob.arrayBuffer()));
+    const sheet = files['xl/worksheets/sheet1.xml'];
+    expect(sheet).toContain('>Top</t>');
+    expect(sheet).toContain('>Middle</t>');
+    expect(sheet).toContain('ref="A1:B1"');
+    expect(sheet).toContain('ref="A2:B2"');
+    expect(sheet).toContain('ref="A4:A5"');
+    expect(sheet).toContain('dimension ref="A1:B5"');
+    expect(sheet).toContain('ySplit="3" topLeftCell="A4"');
+    expect(sheet).toContain('autoFilter ref="A3:B5"');
+    expect(sheet).toMatch(/<row r="4"[^>]*outlineLevel="1"/);
+    expect(files['xl/drawings/drawing1.xml']).toContain('<xdr:row>3</xdr:row>');
+    const unmerged = unzip(
+      new Uint8Array(await new ExcelConverter().convert(data, { mergeCells: false }).arrayBuffer()),
+    );
+    expect(unmerged['xl/worksheets/sheet1.xml']).not.toContain('<mergeCell ');
+  });
+
   it('exports tree depth as cell indentation and worksheet row outlines', async () => {
     const fields = [
       { name: 'name', label: '조직', renderer: { type: 'tree' }, $renderer: { getValue: (item: any) => item.name } },

@@ -25,6 +25,7 @@ import { loadPdfModule } from '@/export/pdf/loadPdfModule';
 import { GroupPdfRenderer } from './export/pdf/GroupPdfRenderer';
 import { PdfRendererContext } from './export/pdf/PdfRenderer';
 import { SimplePdfRenderer } from './export/pdf/SimplePdfRenderer';
+import { createPdfHeaderRows } from './export/pdf/PdfHeader';
 import { BarRenderer } from './renderer/view/BarRenderer';
 import { SparklineRenderer } from './renderer/view/SparklineRenderer';
 import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
@@ -161,6 +162,7 @@ export class DaraGrid {
     let tableData: PdfTableData;
     try {
       tableData = renderer.render();
+      tableData.firstPageHeader = createPdfHeaderRows(gridOptions.fields, displayFields, tableData);
     } finally {
       cellStyleProbe.destroy();
     }
@@ -259,6 +261,7 @@ export class DaraGrid {
         },
         options.mergeCells === false ? [] : gridOptions.rowSpanFields ?? [],
       );
+      data.headerRows = createPdfHeaderRows(gridOptions.fields, displayFields, data);
       blob = converter.convert(data, options);
     } finally {
       probe.destroy();

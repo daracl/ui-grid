@@ -1,5 +1,6 @@
 import type { PdfRendererContext } from '../pdf/PdfRenderer';
 import type { PdfTableData } from '../pdf/PdfConverter';
+import type { PdfHeaderCell } from '../pdf/PdfConverter';
 import { GroupPdfRenderer } from '../pdf/GroupPdfRenderer';
 import { SimplePdfRenderer } from '../pdf/SimplePdfRenderer';
 import type { TreeViewItem } from '@/types/Common';
@@ -9,6 +10,7 @@ export interface ExcelRendererContext extends PdfRendererContext {
 }
 
 export interface ExcelTableData extends Omit<PdfTableData, 'rows'> {
+  headerRows?: PdfHeaderCell[][];
   rows: (string | number | boolean)[][];
   merges: string[];
   cellIndents?: number[][];

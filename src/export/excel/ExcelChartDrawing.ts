@@ -5,6 +5,7 @@ export function createChartDrawing(
   data: ExcelTableData,
   color: (value: string | undefined, fallback: string) => string,
   xml: (value: string) => string,
+  headerCount = 1,
 ): string | undefined {
   const anchors: string[] = [];
   let id = 1;
@@ -124,13 +125,13 @@ export function createChartDrawing(
       if (!shapes.length) return;
       anchors.push(
         `<xdr:twoCellAnchor editAs="oneCell"><xdr:from><xdr:col>${column}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${
-          row + 1
+          row + headerCount
         }</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>${
           column + 1
         }</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${
-          row + 2
+          row + headerCount + 1
         }</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:grpSp><xdr:nvGrpSpPr><xdr:cNvPr id="${id++}" name="Cell chart ${
-          row + 2
+          row + headerCount + 1
         }-${
           column + 1
         }"/><xdr:cNvGrpSpPr/></xdr:nvGrpSpPr><xdr:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${integer(
