@@ -1,16 +1,14 @@
 import { RowId, ViewItem } from '@/types/Common';
 import { FieldItem } from '@/types/GridField';
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
-import { DropdownRenderer } from '@/renderer/view/DropdownRenderer';
-import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
-import { RefOptionValue } from '@/types/RefValue';
-import type { PdfCellBorders, PdfCellChart, PdfTableData } from './PdfConverter';
-import { normalizePdfCellValue } from './PdfValue';
+import type { PdfCellBorders, PdfCellChart, PdfCellGradient, PdfTableData } from './PdfConverter';
+import { getExportCellValues } from '../exportCellValues';
 
 export interface PdfCellStyles {
   backgrounds: (string | undefined)[];
   borders: (PdfCellBorders | undefined)[];
   textColors?: (string | undefined)[];
+  gradients?: (PdfCellGradient | undefined)[];
 }
 
 export interface PdfRendererContext {
@@ -75,6 +73,7 @@ export abstract class PdfRenderer {
       const styles = this.context.getHeaderCellStyles();
       data.headerBackgrounds = styles.backgrounds;
       data.headerTextColors = styles.textColors;
+      data.headerGradients = styles.gradients;
     }
     return data;
   }
@@ -89,23 +88,6 @@ export abstract class PdfRenderer {
   }
 
   protected renderDataRow(item: Record<string, unknown>): string[] {
-    return this.context.fields.map((field) => {
-      const renderer = field.$renderer;
-      if (field.renderer?.type === 'password') return '********';
-      if (field.renderer?.type === 'hidden') return '';
-      const value = renderer.getValue(item);
-      if (renderer instanceof ViewCellRenderer && ['dropdown', 'link', 'button'].includes(field.renderer?.type)) {
-        const ref = renderer.getRefValue(value, item) as RefOptionValue | string | undefined;
-        if (typeof ref === 'string') return ref;
-        if (ref?.hide) return '';
-        if (ref?.label !== undefined) return normalizePdfCellValue(ref.label);
-        if (renderer instanceof DropdownRenderer) {
-          let labels = renderer.getLabel(value);
-          if (labels.length === 0 && field.defaultValue) labels = renderer.getLabel(field.defaultValue);
-          if (labels.length > 0) return labels.join(field.editRenderer?.listItem?.delimiter ?? ',');
-        }
-      }
-      return normalizePdfCellValue(value);
-    });
+    return getExportCellValues(this.context.fields, item);
   }
 }

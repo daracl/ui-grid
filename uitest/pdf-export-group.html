@@ -1,77 +1,30 @@
 <!DOCTYPE html>
 <html lang="ko">
   <head>
+  <link rel="stylesheet" href="./asset/examples.css" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dara Grid - Grouped PDF export</title>
+    <title>그룹 PDF 내보내기</title>
     <style>
-      body {
-        margin: 24px;
-        font-family: Arial, sans-serif;
-      }
+
 
       #sample {
         width: 100%;
         height: 420px;
       }
     </style>
-  </head>
-  <body>
+    <script src="./data/businessFixtures.js"></script>
+</head>
+  <body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>그룹 PDF 내보내기</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
     <p><a href="./index.html">UI tests</a> | <a href="./pdf-export-simple.html">Simple</a> | <a href="./pdf-export-chart.html">Charts</a></p>
-    <h1>Grouped grid PDF export</h1>
-    <p>Exports country and category group rows, detail rows, subtotals, and the grand total.</p>
+    <p>3단 헤더로 거래 정보와 판매 실적을 표시합니다. 국가·상품 분류별 소계와 수량·매출액·원가·이익의 총계를 확인할 수 있습니다.</p>
     <button id="export-pdf" type="button">Export PDF</button>
     <span id="export-status" role="status" aria-live="polite"></span>
     <div id="sample"></div>
 
-    <script type="module">
-      import { DaraGrid } from '/src/index.ts';
-
-      const countries = ['Korea', 'Japan', 'USA'];
-      const categories = ['Beverages', 'Food'];
-      const items = Array.from({ length: 30 }, (_, index) => {
-        const quantity = (index % 5) + 1;
-        return {
-          id: index + 1,
-          country: countries[Math.floor(index / 10)],
-          category: categories[Math.floor((index % 10) / 5)],
-          product: `Product ${String.fromCharCode(65 + (index % 5))}`,
-          quantity,
-          amount: quantity * (1200 + (index % 5) * 350),
-        };
-      });
-
-      const grid = DaraGrid.create(document.getElementById('sample'), {
-        groupingFields: ['country', 'category'],
-        sumFields: ['quantity', 'amount'],
-        showGroupSum: true,
-        showGrandSum: true,
-        fields: [
-          { name: 'country', label: 'Country', width: 140 },
-          { name: 'category', label: 'Category', width: 150 },
-          { name: 'product', label: 'Product', width: 160 },
-          { name: 'quantity', label: 'Quantity', width: 120, align: 'right', renderer: { type: 'number' } },
-          { name: 'amount', label: 'Amount', width: 140, align: 'right', renderer: { type: 'number' } },
-        ],
-        items,
-      });
-
-      document.getElementById('export-pdf').addEventListener('click', async () => {
-        const status = document.getElementById('export-status');
-        status.textContent = ' Creating PDF...';
-        try {
-          await grid.exportPdf({
-            fileName: 'grouped-grid.pdf',
-            title: 'Sales by country and category',
-            author: 'Dara Grid UI test',
-            orientation: 'landscape',
-          });
-          status.textContent = ' PDF downloaded.';
-        } catch (error) {
-          status.textContent = ` PDF export failed: ${error.message}`;
-          console.error(error);
-        }
-      });
-    </script>
-  </body>
+    <script type="module" src="./asset/pages/pdf-export-group.js"></script>
+    </section>
+</body>
 </html>

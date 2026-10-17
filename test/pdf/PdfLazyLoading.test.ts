@@ -1,11 +1,11 @@
 const mockModuleLoaded = jest.fn();
 
-jest.mock('@/pdf/PdfConverter', () => {
+jest.mock('@/export/pdf/PdfConverter', () => {
   mockModuleLoaded();
   return { PdfConverter: class {} };
 });
 
-import { loadPdfModule } from '@/pdf/loadPdfModule';
+import { loadPdfModule } from '@/export/pdf/loadPdfModule';
 
 describe('PDF lazy loading', () => {
   it('loads the converter only when requested and reuses the module', async () => {

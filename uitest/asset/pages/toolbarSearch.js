@@ -1,0 +1,108 @@
+var gridObj;
+
+function loadGrid(initFlag) {
+  const jsonInfo = getItem();
+
+  gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  loadGrid(true);
+});
+
+function gridDraw(element, aaa, colItem, message) {
+  const searchFn = (info) => {
+    const result = gridObj.search(info.values.searchValue);
+
+    console.log('result : ', result);
+
+    document.getElementById('searchData').innerHTML = result.matchIndex + '/' + result.count;
+    // toolbar setValue 처리 할것.
+  };
+
+  gridObj = Daracl.grid.create(element, {
+    style: 'striped',
+    selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
+    theme: G_GRID_THEME,
+    toolbar: {
+      enabled: true,
+      arrowEnabled: true,
+      height: 40,
+      items: [
+        [
+          {
+            position: 'left',
+            children: [
+              {
+                label: 'Theme',
+                name: 'theme',
+                width: 200,
+                renderer: {
+                  type: 'dropdown',
+                  listItem: {
+                    list: [
+                      { label: '다크', value: 'dark' },
+                      { label: '라이트', value: 'light' },
+                    ],
+                  },
+                },
+
+                defaultValue: 'light',
+
+                change: (info) => {
+                  console.log(info, info.value);
+
+                  gridObj.setTheme(info.value);
+                },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            position: 'left',
+            children: [
+              {
+                label: '검색 결과',
+                rendererClassName: 'search-result',
+                renderer: {
+                  type: 'label',
+                },
+              },
+              {
+                renderer: {
+                  type: 'html',
+                },
+
+                defaultValue() {
+                  return '<span id="searchData">0/0</span>';
+                },
+              },
+            ],
+          },
+          {
+            position: 'right',
+            children: [
+              {
+                name: 'searchValue',
+                renderer: 'search',
+                placeholder: '검색어',
+                width: 200,
+                search: searchFn,
+              },
+              {
+                renderer: { type: 'button', icon: 'mapping' },
+                label: '맵핑',
+                click(info) {
+                  console.log(info);
+                },
+              },
+            ],
+          },
+        ],
+      ],
+    },
+    fields: colItem,
+    items: aaa,
+  });
+}

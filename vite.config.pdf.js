@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: !isProd,
       minify: isProd ? 'esbuild' : false,
       lib: {
-        entry: path.resolve(directory, 'src/pdf/PdfConverter.ts'),
+        entry: path.resolve(directory, 'src/export/pdf/PdfConverter.ts'),
         formats: ['es'],
         fileName: () => `${MODULE_NAME}.pdf${isProd ? '.min' : ''}.mjs`,
       },

@@ -2,14 +2,20 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./asset/examples.css" />
   <meta charset="utf-8" />
-  <title>Dara header help</title>
+  <title>헤더 도움말</title>
+  <script src="./data/businessFixtures.js"></script>
 </head>
 
-<body>
+<body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>헤더 도움말</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
   <div class="grid-view-area">
     <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
   </div>
+  </section>
 </body>
 
 </html>
@@ -17,102 +23,5 @@
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
-<script>
-  var gridObj;
-
-  function loadGrid(initFlag) {
-    const jsonInfo = getItem();
-
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(true);
-  });
-
-  function getItem() {
-    let items = GRID_EMPLOYEE_DATA;
-    let fields = [
-      {
-        name: 'name',
-        label: '이름',
-        width: 80,
-      },
-      {
-        name: 'age',
-        label: '나이',
-        width: 50,
-      },
-      {
-        name: 'email',
-        label: '이메일',
-        width: 120,
-      },
-      {
-        name: 'birth',
-        label: '생년월일',
-        width: 120,
-        editRenderer: {
-          type: 'date',
-        },
-      },
-      {
-        name: 'position',
-        label: '직책',
-        width: 80,
-      },
-      {
-        name: 'salary',
-        label: '월급',
-        width: 80,
-        displayFormat: {
-          type: 'number',
-          format: '₩ 0,0 원',
-        },
-        headerHelp(fieldInfo) {
-          const field = fieldInfo.field;
-          return field.label + ' // field 설정';
-        },
-      },
-      {
-        name: 'desc',
-        label: '설명',
-        width: 200,
-      },
-    ];
-
-    return {
-      items: items,
-      fields: fields,
-    };
-  }
-
-  function gridDraw(element, aaa, colItem) {
-    gridObj = Daracl.grid.create(element, {
-      style: 'striped',
-      selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      enabledTooltip: true, // tooltip flag
-      theme: G_GRID_THEME,
-      aside: {
-        lineNumber: { enabled: true },
-      },
-
-      fields: colItem,
-      items: aaa,
-      header: {
-        view: true,
-        help: {
-          enabled: true, // header help btn 활성 여부.
-          content(fieldInfo) {
-            const field = fieldInfo.field;
-            return field.label;
-          },
-          click: (clickInfo) => {
-            // click event
-            console.log('clickInfo : ', clickInfo);
-          },
-        },
-      },
-    });
-  }
-</script>
+<script src="./data/examples/headerHelp.js"></script>
+<script src="./asset/pages/headerHelp.js"></script>

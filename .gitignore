@@ -16,6 +16,7 @@ docs/*
 template.zip
 bundle-report.html
 *.css
+!uitest/asset/examples.css
 *.map
 style/*.css
 CLAUDE.md

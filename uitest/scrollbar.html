@@ -2,14 +2,20 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./asset/examples.css" />
   <meta charset="utf-8" />
-  <title>Dara Scrollbar</title>
+  <title>스크롤바</title>
+  <script src="./data/businessFixtures.js"></script>
 </head>
 
-<body>
+<body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>스크롤바</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
   <div class="grid-view-area">
     <div id="sample" style="height: calc(100vh - 50px); width: 100%; position: absolute"></div>
   </div>
+  </section>
 </body>
 
 </html>
@@ -23,90 +29,5 @@
     position: relative;
   }
 </style>
-<script>
-  var gridObj;
-  // 스크롤 설정 정보
-  var scrollOpts = {
-    vertical: true,
-    horizontal: false,
-  };
-
-  function loadGrid(initFlag) {
-    const jsonInfo = getItem();
-
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(true);
-  });
-
-  function getItem() {
-    let items = GRID_EMPLOYEE_DATA;
-    let fields = GRID_EMPLOYEE_FIELDS;
-
-    return {
-      items: items,
-      fields: fields,
-    };
-  }
-
-  function gridDraw(element, aaa, colItem, message) {
-    gridObj = Daracl.grid.create(element, {
-      fields: colItem,
-      items: aaa,
-      scroll: {
-        vertical: {
-          enabled: scrollOpts.vertical,
-        },
-        horizontal: {
-          enabled: scrollOpts.horizontal,
-        },
-      },
-      toolbar: {
-        enabled: true,
-        height: 40,
-        defaultValues: {
-          scroll: Object.entries(scrollOpts)
-            .filter(([, value]) => value === false)
-            .map(([key]) => key)
-            .join(','),
-        },
-        items: [
-          [
-            {
-              position: 'left',
-              children: [
-                {
-                  label: '스크롤 비활성',
-                  name: 'scroll',
-                  gap: [10, 20],
-                  width: 200,
-                  renderer: {
-                    type: 'choice',
-                    listItem: {
-                      list: [
-                        { label: '세로', value: 'vertical' },
-                        { label: '가로', value: 'horizontal' },
-                      ],
-                    },
-                  },
-                  change: (info) => {
-                    console.log(info.value);
-
-                    // scroll 설정
-                    const values = info.value;
-                    scrollOpts.vertical = !values.includes('vertical');
-                    scrollOpts.horizontal = !values.includes('horizontal');
-
-                    loadGrid();
-                  },
-                },
-              ],
-            },
-          ],
-        ],
-      },
-    });
-  }
-</script>
+<script src="./data/examples/scrollbar.js"></script>
+<script src="./asset/pages/scrollbar.js"></script>

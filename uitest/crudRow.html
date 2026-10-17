@@ -1,94 +1,25 @@
 <!DOCTYPE html>
 <html>
   <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./asset/examples.css" />
     <meta charset="utf-8" />
-    <title>Dara CRUD</title>
-  </head>
+    <title>행 추가·수정·삭제</title>
+    <script src="./data/businessFixtures.js"></script>
+</head>
 
-  <body>
+  <body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>행 추가·수정·삭제</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
     <div class="grid-view-area">
       <div id="sample" style="height: calc(100vh - 50px); width: 100%"></div>
     </div>
-  </body>
+    </section>
+</body>
 </html>
 <script src="./data/sampleConfig.js" type="text/javascript"></script>
 <script src="./data/employee.js" type="text/javascript"></script>
 <script type="module" src="/src/index.ts"></script>
 
-<script>
-  var gridObj;
-
-  function loadGrid(initFlag) {
-    const jsonInfo = getItem();
-
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(true);
-  });
-
-  function getItem() {
-    let items = GRID_EMPLOYEE_DATA;
-    let fields = GRID_EMPLOYEE_FIELDS;
-
-    return {
-      items: items,
-      fields: fields,
-    };
-  }
-
-  function gridDraw(element, aaa, colItem, message) {
-    gridObj = Daracl.grid.create(element, {
-      style: 'striped',
-      selectionMode: 'multiCell', // row , cell , multiRow , multiCell	// 선택 방법.
-      theme: G_GRID_THEME,
-      editable: true,
-      deleteMode: 'soft',
-      aside: {
-        lineNumber: { enabled: true },
-        rowCheckbox: {
-          enabled: true,
-          width: 27,
-        },
-        modifyInfo: { enabled: true },
-      },
-      fields: colItem,
-      items: aaa,
-      toolbar: {
-        enabled: true,
-        height: 40,
-        items: [
-          [
-            {
-              position: 'left',
-              children: [
-                {
-                  renderer: { type: 'button', icon: 'add' },
-                  label: '행 추가',
-                  click(info) {
-                    gridObj.createItem({});
-                  },
-                },
-                {
-                  renderer: { type: 'button', icon: 'delete' },
-                  label: '선택 행 삭제',
-                  click(info) {
-                    gridObj.removeItems(gridObj.getSelectedRowIds());
-                  },
-                },
-                {
-                  renderer: { type: 'button', icon: 'delete' },
-                  label: '체크된 행 삭제',
-                  click(info) {
-                    gridObj.removeItems(gridObj.getCheckedIds());
-                  },
-                },
-              ],
-            },
-          ],
-        ],
-      },
-    });
-  }
-</script>
+<script src="./data/examples/crudRow.js"></script>
+<script src="./asset/pages/crudRow.js"></script>

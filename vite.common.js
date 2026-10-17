@@ -26,6 +26,13 @@ export const createAssetFileNames = (isProd) => {
   };
 };
 export const createCommonConfig = (isProd) => ({
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern',
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

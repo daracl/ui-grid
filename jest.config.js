@@ -3,7 +3,7 @@ module.exports = {
   testEnvironment: "jest-environment-jsdom",
   preset: "ts-jest",
   moduleNameMapper: {
-    "^@/pdf/PdfFontUrl$": "<rootDir>/test/__mocks__/pdfFontUrlMock.js",
+    "^@/export/pdf/PdfFontUrl$": "<rootDir>/test/__mocks__/pdfFontUrlMock.js",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@t/(.*)$": "<rootDir>/src/types/$1",
   },
@@ -14,7 +14,7 @@ module.exports = {
     //"^.+\\.(ts|tsx|js|jsx)$": ["ts-jest", { isolatedModules: true, useESM: true }],
     "^.+\\.(ts|tsx|js|jsx)$": [
       "ts-jest",
-      { tsconfig: "./tsconfig.json", diagnostics: { exclude: ["**/src/pdf/PdfFontUrl.ts"] } },
+      { tsconfig: "./tsconfig.json", diagnostics: { exclude: ["**/src/export/pdf/PdfFontUrl.ts"] } },
     ],
   },
   testPathIgnorePatterns: ["/node_modules/"],

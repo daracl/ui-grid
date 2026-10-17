@@ -7,7 +7,7 @@ const canvasContext = {
 
 type GridInstance = InstanceType<typeof import('@/DaraGrid').DaraGrid>;
 
-jest.mock('@/pdf/PdfConverter', () => ({
+jest.mock('@/export/pdf/PdfConverter', () => ({
   PdfConverter: jest.fn().mockImplementation(() => ({
     convert: jest.fn(),
     download: jest.fn(),

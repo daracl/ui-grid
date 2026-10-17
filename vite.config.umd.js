@@ -16,13 +16,19 @@ export default defineConfig(({ mode }) => {
     resolve: {
       ...common.resolve,
       alias: {
-        '@/pdf/loadPdfModule': path.resolve(__dirname, 'src/pdf/loadPdfModule.umd.ts'),
+        '@/export/pdf/loadPdfModule': path.resolve(__dirname, 'src/export/pdf/loadPdfModule.umd.ts'),
+        '@/export/excel/loadExcelModule': path.resolve(__dirname, 'src/export/excel/loadExcelModule.umd.ts'),
+        '@/export/csv/loadCsvModule': path.resolve(__dirname, 'src/export/csv/loadCsvModule.umd.ts'),
+        '@/export/json/loadJsonModule': path.resolve(__dirname, 'src/export/json/loadJsonModule.umd.ts'),
         ...common.resolve.alias,
       },
     },
     define: {
       ...common.define,
       GRID_PDF_FILE: JSON.stringify(`${MODULE_NAME}.pdf${isProd ? '.min' : ''}.mjs`),
+      GRID_EXCEL_FILE: JSON.stringify(`${MODULE_NAME}.excel${isProd ? '.min' : ''}.mjs`),
+      GRID_CSV_FILE: JSON.stringify(`${MODULE_NAME}.csv${isProd ? '.min' : ''}.mjs`),
+      GRID_JSON_FILE: JSON.stringify(`${MODULE_NAME}.json${isProd ? '.min' : ''}.mjs`),
     },
     plugins: [
       ...common.plugins,
@@ -31,6 +37,21 @@ export default defineConfig(({ mode }) => {
         async writeBundle(output) {
           await build({
             configFile: path.resolve(__dirname, 'vite.config.pdf.js'),
+            mode,
+            build: { outDir: output.dir },
+          });
+          await build({
+            configFile: path.resolve(__dirname, 'vite.config.excel.js'),
+            mode,
+            build: { outDir: output.dir },
+          });
+          await build({
+            configFile: path.resolve(__dirname, 'vite.config.csv.js'),
+            mode,
+            build: { outDir: output.dir },
+          });
+          await build({
+            configFile: path.resolve(__dirname, 'vite.config.json.js'),
             mode,
             build: { outDir: output.dir },
           });

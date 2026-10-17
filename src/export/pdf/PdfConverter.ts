@@ -1,3 +1,4 @@
+import { downloadExport } from '../downloadExport';
 import PDFDocument from 'pdfkit';
 import * as pdfkitModule from 'pdfkit';
 import Courier from 'pdfkit/standard-fonts/Courier';
@@ -14,7 +15,7 @@ import TimesBoldItalic from 'pdfkit/standard-fonts/TimesBoldItalic';
 import TimesItalic from 'pdfkit/standard-fonts/TimesItalic';
 import TimesRoman from 'pdfkit/standard-fonts/TimesRoman';
 import ZapfDingbats from 'pdfkit/standard-fonts/ZapfDingbats';
-import { getKoreanFontUrl } from '@/pdf/PdfFontUrl';
+import { getKoreanFontUrl } from '@/export/pdf/PdfFontUrl';
 export { normalizePdfCellValue } from './PdfValue';
 
 export interface PdfColumn {
@@ -22,6 +23,11 @@ export interface PdfColumn {
   label: string;
   width?: number;
   align?: 'left' | 'center' | 'right';
+}
+
+export interface PdfCellGradient {
+  startColor: string;
+  endColor: string;
 }
 
 export interface PdfBorderSide {
@@ -51,6 +57,7 @@ export interface PdfTableData {
   cellTextColors?: (string | undefined)[][];
   headerBackgrounds?: (string | undefined)[];
   headerTextColors?: (string | undefined)[];
+  headerGradients?: (PdfCellGradient | undefined)[];
   tableBorders?: PdfCellBorders;
 }
 
@@ -211,6 +218,7 @@ export class PdfConverter {
           undefined,
           undefined,
           data.headerTextColors,
+          data.headerGradients,
         );
       };
 
@@ -247,16 +255,7 @@ export class PdfConverter {
   }
 
   public download(blob: Blob, fileName = DEFAULT_FILE_NAME): void {
-    const anchor = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    const requestedName = fileName.trim() || DEFAULT_FILE_NAME;
-    anchor.href = url;
-    anchor.download = requestedName.toLowerCase().endsWith('.pdf') ? requestedName : `${requestedName}.pdf`;
-    anchor.style.display = 'none';
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadExport(blob, fileName, DEFAULT_FILE_NAME, 'pdf');
   }
 
   private getColumnWidths(
@@ -311,6 +310,7 @@ export class PdfConverter {
     cellCharts?: (PdfCellChart | undefined)[],
     aligns?: PdfColumn['align'][],
     textColors?: (string | undefined)[],
+    gradients?: (PdfCellGradient | undefined)[],
   ): number {
     let cellX = x;
     doc.fontSize(fontSize);
@@ -318,11 +318,16 @@ export class PdfConverter {
     for (let index = 0; index < widths.length; index++) {
       const width = widths[index];
       if (header) {
+        const gradient = gradients?.[index];
+        const background = gradient
+          ? doc.linearGradient(cellX, y, cellX, y + rowHeight)
+              .stop(0, normalizePdfColor(gradient.startColor))
+              .stop(1, normalizePdfColor(gradient.endColor))
+          : normalizePdfColor(cellBackgrounds?.[index] || '#e9edf2');
         doc
           .save()
-          .fillColor(normalizePdfColor(cellBackgrounds?.[index] || '#e9edf2'))
           .rect(cellX, y, width, rowHeight)
-          .fill()
+          .fill(background)
           .restore();
       } else {
         const cellBackground = cellBackgrounds?.[index];

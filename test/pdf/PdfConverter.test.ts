@@ -3,10 +3,32 @@
 import { readFileSync } from 'fs';
 import path from 'path';
 import { inflateSync } from 'zlib';
-import { normalizePdfColor, PdfConverter } from '@/pdf/PdfConverter';
+import { normalizePdfColor, PdfConverter } from '@/export/pdf/PdfConverter';
 import PDFDocument from 'pdfkit';
 
 describe('PdfConverter', () => {
+  it('repeats dark header gradients with readable text on every page', async () => {
+    const gradient = jest.spyOn(PDFDocument.prototype, 'linearGradient');
+    const color = jest.spyOn(PDFDocument.prototype, 'fillColor');
+    try {
+      const blob = await new PdfConverter().convert({
+        columns: [{ name: 'name', label: 'Dark header' }],
+        rows: Array.from({ length: 30 }, (_, index) => [`Row ${index}`]),
+        headerGradients: [{ startColor: 'rgb(82, 82, 82)', endColor: 'rgb(0, 0, 0)' }],
+        headerTextColors: ['rgb(224, 224, 224)'],
+      }, { pageSize: [200, 200], orientation: 'portrait', margin: 20, fontName: 'Helvetica' });
+      const pdf = Buffer.from(await blob.arrayBuffer()).toString('latin1');
+      const pages = pdf.match(/\/Type \/Page\b/g) ?? [];
+      expect(pages.length).toBeGreaterThan(1);
+      expect(gradient).toHaveBeenCalledTimes(pages.length);
+      expect(color).toHaveBeenCalledWith('#e0e0e0');
+      expect(pdf).toContain('/ShadingType 2');
+    } finally {
+      gradient.mockRestore();
+      color.mockRestore();
+    }
+  });
+
   it('paints borders after all cell backgrounds on each page and repeats the outer frame', async () => {
     const fill = jest.spyOn(PDFDocument.prototype, 'fill');
     const stroke = jest.spyOn(PDFDocument.prototype, 'stroke');

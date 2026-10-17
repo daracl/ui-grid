@@ -1,4 +1,4 @@
-export function normalizePdfCellValue(value: unknown): string {
+export function normalizeExportValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
   }

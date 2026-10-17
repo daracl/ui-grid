@@ -19,16 +19,24 @@ import type {
   PdfCellChart,
   PdfExportOptions,
   PdfTableData,
-} from './pdf/PdfConverter';
-import { normalizePdfCellValue } from './pdf/PdfValue';
-import { loadPdfModule } from '@/pdf/loadPdfModule';
-import { GroupPdfRenderer } from './pdf/GroupPdfRenderer';
-import { PdfRendererContext } from './pdf/PdfRenderer';
-import { SimplePdfRenderer } from './pdf/SimplePdfRenderer';
+} from './export/pdf/PdfConverter';
+import { normalizePdfCellValue } from './export/pdf/PdfValue';
+import { loadPdfModule } from '@/export/pdf/loadPdfModule';
+import { GroupPdfRenderer } from './export/pdf/GroupPdfRenderer';
+import { PdfRendererContext } from './export/pdf/PdfRenderer';
+import { SimplePdfRenderer } from './export/pdf/SimplePdfRenderer';
 import { BarRenderer } from './renderer/view/BarRenderer';
 import { SparklineRenderer } from './renderer/view/SparklineRenderer';
 import { SparklineRendererBar } from './renderer/view/SparklineRendererBar';
 import { RefChartValue } from './types/RefValue';
+import type { ExcelExportOptions } from './export/excel/ExcelConverter';
+import { loadExcelModule } from '@/export/excel/loadExcelModule';
+import { TreeDataManager } from './service/TreeDataManager';
+import type { CsvExportOptions } from './export/csv/CsvConverter';
+import { loadCsvModule } from '@/export/csv/loadCsvModule';
+import { RendererFactory } from './view/builder/RendererFactory';
+import type { JsonExportOptions } from './export/json/JsonConverter';
+import { loadJsonModule } from '@/export/json/loadJsonModule';
 
 declare const APP_VERSION: string;
 
@@ -161,6 +169,104 @@ export class DaraGrid {
     return blob;
   }
 
+  /** CSV를 필요한 시점에 로드하여 실제 데이터 행을 다운로드한다. */
+  public async exportCsv(options: CsvExportOptions = {}): Promise<Blob> {
+    const { CsvConverter, createCsvData } = await loadCsvModule();
+    const data = createCsvData(this.createDataExportContext(options), options);
+    const converter = new CsvConverter();
+    const blob = converter.convert(data.headers, data.rows, options);
+    converter.download(blob, options.fileName);
+    return blob;
+  }
+
+  /** JSON 모듈을 필요한 시점에 로드하고 필드명을 키로 하는 행 배열을 다운로드한다. */
+  public async exportJson(options: JsonExportOptions = {}): Promise<Blob> {
+    const { JsonConverter, createJsonData } = await loadJsonModule();
+    const data = createJsonData(this.createDataExportContext(options), options);
+    const converter = new JsonConverter();
+    const blob = converter.convert(data, options);
+    converter.download(blob, options.fileName);
+    return blob;
+  }
+
+  /** CSV·JSON의 대상 행과 열을 선택하며 화면·선택 상태는 유지한다. */
+  private createDataExportContext(
+    options: Pick<CsvExportOptions, 'visibleOnly' | 'selectedOnly' | 'includeHiddenColumns'>,
+  ): PdfRendererContext {
+    const cfg = this.gridMain.config();
+    const manager = cfg.dataManager;
+    let viewItems = options.visibleOnly
+      ? manager.getViewItems()
+      : manager instanceof TreeDataManager
+      ? manager.getAllTreeViewItems()
+      : manager.getOriginalViewItems();
+    if (options.selectedOnly) {
+      const selected = new Set(this.getSelectedRowIds());
+      viewItems = viewItems.filter((item) => selected.has(item.id));
+    }
+    let fields = cfg.currentFields.filter((field) => !field.$isAside && !field.hidden);
+    if (options.includeHiddenColumns) {
+      const factory = new RendererFactory(this.gridMain);
+      const visible = new Map(fields.map((field) => [field.name, field]));
+      const flatten = (items: FieldItem[]): FieldItem[] => items.flatMap((field) =>
+        field.children?.length ? flatten(field.children) : [visible.get(field.name) ?? factory.createRenderer({ ...field })],
+      );
+      fields = flatten(this.gridMain.options().fields);
+    }
+    return {
+      fields,
+      viewItems,
+      groupingFields: [],
+      sumFields: [],
+      getRowItem: (id) => manager.getRowItem(id),
+    };
+  }
+
+  /** 현재 뷰의 표시 값·그룹 합계·셀 병합을 XLSX로 다운로드한다. */
+  public async exportExcel(options: ExcelExportOptions = {}): Promise<Blob> {
+    const { ExcelConverter, createExcelData } = await loadExcelModule();
+    const cfg = this.gridMain.config();
+    const gridOptions = this.gridMain.options();
+    const fields = cfg.currentFields.filter((field) => !field.hidden && !field.$isAside);
+    const lineNumberField = options.includeRowNumber === false
+      ? undefined
+      : cfg.currentFields.find((field) => field.name === LINE_NUMBER_NAME && !field.hidden);
+    const displayFields = lineNumberField ? [lineNumberField, ...fields] : fields;
+    const probe = this.createPdfCellStyleResolver(displayFields, fields);
+    const converter = new ExcelConverter();
+    let blob: Blob;
+    try {
+      const data = createExcelData(
+        {
+          fields,
+          lineNumberField,
+          lineNumberStart: gridOptions.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
+          viewItems:
+            cfg.dataManager instanceof TreeDataManager && options.includeCollapsed !== false
+              ? cfg.dataManager.getAllTreeViewItems()
+              : cfg.dataManager.getViewItems(),
+          groupingFields: gridOptions.groupingFields ?? [],
+          sumFields: gridOptions.sumFields ?? [],
+          getRowItem: (id) => cfg.dataManager.getRowItem(id),
+          getCellStyles: probe.getCellStyles,
+          getHeaderCellBorders: probe.getHeaderCellBorders,
+          getHeaderCellStyles: probe.getHeaderCellStyles,
+          rowHeight: cfg.rowHeight,
+          getCellCharts: (viewItem) =>
+            viewItem.groupRowType
+              ? fields.map(() => undefined)
+              : fields.map((field) => this.getPdfCellChart(field, cfg.dataManager.getRowItem(viewItem.id))),
+        },
+        options.mergeCells === false ? [] : gridOptions.rowSpanFields ?? [],
+      );
+      blob = converter.convert(data, options);
+    } finally {
+      probe.destroy();
+    }
+    converter.download(blob, options.fileName);
+    return blob;
+  }
+
   private createPdfCellStyleResolver(displayFields: FieldItem[], dataFields: FieldItem[]) {
     const cfg = this.gridMain.config();
     const gridOptions = this.gridMain.options();
@@ -171,6 +277,18 @@ export class DaraGrid {
         .map((element) => window.getComputedStyle(element).backgroundColor)
         .find((color) => color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)');
     const body = gridElement.querySelector('.dg-body');
+    const headerGradient = (cell: Element) => {
+      // 헤더 셀은 투명하고 실제 테마 배경은 상위 영역에 그려진다.
+      for (let element: Element | null = cell; element && gridElement.contains(element); element = element.parentElement) {
+        const style = window.getComputedStyle(element);
+        const colors = style.backgroundImage?.startsWith('linear-gradient(')
+          ? style.backgroundImage.match(/rgba?\([^)]+\)/g)
+          : undefined;
+        if (colors?.length === 2) return { startColor: colors[0], endColor: colors[1] };
+        if (opaqueBackground(element)) return undefined;
+      }
+      return undefined;
+    };
     const tableBody =
       body?.querySelector('.dg-region[data-region="center"] .dg-body-table tbody') ??
       body?.querySelector('.dg-body-table tbody');
@@ -280,6 +398,7 @@ export class DaraGrid {
       },
       getHeaderCellBorders: () => headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
       getHeaderCellStyles: () => ({
+        gradients: headerCells.map((cell) => cell ? headerGradient(cell) : undefined),
         backgrounds: headerCells.map((cell) =>
           cell ? opaqueBackground(cell, cell.parentElement ?? gridElement, gridElement) : undefined,
         ),

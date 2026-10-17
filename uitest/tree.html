@@ -2,14 +2,20 @@
 <html>
 
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="./asset/examples.css" />
   <meta charset="utf-8" />
-  <title>Dara tree</title>
+  <title>계층형 트리</title>
+  <script src="./data/businessFixtures.js"></script>
 </head>
 
-<body>
+<body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>계층형 트리</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
   <div class="grid-view-area">
     <div id="sample" style="height: 300px; width: 100%"></div>
   </div>
+  </section>
 </body>
 
 </html>
@@ -43,100 +49,5 @@
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='rgb(233,215,158)' d='M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v1H3V7z'/><path fill='rgb(245,225,170)' d='M3 10h19l-2 8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/></svg>") !important;
   }
 </style>
-<script>
-  var gridObj;
-  function loadGrid(initFlag) {
-    let jsonInfo = getItem();
-
-    gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    loadGrid(true);
-  });
-
-  function getItem(type, itemCount, cellCount) {
-    let items = G_TREE_CHILD_DATA;
-    let fields = G_TREE_CHILD_FIELDS;
-
-    if (true) {
-      fields.push({
-        name: 'desc',
-        label: '설명',
-        width: 120,
-      });
-    }
-
-    return {
-      items: items,
-      fields: fields,
-    };
-  }
-
-  function gridDraw(element, aaa, colItem) {
-    gridObj = Daracl.grid.create(element, {
-      selectionMode: 'cell', // row , cell , multiRow , multiCell	// 선택 방법.
-      tree: {
-        expandDepth: 0,
-        defaultExpandedIds: ['1-1'],
-        treeNodeIconClass(item, value) {
-          if ((item.id || '').startsWith('1-1')) {
-            return item._dg$depth === 2 ? 'dg-file-type1' : 'dg-folder-type1';
-          } else if ((item.id || '').startsWith('1-2')) {
-            return item._dg$depth === 2 ? 'dg-file-type2' : 'dg-folder-type2';
-          } else {
-            return '';
-          }
-        },
-      },
-      search: {
-        enabled: true,
-        //hideNonMatched: true,
-        enabledColumnFix: true,
-        click: false,
-        mode: 'simple', //'full'
-        width: 700,
-        height: 250,
-        onlyCloseButton: true,
-        useRememberValue: true,
-        callback: (data) => {
-          //console.log(data)
-        },
-        rememberValue: { field: '$all', val: 'asdf' },
-      },
-      fields: colItem,
-      items: aaa,
-      toolbar: {
-        enabled: true,
-        height: 40,
-        items: [
-          [
-            {
-              position: 'left',
-              children: [
-                {
-                  label: '전체열기',
-                  renderer: {
-                    type: 'button',
-                  },
-                  click: (info) => {
-                    gridObj.expandAll();
-                  },
-                },
-                {
-                  label: '전체닫기',
-                  renderer: {
-                    type: 'button',
-                  },
-                  click: (info) => {
-                    gridObj.collapseAll();
-                  },
-                },
-              ],
-            },
-          ],
-        ],
-      },
-    });
-  }
-</script>
+<script src="./data/examples/tree.js"></script>
+<script src="./asset/pages/tree.js"></script>

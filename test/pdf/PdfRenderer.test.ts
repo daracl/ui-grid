@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
-import { GroupPdfRenderer } from '@/pdf/GroupPdfRenderer';
-import { PdfRendererContext } from '@/pdf/PdfRenderer';
+import { GroupPdfRenderer } from '@/export/pdf/GroupPdfRenderer';
+import { PdfRendererContext } from '@/export/pdf/PdfRenderer';
 import { FieldItem } from '@/types/GridField';
 import { ViewItem } from '@/types/Common';
 

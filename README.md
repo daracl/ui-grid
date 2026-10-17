@@ -193,6 +193,9 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | `getCheckedItems(names?)` / `setAllCheckedItems(checked)` | 체크박스 상태 조회/설정 |
 | `search(keyword, opts)` | 데이터 검색 |
 | `exportPdf(options?)` | 현재 뷰의 전체 행과 그룹 합계 행을 PDF로 다운로드 |
+| `exportExcel(options?)` | 현재 뷰의 표시 값·그룹 합계·rowSpan을 XLSX로 다운로드 |
+| `exportCsv(options?)` | 실제 데이터 행을 CSV로 다운로드 |
+| `exportJson(options?)` | 필드명을 키로 하는 JSON 행 배열 다운로드 |
 | `setTheme(themeName)` / `setStyle(styleName)` | 테마/스타일 변경 |
 | `expandAll()` / `collapseAll()` | 트리 모드 전체 펼치기/접기 |
 | `copyData()` | 선택 영역 클립보드 복사 |
@@ -213,6 +216,23 @@ await grid.exportPdf({
 });
 ```
 
+`exportExcel()`은 외부 라이브러리 없이 XLSX의 XML과 ZIP을 직접 생성합니다. 현재 뷰의 열 순서·숨김·표시 라벨·그룹 소계 및 총계·rowSpan 병합·배경색·글자색·테두리·정렬을 반영합니다. 숫자와 boolean은 원래 형식으로 저장하고, 표시 형식이 적용된 값은 화면의 문자열로 저장합니다. 트리 열은 단계별 셀 들여쓰기와 행 그룹을 적용합니다. 트리는 기본적으로 접힌 하위 행까지 모두 내보내며, `includeCollapsed: false`를 지정하면 현재 표시되는 행만 내보냅니다. 화면의 접기 상태는 변경하지 않습니다. 막대·스파크라인·스파크라인 막대는 배열 텍스트 대신 셀에 맞춘 DrawingML 벡터 도형으로 출력합니다. 도형은 엑셀의 데이터 편집형 차트가 아니며 내보내기 시점의 모양을 유지합니다. 이미지·사용자 HTML은 표시 값으로, 다단 헤더는 최하위 열 라벨로 내보냅니다.
+
+```ts
+await grid.exportExcel({
+  fileName: 'products.xlsx',
+  sheetName: '상품',
+  freezeHeader: true,
+  autoFilter: false,
+  includeRowNumber: true,
+  mergeCells: true,
+});
+```
+
+`fileName`의 기본값은 `grid-export.xlsx`, `sheetName`은 `Grid`입니다. `freezeHeader`, `includeRowNumber`, `mergeCells`는 기본적으로 활성화되고 `autoFilter`는 비활성화됩니다. 행 번호는 그리드에서 표시 중일 때만 포함됩니다. XLSX는 현재 페이지의 검색·정렬 결과를 포함하며 화면 밖의 가상 행도 내보냅니다. Excel의 행·열·셀 텍스트 제한을 초과하면 오류를 반환합니다.
+
+엑셀 코드는 `exportExcel()` 호출 시 로드됩니다. ESM/CJS 배포 시 생성된 청크 파일을 함께 배포해야 합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.excel.min.mjs`를, 비압축 버전은 `daracl.grid.excel.mjs`를 배포합니다. 파일을 미리 `<script>`로 추가할 필요는 없습니다. 수동 예제는 `uitest/excel-export.html`입니다.
+
 ## 개발
 
 ```sh
@@ -228,3 +248,58 @@ yarn docs:gen   # typedoc API 문서 생성
 ## License
 
 Daracl is under [MIT License](./LICENSE).
+
+### CSV 내보내기
+
+목록·페이징·그룹·rowSpan·차트·트리 그리드에서 같은 `exportCsv()` API를 사용합니다. 유형별 다운로드 예제는 `uitest/csv-export.html`입니다.
+
+외부 라이브러리 없이 `src/export/csv`에서 CSV를 생성합니다. `exportCsv()`는 다운로드한 `Blob`을 반환합니다.
+
+```ts
+await grid.exportCsv({ fileName: 'export.csv' });
+await grid.exportCsv({ selectedOnly: true, includeHiddenColumns: true });
+await grid.exportCsv({ visibleOnly: true, delimiter: ';', encoding: 'utf-16le' });
+```
+
+| 옵션 | 기본값 | 설명 |
+| --- | --- | --- |
+| `fileName` | `export.csv` | 다운로드 파일명 |
+| `encoding` | `utf-8` | `utf-8`, `utf-16le` 지원. 다른 인코딩은 오류 |
+| `bom` | `true` | 인코딩에 맞는 BOM 추가 |
+| `delimiter` | `,` | 필드 구분 문자 |
+| `quote` | `"` | 필드 감싸기 문자. 내부 문자는 두 번 기록 |
+| `lineEnding` | `\r\n` | `\r\n`, `\n`, `\r` 지원 |
+| `includeHeader` | `true` | 컬럼 라벨 출력, 라벨이 없으면 필드명 |
+| `includeHiddenColumns` | `false` | 숨김 컬럼 포함. 보조 컬럼 제외 |
+| `selectedOnly` | `false` | 선택 영역에 포함된 행만 출력. 체크 행과 별개 |
+| `visibleOnly` | `false` | 현재 뷰의 행만 출력. 트리의 접힌 하위 행 제외 |
+| `nullValue` | `''` | null·undefined 대체 문자열 |
+| `useFormatter` | `true` | 그리드 표시 포맷·라벨 적용. false이면 원본 필드 값 |
+| `escapeFormula` | `true` | 수식 또는 제어 문자로 시작하는 문자열에 작은따옴표 추가 |
+
+기본으로 모든 실제 데이터 행을 내보내며 트리의 접힌 하위 행도 포함합니다. 그룹 소계·총계 같은 가상 행은 제외합니다. `visibleOnly`는 스크롤 영역이 아닌 현재 뷰(검색·페이지·접기 적용) 기준이며, `selectedOnly`와 함께 지정하면 두 조건을 모두 만족하는 행만 출력합니다. CSV는 셀 스타일·트리 들여쓰기·차트를 지원하지 않습니다.
+
+CSV 코드는 호출 시 로드합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.csv.min.mjs`(비압축은 `daracl.grid.csv.mjs`)를 함께 배포합니다. ESM/CJS는 생성된 청크 파일을 함께 배포합니다.
+
+### JSON 내보내기
+
+```ts
+await grid.exportJson({ fileName: 'data.json' });
+await grid.exportJson({ selectedOnly: true, includeHiddenColumns: true });
+await grid.exportJson({ visibleOnly: true, useFormatter: true, space: 0 });
+```
+
+목록·그룹·트리에서 실제 데이터 행을 필드명 기준의 객체 배열로 내보내고 `Blob`을 반환합니다. 트리는 접힌 하위 행까지 포함하는 평탄한 배열이며, 그룹 합계 가상 행·보조 컬럼·내부 행 ID와 상태는 제외합니다. 원본 데이터와 화면 상태는 변경하지 않습니다.
+
+| 옵션 | 기본값 | 설명 |
+| --- | --- | --- |
+| `fileName` | `export.json` | 다운로드 파일명 |
+| `space` | `2` | 들여쓰기 공백 수 0~10. 0은 압축 출력 |
+| `includeHiddenColumns` | `false` | 숨김 열 포함 |
+| `selectedOnly` | `false` | 선택된 행만 출력 |
+| `visibleOnly` | `false` | 현재 뷰의 행만 출력. 페이지·검색·트리 접기 반영 |
+| `useFormatter` | `false` | true이면 그리드 표시 문자열 사용 |
+
+기본은 숫자·boolean·배열·객체 값을 유지하며 누락된 필드·undefined는 null로 출력합니다. Date 등은 표준 JSON.stringify 규칙을 따르고, 순환 참조·BigInt처럼 JSON으로 변환할 수 없는 값은 오류를 전달합니다. 두 행 옵션을 함께 지정하면 교집합을 출력합니다.
+
+코드는 exportJson 호출 시 로드합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.json.min.mjs`(비압축은 `daracl.grid.json.mjs`)를 함께 배포합니다. ESM/CJS는 생성된 청크를 함께 배포합니다.

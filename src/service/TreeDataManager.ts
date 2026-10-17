@@ -176,6 +176,11 @@ export class TreeDataManager extends DataManager {
     this.setViewItems(this.getTreeToList(this.viewTreeItems));
   }
 
+  /** 현재 정렬 순서를 유지하면서 접힌 하위 행까지 반환한다. */
+  public getAllTreeViewItems(): TreeViewItem[] {
+    return this.flatViewTreeItems.slice();
+  }
+
   private getTreeToList(items: ViewItem[]): TreeViewItem[] {
     this.visibleIndexMap.clear();
     this.idViewItemMap.clear();

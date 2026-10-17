@@ -1,6 +1,7 @@
 import { GridOptions } from '@/types/GridOptions';
 import { GridMain } from '@/view/GridMain';
 import { SearchMode } from '@/types/Common';
+import { TextEncoder } from 'util';
 
 const canvasContext = {
   font: '',
@@ -13,7 +14,7 @@ const mockPdfBlob = new Blob(['%PDF']);
 const mockPdfConvert = jest.fn().mockResolvedValue(mockPdfBlob);
 const mockPdfDownload = jest.fn();
 
-jest.mock('@/pdf/PdfConverter', () => ({
+jest.mock('@/export/pdf/PdfConverter', () => ({
   PdfConverter: jest.fn().mockImplementation(() => ({
     convert: mockPdfConvert,
     download: mockPdfDownload,
@@ -183,6 +184,119 @@ describe('Grid workflows', () => {
 
     expect(centerRows(element)).toHaveLength(1);
     expect(grid.getItems().map((item: any) => item.name)).toEqual(['Replacement row']);
+  });
+
+  it('exports collapsed tree descendants by default and visible rows on request without changing expansion', async () => {
+    Object.defineProperty(globalThis, 'TextEncoder', { configurable: true, value: TextEncoder });
+    const { ExcelConverter } = await import('@/export/excel/ExcelConverter');
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640,
+      height: 320,
+      fields: [{ name: 'name', renderer: { type: 'tree' } }],
+      items: [{ id: 'parent', name: 'Parent', children: [
+        { id: 'child', name: 'Child', children: [{ id: 'leaf', name: 'Leaf' }] },
+      ] }],
+      tree: { idField: 'id', childrenField: 'children' },
+    } as unknown as GridOptions);
+    const convert = jest.spyOn(ExcelConverter.prototype, 'convert').mockReturnValue(new Blob());
+    const download = jest.spyOn(ExcelConverter.prototype, 'download').mockImplementation(() => {});
+    try {
+      await grid.exportExcel();
+      expect(convert.mock.calls[0][0].rows).toHaveLength(3);
+      expect(convert.mock.calls[0][0].outlineLevels).toEqual([0, 1, 2]);
+      expect(centerRows(element)).toHaveLength(1);
+      await grid.exportExcel({ includeCollapsed: false });
+      expect(convert.mock.calls[1][0].rows).toHaveLength(1);
+      grid.expandAll();
+      await grid.exportExcel({ includeCollapsed: false });
+      expect(convert.mock.calls[2][0].rows).toHaveLength(3);
+    } finally {
+      convert.mockRestore();
+      download.mockRestore();
+    }
+  });
+
+  it.each([false, true])('exports all CSV source rows across pages for list and group grids (grouped: %s)', async (grouped) => {
+    const { CsvConverter } = await import('@/export/csv/CsvConverter');
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320,
+      fields: [{ name: 'category' }, { name: 'amount' }],
+      items: Array.from({ length: 12 }, (_, index) => ({ category: 'A', amount: index + 1 })),
+      groupingFields: grouped ? ['category'] : [], sumFields: grouped ? ['amount'] : [],
+      footer: { enabled: true, paging: { enabled: true } }, paging: { page: 1, pageSize: 5 },
+    } as unknown as GridOptions);
+    const convert = jest.spyOn(CsvConverter.prototype, 'convert').mockReturnValue(new Blob());
+    const download = jest.spyOn(CsvConverter.prototype, 'download').mockImplementation(() => {});
+    try {
+      await grid.exportCsv();
+      expect(convert.mock.calls[0][1]).toEqual(Array.from({ length: 12 }, (_, index) => ['A', index + 1]));
+      await grid.exportCsv({ visibleOnly: true });
+      expect(convert.mock.calls[1][1]).toEqual(Array.from({ length: 5 }, (_, index) => ['A', index + 1]));
+    } finally { convert.mockRestore(); download.mockRestore(); }
+  });
+
+  it.each(['list', 'group', 'tree'])('exports JSON data with shared row and column options (%s)', async (type) => {
+    const { JsonConverter } = await import('@/export/json/JsonConverter');
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320,
+      fields: [{ name: 'name' }, { name: 'amount' }, { name: 'secret', hidden: true }],
+      items: type === 'tree'
+        ? [{ id: 'a', name: 'A', amount: 1, secret: true, children: [{ id: 'b', name: 'B', amount: 2, secret: false }] }]
+        : [{ name: 'A', amount: 1, secret: true }, { name: 'B', amount: 2, secret: false }],
+      tree: type === 'tree' ? { idField: 'id', childrenField: 'children' } : undefined,
+      groupingFields: type === 'group' ? ['name'] : [], sumFields: type === 'group' ? ['amount'] : [],
+    } as unknown as GridOptions);
+    const convert = jest.spyOn(JsonConverter.prototype, 'convert').mockReturnValue(new Blob());
+    const download = jest.spyOn(JsonConverter.prototype, 'download').mockImplementation(() => {});
+    const selected = jest.spyOn(grid, 'getSelectedRowIds');
+    try {
+      await grid.exportJson();
+      expect(convert.mock.calls[0][0]).toEqual([{ name: 'A', amount: 1 }, { name: 'B', amount: 2 }]);
+      await grid.exportJson({ visibleOnly: true, includeHiddenColumns: true });
+      expect(convert.mock.calls[1][0]).toHaveLength(type === 'tree' ? 1 : 2);
+      expect(convert.mock.calls[1][0][0]).toEqual({ name: 'A', amount: 1, secret: true });
+      selected.mockReturnValue([mainOf(grid).config().dataManager.getViewItems()[0].id]);
+      await grid.exportJson({ selectedOnly: true, useFormatter: true });
+      expect(convert.mock.calls[2][0]).toEqual([{ name: 'A', amount: '1' }]);
+    } finally { selected.mockRestore(); convert.mockRestore(); download.mockRestore(); }
+  });
+
+  it('exports CSV tree descendants, visible rows, hidden columns and selected rows through public options', async () => {
+    const { CsvConverter } = await import('@/export/csv/CsvConverter');
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640, height: 320,
+      fields: [{ name: 'name', renderer: { type: 'tree' } }, { name: 'secret', hidden: true }],
+      items: [{ id: 'parent', name: 'Parent', secret: 'A', children: [{ id: 'child', name: 'Child', secret: 'B' }] }],
+      tree: { idField: 'id', childrenField: 'children' },
+    } as unknown as GridOptions);
+    const convert = jest.spyOn(CsvConverter.prototype, 'convert').mockReturnValue(new Blob());
+    const download = jest.spyOn(CsvConverter.prototype, 'download').mockImplementation(() => {});
+    const selected = jest.spyOn(grid, 'getSelectedRowIds');
+    try {
+      await grid.exportCsv();
+      expect(convert.mock.calls[0][1]).toEqual([['Parent'], ['Child']]);
+      await grid.exportCsv({ visibleOnly: true, includeHiddenColumns: true });
+      expect(convert.mock.calls[1][1]).toEqual([['Parent', 'A']]);
+      // 공개 선택 API가 반환하는 내부 행 ID를 그대로 사용한다.
+      const manager = mainOf(grid).config().dataManager as import('@/service/TreeDataManager').TreeDataManager;
+      selected.mockReturnValue([manager.getAllTreeViewItems()[1].id]);
+      await grid.exportCsv({ selectedOnly: true });
+      expect(convert.mock.calls[2][1]).toEqual([['Child']]);
+      selected.mockReturnValue([]);
+      await grid.exportCsv({ selectedOnly: true });
+      expect(convert.mock.calls[3][1]).toEqual([]);
+      expect(centerRows(element)).toHaveLength(1);
+    } finally {
+      selected.mockRestore(); convert.mockRestore(); download.mockRestore();
+    }
   });
 
   it('expands and collapses tree rows through the public API', () => {
