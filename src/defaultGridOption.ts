@@ -660,9 +660,9 @@ let DEFAULT_OPTIONS: GridOptions = {
   tree: undefined,
   groupingFields: [],
   rowSpanFields: [],
-  sumFields: [],
-  showGroupSum: true,
-  showGrandSum: true,
+  groupSummaryFields: [],
+  showGroupSummary: true,
+  showGrandSummary: true,
 };
 
 export const DEFAULT_RENDERER_INFO: ViewRendererInfo = {

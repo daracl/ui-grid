@@ -1,7 +1,7 @@
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
 import { SummaryItem } from '@/types/Summary';
 import { formatValue } from '@/util/formatUtils';
-import { calcSummary } from '@/util/mathUtils';
+import { calculateGroupSummary } from '@/util/groupSummaryUtils';
 import { resolveClassName } from '@/util/styleUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -83,13 +83,7 @@ export abstract class SummaryRenderer {
 
     if (items.length > 0) {
       if (expression) {
-        if (isFunction(expression)) {
-          summaryValue.value = expression(items);
-        } else if (expression === 'count') {
-          summaryValue.value = items.length || 0;
-        } else {
-          summaryValue.value = calcSummary(items, expression, summaryItem.name);
-        }
+        summaryValue.value = isFunction(expression) ? expression(items) : calculateGroupSummary(items, summaryItem);
         summaryValue.formatValue = summaryValue.value;
         if (displayFormat) {
           summaryValue.formatValue = formatValue(summaryValue.value, displayFormat);

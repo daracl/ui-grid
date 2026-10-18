@@ -1,3 +1,4 @@
+import { getGroupSummaryFields, getGroupSummaries, getSummaryField, formatSummaryValue } from '@/util/groupSummaryUtils';
 import { BodyCellStyleMap, LINE_NUMBER_NAME } from '@/constants';
 import { ViewItem } from '@/types/Common';
 import { CellInfo } from '@t/GridConfig';
@@ -199,11 +200,11 @@ export class GroupBodyRenderer extends BodyRenderer {
         ? 'dg-group-summary'
         : 'dg-grand-summary';
     const firstDataField = cfg.currentFields.find((field) => !field.$isAside);
-    const sumFields = new Set(this.context.gridMain.options().sumFields ?? []);
+    const summaryFieldNames = new Set(getGroupSummaryFields(this.context.gridMain.options()));
     const summaryLabelField =
       (viewItem.groupRowType === 'groupSummary' || viewItem.groupRowType === 'group') && viewItem.groupField
         ? cfg.currentFields.find((field) => field.name === viewItem.groupField)
-        : cfg.currentFields.find((field) => !field.$isAside && !sumFields.has(field.name)) ?? firstDataField;
+        : cfg.currentFields.find((field) => !field.$isAside && !summaryFieldNames.has(field.name)) ?? firstDataField;
 
     for (const region of ['left', 'center', 'right'] as const) {
       const rowElement = rowElements[region]?.[rowIndex];
@@ -274,9 +275,9 @@ export class GroupBodyRenderer extends BodyRenderer {
               ? `${String(viewItem.groupValue ?? '')} 합계`
               : 'Subtotal';
         renderer.style.paddingLeft = `${(viewItem.groupDepth ?? 0) * 16}px`;
-      } else if (viewItem.groupRowType !== 'group' && sumFields.has(field.name)) {
+      } else if (viewItem.groupRowType !== 'group' && summaryFieldNames.has(field.name)) {
         const sum = viewItem.groupSums?.[field.name];
-        renderer.textContent = sum === undefined ? '' : String(sum);
+        renderer.textContent = sum === undefined ? '' : formatSummaryValue(sum, getGroupSummaries(this.context.gridMain.options()).find((item) => getSummaryField(item) === field.name), field);
         renderer.style.paddingLeft = '';
       } else {
         renderer.style.paddingLeft = '';

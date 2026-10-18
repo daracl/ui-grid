@@ -7,7 +7,7 @@ DaraGrid.create(document.getElementById('sample'), {
   selectionMode: 'multiCell',
   contextMenu: { items: contextItems },
   groupingFields: ['region', 'category'],
-  sumFields: ['quantity', 'amount'],
+  groupSummaryFields: [{ field: 'quantity', expression: 'sum' }, { field: 'amount', expression: 'sum' }],
   fields: createExampleFields1(),
   items: createExampleItems2(),
 });

@@ -7,6 +7,7 @@ import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ListDataManager } from './ListDataManager';
 import { HistoryEntry } from './HistoryManager';
+import { getSummaryField, calculateGroupSummary, getGroupSummaries, getGroupSummaryFields } from '@/util/groupSummaryUtils';
 
 export class GroupDataManager extends ListDataManager {
   private readonly groupRows = new Map<RowId, any>();
@@ -59,7 +60,7 @@ export class GroupDataManager extends ListDataManager {
         } else {
           groupedItems.push(...groupRows.map(({ viewItem }) => viewItem));
 
-          if (this.opts.showGroupSum !== false && (this.opts.sumFields?.length ?? 0) > 0) {
+          if ((this.opts.showGroupSummary) !== false && getGroupSummaries(this.opts).length > 0) {
             groupedItems.push(
               this.createGroupRow({
                 groupRowType: 'groupSummary',
@@ -79,7 +80,7 @@ export class GroupDataManager extends ListDataManager {
       appendGroups(dataRows, 0, []);
     }
 
-    if (this.opts.showGrandSum !== false && (this.opts.sumFields?.length ?? 0) > 0 && dataRows.length > 0) {
+    if ((this.opts.showGrandSummary) !== false && getGroupSummaries(this.opts).length > 0 && dataRows.length > 0) {
       groupedItems.push(
         this.createGroupRow({
           groupRowType: 'grandSummary',
@@ -100,7 +101,7 @@ export class GroupDataManager extends ListDataManager {
     const changed = super.setChangeValue(rowItem, field, newValue, applyValue);
     if (
       changed &&
-      ((this.opts.groupingFields ?? []).includes(field.name) || (this.opts.sumFields ?? []).includes(field.name))
+      ((this.opts.groupingFields ?? []).includes(field.name) || getGroupSummaryFields(this.opts).includes(field.name) || getGroupSummaries(this.opts).some((item) => typeof item.expression === 'function'))
     ) {
       this.groupingRefreshPending = true;
       this.refreshGroupingIfReady();
@@ -238,17 +239,9 @@ export class GroupDataManager extends ListDataManager {
 
   private sumRows(rows: { item: any }[]): Record<string, number> {
     const sums: Record<string, number> = {};
-
-    for (const field of this.opts.sumFields ?? []) {
-      sums[field] = rows.reduce((total, { item }) => {
-        const value = item?.[field];
-        if (value === null || value === undefined || value === '') {
-          return total;
-        }
-
-        const numericValue = Number(value);
-        return Number.isFinite(numericValue) ? total + numericValue : total;
-      }, 0);
+    const items = rows.map(({ item }) => item);
+    for (const summary of getGroupSummaries(this.opts)) {
+      sums[getSummaryField(summary)] = calculateGroupSummary(items, summary);
     }
 
     return sums;

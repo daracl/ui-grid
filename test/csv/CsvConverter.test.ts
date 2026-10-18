@@ -61,7 +61,7 @@ describe('CSV export', () => {
       fields: [{ name: 'amount', label: '금액', $renderer: { getValue: () => '1,200' } }] as unknown as FieldItem[],
       viewItems: [{ id: 'a' }, { id: 'total', groupRowType: 'total' }] as any,
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       getRowItem: () => ({ amount: 1200 }),
     };
     expect(createCsvData(context).rows).toEqual([['1,200']]);

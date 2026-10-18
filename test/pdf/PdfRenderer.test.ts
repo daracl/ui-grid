@@ -23,7 +23,7 @@ describe('GroupPdfRenderer', () => {
         { id: 'total', groupRowType: 'grandSummary' },
       ] as ViewItem[],
       groupingFields: ['category'],
-      sumFields: [],
+      summaryFieldNames: [],
       getRowItem: () => ({ category: 'A' }),
     };
     const renderer = new GroupPdfRenderer(context);

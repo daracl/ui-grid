@@ -123,7 +123,9 @@ function options() {
   };
   if (type === 'group') {
     result.groupingFields = [groupField];
-    result.sumFields = [sumField];
+    result.groupSummaryFields = [{ field: sumField, expression: $('summaryExpression').value }];
+    result.showGroupSummary = $('showGroupSummary').checked;
+    result.showGrandSummary = $('showGrandSummary').checked;
   }
   if (type === 'rowspan') result.rowSpanFields = [groupField];
   if (type === 'tree') result.tree = { ...settings.tree };

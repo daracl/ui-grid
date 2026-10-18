@@ -5,7 +5,7 @@ import { exportField } from '../../data/examples/toolbar-export-file.js';
 DaraGrid.create(document.getElementById('sample'), {
   toolbar: { enabled: true, items: [[{ position: 'right', children: [exportField] }]] },
   groupingFields: ['region', 'category'],
-  sumFields: ['quantity', 'amount'],
+  groupSummaryFields: [{ field: 'quantity', expression: 'sum' }, { field: 'amount', expression: 'sum' }],
   fields: createExampleFields1(),
   items: createExampleItems2(),
 });

@@ -1,3 +1,4 @@
+import type { SummaryItem } from '@/types/Summary';
 import { RowId, ViewItem } from '@/types/Common';
 import { FieldItem } from '@/types/GridField';
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
@@ -17,7 +18,8 @@ export interface PdfRendererContext {
   lineNumberStart?: number;
   viewItems: ViewItem[];
   groupingFields: string[];
-  sumFields: string[];
+  summaryFieldNames: string[];
+  summaryItems?: SummaryItem[];
   getRowItem: (id: RowId) => Record<string, unknown>;
   getCellStyles?: (viewItem: ViewItem, rowIndex: number) => PdfCellStyles;
   getCellCharts?: (viewItem: ViewItem, rowIndex: number) => (PdfCellChart | undefined)[];

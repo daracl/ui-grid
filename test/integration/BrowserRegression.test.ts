@@ -37,7 +37,7 @@ describe('Browser audit regressions', () => {
     return { grid, main, manager: main.config().dataManager, element };
   };
   it.each([false, true])('supports a new addition after undo (grouped: %s)', (grouped) => {
-    const { grid, manager } = create(grouped ? { groupingFields: ['category'], sumFields: ['amount'] } : {});
+    const { grid, manager } = create(grouped ? { groupingFields: ['category'], groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })) } : {});
     grid.createItem({ id: 'c', category: 'C', amount: 3 });
     manager.undo();
     grid.createItem({ id: 'd', category: 'D', amount: 4 });
@@ -45,7 +45,7 @@ describe('Browser audit regressions', () => {
     expect(manager.redo()).toBe(false);
   });
   it.each([false, true])('restores a sorted added row on redo (grouped: %s)', (grouped) => {
-    const { grid, main, manager } = create(grouped ? { groupingFields: ['category'], sumFields: ['amount'] } : {});
+    const { grid, main, manager } = create(grouped ? { groupingFields: ['category'], groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })) } : {});
     const field = main.config().currentFields.find((field: any) => field.name === 'amount');
     manager.dataSort(
       [{ name: 'amount', field, sortCell: field.$colSeq, ascOrder: true }],
@@ -66,7 +66,7 @@ describe('Browser audit regressions', () => {
   it.each([false, true])('keeps header selection consistent (grouped: %s)', (grouped) => {
     const { main, element } = create({
       aside: { rowCheckbox: { enabled: true } },
-      ...(grouped ? { groupingFields: ['category'], sumFields: ['amount'] } : {}),
+      ...(grouped ? { groupingFields: ['category'], groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })) } : {}),
     });
     const header = element.querySelector('.dg-checkbox.dg-all')!;
     main.getBody().setItemsChecked(['a', 'b'], true);

@@ -1,3 +1,4 @@
+import { getGroupSummaryFields } from '@/util/groupSummaryUtils';
 import { GridOptions } from '@t/GridOptions';
 
 import { HIDDEN_ELEMENT_SELECTOR, LINE_NUMBER_NAME } from './constants';
@@ -141,7 +142,8 @@ export class DaraGrid {
       lineNumberStart: gridOptions.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
       viewItems: cfg.dataManager.getViewItems(),
       groupingFields: gridOptions.groupingFields ?? [],
-      sumFields: gridOptions.sumFields ?? [],
+      summaryFieldNames: getGroupSummaryFields(gridOptions),
+      summaryItems: gridOptions.groupSummaryFields,
       getRowItem: (id) => cfg.dataManager.getRowItem(id),
       getCellStyles: cellStyleProbe.getCellStyles,
       getCellCharts: (viewItem) => {
@@ -219,7 +221,7 @@ export class DaraGrid {
       fields,
       viewItems,
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       getRowItem: (id) => manager.getRowItem(id),
     };
   }
@@ -248,7 +250,8 @@ export class DaraGrid {
               ? cfg.dataManager.getAllTreeViewItems()
               : cfg.dataManager.getViewItems(),
           groupingFields: gridOptions.groupingFields ?? [],
-          sumFields: gridOptions.sumFields ?? [],
+          summaryFieldNames: getGroupSummaryFields(gridOptions),
+          summaryItems: gridOptions.groupSummaryFields,
           getRowItem: (id) => cfg.dataManager.getRowItem(id),
           getCellStyles: probe.getCellStyles,
           getHeaderCellBorders: probe.getHeaderCellBorders,

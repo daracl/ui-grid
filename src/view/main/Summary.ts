@@ -1,3 +1,4 @@
+import { getSummaryField } from '@/util/groupSummaryUtils';
 import { CellPositionInfo, Config, SummaryConfig } from '@t/GridConfig';
 
 import { TEXT_ALIGN_STYLE } from '@/constantStyles';
@@ -74,10 +75,10 @@ export class Summary {
     for (const items of this.summaryOpts.items) {
       const summaryRenders: SummaryRenderer[] = [];
       for (const item of items) {
-        const fieldName = item.name;
-        const fieldInfo = allFieldMap.get(fieldName) ?? (merge({}, item) as FieldItem);
+        const fieldName = getSummaryField(item);
+        const fieldInfo = allFieldMap.get(fieldName) ?? (merge({}, item, { name: fieldName }) as FieldItem);
 
-        item.$alignStyle = TEXT_ALIGN_STYLE[item.align] ?? (fieldInfo.$alignStyle || TEXT_ALIGN_STYLE.left);
+        item.$alignStyle = TEXT_ALIGN_STYLE[item.align ?? fieldInfo.align] ?? (fieldInfo.$alignStyle || TEXT_ALIGN_STYLE.left);
 
         summaryRenders.push(new SummaryTextRenderer(fieldInfo, this.gridMain, item));
       }
@@ -249,7 +250,7 @@ export class Summary {
         const rendererItem = rendererItems.find((renderer) => renderer.getFieldInfo().name === field.name);
 
         if (rendererItem) {
-          field = rendererItem.getSummaryItem();
+          field = { ...field, ...rendererItem.getSummaryItem(), name: field.name };
         }
 
         if (colspan > 0) {

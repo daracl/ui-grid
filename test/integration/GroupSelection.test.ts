@@ -49,7 +49,7 @@ describe('Grouped row selection', () => {
       height: 320,
       selectionMode: 'multiRow',
       groupingFields: ['category'],
-      sumFields: ['amount'],
+      groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [
         { name: 'category', label: 'Category', width: 180 },
         { name: 'amount', label: 'Amount', width: 120 },

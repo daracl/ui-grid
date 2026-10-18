@@ -1,3 +1,4 @@
+import { getGroupSummaryFields } from '@/util/groupSummaryUtils';
 import { BodyCellStyleMap, SelectionModeMap } from '@/constants';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
@@ -344,9 +345,9 @@ export class SelectionInfo {
     const result: any[] = [];
     const keyInfoMap = new Map<number, any>();
     const summary = { count: 0, numbers: [] as number[] };
-    const sumFields = new Set(this.options.sumFields ?? []);
+    const summaryFieldNames = new Set(getGroupSummaryFields(this.options));
     const firstDataField = currentFields.find((field) => !field.$isAside);
-    const summaryLabelField = currentFields.find((field) => !field.$isAside && !sumFields.has(field.name)) ?? firstDataField;
+    const summaryLabelField = currentFields.find((field) => !field.$isAside && !summaryFieldNames.has(field.name)) ?? firstDataField;
 
     for (let i = startIdx; i <= endIdx; i++) {
       const viewItem = viewItems[i];
@@ -378,7 +379,7 @@ export class SelectionInfo {
             cellValue = 'Subtotal';
           } else if (viewItem.groupRowType === 'grandSummary' && field === summaryLabelField) {
             cellValue = 'Grand Total';
-          } else if (viewItem.groupRowType && viewItem.groupRowType !== 'group' && sumFields.has(field.name)) {
+          } else if (viewItem.groupRowType && viewItem.groupRowType !== 'group' && summaryFieldNames.has(field.name)) {
             cellValue = viewItem.groupSums?.[field.name] ?? '';
           } else if (!isGroupRow) {
             cellValue = field.$renderer.getValue(item);

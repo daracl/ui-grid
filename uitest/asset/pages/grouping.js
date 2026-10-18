@@ -5,9 +5,9 @@ import { DaraGrid } from '/src/index.ts';
 DaraGrid.create(document.getElementById('sample'), {
   groupingFields: ['country', 'product', 'name'],
   selectionMode: 'multiCell',
-  sumFields: ['quantity', 'amount'],
-  showGroupSum: true,
-  showGrandSum: false,
+  groupSummaryFields: [{ field: 'quantity', expression: 'sum' }, { field: 'amount', expression: 'avg' }],
+  showGroupSummary: true,
+  showGrandSummary: false,
   fields: createExampleFields1(),
   items,
 });

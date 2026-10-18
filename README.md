@@ -141,8 +141,8 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | tree | 트리 모드 옵션 (`idField`, `parentIdField`, `childrenField`, `isFlatData` 등). 설정하지 않으면 목록형으로 동작 | `undefined` |
 | groupingFields | 상세 행을 계층 그룹으로 정렬하고 같은 그룹 값은 첫 행에만 표시할 필드 목록(바깥 그룹부터 지정) | `[]` |
 | rowSpanFields | 연속된 같은 값을 세로 병합할 필드 목록(바깥 그룹부터 지정). `groupingFields`와 별도로 사용할 수 있습니다. | `[]` |
-| sumFields | 그룹 소계/전체 합계를 계산할 숫자 필드 목록 | `[]` |
-| showGroupSum / showGrandSum | 최하위 그룹 소계 / 전체 합계 행 표시 여부 | `true` |
+| groupSummaryFields | 그룹 집계 설정 목록: { field, expression } | `[]` |
+| showGroupSummary / showGrandSummary | 최하위 그룹 소계 / 전체 합계 행 표시 여부 | `true` |
 | dataTypeFormatter | `money`, `number` 타입 기본 포맷(prefix/suffix/fixed) | - |
 | i18n | 다국어 메시지 리소스 | - |
 
@@ -379,3 +379,24 @@ contextMenu: {
 
 항목에 직접 지정한 callback은 기본 동작보다 우선합니다. 기본 복사·다운로드를 처리한 항목에는 공통 callback을 중복 호출하지 않으며, 일반 사용자 메뉴는 기존 공통 callback으로 처리합니다. 비활성 항목·비활성 부모 아래의 항목은 실행하지 않습니다. 다운로드 중 중복 실행을 막고 실패 원인은 콘솔에 기록합니다.
 컨텍스트 메뉴는 `{ key: 'copy' }`, `{ key: 'exportFile', children: [{ key: 'csv' }, { key: 'pdf' }] }`처럼 키만 지정할 수도 있습니다. 메뉴 생성 시 항목 사본에 기본 label과 callback을 채워 기존 콜백 실행 경로를 사용합니다. 원본 배열은 변경하지 않으며 직접 지정한 label·callback이 우선합니다. 기본 Copy / Export file 문구는 `context.copy`, `context.exportFile` 다국어 메시지로 변경할 수 있습니다.
+### 그룹 집계 설정
+
+`groupSummaryFields`로 그룹 소계·총계에 표시할 컬럼과 집계 방식을 지정합니다.
+
+```ts
+groupingFields: ['department'],
+groupSummaryFields: [
+  { field: 'amount', expression: 'sum' },
+  { field: 'unitPrice', expression: 'avg' },
+  { field: 'orderCount', expression: 'count' },
+  { field: 'profit', expression: (items) => items.reduce((total, item) => total + item.amount - item.cost, 0) },
+],
+showGroupSummary: true,
+showGrandSummary: true,
+```
+
+field는 집계 결과를 표시할 컬럼명입니다. expression은 sum, avg, count, min, max 또는 함수를 사용합니다. 함수는 유한한 숫자를 반환해야 합니다. 함수에는 소계의 해당 그룹 행 배열 또는 총계의 전체 집계 대상 행 배열을 전달하며 가상 소계·총계 행은 포함하지 않습니다. 행 값 수정 시 함수 집계도 갱신합니다.
+
+count는 빈 값과 관계없이 행 수를 셉니다. 숫자 집계는 숫자 문자열을 허용하며 null·undefined·빈 문자열·유효하지 않은 숫자를 제외합니다. 숫자 값이 없으면 0입니다. 그룹 결과는 화면·선택 복사·PDF·Excel에 반영됩니다.
+
+groupSummaryFields가 빈 배열이면 그룹 집계 행을 표시하지 않습니다. showGroupSummary·showGrandSummary는 집계 방식과 무관하게 그룹별·전체 집계 행의 표시 여부를 제어합니다.

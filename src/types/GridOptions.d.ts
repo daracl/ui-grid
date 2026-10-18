@@ -4,7 +4,7 @@ import { OptionCallback, RowId } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
 import { SortOption } from './Header';
-import { SummaryOptions } from './Summary';
+import { SummaryItem, SummaryOptions } from './Summary';
 import { ToolbarLayout } from './Toolbar';
 
 /**
@@ -180,14 +180,15 @@ export interface GridOptions {
    */
   rowSpanFields?: string[];
 
-  /** Numeric fields to total in group and grand-total rows. */
-  sumFields?: string[];
+  /** 그룹 소계·총계의 필드와 집계 방식. sum, avg, count, min, max 또는 행 배열을 받는 함수. */
+  groupSummaryFields?: SummaryItem[];
 
-  /** Whether each leaf group gets a subtotal row. Defaults to true. */
-  showGroupSum?: boolean;
+  /** 그룹별 집계 행 표시 여부. 기본값 true. */
+  showGroupSummary?: boolean;
 
-  /** Whether the body ends with a grand-total row. Defaults to true. */
-  showGrandSum?: boolean;
+  /** 전체 집계 행 표시 여부. 기본값 true. */
+  showGrandSummary?: boolean;
+
 }
 
 export interface TreeOptions {

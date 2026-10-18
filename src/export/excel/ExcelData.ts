@@ -46,7 +46,7 @@ export function createExcelData(context: ExcelRendererContext, rowSpanFields: st
     context.fields.forEach((field, index) => {
       if (viewItem.groupRowType) {
         const sum = viewItem.groupSums?.[field.name];
-        if (sum !== undefined && context.sumFields.includes(field.name) && row[index + offset] === String(sum)) {
+        if (sum !== undefined && context.summaryFieldNames.includes(field.name) && row[index + offset] === String(sum)) {
           values[index + offset] = sum;
         }
       } else if (!field.displayFormat && ['text', 'number'].includes(field.renderer?.type ?? 'text')) {

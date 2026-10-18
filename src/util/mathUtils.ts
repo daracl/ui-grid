@@ -1,7 +1,8 @@
 import { CHUNK_SIZE } from '@/constants';
 
 export function calcSummary(items: any[], mode: string, itemKey: string): number | string {
-  if (mode !== 'min' && mode !== 'max' && mode !== 'sum' && mode !== 'average') {
+  if (mode === 'count') return items.length;
+  if (mode !== 'min' && mode !== 'max' && mode !== 'sum' && mode !== 'avg') {
     return `${mode} not valid`;
   }
 
@@ -25,7 +26,7 @@ export function calcSummary(items: any[], mode: string, itemKey: string): number
         case 'max':
           if (val > result) result = val;
           break;
-        default: // sum or average
+        default: // sum or avg
           result += val;
           break;
       }
@@ -35,5 +36,5 @@ export function calcSummary(items: any[], mode: string, itemKey: string): number
   }
 
   if (count === 0) return 'not valid';
-  return mode === 'average' ? result / count : result;
+  return mode === 'avg' ? result / count : result;
 }

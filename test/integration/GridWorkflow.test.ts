@@ -63,7 +63,7 @@ describe('Grid workflows', () => {
       width: 640, height: 320,
       aside: { lineNumber: { enabled: false } },
       groupingFields: grouped ? ['category'] : [],
-      sumFields: grouped ? ['amount'] : [],
+      groupSummaryFields: (grouped ? ['amount'] : []).map((field) => ({ field, expression: 'sum' })),
       fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
       items: [{ category: 'A', amount: 5 }],
     } as unknown as GridOptions);
@@ -78,7 +78,7 @@ describe('Grid workflows', () => {
     const grid = createGrid(element, {
       width: 640, height: 320, fixedLeftIndex: 2,
       groupingFields: grouped ? ['category'] : [],
-      sumFields: grouped ? ['amount'] : [],
+      groupSummaryFields: (grouped ? ['amount'] : []).map((field) => ({ field, expression: 'sum' })),
       fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
       items: [{ category: 'A', amount: 5 }],
     } as unknown as GridOptions);
@@ -98,7 +98,7 @@ describe('Grid workflows', () => {
     const element = document.createElement('div');
     document.body.appendChild(element);
     const grid = createGrid(element, {
-      width: 640, height: 180, groupingFields: ['category'], sumFields: ['amount'],
+      width: 640, height: 180, groupingFields: ['category'], groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [{ name: 'category', width: 160, cellClassName: 'detail-only' }, { name: 'amount', width: 100 }],
       items: Array.from({ length: 30 }, (_, i) => ({ category: `A${String(i).padStart(2, '0')}`, amount: i })),
     } as unknown as GridOptions);
@@ -124,7 +124,7 @@ describe('Grid workflows', () => {
     document.body.appendChild(element);
     const grid = createGrid(element, {
       width: 640, height: 320, rowIdField: 'id', deleteMode: 'hard',
-      groupingFields: grouped ? ['category'] : [], sumFields: grouped ? ['amount'] : [],
+      groupingFields: grouped ? ['category'] : [], groupSummaryFields: (grouped ? ['amount'] : []).map((field) => ({ field, expression: 'sum' })),
       fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
       items: [{ id: 'a', category: 'A', amount: 5 }, { id: 'b', category: 'B', amount: 7 }],
     } as unknown as GridOptions);
@@ -141,7 +141,7 @@ describe('Grid workflows', () => {
     const element = document.createElement('div');
     document.body.appendChild(element);
     const grid = createGrid(element, {
-      width: 640, height: 320, rowIdField: 'id', groupingFields: ['category'], sumFields: ['amount'],
+      width: 640, height: 320, rowIdField: 'id', groupingFields: ['category'], groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [{ name: 'category', width: 160 }, { name: 'amount', width: 100 }],
       items: [{ id: 'a', category: 'A', amount: 5 }, { id: 'b', category: 'B', amount: 7 }],
     } as unknown as GridOptions);
@@ -226,7 +226,7 @@ describe('Grid workflows', () => {
       width: 640, height: 320,
       fields: [{ name: 'category' }, { name: 'amount' }],
       items: Array.from({ length: 12 }, (_, index) => ({ category: 'A', amount: index + 1 })),
-      groupingFields: grouped ? ['category'] : [], sumFields: grouped ? ['amount'] : [],
+      groupingFields: grouped ? ['category'] : [], groupSummaryFields: (grouped ? ['amount'] : []).map((field) => ({ field, expression: 'sum' })),
       footer: { enabled: true, paging: { enabled: true } }, paging: { page: 1, pageSize: 5 },
     } as unknown as GridOptions);
     const convert = jest.spyOn(CsvConverter.prototype, 'convert').mockReturnValue(new Blob());
@@ -250,7 +250,7 @@ describe('Grid workflows', () => {
         ? [{ id: 'a', name: 'A', amount: 1, secret: true, children: [{ id: 'b', name: 'B', amount: 2, secret: false }] }]
         : [{ name: 'A', amount: 1, secret: true }, { name: 'B', amount: 2, secret: false }],
       tree: type === 'tree' ? { idField: 'id', childrenField: 'children' } : undefined,
-      groupingFields: type === 'group' ? ['name'] : [], sumFields: type === 'group' ? ['amount'] : [],
+      groupingFields: type === 'group' ? ['name'] : [], groupSummaryFields: (type === 'group' ? ['amount'] : []).map((field) => ({ field, expression: 'sum' })),
     } as unknown as GridOptions);
     const convert = jest.spyOn(JsonConverter.prototype, 'convert').mockReturnValue(new Blob());
     const download = jest.spyOn(JsonConverter.prototype, 'download').mockImplementation(() => {});
@@ -336,7 +336,7 @@ describe('Grid workflows', () => {
       width: 640,
       height: 320,
       groupingFields: ['category'],
-      sumFields: ['amount'],
+      groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [
         { name: 'category', label: 'Category', width: 180 },
         { name: 'amount', label: 'Amount', width: 120 },
@@ -360,7 +360,7 @@ describe('Grid workflows', () => {
       width: 640,
       height: 320,
       groupingFields: ['category'],
-      sumFields: ['amount'],
+      groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [
         { name: 'category', label: 'Category', width: 180 },
         { name: 'amount', label: 'Amount', width: 120 },
@@ -516,7 +516,7 @@ describe('Grid workflows', () => {
       width: 640,
       height: 320,
       groupingFields: ['country', 'category'],
-      sumFields: ['amount'],
+      groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [
         { name: 'country', label: 'Country', width: 120 },
         { name: 'category', label: 'Category', width: 120 },

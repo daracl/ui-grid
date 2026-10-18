@@ -25,7 +25,7 @@ describe('JSON 내보내기', () => {
       ] as unknown as FieldItem[],
       viewItems: [{ id: 'a' }, { id: 'total', groupRowType: 'total' }] as any,
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       getRowItem: () => item,
     };
     expect(createJsonData(context)).toEqual([{ amount: 1200, missing: null }]);

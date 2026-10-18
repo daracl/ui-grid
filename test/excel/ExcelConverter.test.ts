@@ -77,7 +77,7 @@ describe('dependency-free XLSX export', () => {
     const data = createExcelData({
       fields,
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       viewItems: [
         { id: 'a', depth: 0 },
         { id: 'b', depth: 1 },
@@ -102,7 +102,7 @@ describe('dependency-free XLSX export', () => {
     const data = createExcelData({
       fields,
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       viewItems: [{ id: 'a' }] as ViewItem[],
       getRowItem: () => ({}),
       getCellCharts: () => [
@@ -203,7 +203,7 @@ describe('dependency-free XLSX export', () => {
       fields,
       viewItems: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] as ViewItem[],
       groupingFields: [],
-      sumFields: [],
+      summaryFieldNames: [],
       getRowItem: (id: string | number) => items[id],
     };
     const data = createExcelData(context, ['category', 'code']);
@@ -214,7 +214,7 @@ describe('dependency-free XLSX export', () => {
       {
         ...context,
         groupingFields: ['category'],
-        sumFields: ['amount'],
+        summaryFieldNames: ['amount'],
         viewItems: [
           { id: 'a' },
           { id: 'b' },

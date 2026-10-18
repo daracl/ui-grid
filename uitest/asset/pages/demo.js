@@ -155,7 +155,7 @@ function gridDraw(element, aaa, colItem, message) {
             { name: 'name', label: '평균' },
             {
               name: 'age',
-              expression: 'average',
+              expression: 'avg',
               displayFormat: {
                 type: 'number',
                 format: '0,0.00',
@@ -163,7 +163,7 @@ function gridDraw(element, aaa, colItem, message) {
             },
             {
               name: 'salary',
-              expression: 'average',
+              expression: 'avg',
               displayFormat: {
                 type: 'number',
                 format: '0,0',

@@ -55,8 +55,10 @@
           </p>
           <div class="pair">
             <label>그룹 / 병합 필드<select id="groupField"></select></label
-            ><label>합계 필드<select id="sumField"></select></label>
+            ><label>집계 필드<select id="sumField"></select></label>
           </div>
+          <label>집계 방식<select id="summaryExpression"><option value="sum">합계 (sum)</option><option value="avg">평균 (avg)</option><option value="count">행 개수 (count)</option><option value="min">최소값 (min)</option><option value="max">최대값 (max)</option></select></label>
+          <div class="checks"><label><input id="showGroupSummary" type="checkbox" checked />그룹 소계 표시</label><label><input id="showGrandSummary" type="checkbox" checked />총계 표시</label></div>
           <div class="pair">
             <label class="inline"><input id="paging" type="checkbox" />페이징</label
             ><label>페이지당 행 수<input id="pageSize" type="number" value="10" min="1" max="1000" /></label>

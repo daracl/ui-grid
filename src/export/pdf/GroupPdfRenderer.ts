@@ -1,3 +1,4 @@
+import { getSummaryField, formatSummaryValue } from '@/util/groupSummaryUtils';
 import { ViewItem } from '@/types/Common';
 import type { PdfTableData } from './PdfConverter';
 import { normalizePdfCellValue } from './PdfValue';
@@ -36,8 +37,8 @@ export class GroupPdfRenderer extends PdfRenderer {
     }
 
     const row = super.renderRow(viewItem);
-    const sumFields = new Set(this.context.sumFields);
-    const summaryLabelField = fields.find((field) => !sumFields.has(field.name)) ?? fields[0];
+    const summaryFieldNames = new Set(this.context.summaryFieldNames);
+    const summaryLabelField = fields.find((field) => !summaryFieldNames.has(field.name)) ?? fields[0];
 
     if (viewItem.groupRowType === 'group') {
       const groupField = fields.find((field) => field.name === viewItem.groupField) ?? fields[0];
@@ -63,7 +64,7 @@ export class GroupPdfRenderer extends PdfRenderer {
     for (const [fieldName, sum] of Object.entries(viewItem.groupSums ?? {})) {
       const columnIndex = fields.findIndex((field) => field.name === fieldName);
       if (columnIndex >= 0) {
-        row[columnIndex] = normalizePdfCellValue(sum);
+        row[columnIndex] = formatSummaryValue(sum, this.context.summaryItems?.find((item) => getSummaryField(item) === fieldName), fields[columnIndex]);
       }
     }
 

@@ -1,5 +1,6 @@
 export * as DaraGrid from '@/DaraGrid';
 export * as GridOptions from '@/types/GridOptions';
+export type { SummaryItem } from './types/Summary';
 export * as FieldItem from '@/types/GridField';
 export * as RendererInfo from '@/types/RendererInfo';
 export * as i18n from '@/types/Message';
