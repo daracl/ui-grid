@@ -359,6 +359,7 @@ describe('Grid workflows', () => {
     const grid = createGrid(element, {
       width: 640,
       height: 320,
+      pdfFontUrl: '/fonts/grid.ttf',
       groupingFields: ['category'],
       groupSummaryFields: (['amount']).map((field) => ({ field, expression: 'sum' })),
       fields: [
@@ -390,7 +391,9 @@ describe('Grid workflows', () => {
       ['3', 'Grand Total', '5'],
     ]);
     expect(exportedData.cellBorders).toHaveLength(3);
-    expect(mockPdfConvert).toHaveBeenCalledWith(expect.anything(), options);
+    expect(mockPdfConvert).toHaveBeenCalledWith(expect.anything(), { ...options, fontUrl: '/fonts/grid.ttf' });
+    await grid.exportPdf({ ...options, fontUrl: '/fonts/export.ttf' });
+    expect(mockPdfConvert).toHaveBeenLastCalledWith(expect.anything(), { ...options, fontUrl: '/fonts/export.ttf' });
     expect(mockPdfDownload).toHaveBeenCalledWith(mockPdfBlob, 'grouped-report');
   });
 

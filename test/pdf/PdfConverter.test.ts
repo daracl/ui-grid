@@ -7,6 +7,36 @@ import { normalizePdfColor, PdfConverter } from '@/export/pdf/PdfConverter';
 import PDFDocument from 'pdfkit';
 
 describe('PdfConverter', () => {
+  it('loads and caches font files separately by URL and retries failed requests', async () => {
+    const fontData = readFileSync(path.join(__dirname, '../../public/assets/NotoSansKR-Regular.ttf'));
+    const fetchFont = jest.spyOn(globalThis, 'fetch').mockImplementation(async () => ({
+      ok: true,
+      arrayBuffer: async () => fontData,
+    } as unknown as Response));
+    const data = { columns: [{ name: 'name', label: '이름' }], rows: [['김민수']] };
+    const converter = new PdfConverter();
+    try {
+      const blob = await converter.convert(data, { fontUrl: '/fonts/first.ttf' });
+      expect(Buffer.from(await blob.arrayBuffer()).toString('latin1')).toContain('/FontFile2');
+      await converter.convert(data, { fontUrl: '/fonts/first.ttf' });
+      await converter.convert(data, { fontUrl: '/fonts/second.ttf' });
+      expect(fetchFont.mock.calls.map(([url]) => url)).toEqual(['/fonts/first.ttf', '/fonts/second.ttf']);
+
+      fetchFont.mockRejectedValueOnce(new Error('network error'));
+      await expect(converter.convert(data, { fontUrl: '/fonts/retry.ttf' })).rejects.toThrow('network error');
+      await converter.convert(data, { fontUrl: '/fonts/retry.ttf' });
+      expect(fetchFont).toHaveBeenCalledTimes(4);
+
+      await converter.convert(data, {
+        fontUrl: '/fonts/unused.ttf',
+        customFont: { name: 'Custom', data: fontData },
+      });
+      expect(fetchFont).toHaveBeenCalledTimes(4);
+    } finally {
+      fetchFont.mockRestore();
+    }
+  });
+
   it('draws the full merged header once and repeats only leaf headers on subsequent pages', async () => {
     const text = jest.spyOn(PDFDocument.prototype, 'text');
     try {

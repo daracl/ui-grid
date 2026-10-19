@@ -168,7 +168,10 @@ export class DaraGrid {
     } finally {
       cellStyleProbe.destroy();
     }
-    const blob = await converter.convert(tableData, options);
+    const blob = await converter.convert(tableData, {
+      ...options,
+      fontUrl: options.fontUrl ?? gridOptions.pdfFontUrl,
+    });
     converter.download(blob, options.fileName);
     return blob;
   }
@@ -309,14 +312,37 @@ export class DaraGrid {
     probeRow.style.height = '0';
     probeRow.setAttribute('aria-hidden', 'true');
 
-    const probeCells = displayFields.map(() => {
+    displayFields.forEach(() => {
       const cell = document.createElement('td');
       cell.className = 'dg-cell';
       probeRow.appendChild(cell);
-      return cell;
     });
 
-    tableBody.appendChild(probeRow);
+    // 화면의 가상 스크롤 위치와 행 개수에 영향을 받지 않는 측정 영역을 만든다.
+    // 테마와 BODY_STYLE 선택자가 그대로 적용되도록 본문까지의 구조를 유지한다.
+    const probeBody = body.cloneNode(false) as HTMLElement;
+    probeBody.classList.remove('dg-body-odd');
+    probeBody.classList.add('dg-body-even');
+    probeBody.style.position = 'absolute';
+    probeBody.style.visibility = 'hidden';
+    probeBody.style.pointerEvents = 'none';
+    probeBody.style.height = '0';
+    probeBody.style.overflow = 'hidden';
+    probeBody.setAttribute('aria-hidden', 'true');
+    let probeParent: Node = probeBody;
+    const ancestors: Element[] = [];
+    for (let element: Element | null = tableBody; element && element !== body; element = element.parentElement) {
+      ancestors.unshift(element);
+    }
+    for (const element of ancestors) {
+      const clone = element.cloneNode(false);
+      probeParent.appendChild(clone);
+      probeParent = clone;
+    }
+    const parityRow = probeRow.cloneNode(true) as HTMLTableRowElement;
+    probeParent.appendChild(probeRow);
+    probeParent.appendChild(parityRow);
+    body.parentElement!.appendChild(probeBody);
     const headerCells = displayFields.map((field) => {
       const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
         ? 'left'
@@ -327,10 +353,21 @@ export class DaraGrid {
         `.dg-header .dg-region[data-region="${region}"] [data-header-cell-position="${field.$resizeIdx}"]`,
       ) ?? undefined;
     });
+    const resolveBorders = (cell: Element, column: number): PdfCellBorders | undefined => {
+      const borders = this.getPdfCellBorders(cell);
+      // stripedCells의 바깥 오른쪽 선은 제외하고 열 사이의 구분선은 유지한다.
+      if (column === displayFields.length - 1 && gridElement.querySelector('.dg-layout.dg-style-striped-cells')) {
+        return { ...borders, right: undefined };
+      }
+      return borders;
+    };
 
     return {
       tableBorders: this.getPdfCellBorders(gridElement.querySelector('.dg-main') ?? gridElement),
       getCellStyles: (viewItem: ViewItem, rowIndex: number) => {
+        // 두 번째 행부터 줄무늬가 적용되는 화면의 논리 행 순서를 재현한다.
+        const row = rowIndex % 2 === 0 ? probeRow : parityRow;
+        const probeCells = row.cells;
         const rowClasses = ['dg-row'];
         if (viewItem.groupRowType) {
           rowClasses.push(
@@ -342,10 +379,10 @@ export class DaraGrid {
                 : 'dg-grand-summary',
           );
         }
-        probeRow.className = rowClasses.join(' ');
+        row.className = rowClasses.join(' ');
 
         const item = viewItem.groupRowType ? undefined : cfg.dataManager.getRowItem(viewItem.id);
-        const rowBackground = window.getComputedStyle(probeRow).backgroundColor;
+        const rowBackground = window.getComputedStyle(row).backgroundColor;
         let previousDataItem: Record<string, unknown> | undefined;
         if (!viewItem.groupRowType && rowIndex > 0) {
           for (let previousIndex = rowIndex - 1; previousIndex >= 0; previousIndex--) {
@@ -396,22 +433,22 @@ export class DaraGrid {
               : rowBackground && rowBackground !== 'transparent' && rowBackground !== 'rgba(0, 0, 0, 0)'
                 ? rowBackground
                 : opaqueBackground(body, gridElement);
-          return { background, borders: this.getPdfCellBorders(cell), textColor: window.getComputedStyle(cell).color };
+          return { background, borders: resolveBorders(cell, fieldIndex), textColor: window.getComputedStyle(cell).color };
         });
         const backgrounds = styles.map((style) => style.background);
         const borders = styles.map((style) => style.borders);
         return { backgrounds, borders, textColors: styles.map((style) => style.textColor || undefined) };
       },
-      getHeaderCellBorders: () => headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
+      getHeaderCellBorders: () => headerCells.map((cell, column) => (cell ? resolveBorders(cell, column) : undefined)),
       getHeaderCellStyles: () => ({
         gradients: headerCells.map((cell) => cell ? headerGradient(cell) : undefined),
         backgrounds: headerCells.map((cell) =>
           cell ? opaqueBackground(cell, cell.parentElement ?? gridElement, gridElement) : undefined,
         ),
-        borders: headerCells.map((cell) => (cell ? this.getPdfCellBorders(cell) : undefined)),
+        borders: headerCells.map((cell, column) => (cell ? resolveBorders(cell, column) : undefined)),
         textColors: headerCells.map((cell) => (cell ? window.getComputedStyle(cell).color || undefined : undefined)),
       }),
-      destroy: () => probeRow.remove(),
+      destroy: () => probeBody.remove(),
     };
   }
 

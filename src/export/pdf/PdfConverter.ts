@@ -81,6 +81,8 @@ export interface PdfExportOptions {
   orientation?: 'portrait' | 'landscape';
   margin?: number;
   fontName?: string;
+  /** 글꼴 파일 URL. customFont 데이터가 있으면 해당 데이터를 우선 사용한다. */
+  fontUrl?: string;
   fontSize?: number;
   customFont?: {
     name: string;
@@ -115,22 +117,25 @@ if (typeof registerStdFonts === 'function') {
   registerStdFonts(...standardFonts);
 }
 
-let koreanFontData: Promise<ArrayBuffer> | undefined;
+const koreanFontData = new Map<string, Promise<ArrayBuffer>>();
 
-function loadKoreanFont(): Promise<ArrayBuffer> {
-  koreanFontData ??= fetch(getKoreanFontUrl())
+function loadKoreanFont(url: string): Promise<ArrayBuffer> {
+  const cached = koreanFontData.get(url);
+  if (cached) return cached;
+  const fontData = fetch(url)
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Unable to load the bundled Korean PDF font: ${response.status} ${response.statusText}`);
+        throw new Error(`Unable to load the PDF font: ${response.status} ${response.statusText}`);
       }
       return response.arrayBuffer();
     })
     .catch((error) => {
       // 실패한 요청은 캐시하지 않아 다음 내보내기에서 재시도할 수 있게 한다.
-      koreanFontData = undefined;
+      koreanFontData.delete(url);
       throw error;
     });
-  return koreanFontData;
+  koreanFontData.set(url, fontData);
+  return fontData;
 }
 
 export class PdfConverter {
@@ -150,7 +155,9 @@ export class PdfConverter {
     }
     const fontData =
       options.customFont?.data ??
-      (!options.fontName || options.fontName === DEFAULT_FONT_NAME ? await loadKoreanFont() : undefined);
+      (options.fontUrl || !options.fontName || options.fontName === DEFAULT_FONT_NAME
+        ? await loadKoreanFont(options.fontUrl ?? getKoreanFontUrl())
+        : undefined);
 
     const doc = new PDFDocument({
       size: options.pageSize ?? 'A4',

@@ -19,6 +19,11 @@ export interface GridOptions {
    */
   title?: string;
   /**
+   * PDF 기본 글꼴 파일 URL. 상대 경로는 페이지 URL을 기준으로 해석한다.
+   * 지정하지 않으면 번들에 포함된 NotoSansKR 글꼴을 사용한다.
+   */
+  pdfFontUrl?: string;
+  /**
    * 고유 아이디 키값
    */
   rowIdField?: string;
