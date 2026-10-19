@@ -329,6 +329,22 @@ export class BodyEvent {
       { passive: false },
     );
 
+    eventManager.on(
+      { el: bodyElement, type: 'mousedown.bodyclick touchstart.bodyclick' },
+      (e: UIEvent) => {
+        if (!isPrimaryPointer(e)) {
+          return true;
+        }
+
+        const eventElement = e.target as HTMLElement;
+
+        if (!eventElement.closest('.dg-cell')) {
+          this.gridMain.hideLayer();
+        }
+      },
+      { passive: false },
+    );
+
     eventManager.on({ el: bodyElement, type: 'mouseup.cellclick touchend.cellclick' }, (e: UIEvent) => {
       cfg.selection.isMouseDown = false;
       cfg.isBodyDragging = false;
