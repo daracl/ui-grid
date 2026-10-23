@@ -1,0 +1,102 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compare package versions with the previous commit
+        id: version
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { execFileSync } = require('node:child_process');
+          const { appendFileSync, readFileSync } = require('node:fs');
+          const current = JSON.parse(readFileSync('package.json', 'utf8')).version;
+          const parents = execFileSync('git', ['rev-list', '--parents', '-n', '1', 'HEAD'], { encoding: 'utf8' }).trim().split(/\s+/);
+          if (parents.length === 1) {
+            console.log('No previous commit; skipping publication.');
+            appendFileSync(process.env.GITHUB_OUTPUT, 'changed=false\n');
+          } else {
+            const previous = JSON.parse(execFileSync('git', ['show', 'HEAD^:package.json'], { encoding: 'utf8' })).version;
+            if (typeof current !== 'string' || typeof previous !== 'string') {
+              throw new Error('package.json must contain a version string.');
+            }
+            const changed = current !== previous;
+            console.log(`Version: ${previous} -> ${current}; ${changed ? 'publish' : 'skip'}`);
+            appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
+          }
+          NODE
+
+  publish:
+    needs: version
+    if: needs.version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      # 기본값은 OIDC. 호환되지 않는 환경에서만 저장소 변수를 token으로 설정한다.
+      NPM_AUTH_MODE: ${{ vars.NPM_AUTH_MODE || 'oidc' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate authentication mode
+        shell: bash
+        run: |
+          case "$NPM_AUTH_MODE" in
+            oidc|token) ;;
+            *) echo 'NPM_AUTH_MODE must be oidc or token.' >&2; exit 1 ;;
+          esac
+      - name: Set up package managers
+        run: |
+          npm install --global npm@11 yarn@1.22.22
+          node --version
+          npm --version
+          yarn --version
+      - name: Install dependencies
+        # 현재 저장소에는 추적되는 yarn.lock이 없으므로 lockfile을 생성하지 않는다.
+        run: yarn install --non-interactive --no-lockfile
+      - name: Test
+        run: yarn test --runInBand
+      - name: Build
+        run: yarn build
+      - name: Publish with Trusted Publishing
+        if: env.NPM_AUTH_MODE == 'oidc'
+        # prepublishOnly의 중복 빌드를 생략한다. 위에서 테스트와 빌드를 완료했다.
+        run: npm publish --access public --ignore-scripts
+      - name: Publish with npm token
+        if: env.NPM_AUTH_MODE == 'token'
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo 'NPM_TOKEN secret is required for token authentication.' >&2
+            exit 1
+          fi
+          printf '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}\n' > "$RUNNER_TEMP/npm-publish.npmrc"
+          NPM_CONFIG_USERCONFIG="$RUNNER_TEMP/npm-publish.npmrc" npm publish --access public --ignore-scripts
