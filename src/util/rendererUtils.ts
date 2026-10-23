@@ -208,11 +208,13 @@ export function updateDropdownSelection(
 }
 
 export function getLabelsByValue(
-  value: string | string[],
+  value: string | string[] | number | number[],
   valueDelimiter: string,
   valueLabelMap: Map<string, any>,
 ): string[] {
-  const valueSet = new Set(isString(value) ? stringSplit(value || '', valueDelimiter) : value);
+  const values = isString(value) ? stringSplit(value || '', valueDelimiter) : Array.isArray(value) ? value : [value];
+
+  const valueSet = new Set(values.map(String));
 
   // 전체 선택인 경우 모든 라벨 반환
   if (valueSet.has(ALL_SELECT_VALUE)) {
