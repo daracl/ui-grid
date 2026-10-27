@@ -504,8 +504,8 @@ export class DaraGrid {
       if (!Number.isFinite(chartValue)) {
         return undefined;
       }
-      const positiveColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--bar-positive-bg').trim();
-      const negativeColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--bar-negative-bg').trim();
+      const positiveColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--dui-bar-positive-bg').trim();
+      const negativeColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--dui-bar-negative-bg').trim();
       return {
         type: 'bar',
         value: chartValue,

@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * dropdown css
 */
@@ -24,11 +25,11 @@
       display: block;
       width: 100%;
       height: 100%;
-      background: var(--check-bg);
+      background: themes.themed(check-bg);
       border-radius: 20px;
       transition: background-color 0.3s;
-      --thumb-size: 14px;
-      --thumb-gap: 4px;
+      --dg-thumb-size: 14px;
+      --dg-thumb-gap: 4px;
 
       &::before {
         content: '';
@@ -38,10 +39,10 @@
         left: 4px;
         right: auto;
 
-        width: var(--thumb-size);
+        width: var(--dg-thumb-size);
         height: 13px;
         border-radius: 50%;
-        background: var(--check-mark-color);
+        background: themes.themed(check-mark-color);
         transition: left 0.3s, right 0.3s;
       }
 
@@ -50,7 +51,7 @@
         top: 50%;
         right: 5px;
         transform: translateY(-50%);
-        color: var(--check-mark-color);
+        color: themes.themed(check-mark-color);
         font-size: 12px;
         font-weight: bold;
         transition: all 0.3s;
@@ -58,7 +59,7 @@
       }
 
       &.dg-checked {
-        background: var(--check-active-bg);
+        background: themes.themed(check-active-bg);
 
         &::before {
           left: auto;
@@ -72,10 +73,10 @@
       }
 
       &.dg-disabled {
-        background: var(--disabled-bg);
+        background: themes.themed(disabled-bg);
 
         &::before {
-          background: var(--check-mark-color);
+          background: themes.themed(check-mark-color);
         }
       }
     }

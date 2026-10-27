@@ -6,8 +6,8 @@
   &borderless {
     .dg-main {
       border-color: transparent !important;
-      --header-gradient1: transparent;
-      --header-gradient2: transparent;
+      --dg-header-gradient1: transparent;
+      --dg-header-gradient2: transparent;
 
       .dg-header-table {
         tr > {

@@ -1,6 +1,6 @@
 import { TextEncoder } from 'util';
 import path from 'path';
-import { readFileSync } from 'fs';
+import { execFileSync } from 'child_process';
 import { BODY_STYLE } from '@/constantStyles';
 
 jest.mock('@/export/pdf/PdfConverter', () => ({
@@ -31,16 +31,12 @@ describe('grid XLSX API', () => {
     const { DaraGrid } = require('@/DaraGrid');
     const { ExcelConverter } = require('@/export/excel/ExcelConverter');
     const { PdfConverter } = require('@/export/pdf/PdfConverter');
-    const sass = require('sass');
-    const mixins = ['borderless', 'rows', 'cells', 'striped', 'stripedrows', 'stripedcells'];
-    const source = mixins.map((name) => readFileSync(
-      path.join(__dirname, `../../style/views/style/_${name}.scss`), 'utf8',
-    )).join('\n');
-    const css = sass.compileString(`${source}\n.dg-layout.dg-style- { ${mixins.map((name) => `@include ${name};`).join(' ')} }`, {
-      logger: { warn: () => {} },
-    }).css.replace(/var\(--row-bg\)/g, 'rgb(230, 240, 250)')
-      .replace(/var\(--border-thick-color\)/g, 'rgb(30, 40, 50)')
-      .replace(/var\(--border-color\)/g, 'rgb(100, 110, 120)');
+    // 스타일 SCSS 는 @daracl/ui-style 을 @use 하므로 jest 밖의 별도 프로세스에서 컴파일한다. (test/helpers/compileBodyStyle.js)
+    // 공통 색상은 var(--dui-*, fallback), grid 전용 색상은 var(--dg-*) 로 출력되므로 테스트용 색으로 치환한다.
+    const css = execFileSync(process.execPath, [path.join(__dirname, '../helpers/compileBodyStyle.js')], { encoding: 'utf8' })
+      .replace(/var\(--dg-row-bg\)/g, 'rgb(230, 240, 250)')
+      .replace(/var\(--dui-border-thick-color,[^)]*\)/g, 'rgb(30, 40, 50)')
+      .replace(/var\(--dui-border-color,[^)]*\)/g, 'rgb(100, 110, 120)');
     const style = document.createElement('style');
     style.id = 'export-body-style';
     style.textContent = `

@@ -3,6 +3,7 @@
  */
 @use 'sass:map';
 
+@use '@daracl/ui-style/themes' as themes;
 @use './base' as _base;
 @use './components' as _components;
 @use './views/style' as _gridStyle;
@@ -40,36 +41,31 @@
 /* ==========================================================================
    Theme
    ========================================================================== */
+// 공통 색상(border-color, font-color, body-bg ...)은 @daracl/ui-style 의 테마 변수(--dui-*)를 사용한다.
+// light 값이 fallback 으로 들어 있어 단독으로도 표시되며, dark 등 다른 테마는 앱이
+// '@daracl/ui-style/theme-vars.css' 를 로드하고 <html data-daracl-theme="dark"> 로 전환한다.
+// 여기서는 grid 전용 값(--dg-*)만 정의한다.
 $default-theme: theme.$default-theme;
-$default-theme-value: map.get(theme.$themes, $default-theme);
 
-// Default theme
+// 전역 테마(data-daracl-theme)에 따른 grid 전용 값
+@include themes.define-themes('.daracl-grid, .dg-hidden-layers', $default: $default-theme, $prefix: 'dg', $themes: theme.$themes);
+
+// 셀 hover 배경 : 공통 hover-bg 를 따르되, .dg-body-hover-none 처럼 grid 안에서 덮어쓸 수 있도록 grid 변수로 둔다.
 .daracl-grid,
-.dg-hidden-layers,
-.daracl-grid .dg-layout.dg-#{$default-theme},
-.dg-hidden-layers.dg-#{$default-theme} {
-  @include theme.theme($default-theme-value);
+.dg-hidden-layers {
+  --dg-cell-bg-hover: #{themes.themed(hover-bg)};
 }
 
-// Global theme
-@each $name, $theme-value in theme.$themes {
-  @if $name != $default-theme {
-    [data-daracl-theme='#{$name}'] {
-      .daracl-grid,
-      .dg-hidden-layers {
-        @include theme.theme($theme-value);
-      }
-    }
-  }
-}
+// 그리드별 테마 : GridMain 이 .dg-layout 에 dg-<name> 클래스를 붙이면 전역 테마보다 우선한다.
+// 공통 색상(--dui-*)과 grid 전용 값(--dg-*)을 함께 지정한다.
+@each $name in map.keys(theme.$themes) {
+  .daracl-grid .dg-layout.dg-#{$name},
+  .dg-hidden-layers.dg-#{$name} {
+    @include themes.theme($name);
+    @include themes.theme($name, $prefix: 'dg', $themes: theme.$themes);
 
-// Grid-specific theme
-@each $name, $theme-value in theme.$themes {
-  @if $name != $default-theme {
-    .daracl-grid .dg-layout.dg-#{$name},
-    .dg-hidden-layers.dg-#{$name} {
-      @include theme.theme($theme-value);
-    }
+    // 자기 요소에서 바뀐 --dui-hover-bg 를 다시 반영한다. (상위에서 계산된 값은 그대로 상속되기 때문)
+    --dg-cell-bg-hover: #{themes.themed(hover-bg)};
   }
 }
 
@@ -140,7 +136,7 @@ $default-theme-value: map.get(theme.$themes, $default-theme);
 
   .dg-layout {
     flex: 1 1 auto;
-    background-color: var(--body-bg);
+    background-color: themes.themed(body-bg);
   }
 
   /* ------------------------------------------------------------------------

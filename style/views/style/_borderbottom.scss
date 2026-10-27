@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * borderbottom style
 */
@@ -13,7 +14,7 @@
             border-right: 1px solid transparent !important;
 
             &:last-child {
-              border-right: 1px solid var(--border-color) !important;
+              border-right: 1px solid themes.themed(border-color) !important;
             }
           }
         }
@@ -23,7 +24,7 @@
           border-left: 1px solid transparent !important;
           border-right: 1px solid transparent !important;
           &:last-child {
-            border-right: 1px solid var(--border-color) !important;
+            border-right: 1px solid themes.themed(border-color) !important;
           }
         }
       }

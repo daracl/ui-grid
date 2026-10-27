@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 @mixin contextMenu {
   .dg-contextmenu {
     position: absolute;
@@ -13,9 +14,9 @@
     border-radius: 5px;
     margin: 2px 0 0;
     list-style: none;
-    color: var(--font-color);
-    border: 1px solid var(--border-color);
-    background-color: var(--body-bg);
+    color: themes.themed(font-color);
+    border: 1px solid themes.themed(border-color);
+    background-color: themes.themed(body-bg);
     text-align: left;
     -webkit-background-clip: padding-box;
     -moz-background-clip: padding;
@@ -36,7 +37,7 @@
         width: 100%;
         padding: 0px;
         margin: 0px;
-        border-top: 1px solid var(--border-thick-color);
+        border-top: 1px solid themes.themed(border-thick-color);
       }
     }
 
@@ -45,7 +46,7 @@
         clear: both;
         font-weight: normal;
         line-height: 20px;
-        color: var(--font-color);
+        color: themes.themed(font-color);
         white-space: nowrap;
         text-decoration: none;
         outline: none;
@@ -78,7 +79,7 @@
         clear: both;
         font-weight: normal;
         line-height: 20px;
-        color: var(--font-color);
+        color: themes.themed(font-color);
         white-space: nowrap;
         text-decoration: none;
         outline: none;
@@ -86,15 +87,15 @@
         border-radius: 4px;
 
         &:hover {
-          color: var(--font-hover-color);
-          background-color: var(--body-bg-hover);
+          color: themes.themed(font-hover-color);
+          background-color: themes.themed(body-bg-hover);
         }
       }
 
       &.dg-on {
         > a {
-          color: var(--font-hover-color);
-          background-color: var(--body-bg-hover);
+          color: themes.themed(font-hover-color);
+          background-color: themes.themed(body-bg-hover);
         }
       }
 
@@ -120,7 +121,7 @@
 
     .dg-contextmenu-header {
       cursor: default;
-      color: var(--font-color);
+      color: themes.themed(font-color);
       padding: 3px 7px;
       font-weight: bold;
       display: block;
@@ -161,7 +162,7 @@
       margin-top: 0px;
       margin-right: -10px;
       border-color: transparent;
-      border-left-color: var(--border-thick-color);
+      border-left-color: themes.themed(border-thick-color);
       border-style: solid;
       border-width: 5px 0 5px 5px;
       content: ' ';

@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * list style
 */
@@ -6,8 +7,8 @@
     .dg-main {
       border-color: transparent !important;
 
-      border-top: 1px solid var(--border-thick-color) !important;
-      border-bottom: 1px solid var(--border-color) !important;
+      border-top: 1px solid themes.themed(border-thick-color) !important;
+      border-bottom: 1px solid themes.themed(border-color) !important;
 
       .dg-line-number {
         background: transparent !important;
@@ -15,8 +16,8 @@
 
       .dg-fixed-column-line {
         background-color: transparent !important;
-        border-top-color: var(--border-color) !important;
-        border-bottom-color: var(--border-color) !important;
+        border-top-color: themes.themed(border-color) !important;
+        border-bottom-color: themes.themed(border-color) !important;
       }
     }
 

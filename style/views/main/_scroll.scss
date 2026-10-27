@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 @mixin scroll {
   .dg-scroll-thumb {
     position: absolute;
@@ -5,11 +6,11 @@
     border-radius: 0.5em !important;
     -ms-touch-action: none;
     touch-action: none;
-    background-color: var(--scroll-thumb-bg);
+    background-color: themes.themed(scroll-thumb-bg);
 
     &.active,
     &:hover {
-      background-color: var(--scroll-thumb-hover-bg);
+      background-color: themes.themed(scroll-thumb-hover-bg);
     }
   }
 
@@ -25,14 +26,14 @@
     bottom: 0;
     z-index: 1;
     display: none;
-    background-color: var(--scroll-track-bg);
+    background-color: themes.themed(scroll-track-bg);
   }
 
   .dg-scroll {
     display: none;
     position: absolute;
     z-index: 3;
-    background-color: var(--scroll-track-bg);
+    background-color: themes.themed(scroll-track-bg);
 
     /* Scroll Button */
     .dg-scroll-button {

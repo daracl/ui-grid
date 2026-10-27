@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
  * toolbar css
  */
@@ -7,7 +8,7 @@
     position: relative;
     height: 40px;
     overflow: hidden;
-    background-color: var(--body-bg);
+    background-color: themes.themed(body-bg);
 
     &.dg-has-arrow {
       padding-right: 40px; // 스크롤이 있는 경우 오른쪽 패딩 추가
@@ -131,7 +132,7 @@
           &.dg-required::after {
             content: '*';
             margin-left: 2px;
-            color: var(--required-color);
+            color: themes.themed(required-color);
             font-size: 1.2em;
             font-weight: bold;
           }
@@ -165,7 +166,7 @@
             grid-template-columns: minmax(0, 1fr) auto;
             width: 100%;
             min-width: 0;
-            border: 1px solid var(--border-color);
+            border: 1px solid themes.themed(border-color);
             border-radius: 4px;
 
             .dg-search-text {

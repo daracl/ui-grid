@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * icon css
 */
@@ -25,12 +26,12 @@
 
     .dg-icon-stroke {
       fill: none;
-      stroke: var(--icon-stroke-color);
+      stroke: themes.themed(icon-stroke-color);
     }
 
     .dg-icon-fill-stroke {
       fill: none;
-      stroke: var(--icon-fill-stroke-color);
+      stroke: themes.themed(icon-fill-stroke-color);
     }
   }
 }

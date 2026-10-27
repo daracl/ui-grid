@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * hidden component css
 */
@@ -5,8 +6,8 @@
 @mixin hiddenComponent {
   /*search-simple*/
   .dg-search-simple {
-    border: 1px solid var(--border-color);
-    background-color: var(--body-bg);
+    border: 1px solid themes.themed(border-color);
+    background-color: themes.themed(body-bg);
     min-width: 255px;
     width: max-content;
     white-space: nowrap;
@@ -29,13 +30,13 @@
       height: 25px;
       margin-right: 5px;
       outline: none;
-      border: 1px solid var(--border-color);
+      border: 1px solid themes.themed(border-color);
       vertical-align: middle;
 
       .dg-search-text {
         width: calc(100% - 60px);
         height: 22px;
-        background-color: var(--body-bg);
+        background-color: themes.themed(body-bg);
         border-width: 0px;
         font-size: 13px;
         outline: none;
@@ -46,7 +47,7 @@
         position: absolute;
         top: 0;
         right: 2px;
-        color: var(--input-color);
+        color: themes.themed(input-color);
         height: 100%;
         display: flex;
         align-items: center;
@@ -61,7 +62,7 @@
           justify-content: center;
           font-size: 12px;
           background-color: transparent;
-          color: var(--input-color);
+          color: themes.themed(input-color);
           border: none;
           cursor: pointer;
           border-radius: 3px;
@@ -70,12 +71,12 @@
           transition: background-color 0.2s, color 0.2s;
 
           &:hover {
-            background-color: var(--button-bg-hover);
+            background-color: themes.themed(button-hover-bg);
           }
 
           &.on {
-            background-color: var(--button-bg-active);
-            color: var(--input-color);
+            background-color: themes.themed(button-bg-active);
+            color: themes.themed(input-color);
           }
 
           // Whole Word 스타일 적용
@@ -129,15 +130,15 @@
           content: '';
           width: 7px;
           height: 7px;
-          border-top: 2px solid var(--font-color);
-          border-right: 2px solid var(--font-color);
+          border-top: 2px solid themes.themed(font-color);
+          border-right: 2px solid themes.themed(font-color);
           box-sizing: border-box;
         }
 
         &:hover {
-          background-color: var(--button-bg-hover);
+          background-color: themes.themed(button-hover-bg);
           &:before {
-            border-color: var(--font-hover-color);
+            border-color: themes.themed(font-hover-color);
           }
         }
 
@@ -156,9 +157,9 @@
 
   /* validator message */
   .dg-validator-message {
-    border: 2px solid var(--invalid-border-color);
-    background-color: var(--invalid-bg);
-    color: var(--invalid-font-color);
+    border: 2px solid themes.themed(invalid-border-color);
+    background-color: themes.themed(invalid-bg);
+    color: themes.themed(invalid-font-color);
     width: max-content;
     white-space: nowrap;
     padding: 5px 10px;
@@ -166,8 +167,8 @@
   }
 
   .dg-header-help-tooltip {
-    border: 2px solid var(--border-color);
-    background-color: var(--body-bg);
+    border: 2px solid themes.themed(border-color);
+    background-color: themes.themed(body-bg);
     width: max-content;
     white-space: nowrap;
     padding: 5px 10px;
@@ -176,11 +177,11 @@
 
   /*edit */
   .dg-edit-input {
-    background-color: var(--body-bg);
+    background-color: themes.themed(body-bg);
     user-select: none !important;
     padding: 0px 5px;
     overflow: hidden;
-    border: 2px solid var(--cell-selection-border);
+    border: 2px solid themes.themed(selected-border-color);
     outline: none;
   }
 
@@ -188,8 +189,8 @@
   .dg-dropdown-menu {
     user-select: none;
     margin-top: 1px;
-    border: 1px solid var(--border-color);
-    background-color: var(--body-bg);
+    border: 1px solid themes.themed(border-color);
+    background-color: themes.themed(body-bg);
     overflow: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
@@ -205,16 +206,16 @@
 
       &.disabled {
         opacity: 0.5;
-        background-color: var(--disabled-bg) !important;
+        background-color: themes.themed(disabled-bg) !important;
       }
 
       &.dg-all {
         font-weight: bold;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid themes.themed(border-color);
       }
 
       &.dg-selected {
-        background-color: var(--item-selected);
+        background-color: themes.themed(selected-bg);
         font-weight: bold;
         position: relative;
 
@@ -222,14 +223,14 @@
           content: '✔';
           position: absolute;
           left: 3px;
-          color: var(--item-check-color);
+          color: themes.themed(item-check-color);
           font-size: 0.9em;
         }
       }
 
       &:hover {
         opacity: 1;
-        background-color: var(--body-bg-thin);
+        background-color: themes.themed(body-bg-thin);
       }
     }
   }

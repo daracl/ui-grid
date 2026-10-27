@@ -1,10 +1,7 @@
 @use 'light';
 @use 'dark';
 
-@forward 'mixin';
-@forward 'common';
-
-// 테마 추가시 아래 테마 추가할 것.
+// ui-grid 전용 테마 값. 테마 추가시 아래에 추가할 것. (공통 테마는 @daracl/ui-style/themes 에서 관리)
 $themes: (
   light: light.$theme,
   dark: dark.$theme,

@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /*
 * choice css
 */
@@ -21,7 +22,7 @@
 
       &:hover {
         .dg-label {
-          color: var(--item-check-color);
+          color: themes.themed(item-check-color);
         }
       }
 
@@ -35,15 +36,15 @@
           height: 16px;
           flex-shrink: 0;
 
-          border: 1.5px solid var(--border-color);
-          background: var(--body-bg);
+          border: 1.5px solid themes.themed(input-border-color);
+          background: themes.themed(body-bg);
 
           position: relative;
           transition: all 0.1s ease;
         }
 
         &:hover .dg-indicator {
-          border-color: var(--item-check-color);
+          border-color: themes.themed(item-check-color);
         }
 
         &.dg-checkbox {
@@ -60,7 +61,7 @@
                 left: 50%;
                 width: 10px;
                 height: 3px;
-                background-color: var(--check-indeterminate-bg);
+                background-color: themes.themed(check-indeterminate-bg);
                 border-radius: 1px;
                 transform: translate(-50%, -50%);
               }
@@ -68,8 +69,8 @@
           }
 
           &.dg-selected .dg-indicator {
-            background: var(--item-check-color);
-            border-color: var(--item-check-color);
+            background: themes.themed(item-check-color);
+            border-color: themes.themed(item-check-color);
 
             &::after {
               content: '';
@@ -80,7 +81,7 @@
               width: 5px;
               height: 9px;
 
-              border: solid var(--border-color);
+              border: solid themes.themed(input-border-color);
               border-width: 0 2px 2px 0;
               transform: rotate(45deg);
             }
@@ -93,7 +94,7 @@
           }
 
           &.dg-selected .dg-indicator {
-            border-color: var(--item-check-color);
+            border-color: themes.themed(item-check-color);
 
             &::after {
               content: '';
@@ -106,7 +107,7 @@
               height: 8px;
 
               border-radius: 50%;
-              background: var(--item-check-color);
+              background: themes.themed(item-check-color);
 
               transform: translate(-50%, -50%);
             }
@@ -126,17 +127,17 @@
         border-radius: 999px;
 
         transition: all 0.2s ease;
-        background-color: var(--body-bg-thin);
+        background-color: themes.themed(body-bg-thin);
 
         &:hover {
-          background: var(--body-bg-hover);
+          background: themes.themed(body-bg-hover);
         }
 
         &.dg-selected {
-          background: var(--item-selected);
+          background: themes.themed(selected-bg);
 
           .dg-label {
-            color: var(--item-check-color);
+            color: themes.themed(item-check-color);
           }
 
           &:hover {

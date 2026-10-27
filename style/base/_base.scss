@@ -2,6 +2,8 @@
 * base css
 */
 
+@use '@daracl/ui-style/abstracts' as style;
+@use '@daracl/ui-style/themes' as themes;
 @use '../abstracts' as comm;
 
 @mixin base {
@@ -16,7 +18,7 @@
     border-spacing: 0;
     border-collapse: separate;
     box-sizing: border-box;
-    color: var(--font-color);
+    color: themes.themed(font-color);
     font-size: 12px;
     line-height: 1.6em;
 
@@ -27,33 +29,14 @@
   }
 
   /*
-   * Form Controls
+   * Form Controls (ui-style 공통 form-control)
    */
   input,
   button,
   select,
   textarea {
-    height: 28px;
-    padding: 0 8px 0 5px;
-
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-
-    background-color: var(--input-bg);
-    color: inherit;
-    line-height: 1.2;
-    outline: none;
-    -webkit-touch-callout: text;
-    -webkit-user-select: text;
-    -khtml-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-
-    &:hover,
-    &:focus {
-      border-color: var(--border-thick-color);
-    }
+    @include style.form-control;
+    @include style.user-select(text);
   }
 
   /*
@@ -61,65 +44,38 @@
    */
   button {
     cursor: pointer;
-    background: var(--button-bg);
+    background: themes.themed(button-bg);
 
     &:hover {
-      background: var(--button-bg-hover);
+      background: themes.themed(button-hover-bg);
     }
   }
 
+  /*
+   * Color variant (.dg-primary ...) : 배경색 + 글자 / 아이콘 색
+   */
   .dg-primary {
-    background-color: #0d6efd;
-    * {
-      color: #fff;
-      --icon-stroke-color: #ffffff;
-      --icon-fill-stroke-color: #494949;
-    }
+    @include style.solid-variant(style.$primary);
   }
 
   .dg-secondary {
-    background-color: #6c757d;
-    * {
-      color: #fff;
-      --icon-stroke-color: #ffffff;
-      --icon-fill-stroke-color: #494949;
-    }
+    @include style.solid-variant(style.$btn-secondary);
   }
 
+  // 밝은 배경 : 어두운 글자 / 아이콘
   .dg-info {
-    background-color: #0dcaf0;
-    * {
-      color: #212529;
-      --icon-stroke-color: #494949;
-      --icon-fill-stroke-color: #ffffff;
-    }
+    @include style.solid-variant(style.$btn-info, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
   }
 
   .dg-success {
-    background-color: #198754;
-    * {
-      color: #fff;
-      --icon-stroke-color: #ffffff;
-      --icon-fill-stroke-color: #494949;
-    }
+    @include style.solid-variant(style.$btn-success);
   }
 
   .dg-warning {
-    background-color: #ffc107;
-
-    * {
-      color: #212529;
-      --icon-stroke-color: #494949;
-      --icon-fill-stroke-color: #ffffff;
-    }
+    @include style.solid-variant(style.$btn-warning, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
   }
 
   .dg-danger {
-    background-color: #dc3545;
-    * {
-      color: #fff;
-      --icon-stroke-color: #ffffff;
-      --icon-fill-stroke-color: #494949;
-    }
+    @include style.solid-variant(style.$btn-danger);
   }
 }

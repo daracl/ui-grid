@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 @use '../../abstracts' as comm;
 
 @mixin header {
@@ -5,14 +6,14 @@
     z-index: 1;
 
     & > .dg-region {
-      background: linear-gradient(var(--header-gradient1), var(--header-gradient2));
+      background: linear-gradient(var(--dg-header-gradient1), var(--dg-header-gradient2));
 
       > .dg-header-table {
         .dg-header-row > {
           .dg-header-cell,
           .dg-header-group-cell {
             vertical-align: middle;
-            border: 1px solid var(--border-color);
+            border: 1px solid themes.themed(border-color);
             border-top: none !important;
             border-left: none !important;
             position: relative;
@@ -24,7 +25,7 @@
 
         .dg-header-cell {
           &.dg-selection {
-            background-color: var(--header-bg-selection) !important;
+            background-color: var(--dg-header-bg-selection) !important;
           }
 
           .dg-choice {
@@ -129,6 +130,12 @@
           height: 100%;
           font-weight: 600;
 
+          // 헤더 글자는 본문보다 연한 라벨 색을 쓴다. (base 의 `*` 규칙이 하위 요소에 직접 color 를 지정하므로 하위 요소도 함께 지정)
+          &,
+          * {
+            color: themes.themed(label-color);
+          }
+
           .dg-inner {
             vertical-align: middle;
             text-align: center;
@@ -178,12 +185,12 @@
 
             .dg-header-help-btn {
               @include comm.opacityVal(0.6);
-              fill: var(--header-help-bg);
+              fill: var(--dg-header-help-bg);
             }
 
             .dg-header-help-btn:hover {
               @include comm.opacityVal(1);
-              fill: var(--header-help-bg-hover);
+              fill: var(--dg-header-help-bg-hover);
             }
           }
         }

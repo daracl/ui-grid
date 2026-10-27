@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 /**
 * main css
 */
@@ -8,7 +9,7 @@
 
 @mixin main {
   .dg-main {
-    border: 1px solid var(--border-color);
+    border: 1px solid themes.themed(border-color);
     width: 100%;
     height: 100px;
     position: relative;
@@ -22,7 +23,7 @@
       width: 1px;
       height: 100%;
       z-index: 2;
-      background-color: var(--fixed-column-bg);
+      background-color: var(--dg-fixed-column-bg);
     }
 
     /*scroll 처리*/
@@ -59,7 +60,7 @@
     &.dg-body-hover-none {
       .dg-row > .dg-cell {
         &:hover {
-          --cell-bg-hover: transparent;
+          --dg-cell-bg-hover: transparent;
         }
       }
     }
@@ -87,7 +88,7 @@
             }
 
             .dg-row > .dg-cell.dg-aside.dg-selection:first-child {
-              background: var(--header-bg-selection) !important;
+              background: var(--dg-header-bg-selection) !important;
             }
           }
 
@@ -116,7 +117,7 @@
 
       .dg-cell {
         vertical-align: middle;
-        border: 1px solid var(--border-color);
+        border: 1px solid themes.themed(border-color);
         border-top: none !important;
         border-left: none !important;
         position: relative;

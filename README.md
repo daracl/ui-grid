@@ -235,6 +235,23 @@ await grid.exportExcel({
 
 엑셀 코드는 `exportExcel()` 호출 시 로드됩니다. ESM/CJS 배포 시 생성된 청크 파일을 함께 배포해야 합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.excel.min.mjs`를, 비압축 버전은 `daracl.grid.excel.mjs`를 배포합니다. 파일을 미리 `<script>`로 추가할 필요는 없습니다. 수동 예제는 `uitest/excel-export.html`입니다.
 
+## 테마
+
+색상 값은 [`@daracl/ui-style`](https://www.npmjs.com/package/@daracl/ui-style) 의 테마 변수(`--dui-*`)를 사용합니다.
+light 값이 기본값으로 들어 있어 별도 설정 없이도 표시되지만, **dark 테마를 쓰려면 테마 변수 CSS 를 함께 로드**해야 합니다.
+
+```js
+import '@daracl/ui-style/theme-vars.css';
+
+// 페이지 전체를 dark 로 전환
+document.documentElement.setAttribute('data-daracl-theme', 'dark');
+```
+
+그리드 하나만 다른 테마로 표시하려면 `theme` 옵션 또는 `setTheme()` 을 사용합니다. (`theme-vars.css` 가 없어도 동작합니다.)
+
+> ui-grid 전용 색상(헤더 그라데이션, 요약 행 등)은 `--dg-*` 변수로 제공되며 그리드 CSS 에 포함되어 있습니다.
+> `--bar-positive-bg` / `--bar-negative-bg` 는 `--dui-bar-positive-bg` / `--dui-bar-negative-bg` 로 이름이 바뀌었습니다.
+
 ## 개발
 
 ```sh

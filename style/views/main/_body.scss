@@ -1,3 +1,4 @@
+@use "@daracl/ui-style/themes" as themes;
 @use '../../abstracts' as comm;
 @use './component' as component;
 
@@ -6,11 +7,11 @@
     z-index: 0;
 
     & > .dg-region {
-      background: var(--body-bg);
+      background: themes.themed(body-bg);
 
       > .dg-body-table {
         .dg-row {
-          background-color: var(--body-bg);
+          background-color: themes.themed(body-bg);
 
           &.dg-status-delete {
             pointer-events: none;
@@ -23,15 +24,15 @@
           }
 
           &.dg-row-hover {
-            background-color: var(--cell-bg-hover);
+            background-color: var(--dg-cell-bg-hover);
             > .dg-line-number {
-              background-color: var(--cell-bg-hover) !important;
+              background-color: var(--dg-cell-bg-hover) !important;
             }
           }
 
           & > .dg-cell {
             &.dg-group-cell {
-              background-color: var(--cell-bg-linenumber);
+              background-color: var(--dg-cell-bg-linenumber);
             }
 
             &.dg-group-continuation {
@@ -39,10 +40,10 @@
             }
 
             &.dg-search-highlight {
-              background-color: var(--search-cell-highlight);
+              background-color: var(--dg-search-cell-highlight);
 
               &.dg-search-match {
-                background-color: var(--search-cell-match);
+                background-color: var(--dg-search-cell-match);
               }
             }
 
@@ -65,31 +66,31 @@
             }
 
             &.dg-line-number {
-              background-color: var(--cell-bg-linenumber);
+              background-color: var(--dg-cell-bg-linenumber);
             }
             /*
             &.modifi-info {
             }
             */
             &:hover {
-              background-color: var(--cell-bg-hover) !important;
+              background-color: var(--dg-cell-bg-hover) !important;
               > .dg-cell-renderer {
-                color: var(--font-color);
+                color: themes.themed(font-color);
               }
             }
 
             &.dg-selection {
-              background-color: var(--cell-bg-selection) !important;
+              background-color: themes.themed(selected-bg) !important;
 
               > .dg-cell-renderer {
-                color: var(--font-color);
+                color: themes.themed(font-color);
               }
             }
 
             &.dg-start-cell {
-              -webkit-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-              -moz-box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
-              box-shadow: inset 0px 0px 0px 1.3px var(--cell-selection-border);
+              -webkit-box-shadow: inset 0px 0px 0px 1.3px themes.themed(selected-border-color);
+              -moz-box-shadow: inset 0px 0px 0px 1.3px themes.themed(selected-border-color);
+              box-shadow: inset 0px 0px 0px 1.3px themes.themed(selected-border-color);
             }
 
             .dg-cell-click {
@@ -122,7 +123,7 @@
       bottom: 0;
       left: 0;
       z-index: 10;
-      background-color: var(--body-bg);
+      background-color: themes.themed(body-bg);
       align-items: center;
       -webkit-align-item: center;
       justify-content: center;
@@ -144,7 +145,7 @@
         display: table-cell;
         vertical-align: middle;
         position: relative;
-        color: var(--empty-icon-color);
+        color: themes.themed(empty-icon-color);
         box-sizing: border-box;
         border-radius: 50%;
         width: 45px;
