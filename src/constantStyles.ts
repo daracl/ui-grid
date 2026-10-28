@@ -1,7 +1,7 @@
-// theme type
+// theme type : .daracl-grid 의 data-daracl-theme 속성 값
 export const GRID_THEME = {
-  light: 'dg-light',
-  dark: 'dg-dark',
+  light: 'light',
+  dark: 'dark',
 } as const;
 
 export type ThemeType = keyof typeof GRID_THEME;

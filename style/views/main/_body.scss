@@ -49,8 +49,12 @@
 
             .dg-cell-renderer {
               position: relative;
-              margin: 0px 5px 1px 5px !important;
+              // 세로 중앙 정렬 : 아래쪽 마진을 없애고 글꼴 윗 여백만큼 위쪽 패딩으로 보정한다.
+              margin: 0px 5px !important;
+              padding-top: 1px;
               min-height: 20px;
+              // 본문 글자는 기본 글자색보다 한 단계 옅게 표시한다. hover / 선택 셀은 아래에서 기본 글자색으로 되돌려 강조한다.
+              color: themes.themed(font-soft-color);
 
               &.dg-white-space {
                 line-height: 1.4;

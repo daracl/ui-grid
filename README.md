@@ -238,16 +238,18 @@ await grid.exportExcel({
 ## 테마
 
 색상 값은 [`@daracl/ui-style`](https://www.npmjs.com/package/@daracl/ui-style) 의 테마 변수(`--dui-*`)를 사용합니다.
-light 값이 기본값으로 들어 있어 별도 설정 없이도 표시되지만, **dark 테마를 쓰려면 테마 변수 CSS 를 함께 로드**해야 합니다.
+light / dark 값이 낮은 우선순위(`:where`, 특이도 0)의 기본값으로 그리드 CSS 에 들어 있어, **별도 설정 없이** `data-daracl-theme` 속성과 OS 다크 설정(`prefers-color-scheme`)이 동작합니다.
+앱이 `@daracl/ui-style/theme-vars.css` 를 로드하거나 `:root` 에 `--dui-*` 값을 지정하면 그 값이 항상 우선합니다. (앱 전체의 색을 바꾸거나 다른 컴포넌트와 테마를 공유할 때 로드)
 
 ```js
-import '@daracl/ui-style/theme-vars.css';
-
 // 페이지 전체를 dark 로 전환
 document.documentElement.setAttribute('data-daracl-theme', 'dark');
+
+// (선택) 앱 전체 테마 변수를 공유하려면
+import '@daracl/ui-style/theme-vars.css';
 ```
 
-그리드 하나만 다른 테마로 표시하려면 `theme` 옵션 또는 `setTheme()` 을 사용합니다. (`theme-vars.css` 가 없어도 동작합니다.)
+그리드 하나만 다른 테마로 표시하려면 `theme` 옵션 또는 `setTheme()` 을 사용합니다. 그리드 루트(`.daracl-grid`)에 `data-daracl-theme` 속성이 지정되며, `setTheme('')` 로 해제하면 상위 테마를 따릅니다. (`dg-light` / `dg-dark` 클래스는 더 이상 사용하지 않습니다.)
 
 > ui-grid 전용 색상(헤더 그라데이션, 요약 행 등)은 `--dg-*` 변수로 제공되며 그리드 CSS 에 포함되어 있습니다.
 > `--bar-positive-bg` / `--bar-negative-bg` 는 `--dui-bar-positive-bg` / `--dui-bar-negative-bg` 로 이름이 바뀌었습니다.

@@ -1,16 +1,16 @@
 // ui-grid 전용 색상 (dark). 공통 색상은 @daracl/ui-style 의 테마 변수(--dui-*)를 사용한다.
-// ui-style dark 가 남색 계열(#1f2836)이라, 기존 무채색 값은 그에 맞춰 조정했다. "파생" 표시는 새로 정한 값이므로 화면에서 확인이 필요하다.
+// ui-style dark 가 Element Plus 기준 중립 회색 계열(#141414)이라, 기존 값은 그에 맞춰 조정했다. "파생" 표시는 새로 정한 값이므로 화면에서 확인이 필요하다.
 $theme: (
   // 헤더
-  header-gradient1: #3a4456, // 파생 (기존 #525252)
-  header-gradient2: #121821, // 파생 (기존 #000000)
-  header-bg-selection: #3a4456, // 파생 (기존 #565656)
+  header-gradient1: #39393a, // 파생 (기존 #525252). Element fill-color-dark
+  header-gradient2: #0a0a0a, // 파생 (기존 #000000). Element bg-color-page
+  header-bg-selection: #39393a, // 파생 (기존 #565656). Element fill-color-dark
   header-help-bg: #e8e8e8,
   header-help-bg-hover: #e8e8e8,
   // 본문 / 요약
-  summary-bg: #18202c, // 파생 (기존 #2c2c2c)
-  row-bg: #273244, // 파생 (기존 #444546)
-  cell-bg-linenumber: #18202c, // 파생 (기존 #2e2e2e)
+  summary-bg: #0a0a0a, // 파생 (기존 #2c2c2c). Element bg-color-page
+  row-bg: #1d1e1f, // 파생 (기존 #444546). Element bg-color-overlay
+  cell-bg-linenumber: #0a0a0a, // 파생 (기존 #2e2e2e). Element bg-color-page
   fixed-column-bg: #cfcfcf,
   // 검색 결과 셀
   search-cell-highlight: #565552,

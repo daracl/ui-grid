@@ -19,4 +19,5 @@ bundle-report.html
 !uitest/asset/examples.css
 *.map
 style/*.css
-CLAUDE.md
+# 공통 작업 지침은 저장소에서 공유하고 개인 설정만 제외한다.
+.claude/settings.local.json
