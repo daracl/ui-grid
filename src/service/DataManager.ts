@@ -13,7 +13,7 @@ import {
 import { Selection, SelectionRange } from '@/types/GridConfig';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { isArray, isSameValue } from '@/util/utils';
+import { isArray, isSameValue, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 import { FieldItem } from '@/types/GridField';
@@ -44,6 +44,7 @@ export abstract class DataManager {
   private beforeKeyword: string;
   private beforeSearchMode: SearchMode;
   private beforeSearchSortInfo: string;
+  private searchDirty = true;
 
   // 정렬 순서 정보
   private sortOrders: FieldSortInfo[] = [];
@@ -148,6 +149,7 @@ export abstract class DataManager {
    */
   public setItemStatus(item: any, status: ItemStatus) {
     const beforeValue = item[ROW_FIELD.CUD];
+    if (beforeValue === status) return;
     item[ROW_FIELD.CUD] = status;
 
     if (status === ItemStatusMap.DELETE) {
@@ -165,19 +167,28 @@ export abstract class DataManager {
     }
   }
 
-  public removeSoftItem(ids: RowId[]) {
-    this.beginHistory();
+  public removeSoftItem(ids: RowId[]): RowId[] {
+    // 변경 전에 전체 ID를 검증하여 잘못된 ID로 인한 부분 변경을 막는다.
+    const items = [...new Set(ids)].map((id) => {
+      const item = this.getRowItem(id);
+      if (!item) throw new Error(`Row not found: ${id}`);
+      return item;
+    });
+    const changed = items.filter((item) => item[ROW_FIELD.CUD] !== ItemStatusMap.DELETE);
+    const ownsHistory = !this.history.isRecording();
+    if (ownsHistory) this.beginHistory();
 
     try {
-      for (const rowId of ids) {
-        this.setItemStatus(this.getRowItem(rowId), ItemStatusMap.DELETE);
+      for (const item of changed) {
+        this.setItemStatus(item, ItemStatusMap.DELETE);
       }
-      this.commitHistory();
+      if (ownsHistory) this.commitHistory();
     } catch (error) {
-      this.rollbackHistory();
+      if (ownsHistory) this.rollbackHistory();
 
       throw error;
     }
+    return changed.map((item) => item[ROW_FIELD.ID]);
   }
 
   /**
@@ -251,6 +262,7 @@ export abstract class DataManager {
     this.history.clear();
     this.clearAllCheck();
     this.originalItems = items;
+    this.searchDirty = true;
   }
 
   public createItem(item: any, addOpts?: AddRowOptions) {
@@ -268,23 +280,39 @@ export abstract class DataManager {
   dataSort(sortOrders: FieldSortInfo[], sortOpts: SortOption) {
     const sortArr = Array.from(sortOrders);
 
-    this.sortOrders = sortOrders;
-    this.sortOpts = sortOpts;
-
     sortArr.forEach((item) => {
       if (item.field.getValue) {
         item.isValue = true;
       }
     });
 
-    if (this.opts.header.sort.customSorting) {
-      this.setViewItems(this.opts.header.sort.customSorting(this.getAllRowItems(true), sortArr, sortOpts));
-      return;
-    }
-
     const sortData = this.getSortData(sortArr, sortOpts);
 
-    this.setViewItems(sortData);
+    this.sortOrders = sortOrders;
+    this.sortOpts = sortOpts;
+    this.applyViewItems(sortData);
+  }
+
+  /** 사용자 정렬 결과를 원래 ViewItem에 연결하여 트리·그룹 메타데이터를 보존한다. */
+  protected sortItems(source: ViewItem[], sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
+    if (sortOpts.customSorting) {
+      const rows = source.map((viewItem) => this.filterRowItem(this.getRowItem(viewItem.id), true));
+      const sorted = sortOpts.customSorting(rows, sortOrders, sortOpts);
+      const byId = new Map(source.map((item) => [item.id, item]));
+      const seen = new Set<RowId>();
+      if (!Array.isArray(sorted) || sorted.length !== source.length) {
+        throw new Error('customSorting must return every input row exactly once');
+      }
+      const viewItems = sorted.map((item) => {
+        const id = (item as Record<string, any>)?.[ROW_FIELD.ID] ?? item?.id;
+        const viewItem = byId.get(id);
+        if (!viewItem || seen.has(id)) throw new Error('customSorting returned an unknown or duplicate row ID');
+        seen.add(id);
+        return viewItem;
+      });
+      return viewItems;
+    }
+    return multiSort(source, this, sortOrders, sortOpts.nullsLast);
   }
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
@@ -324,6 +352,30 @@ export abstract class DataManager {
    */
   public getViewItems() {
     return this.viewItems;
+  }
+
+  /** 페이징 전의 현재 검색·정렬 대상이다. */
+  public getPagingViewItems(): ViewItem[] {
+    return this.getViewItems();
+  }
+
+  protected applyViewItems(items: ViewItem[]): void {
+    this.setViewItems(items);
+  }
+
+  protected getUnfilteredViewItems(): ViewItem[] {
+    return this.getOriginalViewItems().slice();
+  }
+
+  /** 데이터 변경 후 현재 검색·정렬·페이징을 다시 적용한다. */
+  protected refreshViewAfterMutation(): void {
+    this.searchDirty = true;
+    if (this.cfg.searchEnabled && this.beforeSearchMode && this.beforeKeyword) {
+      this.search(this.beforeKeyword, { ...this.beforeSearchMode });
+    } else {
+      this.applyViewItems(this.getUnfilteredViewItems());
+      if (this.sortOrders.length > 0) this.dataSort(this.sortOrders, this.sortOpts);
+    }
   }
 
   /**
@@ -383,6 +435,13 @@ export abstract class DataManager {
     }
 
     return results;
+  }
+
+  /** 검색·페이징·트리 펼침 상태와 무관한 전체 원본 행의 얕은 복사본이다. */
+  public getSourceRowItems(): Record<string, any>[] {
+    return this.getOriginalViewItems()
+      .filter((item) => !item.groupRowType)
+      .map((item) => this.filterRowItem(this.getRowItem(item.id), false));
   }
 
   /**
@@ -757,7 +816,7 @@ export abstract class DataManager {
    * - undo : row 제거
    * - redo : row 복원
    *
-   * View 위치는 History에서 관리하지 않습니다.
+   * 신규 행의 Redo 위치는 View 동기화 단계에서 정합니다.
    */
   protected applyAddHistory(change: AddHistoryChange, undo: boolean): void {
     if (undo) {
@@ -777,6 +836,17 @@ export abstract class DataManager {
     });
   }
 
+  protected removeHistory(rowId: RowId, viewItem: ViewItem, index: number): void {
+    this.history.add({
+      type: 'remove',
+      rowId,
+      item: this.getRowItem(rowId),
+      viewItem: { ...viewItem },
+      index,
+      checked: this.isItemChecked(rowId),
+    });
+  }
+
   /**
    * 삭제된 row History 적용
    *
@@ -784,15 +854,16 @@ export abstract class DataManager {
    * - undo : row 복원
    * - redo : row 제거
    *
-   * View 위치는 History에서 관리하지 않습니다.
+   * 삭제 이력에 저장된 위치는 View 동기화 단계에서 복원합니다.
    */
   protected applyRemoveHistory(change: RemoveHistoryChange, undo: boolean): void {
     if (undo) {
       this.rowMap.set(change.rowId, change.item);
+      if (change.checked) this.rowCheckSet.add(change.rowId);
       return;
     }
 
-    this.rowMap.delete(change.rowId);
+    this.deleteRowItem(change.rowId);
     this.removeViewItemById(change.rowId);
   }
 
@@ -817,16 +888,12 @@ export abstract class DataManager {
    */
   protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void {
     this.syncHistoryViewItems(entry, undo);
-    if (this.sortOrders.length > 0) {
-      this.dataSort(this.sortOrders, this.sortOpts);
-    } else {
-      this.setViewItems(this.viewItems);
-    }
+    this.refreshViewAfterMutation();
 
     const cfg = this.cfg;
     const moveRowIdx = this.getViewItemIndex(entry.changes[0].rowId);
 
-    const isMoveScroll = getScrollDirectionCode(cfg, cfg.scroll, moveRowIdx, -1) > 0;
+    const isMoveScroll = moveRowIdx >= 0 && getScrollDirectionCode(cfg, cfg.scroll, moveRowIdx, -1) > 0;
 
     //this.gridMain.calcBody();
     this.gridMain.refreshBody(!isMoveScroll, 'history');
@@ -838,13 +905,12 @@ export abstract class DataManager {
   }
 
   /**
-   * 정렬이 없는 상태에서 History로 추가/삭제된 row를 현재 View에 반영합니다.
-   *
-   * 복원 위치는 History에서 관리하지 않습니다.
-   * 현재 View의 마지막에 추가하며, 정렬 상태에서는 dataSort()로 재배치합니다.
+   * 삭제 행은 변경 당시의 위치에 복원하고, 추가 행의 Redo는 마지막에 배치합니다.
+   * 이후 현재 검색·정렬·페이징을 다시 적용합니다.
    */
-  private syncHistoryViewItems(entry: HistoryEntry, undo: boolean): void {
-    for (const change of entry.changes) {
+  protected syncHistoryViewItems(entry: HistoryEntry, undo: boolean): void {
+    const changes = undo ? entry.changes.slice().reverse() : entry.changes;
+    for (const change of changes) {
       if (change.type === 'update') {
         continue;
       }
@@ -854,22 +920,29 @@ export abstract class DataManager {
         const viewIndex = items.findIndex((item) => item.id === change.rowId);
         if (shouldExist) {
           if (viewIndex === -1) {
-            items.push({ id: change.rowId, sortOrder: items.length });
+            const viewItem = change.type === 'remove' ? change.viewItem : undefined;
+            const index = change.type === 'remove' ? change.index ?? items.length : items.length;
+            items.splice(index, 0, viewItem ?? { id: change.rowId, sortOrder: index });
           }
         } else if (viewIndex > -1) {
           items.splice(viewIndex, 1);
         }
       }
     }
+    this.originalViewItems.forEach((item, index) => {
+      item.sortOrder = index;
+    });
   }
 
   public search(keyword: string, options: SearchMode) {
-    const keys: string[] = ['matchCase', 'matchWholeWord', 'useRegex', 'searchFields'];
+    const keys: (keyof SearchMode)[] = [
+      'matchCase', 'matchWholeWord', 'useRegex', 'searchFields', 'hideNonMatched', 'matchWholeRegex',
+    ];
 
     let isSameSearchOpts = this.beforeKeyword == keyword;
 
     if (this.beforeSearchMode) {
-      for (const key of keys as (keyof SearchMode)[]) {
+      for (const key of keys) {
         if (key === 'searchFields') {
           const optsSearchFields = options.searchFields;
           const beforeOptsSearchFields = this.beforeSearchMode.searchFields;
@@ -881,7 +954,12 @@ export abstract class DataManager {
             break;
           }
         } else {
-          if (this.beforeSearchMode[key] !== options[key]) {
+          const before = this.beforeSearchMode[key];
+          const after = options[key];
+          const changed = before instanceof RegExp && after instanceof RegExp
+            ? String(before) !== String(after)
+            : before !== after;
+          if (changed) {
             isSameSearchOpts = false;
             break;
           }
@@ -897,7 +975,7 @@ export abstract class DataManager {
     let searchItems;
     let isNewSearch = false;
 
-    if (this.beforeKeyword == keyword && isSameSearchOpts) {
+    if (!this.searchDirty && this.beforeKeyword == keyword && isSameSearchOpts) {
       searchMatchInfo = this.cfg.searchMatchInfo;
       searchItems = this.getViewItems();
     } else {
@@ -909,7 +987,7 @@ export abstract class DataManager {
     }
 
     if (isNewSearch) {
-      this.setViewItems(searchItems);
+      this.applyViewItems(searchItems);
     }
 
     // 정렬 처리
@@ -930,6 +1008,7 @@ export abstract class DataManager {
 
     this.beforeKeyword = keyword;
     this.beforeSearchMode = merge({}, options);
+    this.searchDirty = false;
 
     if (searchMatchInfo.matchCount < 1) {
       this.setCurrentMatchInfo(0, {

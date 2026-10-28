@@ -1,5 +1,6 @@
 export { DaraGrid } from './DaraGrid';
 export type { GridOptions } from './types/GridOptions';
+export type { CustomSortingCallback } from './types/GridOptions';
 export type { SummaryItem } from './types/Summary';
 export type { FieldItem } from './types/GridField';
 export type { PdfExportOptions } from './export/pdf/PdfConverter';

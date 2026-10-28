@@ -186,7 +186,9 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 |-----|-----|
 | `DaraGrid.create(element, options, message?)` | 그리드 인스턴스 생성 |
 | `DaraGrid.instance(elementOrId)` | 이미 생성된 그리드 인스턴스 조회 |
-| `getItems()` / `setItems(items)` / `clearItems()` | 전체 행 데이터 조회/설정/초기화 |
+| `getItems()` | 현재 페이지·검색 결과·트리 펼침 상태에 따른 표시 대상의 실제 행 조회 |
+| `getAllItems()` | 검색·페이징·트리 접힘과 무관하게 로드된 전체 원본 행 조회 |
+| `setItems(items)` / `clearItems()` | 행 데이터 설정/초기화 |
 | `addItems(items, opts?)` / `createItem(item, opts?)` / `removeItems(ids)` | 행 추가/삭제 |
 | `getChangedItems()` | 추가·수정·삭제된 행만 조회 |
 | `getSelection()` / `getSelectedRows()` / `getSelectedRowIds()` | 선택 정보 조회 |
@@ -202,6 +204,31 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | `destroy()` | 그리드 인스턴스 제거 |
 
 전체 API는 [`src/DaraGrid.ts`](./src/DaraGrid.ts)와 [typedoc 문서](https://ui.daracl.com)를 참고하세요.
+
+`getItems()`의 기존 반환 범위는 유지합니다. `getAllItems()`는 접힌 트리의 자손까지 평탄한 배열로 반환하며 soft 삭제 행도 포함합니다. 두 메소드 모두 그룹 소계·총계와 내부 관리 필드를 제외한 행의 얕은 복사본을 반환합니다. 외부 페이징 콜백을 사용하는 경우 서버의 미로드 데이터는 포함하지 않습니다.
+
+`deleteMode: 'soft'`는 행을 유지하고 삭제 상태만 표시하며, 트리에서는 선택한 부모의 자손도 함께 처리합니다. 잘못된 ID가 있으면 전체 soft 삭제 요청을 변경 전에 거부합니다. hard 삭제는 실제 행을 제거하고, 한 번의 `removeItems()` 호출을 하나의 Undo/Redo 단위로 기록합니다.
+
+페이징 콜백이 없으면 로드된 목록을 검색 → 정렬 → 페이징 순서로 처리하고 전체 개수도 현재 검색 결과에 맞춥니다. `footer.paging.callback`이 있으면 외부 페이징으로 처리하여 제공된 `totalCount`와 로드한 현재 페이지를 유지합니다.
+
+### 사용자 정렬
+
+`header.sort.customSorting`은 실제 행 데이터의 얕은 복사본 배열, 정렬 정보, 정렬 옵션을 받습니다. 모든 입력 행을 ID 변경·누락·중복 없이 한 번씩 반환해야 합니다. 받은 배열을 그대로 정렬해서 반환할 수 있으며 기존 `ViewItem[]` 반환도 지원합니다. 잘못된 반환값은 오류로 알립니다.
+
+```ts
+header: {
+  sort: {
+    customSorting: (items, sortOrders) => {
+      const direction = sortOrders[0]?.ascOrder === false ? -1 : 1;
+      return items.sort((a, b) => direction * (a.amount - b.amount));
+    },
+  },
+}
+```
+
+목록·그룹에서는 현재 검색 결과 전체를 페이징 전에 정렬하고 그룹 가상 행은 콜백에 전달하지 않습니다. 트리는 부모·자식 관계를 유지하도록 각 형제 행 배열에 콜백을 적용합니다. 콜백 타입은 `CustomSortingCallback`으로 export합니다.
+
+### 파일 내보내기
 
 `exportPdf()`는 `fileName`, `title`, `author`, `pageSize`, `orientation`, `margin`, `fontName`, `fontSize` 옵션을 지원합니다. 그룹 그리드는 반복되는 그룹 값을 화면처럼 숨기고 셀 배경색과 테두리를 반영합니다. 막대 및 스파크라인 계열 renderer는 PDF에서도 벡터 차트로 출력됩니다. 기본으로 포함된 Noto Sans KR 글꼴을 사용해 한글을 표시하며, 필요하면 사용자 정의 TTF/OTF 글꼴 데이터를 지정할 수 있습니다.
 

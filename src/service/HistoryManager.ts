@@ -1,5 +1,5 @@
 import { ItemStatus } from '@/constants';
-import { RowId } from '@/types/Common';
+import { RowId, ViewItem } from '@/types/Common';
 
 /**
  * Undo / Redo 이후 복원할 Selection 정보입니다.
@@ -41,6 +41,9 @@ export interface RemoveHistoryChange {
   type: 'remove';
   rowId: RowId;
   item: any;
+  viewItem?: ViewItem;
+  index?: number;
+  checked?: boolean;
 }
 
 export type HistoryChange = UpdateHistoryChange | AddHistoryChange | RemoveHistoryChange;
@@ -136,6 +139,10 @@ export class HistoryManager {
       changes: [],
       beforeSelection,
     };
+  }
+
+  public isRecording(): boolean {
+    return this.currentEntry !== null;
   }
 
   /**

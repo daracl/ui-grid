@@ -134,7 +134,7 @@ export class Footer {
     const pageSize = pagingViewInfo?.pageSize;
     const startIdx = (pagingViewInfo?.page - 1) * pageSize;
 
-    const viewItems = arrayCopy(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + pageSize);
+    const viewItems = arrayCopy(this.cfg.dataManager.getPagingViewItems(), startIdx, startIdx + pageSize);
 
     this.cfg.dataManager.setViewItems(viewItems);
 

@@ -14,10 +14,11 @@ import { GridOptions, PagingParam, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { getPagingParamToPagingInfo } from '@/util/pagingUtil';
 import { gridDataSearch } from '@/util/searchUtils';
-import { arrayCopy, multiSort } from '@/util/utils';
+import { arrayCopy } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 
 export class ListDataManager extends DataManager {
+  private pagingViewItems: ViewItem[] = [];
   constructor(opts: GridOptions, gridMain: GridMain, type = 'list') {
     super(opts, gridMain, type);
   }
@@ -54,7 +55,16 @@ export class ListDataManager extends DataManager {
     super.setItems(items);
     super.setOriginalViewItems(viewItemIds);
 
-    this.updatePagingAndViewItems(viewItemIds);
+    this.applyViewItems(viewItemIds);
+  }
+
+  public getPagingViewItems(): ViewItem[] {
+    return this.pagingViewItems;
+  }
+
+  protected applyViewItems(items: ViewItem[]): void {
+    this.pagingViewItems = items.slice();
+    this.updatePagingAndViewItems(this.pagingViewItems);
   }
 
   /**
@@ -65,11 +75,18 @@ export class ListDataManager extends DataManager {
     if (footerOpts?.enabled && footerOpts.paging?.enabled) {
       const itemLength = viewItemIds.length;
       const pagingParam = this.opts.paging;
-
-      const pagingInfo = getPagingParamToPagingInfo(pagingParam ?? ({} as PagingParam), itemLength);
+      const externalPaging = Boolean(footerOpts.paging.callback);
+      const pagingInfo = getPagingParamToPagingInfo(
+        {
+          ...pagingParam,
+          page: this.cfg.paging?.page ?? pagingParam?.page,
+          totalCount: externalPaging ? pagingParam?.totalCount ?? itemLength : itemLength,
+        } as PagingParam,
+        itemLength,
+      );
 
       this.gridMain.setPaging(pagingInfo);
-      if (itemLength < pagingInfo.pageSize) {
+      if (externalPaging) {
         this.setViewItems(viewItemIds);
       } else {
         const pageSize = pagingInfo.pageSize;
@@ -115,7 +132,7 @@ export class ListDataManager extends DataManager {
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
-    const sortData = multiSort(this.getViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+    const sortData = this.sortItems(this.getPagingViewItems(), sortOrders, sortOpts);
     if (!this.cfg.searchEnabled) {
       return sortData;
     }
@@ -268,7 +285,7 @@ export class ListDataManager extends DataManager {
 
     // 갱신
     this.setOriginalViewItems(originalViewItems);
-    this.updatePagingAndViewItems(originalViewItems);
+    this.refreshViewAfterMutation();
 
     return targetIndex;
   }
@@ -288,20 +305,23 @@ export class ListDataManager extends DataManager {
     const remainingViewItems: ViewItem[] = [];
 
     if (this.opts.deleteMode == 'soft') {
-      this.removeSoftItem(ids);
+      return this.removeSoftItem(ids);
     } else {
+      const ownsHistory = !this.getHistoryManager().isRecording();
+      if (ownsHistory) this.beginHistory();
       // 제거
-      originalViewItems.forEach((viewItem) => {
+      originalViewItems.forEach((viewItem, index) => {
         const rowId = viewItem.id;
         if (removeSet.has(rowId)) {
-          removedIds.push(rowId);
-
           // DataManager 내 데이터 삭제 처리
+          this.removeHistory(rowId, viewItem, index - removedIds.length);
+          removedIds.push(rowId);
           this.deleteRowItem(rowId);
         } else {
           remainingViewItems.push(viewItem);
         }
       });
+      if (ownsHistory) this.commitHistory();
     }
 
     if (removedIds.length === 0) return [];
@@ -313,7 +333,7 @@ export class ListDataManager extends DataManager {
 
     // 갱신
     this.setOriginalViewItems(remainingViewItems);
-    this.updatePagingAndViewItems(remainingViewItems);
+    this.refreshViewAfterMutation();
 
     return removedIds;
   }

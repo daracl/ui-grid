@@ -13,9 +13,9 @@ import {
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
-import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { DataManager } from './DataManager';
+import { HistoryEntry, RemoveHistoryChange } from './HistoryManager';
 
 const EXPAND_TYPE = {
   USER: 1,
@@ -75,8 +75,64 @@ export class TreeDataManager extends DataManager {
 
     this.originalTreeItems = itemInfo.treeViewItems;
     this.viewTreeItems = itemInfo.treeViewItems;
+    this.setOriginalViewItems(this.getOriginalTreeViewItems());
 
     this.buildViewItems();
+  }
+
+  private getOriginalTreeViewItems(): TreeViewItem[] {
+    const result: TreeViewItem[] = [];
+    const visit = (nodes: TreeViewItem[]) => {
+      for (const node of nodes) {
+        result.push(node);
+        visit(node.children ?? []);
+      }
+    };
+    visit(this.originalTreeItems);
+    return result;
+  }
+
+  protected getUnfilteredViewItems(): ViewItem[] {
+    return this.getTreeToList(this.originalTreeItems);
+  }
+
+  protected refreshViewAfterMutation(): void {
+    this.viewTreeItems = this.originalTreeItems;
+    super.refreshViewAfterMutation();
+  }
+
+  protected syncHistoryViewItems(entry: HistoryEntry, undo: boolean): void {
+    const prune = (nodes: TreeViewItem[]): TreeViewItem[] =>
+      nodes.filter((node) => {
+        if (!this.getRowItem(node.id)) return false;
+        node.children = prune(node.children ?? []);
+        return true;
+      });
+    this.originalTreeItems = prune(this.originalTreeItems);
+    if (undo) {
+      const removed = entry.changes.slice().reverse().filter(
+        (change): change is RemoveHistoryChange => change.type === 'remove' && change.viewItem !== undefined,
+      );
+      // 부모부터 복원한 뒤 자식을 원래 형제 위치에 연결한다.
+      removed.sort((a, b) => (a.viewItem as TreeViewItem).depth - (b.viewItem as TreeViewItem).depth);
+      const byId = new Map(this.getOriginalTreeViewItems().map((node) => [node.id, node]));
+      for (const change of removed) {
+        if (!change.viewItem || byId.has(change.rowId)) continue;
+        const node: TreeViewItem = { ...(change.viewItem as TreeViewItem), children: [] };
+        const parent = byId.get(node.pid);
+        const siblings = parent ? parent.children : this.originalTreeItems;
+        siblings.splice(change.index ?? siblings.length, 0, node);
+        byId.set(node.id, node);
+      }
+    }
+    const normalize = (nodes: TreeViewItem[]) =>
+      nodes.forEach((node, index) => {
+        node.sortOrder = index;
+        node.isLeaf = !node.children?.length;
+        normalize(node.children ?? []);
+      });
+    normalize(this.originalTreeItems);
+    this.setOriginalViewItems(this.getOriginalTreeViewItems());
   }
 
   private convertOriginalTreeToTreeViewItems(treeItems: any[]) {
@@ -466,20 +522,20 @@ export class TreeDataManager extends DataManager {
    * @returns
    */
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): any[] {
-    const dataManager = this.cfg.dataManager;
-    function sortTree(nodes: TreeViewItem[]) {
-      nodes = multiSort(nodes, dataManager, sortOrders, sortOpts.nullsLast) as TreeViewItem[];
+    const sortTree = (nodes: TreeViewItem[]) => {
+      nodes = this.sortItems(nodes, sortOrders, sortOpts) as TreeViewItem[];
 
       for (const node of nodes) {
         const treeViewItem = node;
         const children = treeViewItem.children;
         if (children && children.length > 0) {
-          sortTree(children);
+          treeViewItem.children = sortTree(children);
         }
       }
       return nodes;
-    }
+    };
     const sortedTree = sortTree(this.viewTreeItems);
+    this.viewTreeItems = sortedTree;
 
     const result = this.getTreeToList(sortedTree);
 
@@ -518,12 +574,12 @@ export class TreeDataManager extends DataManager {
 
     let parentId: RowId = 'dg$root';
     let depth = 0;
-    let targetSiblings: TreeViewItem[] = this.viewTreeItems;
+    let targetSiblings: TreeViewItem[] = this.originalTreeItems;
     let insertIndex = targetSiblings.length;
 
     // 1. 기준 위치(targetNode) 탐색 및 삽입 타겟 배열/인덱스/depth 결정
     if (addOpts?.rowId !== undefined) {
-      const targetNode = this.idViewItemMap.get(addOpts.rowId);
+      const targetNode = this.getOriginalTreeViewItems().find((node) => node.id === addOpts.rowId);
       if (targetNode) {
         if (addOpts.position === 'inside') {
           // 지정한 행의 자식 노드로 추가
@@ -543,10 +599,10 @@ export class TreeDataManager extends DataManager {
           depth = targetNode.depth;
 
           if (parentId === 'dg$root' || !parentId) {
-            targetSiblings = this.viewTreeItems;
+            targetSiblings = this.originalTreeItems;
           } else {
-            const parentNode = this.idViewItemMap.get(parentId);
-            targetSiblings = parentNode?.children ?? this.viewTreeItems;
+            const parentNode = this.getOriginalTreeViewItems().find((node) => node.id === parentId);
+            targetSiblings = parentNode?.children ?? this.originalTreeItems;
           }
 
           const foundIdx = targetSiblings.findIndex((node) => node.id === targetNode.id);
@@ -604,7 +660,8 @@ export class TreeDataManager extends DataManager {
     });
 
     // 5. 트리 뷰 갱신
-    this.buildViewItems();
+    this.setOriginalViewItems(this.getOriginalTreeViewItems());
+    this.refreshViewAfterMutation();
 
     return insertIndex;
   }
@@ -617,60 +674,39 @@ export class TreeDataManager extends DataManager {
   public removeItems(ids: RowId[]): RowId[] {
     if (!ids || ids.length === 0) return [];
 
+    const originalNodes = this.getOriginalTreeViewItems();
+    if (this.opts.deleteMode === 'soft') {
+      for (const id of ids) {
+        if (!originalNodes.some((node) => node.id === id)) throw new Error(`Row not found: ${id}`);
+      }
+    }
     const removeSet = new Set(ids);
     const removedIds: RowId[] = [];
 
-    // 삭제 대상 노드 및 그 모든 하위 자식 노드를 맵과 캐시에서 제거하는 재귀 함수
-    const collectAndClean = (node: TreeViewItem) => {
-      removedIds.push(node.id);
-
-      if (typeof (this as any).deleteRowItem === 'function') {
-        (this as any).deleteRowItem(node.id);
-      } else if (typeof (this as any).removeRowItem === 'function') {
-        (this as any).removeRowItem(node.id);
-      }
-
-      this.idViewItemMap.delete(node.id);
-      this.visibleIndexMap.delete(node.id);
-      this.matchOffsetMap.delete(node.id);
-
-      if (node.children && node.children.length > 0) {
-        node.children.forEach(collectAndClean);
-      }
-    };
-
-    // 트리 구조 순회하며 삭제 수행
-    const filterNodes = (nodes: TreeViewItem[]): TreeViewItem[] => {
-      const result: TreeViewItem[] = [];
-
-      for (const node of nodes) {
-        if (removeSet.has(node.id)) {
-          collectAndClean(node);
-        } else {
-          if (node.children && node.children.length > 0) {
-            node.children = filterNodes(node.children);
-            if (node.children.length === 0) {
-              node.isLeaf = true;
-            }
-          }
-          result.push(node);
+    const collect = (nodes: TreeViewItem[], removeParent = false) => {
+      let removedBefore = 0;
+      nodes.forEach((node, index) => {
+        const remove = removeParent || removeSet.has(node.id);
+        if (remove) {
+          removedIds.push(node.id);
+          if (this.opts.deleteMode !== 'soft') this.removeHistory(node.id, node, index - removedBefore);
+          removedBefore++;
         }
-      }
-
-      result.forEach((node, idx) => {
-        node.sortOrder = idx;
+        collect(node.children ?? [], remove);
       });
-
-      return result;
     };
-
-    // 1. 트리 데이터 필터링
-    this.viewTreeItems = filterNodes(this.viewTreeItems);
-    this.originalTreeItems = filterNodes(this.originalTreeItems);
-
-    // 2. 트리 뷰 갱신
-    this.buildViewItems();
-
+    if (this.opts.deleteMode === 'soft') {
+      collect(this.originalTreeItems);
+      return this.removeSoftItem(removedIds);
+    }
+    const ownsHistory = !this.getHistoryManager().isRecording();
+    if (ownsHistory) this.beginHistory();
+    collect(this.originalTreeItems);
+    for (const id of removedIds) this.deleteRowItem(id);
+    if (ownsHistory) this.commitHistory();
+    if (!removedIds.length) return [];
+    this.syncHistoryViewItems({ changes: [] }, false);
+    this.refreshViewAfterMutation();
     return removedIds;
   }
 }

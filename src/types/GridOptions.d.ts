@@ -1,9 +1,9 @@
 import { DeleteMode, HorizontalRegion, HoverMode, SelectionMode } from '@/constants';
 import { BodyStyle, ThemeType } from '@/constantStyles';
-import { OptionCallback, RowId } from './Common';
+import { OptionCallback, RowId, ViewItem } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
 import { FieldItem } from './GridField';
-import { SortOption } from './Header';
+import { FieldSortInfo } from './Header';
 import { SummaryItem, SummaryOptions } from './Summary';
 import { ToolbarLayout } from './Toolbar';
 
@@ -348,11 +348,20 @@ export type SortOption = {
    * null value 를 항상 끝으로 유지 할지 여부
    */
   nullsLast: boolean;
-  /**
-   * custom sorting function
-   */
-  customSorting?: OptionCallback;
+  /** 실제 행 배열을 정렬하여 반환한다. 기존 ViewItem[] 반환도 지원한다. */
+  customSorting?: CustomSortingCallback;
 };
+
+/**
+ * 검색 결과의 전체 행을 페이징 전에 정렬한다. 그룹 가상 행은 전달하지 않는다.
+ * 트리는 계층을 유지하기 위해 형제 행 배열마다 호출한다.
+ * 각 입력 행을 ID 변경·누락·중복 없이 한 번씩 반환해야 한다. 행은 얕은 복사본이다.
+ */
+export type CustomSortingCallback = (
+  items: Record<string, any>[],
+  sortOrders: FieldSortInfo[],
+  options: SortOption,
+) => Record<string, any>[] | ViewItem[];
 
 export interface HeaderResize {
   /**

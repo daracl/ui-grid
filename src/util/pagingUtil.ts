@@ -32,14 +32,17 @@ export const getPagingInfo = (totalCount: number, page: number, pageSize: number
   if (totalCount < 1) {
     return {
       page: 0,
-      unitPage: 0,
+      pageSize,
+      unitPage,
       totalCount: 0,
       totalPages: 0,
+      currStartPage: 0,
+      currEndPage: 0,
+      prePage: 0,
+      nextPage: 0,
+      prePage_is: false,
+      nextPage_is: false,
     } as PagingInfo;
-  }
-
-  if (totalCount < pageSize) {
-    pageSize = totalCount;
   }
 
   const totalPages = totalCount % pageSize == 0 ? totalCount / pageSize : Math.floor(totalCount / pageSize) + 1;

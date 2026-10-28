@@ -3,10 +3,8 @@ import { CURRENT_MATCH_INFO, RowId, ViewItem } from '@/types/Common';
 import { FieldItem } from '@/types/GridField';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ListDataManager } from './ListDataManager';
-import { HistoryEntry } from './HistoryManager';
 import { getSummaryField, calculateGroupSummary, getGroupSummaries, getGroupSummaryFields } from '@/util/groupSummaryUtils';
 
 export class GroupDataManager extends ListDataManager {
@@ -127,7 +125,7 @@ export class GroupDataManager extends ListDataManager {
   }
 
   public getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[] {
-    const sortData = multiSort(this.sourceViewItems, this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+    const sortData = this.sortItems(this.getPagingViewItems(), sortOrders, sortOpts);
 
     if (!this.cfg.searchEnabled) {
       return sortData;
@@ -162,19 +160,6 @@ export class GroupDataManager extends ListDataManager {
     } as CURRENT_MATCH_INFO);
 
     return sortData;
-  }
-
-  protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void {
-    // History 적용으로 바뀐 원본 행과 그룹 정렬 대상을 먼저 동기화한다.
-    this.sourceViewItems = this.sourceViewItems.filter((viewItem) => super.getRowItem(viewItem.id) !== undefined);
-    for (const change of entry.changes) {
-      const restored = (change.type === 'add' && !undo) || (change.type === 'remove' && undo);
-      if (restored && !this.sourceViewItems.some((viewItem) => viewItem.id === change.rowId)) {
-        const viewItem = this.getOriginalViewItems().find((candidate) => candidate.id === change.rowId);
-        this.sourceViewItems.push(viewItem ?? { id: change.rowId, sortOrder: this.sourceViewItems.length });
-      }
-    }
-    super.refreshAfterHistory(entry, undo);
   }
 
   public getRowItem(rowId: RowId): any {

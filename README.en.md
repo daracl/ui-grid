@@ -186,7 +186,9 @@ Renderers are registered in [`src/constantRenders.ts`](./src/constantRenders.ts)
 |-----|-----|
 | `DaraGrid.create(element, options, message?)` | Create a grid instance |
 | `DaraGrid.instance(elementOrId)` | Look up an existing grid instance |
-| `getItems()` / `setItems(items)` / `clearItems()` | Get/set/clear all row data |
+| `getItems()` | Get displayed data rows for the current page, search, and tree expansion state |
+| `getAllItems()` | Get all loaded source rows regardless of paging, search, or collapsed tree nodes |
+| `setItems(items)` / `clearItems()` | Set/clear row data |
 | `addItems(items, opts?)` / `createItem(item, opts?)` / `removeItems(ids)` | Add/remove rows |
 | `getChangedItems()` | Get only added, modified, or deleted rows |
 | `getSelection()` / `getSelectedRows()` / `getSelectedRowIds()` | Get selection info |
@@ -199,6 +201,14 @@ Renderers are registered in [`src/constantRenders.ts`](./src/constantRenders.ts)
 | `destroy()` | Destroy the grid instance |
 
 See [`src/DaraGrid.ts`](./src/DaraGrid.ts) and the [typedoc API docs](https://ui.daracl.com) for the full API.
+
+`getItems()` retains its existing scope. `getAllItems()` returns a flat array including collapsed descendants and soft-deleted rows. Both exclude virtual group rows and internal fields and return shallow row copies. External paging includes only rows already loaded into the grid.
+
+Soft deletion preserves rows and marks them as deleted, including descendants of a selected tree parent. All IDs are validated before any soft deletion takes place. Hard deletion removes rows and records each `removeItems()` call as one Undo/Redo entry.
+
+Without `footer.paging.callback`, filtering and sorting run before local pagination, and the total count follows the filtered rows. With a callback, external pagination preserves the supplied total count and loaded current-page rows.
+
+`header.sort.customSorting` receives shallow copies of data rows, sort descriptors, and sort options. Return each input row exactly once without changing its ID; sorting and returning the input array is supported. Legacy `ViewItem[]` results also remain supported. Invalid, duplicate, or missing IDs cause an error. List/group rows are sorted before pagination, excluding virtual rows. Trees invoke the callback separately for each sibling array to preserve hierarchy. The callback type is exported as `CustomSortingCallback`.
 
 `exportPdf()` accepts `fileName`, `title`, `author`, `pageSize`, `orientation`, `margin`, `fontName`, and `fontSize`. Grouped grids suppress repeated group values like the grid view and preserve cell background colors and borders. Bar and sparkline renderers are exported as vector charts. The bundled Noto Sans KR font supports Korean text by default; custom TTF/OTF font data can still be provided when needed.
 

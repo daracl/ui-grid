@@ -115,12 +115,25 @@ export class DaraGrid {
   }
 
   /**
-   * 그리드의 전체 행 데이터를 반환한다.
+   * 현재 표시 대상의 실제 행 데이터를 반환한다.
+   * 페이징은 현재 페이지, 검색은 검색 결과, 트리는 펼친 행만 포함한다.
+   * 그룹 소계·총계와 내부 관리 필드는 제외한다.
    *
-   * @returns 전체 행 데이터 배열
+   * @returns 현재 표시 대상 행의 얕은 복사본 배열
    */
   public getItems() {
     return this.gridMain.config().dataManager.getAllRowItems();
+  }
+
+  /**
+   * 검색·페이징·트리 펼침 상태와 무관하게 로드된 전체 원본 행을 반환한다.
+   * 트리는 자손을 포함한 평탄한 배열이며, soft 삭제 행도 포함한다.
+   * 그룹 가상 행과 내부 관리 필드는 제외한다. 외부 페이징은 로드된 행만 반환한다.
+   *
+   * @returns 전체 원본 행의 얕은 복사본 배열
+   */
+  public getAllItems(): Record<string, any>[] {
+    return this.gridMain.config().dataManager.getSourceRowItems();
   }
 
   /**
