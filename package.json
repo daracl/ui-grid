@@ -125,6 +125,6 @@
   "dependencies": {
     "@daracl/ui-style": "0.0.6",
     "pdfkit": "^0.20.2",
-    "@daracl/core": "0.0.11"
+    "@daracl/core": "0.0.12"
   }
 }
