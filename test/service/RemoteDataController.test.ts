@@ -587,6 +587,302 @@ describe('RemoteDataController (dataSource)', () => {
       expect(request.mock.calls[4][0].loaderContainer).toBeUndefined();
     });
 
+    it('responseFilter는 responseMap보다 먼저 응답 봉투를 검사·해제하고 던진 오류는 이벤트로 알린다', async () => {
+      const order: string[] = [];
+      const loadError = jest.fn();
+      const request = jest
+        .fn()
+        .mockResolvedValueOnce({ code: 0, data: { list: users(), total: 3 } })
+        .mockResolvedValueOnce({ code: 500, message: '서버 오류' })
+        .mockResolvedValueOnce({ code: 0, data: { list: [], total: 0 } });
+      const { grid } = create({
+        load: { url: '/u' },
+        request,
+        events: { loadError },
+        responseFilter: async (response, operation) => {
+          order.push(`filter:${operation}`);
+          if (response.code !== 0) throw new DataSourceError('HTTP', response.message, response.code, response);
+          return response.data;
+        },
+        responseMap: (data) => {
+          order.push('map');
+          return { items: data.list, total: data.total };
+        },
+      });
+
+      await grid.load();
+      expect(order).toEqual(['filter:load', 'map']);
+      expect(grid.getItems()).toHaveLength(3);
+
+      await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 500, message: '서버 오류' });
+      expect(loadError).toHaveBeenCalledWith(expect.objectContaining({ error: expect.objectContaining({ status: 500 }) }));
+      expect(grid.getItems()).toHaveLength(3); // 실패하면 기존 데이터 유지
+      expect(order).toEqual(['filter:load', 'map', 'filter:load']); // 실패 시 responseMap은 호출하지 않음
+
+      await grid.load();
+      expect(grid.getItems()).toHaveLength(0);
+    });
+
+    it('responseFilter는 save 응답에도 적용되고 일반 Error도 DataSourceError로 변환한다', async () => {
+      const request = jest.fn().mockResolvedValueOnce({ items: users() }).mockResolvedValueOnce({ ok: false });
+      const { grid, edit } = create({
+        load: { url: '/u' },
+        save: { url: '/s' },
+        request,
+        responseFilter: (response, operation) => {
+          if (operation === 'save' && !response.ok) throw new Error('저장 거부');
+          return response;
+        },
+      });
+      await grid.load();
+      edit(1, 'name', 'A2');
+      await expect(grid.save()).rejects.toMatchObject({ code: 'INVALID_RESPONSE', message: '저장 거부' });
+      expect(grid.getChangedItems()).toHaveLength(1); // 실패하면 변경 상태 유지
+    });
+
+    describe('responseFilter의 상태 코드 오류 처리', () => {
+      const httpError = (status: number, body: unknown, statusText = '') => ({
+        type: 'http',
+        status,
+        statusText,
+        responseText: typeof body === 'string' ? body : JSON.stringify(body),
+      });
+
+      it('401/403/500 응답 본문을 info와 함께 받아 사용자 오류로 바꿀 수 있다', async () => {
+        const seen: Array<[number, boolean, unknown]> = [];
+        const request = jest
+          .fn()
+          .mockRejectedValueOnce(httpError(401, { code: 'EXPIRED', message: '세션 만료' }, 'Unauthorized'))
+          .mockRejectedValueOnce(httpError(403, '권한 없음', 'Forbidden'))
+          .mockRejectedValueOnce(httpError(500, { message: 'boom' }));
+        const loadError = jest.fn();
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          events: { loadError },
+          responseFilter: (response, _operation, info) => {
+            seen.push([info.status, info.ok, response]);
+            if (!info.ok && info.status === 401) throw new DataSourceError('HTTP', response.message, info.status, response);
+            if (!info.ok && info.status === 403) throw info.error; // 기본 오류 그대로
+            throw new Error('서버 오류: ' + response.message);
+          },
+        });
+
+        await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 401, message: '세션 만료' });
+        await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 403, response: '권한 없음' });
+        await expect(grid.load()).rejects.toMatchObject({ code: 'INVALID_RESPONSE', message: '서버 오류: boom' });
+        expect(seen).toEqual([
+          [401, false, { code: 'EXPIRED', message: '세션 만료' }],
+          [403, false, '권한 없음'],
+          [500, false, { message: 'boom' }],
+        ]);
+        expect(loadError).toHaveBeenCalledTimes(3);
+      });
+
+      it('오류 응답의 헤더를 info.headers로 전달한다(XHR·fetch Response·headers 객체)', async () => {
+        const seen: Array<Record<string, string> | undefined> = [];
+        const request = jest
+          .fn()
+          .mockRejectedValueOnce({
+            ...httpError(401, ''),
+            xhr: { getAllResponseHeaders: () => 'X-Api-Message: %EC%84%B8%EC%85%98\r\nContent-Type: application/json\r\n' },
+          })
+          .mockRejectedValueOnce({ ...httpError(403, ''), xhr: { headers: new Headers({ 'X-Reason': 'denied' }) } })
+          .mockRejectedValueOnce({ ...httpError(500, ''), headers: { 'X-Trace': 'abc' } })
+          .mockRejectedValueOnce(httpError(502, ''));
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          responseFilter: (_response, _operation, info) => {
+            seen.push(info.headers);
+            throw info.error;
+          },
+        });
+
+        for (let i = 0; i < 4; i++) await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP' });
+        expect(seen).toEqual([
+          { 'x-api-message': '%EC%84%B8%EC%85%98', 'content-type': 'application/json' },
+          { 'x-reason': 'denied' },
+          { 'x-trace': 'abc' },
+          undefined,
+        ]);
+      });
+
+      it('값을 반환하면 오류가 복구되어 정상 응답처럼 이어진다(404 → 빈 결과)', async () => {
+        const request = jest.fn().mockRejectedValue(httpError(404, { message: 'none' }));
+        const load = jest.fn();
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          events: { load },
+          responseFilter: (_response, _operation, info) => (info.status === 404 ? { items: [], total: 0 } : _response),
+        });
+
+        const result = await grid.load();
+        expect(result).toEqual({ items: [], total: 0 });
+        expect(load).toHaveBeenCalledTimes(1);
+        expect(grid.getItems()).toHaveLength(0);
+      });
+
+      it('성공 응답에는 ok=true와 상태 코드가 전달되고, 연결 실패·timeout·취소는 필터를 호출하지 않는다', async () => {
+        const filter = jest.fn((response: unknown, _operation: string, _info: unknown) => response);
+        const request = jest
+          .fn()
+          .mockResolvedValueOnce({ items: users() })
+          .mockRejectedValueOnce({ type: 'network' })
+          .mockRejectedValueOnce({ type: 'timeout' });
+        const { grid } = create({ load: { url: '/u' }, request, responseFilter: filter });
+
+        await grid.load();
+        expect(filter).toHaveBeenCalledTimes(1);
+        expect(filter.mock.calls[0][1]).toBe('load');
+        expect(filter.mock.calls[0][2]).toMatchObject({ ok: true, status: 200 });
+
+        await expect(grid.load({ a: 1 }, { discardChanges: true })).rejects.toMatchObject({ code: 'NETWORK' });
+        await expect(grid.load({ a: 2 })).rejects.toMatchObject({ code: 'TIMEOUT' });
+        expect(filter).toHaveBeenCalledTimes(1);
+      });
+
+      it('save 요청의 상태 코드 오류도 필터로 처리하고 실패하면 변경 상태를 유지한다', async () => {
+        const request = jest
+          .fn()
+          .mockResolvedValueOnce({ items: users() })
+          .mockRejectedValueOnce(httpError(409, { message: '중복' }));
+        const { grid, edit } = create({
+          load: { url: '/u' },
+          save: { url: '/s' },
+          request,
+          responseFilter: (response, operation, info) => {
+            if (!info.ok) throw new DataSourceError('HTTP', `${operation}: ${response.message}`, info.status);
+            return response;
+          },
+        });
+        await grid.load();
+        edit(1, 'name', 'A2');
+        await expect(grid.save()).rejects.toMatchObject({ code: 'HTTP', status: 409, message: 'save: 중복' });
+        expect(grid.getChangedItems()).toHaveLength(1);
+      });
+    });
+
+    describe('errorFilter', () => {
+      const httpError = (status: number, body: unknown, extra: Record<string, unknown> = {}) => ({
+        type: 'http',
+        status,
+        statusText: 'ST' + status,
+        responseText: typeof body === 'string' ? body : JSON.stringify(body),
+        ...extra,
+      });
+
+      it('HTTP 오류의 상태·헤더·본문을 받아 오류를 교체하고 일반 Error는 code·status를 유지한다', async () => {
+        const seen: Array<[number | undefined, string | undefined, unknown, unknown]> = [];
+        const request = jest
+          .fn()
+          .mockRejectedValueOnce(httpError(401, { message: '만료' }, { headers: { 'X-Api-Message': 'expired' } }))
+          .mockRejectedValueOnce(httpError(500, 'boom'));
+        const loadError = jest.fn();
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          events: { loadError },
+          errorFilter: (error, operation, info) => {
+            seen.push([info.status, info.headers?.['x-api-message'], info.data, operation]);
+            if (error.status === 401) throw new DataSourceError('HTTP', '인증되지 않음', 401, info.data);
+            throw new Error('서버 내부 오류');
+          },
+        });
+
+        await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 401, message: '인증되지 않음' });
+        await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 500, message: '서버 내부 오류', response: 'boom' });
+        expect(seen).toEqual([
+          [401, 'expired', { message: '만료' }, 'load'],
+          [500, undefined, 'boom', 'load'],
+        ]);
+        expect(loadError).toHaveBeenCalledTimes(2);
+      });
+
+      it('값을 반환하면 오류가 복구되어 responseMap으로 이어지고 responseFilter·오류 이벤트는 호출하지 않는다', async () => {
+        const responseFilter = jest.fn((response: unknown) => response);
+        const loadError = jest.fn();
+        const loaded = jest.fn();
+        const request = jest.fn().mockRejectedValue(httpError(404, { message: 'none' }));
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          events: { loadError, load: loaded },
+          responseFilter,
+          errorFilter: (error) => (error.status === 404 ? { list: [], count: 0 } : Promise.reject(error)),
+          responseMap: (data: { list: unknown[]; count: number }) => ({ items: data.list, total: data.count }),
+        });
+
+        expect(await grid.load()).toEqual({ items: [], total: 0 });
+        expect(responseFilter).not.toHaveBeenCalled();
+        expect(loadError).not.toHaveBeenCalled();
+        expect(loaded).toHaveBeenCalledTimes(1);
+      });
+
+      it('NETWORK·TIMEOUT도 받고(상태·본문 없음) ABORT는 호출하지 않는다', async () => {
+        const codes: string[] = [];
+        const infos: unknown[] = [];
+        const request = jest
+          .fn()
+          .mockRejectedValueOnce({ type: 'network' })
+          .mockRejectedValueOnce({ type: 'timeout' })
+          .mockRejectedValueOnce({ type: 'abort' });
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          errorFilter: (error, _operation, info) => {
+            codes.push(error.code);
+            infos.push(info);
+            throw error;
+          },
+        });
+
+        await expect(grid.load()).rejects.toMatchObject({ code: 'NETWORK' });
+        await expect(grid.load()).rejects.toMatchObject({ code: 'TIMEOUT' });
+        await expect(grid.load()).rejects.toMatchObject({ code: 'ABORT' });
+        expect(codes).toEqual(['NETWORK', 'TIMEOUT']);
+        expect(infos).toEqual([
+          { status: undefined, statusText: undefined, headers: undefined, data: undefined },
+          { status: undefined, statusText: undefined, headers: undefined, data: undefined },
+        ]);
+      });
+
+      it('성공 응답에는 errorFilter를 호출하지 않고 responseFilter만 적용한다', async () => {
+        const errorFilter = jest.fn();
+        const request = jest.fn().mockResolvedValueOnce({ code: 0, data: { items: users() } });
+        const { grid } = create({
+          load: { url: '/u' },
+          request,
+          responseFilter: (response: { data: unknown }) => response.data,
+          errorFilter,
+        });
+
+        await grid.load();
+        expect(errorFilter).not.toHaveBeenCalled();
+        expect(grid.getItems()).toHaveLength(3);
+      });
+
+      it('save 오류도 처리하며 던지면 변경 상태를 유지한다', async () => {
+        const request = jest
+          .fn()
+          .mockResolvedValueOnce({ items: users() })
+          .mockRejectedValueOnce(httpError(409, { message: '중복' }));
+        const { grid, edit } = create({
+          load: { url: '/u' },
+          save: { url: '/s' },
+          request,
+          errorFilter: (error, operation, info) => {
+            throw new DataSourceError('HTTP', operation + ': ' + (info.data as { message: string }).message, error.status);
+          },
+        });
+        await grid.load();
+        edit(1, 'name', 'A2');
+        await expect(grid.save()).rejects.toMatchObject({ code: 'HTTP', status: 409, message: 'save: 중복' });
+        expect(grid.getChangedItems()).toHaveLength(1);
+      });
+    });
+
     it('HTTP 오류와 timeout, 취소를 DataSourceError 코드로 변환한다', async () => {
       const request = jest
         .fn()

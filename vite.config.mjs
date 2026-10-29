@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
           propertyReadSideEffects: false,
           tryCatchDeoptimization: false,
         },
-        external: ['@daracl/core', '@daracl/core/utils', '@daracl/toast', '@daracl/datatimepicker'],
+        external: ['@daracl/core', '@daracl/core/utils'],
         // plugins: isProd ? [terser()] : [],
         output: {
           banner: topBanner,

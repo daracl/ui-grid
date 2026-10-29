@@ -328,6 +328,42 @@ await grid.removeRemote();                            // 선택 행 서버 삭�
 ### 요청·응답 형식
 
 - 조회 응답: 배열 또는 `{ items, total? }`. `responseMap(response, 'load')`으로 변환할 수 있습니다.
+- 응답 필터: `responseFilter(response, operation)`는 `responseMap`보다 먼저 호출됩니다(순서: HTTP 응답 → `responseFilter` → `responseMap` → 검증). 응답 봉투(`{ code, message, data }`)를 검사해 오류로 바꾸거나 `data`만 꺼내 넘길 때 사용합니다. 반환값(또는 `Promise`)이 다음 단계에 전달되고, 던진 오류는 `DataSourceError`(일반 `Error`는 `INVALID_RESPONSE`)로 `loadError`/`saveError`/`removeError` 이벤트와 reject로 전달됩니다. 오류가 나면 `responseMap`은 호출하지 않고 기존 데이터·변경 상태를 유지합니다. HTTP 설정에만 적용됩니다.
+
+`responseFilter`는 세 번째 인자 `info`(`{ ok, status, statusText, headers?, error? }`)도 받습니다. `info.headers`는 응답 헤더(이름은 소문자)이며 코어 Ajax 응답은 성공·오류 모두 채워집니다(예: `info.headers['x-api-message']`). 주입한 `request` 함수는 성공 응답 헤더를 제공할 수 없고, 오류는 던진 오류 객체의 `headers`가 있으면 사용합니다. 서버가 **2xx가 아닌 상태 코드(401/403/404/500 등)로 응답한 경우에도 호출**되며, 이때 `info.ok`는 `false`, `response`는 응답 본문(JSON이면 파싱한 값, 아니면 문자열)입니다. 값을 반환하면 오류가 복구되어 정상 응답처럼 이어지고, 던지면 그 오류가, `info.error`를 던지면 기본 HTTP 오류가 전달됩니다. `responseFilter`가 없으면 기존처럼 `HTTP` 오류로 reject됩니다. 연결 실패(`NETWORK`)·`TIMEOUT`·취소(`ABORT`)는 응답이 없어 `responseFilter`를 호출하지 않습니다. (오류 처리는 아래 `errorFilter`를 권장하며, `errorFilter`가 없을 때만 위 동작이 유지됩니다.)
+
+`errorFilter(error, operation, info)`는 오류 처리를 분리한 옵션입니다. 상태 코드 오류(`HTTP`)와 연결 실패(`NETWORK`)·`TIMEOUT`에서 호출되고 취소(`ABORT`)는 호출하지 않습니다. `error`는 `DataSourceError`(`code`, `status`, `response`), `info`는 `{ status?, statusText?, headers?, data? }`(`data`는 HTTP 오류의 본문, JSON이면 파싱한 값)입니다.
+
+- 값을 반환하면 오류가 복구되어 정상 응답처럼 `responseMap`(없으면 검증)으로 이어지며, `responseFilter`와 오류 이벤트는 호출되지 않습니다.
+- 던지면 그 오류가 전달됩니다. `error`를 그대로 던지면 기본 동작이고, 일반 `Error`는 원래 오류의 `code`·`status`를 유지한 채 메시지만 바뀝니다.
+- 성공 응답에는 호출하지 않고 `responseFilter`만 적용합니다. `save`/`remove`의 오류를 값으로 복구하면 성공 응답으로 처리되어 변경이 확정되므로 의도한 경우에만 복구하세요.
+
+```ts
+errorFilter: (error, operation, info) => {
+  if (error.status === 401 || error.status === 440) logout();                  // 세션 만료
+  if (error.status === 404 && operation === 'load') return { items: [], total: 0 }; // 조회만 빈 결과로 복구
+  const apiMessage = info.headers?.['x-api-message'];
+  throw new DataSourceError(error.code, apiMessage ?? MESSAGES[error.status ?? 0] ?? error.message, error.status, info.data);
+}
+```
+
+```ts
+import { DataSourceError } from '@daracl/grid'; // UMD에서는 일반 Error를 던져도 INVALID_RESPONSE로 변환됩니다.
+
+dataSource: {
+  load: { url: '/api/users' },
+  responseFilter: (res, operation, info) => {
+    if (!info.ok) {
+      if (info.status === 401) { location.href = '/login'; throw info.error; } // 인증 만료
+      if (info.status === 404) return { items: [], total: 0 };                 // 오류를 빈 결과로 복구
+      throw new DataSourceError('HTTP', res?.message ?? info.statusText, info.status, res);
+    }
+    if (res.code !== 0) throw new DataSourceError('HTTP', res.message, res.code, res); // 본문 오류 코드
+    return res.data;
+  },
+  responseMap: (data) => ({ items: data.list, total: data.total }),
+}
+```
 - 저장 요청 본문: `{ created: [], updated: [], deleted: [] }` (변경된 행만, 내부 관리 필드와 상태값 제외)
 - 삭제 요청 본문: `{ deleted: [] }`
 - 저장 응답(선택): `{ idMap?: { 임시ID: 서버ID }, failed?: [ID...] }`. 본문이 없으면 전체 성공으로 처리합니다. `idMap` 반영과 `failed` 매칭은 `rowIdField`(트리는 `tree.idField`)를 지정한 경우에 가능합니다.

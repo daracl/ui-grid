@@ -197,6 +197,7 @@ GridOptions → initGridOptions / initConfig → GridMain
 
 - `npm run pwtest` script는 있지만 Playwright 설정·전용 spec은 확인되지 않는다. 준비된 E2E 검증 수단으로 간주하지 않는다.
 - `runBuildDev.bat`/`runBuildProd.bat`는 `npm run build`를 호출한다(별도 dev/prod 스크립트는 없고 `build`가 두 모드를 모두 생성한다).
+- HTTP 응답 처리 순서는 `responseFilter`(성공) / `errorFilter`(HTTP·NETWORK·TIMEOUT, 복구 가능) → `responseMap` → 검증이다. `errorFilter`가 없으면 HTTP 오류를 `responseFilter(info.ok=false)`가 받는다.
 - `tsconfig-build.json`(선언 생성 전용)은 tsc-alias가 별칭을 변환하도록 `baseUrl`을 유지한다. 일반 `tsconfig.json`은 `moduleResolution: bundler`, `baseUrl` 없음이다.
 - `npm install`은 `node_modules/@daracl/core`의 형제 폴더 링크를 실제 설치본으로 바꿀 수 있다. 설치 후 `npm run core:link`로 다시 연결한다.
 - `dts:gen`은 `build:tsc`의 별칭이다. 과거 webpack/esbuild용 `build.js`는 제거했다.
