@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     footer: { enabled: true, paging: { enabled: true } },
     dataSource: {
+      autoLoad: true, // 생성 직후 첫 조회(툴바 값 사용)
       paging: { mode: 'server', pageSize: 10 },
       // 드롭다운 툴바 값은 배열(예: ['ACTIVE'])로 반환되므로 서버가 기대하는 문자열로 변환한다.
       requestMap: (data) =>
@@ -106,5 +107,4 @@ document.addEventListener('DOMContentLoaded', function () {
     },
   });
 
-  grid.load(); // 첫 조회는 툴바 값(전체, 검색어 없음)으로 실행
 });

@@ -325,6 +325,17 @@ await grid.removeRemote();                            // 선택 행 서버 삭�
 
 `null`은 `before*` 이벤트로 취소되었거나(조회는) 더 새로운 조회에 밀려 결과가 반영되지 않았음을 뜻합니다. 실패는 `DataSourceError`(`code`: `HTTP`, `NETWORK`, `TIMEOUT`, `ABORT`, `INVALID_RESPONSE`, `UNSAVED_CHANGES`, `BUSY`, `CONFIG`, `UNSUPPORTED`, `DESTROYED`)로 reject 됩니다.
 
+### 자동 조회 (autoLoad)
+
+`dataSource.autoLoad: true`이면 그리드 생성 직후(생성 코드가 끝난 뒤) `load()`가 자동 실행됩니다. 기본값은 `false`이며 툴바 사용 여부와 무관합니다. 툴바가 있으면 첫 조회에 툴바 값이 조회 조건으로 전달되고, 실패는 `loadError` 이벤트로 알립니다(`dataSource.load`가 없으면 생성 시 오류).
+
+```ts
+const grid = DaraGrid.create(element, {
+  fields: [...],
+  dataSource: { autoLoad: true, load: { url: '/api/users' } }, // grid.load() 호출 불필요
+});
+```
+
 ### 요청·응답 형식
 
 - 조회 응답: 배열 또는 `{ items, total? }`. `responseMap(response, 'load')`으로 변환할 수 있습니다.

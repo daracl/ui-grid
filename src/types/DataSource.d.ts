@@ -190,6 +190,12 @@ export interface DataSourceOptions {
   /** 코어 Ajax 전송 방식 */
   fetchMode?: 'fetch' | 'xhr';
   /**
+   * 그리드 생성 직후 load()를 자동 실행한다. 툴바 사용 여부와 무관하며 dataSource.load가 필요하다.
+   * 조회 조건은 툴바 값(툴바가 있을 때)만 사용하고, 실패는 loadError 이벤트로 알린다.
+   * @default false
+   */
+  autoLoad?: boolean;
+  /**
    * load()·searchRemote() 호출 시 툴바 필드 값을 조회 조건에 포함한다. 같은 이름의 명시 조건이 우선한다.
    * @default true
    */

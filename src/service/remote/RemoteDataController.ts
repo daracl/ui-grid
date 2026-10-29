@@ -48,6 +48,10 @@ export function prepareDataSourceOptions(
 
   if (!dataSource) return;
 
+  if (dataSource.autoLoad && !dataSource.load) {
+    throw new DataSourceError('CONFIG', 'dataSource.autoLoad requires dataSource.load');
+  }
+
   if (dataSource.sorting?.mode === 'server') {
     throw new DataSourceError('UNSUPPORTED', 'dataSource.sorting.mode "server" is not supported yet');
   }

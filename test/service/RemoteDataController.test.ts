@@ -444,6 +444,50 @@ describe('RemoteDataController (dataSource)', () => {
     expect(off.load.mock.calls[0][0]).toEqual({ a: 1 });
   });
 
+  describe('autoLoad', () => {
+    it('기본값(false)에서는 생성만으로 조회하지 않는다', async () => {
+      const server = fakeServer();
+      create(server);
+      await flush();
+      expect(server.load).not.toHaveBeenCalled();
+    });
+
+    it('true이면 생성 직후 한 번 조회하고 결과를 반영한다(툴바 없이도)', async () => {
+      const server = fakeServer();
+      const loaded = jest.fn();
+      const { grid } = create({ ...server, autoLoad: true, events: { load: loaded } });
+      expect(server.load).not.toHaveBeenCalled(); // 생성 코드가 끝난 뒤 실행
+      await flush();
+      expect(server.load).toHaveBeenCalledTimes(1);
+      expect(server.load.mock.calls[0][0]).toEqual({});
+      expect(loaded).toHaveBeenCalledTimes(1);
+      expect(grid.getItems()).toHaveLength(3);
+    });
+
+    it('툴바가 있으면 첫 조회에 툴바 값을 사용하고, 실패는 loadError 이벤트로 알린다', async () => {
+      const loadError = jest.fn();
+      const load = jest.fn().mockRejectedValue({ type: 'http', status: 500 });
+      const toolbar = {
+        enabled: true,
+        items: [[{ position: 'left', children: [{ name: 'status', renderer: 'text', defaultValue: 'ACTIVE' }] }]],
+      };
+      create({ load, autoLoad: true, events: { loadError } }, { toolbar });
+      await flush();
+      expect(load.mock.calls[0][0]).toEqual({ status: 'ACTIVE' });
+      expect(loadError).toHaveBeenCalledTimes(1); // 처리되지 않은 Promise 오류 없이 이벤트로만 전달
+    });
+
+    it('생성 직후 destroy하면 조회하지 않고, dataSource.load가 없으면 생성 시 오류이다', async () => {
+      const server = fakeServer();
+      const { grid } = create({ ...server, autoLoad: true });
+      grid.destroy();
+      await flush();
+      expect(server.load).not.toHaveBeenCalled();
+
+      expect(() => create({ save: async () => undefined, autoLoad: true })).toThrow(/autoLoad requires dataSource.load/);
+    });
+  });
+
   describe('toolbar.remote', () => {
     const toolbar = (remote: unknown, search?: () => unknown) => ({
       enabled: true,
