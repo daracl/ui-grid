@@ -24,7 +24,8 @@
           }
 
           &.dg-row-hover {
-            background-color: var(--dg-cell-bg-hover);
+            // striped 계열의 :nth-child(odd/even) 배경보다 우선해야 짝수/홀수 행 모두 hover 가 표시된다.
+            background-color: var(--dg-cell-bg-hover) !important;
             > .dg-line-number {
               background-color: var(--dg-cell-bg-hover) !important;
             }

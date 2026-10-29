@@ -110,7 +110,7 @@
   },
   "dependencies": {
     "@daracl/core": "0.0.12",
-    "@daracl/ui-style": "0.0.7",
+    "@daracl/ui-style": "0.0.8",
     "pdfkit": "^0.20.2"
   }
 }

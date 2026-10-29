@@ -127,7 +127,7 @@
         border-radius: 999px;
 
         transition: all 0.2s ease;
-        background-color: themes.themed(body-bg-thin);
+        background-color: var(--dg-label-chip-bg);
 
         &:hover {
           background: themes.themed(body-bg-hover);
