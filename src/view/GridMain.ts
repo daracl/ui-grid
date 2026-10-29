@@ -27,7 +27,8 @@ import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
 import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
-import { debounce, isArray, isString, isUndefined, isVisible } from '@/util/utils';
+import { isArray, isString, isUndefined, isVisible } from '@/util/utils';
+import { debounce } from '@daracl/core/utils';
 import { Toolbar } from '@/view/toolbar/Toolbar';
 import { StructureBuilder } from './builder/StructureBuilder';
 import { Footer } from './footer/Footer';
@@ -111,11 +112,14 @@ export class GridMain {
   private readonly orginStyle: string;
 
   private readonly openLayers: HTMLElement[] = [];
+  private readonly layerPositions = new Map<HTMLElement, () => void>();
 
   private resizeObserver: ResizeObserver;
+  private resizeFrame: number | null = null;
   private destroyed = false;
 
   private windowResizeHandler?: () => void;
+  private cancelWindowResize?: () => void;
 
   private readonly structureBuilder: StructureBuilder;
 
@@ -376,9 +380,8 @@ export class GridMain {
 
     const cfg = this.cfg;
 
-    if (opts.width === 'auto' || opts.height === 'auto') {
-      this.initResizeEvent();
-    }
+    // 고정 크기 그리드에서도 열린 편집 레이어는 브라우저 resize를 따라갑니다.
+    this.initResizeEvent();
 
     const rendererLayerElement = this.rendererLayerElement;
 
@@ -487,11 +490,15 @@ export class GridMain {
     }
   }
 
-  public openLayer(layerElement: HTMLElement) {
+  public openLayer(layerElement: HTMLElement, updatePosition?: () => void) {
     layerElement.style.display = 'block';
     this.cfg.isOpenLayer = true;
 
-    this.openLayers.push(layerElement);
+    if (!this.openLayers.includes(layerElement)) this.openLayers.push(layerElement);
+    if (updatePosition) {
+      this.layerPositions.set(layerElement, updatePosition);
+      updatePosition();
+    } else this.layerPositions.delete(layerElement);
   }
 
   public hideLayer(hideElement?: HTMLElement | string) {
@@ -517,9 +524,11 @@ export class GridMain {
         const layerElement = this.openLayers[idx];
 
         if (checkLayerClass && layerElement.classList.contains(checkLayerClass)) {
+          this.layerPositions.delete(layerElement);
           layerElement.style.display = 'none';
           this.openLayers.splice(idx, 1);
         } else if (hideElement == layerElement) {
+          this.layerPositions.delete(layerElement);
           layerElement.style.display = 'none';
           this.openLayers.splice(idx, 1);
           break;
@@ -531,6 +540,7 @@ export class GridMain {
     }
 
     this.cfg.isOpenLayer = false;
+    this.layerPositions.clear();
 
     for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
       const layerElement = this.openLayers[idx];
@@ -554,30 +564,24 @@ export class GridMain {
 
     const el = this.gridElement;
 
-    if (typeof ResizeObserver !== 'undefined') {
-      let resizeScheduled = false;
+    const autoSize = opts.width === 'auto' || opts.height === 'auto';
+    if (autoSize && typeof ResizeObserver !== 'undefined') {
       const mainElement = el.getElement();
       const resizeObserver = new ResizeObserver(() => {
-        if (resizeScheduled) {
-          return;
-        }
-
-        resizeScheduled = true;
-
-        requestAnimationFrame(() => {
-          resizeScheduled = false;
-          this.resize(el);
-        });
+        this.resize(el);
       });
       resizeObserver.observe(mainElement);
       this.resizeObserver = resizeObserver;
-    } else {
-      const handler = debounce(() => {
-        this.resize(el);
-      }, threshold);
-      this.windowResizeHandler = handler;
-      window.addEventListener('resize', handler);
     }
+    // 그리드 크기가 같아도 브라우저 확대 시 셀과 레이어의 위치가 달라질 수 있습니다.
+    const deferredResize = debounce(() => this.resize(el), threshold);
+    const handler = () => {
+      // 변경할 레이어가 없는 고정 크기 그리드는 타이머도 예약하지 않습니다.
+      if (this.layerPositions.size > 0 || (autoSize && !this.resizeObserver)) deferredResize();
+    };
+    this.cancelWindowResize = deferredResize.cancel;
+    this.windowResizeHandler = handler;
+    window.addEventListener('resize', handler);
   }
 
   /**
@@ -586,13 +590,15 @@ export class GridMain {
    * @param el grid element
    */
   public resize(el: DaraElement) {
-    if (this.destroyed) return;
+    if (this.destroyed || this.resizeFrame !== null) return;
     const initGridSize = this.initGridSize;
 
     const isWidthResize = initGridSize.width < 0;
     const isHeightResize = initGridSize.height < 0;
     const disableVerticalScroll = this.cfg.disableVerticalScroll;
-    requestAnimationFrame(() => {
+    // observer와 window의 알림을 프레임당 한 번으로 합칩니다.
+    this.resizeFrame = requestAnimationFrame(() => {
+      this.resizeFrame = null;
       if (this.destroyed) return;
       if (!isVisible(el.getElement())) return;
 
@@ -606,6 +612,9 @@ export class GridMain {
         if (this.toolbar) {
           this.toolbar.resizeArrowVisibility();
         }
+      }
+      for (const [layer, updatePosition] of this.layerPositions) {
+        if (layer.isConnected && layer.style.display !== 'none') updatePosition();
       }
     });
   }
@@ -1139,6 +1148,12 @@ export class GridMain {
   public destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
+    if (this.resizeFrame !== null) {
+      cancelAnimationFrame(this.resizeFrame);
+      this.resizeFrame = null;
+    }
+    this.cancelWindowResize?.();
+    this.layerPositions.clear();
     this.remote?.destroy();
     const gridElement = this.gridElement;
     const uid = this.$instanceId;
@@ -1156,7 +1171,8 @@ export class GridMain {
     if (this.resizeObserver) {
       this.resizeObserver.unobserve(el);
       this.resizeObserver.disconnect();
-    } else if (this.windowResizeHandler) {
+    }
+    if (this.windowResizeHandler) {
       window.removeEventListener('resize', this.windowResizeHandler);
     }
 

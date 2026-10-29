@@ -1,6 +1,6 @@
 import { FIELD_LAYER_CLASS } from '@/constants';
 import { numberValidator } from '@/rule/numberValidator';
-import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -50,17 +50,8 @@ export class NumberEditRenderer extends TextAbstractRenderer {
       this.initEvt(editElement, item);
     }
 
-    const style = editElement.style;
-
-    const cellRect = getElementRect(element);
-    const rendererContainer = getElementRect(this.rendererContainer);
-
     this.isShow = true;
-    this.gridMain.openLayer(editElement);
-    style.top = `${cellRect.top - rendererContainer.top}px`;
-    style.left = `${cellRect.left - rendererContainer.left}px`;
-    style.width = `${cellRect.width}px`;
-    style.height = `${cellRect.height}px`;
+    this.openCellLayer(editElement, element);
     editElement.value = this.getValue(item, cellInfo.inputValue);
 
     editElement.focus();

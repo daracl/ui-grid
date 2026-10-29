@@ -1,5 +1,5 @@
 import { FIELD_LAYER_CLASS } from '@/constants';
-import { getElementRect, getLayerElement } from '@/util/domUtils';
+import { getLayerElement } from '@/util/domUtils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -46,18 +46,8 @@ export class TextAreaRenderer extends TextAbstractRenderer {
       this.initEvt(textareaElement, item);
     }
 
-    const style = textareaElement.style;
-
-    const cellRect = getElementRect(element);
-
-    const rendererContainer = getElementRect(this.rendererContainer);
-
     this.isShow = true;
-    this.gridMain.openLayer(textareaElement);
-    style.top = `${cellRect.top - rendererContainer.top}px`;
-    style.left = `${cellRect.left - rendererContainer.left}px`;
-    style.width = `${cellRect.width}px`;
-    style.height = `${cellRect.height}px`;
+    this.openCellLayer(textareaElement, element);
 
     const value = this.getValue(item, cellInfo.inputValue);
 

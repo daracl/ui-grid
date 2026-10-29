@@ -168,19 +168,16 @@ export class DropdownEditRenderer extends EditCellRenderer {
    * @param {HTMLElement} dropdownElement dropdown element
    */
   private openMenu(dropdownElement: HTMLElement, eventElement: HTMLElement) {
-    const elementRect = getElementRect(eventElement);
-
     const menuStyle = dropdownElement.style;
-
-    menuStyle.height = 'auto';
-    this.gridMain.openLayer(dropdownElement);
-    menuStyle.width = `${elementRect.width}px`;
-
-    const openPosition = innerLayerPosition(this.rendererContainer, eventElement, dropdownElement);
-
-    menuStyle.top = `${openPosition.top}px`;
-    menuStyle.left = `${openPosition.left}px`;
-    menuStyle.height = `${openPosition.height}px`;
+    this.gridMain.openLayer(dropdownElement, () => {
+      if (!eventElement.isConnected) return;
+      menuStyle.height = 'auto';
+      menuStyle.width = `${getElementRect(eventElement).width}px`;
+      const position = innerLayerPosition(this.rendererContainer, eventElement, dropdownElement);
+      menuStyle.top = `${position.top}px`;
+      menuStyle.left = `${position.left}px`;
+      menuStyle.height = `${position.height}px`;
+    });
 
     //bindHideOnBlur(dropdownElement, this.gridMain.config().eventManager);
   }

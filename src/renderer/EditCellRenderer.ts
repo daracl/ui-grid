@@ -27,6 +27,21 @@ export abstract class EditCellRenderer extends CellRenderer {
     return this._editable;
   }
 
+  /** 편집 값을 유지하면서 현재 셀 위치에 맞춰 레이어를 배치합니다. */
+  protected openCellLayer(layerElement: HTMLElement, cellElement: HTMLElement) {
+    this.gridMain.openLayer(layerElement, () => {
+      if (!cellElement.isConnected) return;
+      const cellRect = getElementRect(cellElement);
+      const containerRect = getElementRect(this.rendererContainer);
+      Object.assign(layerElement.style, {
+        top: `${cellRect.top - containerRect.top}px`,
+        left: `${cellRect.left - containerRect.left}px`,
+        width: `${cellRect.width}px`,
+        height: `${cellRect.height}px`,
+      });
+    });
+  }
+
   public abstract valid(value: any): ValidResult | boolean;
 
   /**
@@ -130,14 +145,14 @@ export abstract class EditCellRenderer extends CellRenderer {
       const element = this.getValidatorElement();
       element.textContent = message[0];
 
-      const cellRect = getElementRect(cellElement);
-      const rendererContainer = getElementRect(this.rendererContainer);
-
       const style = element.style;
-
-      this.gridMain.openLayer(element);
-      style.top = `${cellRect.top - rendererContainer.top - element.offsetHeight}px`;
-      style.left = `${cellRect.left - rendererContainer.left}px`;
+      this.gridMain.openLayer(element, () => {
+        if (!cellElement.isConnected) return;
+        const cellRect = getElementRect(cellElement);
+        const containerRect = getElementRect(this.rendererContainer);
+        style.top = `${cellRect.top - containerRect.top - element.offsetHeight}px`;
+        style.left = `${cellRect.left - containerRect.left}px`;
+      });
 
       return true;
     }
