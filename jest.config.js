@@ -1,8 +1,12 @@
+const { installedCoreSource } = require('./scripts/link-core.cjs');
+const core = installedCoreSource();
+
 module.exports = {
   verbose: true,
   testEnvironment: "jest-environment-jsdom",
   preset: "ts-jest",
   moduleNameMapper: {
+    ...(core ? { '^@daracl/core/utils$': core.entry } : {}),
     "^@/export/pdf/PdfFontUrl$": "<rootDir>/test/__mocks__/pdfFontUrlMock.js",
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@t/(.*)$": "<rootDir>/src/types/$1",
@@ -18,7 +22,8 @@ module.exports = {
     ],
   },
   testPathIgnorePatterns: ["/node_modules/"],
-  transformIgnorePatterns: ["/node_modules/"],
+  modulePathIgnorePatterns: ["<rootDir>/.tmp/"],
+  transformIgnorePatterns: ["/node_modules/(?!@daracl/core/)"],
   // globals: {
   //   "ts-jest": {
   //     tsconfig: "tsconfig.json",

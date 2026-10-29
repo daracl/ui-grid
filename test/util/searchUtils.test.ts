@@ -1,6 +1,6 @@
 import { gridDataSearch } from '../../src/util/searchUtils';
 import { ROW_FIELD } from '../../src/constants';
-import { ViewItem } from '../../dist/types/Common';
+import type { ViewItem } from '../../src/types/Common';
 import { DataManager } from '../../src/service/DataManager';
 import { merge } from '../../src/util/utils';
 

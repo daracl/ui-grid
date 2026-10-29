@@ -1,25 +1,30 @@
+import { createRequire } from 'node:module';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import banner from 'vite-plugin-banner';
-import packageJson from './package.json';
+import { readFileSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
+const coreSource = require('./scripts/link-core.cjs');
 
-const topBanner = `/*!
+const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
+
+export const topBanner = `/*!
 * ${packageJson.name} v${packageJson.version}
 * Copyright 2023-${new Date().getUTCFullYear()} darainfo;
 * Licensed ${packageJson.license}
 */`;
 
 const moduleName = 'daracl.grid';
+const localCore = coreSource.installedCoreSource();
 
 export const MODULE_NAME = moduleName;
 
 /** 공통 asset 설정 */
 export const createAssetFileNames = (isProd) => {
   return (assetInfo) => {
-    if (assetInfo.name.endsWith('.css')) {
+    if ((assetInfo.names ?? [assetInfo.name]).some((name) => name?.endsWith('.css'))) {
       return isProd ? `${MODULE_NAME}.min.[ext]` : `${MODULE_NAME}.[ext]`;
     }
     return 'assets/[name].[ext]';
@@ -34,6 +39,7 @@ export const createCommonConfig = (isProd) => ({
     },
   },
   resolve: {
+    ...(localCore ? { conditions: [coreSource.sourceCondition] } : {}),
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@t': path.resolve(__dirname, 'src/types'),
@@ -43,8 +49,6 @@ export const createCommonConfig = (isProd) => ({
   },
 
   plugins: [
-    banner(topBanner),
-
     // production 에서만 실행
     isProd && aggressiveHtmlMinify(),
   ].filter(Boolean),
@@ -53,7 +57,12 @@ export const createCommonConfig = (isProd) => ({
     APP_VERSION: JSON.stringify(packageJson.version),
   },
 
+  optimizeDeps: { exclude: ['@daracl/core/utils'] },
+
+  preview: { host: '127.0.0.1' },
+
   server: {
+    fs: { strict: true, allow: [__dirname, ...(localCore ? [localCore.directory] : [])] },
     host: '127.0.0.1',
 
     port: 5178,
@@ -102,6 +111,7 @@ export function aggressiveHtmlMinify() {
     enforce: 'post',
 
     transform(code, id) {
+      if (!code.includes('html`')) return null;
       // node_modules 제외
       if (id.includes('node_modules')) {
         return null;

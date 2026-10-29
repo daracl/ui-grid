@@ -1,7 +1,7 @@
 import { DaraElement } from '@/element/DaraElement';
 import { EventManager } from '@/event/EventManager';
 import { DataManager } from '@/service/DataManager';
-import { FieldSortInfo } from '@/type/Header';
+import { FieldSortInfo } from './Header';
 import { AnyKeyMap, SearchFields, SearchMatchInfo, ViewItem } from './Common';
 import { FieldItem } from './GridField';
 import { PagingInfo } from './PagingInfo';

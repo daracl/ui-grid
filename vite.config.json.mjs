@@ -1,7 +1,7 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
-import { createCommonConfig, MODULE_NAME } from './vite.common.js';
+import { createCommonConfig, MODULE_NAME } from './vite.common.mjs';
 
 const directory = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,9 +15,9 @@ export default defineConfig(({ mode }) => {
       sourcemap: !isProd,
       minify: isProd ? 'esbuild' : false,
       lib: {
-        entry: path.resolve(directory, 'src/export/excel/ExcelExport.ts'),
+        entry: path.resolve(directory, 'src/export/json/JsonExport.ts'),
         formats: ['es'],
-        fileName: () => `${MODULE_NAME}.excel${isProd ? '.min' : ''}.mjs`,
+        fileName: () => `${MODULE_NAME}.json${isProd ? '.min' : ''}.mjs`,
       },
       rollupOptions: { output: { inlineDynamicImports: true } },
     },

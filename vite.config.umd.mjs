@@ -1,7 +1,11 @@
 import path from 'path';
 import { build, defineConfig } from 'vite';
 import { fileURLToPath } from 'url';
-import { createAssetFileNames, createCommonConfig, MODULE_NAME } from './vite.common.js';
+import { createAssetFileNames, createCommonConfig, MODULE_NAME, topBanner } from './vite.common.mjs';
+import pdfConfig from './vite.config.pdf.mjs';
+import excelConfig from './vite.config.excel.mjs';
+import csvConfig from './vite.config.csv.mjs';
+import jsonConfig from './vite.config.json.mjs';
 
 // __dirname 대체
 const __filename = fileURLToPath(import.meta.url);
@@ -35,26 +39,13 @@ export default defineConfig(({ mode }) => {
       {
         name: 'grid-lazy-pdf',
         async writeBundle(output) {
-          await build({
-            configFile: path.resolve(__dirname, 'vite.config.pdf.js'),
-            mode,
-            build: { outDir: output.dir },
-          });
-          await build({
-            configFile: path.resolve(__dirname, 'vite.config.excel.js'),
-            mode,
-            build: { outDir: output.dir },
-          });
-          await build({
-            configFile: path.resolve(__dirname, 'vite.config.csv.js'),
-            mode,
-            build: { outDir: output.dir },
-          });
-          await build({
-            configFile: path.resolve(__dirname, 'vite.config.json.js'),
-            mode,
-            build: { outDir: output.dir },
-          });
+          for (const createConfig of [pdfConfig, excelConfig, csvConfig, jsonConfig]) {
+            const config = createConfig({ command: 'build', mode });
+            await build({
+              ...config, configFile: false, mode,
+              build: { ...config.build, outDir: output.dir, copyPublicDir: false, reportCompressedSize: false },
+            });
+          }
         },
       },
     ],
@@ -63,33 +54,13 @@ export default defineConfig(({ mode }) => {
       outDir: isProd ? 'dist' : 'dist/unmin',
       emptyOutDir: false,
       sourcemap: !isProd,
+      reportCompressedSize: false,
 
-      // production 일때만 terser 사용
-      minify: isProd ? 'terser' : false,
+      // ES/CJS와 동일한 esbuild 경로로 압축합니다.
+      minify: isProd ? 'esbuild' : false,
 
       // production 일때만 target 최적화
       target: isProd ? 'esnext' : undefined,
-
-      terserOptions: isProd
-        ? {
-            compress: {
-              passes: 3,
-              drop_console: false,
-              drop_debugger: true,
-              unsafe: true,
-
-              pure_funcs: ['html'],
-            },
-
-            mangle: {
-              toplevel: true,
-            },
-
-            format: {
-              comments: false,
-            },
-          }
-        : undefined,
 
       lib: {
         entry: path.resolve(__dirname, 'src/index.umd.ts'),
@@ -107,6 +78,7 @@ export default defineConfig(({ mode }) => {
 
       rollupOptions: {
         output: {
+          banner: topBanner,
           assetFileNames: createAssetFileNames(isProd),
 
           // production 일때만 코드 최적화

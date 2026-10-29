@@ -24,7 +24,7 @@ export class HtmlRenderer extends ToolBarRenderer {
 
     if (!defaultValue) return;
 
-    if (isFunction(defaultValue)) {
+    if (isFunction<(field: ToolbarFieldItem) => string>(defaultValue)) {
       controlElement.innerHTML = defaultValue(this.field);
     } else {
       controlElement.innerHTML = defaultValue;

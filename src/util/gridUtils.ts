@@ -1,3 +1,6 @@
+import { isMouseMoved, parseClipboard } from '@daracl/core/utils';
+export { isMouseMoved, parseClipboard };
+
 import { ItemStatusMap, ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
 import { PointerPosition } from '@/event/PointerSession';
 import { CellInfo, Config, HeaderCellInfo, ScrollInfo } from '@t/GridConfig';
@@ -549,21 +552,6 @@ export const isSequential = (arr: number[]): boolean => {
   return max - min + 1 === arr.length;
 };
 
-/**
- * 마우스가 이동했는지 확인
- *
- * @param startPos start position of mouse event
- * @param currentPos current position of mouse event
- * @param threshold 이동으로 간주할 최소 거리 (기본값: 5 픽셀)
- * @returns
- */
-export const isMouseMoved = (startPos: PointerPosition, currentPos: PointerPosition, threshold = 5): boolean => {
-  const dx = currentPos.x - startPos.x;
-  const dy = currentPos.y - startPos.y;
-
-  return dx * dx + dy * dy > threshold * threshold;
-};
-
 /*
  * 셀 값 이스케이프 처리
  * - 셀 값에 줄바꿈(\n, \n\r)이나 탭(\t)이 포함된 경우, 값 전체를 큰따옴표로 감싸고, 기존의 큰따옴표는 두 개로 이스케이프 처리
@@ -579,52 +567,6 @@ export const escapeCellValue = (value: any) => {
   }
 
   return value;
-};
-
-/**
- * Parses clipboard text into a 2D array of strings
- * @param text The clipboard text to parse
- * @returns A 2D array representing the parsed rows and cells
- */
-export const parseClipboard = (text: string): string[][] => {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = '';
-  let inQuotes = false;
-
-  text = text.replace(/(\r?\n){2}$/, '\n');
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const next = text[i + 1];
-
-    if (char === '"') {
-      if (inQuotes && next === '"') {
-        cell += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (!inQuotes && char === '\t') {
-      row.push(cell);
-      cell = '';
-    } else if (!inQuotes && (char === '\n' || char === '\r')) {
-      if (char === '\r' && next === '\n') i++;
-
-      row.push(cell);
-      rows.push(row);
-
-      row = [];
-      cell = '';
-    } else {
-      cell += char;
-    }
-  }
-
-  row.push(cell);
-  rows.push(row);
-
-  return rows;
 };
 
 /**

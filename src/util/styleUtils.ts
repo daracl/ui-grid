@@ -1,3 +1,6 @@
+import { normalizeCssLength } from '@daracl/core/utils';
+export { normalizeCssLength };
+
 import { OptionCallback } from '@/types/Common';
 import { $getElements } from './domUtils';
 import { isFunction } from './utils';
@@ -115,21 +118,6 @@ export function addStyleCss(element: HTMLElement, styles: any) {
 }
 
 /**
- * CSS length 값을 정규화합니다.
- *
- * 숫자 값은 기본 단위인 px을 추가하고,
- * 이미 CSS 단위가 포함된 문자열 값은 그대로 반환합니다.
- *
- * @example
- * normalizeCssLength(10) // "10px"
- * normalizeCssLength("10rem") // "10rem"
- */
-export function normalizeCssLength(value: number | string) {
-  if (!value) return '';
-  return typeof value === 'number' || /^\d+$/.test(value) ? `${value}px` : value;
-}
-
-/**
  * Resolve class name value.
  *
  * className이 callback 함수인 경우 params를 전달하여 실행한 결과를 반환하고,
@@ -148,7 +136,7 @@ export const resolveClassName = (className: string | OptionCallback | undefined,
     return [];
   }
   let reval: string;
-  if (isFunction(className)) {
+  if (isFunction<OptionCallback>(className)) {
     reval = className(params);
   } else {
     reval = className + '';

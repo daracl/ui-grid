@@ -1,18 +1,8 @@
+import { hasClass, getBrowserSize, getScrollPosition, outerLayerPosition } from '@daracl/core/utils';
+export { hasClass, getBrowserSize, getScrollPosition, outerLayerPosition };
+
 import { ALL_ICONS } from '@/constantIcons';
 import { LAYER_ATTR_NAME } from '@/constants';
-import { styleClassSplit } from './styleUtils';
-
-export function hasClass(element: HTMLElement, className: string) {
-  const classNames = styleClassSplit(className);
-
-  for (const item of classNames) {
-    if (element.classList.contains(item)) {
-      return true;
-    }
-  }
-
-  return false;
-}
 
 export function eqAttributeValue(element: HTMLElement, attr: string, value: string) {
   return element.getAttribute(attr) == value;
@@ -196,85 +186,6 @@ export function innerLayerPosition(
   };
 }
 
-/**
- * 레이어(layerEl)를 띄울 위치를 계산합니다.
- * 스크롤과 창 크기를 고려해 화면 밖으로 나가지 않도록 자동 조정됩니다.
- *
- * @param layerEl 띄울 레이어 DOM 요소
- * @param evtPosition event position (x, y)
- * @returns top, left 좌표 (픽셀 단위)
- */
-export function outerLayerPosition(layerEl: HTMLElement, evtPosition: any) {
-  const scrollPostion = getScrollPosition();
-  const scrollTop = scrollPostion.top;
-  const scrollLeft = scrollPostion.left;
-
-  const rect = getElementRect(layerEl);
-
-  const layerWidth = rect.width;
-  const layerHeight = rect.height;
-
-  const browserSize = getBrowserSize();
-
-  const targetX = evtPosition.x;
-  const targetY = evtPosition.y;
-
-  const bottom = scrollTop + browserSize.height,
-    right = scrollLeft + browserSize.width;
-
-  const layerBottomMargin = 5;
-
-  //console.log(`targetX : ${targetX}, targetY : ${targetY}, right : ${right}, bottom : ${bottom}, scrollTop : ${scrollTop}, windowHeight: ${windowHeight}, layerHeight:${layerHeight}, layerWidth:${layerWidth} `);
-
-  let top = targetY + layerHeight + layerBottomMargin > bottom ? bottom - (layerHeight + layerBottomMargin) : targetY;
-  top = Math.max(top, 0);
-
-  let left = targetX + layerWidth > right ? targetX - layerWidth : targetX;
-  left = Math.max(left, 0);
-
-  return { top, left };
-}
-
-/**
- * 스크롤바가 차지하는 영역을 제외한 브라우저의 실제 사용 가능한 크기를 반환합니다.
- * (뷰포트 크기 - 스크롤바 크기)
- *
- * @returns { width: number, height: number }
- */
-export function getBrowserSize(usableSize = true) {
-  // 전체 뷰포트 크기 (스크롤바 포함)
-  const windowWidth = window.innerWidth;
-  const windowHeight = window.innerHeight;
-
-  // 실제 컨텐츠 렌더링 가능한 크기 (스크롤바 제외)
-  let scrollbarWidth = 0;
-  let scrollbarHeight = 0;
-  if (usableSize) {
-    const documentElement = document.documentElement;
-    // 스크롤바 너비 = 전체 뷰포트 - 렌더링 영역
-    scrollbarWidth = windowWidth - documentElement.clientWidth;
-    scrollbarHeight = windowHeight - documentElement.clientHeight;
-  }
-
-  return {
-    width: windowWidth - scrollbarWidth,
-    height: windowHeight - scrollbarHeight,
-  };
-}
-
 export function getIcon(name: string): string {
   return ALL_ICONS[name as keyof typeof ALL_ICONS] ?? '';
-}
-
-/**
- * 현재 문서의 스크롤 위치를 반환합니다.
- *
- * @returns { top: number, left: number }
- */
-export function getScrollPosition(): { top: number; left: number } {
-  const top = window.pageYOffset ?? (document.documentElement.scrollTop || document.body.scrollTop || 0);
-
-  const left = window.pageXOffset ?? (document.documentElement.scrollLeft || document.body.scrollLeft || 0);
-
-  return { top, left };
 }

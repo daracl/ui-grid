@@ -1,8 +1,7 @@
 import path from 'path';
-import { visualizer } from 'rollup-plugin-visualizer';
 import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
-import { createAssetFileNames, createCommonConfig } from './vite.common.js';
+import { createAssetFileNames, createCommonConfig, topBanner } from './vite.common.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +16,7 @@ export default defineConfig(({ mode }) => {
       outDir: isProd ? 'dist' : 'dist/unmin',
       emptyOutDir: true,
       sourcemap: true,
+      reportCompressedSize: false,
       minify: isProd ? 'esbuild' : false,
 
       lib: {
@@ -42,9 +42,10 @@ export default defineConfig(({ mode }) => {
           propertyReadSideEffects: false,
           tryCatchDeoptimization: false,
         },
-        external: ['@daracl/core', '@daracl/toast', '@daracl/datatimepicker'],
+        external: ['@daracl/core', '@daracl/core/utils', '@daracl/toast', '@daracl/datatimepicker'],
         // plugins: isProd ? [terser()] : [],
         output: {
+          banner: topBanner,
           extend: true,
           assetFileNames: createAssetFileNames(isProd),
           globals: {

@@ -41,8 +41,8 @@
     "./umd": {
       "import": "./dist/daracl.grid.umd.js"
     },
-    "./dist/": "./dist/",
-    "./style/": "./style/"
+    "./dist/*": "./dist/*",
+    "./style/*": "./style/*"
   },
   "files": [
     "dist",
@@ -53,7 +53,6 @@
     "editor.formatOnSave": false
   },
   "devDependencies": {
-    "@daracl/core": "^0.0.5",
     "@daracl/datetimepicker": "^0.0.13",
     "@mxssfd/typedoc-theme": "^1.1.1",
     "@playwright/test": "^1.55.1",
@@ -90,26 +89,42 @@
     "vite-plugin-banner": "^0.7.1"
   },
   "scripts": {
-    "build": "npm run build:escjs && npm run build:umd && npm run mergenclean",
-    "build:umd": "vite build --config vite.config.umd.js --mode production && vite build --config vite.config.umd.js --mode development",
-    "build:escjs": "vite build --config vite.config.js --mode production && vite build --config vite.config.js --mode development",
+    "build": "node scripts/build.mjs",
+    "build:umd": "vite build --config vite.config.umd.mjs --mode production && vite build --config vite.config.umd.mjs --mode development",
+    "build:escjs": "vite build --config vite.config.mjs --mode production && vite build --config vite.config.mjs --mode development",
     "mergenclean": "npm run copy-dts && npm run build:tsc && npm run copy-unmin && npm run clean:unmin && npm run copy-html",
-    "build:tsc": "tsc --emitDeclarationOnly && tsc-alias -p tsconfig.json",
+    "build:tsc": "tsc -p tsconfig-build.json --emitDeclarationOnly && tsc-alias -p tsconfig-build.json",
     "dev": "vite",
     "preview": "vite preview",
     "docs:gen": "typedoc --tsconfig tsconfig.doc.json",
-    "dts:gen": "npx -p typescript tsc src/index.js --declaration --allowJs --emitDeclarationOnly --outDir dist",
+    "dts:gen": "npm run build:tsc",
     "test": "jest",
     "pwtest": "playwright test",
-    "clean:unmin": "rimraf dist/unmin",
-    "copy-html": "cpx \"public/index.html\" dist",
-    "copy-unmin": "cpx \"dist/unmin/**.*\" dist",
-    "copy-dts": "cpx \"src/**/*.d.ts\" dist",
-    "prepublishOnly": "npm run build"
+    "clean:unmin": "node scripts/build-files.mjs clean-unmin",
+    "copy-html": "node scripts/build-files.mjs html",
+    "copy-unmin": "node scripts/build-files.mjs unmin",
+    "copy-dts": "node scripts/build-files.mjs dts",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "core:link": "node scripts/link-core.cjs",
+    "test:core-link": "node --test scripts/link-core.test.cjs",
+    "build:verify": "node scripts/build.mjs --verify",
+    "test:scripts": "node --test scripts/*.test.cjs scripts/*.test.mjs",
+    "audit:security": "npm audit --omit=dev",
+    "audit:security:all": "npm audit"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "overrides": {
+    "@daracl/datetimepicker": {
+      "@daracl/core": "$@daracl/core"
+    }
+  },
   "dependencies": {
-    "@daracl/ui-style": "^0.0.1",
-    "pdfkit": "^0.20.2"
+    "@daracl/ui-style": "0.0.6",
+    "pdfkit": "^0.20.2",
+    "@daracl/core": "0.0.11"
   }
 }

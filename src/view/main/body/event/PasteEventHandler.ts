@@ -33,7 +33,7 @@ export class PasteEvent implements EventHandler {
     const opts = this.gridMain.options();
 
     const pasteBeforeFn = opts.body.pasteBefore;
-    const pasteBeforeFnFlag = isFunction(pasteBeforeFn);
+    const pasteBeforeFnFlag = isFunction<(text: string) => string>(pasteBeforeFn);
 
     const pasteAfterFn = opts.body.pasteAfter;
     const pasteAfterFnFlag = isFunction(pasteAfterFn);

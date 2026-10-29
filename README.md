@@ -283,15 +283,42 @@ import '@daracl/ui-style/theme-vars.css';
 
 ## 개발
 
+Node.js `^20.19.0 || >=22.12.0`과 Yarn `1.22.22`를 사용합니다. 원하는 디렉터리에 저장소를 받은 뒤 아래 명령을 실행합니다. core 저장소를 함께 받거나 개인 경로·환경 변수를 설정할 필요는 없습니다.
+
 ```sh
+git clone https://github.com/daracl/ui-grid.git
+cd ui-grid
 yarn install
 yarn dev        # vite 개발 서버 실행, /uitest/index.html 자동 오픈
+yarn typecheck  # 산출물 없이 TypeScript 검사
 yarn test       # Jest 유닛 테스트
 yarn build      # 배포용 빌드 (ESM/CJS + UMD)
 yarn docs:gen   # typedoc API 문서 생성
 ```
 
 기능별 수동/시각 테스트 페이지는 `uitest/*.html`에서 확인할 수 있습니다(편집, 트리, 정렬, 검색, 페이징, 컨텍스트 메뉴, 행 이동 등).
+
+### core 공통 모듈 개발
+
+공통 함수는 `@daracl/core@0.0.11`의 공개 진입점 `@daracl/core/utils`를 참조합니다. 일반적인 설치·개발·테스트·빌드는 설치된 패키지만 사용하며 형제 폴더를 탐색하거나 `node_modules`를 교체하지 않습니다. TypeScript도 패키지의 배포 타입을 사용합니다.
+
+공유 스타일은 현재 SCSS의 테마 mixin을 제공하는 배포 버전 `@daracl/ui-style@0.0.6`으로 고정합니다. 스타일 저장소의 로컬 연결도 필요하지 않습니다.
+
+`datetimepicker@0.0.13`의 peer 범위가 `^0.0.5`로 제한되어 있어 npm은 해당 패키지의 core 의존성만 `overrides`로 현재 core 버전에 맞춥니다. datetimepicker가 사용하는 `leftPad`, `leftPadClamp`, `isNumeric`, `isFunction`은 core 0.0.9에서도 제공합니다. Yarn 1은 peer 범위 경고를 표시할 수 있습니다. `--force`나 `--legacy-peer-deps`는 필요하지 않습니다.
+
+ESM/CJS 빌드는 이 진입점을 외부 의존성으로 유지하고, UMD 빌드는 사용하는 core 함수를 포함합니다. core 전체의 전역 등록·스타일을 가져오지 않도록 공통 함수는 루트 진입점 대신 utils에서 named import합니다. 숫자 문자열 판별, 빈 값 판별, 배열 복사 및 깊은 복사·병합처럼 의미가 다른 처리는 그리드의 기존 계약을 유지합니다.
+
+core 자체를 함께 수정할 때만 선택적으로 `yarn core:link`를 실행합니다. 이 명령은 형제 디렉터리의 package.json에서 이름이 `@daracl/core`인 체크아웃을 찾아 연결하고 기존 설치를 `.tmp/core-package-*`에 보관합니다. 폴더명·개인 절대 경로는 공유 설정에 넣지 않습니다. 체크아웃이 여러 개이거나 다른 곳에 있다면 실행 환경의 `DARACL_CORE_ROOT`로 선택할 수 있습니다.
+
+연결된 core가 개발용 `daracl-source` export를 제공하면 Vite와 Jest는 해당 TypeScript 소스를 사용합니다. Vite가 소스를 감시하므로 저장하면 HMR 또는 새로고침이 동작합니다. IDE 타입 검사·선언 생성에는 core의 배포 타입이 필요하므로 core에서 먼저 빌드하고 공개 타입 변경 시 다시 빌드합니다. 배포 전에는 연결을 해제하고 패키지 설치 상태에서 검증합니다.
+
+```sh
+yarn test:core-link  # 선택적 연결 도구 검증
+yarn typecheck
+yarn test --runInBand
+```
+
+위 명령은 `npm install`, `npm run dev`, `npm run typecheck`, `npm test -- --runInBand`, `npm run build`로도 실행할 수 있습니다. 공통 모듈을 갱신할 때는 core를 먼저 배포하고 `dependencies`의 버전을 명시적으로 변경합니다.
 
 ## License
 
@@ -446,3 +473,15 @@ field는 집계 결과를 표시할 컬럼명입니다. expression은 sum, avg, 
 count는 빈 값과 관계없이 행 수를 셉니다. 숫자 집계는 숫자 문자열을 허용하며 null·undefined·빈 문자열·유효하지 않은 숫자를 제외합니다. 숫자 값이 없으면 0입니다. 그룹 결과는 화면·선택 복사·PDF·Excel에 반영됩니다.
 
 groupSummaryFields가 빈 배열이면 그룹 집계 행을 표시하지 않습니다. showGroupSummary·showGrandSummary는 집계 방식과 무관하게 그룹별·전체 집계 행의 표시 여부를 제어합니다.
+
+### 빌드 설정과 검증
+
+Vite 설정은 `vite.config*.mjs`, 공통 설정은 `vite.common.mjs`를 사용합니다. 패키지 전체를 ESM으로 변경하지 않고 설정 파일만 ESM으로 실행합니다.
+
+- `npm run build`: `dist`를 정리하고 전체 배포 파일을 생성합니다. 선언 생성과 번들 작업을 병렬로 실행하며 UMD도 esbuild로 압축합니다.
+- `npm run build:verify`: `.tmp/build-*`에 전체 배포 파일을 생성하고 필수 파일·폰트·라이선스, 압축/비압축 UMD 렌더링, 선언 파일의 별칭 변환을 검사합니다. 기존 `dist`는 변경하지 않습니다.
+- `npm run test:scripts`: 설정·복사·경로 보호·core 연결 테스트를 실행합니다.
+- `npm run build:tsc` / `npm run dts:gen`: 빌드 전용 TypeScript 설정으로 선언을 생성하고 경로 별칭을 변환합니다.
+- `npm run audit:security` / `npm run audit:security:all`: 배포 의존성 / 전체 의존성의 보안 감사를 실행합니다. 결과는 사용하는 lockfile과 설치 상태에 따라 달라집니다.
+
+public 자산은 전체 빌드 마지막에 한 번 복사하며 PDF 한글 폰트와 `OFL.txt`를 포함합니다. 개발 서버는 현재 저장소와 실제 연결된 core 소스 경로만 허용합니다. `tsconfig-build.json`의 전역 타입 제한은 테스트 설정에는 적용하지 않습니다.

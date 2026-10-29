@@ -3,6 +3,7 @@ import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 import { createHTMLElement } from '@/util/domUtils';
 import { isFunction } from '@/util/utils';
+import { OptionCallback } from '@/types/Common';
 
 /**
  * label renderer
@@ -21,7 +22,7 @@ export class LabelRenderer extends ToolBarRenderer {
     let className = '';
     const rendererClassName = this.field?.rendererClassName;
     if (rendererClassName) {
-      if (isFunction(rendererClassName)) {
+      if (isFunction<OptionCallback>(rendererClassName)) {
         className = rendererClassName(this.field);
       } else {
         className = rendererClassName;

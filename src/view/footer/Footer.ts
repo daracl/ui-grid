@@ -161,7 +161,7 @@ export class Footer {
         if (isString(selectionFormat)) {
           dataInfo.summary.enabledSummary = dataInfo.summary.numFieldCount > 0;
           statusText = replaceMesasgeFormat(selectionFormat, dataInfo.summary);
-        } else if (isFunction(selectionFormat)) {
+        } else if (isFunction<(data: any) => string>(selectionFormat)) {
           statusText = selectionFormat(dataInfo);
         }
 
@@ -196,7 +196,7 @@ export class Footer {
         let pagingText = '';
         if (isString(pagingFormat)) {
           pagingText = replaceMesasgeFormat(pagingFormat, statusInfo);
-        } else if (isFunction(pagingFormat)) {
+        } else if (isFunction<(data: any) => string>(pagingFormat)) {
           pagingText = pagingFormat(statusInfo);
         }
 

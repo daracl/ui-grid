@@ -1,40 +1,56 @@
+import {
+  arrayCopy as coreArrayCopy,
+  isNil as coreIsNil,
+  isFunction,
+  deepCopy,
+  debounce as coreDebounce,
+  xss as replaceXss,
+  unXss as unReplace,
+  isUndefined,
+  isArray,
+  removeItem,
+  isVisible,
+  isSameValue,
+  getHashCode,
+  templateToElement,
+  camelToUnderscore,
+  camelToKebab,
+  stringSplit,
+  addValueIfMissing,
+  trim,
+  isBlank,
+  isString,
+  isDate,
+  writeClipboard,
+} from '@daracl/core/utils';
+export {
+  isFunction,
+  deepCopy,
+  replaceXss,
+  unReplace,
+  isUndefined,
+  isArray,
+  removeItem,
+  isVisible,
+  isSameValue,
+  getHashCode,
+  templateToElement,
+  camelToUnderscore,
+  camelToKebab,
+  stringSplit,
+  addValueIfMissing,
+  trim,
+  isBlank,
+  isString,
+};
+
 import { DataManager } from '@/service/DataManager';
 import { ViewItem } from '@/types/Common';
 import { FieldSortInfo } from '@/types/Header';
 import { FieldItem } from '@t/GridField';
 
-const xssFilter = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  // eslint-disable-next-line quotes
-  "'": '&#39;',
-} as any;
-
-export const replaceXss = (inputText: string): string => {
-  let returnText = inputText;
-  if (returnText) {
-    Object.keys(xssFilter).forEach((key) => {
-      returnText = returnText.replaceAll(key, xssFilter[key]);
-    });
-  }
-  return returnText;
-};
-
 export const hasOwnProp = (obj: any, key: string): boolean => {
   return Object.prototype.hasOwnProperty.call(obj, key);
-};
-
-export const unReplace = (inputText: string): string => {
-  let returnText = inputText;
-
-  if (returnText) {
-    Object.keys(xssFilter).forEach((key) => {
-      returnText = returnText.replaceAll(xssFilter[key], key);
-    });
-  }
-  return returnText;
 };
 
 export const unFieldName = (fieldName: string): string => {
@@ -43,41 +59,7 @@ export const unFieldName = (fieldName: string): string => {
   }
   return '';
 };
-export const isBlank = (value: any): boolean => {
-  if (value === null) return true;
-  if (value === '') return true;
-  if (typeof value === 'undefined') return true;
-  if (typeof value === 'string' && (value === '' || value.replace(/\s/g, '') === '')) return true;
-
-  return false;
-};
-
-export const isVisible = (elm: HTMLElement): boolean => {
-  if (!elm.offsetHeight && !elm.offsetWidth) {
-    return false;
-  }
-  if (getComputedStyle(elm).visibility === 'hidden') {
-    return false;
-  }
-  return true;
-};
-
-export const isUndefined = (value: any): value is undefined => {
-  return value === undefined;
-};
-
-/* old
-export const isFunction = (value: any): value is Function => {
-  return typeof value === 'function';
-}; 
-*/
-export const isFunction = <T extends (...args: any[]) => any>(value: unknown): value is T => {
-  return typeof value === 'function';
-};
-
-export const isString = (value: any): value is string => {
-  return typeof value === 'string';
-};
+// core의 isNumber와 달리 숫자 문자열도 허용하는 기존 그리드 계약을 유지한다.
 export const isNumber = (value: unknown): value is number => {
   if (isBlank(value)) {
     return false;
@@ -87,82 +69,12 @@ export const isNumber = (value: unknown): value is number => {
   return !Number.isNaN(num);
 };
 
-export const intValue = (val: any): number => {
-  return Number.parseInt(val, 10);
-};
-
-export const isArray = (value: any): value is Array<any> => {
-  return Array.isArray(value);
-};
-
-/**
- * 배열에서 지정한 항목을 제거한 새로운 배열을 반환합니다.
- *
- * 원본 배열은 변경되지 않습니다.
- *
- * @template T 배열 요소의 타입
- * @param array 대상 배열
- * @param item 제거할 항목
- * @returns 지정한 항목이 제거된 새로운 배열.
- *          항목이 존재하지 않으면 원본과 동일한 요소를 가진 새로운 배열을 반환합니다.
- */
-export const removeItem = <T>(array: T[], item: T): T[] => {
-  const index = array.indexOf(item);
-
-  if (index === -1) {
-    return [...array];
-  }
-
-  return [...array.slice(0, index), ...array.slice(index + 1)];
-};
-
-export const copyStringToClipboard = (copyText: string) => {
-  if (navigator.clipboard) {
-    navigator.clipboard
-      .writeText(copyText)
-      .then(() => void 0)
-      .catch((err) => {
-        //console.log(err);
-        fallbackCopyToClipboard(copyText);
-      });
-  } else {
-    fallbackCopyToClipboard(copyText);
-  }
+export const copyStringToClipboard = (copyText: string): void => {
+  void writeClipboard(copyText);
 };
 
 export function debounce<T extends (...args: any[]) => void>(f: T, delay: number): (...args: Parameters<T>) => void {
-  let timer: number | undefined;
-
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>) {
-    if (delay < 1) {
-      f.apply(this, args);
-      return;
-    }
-
-    if (timer !== undefined) {
-      clearTimeout(timer);
-    }
-    timer = window.setTimeout(() => {
-      f.apply(this, args);
-    }, delay);
-  };
-}
-
-function fallbackCopyToClipboard(copyText: string) {
-  const copyAreaElement = document.createElement('textarea') as HTMLTextAreaElement;
-  copyAreaElement.setAttribute('style', 'top:-9999px;left:-9999px;position:fixed;z-index:9999;');
-  document.body.appendChild(copyAreaElement);
-
-  copyAreaElement.value = copyText;
-  copyAreaElement.select();
-
-  try {
-    document.execCommand('copy');
-  } catch (err) {
-    console.error('Fallback copy failed:', err);
-  }
-
-  document.body.removeChild(copyAreaElement);
+  return coreDebounce(f, delay);
 }
 
 /**
@@ -183,45 +95,6 @@ export function isHiddenField(field: FieldItem): boolean {
 export function isHTMLElement(target: any): target is HTMLElement {
   return target instanceof HTMLElement;
 }
-
-/**
- * 두 값의 타입과 관계없이 동일한 값인지 비교
- *
- * 예:
- * - 1과 '1' → true
- * - true와 'true' → true
- * - null과 undefined → true
- *
- * @param value1 비교할 첫 번째 값
- * @param value2 비교할 두 번째 값
- * @returns 두 값이 동일하면 true, 그렇지 않으면 false
- */
-export function isSameValue(value1: any, value2: any) {
-  if (value1 == null && value2 == null) {
-    return true;
-  }
-
-  return String(value1) === String(value2);
-}
-
-/**
- * 값있는지 여부 체크.
- *
- * @param {*} value
- * @returns {boolean}
- */
-export const isEmpty = (value: any): boolean => isUndefined(value) || value == null;
-
-export const getHashCode = (str: string) => {
-  let hash = 0;
-  if (str.length == 0) return hash;
-  for (let i = 0; i < str.length; i++) {
-    const tmpChar = str.charCodeAt(i);
-    hash = (hash << 5) - hash + tmpChar;
-    hash = hash & hash;
-  }
-  return String(hash).replaceAll(/-/g, '_');
-};
 
 /**
  * replace message format
@@ -279,12 +152,6 @@ export const replaceMesasgeFormat = (pTmplate: string, data: any) => {
   return template;
 };
 
-export const templateToElement = (htmlTemplate: string): Element | null => {
-  const template = document.createElement('template');
-  template.innerHTML = htmlTemplate;
-  return template.content.firstElementChild;
-};
-
 export function isPlainObject(obj: any) {
   // 객체가 아닌 경우 또는 null인 경우 false 반환
   if (typeof obj !== 'object' || obj === null) {
@@ -299,26 +166,6 @@ export function isPlainObject(obj: any) {
 
   // Object 생성자의 prototype과 같으면 Plain Object로 판단
   return Object.getPrototypeOf(obj) === proto;
-}
-
-/**
- * camel-> underscore
- *
- * @param {string} str
- * @returns {*}
- */
-export function camelToUnderscore(str: string) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase(); // 전체를 소문자로
-}
-
-/**
- * camel-> Kebab
- *
- * @param {string} str
- * @returns {*}
- */
-export function camelToKebab(str: string) {
-  return str.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 /**
@@ -392,24 +239,8 @@ export function compareCachedValue(valA: any, valB: any, ascOrder: boolean, empt
   return ascOrder ? result : -result;
 }
 
-export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
-  if (!Array.isArray(array)) return [];
-
-  if (start === undefined && end === undefined) {
-    // 시작과 끝이 모두 없는 경우: 전체 복사
-    return [...array];
-  }
-
-  // slice는 start, end가 undefined인 경우 자동으로 처리함
-  return array.slice(start, end);
-}
-
 export function isObject(value: any) {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isDate(value: unknown): value is Date {
-  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 /**
@@ -451,27 +282,6 @@ export function insertToArray<T>(
 }
 
 /**
- * deep copy
- * @param copyValue copy object
- * @returns any
- */
-export const deepCopy = (copyValue: any): any => {
-  if (isArray(copyValue)) {
-    const reval = [];
-    for (const value of copyValue) {
-      if (isPlainObject(value)) {
-        reval.push(merge({}, value));
-      } else {
-        reval.push(value);
-      }
-    }
-    return reval;
-  } else {
-    return merge({}, copyValue);
-  }
-};
-
-/**
  * object merge
  * 
  * @example
@@ -499,64 +309,6 @@ export const merge = (...value: any[]): any => {
   }
 
   return reval;
-};
-
-export const stringSplit = (value: string, delimiter: string): string[] => {
-  return (value || '').split(delimiter);
-};
-
-/**
- * 문자열을 delimiter로 분리하여 특정 값을 포함하지 않으면 추가하고,
- * 필요 시 정렬 후 다시 문자열로 반환합니다.
- *
- * @param {string} currentValue - 원본 문자열 (예: "a,b,c")
- * @param {string} addValue - 추가할 값 (중복되면 추가하지 않음)
- * @param {boolean} shouldSort - true일 경우 정렬함 (기본값: false)
- * @param {string} delimiter - 분리 기준 문자 (기본값: ',')
- * @returns {string} 결과 문자열
- */
-export const addValueIfMissing = (
-  currentValue: string,
-  addValue: string | null,
-  shouldSort = false,
-  delimiter = ',',
-  originValues: string[] = [],
-) => {
-  if (!addValue) return [];
-
-  const value = (currentValue || '') + '';
-
-  // 1. split + trim + filter out empty values
-  let items = stringSplit(value, delimiter)
-    .map((item) => item.trim())
-    .filter((item) => item);
-
-  // 2. originValues 기준으로 필터링
-  if (originValues.length > 0) {
-    const originSet = new Set(originValues.map((v) => v.trim()));
-    items = items.filter((item) => originSet.has(item));
-  }
-
-  const uniqueItems = new Set(items);
-
-  // 3. toggle 로직
-  if (uniqueItems.has(addValue)) {
-    uniqueItems.delete(addValue);
-  } else {
-    uniqueItems.add(addValue);
-  }
-
-  const result = Array.from(uniqueItems);
-
-  if (shouldSort) {
-    result.sort();
-  }
-
-  return result;
-};
-
-export const trim = (s: string): string => {
-  return s.replace(/^\s+|\s+$/g, '');
 };
 
 function cloneDeep(dst: any, src: any): any {
@@ -680,4 +432,15 @@ export function arrayEquals<T, U = T>(a: T[], b: T[], ignoreOrder = false, selec
 function compare<T>(a: T, b: T): number {
   if (a === b) return 0;
   return a > b ? 1 : -1;
+}
+
+export const intValue = (val: any): number => Number.parseInt(val, 10);
+
+// core의 isEmpty는 빈 문자열·배열·객체도 검사하므로 null/undefined 전용 함수를 사용한다.
+export const isEmpty = (value: any): boolean => coreIsNil(value);
+
+export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
+  const copy = coreArrayCopy(array, start, end);
+  // 범위를 생략한 경우 희소 배열의 빈 슬롯을 undefined로 채우는 기존 동작을 유지한다.
+  return start === undefined && end === undefined ? [...copy] : copy;
 }
