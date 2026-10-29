@@ -176,7 +176,7 @@ export class PdfConverter {
     return new Promise<Blob>((resolve, reject) => {
       const chunks: Uint8Array[] = [];
       doc.on('data', (chunk: Uint8Array) => chunks.push(chunk));
-      doc.on('end', () => resolve(new Blob(chunks, { type: 'application/pdf' })));
+      doc.on('end', () => resolve(new Blob(chunks as BlobPart[], { type: 'application/pdf' })));
       doc.on('error', reject);
 
       const pageWidth = doc.page.width - margin * 2;

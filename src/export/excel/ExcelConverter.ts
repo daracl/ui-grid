@@ -275,7 +275,8 @@ export class ExcelConverter {
         'xl/worksheets/_rels/sheet1.xml.rels'
       ] = `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/drawing" Target="../drawings/drawing1.xml"/></Relationships>`;
     }
-    return new Blob([createZip(files)], { type: MIME });
+    // TS 5.7+ 의 Uint8Array<ArrayBufferLike> 는 BlobPart 와 맞지 않으므로 캐스팅한다(createZip은 ArrayBuffer 기반 배열을 반환).
+    return new Blob([createZip(files) as BlobPart], { type: MIME });
   }
 
   public download(blob: Blob, fileName = 'grid-export.xlsx'): void {

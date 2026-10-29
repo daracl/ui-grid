@@ -2,6 +2,7 @@ import { createRequire } from 'node:module';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'node:fs';
+import { uitestMockApi } from './uitest/mockApi.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +52,8 @@ export const createCommonConfig = (isProd) => ({
   plugins: [
     // production 에서만 실행
     isProd && aggressiveHtmlMinify(),
+    // dev 서버 전용 uitest 목 API (apply: 'serve' 이므로 빌드에는 영향 없음)
+    uitestMockApi(),
   ].filter(Boolean),
 
   define: {
