@@ -24,13 +24,13 @@
 
 | 구분 | 기술 및 선언 버전 |
 | --- | --- |
-| 구현 | TypeScript `^5.1.6`, JavaScript 빌드 설정, HTML 예제, SCSS |
-| 빌드 | Vite `^5.4.0`, Sass `^1.80.2`, Terser `^5.47.0`, tsc-alias `^1.9.5` |
+| 구현 | TypeScript `5.6.3`(고정), JavaScript 빌드 설정, HTML 예제, SCSS |
+| 빌드 | Vite `~7.3.7`, Sass `^1.107.0`, Terser `^5.47.0`, tsc-alias `^1.9.5` |
 | PDF | pdfkit `^0.20.2`, @types/pdfkit `^0.17.6` |
 | Daracl | @daracl/core `^0.0.5`, @daracl/datetimepicker `^0.0.13` — 현재 devDependencies에 선언 |
 | 테스트 | Jest `^29.0.0`, ts-jest `^29.4.6`, jest-environment-jsdom `^29.7.0`, @playwright/test `^1.55.1` |
 | 스타일 검사 | ESLint `^8.40.0`, @typescript-eslint `^5.59.5`, Prettier `^2.8.8` |
-| 문서 | TypeDoc `^0.26.7` |
+| 문서 | TypeDoc `^0.28.20` |
 | 패키지 관리 | packageManager는 Yarn `1.22.22`; npm scripts와 로컬 package-lock.json도 존재 |
 
 - `tsconfig.json`: `strict: true`, `strictPropertyInitialization: false`, `skipLibCheck: true`, target `es2017`, module `esnext`, DOM lib, declaration 생성.
@@ -87,7 +87,7 @@ docs/ / dist/                        생성 문서·배포 산출물
 .vscode/ / .claude/                  로컬 도구 설정 디렉터리
 ```
 
-루트에는 `package.json`, TypeScript/Jest/Vite 설정, `.prettierrc`, `.eslintrc.json`, README 2종, `DOC-README.md`, `CLAUDE.md`, `runBuild*.bat`, 과거 빌드용 `build.js`도 있다. 단일 패키지 구조이며 workspace별 하위 패키지는 없다. 생성물과 의존성인 `docs/`, `dist/`, `node_modules/`를 소스 원본으로 취급하지 않는다.
+루트에는 `package.json`, TypeScript/Jest/Vite 설정, `.prettierrc`, `.eslintrc.json`, README 2종, `DOC-README.md`, `CLAUDE.md`, `runBuild*.bat`. 단일 패키지 구조이며 workspace별 하위 패키지는 없다. 생성물과 의존성인 `docs/`, `dist/`, `node_modules/`를 소스 원본으로 취급하지 않는다.
 
 ## 4. Architecture & Module Responsibilities
 
@@ -184,7 +184,7 @@ GridOptions → initGridOptions / initConfig → GridMain
 | 명령 | 용도 |
 | --- | --- |
 | `npm run dev` | `127.0.0.1:5178`, `/uitest/index.html` 자동 열기 |
-| `npm run build` | `scripts/build.mjs`가 declaration·ESM/CJS·UMD 번들을 임시 폴더에 만든 뒤 `dist`로 반영하는 전체 배포 빌드 |
+| `npm run build` | `scripts/build.mjs`: 선언 파일(tsc → src `.d.ts` 복사 → tsc-alias)과 ES/CJS·UMD × production/development 번들 4개를 별도 프로세스(`scripts/build-bundle.mjs`)로 동시에 빌드해 `dist`로 합치는 전체 배포 빌드 |
 | `npm run build:escjs` | ESM/CJS production·development 번들 |
 | `npm run build:umd` | UMD production·development 번들 |
 | `npm run build:tsc` | declaration 생성 및 tsc-alias 경로 변환; dist에 기록 |
@@ -197,6 +197,8 @@ GridOptions → initGridOptions / initConfig → GridMain
 
 - `npm run pwtest` script는 있지만 Playwright 설정·전용 spec은 확인되지 않는다. 준비된 E2E 검증 수단으로 간주하지 않는다.
 - `runBuildDev.bat`/`runBuildProd.bat`는 `npm run build`를 호출한다(별도 dev/prod 스크립트는 없고 `build`가 두 모드를 모두 생성한다).
+- `tsconfig-build.json`(선언 생성 전용)은 tsc-alias가 별칭을 변환하도록 `baseUrl`을 유지한다. 일반 `tsconfig.json`은 `moduleResolution: bundler`, `baseUrl` 없음이다.
+- `npm install`은 `node_modules/@daracl/core`의 형제 폴더 링크를 실제 설치본으로 바꿀 수 있다. 설치 후 `npm run core:link`로 다시 연결한다.
 - `dts:gen`은 `build:tsc`의 별칭이다. 과거 webpack/esbuild용 `build.js`는 제거했다.
 - `copy-html`은 `public` 디렉터리(폰트·`OFL.txt`)를 `dist`로 복사한다. `public/index.html`은 없어도 된다.
 - `vite.config.mjs`의 external 항목 `@daracl/datatimepicker`(철자 오류)·`@daracl/toast`는 실제 의존성과 일치하지 않아 현재 아무 효과가 없다. 고치면 datetimepicker가 번들에서 빠지므로 의도 확인 후 수정한다.

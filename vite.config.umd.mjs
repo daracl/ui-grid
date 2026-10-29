@@ -39,13 +39,16 @@ export default defineConfig(({ mode }) => {
       {
         name: 'grid-lazy-pdf',
         async writeBundle(output) {
-          for (const createConfig of [pdfConfig, excelConfig, csvConfig, jsonConfig]) {
-            const config = createConfig({ command: 'build', mode });
-            await build({
-              ...config, configFile: false, mode,
-              build: { ...config.build, outDir: output.dir, copyPublicDir: false, reportCompressedSize: false },
-            });
-          }
+          // 서로 다른 파일을 만들므로 동시에 빌드한다.
+          await Promise.all(
+            [pdfConfig, excelConfig, csvConfig, jsonConfig].map((createConfig) => {
+              const config = createConfig({ command: 'build', mode });
+              return build({
+                ...config, configFile: false, mode,
+                build: { ...config.build, outDir: output.dir, copyPublicDir: false, reportCompressedSize: false },
+              });
+            }),
+          );
         },
       },
     ],

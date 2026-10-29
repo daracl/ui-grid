@@ -1,6 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": []
+    "types": [],
+    // 선언 생성 전용. tsc-alias가 선언 파일의 @/·@t/ 경로를 상대 경로로 바꾸려면 baseUrl 기준의 paths가 필요하다.
+    // (baseUrl은 TypeScript 6부터 deprecated 이므로 tsc-alias가 baseUrl 없이 paths를 지원하면 이 항목을 제거한다.)
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@t/*": ["src/types/*"]
+    }
   }
 }
