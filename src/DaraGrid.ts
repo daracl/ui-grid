@@ -34,11 +34,20 @@ import { RefChartValue } from './types/RefValue';
 import type { ExcelExportOptions } from './export/excel/ExcelConverter';
 import { loadExcelModule } from '@/export/excel/loadExcelModule';
 import { TreeDataManager } from './service/TreeDataManager';
+import type { RemoteDataController } from './service/remote/RemoteDataController';
 import type { CsvExportOptions } from './export/csv/CsvConverter';
 import { loadCsvModule } from '@/export/csv/loadCsvModule';
 import { RendererFactory } from './view/builder/RendererFactory';
 import type { JsonExportOptions } from './export/json/JsonConverter';
 import { loadJsonModule } from '@/export/json/loadJsonModule';
+import type {
+  LoadOptions,
+  LoadResult,
+  RemoteParams,
+  RemoveOptions,
+  RemoveSummary,
+  SaveSummary,
+} from './types/DataSource';
 
 declare const APP_VERSION: string;
 
@@ -874,6 +883,63 @@ export class DaraGrid {
 
   public search(searchText: string, opts: SearchMode) {
     return this.gridMain.getDataSearch().search(searchText, opts ?? {});
+  }
+
+  /**
+   * dataSource.load로 서버 데이터를 조회한다. 조회 조건을 생략하면 마지막 조건을 사용한다.
+   *
+   * 미저장 변경이 있으면 UNSAVED_CHANGES 오류로 거부한다. 변경을 버리려면 `{ discardChanges: true }`를 전달한다.
+   *
+   * @param params 서버 조회 조건
+   * @param options 조회 옵션
+   * @returns 조회 결과. before 이벤트로 취소되었거나 더 새로운 조회에 밀렸으면 null
+   * @example
+   * await grid.load({ status: 'ACTIVE' });
+   */
+  public load(params?: RemoteParams, options?: LoadOptions): Promise<LoadResult | null> {
+    return this.remote((controller) => controller.load(params, options));
+  }
+
+  /**
+   * 검색 조건을 적용하여 서버에서 조회한다. 서버 페이징이면 첫 페이지부터 조회한다.
+   * 클라이언트 검색(`search()`)과는 별개이다.
+   */
+  public searchRemote(params: RemoteParams, options?: LoadOptions): Promise<LoadResult | null> {
+    return this.remote((controller) => controller.searchRemote(params, options));
+  }
+
+  /**
+   * 마지막 조회 조건(과 현재 페이지)으로 다시 조회한다.
+   */
+  public reload(options?: LoadOptions): Promise<LoadResult | null> {
+    return this.remote((controller) => controller.reload(options));
+  }
+
+  /**
+   * 변경된 행(추가·수정·삭제)을 dataSource.save로 저장한다. 변경이 없으면 요청하지 않는다.
+   * 성공하면 변경 상태를 확정하고 Undo/Redo 이력을 초기화한다.
+   *
+   * @returns 저장 요약. before 이벤트로 취소되면 null
+   */
+  public save(): Promise<SaveSummary | null> {
+    return this.remote((controller) => controller.save());
+  }
+
+  /**
+   * 선택된 행(또는 `options.rowIds`)을 dataSource.remove로 서버에서 삭제한다.
+   * 저장된 적 없는 신규 행은 요청 없이 로컬에서만 제거한다.
+   */
+  public removeRemote(options?: RemoveOptions): Promise<RemoveSummary | null> {
+    return this.remote((controller) => controller.removeRemote(options));
+  }
+
+  /** dataSource가 없으면 동기 예외 대신 reject된 Promise를 반환한다. */
+  private remote<T>(run: (controller: RemoteDataController) => Promise<T>): Promise<T> {
+    try {
+      return run(this.gridMain.getRemote());
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   public static setIcons(icons: any) {

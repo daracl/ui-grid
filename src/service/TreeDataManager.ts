@@ -226,7 +226,6 @@ export class TreeDataManager extends DataManager {
 
   /**
    * viewItems
-   * @param items items
    */
   public buildViewItems() {
     this.setViewItems(this.getTreeToList(this.viewTreeItems));

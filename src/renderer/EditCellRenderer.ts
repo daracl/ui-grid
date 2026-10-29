@@ -1,13 +1,12 @@
 import { FieldItem } from '@t/GridField';
 
-import { FIELD_LAYER_CLASS, ROW_FIELD } from '@/constants';
+import { FIELD_LAYER_CLASS } from '@/constants';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { merge } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ValidResult } from '@t/ValidResult';
 import { CellRenderer } from './CellRenderer';
 import { isFieldEditable } from '@/util/gridUtils';
-import { CellInfo } from '@/types/GridConfig';
 
 export abstract class EditCellRenderer extends CellRenderer {
   protected readonly rendererContainer: HTMLElement;
@@ -33,7 +32,7 @@ export abstract class EditCellRenderer extends CellRenderer {
   /**
    * 값 얻기
    *
-   * @param {any} value row item
+   @param {any} item row item
    * @returns {any} field value
    */
   public getValue(item: any, inputValue?: any) {
@@ -48,7 +47,7 @@ export abstract class EditCellRenderer extends CellRenderer {
    * 값 셋팅
    *
    * @public
-   * @param {HTMLElement} element cell element
+   @param {Event} e event object
    * @param {any} value row value
    */
   public setValue(e: Event, item: any, value: any, refresh = true) {

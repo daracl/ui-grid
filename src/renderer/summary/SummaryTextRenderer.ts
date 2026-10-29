@@ -8,7 +8,7 @@ import { SummaryItem } from '@/types/Summary';
 /**
  * text renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {SummaryTextRenderer}
  * @extends {SummaryRenderer}
  */
 export class SummaryTextRenderer extends SummaryRenderer {

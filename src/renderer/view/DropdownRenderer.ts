@@ -8,7 +8,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { GridOptions } from '@/types/GridOptions';
 import { RefOptionValue } from '@/types/RefValue';
-import { isString, isEmpty } from '../../util/utils';
+import { isString } from '../../util/utils';
 
 /**
  * dropdown renderer

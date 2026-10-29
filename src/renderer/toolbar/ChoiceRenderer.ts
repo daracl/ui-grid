@@ -3,7 +3,7 @@ import { ToolbarFieldItem } from '@/types/Toolbar';
 import { ValidResult } from '@/types/ValidResult';
 import { getListItemValue, valuesLabelKey, valuesValueKey } from '@/util/gridUtils';
 import { normalizeChoiceOptions, uniqueListItem } from '@/util/rendererUtils';
-import { intValue, isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
+import { intValue, isArray, isFunction, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 import { createHTMLElement } from '@/util/domUtils';

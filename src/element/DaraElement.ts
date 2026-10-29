@@ -228,7 +228,7 @@ export class DaraElement {
   /**
    * css
    *
-   * @param cssValueObject  css value object
+   @param attrs css value object
    * @returns
    */
   css(attrs: any) {
@@ -244,7 +244,7 @@ export class DaraElement {
   /**
    * css
    *
-   * @param cssValueObject  css value object
+   @param csskeys 제거할 css key 배열
    * @returns
    */
   removeCss(csskeys: string[]) {

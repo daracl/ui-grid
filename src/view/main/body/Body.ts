@@ -1,5 +1,4 @@
 import { RowId } from '@/types/Common';
-import { FieldItem } from '@t/GridField';
 
 import { GridMain } from '@/view/GridMain';
 import { BodyEvent } from './event/BodyEvent';

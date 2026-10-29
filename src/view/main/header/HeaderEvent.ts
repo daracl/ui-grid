@@ -7,13 +7,7 @@ import { BasePointerHandler } from '@/event/PointerHandler';
 import { PointerSession } from '@/event/PointerSession';
 import { Config } from '@/types/GridConfig';
 import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
-import {
-  getHeaderCellInfo,
-  getHeaderResizeCellInfo,
-  isMouseMoved,
-  isRowSelectionMode,
-  isSingleSelectionMode,
-} from '@/util/gridUtils';
+import { getHeaderCellInfo, getHeaderResizeCellInfo, isMouseMoved, isSingleSelectionMode } from '@/util/gridUtils';
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 import { HeaderCellClickHandler } from './HeaderCellClickHandler';
@@ -26,8 +20,8 @@ import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 /**
  * Header class
  *
- * @class Header
- * @typedef {Header}
+ * @class HeaderEvent
+ * @typedef {HeaderEvent}
  */
 export class HeaderEvent {
   private readonly gridMain: GridMain;

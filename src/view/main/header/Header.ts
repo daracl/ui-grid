@@ -99,7 +99,6 @@ export class Header {
    * set check box style
    *
    * @public
-   * @param {number} idx
    * @param {("all" | "none" | "partial")} mode
    */
   public setCheckboxStyle(mode: 'all' | 'none' | 'partial') {
@@ -122,7 +121,7 @@ export class Header {
   /**
    * set header height
    *
-   * @param {number} header height
+   @param {number} height header height
    */
   public setHeight(height: number) {
     this.headerElement.setHeight(height);
@@ -179,8 +178,6 @@ export class Header {
 
   /**
    *  set column line selection style
-   * @param columnLine  selected column line set
-   * @param isAll all select flag
    * @returns
    */
   public selectColumnAnchorCell() {

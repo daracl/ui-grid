@@ -8,7 +8,7 @@ import { DataSearch } from './DataSearch';
  * api search class
  *
  * @class ApiDataSearch
- * @typedef {DataSearch}
+ * @typedef {ApiDataSearch}
  */
 export class ApiDataSearch extends DataSearch {
   constructor(gridMain: GridMain) {

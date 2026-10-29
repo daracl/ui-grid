@@ -290,9 +290,9 @@ export class HorizontalScroll {
   /**
    *
    * @param cfg 설정 정보
-   * @param startEventY start event y
-   * @param oneRowMove row move value
-   * @param upFlag up down flag up = true
+   @param startEventX start event x
+   @param oneColMove col move value
+   @param leftFlag left move flag left = true
    * @param bgMoveCol
    * @returns
    */
@@ -416,7 +416,6 @@ export class HorizontalScroll {
    *
    * @private
    * @param {Config} cfg 설정값
-   * @param {number} contLeftVal scroll position
    */
   setHorizontalPosition(cfg: Config) {
     const scroll = cfg.scroll;

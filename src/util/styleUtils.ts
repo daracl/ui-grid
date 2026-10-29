@@ -6,12 +6,11 @@ import { $getElements } from './domUtils';
 import { isFunction } from './utils';
 import { FieldItem } from '@/types/GridField';
 import { RENDERER_VARIANTS, WHITE_SPACE } from '@/constantStyles';
-import { ToolbarFieldItem } from '@/types/Toolbar';
 import { RendererInfo } from '@/types/RendererInfo';
 
 /**
  * @method addStyleTag
- * @param options {Object} - 데이터 .
+ @param instanceId 그리드 instance id
  * @description  add style tab
  */
 export const addStyleTag = (instanceId: string) => {

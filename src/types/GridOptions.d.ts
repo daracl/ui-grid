@@ -2,6 +2,7 @@ import { DeleteMode, HorizontalRegion, HoverMode, SelectionMode } from '@/consta
 import { BodyStyle, ThemeType } from '@/constantStyles';
 import { OptionCallback, RowId, ViewItem } from './Common';
 import { ContextMenuOptions } from './ContenxtMenu';
+import { DataSourceOptions } from './DataSource';
 import { FieldItem } from './GridField';
 import { FieldSortInfo } from './Header';
 import { SummaryItem, SummaryOptions } from './Summary';
@@ -83,8 +84,15 @@ export interface GridOptions {
 
   /**
    * 삭제 모드 soft, hard
+   *
+   * dataSource.save를 사용하면 삭제 행을 추적해야 하므로 지정하지 않을 때 soft로 동작하며 hard는 허용하지 않는다.
    */
   deleteMode?: DeleteMode;
+
+  /**
+   * 서버 연동(AJAX) 설정. 지정하지 않으면 기존과 동일하게 로컬 데이터만 사용한다.
+   */
+  dataSource?: DataSourceOptions;
   /**
    * 툴팁 활성화 여부
    */
@@ -464,6 +472,27 @@ export interface SearchOptions {
 }
 
 /**
+ * 툴바 서버 조회(searchRemote) 자동 실행 설정. dataSource.load가 필요하다.
+ */
+export interface ToolbarRemoteOptions {
+  /**
+   * 조회를 실행할 시점. 'search'는 검색 필드의 Enter·검색 버튼, 'change'는 조건 필드(검색어 입력 제외) 값 변경이다.
+   * @default ['search']
+   */
+  trigger?: ('search' | 'change')[];
+  /**
+   * 'change' 트리거의 연속 변경 지연 시간(ms)
+   * @default 'change' 포함 시 300, 그 외 0
+   */
+  debounce?: number;
+  /**
+   * 미저장 변경을 버리고 조회할지 여부. false이면 UNSAVED_CHANGES로 거부하고 loadError 이벤트로 알린다.
+   * @default false
+   */
+  discardChanges?: boolean;
+}
+
+/**
  * toolbar options
  *
  * @interface ToolbarOptions
@@ -474,6 +503,12 @@ export interface ToolbarOptions {
    * 활성화 여부
    */
   enabled: boolean;
+
+  /**
+   * 검색 필드 등에서 툴바 값으로 searchRemote를 자동 실행한다. true이면 `{ trigger: ['search'] }`.
+   * 필드의 search 콜백이 있으면 먼저 실행하며 false를 반환하면 자동 조회하지 않는다.
+   */
+  remote?: boolean | ToolbarRemoteOptions;
 
   /**
    * 툴바 스크롤 방향키 비활성화 여부

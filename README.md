@@ -262,6 +262,166 @@ await grid.exportExcel({
 
 엑셀 코드는 `exportExcel()` 호출 시 로드됩니다. ESM/CJS 배포 시 생성된 청크 파일을 함께 배포해야 합니다. UMD 배포 시 메인 스크립트 옆에 `daracl.grid.excel.min.mjs`를, 비압축 버전은 `daracl.grid.excel.mjs`를 배포합니다. 파일을 미리 `<script>`로 추가할 필요는 없습니다. 수동 예제는 `uitest/excel-export.html`입니다.
 
+## 서버 연동 (AJAX DataSource)
+
+`dataSource` 옵션을 지정하면 서버에서 조회·검색·저장·삭제할 수 있습니다. 옵션이 없으면 기존 로컬 동작과 완전히 동일합니다. 데이터 상태(C/U/D/R), Undo/Redo, List·Tree·Group 처리는 기존 `DataManager`를 그대로 사용하고, 서버 통신은 `RemoteDataController`와 `DataSource`가 담당합니다. HTTP 전송은 `@daracl/core`의 `Ajax`를 사용합니다.
+
+### 기본 조회·검색·저장·삭제
+
+```ts
+const grid = DaraGrid.create(element, {
+  editable: true,
+  rowIdField: 'id',
+  fields: [...],
+  dataSource: {
+    load: { url: '/api/users/search', method: 'POST' }, // 기본 GET. GET은 쿼리 스트링, 그 외는 JSON 본문
+    save: { url: '/api/users/save', method: 'POST' },
+    remove: { url: '/api/users/delete', method: 'POST' },
+  },
+});
+
+await grid.load();                                    // 조회
+await grid.searchRemote({ name: '홍길동' });          // 조건 검색 (서버 페이징이면 1페이지부터)
+await grid.reload();                                  // 마지막 조건으로 재조회
+await grid.save();                                    // 변경된 행만 저장
+await grid.removeRemote();                            // 선택 행 서버 삭제 (또는 { rowIds })
+```
+
+| 메소드 | 반환 | 설명 |
+|-----|-----|-----|
+| `load(params?, { discardChanges? })` | `Promise<LoadResult \| null>` | 조회. `params`를 생략하면 마지막 조건 사용 |
+| `searchRemote(params, options?)` | `Promise<LoadResult \| null>` | 조건 검색. 클라이언트 `search()`와 별개 |
+| `reload(options?)` | `Promise<LoadResult \| null>` | 마지막 조건·현재 페이지로 재조회 |
+| `save()` | `Promise<SaveSummary \| null>` | `{ created, updated, deleted, failed }` |
+| `removeRemote({ rowIds? })` | `Promise<RemoveSummary \| null>` | `{ removed, discarded }` |
+
+`load(params)`와 `searchRemote`는 툴바가 활성화되어 있으면 툴바 필드 값(`getToolbarValues()`)을 조회 조건에 자동으로 합칩니다(같은 이름은 인자가 우선, 끄려면 `dataSource.toolbarParams: false`). `load()`를 인자 없이 호출하면 첫 조회는 툴바 값만, 이후에는 마지막 조건을 재사용합니다. 검색 필드에서 호출하면 검색어와 다른 조건 필드를 함께 서버로 보냅니다. `reload()`는 그때 합쳐진 조건을 그대로 재사용합니다.
+
+### 툴바 검색 자동 연결 (toolbar.remote)
+
+`toolbar.remote`를 켜면 검색 필드의 Enter·검색 버튼에서 툴바 값으로 `searchRemote`가 자동 실행됩니다.
+
+```ts
+{
+  toolbar: {
+    enabled: true,
+    remote: true, // 또는 { trigger: ['search', 'change'], debounce: 300, discardChanges: false }
+    items: [[{ position: 'left', children: [
+      { name: 'status', renderer: { type: 'dropdown', listItem: { list: [...] } } },
+      { name: 'keyword', renderer: 'search', placeholder: '검색어' },
+    ] }]],
+  },
+  dataSource: { load: { url: '/api/users' } },
+}
+```
+
+| 옵션 | 기본 | 설명 |
+|-----|-----|-----|
+| `trigger` | `['search']` | `'search'`: 검색 필드 Enter·버튼, `'change'`: 조건 필드 값 변경(검색어 입력 제외) |
+| `debounce` | `change` 300, 그 외 0 | 연속 변경 지연(ms) |
+| `discardChanges` | `false` | 미저장 변경을 버리고 조회. `false`이면 `UNSAVED_CHANGES`로 거부되고 `loadError` 이벤트로 알림 |
+
+필드에 `search` 콜백이 있으면 먼저 실행하며 `false`를 반환하면 자동 조회하지 않습니다. `dataSource.load`가 없거나 `toolbar.enabled`가 아니거나 `toolbarParams: false`이면 생성 시 오류입니다. 직접 호출할 때는 `search: () => grid.searchRemote({})`로도 같은 효과를 낼 수 있습니다.
+
+`null`은 `before*` 이벤트로 취소되었거나(조회는) 더 새로운 조회에 밀려 결과가 반영되지 않았음을 뜻합니다. 실패는 `DataSourceError`(`code`: `HTTP`, `NETWORK`, `TIMEOUT`, `ABORT`, `INVALID_RESPONSE`, `UNSAVED_CHANGES`, `BUSY`, `CONFIG`, `UNSUPPORTED`, `DESTROYED`)로 reject 됩니다.
+
+### 요청·응답 형식
+
+- 조회 응답: 배열 또는 `{ items, total? }`. `responseMap(response, 'load')`으로 변환할 수 있습니다.
+- 저장 요청 본문: `{ created: [], updated: [], deleted: [] }` (변경된 행만, 내부 관리 필드와 상태값 제외)
+- 삭제 요청 본문: `{ deleted: [] }`
+- 저장 응답(선택): `{ idMap?: { 임시ID: 서버ID }, failed?: [ID...] }`. 본문이 없으면 전체 성공으로 처리합니다. `idMap` 반영과 `failed` 매칭은 `rowIdField`(트리는 `tree.idField`)를 지정한 경우에 가능합니다.
+
+```ts
+dataSource: {
+  baseUrl: '/api',
+  load: { url: '/users', method: 'GET' },
+  save: { url: '/users', method: 'PUT', headers: { 'X-Mode': 'batch' } },
+  headers: async () => ({ Authorization: `Bearer ${await getToken()}` }), // 요청마다 호출
+  credentials: 'include',
+  timeout: 10000,
+  requestMap: (data, operation) => (operation === 'load' ? { ...data, v: 2 } : data),
+  responseMap: (res, operation) => (operation === 'load' ? { items: res.data, total: res.total } : res),
+  // fetchMode: 'fetch'      // 코어 Ajax 전송 방식 (기본 xhr)
+  // request: (req) => myHttp(req) // 코어 Ajax 대신 사용할 전송 함수 (테스트·인터셉터용)
+}
+```
+
+### 로딩 표시 (loader)
+
+HTTP 설정을 사용할 때 코어 Ajax의 `loaderContainer`/`loaderOption`으로 로더를 표시합니다. 기본은 그리드 요소를 컨테이너로 **조회(load)에만** 표시하며(저장 중에도 편집을 허용하기 위함), 요청이 끝나면 코어 Ajax가 숨깁니다. 사용자 정의 함수 DataSource는 Ajax를 거치지 않으므로 `loadingChange` 이벤트로 직접 표시합니다.
+
+```ts
+dataSource: {
+  load: { url: '/api/users' },
+  loader: { container: '#wrap', options: { content: '조회 중...' }, operations: ['load', 'save'] }, // loader: false 이면 표시 안 함
+}
+```
+
+### 사용자 정의 DataSource
+
+`load`/`save`/`remove`에 HTTP 설정 대신 함수를 지정할 수 있으며 Public API는 동일합니다. 함수는 `AbortSignal`을 받으므로 `signal`을 요청에 전달하면 중복 조회·`destroy()` 시 요청이 취소됩니다. (`requestMap`/`responseMap`은 HTTP 설정에만 적용됩니다.)
+
+```ts
+dataSource: {
+  load: async (params, signal) => {
+    const res = await userApi.search(params, signal);
+    return { items: res.data, total: res.total };
+  },
+  save: async (changes, signal) => userApi.save(changes, signal), // SaveResult 또는 void
+  remove: async ({ deleted }, signal) => userApi.remove(deleted, signal),
+}
+```
+
+### 이벤트
+
+`dataSource.events`에 지정합니다. `before*`가 `false`(또는 `Promise<false>`)를 반환하면 작업이 취소됩니다. `destroy()` 이후에는 이벤트가 발생하지 않으며, 알림 이벤트 핸들러의 예외는 작업 결과에 영향을 주지 않습니다.
+
+| 이벤트 | 인자 |
+|-----|-----|
+| `beforeLoad` / `load` / `loadError` | `{ params }` / `{ params, items, total }` / `{ error }` |
+| `beforeSave` / `save` / `saveError` | `{ changes }` / `{ changes, summary }` / `{ error }` |
+| `beforeRemove` / `remove` / `removeError` | `{ request }` / `{ request, summary }` / `{ error }` |
+| `loadingChange` | `{ operation, loading }` — 진행 상태 알림. 로더 표시는 아래 `loader` 옵션 참고 |
+
+모든 이벤트 인자에는 `grid`와 `operation`이 포함됩니다.
+
+### 저장·삭제와 변경 상태 정책
+
+- 저장 대상은 기존 행 상태(C/U/D)를 사용합니다. 변경이 없으면 요청하지 않습니다.
+- **`deleteMode`**: `dataSource.save`를 지정하면 삭제 행을 추적해야 하므로 `deleteMode`는 지정하지 않으면 `soft`로 동작하고, `hard`를 명시하면 생성 시 오류입니다.
+- 저장하지 않은 신규 행을 삭제하면 서버 요청 없이 로컬에서만 제거합니다. `removeRemote()`도 신규 행은 요청 없이 제거합니다.
+- 저장 실패 시 상태가 유지되어 `save()`를 다시 호출할 수 있습니다. `failed`로 보고된 행도 상태를 유지합니다.
+- 저장 요청 이후에 다시 편집한 행은 확정하지 않고 변경 상태를 유지합니다(저장 중이던 신규 행은 이후 수정으로 취급). 저장·삭제가 진행되는 동안 다른 `save`/`removeRemote`/`load`는 `BUSY`로 거부됩니다.
+- 저장·서버 삭제가 성공하면 Undo/Redo 이력을 초기화합니다(서버 상태와 어긋난 되돌리기를 막기 위함).
+- 트리는 신규를 부모 → 자식 순, 삭제를 자식 → 부모 순으로 전달합니다. 그룹의 합계 행은 저장 대상이 아닙니다.
+- **미저장 변경 충돌**: 변경이 있으면 `load`/`searchRemote`/`reload`가 `UNSAVED_CHANGES`로 거부됩니다. 버리려면 `{ discardChanges: true }`를 전달합니다. 조회 응답을 기다리는 동안 새로 편집한 경우에도 결과를 반영하지 않고 거부합니다.
+- 더 새로운 조회가 시작되면 이전 요청을 `AbortSignal`로 취소하고, 늦게 도착한 이전 응답은 무시합니다.
+
+### 서버 페이징
+
+```ts
+{
+  footer: { enabled: true, paging: { enabled: true } },
+  dataSource: {
+    paging: { mode: 'server', pageSize: 100 },
+    load: { url: '/api/users', method: 'POST' },
+  },
+}
+```
+
+조회 조건에 `page`, `pageSize`가 추가되고(`requestMap`으로 이름 변경 가능) 응답의 `total`로 페이지 정보를 만듭니다. 이 모드에서는 `footer.paging.callback`을 직접 지정할 수 없으며, 클라이언트 검색·정렬은 현재 페이지에만 적용됩니다.
+
+### 지원하지 않는 조합
+
+조용히 잘못된 결과가 표시되지 않도록 생성 시 `DataSourceError`를 던집니다.
+
+- `dataSource.sorting.mode: 'server'`, `dataSource.filtering.mode: 'server'` (아직 미지원)
+- 서버 페이징 + `tree` 또는 `groupingFields` (현재 페이지만으로는 트리 구조·그룹 합계가 부정확)
+- `dataSource.save` + `deleteMode: 'hard'`
+
+`uitest/remote.html`에서 메모리 Mock 서버로 동작을 확인할 수 있습니다.
+
 ## 테마
 
 색상 값은 [`@daracl/ui-style`](https://www.npmjs.com/package/@daracl/ui-style) 의 테마 변수(`--dui-*`)를 사용합니다.

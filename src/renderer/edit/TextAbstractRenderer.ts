@@ -9,7 +9,7 @@ import { FieldItem } from '@t/GridField';
 /**
  * text renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {TextAbstractRenderer}
  * @extends {EditCellRenderer}
  */
 export abstract class TextAbstractRenderer extends EditCellRenderer {

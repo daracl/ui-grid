@@ -11,7 +11,7 @@ import {
   updateDropdownSelection,
   updateSelectValues,
 } from '@/util/rendererUtils';
-import { arrayEquals, isArray, isFunction, isString, replaceXss, stringSplit } from '@/util/utils';
+import { arrayEquals, isArray, isFunction, replaceXss, stringSplit } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 

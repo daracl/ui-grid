@@ -62,6 +62,10 @@ export class SearchRenderer extends ToolBarRenderer {
     });
   }
 
+  protected isSearchInput(): boolean {
+    return true;
+  }
+
   public getValue() {
     return this.editElement.value;
   }

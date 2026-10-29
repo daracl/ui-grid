@@ -2,7 +2,7 @@ import { getGroupSummaryFields } from '@/util/groupSummaryUtils';
 import { BodyCellStyleMap, SelectionModeMap } from '@/constants';
 import { hasClass } from '@/util/domUtils';
 import { isShiftKey } from '@/util/eventUtils';
-import { escapeCellValue, getCheckboxMode, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
+import { escapeCellValue, isMultipleSelectionMode, isRowSelectionMode } from '@/util/gridUtils';
 import { removeClass } from '@/util/styleUtils';
 import * as utils from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -560,7 +560,6 @@ export class SelectionInfo {
    * cell select
    *
    * @public
-   * @param {boolean} initFlag
    */
   public setCellSelection() {
     const cfg = this.config;
@@ -713,7 +712,6 @@ export class SelectionInfo {
    * @public
    * @param {string} selectionMode selection mode
    * @param {number} col col
-   * @param {*} dataInfo
    * @param {boolean} isMouseDown
    * @returns {{ startCol: number; endCol: number; }}
    */

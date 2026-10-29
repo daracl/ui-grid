@@ -1,6 +1,6 @@
 import { ALL_SELECT_VALUE, SearchDirection, SearchDirectionMap } from '@/constants';
 import { SearchMode } from '@/types/Common';
-import { getElementRect, getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
+import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { html } from '@/util/htmlTemplate';
 import { toggleClass } from '@/util/styleUtils';
@@ -12,7 +12,7 @@ import { DataSearch } from './DataSearch';
  * simple search class
  *
  * @class SimpleDataSearch
- * @typedef {DataSearch}
+ * @typedef {SimpleDataSearch}
  */
 export class SimpleDataSearch extends DataSearch {
   private searchElement: HTMLElement;

@@ -72,7 +72,7 @@ export class ExcelConverter {
     if (!data.columns.length || data.columns.length > 16384 || data.rows.length + headerCount > 1048576)
       throw new RangeError('Invalid XLSX worksheet dimensions');
     const sheetName = options.sheetName ?? 'Grid';
-    if (!sheetName.trim() || sheetName.length > 31 || /[\\/*?:\[\]]/.test(sheetName) || /^'|'$/.test(sheetName))
+    if (!sheetName.trim() || sheetName.length > 31 || /[\\/*?:[\]]/.test(sheetName) || /^'|'$/.test(sheetName))
       throw new Error('Invalid Excel sheet name');
     const fonts: string[] = ['<font><sz val="11"/><color rgb="FF222222"/><name val="Calibri"/></font>'];
     const fills = [

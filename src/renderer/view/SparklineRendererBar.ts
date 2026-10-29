@@ -5,7 +5,7 @@ import { FieldItem } from '@t/GridField';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
 import { CELL_PADDING } from '@/constants';
 import { GridOptions } from '@/types/GridOptions';
-import { RefChartValue, RefOptionValue } from '@/types/RefValue';
+import { RefChartValue } from '@/types/RefValue';
 
 interface TooltipState {
   data: number[];

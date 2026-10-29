@@ -1,6 +1,6 @@
 {
   "name": "@daracl/grid",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "description": "Daracl Grid",
   "author": {
     "name": "daracl",
@@ -123,7 +123,7 @@
     }
   },
   "dependencies": {
-    "@daracl/ui-style": "0.0.6",
+    "@daracl/ui-style": "0.0.7",
     "pdfkit": "^0.20.2",
     "@daracl/core": "0.0.12"
   }

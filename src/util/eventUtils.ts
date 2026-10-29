@@ -4,16 +4,6 @@ import { PointerPosition, PointerSession } from '@/event/PointerSession';
 import { EventElementType } from '@/types/Event';
 import { CellInfo, HeaderCellInfo } from '@/types/GridConfig';
 
-const EVENT_KEY_CODE = {
-  Enter: 13,
-  Shift: 16,
-  Control: 17,
-  ArrowDown: 40,
-  ArrowUp: 38,
-  ArrowLeft: 37,
-  ArrowRight: 39,
-};
-
 /**
  * shift key check
  *

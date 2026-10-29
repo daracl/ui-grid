@@ -28,6 +28,18 @@ import {
 } from './HistoryManager';
 import { getScrollDirectionCode } from '@/util/gridUtils';
 
+/** 저장 요청 시점의 행 스냅샷 */
+export interface ChangeSnapshotEntry {
+  rowId: RowId;
+  status: ItemStatus;
+  /** 요청 시점의 행 데이터(내부 관리 필드 제외) */
+  data: Record<string, any>;
+  /** 행 ID 필드 값. 서버 응답의 idMap·failed와 매칭한다. */
+  key: RowId;
+  /** 서버에 저장된 적 없는 신규 행. 서버 요청 없이 로컬에서만 제거한다. */
+  localOnly: boolean;
+}
+
 export abstract class DataManager {
   protected readonly rowHeight;
   protected readonly rowIdField;
@@ -60,6 +72,9 @@ export abstract class DataManager {
 
   // row check item row id
   private readonly rowCheckSet = new Set<RowId>();
+
+  // 아직 서버에 저장되지 않은 신규 행. soft 삭제로 상태가 D로 바뀌어도 신규 행임을 구분한다.
+  private readonly createdRowIds = new Set<RowId>();
 
   // search match
   protected readonly matchOffsetMap = new Map<RowId, number>();
@@ -213,6 +228,143 @@ export abstract class DataManager {
   }
 
   /**
+   * 저장되지 않은 변경(C/U/D)이 있는지 확인한다.
+   */
+  public hasChanges(): boolean {
+    for (const viewItem of this.originalViewItems) {
+      const item = this.getRowItem(viewItem.id);
+      if (item && !viewItem.groupRowType && item[ROW_FIELD.CUD] !== ItemStatusMap.READ) return true;
+    }
+    return false;
+  }
+
+  /**
+   * 서버 저장용 변경 행 스냅샷을 만든다. 원본 순서(트리는 부모 → 자식)를 유지한다.
+   */
+  public getChangeSnapshot(): ChangeSnapshotEntry[] {
+    const results: ChangeSnapshotEntry[] = [];
+
+    for (const viewItem of this.originalViewItems) {
+      const item = this.getRowItem(viewItem.id);
+      if (!item || viewItem.groupRowType || item[ROW_FIELD.CUD] === ItemStatusMap.READ) continue;
+
+      const entry = this.createSnapshotEntry(viewItem.id, item);
+      // 저장 대상에서는 신규 행을 삭제한 경우만 로컬 전용이다.
+      entry.localOnly = entry.localOnly && entry.status === ItemStatusMap.DELETE;
+      results.push(entry);
+    }
+
+    return results;
+  }
+
+  /**
+   * 지정한 행의 스냅샷을 만든다. 상태와 무관하게 포함하며 그룹 가상 행과 없는 ID는 제외한다.
+   */
+  public getRowSnapshots(ids: RowId[]): ChangeSnapshotEntry[] {
+    const dataIds = new Set(
+      this.originalViewItems.filter((viewItem) => !viewItem.groupRowType).map((viewItem) => viewItem.id),
+    );
+    const results: ChangeSnapshotEntry[] = [];
+
+    for (const id of ids) {
+      const item = dataIds.has(id) ? this.getRowItem(id) : undefined;
+      if (item) results.push(this.createSnapshotEntry(id, item));
+    }
+
+    return results;
+  }
+
+  private createSnapshotEntry(rowId: RowId, item: any): ChangeSnapshotEntry {
+    return {
+      rowId,
+      status: item[ROW_FIELD.CUD] as ItemStatus,
+      data: this.getSnapshotData(item),
+      key: item[this.rowIdField],
+      localOnly: this.createdRowIds.has(rowId),
+    };
+  }
+
+  /** 서버로 보낼 행 데이터. 내부 관리 필드와 행 상태(_$CUD)는 제외한다. */
+  private getSnapshotData(item: Record<string, any>): Record<string, any> {
+    const data = this.filterRowItem(item, false);
+    delete data[ROW_FIELD.CUD];
+    return data;
+  }
+
+  /**
+   * 서버 저장 결과를 반영한다.
+   *
+   * 스냅샷 이후 다시 편집된 행은 변경 상태를 유지하고, 그 외 행은 확정(READ)한다.
+   * 삭제가 확정된 행은 제거한다. Undo/Redo 이력은 서버 상태와 맞지 않게 되므로 초기화한다.
+   *
+   * @param entries 저장 요청에 사용한 스냅샷
+   * @param failedKeys 저장에 실패한 행의 ID 필드 값
+   * @param idMap 신규 행의 요청 ID → 서버 ID
+   * @returns 확정되어 제거된 행 ID 배열
+   */
+  public acceptChanges(
+    entries: ChangeSnapshotEntry[],
+    failedKeys: Set<RowId> = new Set(),
+    idMap: Record<string, RowId> = {},
+  ): RowId[] {
+    const purgeIds: RowId[] = [];
+    const idField = this.rowIdField;
+
+    for (const entry of entries) {
+      if (!entry.localOnly && failedKeys.has(entry.key)) continue;
+
+      const item = this.getRowItem(entry.rowId);
+      if (!item) continue;
+
+      const current = this.getSnapshotData(item);
+      const edited =
+        item[ROW_FIELD.CUD] !== entry.status ||
+        Object.keys({ ...entry.data, ...current }).some((name) => !isSameValue(entry.data[name], current[name]));
+
+      this.createdRowIds.delete(entry.rowId);
+
+      if (entry.status === ItemStatusMap.DELETE) {
+        if (!edited) purgeIds.push(entry.rowId);
+        continue;
+      }
+
+      if (!edited) {
+        item[ROW_FIELD.CUD] = ItemStatusMap.READ;
+      } else if (entry.status === ItemStatusMap.CREATE && item[ROW_FIELD.CUD] === ItemStatusMap.CREATE) {
+        // 저장 중 추가 편집된 신규 행은 서버에 이미 존재하므로 이후부터는 수정으로 취급한다.
+        item[ROW_FIELD.CUD] = ItemStatusMap.MODIFY;
+      }
+
+      const serverId = idMap[String(entry.key)];
+      if (serverId !== undefined && idField !== ROW_FIELD.ID) {
+        item[idField] = serverId;
+      }
+    }
+
+    if (purgeIds.length > 0) this.purgeItems(purgeIds);
+    this.history.clear();
+
+    return purgeIds;
+  }
+
+  /**
+   * 행을 삭제 모드·이력과 무관하게 제거한다. 서버 반영이 끝난 삭제에 사용하며 Undo/Redo 이력은 초기화한다.
+   */
+  public purgeItems(ids: RowId[]): RowId[] {
+    const previousMode = this.opts.deleteMode;
+    const previousSuspended = this.history.suspend();
+    this.opts.deleteMode = 'hard';
+
+    try {
+      return this.removeItems(ids);
+    } finally {
+      this.opts.deleteMode = previousMode;
+      this.history.resume(previousSuspended);
+      this.history.clear();
+    }
+  }
+
+  /**
    * 전체 체크 설정
    */
   public setAllCheck() {
@@ -230,7 +382,7 @@ export abstract class DataManager {
 
   /**
    *  체크된 아이템 설정
-   * @param cellInfo 체크된 셀 정보
+   @param id 체크 설정할 row id
    * @param checked 체크 여부
    */
   public setItemChecked(id: RowId, checked: boolean) {
@@ -243,7 +395,7 @@ export abstract class DataManager {
 
   /**
    * 특정 아이템이 체크되어 있는지 여부 반환
-   * @param item 체크 여부를 확인할 아이템
+   @param id 체크 여부를 확인할 row id
    * @returns 체크 여부
    */
   public isItemChecked(id: RowId): boolean {
@@ -261,6 +413,7 @@ export abstract class DataManager {
   public setItems(items: any[]) {
     this.history.clear();
     this.clearAllCheck();
+    this.createdRowIds.clear();
     this.originalItems = items;
     this.searchDirty = true;
   }
@@ -333,6 +486,10 @@ export abstract class DataManager {
     item[ROW_FIELD.CUD] = status;
     item[ROW_FIELD.HEIGHT] = this.rowHeight;
 
+    if (status === ItemStatusMap.CREATE) {
+      this.createdRowIds.add(rowId);
+    }
+
     return item;
   }
 
@@ -380,9 +537,7 @@ export abstract class DataManager {
 
   /**
    *  grid view에 보여지는 item의 id 배열 설정
-   * @param ids item id 배열
-   * @param start start index
-   * @param end end index
+   @param ids 화면에 보여질 ViewItem 배열
    */
   public setViewItems(ids: ViewItem[]) {
     const viewItemIds = ids;
@@ -420,6 +575,7 @@ export abstract class DataManager {
 
   protected deleteRowItem(rowId: RowId): void {
     this.rowMap.delete(rowId);
+    this.createdRowIds.delete(rowId);
     this.rowCheckSet.delete(rowId);
     this.searchMap.delete(rowId);
     this.matchOffsetMap.delete(rowId);
@@ -1075,8 +1231,8 @@ export abstract class DataManager {
   /**
    * 현재 검색 포커스 cell 정보
    *
-   * @param items check item list
-   * @param matchId
+   @param currentMatchIndex 현재 행 이전까지의 누적 match 수
+   @param currentMatchInfo 현재 match 위치 정보
    * @returns
    */
   protected setCurrentMatchInfo(currentMatchIndex: number, currentMatchInfo: CURRENT_MATCH_INFO) {

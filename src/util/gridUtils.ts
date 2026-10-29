@@ -2,7 +2,6 @@ import { isMouseMoved, parseClipboard } from '@daracl/core/utils';
 export { isMouseMoved, parseClipboard };
 
 import { ItemStatusMap, ROW_FIELD, ScrollDirectionXMap, ScrollDirectionY, SelectionModeMap } from '@/constants';
-import { PointerPosition } from '@/event/PointerSession';
 import { CellInfo, Config, HeaderCellInfo, ScrollInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
 import { GridOptions } from '@t/GridOptions';
@@ -162,7 +161,6 @@ export const getTextWidth = (cfg: Config, text: string, padding = 10) => {
  * @param {Config} cfg config
  * @param {GridOptions} opts grid option
  * @param {FieldItem} field field item
- * @param {number} checkWidth check width
  * @returns {number} max width size
  */
 export const getMaxColumnSize = (cfg: Config, opts: GridOptions, field: FieldItem): number => {
@@ -326,12 +324,10 @@ export const dragVerticalMovePosition = (
  * @private
  * @param {Config} cfg config
  * @param {number} moveX drag move x
- * @param {number} startEvtPositionX mousedown event position
  * @param {number} positionX grid left position
  * @param {number} _l  left end position
  * @param {number} _r right start position
- * @param {HTMLElement} cellElement start element
- * @param {string} selectionMode selection mode
+ @param {number} beforeEndCol 이전 마지막 col
  * @returns {{ scrollDirectionX: string; overCell: number; }}
  */
 export const dragHorizontalMovePosition = (
@@ -454,9 +450,9 @@ export const createNewItems = (fields: FieldItem[], createCount = 1): any[] => {
  * @param itemLength - 전체 항목 수
  * @returns "all" (전체 선택), "partial" (일부 선택), "none" (선택 없음)
  */
-export const getCheckboxMode = (checkLeneth: number, itemLength: number) => {
-  if (checkLeneth == 0) return 'none';
-  if (checkLeneth == itemLength) return 'all';
+export const getCheckboxMode = (checkLength: number, itemLength: number) => {
+  if (checkLength == 0) return 'none';
+  if (checkLength == itemLength) return 'all';
   return 'partial';
 };
 
@@ -596,6 +592,15 @@ export const gridAvailableWidth = (cfg: Config): number => {
   return cfg.dimensions.width - verticalScrollWidth - 1;
 };
 
+/** 스크롤 방향 코드. 가로·세로가 동시에 필요하면 합산한다. */
+const SCROLL_DIRECTION_CODE = {
+  NONE: -1,
+  UP: 1,
+  DOWN: 2,
+  LEFT: 10,
+  RIGHT: 20,
+} as const;
+
 /**
  * 이동 대상의 위치를 기준으로 필요한 스크롤 방향 코드를 반환한다.
  *
@@ -613,14 +618,6 @@ export const gridAvailableWidth = (cfg: Config): number => {
  * - 10: 왼쪽 스크롤
  * - 20: 오른쪽 스크롤
  */
-const SCROLL_DIRECTION_CODE = {
-  NONE: -1,
-  UP: 1,
-  DOWN: 2,
-  LEFT: 10,
-  RIGHT: 20,
-} as const;
-
 export const getScrollDirectionCode = (cfg: Config, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) => {
   let directionCode: number = SCROLL_DIRECTION_CODE.NONE;
 

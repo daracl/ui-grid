@@ -9,7 +9,7 @@ import {
   updateDropdownSelection,
   updateSelectValues,
 } from '@/util/rendererUtils';
-import { isArray, isFunction, isNumber, isString, replaceXss, stringSplit } from '@/util/utils';
+import { isArray, isFunction, replaceXss } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -164,7 +164,7 @@ export class DropdownEditRenderer extends EditCellRenderer {
    * dropdown list open
    *
    * @private
-   * @param {HTMLElement} cellElement cell element
+   @param {HTMLElement} eventElement 이벤트가 발생한 element
    * @param {HTMLElement} dropdownElement dropdown element
    */
   private openMenu(dropdownElement: HTMLElement, eventElement: HTMLElement) {

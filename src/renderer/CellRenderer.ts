@@ -31,7 +31,7 @@ export abstract class CellRenderer {
    * view render
    *
    * @param {HTMLElement} element td element
-   * @param {*} value value row item
+   @param {CellInfo} cellInfo cell info
    */
   public abstract render(cellInfo: CellInfo, element: HTMLElement): void;
 
@@ -63,7 +63,6 @@ export abstract class CellRenderer {
    *
    * @param cfg 설정
    * @param opts 옵션
-   * @param checkWidth
    * @returns
    */
   public getMinWidth(cfg: Config, opts: GridOptions) {

@@ -1,0 +1,198 @@
+import type { LoadingOptions } from '@daracl/core';
+import type { DaraGrid } from '@/DaraGrid';
+import type { RowId } from './Common';
+
+/** DataSource가 수행하는 서버 작업 */
+export type DataSourceOperation = 'load' | 'save' | 'remove';
+
+/** 서버 조회 조건 */
+export type RemoteParams = Record<string, unknown>;
+
+/** 서버 행 데이터 */
+export type RemoteRow = Record<string, any>;
+
+/** 조회 결과 */
+export interface LoadResult<T = RemoteRow> {
+  items: T[];
+  /** 서버 페이징 전체 건수. 없으면 items 길이를 사용한다. */
+  total?: number;
+}
+
+/** 저장 요청 데이터. 변경된 행만 포함한다. */
+export interface ChangeSet<T = RemoteRow> {
+  created: T[];
+  updated: T[];
+  deleted: T[];
+}
+
+/** 서버 삭제 요청 데이터 */
+export interface RemoveRequest<T = RemoteRow> {
+  deleted: T[];
+}
+
+/**
+ * 저장 결과
+ *
+ * - idMap : 저장 요청의 신규 행 ID → 서버가 부여한 ID. `rowIdField`(또는 tree.idField)를 지정한 경우에만 반영한다.
+ * - failed : 저장에 실패한 행의 ID(요청 행의 ID 필드 값). 해당 행은 변경 상태를 유지한다.
+ */
+export interface SaveResult {
+  idMap?: Record<string, RowId>;
+  failed?: RowId[];
+}
+
+/** save() 결과 요약 */
+export interface SaveSummary {
+  created: number;
+  updated: number;
+  deleted: number;
+  /** 실패로 보고되어 변경 상태가 유지된 행 수 */
+  failed: number;
+}
+
+/** removeRemote() 결과 요약 */
+export interface RemoveSummary {
+  /** 서버 삭제 요청으로 삭제한 행 수 */
+  removed: number;
+  /** 서버 요청 없이 제거한 미저장 신규 행 수 */
+  discarded: number;
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export type HttpHeaders = Record<string, string>;
+
+/** HTTP 요청 정보. `request` 주입 함수가 전달받는다. */
+export interface HttpRequest {
+  url: string;
+  method: HttpMethod;
+  headers: HttpHeaders;
+  /** GET은 쿼리 스트링, 그 외 메서드는 JSON 본문으로 전송할 데이터 */
+  data?: unknown;
+  signal?: AbortSignal;
+  credentials?: RequestCredentials;
+  timeout?: number;
+  /** 코어 Ajax 로더를 표시할 컨테이너. 없으면 로더를 표시하지 않는다. */
+  loaderContainer?: string | HTMLElement;
+  loaderOption?: LoadingOptions;
+}
+
+/** 코어 Ajax 로더(loaderContainer) 설정 */
+export interface DataSourceLoader {
+  /** 로더를 표시할 컨테이너(selector 또는 요소). @default 그리드 요소 */
+  container?: string | HTMLElement;
+  /** 코어 Loading 옵션 */
+  options?: LoadingOptions;
+  /** 로더를 표시할 작업. 저장 중에도 편집이 가능하도록 기본은 조회만 표시한다. @default ['load'] */
+  operations?: DataSourceOperation[];
+}
+
+export interface HttpEndpoint {
+  url: string;
+  /** @default load는 'GET', save/remove는 'POST' */
+  method?: HttpMethod;
+  headers?: HttpHeaders;
+  credentials?: RequestCredentials;
+  timeout?: number;
+}
+
+export type LoadFunction = (params: RemoteParams, signal: AbortSignal) => Promise<LoadResult>;
+export type SaveFunction = (changes: ChangeSet, signal: AbortSignal) => Promise<SaveResult | void>;
+export type RemoveFunction = (request: RemoveRequest, signal: AbortSignal) => Promise<unknown>;
+
+/** 이벤트 공통 정보 */
+export interface DataSourceEventBase {
+  grid: DaraGrid;
+  operation: DataSourceOperation;
+}
+
+export interface BeforeLoadEvent extends DataSourceEventBase {
+  params: RemoteParams;
+}
+export interface LoadEvent extends BeforeLoadEvent {
+  items: RemoteRow[];
+  total: number;
+}
+export interface BeforeSaveEvent extends DataSourceEventBase {
+  changes: ChangeSet;
+}
+export interface SaveEvent extends BeforeSaveEvent {
+  summary: SaveSummary;
+}
+export interface BeforeRemoveEvent extends DataSourceEventBase {
+  request: RemoveRequest;
+}
+export interface RemoveEvent extends BeforeRemoveEvent {
+  summary: RemoveSummary;
+}
+export interface DataSourceErrorEvent extends DataSourceEventBase {
+  error: Error;
+}
+export interface LoadingChangeEvent extends DataSourceEventBase {
+  loading: boolean;
+}
+
+type Cancelable<E> = (event: E) => boolean | void | Promise<boolean | void>;
+type Listener<E> = (event: E) => void;
+
+/** before* 이벤트가 false(또는 resolve false)를 반환하면 작업을 취소한다. */
+export interface DataSourceEvents {
+  beforeLoad?: Cancelable<BeforeLoadEvent>;
+  load?: Listener<LoadEvent>;
+  loadError?: Listener<DataSourceErrorEvent>;
+  beforeSave?: Cancelable<BeforeSaveEvent>;
+  save?: Listener<SaveEvent>;
+  saveError?: Listener<DataSourceErrorEvent>;
+  beforeRemove?: Cancelable<BeforeRemoveEvent>;
+  remove?: Listener<RemoveEvent>;
+  removeError?: Listener<DataSourceErrorEvent>;
+  loadingChange?: Listener<LoadingChangeEvent>;
+}
+
+export interface DataSourceOptions {
+  load?: HttpEndpoint | LoadFunction;
+  save?: HttpEndpoint | SaveFunction;
+  remove?: HttpEndpoint | RemoveFunction;
+
+  /** 상대 URL 앞에 붙는 공통 주소 */
+  baseUrl?: string;
+  /** 공통 헤더. 함수이면 요청마다 호출하므로 인증 토큰 갱신에 사용할 수 있다. */
+  headers?: HttpHeaders | (() => HttpHeaders | Promise<HttpHeaders>);
+  credentials?: RequestCredentials;
+  timeout?: number;
+  /** 코어 Ajax 전송 방식 */
+  fetchMode?: 'fetch' | 'xhr';
+  /**
+   * load()·searchRemote() 호출 시 툴바 필드 값을 조회 조건에 포함한다. 같은 이름의 명시 조건이 우선한다.
+   * @default true
+   */
+  toolbarParams?: boolean;
+  /** HTTP 요청 중 코어 Ajax 로더 표시 설정. false이면 표시하지 않는다. */
+  loader?: false | DataSourceLoader;
+  /** 코어 Ajax 대신 사용할 HTTP 전송 함수. 응답 본문(JSON)을 resolve한다. */
+  request?: (request: HttpRequest) => Promise<unknown>;
+
+  /** HTTP 요청 데이터 변환. 반환값이 조회 쿼리 또는 저장·삭제 본문이 된다. */
+  requestMap?: (data: any, operation: DataSourceOperation) => unknown;
+  /** HTTP 응답 변환. load는 LoadResult, save는 SaveResult를 반환해야 한다. */
+  responseMap?: (response: any, operation: DataSourceOperation) => unknown;
+
+  /** 서버 페이징. footer.enabled와 footer.paging.enabled가 필요하다. List 모드만 지원한다. */
+  paging?: { mode: 'local' | 'server'; pageSize?: number };
+  /** 서버 정렬은 아직 지원하지 않는다. 'server'를 지정하면 오류가 발생한다. */
+  sorting?: { mode: 'local' | 'server' };
+  /** 서버 필터링은 아직 지원하지 않는다. 'server'를 지정하면 오류가 발생한다. */
+  filtering?: { mode: 'local' | 'server' };
+
+  events?: DataSourceEvents;
+}
+
+export interface LoadOptions {
+  /** 미저장 변경사항을 버리고 조회한다. @default false */
+  discardChanges?: boolean;
+}
+
+export interface RemoveOptions {
+  /** 삭제할 행 ID. 생략하면 선택된 행을 삭제한다. */
+  rowIds?: RowId[];
+}

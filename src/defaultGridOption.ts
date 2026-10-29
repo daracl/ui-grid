@@ -148,6 +148,13 @@ let DEFAULT_OPTIONS: GridOptions = {
   deleteMode: 'hard',
 
   /**
+   * 서버 연동(AJAX) 설정
+   *
+   * 지정하지 않으면 로컬 데이터만 사용한다. `save`를 지정하면 deleteMode 기본값은 soft이다.
+   */
+  dataSource: undefined,
+
+  /**
    * 툴팁 사용 여부
    */
   enabledTooltip: false,

@@ -1,5 +1,5 @@
 import { EventManager } from '@/event/EventManager';
-import { isString, removeItem, stringSplit } from './utils';
+import { isString, stringSplit } from './utils';
 import { ALL_SELECT_VALUE } from '@/constants';
 import { OptionCallback } from '@/types/Common';
 import { addClass, removeClass } from './styleUtils';

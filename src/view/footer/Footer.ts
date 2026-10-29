@@ -149,7 +149,7 @@ export class Footer {
    * selection status info
    *
    * @public
-   * @param {string} info selection info
+   @param {*} dataInfo selection info
    */
   public setSelectionStatus(dataInfo?: any) {
     if (this.isSelectionInfo && this.footerOpts.enabled && this.footerOpts.selection?.showSummary) {

@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 빌드 및 테스트 명령어
 
 - `yarn dev` : vite 개발 서버 실행(포트 5178). 브라우저에서 `/uitest/index.html`이 자동으로 열리며, 각 기능별 수동/시각 테스트 페이지(`uitest/*.html`)를 직접 열어 확인할 수 있다.
-- `yarn build` : 배포용 전체 빌드. `build:escjs`(ESM/CJS, `vite.config.js`) → `build:umd`(UMD, `vite.config.umd.js`) → `mergenclean`(`.d.ts` 복사, `tsc --emitDeclarationOnly`로 타입 생성, `dist/unmin` 정리, html 복사) 순으로 실행된다.
+- `yarn build` : 배포용 전체 빌드(`scripts/build.mjs`). declaration 생성, ESM/CJS(`vite.config.mjs`)·UMD(`vite.config.umd.mjs`) 번들, `dist/unmin` 정리, `public` 자산 복사를 임시 폴더에서 수행한 뒤 `dist`에 반영한다.
 - `yarn test` : Jest 유닛 테스트 전체 실행(`test/**/*.test.ts`). 단일 파일만 실행하려면 `yarn test test/format/formatNumber.test.ts`, 특정 테스트명만 실행하려면 `yarn test -t "이름"`.
 - `yarn pwtest` : Playwright 테스트 실행. 저장소에 `playwright.config`나 `*.spec.ts` 파일이 없으므로, 사용 전 설정 여부를 먼저 확인할 것.
 - `yarn docs:gen` : typedoc으로 `docs/` API 문서 재생성(`docs/` 하위 파일은 직접 수정하지 않는다).

@@ -1,4 +1,4 @@
-import { hasOwnProp, isHTMLElement } from '@/util/utils';
+import { isHTMLElement } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';

@@ -14,7 +14,7 @@
 
 ## 1. Project Overview
 
-- `@daracl/grid` v`0.0.19`: UI 프레임워크에 종속되지 않는 브라우저용 TypeScript 데이터 그리드 라이브러리. MIT License.
+- `@daracl/grid` v`0.0.25`: UI 프레임워크에 종속되지 않는 브라우저용 TypeScript 데이터 그리드 라이브러리. MIT License.
 - 주요 기능: 목록·트리·그룹 데이터 표시, 그룹 소계·총계, 셀 편집과 검증, 정렬·검색·페이징, 행·셀 선택과 체크, 고정 컬럼, 행 이동, rowSpan, 툴바·컨텍스트 메뉴·요약, 테마, 클립보드, Undo/Redo, PDF 다운로드.
 - 서버 애플리케이션이 아니다. DB 연결, ORM, SQL 파일, 서버 Controller/REST endpoint는 없다. 행 CRUD는 브라우저 메모리에서 수행한다.
 
@@ -51,6 +51,7 @@ src/
   element/                           DaraElement DOM 래퍼
   event/                             이벤트 관리·포인터 세션·핸들러
   service/                           DataManager 및 목록·트리·그룹·History 관리
+    remote/                          dataSource 서버 연동(RemoteDataController·DataSource·HttpDataSource)
   view/
     GridMain.ts                      인스턴스 조립·수명 관리
     builder/                         구조·필드·크기 계산·렌더러 생성
@@ -183,7 +184,7 @@ GridOptions → initGridOptions / initConfig → GridMain
 | 명령 | 용도 |
 | --- | --- |
 | `npm run dev` | `127.0.0.1:5178`, `/uitest/index.html` 자동 열기 |
-| `npm run build` | `build:escjs` → `build:umd` → `mergenclean` 전체 배포 빌드 |
+| `npm run build` | `scripts/build.mjs`가 declaration·ESM/CJS·UMD 번들을 임시 폴더에 만든 뒤 `dist`로 반영하는 전체 배포 빌드 |
 | `npm run build:escjs` | ESM/CJS production·development 번들 |
 | `npm run build:umd` | UMD production·development 번들 |
 | `npm run build:tsc` | declaration 생성 및 tsc-alias 경로 변환; dist에 기록 |
@@ -195,10 +196,10 @@ GridOptions → initGridOptions / initConfig → GridMain
 | `npm run docs:gen` | TypeDoc 문서 생성 |
 
 - `npm run pwtest` script는 있지만 Playwright 설정·전용 spec은 확인되지 않는다. 준비된 E2E 검증 수단으로 간주하지 않는다.
-- `runBuildDev.bat`/`runBuildProd.bat`가 호출하는 `build:dev`/`build:prod`는 현재 scripts에 없다.
-- `build.js`는 없는 `webpack.common.js`, `src/index.js`와 미선언 plugin을 참조하는 과거 경로다. `dts:gen`도 없는 `src/index.js`를 참조하므로 현재 기본 빌드로 안내하지 않는다.
-- `copy-html`이 참조하는 `public/index.html`은 현재 없다. 전체 빌드의 복사 결과를 무조건 성공으로 가정하지 않는다.
-- `vite.config.js`의 external 항목 `@daracl/datatimepicker` 철자는 실제 의존성 `@daracl/datetimepicker`와 다르다. 관련 번들 작업에서 확인하되 요청 없이 수정하지 않는다.
+- `runBuildDev.bat`/`runBuildProd.bat`는 `npm run build`를 호출한다(별도 dev/prod 스크립트는 없고 `build`가 두 모드를 모두 생성한다).
+- `dts:gen`은 `build:tsc`의 별칭이다. 과거 webpack/esbuild용 `build.js`는 제거했다.
+- `copy-html`은 `public` 디렉터리(폰트·`OFL.txt`)를 `dist`로 복사한다. `public/index.html`은 없어도 된다.
+- `vite.config.mjs`의 external 항목 `@daracl/datatimepicker`(철자 오류)·`@daracl/toast`는 실제 의존성과 일치하지 않아 현재 아무 효과가 없다. 고치면 datetimepicker가 번들에서 빠지므로 의도 확인 후 수정한다.
 
 ## 9. Error Handling & Logging
 

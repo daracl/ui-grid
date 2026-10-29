@@ -14,8 +14,8 @@ const CONTEXT_MENU_ON = 'dg-on';
 /**
  * Body class
  *
- * @class Body
- * @typedef {Body}
+ * @class ContextMenu
+ * @typedef {ContextMenu}
  */
 export class ContextMenu {
   private readonly gridMain: GridMain;
@@ -296,7 +296,8 @@ export class ContextMenu {
    * html template
    *
    * @public
-   * @param {string} type position type
+   @param {string} id menu id
+   @param {number} depth menu depth
    * @returns {string} template string
    */
   public template(data: ContextMenuItem[], id: string, depth: number): string {

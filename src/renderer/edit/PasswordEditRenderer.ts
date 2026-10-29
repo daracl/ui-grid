@@ -1,7 +1,6 @@
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
-import { EditCellRenderer } from '@/renderer/EditCellRenderer';
 import { TextAbstractRenderer } from './TextAbstractRenderer';
 
 /**
@@ -9,7 +8,7 @@ import { TextAbstractRenderer } from './TextAbstractRenderer';
  *
  * @class PasswordEditRenderer
  * @typedef {PasswordEditRenderer}
- * @extends {EditCellRenderer}
+ * @extends {TextAbstractRenderer}
  */
 export class PasswordEditRenderer extends TextAbstractRenderer {
   constructor(field: FieldItem, gridMain: GridMain) {

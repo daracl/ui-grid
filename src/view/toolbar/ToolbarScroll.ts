@@ -1,4 +1,3 @@
-import { Config } from '@t/GridConfig';
 
 import { ToolbarOptions } from '@/types/GridOptions';
 import { isShiftKey, stopPreventCancel } from '@/util/eventUtils';

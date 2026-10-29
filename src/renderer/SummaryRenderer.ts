@@ -67,7 +67,6 @@ export abstract class SummaryRenderer {
 
   /**
    * 값 얻기
-   * @param rowItem row item
    * @returns
    */
   public getValue(): any {

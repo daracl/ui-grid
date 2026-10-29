@@ -58,7 +58,7 @@ export function addAttr(el: HTMLElement, attrs: any) {
 /**
  * remove html element attribute
  *
- * @param {HTMLElement} el element
+ @param {HTMLElement | HTMLElement[]} element element
  * @param {...string[]} attrKey attribute key
  */
 export function removeAttr(element: HTMLElement | HTMLElement[], ...attrKey: string[]) {

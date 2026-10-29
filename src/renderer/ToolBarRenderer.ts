@@ -138,18 +138,28 @@ export abstract class ToolBarRenderer {
       });
     }
 
+    if (!this.isSearchInput()) this.gridMain.searchByToolbar('change');
+
     this.gridMain.getToolbar().refreshConditionFields();
   }
 
   public search(e: Event) {
     if (this.field.search) {
       const toolbarValues = this.gridMain.getToolbarValues();
-      this.field.search.call(null, {
+      const result = this.field.search.call(null, {
         evt: e,
         field: this.field,
         values: toolbarValues,
       });
+      if (result === false) return;
     }
+
+    this.gridMain.searchByToolbar('search');
+  }
+
+  /** 입력 중 값이 바뀌는 검색어 필드인지 여부. change 트리거에서 제외한다. */
+  protected isSearchInput(): boolean {
+    return false;
   }
 
   public getToolbarValues() {

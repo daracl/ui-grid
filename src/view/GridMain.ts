@@ -19,6 +19,8 @@ import { SelectionInfo } from '@/selection/selection';
 import { ListDataManager } from '@/service/ListDataManager';
 import { TreeDataManager } from '@/service/TreeDataManager';
 import { GroupDataManager } from '@/service/GroupDataManager';
+import { prepareDataSourceOptions, RemoteDataController } from '@/service/remote/RemoteDataController';
+import { DataSourceError } from '@/service/remote/DataSourceError';
 import { AddRowOptions } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
@@ -117,8 +119,14 @@ export class GridMain {
 
   private readonly structureBuilder: StructureBuilder;
 
+  /** dataSource 옵션이 있을 때만 생성되는 서버 연동 컨트롤러 */
+  private remote?: RemoteDataController;
+
   constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message) {
     const opts = initGridOptions(options);
+    prepareDataSourceOptions(opts, options, (page) => {
+      void this.remote?.goToPage(page);
+    });
 
     this.grid = grid;
     this.language = new Language();
@@ -152,6 +160,23 @@ export class GridMain {
     this.gridElement = new DaraElement(element);
 
     ALL_INSTANCE.set(this.$instanceId, this);
+
+    if (opts.dataSource) {
+      this.remote = new RemoteDataController(this, grid);
+    }
+  }
+
+  /**
+   * 서버 연동 컨트롤러. dataSource 옵션이 없으면 오류를 던진다.
+   */
+  /** toolbar.remote 설정에 따른 자동 서버 조회. dataSource가 없으면 무시한다. */
+  public searchByToolbar(trigger: 'search' | 'change'): void {
+    this.remote?.searchByToolbar(trigger);
+  }
+
+  public getRemote(): RemoteDataController {
+    if (!this.remote) throw new DataSourceError('CONFIG', 'dataSource option is not configured');
+    return this.remote;
   }
 
   public init() {
@@ -771,7 +796,6 @@ export class GridMain {
   /**
    * change scroll mode
    *
-   * @param mode scroll mode
    */
   private changeScrollMode() {
     const cfg = this.cfg;
@@ -1109,6 +1133,7 @@ export class GridMain {
   public destroy() {
     if (this.destroyed) return;
     this.destroyed = true;
+    this.remote?.destroy();
     const gridElement = this.gridElement;
     const uid = this.$instanceId;
 

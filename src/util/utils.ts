@@ -99,8 +99,8 @@ export function isHTMLElement(target: any): target is HTMLElement {
 /**
  * replace message format
  *
- * @param {string} logicCode logic code
- * @param {*} param replace parameter
+ @param {string} pTmplate message template
+ @param {*} data replace parameter
  * @returns {*}
  */
 export const replaceMesasgeFormat = (pTmplate: string, data: any) => {
@@ -249,7 +249,9 @@ export function isObject(value: any) {
  * @template T 배열 요소 타입
  * @param targetArray 수정할 대상 배열
  * @param values 삽입할 값 또는 값들의 배열
- * @param options 삽입 위치, 인덱스, 최대 길이 등 옵션
+ @param isBefore true이면 rowIndex 앞에 삽입
+ @param rowIndex 삽입 기준 인덱스. 생략하면 끝에 삽입
+ @param limit 최대 길이. 초과하면 오래된 항목을 제거
  * @returns 수정된 원본 배열 (targetArray)
  */
 export function insertToArray<T>(
