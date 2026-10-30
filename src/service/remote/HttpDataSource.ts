@@ -9,6 +9,7 @@ import type {
   HttpRequest,
   ResponseInfo,
 } from '@/types/DataSource';
+import { joinUrl } from '@/util/utils';
 import { DataSourceError, toDataSourceError } from './DataSourceError';
 
 const VALID_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
@@ -42,7 +43,7 @@ export class HttpDataSource {
     }
 
     const request: HttpRequest = {
-      url: (this.opts.baseUrl ?? '') + endpoint.url,
+      url: joinUrl(this.opts.baseUrl, endpoint.url),
       method,
       headers: await this.resolveHeaders(method, endpoint),
       data: this.opts.requestMap ? this.opts.requestMap(payload, operation) : payload,

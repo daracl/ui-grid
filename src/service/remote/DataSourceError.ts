@@ -38,6 +38,12 @@ export function toDataSourceError(error: unknown): DataSourceError {
     return new DataSourceError('ABORT', 'Request aborted', undefined, undefined, error);
   }
   if (e?.type === 'network') return new DataSourceError('NETWORK', 'Network error', undefined, undefined, error);
+  // 성공 응답의 본문을 JSON 등으로 해석하지 못한 경우: 서버 응답이 형식에 맞지 않는다.
+  if (e?.type === 'parse') {
+    return new DataSourceError('INVALID_RESPONSE', e.message || 'Failed to parse response body', e.status, e.responseText, error);
+  }
+  // 허용되지 않은 HTTP 메서드라 요청을 보내지 않은 경우: 설정 오류이다.
+  if (e?.type === 'method') return new DataSourceError('CONFIG', e.message || 'Invalid HTTP method', e.status, undefined, error);
 
   return new DataSourceError('NETWORK', e?.message || 'Request failed', undefined, undefined, error);
 }

@@ -13,7 +13,7 @@ import {
 import { Selection, SelectionRange } from '@/types/GridConfig';
 import { GridOptions, SortOption } from '@/types/GridOptions';
 import { FieldSortInfo } from '@/types/Header';
-import { isArray, isSameValue, multiSort } from '@/util/utils';
+import { compareCachedValue, getSortValues, isArray, isSameValue, multiSort } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { merge } from '../util/utils';
 import { FieldItem } from '@/types/GridField';
@@ -40,6 +40,9 @@ export interface ChangeSnapshotEntry {
   localOnly: boolean;
 }
 
+/** 증분 정렬로 처리하는 최대 추가 행 수. 이보다 많으면 전체를 다시 정렬한다. */
+const INCREMENTAL_ADD_LIMIT = 64;
+
 export abstract class DataManager {
   protected readonly rowHeight;
   protected readonly rowIdField;
@@ -63,6 +66,9 @@ export abstract class DataManager {
 
   // 정렬 정보
   private sortOpts: SortOption;
+
+  // 전체 행을 정렬한 결과. 검색을 해제할 때 정렬 기준 값이 그대로면 다시 정렬하지 않고 재사용한다.
+  private fullSortCache: { signature: string; items: ViewItem[]; values: unknown[][] } | null = null;
 
   // search item
   private readonly searchMap = new Map<RowId, ViewItem>();
@@ -418,8 +424,65 @@ export abstract class DataManager {
     this.searchDirty = true;
   }
 
+  /**
+   * 서버에서 받은 행을 목록 끝에 붙인다. 조회 데이터이므로 READ 상태로 추가하고 Undo 이력은 남기지 않는다.
+   *
+   * @returns 추가된 첫 행의 index. 추가할 행이 없으면 -1
+   */
+  public appendItems(items: any[]): number {
+    const previousSuspended = this.history.suspend();
+    try {
+      return this.addItems(items, { position: 'after' }, ItemStatusMap.READ);
+    } finally {
+      this.history.resume(previousSuspended);
+    }
+  }
+
   public createItem(item: any, addOpts?: AddRowOptions) {
     return this.cfg.dataManager.addItems([item], addOpts, ItemStatusMap.CREATE);
+  }
+
+  /**
+   * 화면에서 옮긴 행 순서를 원본 순서에도 반영한다. 이렇게 하지 않으면 이후 행 추가·삭제·검색 해제 등으로
+   * 목록이 다시 만들어질 때 이동한 순서가 사라진다.
+   *
+   * 화면 순서가 곧 원본 순서인 경우에만 반영한다. 정렬·검색·페이징이 있으면(화면이 원본의 일부이거나 파생 순서)
+   * 이동을 화면에만 적용해야 하므로 Tree·Group과 함께 false를 돌려준다.
+   *
+   * @param movedItems 이동 후 화면의 ViewItem 순서(원본 행 전체)
+   * @returns 반영했으면 true(화면 목록도 새 순서로 갱신), 반영하지 않았으면 false
+   */
+  public applyMovedOrder(movedItems: ViewItem[]): boolean {
+    const footer = this.opts.footer;
+    const original = this.originalViewItems;
+
+    if (
+      this.type !== 'list' ||
+      this.sortOrders.length > 0 ||
+      this.cfg.searchEnabled ||
+      (footer?.enabled && footer.paging?.enabled) ||
+      movedItems.length !== original.length
+    ) {
+      return false;
+    }
+
+    const byId = new Map(original.map((viewItem) => [viewItem.id, viewItem]));
+    const next: ViewItem[] = [];
+    for (const moved of movedItems) {
+      const viewItem = byId.get(moved.id);
+      if (!viewItem) return false;
+      next.push(viewItem);
+    }
+    if (new Set(next).size !== next.length) return false;
+
+    next.forEach((viewItem, index) => {
+      viewItem.sortOrder = index;
+    });
+    this.setOriginalViewItems(next);
+    this.searchDirty = true;
+    this.applyViewItems(next.slice());
+
+    return true;
   }
 
   protected getSortBaseItems() {
@@ -439,11 +502,158 @@ export abstract class DataManager {
       }
     });
 
-    const sortData = this.getSortData(sortArr, sortOpts);
+    // 정렬은 입력 배열을 제자리에서 바꾸므로 원래 순서인지는 정렬 전에 확인한다.
+    const isOriginalInput = this.isOriginalOrder(this.getPagingViewItems());
+    const cached = this.reuseFullSort(sortArr, sortOpts);
+    const sortData = cached ?? this.getSortData(sortArr, sortOpts);
 
     this.sortOrders = sortOrders;
     this.sortOpts = sortOpts;
     this.applyViewItems(sortData);
+
+    if (!cached && isOriginalInput) this.cacheFullSort(sortArr, sortOpts, sortData);
+  }
+
+  private getSortSignature(sortInfos: FieldSortInfo[], sortOpts: SortOption): string {
+    return JSON.stringify([sortInfos.map(({ name, ascOrder, isValue }) => [name, ascOrder, isValue]), sortOpts.nullsLast]);
+  }
+
+  /** 전체 행이 원래 순서로 정렬 입력이 되는 경우에만 캐시를 사용·저장한다. 검색·사용자 정렬 함수·페이징과는 함께 쓰지 않는다. */
+  private isFullSortCacheable(sortOpts: SortOption): boolean {
+    const footer = this.opts.footer;
+
+    return (
+      this.type === 'list' &&
+      !sortOpts.customSorting &&
+      !this.cfg.searchEnabled &&
+      !(footer?.enabled && footer.paging?.enabled)
+    );
+  }
+
+  private isOriginalOrder(items: ViewItem[]): boolean {
+    const original = this.originalViewItems;
+    if (items.length !== original.length) return false;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i] !== original[i]) return false;
+    }
+
+    return true;
+  }
+
+  private cacheFullSort(sortInfos: FieldSortInfo[], sortOpts: SortOption, sorted: ViewItem[]): void {
+    if (!this.isFullSortCacheable(sortOpts) || sorted.length !== this.originalViewItems.length) {
+      return;
+    }
+
+    const values = sorted.map((viewItem) => viewItem.sortValues);
+    if (values.some((value) => !value)) return;
+
+    this.fullSortCache = {
+      signature: this.getSortSignature(sortInfos, sortOpts),
+      items: sorted.slice(),
+      values: values as unknown[][],
+    };
+  }
+
+  /**
+   * 정렬 입력이 전체 행(원래 순서)이고 행 구성과 정렬 기준 값이 정렬 당시와 같으면 이전 정렬 결과를 돌려준다.
+   * 값을 다시 읽어 비교하므로 셀 수정·행 추가·삭제로 달라졌으면 캐시를 쓰지 않고 새로 정렬한다.
+   */
+  private reuseFullSort(sortInfos: FieldSortInfo[], sortOpts: SortOption): ViewItem[] | null {
+    const cache = this.fullSortCache;
+    if (!cache || !this.isFullSortCacheable(sortOpts)) return null;
+    if (cache.signature !== this.getSortSignature(sortInfos, sortOpts)) return null;
+    if (!this.isOriginalOrder(this.getPagingViewItems())) return null;
+    if (cache.items.length !== this.originalViewItems.length) return null;
+
+    const members = new Set(this.originalViewItems);
+    for (let i = 0; i < cache.items.length; i++) {
+      const viewItem = cache.items[i];
+      if (!members.has(viewItem)) return null;
+
+      const before = cache.values[i];
+      const now = getSortValues(this, viewItem, sortInfos);
+      for (let k = 0; k < now.length; k++) {
+        if (!isSameValue(before[k], now[k])) return null;
+      }
+    }
+
+    // 사용자가 정렬 값을 다시 읽은 것과 같은 상태가 되도록 캐시한 값을 행에 되돌려 둔다.
+    cache.items.forEach((viewItem, i) => {
+      viewItem.sortValues = cache.values[i];
+    });
+
+    return cache.items.slice();
+  }
+
+  /**
+   * 정렬이 켜져 있을 때 소량의 행 추가와 삭제를 전체 재정렬 없이 반영한다.
+   *
+   * 정렬된 목록에서 삭제는 순서가 유지되고, 추가는 이진 탐색으로 자리를 찾는다. 같은 값은 원래 순서(sortOrder)를 따르므로
+   * 전체를 다시 정렬한 결과와 같다. 검색·페이징·사용자 정렬 함수·Tree·Group이거나 추가 행이 많으면 반영하지 않고 false를 돌려준다.
+   * 호출 전에 원본 목록(originalViewItems)이 이미 갱신되어 있어야 한다.
+   *
+   * @param added 새로 추가된 ViewItem
+   * @param removedIds 삭제된 행 ID
+   * @returns 반영했으면 true, 전체 재정렬이 필요하면 false
+   */
+  protected applyIncrementalMutation(added: ViewItem[], removedIds?: Set<RowId>): boolean {
+    const orders = this.sortOrders;
+    const sortOpts = this.sortOpts;
+    const footer = this.opts.footer;
+
+    if (
+      this.type !== 'list' ||
+      orders.length === 0 ||
+      !sortOpts ||
+      sortOpts.customSorting ||
+      this.cfg.searchEnabled ||
+      (footer?.enabled && footer.paging?.enabled) ||
+      added.length > INCREMENTAL_ADD_LIMIT
+    ) {
+      return false;
+    }
+
+    const current = this.getPagingViewItems();
+    const next = removedIds && removedIds.size > 0 ? current.filter((viewItem) => !removedIds.has(viewItem.id)) : current.slice();
+    const nullsLast = sortOpts.nullsLast === true;
+
+    const compare = (a: ViewItem, b: ViewItem): number => {
+      for (let i = 0; i < orders.length; i++) {
+        const result = compareCachedValue(a.sortValues![i], b.sortValues![i], orders[i].ascOrder ?? true, nullsLast);
+        if (result !== 0) return result;
+      }
+
+      return a.sortOrder - b.sortOrder;
+    };
+
+    for (const viewItem of added) {
+      viewItem.sortValues = getSortValues(this, viewItem, orders);
+
+      let low = 0;
+      let high = next.length;
+      while (low < high) {
+        const mid = (low + high) >>> 1;
+        const probe = next[mid];
+        if (!probe.sortValues) return false;
+
+        if (compare(probe, viewItem) > 0) high = mid;
+        else low = mid + 1;
+      }
+
+      next.splice(low, 0, viewItem);
+    }
+
+    // 정렬 결과가 원본과 행 수가 맞지 않으면(예상 밖의 상태) 안전하게 전체 재정렬로 처리한다.
+    if (next.length !== this.originalViewItems.length) return false;
+
+    this.searchDirty = true;
+    this.applyViewItems(next);
+    // 증분으로 맞춘 결과도 전체를 정렬한 결과와 같으므로 검색을 해제할 때 재사용할 수 있게 갱신한다.
+    this.cacheFullSort(orders, sortOpts, next);
+
+    return true;
   }
 
   /** 사용자 정렬 결과를 원래 ViewItem에 연결하여 트리·그룹 메타데이터를 보존한다. */

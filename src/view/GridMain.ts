@@ -25,6 +25,7 @@ import { AddRowOptions } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
+import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
 import { isArray, isString, isUndefined, isVisible } from '@/util/utils';
@@ -894,6 +895,20 @@ export class GridMain {
   }
 
   /**
+   * 서버에서 받은 데이터를 목록 끝에 붙입니다(infinite 페이징). 스크롤 위치는 유지하고 Undo 이력은 남기지 않습니다.
+   *
+   * @param items 추가할 행 데이터 배열
+   */
+  public appendItems(items: any[]) {
+    const dataManager = this.cfg.dataManager;
+
+    if (dataManager.appendItems(items) > -1) {
+      this.refreshBody(true, 'appendItems');
+      this.refreshCheckboxStyle();
+    }
+  }
+
+  /**
    * 새로운 item을 Grid에 추가합니다.
    *
    * item을 데이터 매니저에 추가하면서 신규 생성 상태(CREATE)를 설정하고,
@@ -1132,6 +1147,32 @@ export class GridMain {
     }
   }
 
+  /**
+   * 헤더 전체 체크박스를 현재 체크 상태에 맞춥니다. 행이 추가돼 체크된 행의 비율이 바뀐 뒤에 호출합니다.
+   * 체크된 행이 없으면 계산하지 않고 'none'으로 둡니다.
+   */
+  private refreshCheckboxStyle() {
+    const dataManager = this.cfg.dataManager;
+
+    if (dataManager.getCheckedCount() === 0) {
+      this.header?.setCheckboxStyle('none');
+      return;
+    }
+
+    const detailItems = dataManager.getViewItems().filter((item) => !item.groupRowType);
+    const checkedCount = detailItems.filter((item) => dataManager.isItemChecked(item.id)).length;
+    this.header?.setCheckboxStyle(getCheckboxMode(checkedCount, detailItems.length));
+  }
+
+  /**
+   * infinite 페이징의 다음 페이지 조회 조건을 확인합니다.
+   *
+   * @param idleScroll 스크롤 위치가 바뀌지 않은 입력(이미 끝에서 더 스크롤)이면 true
+   */
+  public checkLoadMore(idleScroll = false) {
+    this.remote?.checkLoadMore(idleScroll);
+  }
+
   public getToolbar() {
     return this.toolbar;
   }
@@ -1166,6 +1207,12 @@ export class GridMain {
     this.scroll?.destroy();
     this.toolbar?.destroy();
     this.body.destroy();
+    this.contextMenu?.destroy();
+    // 렌더러가 그리드 바깥에 만든 요소(툴팁 등)를 정리한다.
+    cfg.allFieldMap.forEach((field) => {
+      field.$renderer?.destroy();
+      field.$editRenderer?.destroy();
+    });
     cfg.eventManager.destroy();
 
     gridElement.removeAttr(INSTANCE_ATTR_KEY);

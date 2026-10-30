@@ -49,6 +49,11 @@ export class ContextMenu {
     this.initEvent();
   }
 
+  /** 숨김 컨테이너에 붙여 둔 메뉴 요소를 제거한다. */
+  destroy() {
+    this.contextElement?.getElement().remove();
+  }
+
   create() {
     const contextElement = document.createElement('ul');
     contextElement.dataset.gridLayerId = this.gridMain.uid();
@@ -311,7 +316,9 @@ export class ContextMenu {
 
       if (isUndefined(item)) continue;
 
-      classNames = resolveClassName(item.itemClass, { item }).join(' ') + (item.disabled === true ? ' disabled' : '');
+      // class 속성에 들어가므로 사용자 지정 클래스 이름도 이스케이프한다.
+      classNames =
+        replaceXss(resolveClassName(item.itemClass, { item }).join(' ')) + (item.disabled === true ? ' disabled' : '');
 
       itemKey = (id === 'top' ? '' : id + '_') + depth + '_' + (item.key || '');
 

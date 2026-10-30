@@ -39,6 +39,9 @@ export abstract class BasePointerHandler implements PointerHandler {
   /** pointer up */
   onPointerUp?(session: PointerSession): void;
 
+  /** 그리드를 파괴할 때 호출된다. 진행 중인 작업과 그리드 바깥에 만든 요소를 정리한다. */
+  destroy?(): void;
+
   /** click */
   onClick?(session: PointerSession): void;
 

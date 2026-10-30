@@ -53,6 +53,9 @@ declare const APP_VERSION: string;
 
 let HIDDEN_ELEMENT: HTMLElement | null = null;
 
+/** 내보내기 스타일 캐시에 보관하는 최대 클래스 조합 수 */
+const MAX_STYLE_CACHE_SIZE = 5000;
+
 /**
  * DaraGrid class
  *
@@ -64,6 +67,9 @@ export class DaraGrid {
 
   private gridMain: GridMain;
 
+  /** 내보내기 동안 재사용하는 막대 차트 색상. 내보내기를 시작할 때 비운다. */
+  private pdfBarColors: { positive: string; negative: string } | null = null;
+
   constructor(gridElement: HTMLElement, options: GridOptions, message?: Message) {
     if (gridElement == null || isUndefined(gridElement)) {
       throw new Error(`${gridElement} grid element not found`);
@@ -73,7 +79,8 @@ export class DaraGrid {
   }
 
   initGlobalConfig() {
-    if (HIDDEN_ELEMENT === null) {
+    // 호스트 앱이 body를 다시 그려 컨테이너가 DOM에서 사라졌으면 새로 만든다(컨텍스트 메뉴·행 이동 도우미가 여기에 붙는다).
+    if (HIDDEN_ELEMENT === null || !HIDDEN_ELEMENT.isConnected) {
       const hiddenElement = createHTMLElement('div', HIDDEN_ELEMENT_SELECTOR.replace('.', ''));
       document.body.appendChild(hiddenElement);
       HIDDEN_ELEMENT = hiddenElement;
@@ -308,6 +315,12 @@ export class DaraGrid {
         .map((element) => window.getComputedStyle(element).backgroundColor)
         .find((color) => color && color !== 'transparent' && color !== 'rgba(0, 0, 0, 0)');
     const body = gridElement.querySelector('.dg-body');
+    const styleCache = new Map<
+      string,
+      { backgrounds: (string | undefined)[]; borders: (PdfCellBorders | undefined)[]; textColors: (string | undefined)[] }
+    >();
+    // 막대 차트 색상은 내보낼 때마다 한 번만 읽는다.
+    this.pdfBarColors = null;
     const headerGradient = (cell: Element) => {
       // 헤더 셀은 투명하고 실제 테마 배경은 상위 영역에 그려진다.
       for (let element: Element | null = cell; element && gridElement.contains(element); element = element.parentElement) {
@@ -388,7 +401,8 @@ export class DaraGrid {
       tableBorders: this.getPdfCellBorders(gridElement.querySelector('.dg-main') ?? gridElement),
       getCellStyles: (viewItem: ViewItem, rowIndex: number) => {
         // 두 번째 행부터 줄무늬가 적용되는 화면의 논리 행 순서를 재현한다.
-        const row = rowIndex % 2 === 0 ? probeRow : parityRow;
+        const parity = rowIndex % 2;
+        const row = parity === 0 ? probeRow : parityRow;
         const probeCells = row.cells;
         const rowClasses = ['dg-row'];
         if (viewItem.groupRowType) {
@@ -401,10 +415,9 @@ export class DaraGrid {
                 : 'dg-grand-summary',
           );
         }
-        row.className = rowClasses.join(' ');
+        const rowClassName = rowClasses.join(' ');
 
         const item = viewItem.groupRowType ? undefined : cfg.dataManager.getRowItem(viewItem.id);
-        const rowBackground = window.getComputedStyle(row).backgroundColor;
         let previousDataItem: Record<string, unknown> | undefined;
         if (!viewItem.groupRowType && rowIndex > 0) {
           for (let previousIndex = rowIndex - 1; previousIndex >= 0; previousIndex--) {
@@ -416,8 +429,8 @@ export class DaraGrid {
           }
         }
 
-        const styles = displayFields.map((field, fieldIndex) => {
-          const cell = probeCells[fieldIndex];
+        // 셀 클래스는 문자열만 만들기 때문에 먼저 구해 둔다.
+        const cellClassNames = displayFields.map((field) => {
           const classes = ['dg-cell'];
           if (field.name === LINE_NUMBER_NAME) {
             classes.push('dg-aside', 'dg-line-number');
@@ -446,7 +459,27 @@ export class DaraGrid {
               classes.push('dg-group-continuation');
             }
           }
-          cell.className = classes.join(' ');
+          return classes.join(' ');
+        });
+
+        // 계산된 스타일은 행 줄무늬 위치와 행·셀 클래스 조합에만 달려 있으므로, 같은 조합이면 다시 계산하지 않는다.
+        // (셀마다 클래스를 바꾸고 getComputedStyle을 읽으면 매번 스타일 재계산이 일어나 대용량에서 매우 느리다.)
+        const cacheKey = `${parity}\u0001${rowClassName}\u0001${cellClassNames.join('\u0002')}`;
+        const cached = styleCache.get(cacheKey);
+        if (cached) {
+          return {
+            backgrounds: cached.backgrounds.slice(),
+            borders: cached.borders.slice(),
+            textColors: cached.textColors.slice(),
+          };
+        }
+
+        row.className = rowClassName;
+        const rowBackground = window.getComputedStyle(row).backgroundColor;
+
+        const styles = displayFields.map((field, fieldIndex) => {
+          const cell = probeCells[fieldIndex];
+          cell.className = cellClassNames[fieldIndex];
 
           const cellBackground = window.getComputedStyle(cell).backgroundColor;
           const background =
@@ -459,7 +492,13 @@ export class DaraGrid {
         });
         const backgrounds = styles.map((style) => style.background);
         const borders = styles.map((style) => style.borders);
-        return { backgrounds, borders, textColors: styles.map((style) => style.textColor || undefined) };
+        const textColors = styles.map((style) => style.textColor || undefined);
+
+        // 클래스 조합이 계속 달라지는 경우(행마다 고유 클래스 등)에 대비해 캐시 크기를 제한한다.
+        if (styleCache.size < MAX_STYLE_CACHE_SIZE) {
+          styleCache.set(cacheKey, { backgrounds, borders, textColors });
+        }
+        return { backgrounds: backgrounds.slice(), borders: borders.slice(), textColors: textColors.slice() };
       },
       getHeaderCellBorders: () => headerCells.map((cell, column) => (cell ? resolveBorders(cell, column) : undefined)),
       getHeaderCellStyles: () => ({
@@ -526,8 +565,14 @@ export class DaraGrid {
       if (!Number.isFinite(chartValue)) {
         return undefined;
       }
-      const positiveColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--dui-bar-positive-bg').trim();
-      const negativeColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue('--dui-bar-negative-bg').trim();
+      if (!this.pdfBarColors) {
+        const gridStyle = window.getComputedStyle(this.gridMain.element().getElement());
+        this.pdfBarColors = {
+          positive: gridStyle.getPropertyValue('--dui-bar-positive-bg').trim(),
+          negative: gridStyle.getPropertyValue('--dui-bar-negative-bg').trim(),
+        };
+      }
+      const { positive: positiveColor, negative: negativeColor } = this.pdfBarColors;
       return {
         type: 'bar',
         value: chartValue,
@@ -909,7 +954,17 @@ export class DaraGrid {
   }
 
   /**
-   * 마지막 조회 조건(과 현재 페이지)으로 다시 조회한다.
+   * infinite 페이징에서 다음 페이지를 조회해 기존 데이터 뒤에 붙인다. 보통은 스크롤이 끝에 가까워지면 자동 호출된다.
+   * 다른 조회·저장·삭제가 진행 중이거나 더 받을 데이터가 없으면 요청하지 않고 null을 반환한다.
+   *
+   * @returns 이번에 받은 페이지 결과. 요청하지 않았거나 취소되었으면 null
+   */
+  public loadMore(): Promise<LoadResult | null> {
+    return this.remote((controller) => controller.loadMore());
+  }
+
+  /**
+   * 마지막 조회 조건(과 현재 페이지)으로 다시 조회한다. infinite 페이징은 첫 페이지부터 다시 조회한다.
    */
   public reload(options?: LoadOptions): Promise<LoadResult | null> {
     return this.remote((controller) => controller.reload(options));

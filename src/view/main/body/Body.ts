@@ -206,6 +206,7 @@ export class Body {
    */
   public dataDraw(mode?: string): void {
     this.renderer.dataDraw(mode);
+    this.gridMain.checkLoadMore();
   }
 
   /**

@@ -22,6 +22,7 @@ export type {
   ResponseInfo,
   SaveResult,
   SaveSummary,
+  SortParam,
 } from './types/DataSource';
 export type { ToolbarRemoteOptions } from './types/GridOptions';
 

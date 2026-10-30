@@ -353,6 +353,8 @@ export class BodyEvent {
   }
 
   public destroy() {
-    //
+    for (const handler of this.handlers) {
+      handler.destroy?.();
+    }
   }
 }

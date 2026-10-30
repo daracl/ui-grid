@@ -567,6 +567,137 @@ describe('RemoteDataController (dataSource)', () => {
     });
   });
 
+  describe('조회 상태 관리', () => {
+    it('beforeLoad가 취소해도 진행 중인 이전 조회는 취소되지 않고 결과가 반영된다', async () => {
+      const first = deferred<LoadResult>();
+      const signals: AbortSignal[] = [];
+      const load = jest.fn((_params: unknown, signal: AbortSignal) => {
+        signals.push(signal);
+        return first.promise;
+      });
+      let cancel = false;
+      const { grid } = create({ load, events: { beforeLoad: () => (cancel ? false : undefined) } });
+
+      const p1 = grid.load({ q: 1 });
+      await flush();
+      cancel = true;
+      expect(await grid.load({ q: 2 })).toBeNull();
+
+      expect(signals[0].aborted).toBe(false);
+      expect(load).toHaveBeenCalledTimes(1);
+
+      first.resolve({ items: users(), total: 3 });
+      expect(await p1).not.toBeNull();
+      expect(grid.getItems()).toHaveLength(3);
+    });
+
+    it('취소된 조회가 끝나도 진행 중인 다른 조회의 로딩 상태는 유지된다', async () => {
+      const first = deferred<LoadResult>();
+      const loadingChange = jest.fn();
+      let cancel = false;
+      const { grid, main } = create({
+        load: () => first.promise,
+        events: { beforeLoad: () => (cancel ? false : undefined), loadingChange },
+      });
+
+      const p1 = grid.load();
+      await flush();
+      cancel = true;
+      await grid.load();
+
+      expect(main.getRemote().isLoading()).toBe(true);
+      first.resolve({ items: users() });
+      await p1;
+      expect(main.getRemote().isLoading()).toBe(false);
+      expect(loadingChange.mock.calls.map(([event]) => event.loading)).toEqual([true, false]);
+    });
+
+    it('beforeLoad 승인을 기다리는 동안 더 늦게 호출된 조회가 먼저 승인되면 앞선 조회는 버린다', async () => {
+      const gates = [deferred<void>(), deferred<void>()];
+      let index = 0;
+      const load = jest.fn(async (params: Record<string, unknown>) => ({ items: [{ id: Number(params.q), name: 'x' }] }));
+      const { grid } = create({ load, events: { beforeLoad: () => gates[index++].promise } });
+
+      const p1 = grid.load({ q: 1 });
+      const p2 = grid.load({ q: 2 });
+      gates[1].resolve();
+      expect(await p2).not.toBeNull();
+      gates[0].resolve();
+      expect(await p1).toBeNull();
+
+      expect(load).toHaveBeenCalledTimes(1);
+      expect(grid.getItems().map((item) => item.id)).toEqual([2]);
+    });
+
+    it('조회가 실패하면 마지막 조회 조건과 페이지는 직전 성공 상태를 유지한다', async () => {
+      const load = jest.fn(async (params: Record<string, unknown>) => {
+        if (params.page === 3) throw new Error('fail');
+        return { items: [{ id: Number(params.page), name: `p${params.page}` }], total: 25 };
+      });
+      const { grid, main } = create({ load, paging: { mode: 'server', pageSize: 10 } }, {
+        footer: { enabled: true, paging: { enabled: true } },
+        paging: { pageSize: 10 },
+      });
+
+      await grid.searchRemote({ q: 'x' });
+      await main.getRemote().goToPage(2);
+      await main.getRemote().goToPage(3);
+      expect(main.config().paging).toMatchObject({ page: 2 });
+
+      await grid.reload();
+      expect(load).toHaveBeenLastCalledWith({ q: 'x', page: 2, pageSize: 10 }, expect.any(AbortSignal));
+
+      // 조건이 바뀐 조회가 실패해도 이전 조건을 유지한다.
+      load.mockRejectedValueOnce(new Error('fail'));
+      await expect(grid.searchRemote({ q: 'y' })).rejects.toBeInstanceOf(DataSourceError);
+      await grid.reload();
+      expect(load).toHaveBeenLastCalledWith({ q: 'x', page: 2, pageSize: 10 }, expect.any(AbortSignal));
+    });
+
+    it('에러 이벤트의 error는 DataSourceError 타입으로 code를 바로 읽을 수 있다', async () => {
+      const codes: string[] = [];
+      const { grid } = create({
+        load: async () => {
+          throw new Error('fail');
+        },
+        events: { loadError: (event) => codes.push(event.error.code) },
+      });
+
+      await expect(grid.load()).rejects.toBeInstanceOf(DataSourceError);
+      expect(codes).toEqual(['NETWORK']);
+    });
+  });
+
+  describe('joinUrl', () => {
+    it('baseUrl과 엔드포인트 사이의 슬래시를 하나로 맞추고 절대 URL은 baseUrl을 무시한다', () => {
+      const { joinUrl } = require('@/util/utils');
+      expect(joinUrl('/api', '/users')).toBe('/api/users');
+      expect(joinUrl('/api/', '/users')).toBe('/api/users');
+      expect(joinUrl('/api', 'users')).toBe('/api/users');
+      expect(joinUrl('https://x.com/api//', '/users')).toBe('https://x.com/api/users');
+      expect(joinUrl('/api', 'https://other.com/users')).toBe('https://other.com/users');
+      expect(joinUrl('/api', '//cdn.com/users')).toBe('//cdn.com/users');
+      expect(joinUrl('/api', '?a=1')).toBe('/api?a=1');
+      expect(joinUrl('/api', '')).toBe('/api');
+      expect(joinUrl(undefined, '/users')).toBe('/users');
+      expect(joinUrl('', 'users')).toBe('users');
+    });
+
+    it('조회 요청 URL에 반영된다', async () => {
+      const urls: string[] = [];
+      const { grid } = create({
+        baseUrl: 'https://x.com/api/',
+        load: { url: '/users' },
+        request: async (req: HttpRequest) => {
+          urls.push(req.url);
+          return users();
+        },
+      });
+      await grid.load();
+      expect(urls).toEqual(['https://x.com/api/users']);
+    });
+  });
+
   describe('HTTP DataSource', () => {
     it('조회는 쿼리, 저장은 JSON 본문으로 보내고 공통 헤더·변환 함수를 적용한다', async () => {
       const requests: HttpRequest[] = [];
@@ -937,11 +1068,87 @@ describe('RemoteDataController (dataSource)', () => {
       await expect(grid.load()).rejects.toMatchObject({ code: 'TIMEOUT' });
     });
 
+    it('코어 Ajax의 parse·method 오류를 INVALID_RESPONSE·CONFIG로 변환한다', async () => {
+      const { AjaxError } = require('@daracl/core');
+      const request = jest
+        .fn()
+        .mockRejectedValueOnce(new AjaxError({ type: 'parse', status: 200, responseText: '<html>not json</html>' }))
+        .mockRejectedValueOnce(new AjaxError({ type: 'method', status: 405 }))
+        .mockRejectedValueOnce(new AjaxError({ type: 'http', status: 500, statusText: 'Server Error', responseText: 'boom' }))
+        .mockRejectedValueOnce(new AjaxError({ type: 'network' }))
+        .mockRejectedValueOnce(new AjaxError({ type: 'abort' }));
+      const { grid } = create({ load: { url: '/u' }, request });
+
+      await expect(grid.load()).rejects.toMatchObject({ code: 'INVALID_RESPONSE', status: 200, response: '<html>not json</html>' });
+      await expect(grid.load()).rejects.toMatchObject({ code: 'CONFIG', status: 405 });
+      await expect(grid.load()).rejects.toMatchObject({ code: 'HTTP', status: 500, response: 'boom' });
+      await expect(grid.load()).rejects.toMatchObject({ code: 'NETWORK' });
+      // 그리드가 직접 취소한 것이 아닌 abort는 ABORT 오류로 알린다(그리드가 취소한 조회만 조용히 null로 끝난다).
+      await expect(grid.load()).rejects.toMatchObject({ code: 'ABORT' });
+    });
+
     it('save/remove에 GET 메서드는 허용하지 않는다', async () => {
       const { grid } = create({ load: { url: '/u' }, save: { url: '/s', method: 'GET' }, request: jest.fn() });
       await grid.load().catch(() => undefined);
       grid.createItem({ id: 'x', name: 'x' });
       await expect(grid.save()).rejects.toMatchObject({ code: 'CONFIG' });
+    });
+
+    it('JSON이 아닌 성공 응답은 INVALID_RESPONSE로 알리고 기존 데이터를 유지한다', async () => {
+      const loadError = jest.fn();
+      const fetchMock = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: async () => '<html>login page</html>',
+        headers: new Headers(),
+      }));
+      Object.defineProperty(window, 'fetch', { configurable: true, writable: true, value: fetchMock });
+      const { grid } = create({ load: { url: '/api/users' }, fetchMode: 'fetch', events: { loadError } }, { items: users() });
+
+      await expect(grid.load()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+      expect(loadError).toHaveBeenCalledTimes(1);
+      expect(loadError.mock.calls[0][0].error.code).toBe('INVALID_RESPONSE');
+      expect(grid.getItems()).toHaveLength(3);
+    });
+
+    it('baseUrl이 있어도 이미 합친 주소를 코어 Ajax에 넘겨 중복 적용되지 않는다', async () => {
+      const fetchMock = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: async () => JSON.stringify({ items: users() }),
+        headers: new Headers(),
+      }));
+      Object.defineProperty(window, 'fetch', { configurable: true, writable: true, value: fetchMock });
+      const { grid } = create({ baseUrl: 'https://x.com/api/', load: { url: '/users' }, fetchMode: 'fetch' });
+
+      await grid.load({ q: 'a' });
+      const [url] = fetchMock.mock.calls[0] as unknown as [string];
+      expect(url.startsWith('https://x.com/api/users')).toBe(true);
+      expect(url).not.toContain('api/api');
+      expect(url).not.toContain('https://x.com/api/https');
+    });
+
+    it('코어 Ajax 0.0.13 기본 동작: 기본 헤더와 조회 조건 직렬화', async () => {
+      const fetchMock = jest.fn(async () => ({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        text: async () => JSON.stringify({ items: users() }),
+        headers: new Headers(),
+      }));
+      Object.defineProperty(window, 'fetch', { configurable: true, writable: true, value: fetchMock });
+      const { grid } = create({ baseUrl: '/api', load: { url: '/users' }, fetchMode: 'fetch' });
+
+      await grid.load({ q: 'a', empty: null, missing: undefined, when: new Date(0) });
+
+      const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+      // null·undefined 조건은 쿼리에 넣지 않고 Date는 ISO 문자열로 보낸다.
+      expect(url).toBe('/api/users?q=a&when=1970-01-01T00%3A00%3A00.000Z');
+      // 코어가 기본으로 붙이는 헤더. 예전의 X-Requested-With 대신 X-Client-Type을 사용한다.
+      expect(init.headers).toMatchObject({ 'X-Client-Type': 'Web', Accept: 'application/json' });
+      expect(init.headers).not.toHaveProperty('X-Requested-With');
     });
 
     it('코어 Ajax(fetch)로 요청한다', async () => {
@@ -964,12 +1171,517 @@ describe('RemoteDataController (dataSource)', () => {
     });
   });
 
+  describe('infinite 페이징', () => {
+    // 스크롤 반영(requestAnimationFrame)과 재시도 대기 시간을 실제 시간에 맡기지 않고 가짜 타이머로 진행한다.
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+    const wait = (ms = 100) => jest.advanceTimersByTimeAsync(ms);
+    const flush = () => jest.advanceTimersByTimeAsync(0);
+
+    /** page·pageSize로 잘라 주는 서버. total 생략 시 마지막 페이지는 pageSize보다 적게 내려간다. */
+    const pagedServer = (totalRows: number, withTotal = true) =>
+      jest.fn(async (params: Record<string, unknown>): Promise<LoadResult> => {
+        const page = Number(params.page);
+        const size = Number(params.pageSize);
+        const start = (page - 1) * size;
+        const items = Array.from({ length: Math.max(0, Math.min(size, totalRows - start)) }, (_, i) => ({
+          id: start + i + 1,
+          name: `r${start + i + 1}`,
+        }));
+        return withTotal ? { items, total: totalRows } : { items };
+      });
+
+    const scrollTo = async (main: GridMain, rowIdx: number) => {
+      (main as unknown as { scroll: { moveVerticalScroll: (o: unknown) => void } }).scroll.moveVerticalScroll({ rowIdx });
+      await wait();
+    };
+
+    const infinite = (load: jest.Mock, pageSize = 50, extra: Record<string, unknown> = {}) =>
+      create({ load, paging: { mode: 'infinite', pageSize }, ...extra });
+
+    it('footer.paging과 함께 쓰거나 Tree·Group에서는 생성 시 오류이고, 조건이 안 맞는 loadMore는 CONFIG 오류이다', async () => {
+      const load = pagedServer(10);
+      expect(() =>
+        create({ load, paging: { mode: 'infinite' } }, { footer: { enabled: true, paging: { enabled: true } } }),
+      ).toThrow(/footer\.paging/);
+      expect(() => create({ load, paging: { mode: 'infinite' } }, { tree: { idField: 'id' } })).toThrow(/tree/);
+      expect(() => create({ load, paging: { mode: 'infinite' } }, { groupingFields: ['name'] })).toThrow(DataSourceError);
+
+      const { grid } = create({ load });
+      await expect(grid.loadMore()).rejects.toMatchObject({ code: 'CONFIG' });
+      const second = infinite(load);
+      await expect(second.grid.loadMore()).rejects.toMatchObject({ code: 'CONFIG' }); // load() 전
+    });
+
+    it('첫 조회는 page 1로 교체하고, 스크롤이 끝에 가까워지면 다음 페이지를 붙이며 스크롤 위치를 유지한다', async () => {
+      const load = pagedServer(120);
+      const { grid, main, manager } = infinite(load);
+      await grid.searchRemote({ q: 'x' });
+      expect(load).toHaveBeenLastCalledWith({ q: 'x', page: 1, pageSize: 50 }, expect.any(AbortSignal));
+      expect(grid.getItems()).toHaveLength(50);
+      await wait();
+      expect(load).toHaveBeenCalledTimes(1);
+
+      await scrollTo(main, 49);
+      expect(load).toHaveBeenCalledTimes(2);
+      expect(load).toHaveBeenLastCalledWith({ q: 'x', page: 2, pageSize: 50 }, expect.any(AbortSignal));
+      expect(grid.getItems().map((item) => item.id).slice(48, 52)).toEqual([49, 50, 51, 52]);
+      expect(grid.getItems()).toHaveLength(100);
+      // 붙인 뒤에도 맨 위로 돌아가지 않는다.
+      expect(main.config().scroll.startIdx).toBeGreaterThan(0);
+      // 조회 데이터이므로 변경·이력으로 남지 않는다.
+      expect(grid.getChangedItems()).toEqual([]);
+      expect((manager as unknown as { history: { canUndo(): boolean } }).history.canUndo()).toBe(false);
+    });
+
+    it('total에 도달하면 더 요청하지 않고, total이 없으면 pageSize보다 적게 받은 페이지를 마지막으로 본다', async () => {
+      const withTotal = pagedServer(70);
+      const a = infinite(withTotal);
+      await a.grid.load();
+      await scrollTo(a.main, 49);
+      expect(a.grid.getItems()).toHaveLength(70);
+      await scrollTo(a.main, 69);
+      await scrollTo(a.main, 0);
+      await scrollTo(a.main, 69);
+      expect(withTotal).toHaveBeenCalledTimes(2);
+      await expect(a.grid.loadMore()).resolves.toBeNull();
+
+      const noTotal = pagedServer(70, false);
+      const b = infinite(noTotal);
+      await b.grid.load();
+      await scrollTo(b.main, 49);
+      await scrollTo(b.main, 69);
+      expect(noTotal).toHaveBeenCalledTimes(2);
+      expect(b.grid.getItems()).toHaveLength(70);
+    });
+
+    it('화면이 다 채워지지 않으면 가득 찰 때까지 이어서 조회한다', async () => {
+      const load = pagedServer(9);
+      const { grid } = infinite(load, 3);
+      await grid.load();
+      await wait();
+      // 3행씩 받아도 화면을 채우지 못하므로 마지막 페이지까지 조회한다.
+      expect(load).toHaveBeenCalledTimes(3);
+      expect(grid.getItems()).toHaveLength(9);
+    });
+
+    it('reload·검색은 첫 페이지부터 교체한다', async () => {
+      const load = pagedServer(120);
+      const { grid, main } = infinite(load, 50, { sorting: { mode: 'server' } });
+      await grid.searchRemote({ q: 'a' });
+      await scrollTo(main, 49);
+      expect(grid.getItems()).toHaveLength(100);
+
+      await grid.reload();
+      expect(load).toHaveBeenLastCalledWith({ q: 'a', page: 1, pageSize: 50 }, expect.any(AbortSignal));
+      expect(grid.getItems()).toHaveLength(50);
+
+      await grid.searchRemote({ q: 'b' });
+      expect(load).toHaveBeenLastCalledWith({ q: 'b', page: 1, pageSize: 50 }, expect.any(AbortSignal));
+      expect(grid.getItems()).toHaveLength(50);
+    });
+
+    it('다음 페이지 응답을 기다리는 동안 새 조회가 시작되면 이전 응답은 버린다', async () => {
+      const second = deferred<LoadResult>();
+      const load = jest.fn((params: Record<string, unknown>): Promise<LoadResult> => {
+        if (params.q === 'a' && params.page === 2) return second.promise;
+        return Promise.resolve({ items: [{ id: Number(params.page) * 100, name: 'x' }], total: 500 });
+      });
+      const { grid, main } = infinite(load, 1);
+      await grid.searchRemote({ q: 'a' });
+      const pending = grid.loadMore();
+      await flush();
+
+      await grid.searchRemote({ q: 'b' });
+      second.resolve({ items: [{ id: 999, name: 'stale' }], total: 500 });
+      expect(await pending).toBeNull();
+      expect(grid.getItems().map((item) => item.id)).not.toContain(999);
+      expect(main.getRemote().isLoading()).toBe(false);
+    });
+
+    it('다음 페이지 조회가 실패해도 기존 데이터를 유지하고 loadError로 알리며 자동으로 반복 시도하지 않는다', async () => {
+      const loadError = jest.fn();
+      const base = pagedServer(120);
+      let fail = false;
+      const load = jest.fn(async (params: Record<string, unknown>) => {
+        if (fail) throw new Error('boom');
+        return base(params);
+      });
+      const { grid, main } = infinite(load, 50, { events: { loadError } });
+      await grid.load();
+
+      fail = true;
+      await scrollTo(main, 49);
+      await wait();
+      expect(loadError).toHaveBeenCalledTimes(1);
+      expect(load).toHaveBeenCalledTimes(2);
+      expect(grid.getItems()).toHaveLength(50);
+
+      // 다음 스크롤에서 다시 시도해 성공하면 이어서 붙는다.
+      fail = false;
+      await scrollTo(main, 0);
+      await scrollTo(main, 49);
+      expect(grid.getItems()).toHaveLength(100);
+      expect(load).toHaveBeenLastCalledWith({ page: 2, pageSize: 50 }, expect.any(AbortSignal));
+    });
+
+    it('미저장 변경이 있어도 다음 페이지를 붙일 수 있고 변경은 유지된다', async () => {
+      const load = pagedServer(120);
+      const { grid, main, edit, status } = infinite(load);
+      await grid.load();
+      edit(1, 'name', 'edited');
+
+      await scrollTo(main, 49);
+      expect(grid.getItems()).toHaveLength(100);
+      expect(status(1)).toBe(ItemStatusMap.MODIFY);
+      expect(grid.getChangedItems()).toHaveLength(1);
+    });
+
+    it('끝에서 조회가 실패하면 끝에서 계속 스크롤해도 1초 동안은 재시도하지 않고, 이후 입력부터 다시 조회한다', async () => {
+      jest.setSystemTime(1_000_000);
+      {
+        const loadError = jest.fn();
+        const base = pagedServer(120);
+        let fail = false;
+        const load = jest.fn(async (params: Record<string, unknown>) => {
+          if (fail) throw new Error('boom');
+          return base(params);
+        });
+        const { grid, main } = infinite(load, 50, { events: { loadError } });
+        await grid.load();
+
+        fail = true;
+        await scrollTo(main, 49);
+        expect(loadError).toHaveBeenCalledTimes(1);
+        expect(load).toHaveBeenCalledTimes(2);
+
+        // 이미 끝이라 위치가 바뀌지 않는 스크롤 입력: 실패 직후에는 요청하지 않는다.
+        await scrollTo(main, 49);
+        expect(load).toHaveBeenCalledTimes(2);
+
+        // 1초 뒤 같은 입력이면 다시 시도하고, 성공하면 이어서 붙는다.
+        jest.setSystemTime(1_001_500);
+        fail = false;
+        await scrollTo(main, 49);
+        expect(load).toHaveBeenCalledTimes(3);
+        expect(load).toHaveBeenLastCalledWith({ page: 2, pageSize: 50 }, expect.any(AbortSignal));
+        expect(grid.getItems()).toHaveLength(100);
+      }
+    });
+
+    describe('저장·삭제 후 첫 페이지부터 재조회', () => {
+      /** 서버 저장·삭제와 페이지 조회를 흉내 낸다. */
+      const mutableServer = () => {
+        let rows = Array.from({ length: 120 }, (_, i) => ({ id: i + 1, name: `r${i + 1}` }));
+        const load = jest.fn(async (params: Record<string, unknown>): Promise<LoadResult> => {
+          const size = Number(params.pageSize);
+          const start = (Number(params.page) - 1) * size;
+          return { items: rows.slice(start, start + size).map((row) => ({ ...row })), total: rows.length };
+        });
+        const save = jest.fn(async (changes: ChangeSet) => {
+          changes.updated.forEach((item) => {
+            const row = rows.find((candidate) => candidate.id === item.id);
+            if (row) row.name = item.name;
+          });
+        });
+        const remove = jest.fn(async (request: { deleted: { id: number }[] }) => {
+          const ids = new Set(request.deleted.map((item) => item.id));
+          rows = rows.filter((row) => !ids.has(row.id));
+        });
+        return { load, save, remove };
+      };
+
+      it('저장하면 첫 페이지부터 다시 받아 교체한다(저장이 끝난 뒤 조회한다)', async () => {
+        const server = mutableServer();
+        const { grid, main, edit } = infinite(server.load, 50, { save: server.save } as never);
+        await grid.load();
+        await scrollTo(main, 49);
+        expect(grid.getItems()).toHaveLength(100);
+
+        edit(1, 'name', 'saved');
+        const summary = await grid.save();
+
+        expect(summary).toMatchObject({ updated: 1, failed: 0 });
+        expect(server.load).toHaveBeenLastCalledWith({ page: 1, pageSize: 50 }, expect.any(AbortSignal));
+        expect(grid.getItems()).toHaveLength(50);
+        expect(grid.getItems()[0].name).toBe('saved');
+        expect(main.getRemote().isLoading()).toBe(false);
+      });
+
+      it('서버 삭제 뒤에도 첫 페이지부터 다시 받아 누락 없이 이어진다', async () => {
+        const server = mutableServer();
+        const { grid, main } = infinite(server.load, 50, { remove: server.remove } as never);
+        await grid.load();
+        await scrollTo(main, 49);
+        expect(grid.getItems()).toHaveLength(100);
+
+        const summary = await grid.removeRemote({ rowIds: [1, 2, 3] });
+
+        expect(summary).toMatchObject({ removed: 3 });
+        expect(server.load).toHaveBeenLastCalledWith({ page: 1, pageSize: 50 }, expect.any(AbortSignal));
+        expect(grid.getItems().map((item) => item.id).slice(0, 3)).toEqual([4, 5, 6]);
+        await scrollTo(main, 49);
+        // 서버 총 117건 중 page 2까지 받은 100건에 id 중복·누락이 없다.
+        const ids = grid.getItems().map((item) => item.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        expect(ids[99]).toBe(103);
+      });
+
+      it('서버에 요청하지 않은 로컬 신규 행 정리나 변경 없는 저장은 다시 조회하지 않는다', async () => {
+        const server = mutableServer();
+        const { grid, main } = infinite(server.load, 50, { save: server.save, remove: server.remove } as never);
+        await grid.load();
+        const before = server.load.mock.calls.length;
+
+        await grid.save();
+        expect(server.load).toHaveBeenCalledTimes(before);
+
+        await main.getRemote().removeRemote({ rowIds: [] });
+        expect(server.load).toHaveBeenCalledTimes(before);
+      });
+
+      it('실패한 행이 있으면 다시 조회하지 않아 편집 내용을 보존한다', async () => {
+        const server = mutableServer();
+        server.save.mockImplementation(async () => ({ failed: [1] }) as never);
+        const { grid, edit, status } = infinite(server.load, 50, { save: server.save } as never);
+        await grid.load();
+        const before = server.load.mock.calls.length;
+
+        edit(1, 'name', 'x');
+        expect(await grid.save()).toMatchObject({ failed: 1 });
+        expect(server.load).toHaveBeenCalledTimes(before);
+        expect(status(1)).toBe(ItemStatusMap.MODIFY);
+      });
+
+      it('저장 중 추가로 편집한 미저장 변경이 남아 있으면 버리지 않도록 다시 조회하지 않는다', async () => {
+        const server = mutableServer();
+        const gate = deferred<void>();
+        server.save.mockImplementation(async () => gate.promise);
+        const { grid, edit, status } = infinite(server.load, 50, { save: server.save } as never);
+        await grid.load();
+        const before = server.load.mock.calls.length;
+
+        edit(1, 'name', 'first');
+        const pending = grid.save();
+        await flush();
+        edit(1, 'name', 'second');
+        gate.resolve();
+        await pending;
+
+        expect(server.load).toHaveBeenCalledTimes(before);
+        expect(status(1)).toBe(ItemStatusMap.MODIFY);
+      });
+
+      it('재조회가 실패해도 저장 결과는 성공으로 돌려주고 loadError로 알린다', async () => {
+        const server = mutableServer();
+        const loadError = jest.fn();
+        const { grid, edit } = infinite(server.load, 50, { save: server.save, events: { loadError } } as never);
+        await grid.load();
+
+        edit(1, 'name', 'x');
+        server.load.mockRejectedValueOnce(new Error('boom'));
+        await expect(grid.save()).resolves.toMatchObject({ updated: 1 });
+        expect(loadError).toHaveBeenCalledTimes(1);
+      });
+
+      it('infinite가 아니면 저장 후 자동으로 다시 조회하지 않는다', async () => {
+        const server = fakeServer();
+        const { grid, edit } = create({ load: server.load, save: server.save });
+        await grid.load();
+        edit(1, 'name', 'x');
+        await grid.save();
+        expect(server.save).toHaveBeenCalledTimes(1);
+        expect(server.load).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('전체 체크한 뒤 다음 페이지를 붙이면 헤더 체크박스가 일부 선택 상태로 바뀐다', async () => {
+      const load = pagedServer(120);
+      const { grid, main, manager, element } = create(
+        { load, paging: { mode: 'infinite', pageSize: 50 } },
+        { selectionMode: 'multiRow', aside: { rowCheckbox: { enabled: true } } },
+      );
+      await grid.load();
+
+      const header = () => element.querySelector('.dg-checkbox.dg-all') as HTMLElement;
+      manager.setAllCheck();
+      main.getHeader().setCheckboxStyle('all');
+      expect(header().classList.contains('dg-selected')).toBe(true);
+
+      await scrollTo(main, 49);
+      expect(grid.getItems()).toHaveLength(100);
+      expect(header().classList.contains('dg-selected')).toBe(false);
+      expect(header().classList.contains('dg-indeterminate')).toBe(true);
+    });
+
+    it('체크된 행이 없으면 다음 페이지를 붙여도 헤더 체크박스는 해제 상태이다', async () => {
+      const load = pagedServer(120);
+      const { grid, main, element } = create(
+        { load, paging: { mode: 'infinite', pageSize: 50 } },
+        { selectionMode: 'multiRow', aside: { rowCheckbox: { enabled: true } } },
+      );
+      await grid.load();
+      await scrollTo(main, 49);
+
+      const header = element.querySelector('.dg-checkbox.dg-all') as HTMLElement;
+      expect(header.classList.contains('dg-selected')).toBe(false);
+      expect(header.classList.contains('dg-indeterminate')).toBe(false);
+    });
+
+    it('기존 로더(loaderContainer)를 첫 조회와 다음 페이지 조회에 똑같이 사용한다', async () => {
+      const loaders: unknown[] = [];
+      const { grid, main, element } = create({
+        load: { url: '/users' },
+        paging: { mode: 'infinite', pageSize: 50 },
+        request: async (req: HttpRequest) => {
+          loaders.push(req.loaderContainer);
+          const page = Number((req.data as Record<string, unknown>).page);
+          return { items: Array.from({ length: 50 }, (_, i) => ({ id: (page - 1) * 50 + i + 1, name: 'x' })), total: 120 };
+        },
+      });
+      await grid.load();
+      await scrollTo(main, 49);
+      expect(loaders).toEqual([element, element]);
+    });
+  });
+
   describe('서버 페이징·정렬·필터링', () => {
     const paging = { footer: { enabled: true, paging: { enabled: true } } };
 
-    it('서버 정렬·필터링은 지원하지 않으므로 생성 시 오류이다', () => {
-      expect(() => create({ sorting: { mode: 'server' } })).toThrow(DataSourceError);
+    it('서버 필터링은 지원하지 않으므로 생성 시 오류이다', () => {
       expect(() => create({ filtering: { mode: 'server' } })).toThrow(/not supported/);
+    });
+
+    describe('서버 정렬', () => {
+      const sortable = { header: { sort: { enabled: true } } };
+
+      /** 헤더 정렬 아이콘 클릭(Shift: 다중 정렬) */
+      const clickSort = async (element: HTMLElement, index: number, shiftKey = false) => {
+        const icon = element.querySelectorAll('.dg-header-cell .dg-sort-icon')[index];
+        icon.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0, shiftKey }));
+        await flush();
+      };
+
+      const sortOf = (load: jest.Mock, call = -1) => {
+        const calls = load.mock.calls;
+        return calls[call < 0 ? calls.length + call : call][0].sort;
+      };
+
+      const serverLoad = () =>
+        jest.fn(async (_params: Record<string, unknown>): Promise<LoadResult> => ({ items: users(), total: 25 }));
+
+      it('Tree·Group과 함께 사용할 수 없다', () => {
+        expect(() => create({ sorting: { mode: 'server' } }, { tree: { idField: 'id' } })).toThrow(/tree/);
+        expect(() => create({ sorting: { mode: 'server' } }, { groupingFields: ['name'] })).toThrow(DataSourceError);
+      });
+
+      it('헤더 정렬 클릭 시 로컬 정렬 대신 필드 정보를 sort 조건으로 보내 다시 조회한다', async () => {
+        const load = serverLoad();
+        const { grid, element } = create({ load, sorting: { mode: 'server' } }, sortable);
+        await grid.load({ q: 'x' });
+        expect(sortOf(load)).toBeUndefined();
+
+        await clickSort(element, 1);
+        expect(load).toHaveBeenCalledTimes(2);
+        expect(load).toHaveBeenLastCalledWith(
+          { q: 'x', sort: [{ field: 'name', order: 'asc' }] },
+          expect.any(AbortSignal),
+        );
+        // 서버가 정렬해 준 순서를 그대로 보여준다(로컬 재정렬 없음).
+        expect(grid.getItems().map((item) => item.name)).toEqual(['A', 'B', 'C']);
+
+        await clickSort(element, 1);
+        expect(sortOf(load)).toEqual([{ field: 'name', order: 'desc' }]);
+
+        // 세 번째 클릭은 정렬 해제 → sort 키를 보내지 않는다.
+        await clickSort(element, 1);
+        expect(load).toHaveBeenCalledTimes(4);
+        expect(load.mock.calls[3][0]).toEqual({ q: 'x' });
+      });
+
+      it('Shift 클릭은 다중 정렬로 클릭 순서대로 담고, 다른 필드 클릭은 정렬을 교체한다', async () => {
+        const load = serverLoad();
+        const { grid, element } = create({ load, sorting: { mode: 'server' } }, sortable);
+        await grid.load();
+
+        await clickSort(element, 1);
+        await clickSort(element, 0, true);
+        expect(sortOf(load)).toEqual([
+          { field: 'name', order: 'asc' },
+          { field: 'id', order: 'asc' },
+        ]);
+
+        await clickSort(element, 0);
+        expect(sortOf(load)).toEqual([{ field: 'id', order: 'asc' }]);
+      });
+
+      it('정렬 시 서버 페이징은 1페이지로 돌아가고, 페이지 이동·reload는 정렬을 유지한다', async () => {
+        const load = serverLoad();
+        const { grid, main, element } = create(
+          { load, sorting: { mode: 'server' }, paging: { mode: 'server', pageSize: 10 } },
+          { ...sortable, footer: { enabled: true, paging: { enabled: true } } },
+        );
+        await grid.searchRemote({ q: 'x' });
+        await main.getRemote().goToPage(3);
+        expect(load).toHaveBeenLastCalledWith({ q: 'x', page: 3, pageSize: 10 }, expect.any(AbortSignal));
+
+        await clickSort(element, 1);
+        expect(load).toHaveBeenLastCalledWith(
+          { q: 'x', page: 1, pageSize: 10, sort: [{ field: 'name', order: 'asc' }] },
+          expect.any(AbortSignal),
+        );
+
+        await main.getRemote().goToPage(2);
+        expect(load).toHaveBeenLastCalledWith(
+          { q: 'x', page: 2, pageSize: 10, sort: [{ field: 'name', order: 'asc' }] },
+          expect.any(AbortSignal),
+        );
+        await grid.reload();
+        expect(sortOf(load)).toEqual([{ field: 'name', order: 'asc' }]);
+      });
+
+      it('beforeLoad 이벤트의 params에도 sort가 포함된다', async () => {
+        const seen: unknown[] = [];
+        const { grid, element } = create(
+          { load: serverLoad(), sorting: { mode: 'server' }, events: { beforeLoad: (event) => void seen.push(event.params.sort) } },
+          sortable,
+        );
+        await grid.load();
+        await clickSort(element, 0);
+        expect(seen).toEqual([undefined, [{ field: 'id', order: 'asc' }]]);
+      });
+
+      it('미저장 변경이 있으면 정렬 상태를 바꾸지 않고 loadError로 알린다', async () => {
+        const load = serverLoad();
+        const loadError = jest.fn();
+        const { grid, element, edit } = create({ load, sorting: { mode: 'server' }, events: { loadError } }, sortable);
+        await grid.load();
+        edit(1, 'name', 'A2');
+
+        await clickSort(element, 1);
+        expect(load).toHaveBeenCalledTimes(1);
+        expect(loadError).toHaveBeenCalledTimes(1);
+        expect(loadError.mock.calls[0][0].error.code).toBe('UNSAVED_CHANGES');
+        expect(element.querySelector('[data-dg-sort]')).toBeNull();
+
+        // 변경을 버리고 다시 조회한 뒤에는 정렬이 정상 동작한다.
+        await grid.load(undefined, { discardChanges: true });
+        await clickSort(element, 1);
+        expect(sortOf(load)).toEqual([{ field: 'name', order: 'asc' }]);
+      });
+
+      it('local 모드(기본)에서는 정렬해도 서버를 다시 조회하지 않는다', async () => {
+        const load = serverLoad();
+        const { grid, element } = create({ load }, sortable);
+        await grid.load();
+        await clickSort(element, 1);
+        expect(load).toHaveBeenCalledTimes(1);
+        expect(element.querySelector('[data-dg-sort="asc"]')).not.toBeNull();
+      });
     });
 
     it('Tree·Group과 서버 페이징, hard 삭제와 save는 함께 사용할 수 없다', () => {

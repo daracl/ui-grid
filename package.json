@@ -1,6 +1,6 @@
 {
   "name": "@daracl/grid",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "description": "Daracl Grid",
   "author": {
     "name": "daracl",
@@ -48,11 +48,8 @@
     "dist",
     "style"
   ],
-  "editor.formatOnSave": true,
-  "[javascript]": {
-    "editor.formatOnSave": false
-  },
   "devDependencies": {
+    "@daracl/core": "0.0.13",
     "@daracl/datetimepicker": "^0.0.13",
     "@playwright/test": "^1.55.1",
     "@types/jest": "^29.5.14",
@@ -109,7 +106,6 @@
     }
   },
   "dependencies": {
-    "@daracl/core": "0.0.12",
     "@daracl/ui-style": "0.0.8",
     "pdfkit": "^0.20.2"
   }

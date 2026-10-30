@@ -82,6 +82,11 @@ export class PasteEvent implements EventHandler {
 
         let pasteResultItems: ViewItem[] = dataManager.getViewItems();
 
+        // 유효하지 않은 값을 만나 붙여넣기를 중단했는지 여부와 마지막으로 처리한 행
+        let aborted = false;
+        let lastRowIdx = startIdx;
+        let rowsAdded = false;
+
         /**
          * Paste 전체를 하나의 History 단위로 처리
          */
@@ -99,15 +104,18 @@ export class PasteEvent implements EventHandler {
             pasteResultItems = dataManager.getViewItems();
 
             itemLength = pasteResultItems.length;
+            rowsAdded = true;
           }
 
           //데이터 적용
-          for (let i = 0; i < parsed.length; i++) {
+          rows: for (let i = 0; i < parsed.length; i++) {
             const rowIdx = startIdx + i;
 
             if (rowIdx >= itemLength) {
               break;
             }
+
+            lastRowIdx = rowIdx;
 
             const viewItem = pasteResultItems[rowIdx];
             if (viewItem.groupRowType) {
@@ -147,19 +155,22 @@ export class PasteEvent implements EventHandler {
 
               const rendererResult = field.$editRenderer?.setValue(event, rowItem, value, false);
 
+              // 유효성 검사 등으로 거부되면 거기서 중단한다. 이미 적용한 값은 유지하고 아래에서 이력을 정상 종료한다.
               if (rendererResult === false) {
-                return false;
+                aborted = true;
+                break rows;
               }
             }
           }
 
-          this.gridMain.refreshBody(false, 'paste');
+          // 행이 추가되면 화면에 보이는 행 수가 늘어나므로, 선택 영역을 갱신하기 전에 본문을 다시 그려 행 요소를 만든다.
+          this.gridMain.refreshBody(rowsAdded, 'paste');
 
           this.selectionInfo.setSelectionRangeInfo(
             {
               range: {
                 startIdx,
-                endIdx: startIdx + parsed.length - 1,
+                endIdx: aborted ? lastRowIdx : startIdx + parsed.length - 1,
                 startCol,
                 endCol: maxCol,
               },
@@ -177,6 +188,10 @@ export class PasteEvent implements EventHandler {
         }
 
         this.gridMain.getBody().dataDraw('reDraw_paste');
+
+        if (aborted) {
+          return false;
+        }
 
         if (pasteAfterFnFlag) {
           pasteAfterFn(pastedText);

@@ -24,6 +24,7 @@ import {
   writeClipboard,
   sanitizeHtml,
   isSafeUrl,
+  joinUrl,
 } from '@daracl/core/utils';
 export {
   isFunction,
@@ -46,6 +47,7 @@ export {
   isString,
   sanitizeHtml,
   isSafeUrl,
+  joinUrl,
 };
 
 import { DataManager } from '@/service/DataManager';
@@ -178,6 +180,13 @@ export function isPlainObject(obj: any) {
  * @param {Array<{ name: string, ascOrder?: boolean }>} sortInfos - 정렬 기준 키 배열
  * @returns {Array<Object>} 정렬된 JSON 배열
  */
+/** 행의 정렬 기준 값 목록을 구한다. 정렬 정보 순서와 같다. */
+export function getSortValues(dataManager: DataManager, viewItem: ViewItem, sortInfos: FieldSortInfo[]): any[] {
+  const item = dataManager.getRowItem(viewItem.id);
+
+  return sortInfos.map(({ name, field, isValue }) => (isValue ? field.$renderer.getValue(item) : item[name]));
+}
+
 export function multiSort(
   data: ViewItem[],
   dataManager: DataManager,
@@ -192,11 +201,7 @@ export function multiSort(
   const sortInfoLength = sortInfos.length;
 
   data.forEach((viewItem) => {
-    const item = dataManager.getRowItem(viewItem.id);
-
-    viewItem.sortValues = sortInfos.map(({ name, field, isValue }) =>
-      isValue ? field.$renderer.getValue(item) : item[name],
-    );
+    viewItem.sortValues = getSortValues(dataManager, viewItem, sortInfos);
   });
 
   data.sort((a, b) => {

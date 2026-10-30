@@ -9,6 +9,16 @@ export type DataSourceOperation = 'load' | 'save' | 'remove';
 /** 서버 조회 조건 */
 export type RemoteParams = Record<string, unknown>;
 
+/**
+ * 서버 정렬 시 조회 조건 `sort`에 담기는 정렬 정보. 헤더 클릭 순서(다중 정렬은 Shift)대로 담는다.
+ * 예: `sort: [{ field: 'name', order: 'asc' }]`
+ */
+export interface SortParam {
+  /** 정렬 필드 이름 */
+  field: string;
+  order: 'asc' | 'desc';
+}
+
 /** 서버 행 데이터 */
 export type RemoteRow = Record<string, any>;
 
@@ -153,7 +163,7 @@ export interface RemoveEvent extends BeforeRemoveEvent {
   summary: RemoveSummary;
 }
 export interface DataSourceErrorEvent extends DataSourceEventBase {
-  error: Error;
+  error: DataSourceError;
 }
 export interface LoadingChangeEvent extends DataSourceEventBase {
   loading: boolean;
@@ -235,9 +245,30 @@ export interface DataSourceOptions {
   /** HTTP 응답 변환. load는 LoadResult, save는 SaveResult를 반환해야 한다. */
   responseMap?: (response: any, operation: DataSourceOperation) => unknown;
 
-  /** 서버 페이징. footer.enabled와 footer.paging.enabled가 필요하다. List 모드만 지원한다. */
-  paging?: { mode: 'local' | 'server'; pageSize?: number };
-  /** 서버 정렬은 아직 지원하지 않는다. 'server'를 지정하면 오류가 발생한다. */
+  /**
+   * 페이징 방식. List 모드만 지원한다.
+   *
+   * - 'server' : 서버 페이징. footer.enabled와 footer.paging.enabled가 필요하다.
+   * - 'infinite' : 페이지 UI 없이 스크롤이 끝에 가까워지면 다음 페이지를 조회해 기존 데이터 뒤에 붙인다.
+   *   footer.paging은 사용하지 않는다. 검색·정렬·reload는 첫 페이지부터 다시 조회한다.
+   *   서버는 server 모드와 같이 `page`, `pageSize` 조건을 받고, `total`이 있으면 전체 건수로, 없으면
+   *   받은 건수가 pageSize보다 적을 때 마지막 페이지로 본다. 조회 로더는 `loader` 옵션을 따른다.
+   *   서버 저장(`save`)·삭제(`removeRemote`)가 성공하면 첫 페이지부터 자동으로 다시 조회한다
+   *   (실패한 행이나 다른 미저장 변경이 남아 있으면 조회하지 않는다). 조회가 실패해 끝에서 멈춘 경우에는
+   *   끝에서 계속 스크롤하면 1초 뒤부터 다시 시도한다.
+   */
+  paging?: {
+    mode: 'local' | 'server' | 'infinite';
+    pageSize?: number;
+    /** infinite: 화면 끝에서 이 행 수 이내로 스크롤하면 다음 페이지를 조회한다. @default 5 */
+    threshold?: number;
+  };
+  /**
+   * 정렬 방식. 'server'이면 헤더 정렬 클릭 시 로컬 정렬 대신 `sort`(`SortParam[]`)를 조회 조건에 담아
+   * 첫 페이지부터 서버에서 다시 조회한다. 정렬 상태는 reload·페이지 이동에도 유지되며, 정렬이 없으면 `sort`를 보내지 않는다.
+   * 같은 이름의 명시 조건(`sort`)보다 헤더 정렬이 우선한다. Tree·Group에서는 사용할 수 없다.
+   * @default 'local'
+   */
   sorting?: { mode: 'local' | 'server' };
   /** 서버 필터링은 아직 지원하지 않는다. 'server'를 지정하면 오류가 발생한다. */
   filtering?: { mode: 'local' | 'server' };

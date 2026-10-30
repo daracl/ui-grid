@@ -222,16 +222,94 @@ export function highlightSingleMatch(
 }
 
 /**
- * Best-effort heuristic to reject regex patterns shaped like classic catastrophic-backtracking
- * cases, e.g. /(a+)+$/, /(a*)*$/, /(a|a)+$/. Not a full static analyzer — just a cheap guard
- * against the most common dangerous shapes before ever running `new RegExp(...).exec(...)`
- * on user-typed search text.
+ * 치명적 역추적(ReDoS)을 일으킬 수 있는 정규식인지 보수적으로 판단한다.
+ *
+ * 끝없이 반복되는 그룹(`+`, `*`, `{n,}`) 안에 다시 끝없는 반복이나 교대(`|`)가 있으면 위험으로 본다.
+ * 예: (a+)+ , (a*)* , (a|a)+ , (a+(b)?)+ , ((a+))+ , (?:a+)+ , (a+){2,}
+ *
+ * 그룹을 괄호 깊이대로 해석하므로 괄호가 중첩된 형태도 잡는다. 이스케이프(\\)와 문자 클래스([...]) 안의 기호는 무시한다.
+ * 완전한 정적 분석기는 아니며, 위험할 수 있는 패턴은 호출하는 쪽에서 일반 텍스트 검색으로 대체한다.
+ * 횟수가 정해진 반복({n}, {n,m})은 지수적으로 늘지 않으므로 반복으로 보지 않는다.
  */
-function isPotentiallyCatastrophicRegex(pattern: string): boolean {
-  const nestedQuantifier = /\([^()]*[+*][^()]*\)[+*]/; // e.g. (a+)+ , (a*)*
-  const nestedAlternationQuantifier = /\([^()]*\|[^()]*\)[+*]/; // e.g. (a|a)+
+export function isPotentiallyCatastrophicRegex(pattern: string): boolean {
+  type GroupState = { hasUnbounded: boolean; hasAlternation: boolean };
+  const stack: GroupState[] = [];
+  let current: GroupState = { hasUnbounded: false, hasAlternation: false };
 
-  return nestedQuantifier.test(pattern) || nestedAlternationQuantifier.test(pattern);
+  /** index 위치의 반복 기호가 끝없는 반복(+, *, {n,})이면 그 길이를, 아니면 0을 돌려준다. */
+  const unboundedQuantifierLength = (index: number): number => {
+    const ch = pattern[index];
+    if (ch === '+' || ch === '*') return 1;
+    if (ch === '{') {
+      const match = /^\{\d+,\}/.exec(pattern.slice(index));
+      return match ? match[0].length : 0;
+    }
+    return 0;
+  };
+
+  for (let i = 0; i < pattern.length; i++) {
+    const ch = pattern[i];
+
+    if (ch === '\\') {
+      i++; // 이스케이프된 문자는 건너뛴다.
+      continue;
+    }
+
+    if (ch === '[') {
+      // 문자 클래스는 닫는 ]까지 건너뛴다.
+      for (i++; i < pattern.length && pattern[i] !== ']'; i++) {
+        if (pattern[i] === '\\') i++;
+      }
+      continue;
+    }
+
+    if (ch === '(') {
+      stack.push(current);
+      current = { hasUnbounded: false, hasAlternation: false };
+      // (?: (?= (?! (?<= (?<! (?<name> 같은 그룹 접두는 반복 기호가 아니므로 건너뛴다.
+      if (pattern[i + 1] === '?') {
+        i += 2;
+        if (pattern[i] === '<' && pattern[i + 1] !== '=' && pattern[i + 1] !== '!') {
+          while (i < pattern.length && pattern[i] !== '>') i++;
+        } else if (pattern[i] === '<') {
+          i++;
+        }
+      }
+      continue;
+    }
+
+    if (ch === ')') {
+      const group = current;
+      current = stack.pop() ?? { hasUnbounded: false, hasAlternation: false };
+
+      const length = unboundedQuantifierLength(i + 1);
+      if (length > 0) {
+        // 끝없이 반복되는 그룹 안에 끝없는 반복이나 교대가 있으면 위험하다.
+        if (group.hasUnbounded || group.hasAlternation) return true;
+        // 이 그룹 자체가 끝없는 반복이므로 바깥 그룹에는 끝없는 반복이 있는 것으로 본다.
+        current.hasUnbounded = true;
+        i += length;
+      } else {
+        // 반복되지 않는 그룹이라도 안쪽의 끝없는 반복·교대는 바깥 그룹에 이어서 판단한다. 예: ((a|aa))+ , (a+(b)?)+
+        if (group.hasUnbounded) current.hasUnbounded = true;
+        if (group.hasAlternation) current.hasAlternation = true;
+      }
+      continue;
+    }
+
+    if (ch === '|') {
+      current.hasAlternation = true;
+      continue;
+    }
+
+    const length = unboundedQuantifierLength(i);
+    if (length > 0) {
+      current.hasUnbounded = true;
+      i += length - 1;
+    }
+  }
+
+  return false;
 }
 
 function escapeRegExp(string: string): string {

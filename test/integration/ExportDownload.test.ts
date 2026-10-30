@@ -31,4 +31,28 @@ describe('공통 내보내기 다운로드', () => {
       jest.useRealTimers();
     }
   });
+
+  it('다운로드가 시작될 시간을 주기 위해 Object URL은 클릭 직후가 아니라 잠시 뒤에 해제한다', () => {
+    jest.useFakeTimers();
+    const createDescriptor = Object.getOwnPropertyDescriptor(URL, 'createObjectURL');
+    const revokeDescriptor = Object.getOwnPropertyDescriptor(URL, 'revokeObjectURL');
+    const revoke = jest.fn();
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: jest.fn(() => 'blob:export') });
+    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revoke });
+    const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined);
+    try {
+      downloadExport(new Blob(), 'report', 'export.csv', 'csv');
+      jest.advanceTimersByTime(9_999);
+      expect(revoke).not.toHaveBeenCalled();
+      jest.advanceTimersByTime(1);
+      expect(revoke).toHaveBeenCalledWith('blob:export');
+    } finally {
+      click.mockRestore();
+      if (createDescriptor) Object.defineProperty(URL, 'createObjectURL', createDescriptor);
+      else delete (URL as any).createObjectURL;
+      if (revokeDescriptor) Object.defineProperty(URL, 'revokeObjectURL', revokeDescriptor);
+      else delete (URL as any).revokeObjectURL;
+      jest.useRealTimers();
+    }
+  });
 });

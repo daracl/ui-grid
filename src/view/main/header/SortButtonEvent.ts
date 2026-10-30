@@ -54,6 +54,13 @@ export class SortButtonEvent implements EventHandler {
 
         const currentElement = e.currentTarget as HTMLElement;
 
+        // 서버 정렬은 조회할 수 없는 상태(미저장 변경 등)에서는 정렬 상태를 바꾸지 않고 오류만 알린다.
+        const remote = this.gridMain.options().dataSource?.sorting?.mode === 'server' ? this.gridMain.getRemote() : null;
+        if (remote?.isLoadBlocked()) {
+          remote.sortRemote().catch(() => undefined);
+          return;
+        }
+
         const sortCell = intValue(
           (currentElement.closest('.dg-header-cell') as HTMLElement)?.dataset.headerCellPosition ?? '0',
         );
@@ -106,9 +113,15 @@ export class SortButtonEvent implements EventHandler {
           }
         }
 
-        dataManager.dataSort(sortOrders, sortOpts);
-
         beforeSortOrderLength = sortOrders.length;
+
+        if (remote) {
+          // 서버 정렬: 로컬 정렬 없이 정렬 정보를 조회 조건으로 보내 다시 조회한다(실패는 loadError 이벤트로 알린다).
+          remote.sortRemote().catch(() => undefined);
+          return;
+        }
+
+        dataManager.dataSort(sortOrders, sortOpts);
 
         this.gridMain.selectionInfo.initSelection();
         this.gridMain.getBody().dataDraw('sort');

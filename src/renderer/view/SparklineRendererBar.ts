@@ -22,6 +22,12 @@ export class SparklineRendererBar extends ViewCellRenderer {
    */
   private rendererTooltip: HTMLDivElement | null = null;
 
+  /** document.body에 만든 툴팁 요소를 제거한다. */
+  public destroy(): void {
+    this.rendererTooltip?.remove();
+    this.rendererTooltip = null;
+  }
+
   /**
    * Grid에서 canvas가 다른 row에 재사용될 수 있으므로
    * canvas별 최신 tooltip 상태를 관리한다.
@@ -48,7 +54,7 @@ export class SparklineRendererBar extends ViewCellRenderer {
     const data = refValue?.value;
 
     // -------------------------
-    // 데이터 없음
+    // 데이터 없음: 그리지 않고 이전에 그린 내용을 지운다(셀이 다른 행에 재사용될 수 있다).
     // -------------------------
 
     if (!Array.isArray(data) || data.length === 0) {

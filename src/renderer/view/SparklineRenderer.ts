@@ -18,6 +18,12 @@ interface TooltipState {
 export class SparklineRenderer extends ViewCellRenderer {
   private rendererTooltip: HTMLDivElement | null = null;
 
+  /** document.body에 만든 툴팁 요소를 제거한다. */
+  public destroy(): void {
+    this.rendererTooltip?.remove();
+    this.rendererTooltip = null;
+  }
+
   /**
    * Canvas별 tooltip 상태
    *
@@ -36,18 +42,15 @@ export class SparklineRenderer extends ViewCellRenderer {
 
     const value = this.getValue(item);
     const refValue = this.getRefValue(value, item) as RefChartValue;
-    const data = refValue.value;
+    // refValue 설정이 없거나 값이 없어서 refValue가 비어 있어도 오류 없이 그리지 않는다.
+    const data = refValue?.value;
 
     // -------------------------
-    // 데이터 없음
+    // 데이터 없음: 그리지 않고 이전에 그린 내용을 지운다(셀이 다른 행에 재사용될 수 있다).
     // -------------------------
 
     if (!Array.isArray(data) || data.length === 0) {
-      const canvas = element.firstElementChild;
-
-      if (canvas) {
-        canvas.remove();
-      }
+      element.replaceChildren();
 
       this.hideTooltip();
 

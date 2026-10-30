@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     editable: true,
     rowIdField: 'id',
     selectionMode: 'multiRow',
+    header: { sort: { enabled: true } }, // 헤더 클릭 정렬: dataSource.sorting.mode 'server'이면 서버가 정렬한다.
     aside: { lineNumber: { enabled: true }, rowCheckbox: { enabled: true, width: 27 }, modifyInfo: { enabled: true } },
     fields: [
       { name: 'id', label: 'ID', width: 80 },
@@ -89,9 +90,16 @@ document.addEventListener('DOMContentLoaded', function () {
     dataSource: {
       autoLoad: true, // 생성 직후 첫 조회(툴바 값 사용)
       paging: { mode: 'server', pageSize: 10 },
+      sorting: { mode: 'server' }, // 정렬 클릭 시 sort=[{ field, order }]를 조회 조건에 담아 1페이지부터 다시 조회
       // 드롭다운 툴바 값은 배열(예: ['ACTIVE'])로 반환되므로 서버가 기대하는 문자열로 변환한다.
+      // sort는 { field, order } 배열이므로 서버가 파싱하는 'field:order,...' 문자열로 바꾼다.
       requestMap: (data) =>
-        Object.fromEntries(Object.entries(data).map(([key, value]) => [key, Array.isArray(value) ? value.join(',') : value])),
+        Object.fromEntries(
+          Object.entries(data).map(([key, value]) => {
+            if (key === 'sort') return [key, value.map((item) => item.field + ':' + item.order).join(',')];
+            return [key, Array.isArray(value) ? value.join(',') : value];
+          }),
+        ),
       load: { url: '/uitest/api/users', method: 'GET' }, // page, pageSize, 툴바 값(status, name)이 쿼리 스트링으로 전달
       save: { url: '/uitest/api/users/save', method: 'POST' }, // { created, updated, deleted } JSON 본문
       remove: { url: '/uitest/api/users/remove', method: 'POST' }, // { deleted } JSON 본문

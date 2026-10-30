@@ -106,13 +106,14 @@ export class ListDataManager extends DataManager {
 
     this.matchOffsetMap.clear();
 
-    let firstMatchId: RowId = '';
+    // ID 0이나 빈 값도 실제 행 ID일 수 있으므로 '아직 없음'은 undefined로 구분한다.
+    let firstMatchId: RowId | undefined;
     let offset = 0;
     options.postProcess = (isMatched: boolean, item: any, viewItem?: ViewItem) => {
       if (!isMatched || !viewItem) return;
 
       const id = viewItem.id;
-      if (!firstMatchId) {
+      if (firstMatchId === undefined) {
         firstMatchId = viewItem.id;
       }
 
@@ -124,7 +125,7 @@ export class ListDataManager extends DataManager {
 
     const result = gridDataSearch(items, this.cfg.dataManager, keyword, options);
 
-    if (firstMatchId) {
+    if (firstMatchId !== undefined) {
       const firstItem = this.getSearchMapItem(firstMatchId);
       if (firstItem) firstItem.isCurrentMatch = true;
     }
@@ -160,7 +161,8 @@ export class ListDataManager extends DataManager {
         continue;
       }
 
-      if (id == matchId) {
+      // matchId가 ''이면 현재 일치 행이 없다는 뜻이다. 느슨한 비교에서 ID 0이 ''와 같다고 판단되지 않게 건너뛴다.
+      if (matchId !== '' && id == matchId) {
         matchRowIndex = i;
       }
     }
@@ -283,9 +285,9 @@ export class ListDataManager extends DataManager {
       vItem.sortOrder = idx;
     });
 
-    // 갱신
+    // 갱신. 정렬이 켜져 있으면 전체를 다시 정렬하지 않고 추가한 행만 제자리에 끼워 넣는다.
     this.setOriginalViewItems(originalViewItems);
-    this.refreshViewAfterMutation();
+    if (!this.applyIncrementalMutation(newViewItems)) this.refreshViewAfterMutation();
 
     return targetIndex;
   }
@@ -331,9 +333,9 @@ export class ListDataManager extends DataManager {
       vItem.sortOrder = idx;
     });
 
-    // 갱신
+    // 갱신. 정렬된 목록에서 삭제는 순서가 유지되므로 전체를 다시 정렬하지 않는다.
     this.setOriginalViewItems(remainingViewItems);
-    this.refreshViewAfterMutation();
+    if (!this.applyIncrementalMutation([], new Set(removedIds))) this.refreshViewAfterMutation();
 
     return removedIds;
   }

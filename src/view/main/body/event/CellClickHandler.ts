@@ -278,6 +278,11 @@ export class CellClickHandler extends BasePointerHandler {
     this.dragAnimationId = requestAnimationFrame(loop);
   }
 
+  /** 드래그 자동 스크롤이 남아 있으면 멈춘다. */
+  public destroy(): void {
+    this.stopAutoScroll();
+  }
+
   protected stopAutoScroll() {
     if (this.dragAnimationId !== 0) {
       cancelAnimationFrame(this.dragAnimationId);

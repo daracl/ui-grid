@@ -14,6 +14,7 @@ import { RowMoveOptions } from '@/types/GridOptions';
 import { getElementRect } from '@/util/domUtils';
 import { dragVerticalMovePosition, isCellSelectionMode, isRowSelectionMode, isSequential } from '@/util/gridUtils';
 import { Language } from '@/util/Language';
+import { setSafeHtml } from '@/util/utils';
 import { BodyEvent } from './BodyEvent';
 import { CellClickHandler } from './CellClickHandler';
 
@@ -103,6 +104,12 @@ export class RowMoveHandler extends CellClickHandler {
     this.isDropForbidden = true;
 
     return true;
+  }
+
+  /** 숨김 컨테이너에 붙여 둔 드래그 도우미 요소를 제거한다. */
+  public destroy(): void {
+    super.destroy();
+    this.rowMoveElement?.remove();
   }
 
   onClick(session: PointerSession): void {
@@ -219,7 +226,7 @@ export class RowMoveHandler extends CellClickHandler {
     const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveViewItems });
     const helperContent = this.rowMoveElement.querySelector('.dg-row-move-content') as HTMLElement;
     if (helperTemplate) {
-      helperContent.innerHTML = helperTemplate;
+      setSafeHtml(helperContent, helperTemplate);
     } else {
       helperContent.textContent = `${this.moveViewItems.length} ${this.language.getMessage('row')}`;
     }
@@ -389,7 +396,10 @@ export class RowMoveHandler extends CellClickHandler {
 
     ids.splice(dropRowIdx, 0, ...moveViewItems);
 
-    cfg.dataManager.setViewItems(ids);
+    // 정렬·검색·페이징이 없으면 원본 순서도 바꿔 이후 데이터 변경에서 이동한 순서가 유지되게 한다.
+    if (!cfg.dataManager.applyMovedOrder(ids)) {
+      cfg.dataManager.setViewItems(ids);
+    }
 
     let startCol = cfg.dataInfo.startCol;
     let endCol = cfg.dataInfo.colLength - 1;

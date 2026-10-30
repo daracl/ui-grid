@@ -395,6 +395,8 @@ export class VerticalScroll {
     }
 
     if (scroll.top == topVal) {
+      // 이미 끝에 있어도 스크롤 입력이 오면 infinite 다음 페이지 조회를 다시 시도한다(조회 실패 후 재시도).
+      if (drawFlag !== false) this.gridMain.checkLoadMore(true);
       return;
     }
 

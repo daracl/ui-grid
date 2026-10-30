@@ -47,6 +47,13 @@ export abstract class CellRenderer {
     return false;
   }
 
+  /**
+   * 그리드를 파괴할 때 호출된다. 그리드 바깥(document 등)에 만든 요소가 있으면 여기서 제거한다.
+   */
+  public destroy(): void {
+    // 기본 렌더러는 정리할 자원이 없다.
+  }
+
   public bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean {
     return false;
   }

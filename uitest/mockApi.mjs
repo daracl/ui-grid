@@ -8,7 +8,7 @@ const dataFile = resolve(dirname(fileURLToPath(import.meta.url)), 'data/users.js
  * uitest 전용 목(mock) API. `vite dev`에서만 동작하며 빌드에는 포함되지 않는다.
  * 데이터는 uitest/data/users.json을 메모리에 읽어 사용하므로 서버를 재시작하면 초기화된다.
  *
- * - GET  /uitest/api/users?name=&status=&page=&pageSize=  → { items, total }
+ * - GET  /uitest/api/users?name=&status=&sort=&page=&pageSize=  → { items, total } (sort: 'field:asc,field2:desc')
  * - POST /uitest/api/users/save    { created, updated, deleted } → { idMap }
  * - POST /uitest/api/users/remove  { deleted }
  * - GET  /uitest/api/users/reset   원본 데이터로 초기화
@@ -49,6 +49,21 @@ export function uitestMockApi() {
     const pageSize = Math.max(1, Number(url.searchParams.get('pageSize')) || rows.length || 1);
 
     const filtered = rows.filter((row) => (!name || row.name.includes(name)) && (!status || row.status === status));
+    const sorts = (url.searchParams.get('sort') ?? '')
+      .split(',')
+      .map((token) => token.split(':'))
+      .filter(([field]) => field && field in (rows[0] ?? {}));
+    if (sorts.length > 0) {
+      filtered.sort((a, b) => {
+        for (const [field, order] of sorts) {
+          const left = a[field];
+          const right = b[field];
+          const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right));
+          if (result !== 0) return order === 'desc' ? -result : result;
+        }
+        return 0;
+      });
+    }
     const start = (page - 1) * pageSize;
     send(res, 200, { items: filtered.slice(start, start + pageSize), total: filtered.length });
   }

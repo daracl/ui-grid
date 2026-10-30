@@ -291,7 +291,8 @@ await grid.removeRemote();                            // 선택 행 서버 삭�
 |-----|-----|-----|
 | `load(params?, { discardChanges? })` | `Promise<LoadResult \| null>` | 조회. `params`를 생략하면 마지막 조건 사용 |
 | `searchRemote(params, options?)` | `Promise<LoadResult \| null>` | 조건 검색. 클라이언트 `search()`와 별개 |
-| `reload(options?)` | `Promise<LoadResult \| null>` | 마지막 조건·현재 페이지로 재조회 |
+| `reload(options?)` | `Promise<LoadResult \| null>` | 마지막 조건·현재 페이지로 재조회 (`infinite`는 첫 페이지부터) |
+| `loadMore()` | `Promise<LoadResult \| null>` | `infinite` 페이징에서 다음 페이지를 이어 붙임. 보통은 스크롤로 자동 호출 |
 | `save()` | `Promise<SaveSummary \| null>` | `{ created, updated, deleted, failed }` |
 | `removeRemote({ rowIds? })` | `Promise<RemoveSummary \| null>` | `{ removed, discarded }` |
 
@@ -381,7 +382,7 @@ dataSource: {
 
 ```ts
 dataSource: {
-  baseUrl: '/api',
+  baseUrl: '/api', // 엔드포인트 url 앞에 붙는 공통 주소. 경계의 슬래시는 하나로 맞추고, 엔드포인트가 절대 URL(https://...)이면 baseUrl을 무시한다
   load: { url: '/users', method: 'GET' },
   save: { url: '/users', method: 'PUT', headers: { 'X-Mode': 'batch' } },
   headers: async () => ({ Authorization: `Bearer ${await getToken()}` }), // 요청마다 호출
@@ -393,6 +394,14 @@ dataSource: {
   // request: (req) => myHttp(req) // 코어 Ajax 대신 사용할 전송 함수 (테스트·인터셉터용)
 }
 ```
+
+`@daracl/core` 0.0.13의 Ajax 동작에 맞춰 다음과 같이 처리합니다.
+
+- **baseUrl 결합**: 코어의 `joinUrl`을 그대로 사용합니다. 경계 슬래시를 하나로 맞추고, 엔드포인트가 절대 URL(`https://…`, `//…`)이면 `baseUrl`을 붙이지 않으며, `?`·`#`로 시작하면 그대로 이어 붙입니다. 그리드가 합친 주소를 코어에 넘기므로 `baseUrl`이 두 번 적용되지 않습니다.
+- **기본 요청 헤더**: 코어가 `X-Requested-With: XMLHttpRequest` 대신 `X-Client-Type: Web`을 붙입니다. 서버가 `X-Requested-With`로 Ajax 요청을 구분한다면 `dataSource.headers`로 직접 지정하세요.
+- **조회 조건 직렬화(GET)**: `null`·`undefined` 값은 쿼리에 포함하지 않고 `Date`는 ISO 문자열로 보냅니다. 배열·객체는 JSON 문자열로 보냅니다.
+- **오류 변환**: 성공 응답(2xx)의 본문을 해석하지 못하면 `INVALID_RESPONSE`(예: 로그인 페이지 HTML), 허용되지 않은 메서드는 `CONFIG`로 알립니다.
+- **HTML 정리**: `html` 렌더러·도움말에 쓰는 코어의 `sanitizeHtml`은 화면을 덮을 수 있는 `position: fixed|absolute|sticky` 스타일을 제거합니다.
 
 ### 로딩 표시 (loader)
 
@@ -457,14 +466,64 @@ dataSource: {
 }
 ```
 
-조회 조건에 `page`, `pageSize`가 추가되고(`requestMap`으로 이름 변경 가능) 응답의 `total`로 페이지 정보를 만듭니다. 이 모드에서는 `footer.paging.callback`을 직접 지정할 수 없으며, 클라이언트 검색·정렬은 현재 페이지에만 적용됩니다.
+조회 조건에 `page`, `pageSize`가 추가되고(`requestMap`으로 이름 변경 가능) 응답의 `total`로 페이지 정보를 만듭니다. 이 모드에서는 `footer.paging.callback`을 직접 지정할 수 없으며, 클라이언트 검색·정렬은 현재 페이지에만 적용됩니다. 전체 정렬이 필요하면 아래 서버 정렬을 함께 사용하세요.
+
+### 서버 정렬
+
+```ts
+{
+  header: { sort: { enabled: true } },
+  dataSource: {
+    sorting: { mode: 'server' },
+    load: { url: '/api/users' },
+  },
+}
+```
+
+헤더 정렬을 클릭하면 로컬 정렬 대신 정렬 정보를 조회 조건 `sort`에 담아 **첫 페이지부터** 다시 조회합니다. 정렬 상태는 `reload()`·페이지 이동에도 유지됩니다.
+
+```ts
+// 클릭한 순서대로 담기며 Shift+클릭은 다중 정렬. 정렬이 없으면 sort 키를 보내지 않습니다.
+{ q: 'x', page: 1, pageSize: 10, sort: [{ field: 'name', order: 'asc' }, { field: 'id', order: 'desc' }] }
+```
+
+- GET 조회에서는 `sort`가 JSON 문자열로 직렬화됩니다. 서버가 다른 형식(예: `name:asc,id:desc`)을 기대하면 `requestMap`으로 변환하세요(`uitest/asset/pages/remote.js` 참고).
+- 같은 이름의 명시 조건 `sort`보다 헤더 정렬이 우선합니다. `beforeLoad` 이벤트의 `params`에도 포함됩니다.
+- 미저장 변경이 있거나 저장·삭제가 진행 중이면 정렬 상태를 바꾸지 않고 `loadError`(`UNSAVED_CHANGES`/`BUSY`)로 알립니다.
+- 조회가 실패하면 정렬 표시는 바뀐 채 데이터는 이전 그대로이므로 `loadError`로 사용자에게 알려 주세요.
+
+### 무한 스크롤 (infinite 페이징)
+
+```ts
+{
+  dataSource: {
+    paging: { mode: 'infinite', pageSize: 50, threshold: 5 }, // 마지막 5행 이내로 스크롤하면 다음 페이지 조회
+    sorting: { mode: 'server' },                              // 함께 사용 가능
+    load: { url: '/api/users' },
+  },
+}
+```
+
+페이지 UI 없이 스크롤이 끝에 가까워지면 다음 페이지를 조회해 기존 데이터 **뒤에 붙입니다**. `footer.paging`은 사용하지 않으며(켜면 생성 시 오류) `tree`·`groupingFields`와도 함께 쓸 수 없습니다.
+
+- 서버는 서버 페이징과 같이 `page`, `pageSize`와 기존 조회 조건을 받습니다. 응답에 `total`이 있으면 받은 건수가 `total`에 닿을 때, 없으면 `pageSize`보다 적게 받았을 때 마지막 페이지로 봅니다. `pageSize`를 지정하지 않으면 10입니다.
+- 첫 조회·`searchRemote`·정렬·`reload()`는 **첫 페이지부터** 받아 데이터를 교체하고 스크롤을 맨 위로 되돌립니다.
+- 첫 페이지가 화면을 채우지 못하면 채워질 때까지 이어서 조회합니다. 조회 중 표시는 `loader` 옵션(기본: 그리드 위 로더)을 따릅니다.
+- 붙인 행은 조회 데이터로 취급해 `READ` 상태이며 Undo 이력에 남기지 않습니다. 미저장 변경이 있어도 붙일 수 있습니다.
+- 서버 `save`·`removeRemote`가 성공하면 이미 받은 페이지의 offset이 어긋나므로 **첫 페이지부터 자동으로 다시 조회**합니다. 실패한 행이나 다른 미저장 변경이 남아 있으면(편집 내용을 보존하기 위해) 다시 조회하지 않습니다.
+- 다음 페이지 조회가 실패하면 기존 데이터를 유지하고 `loadError`로 알립니다. 끝에서 계속 스크롤하면 1초 뒤부터 다시 시도하며, `grid.loadMore()`로 직접 호출할 수도 있습니다.
+- 클라이언트 정렬·검색은 이미 받은 행에만 적용됩니다. 로컬 정렬을 켜면 페이지를 붙일 때마다 전체를 다시 정렬하므로(수만 행 이상에서 느려질 수 있음) 서버 정렬을 권장합니다.
+- 같은 `rowIdField` 값이 서로 다른 페이지에 중복으로 내려오면 처리하지 않습니다. 서버가 안정적인 정렬 기준을 제공해야 합니다.
+
+`uitest/remoteInfinite.html`에서 확인할 수 있습니다.
 
 ### 지원하지 않는 조합
 
 조용히 잘못된 결과가 표시되지 않도록 생성 시 `DataSourceError`를 던집니다.
 
-- `dataSource.sorting.mode: 'server'`, `dataSource.filtering.mode: 'server'` (아직 미지원)
-- 서버 페이징 + `tree` 또는 `groupingFields` (현재 페이지만으로는 트리 구조·그룹 합계가 부정확)
+- `dataSource.filtering.mode: 'server'` (아직 미지원)
+- 서버 페이징·서버 정렬·무한 스크롤 + `tree` 또는 `groupingFields` (현재 페이지만으로는 트리 구조·그룹 합계가 부정확)
+- 무한 스크롤 + `footer.paging.enabled`
 - `dataSource.save` + `deleteMode: 'hard'`
 
 `uitest/remote.html`에서 메모리 Mock 서버로 동작을 확인할 수 있습니다.

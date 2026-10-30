@@ -72,9 +72,9 @@ export class SimpleDataSearch extends DataSearch {
       searchElement = getLayerElement('div', 'dg-search-simple', 'help-tooltip');
 
       template.push(
-        `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${gridMain
+        `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${replaceXss(gridMain
           .i18n()
-          .getMessage('all')}</option>`,
+          .getMessage('all'))}</option>`,
       );
       for (const field of fields) {
         if (field.$isAside) continue;
@@ -93,8 +93,8 @@ export class SimpleDataSearch extends DataSearch {
           </div>
         </div>
         <span class="dg-search-btn">
-          <span class="dg-btn dg-search-prev" title="${gridMain.i18n().getMessage('prev')}"></span>
-          <span class="dg-btn dg-search-next" title="${gridMain.i18n().getMessage('next')}"></span>
+          <span class="dg-btn dg-search-prev" title="${replaceXss(gridMain.i18n().getMessage('prev'))}"></span>
+          <span class="dg-btn dg-search-next" title="${replaceXss(gridMain.i18n().getMessage('next'))}"></span>
         </span>
         <span class="dgMatchCount"></span>`);
 

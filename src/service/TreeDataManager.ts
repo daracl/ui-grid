@@ -28,6 +28,17 @@ const EXPAND_TYPE = {
  * @class TreeDataManager
  * @typedef {TreeDataManager}
  */
+/** 최상위 노드의 부모를 나타내는 내부 표식 */
+const ROOT_PARENT_ID = 'dg$root';
+
+/**
+ * 부모 값이 최상위(루트)를 뜻하는지 확인한다.
+ * null·undefined·빈 문자열(공백만 있는 경우 포함)과 루트 표식만 최상위로 본다.
+ * 0은 실제 노드 ID일 수 있으므로 최상위로 취급하지 않는다.
+ */
+const isRootParentId = (parentId: unknown): boolean =>
+  parentId == null || parentId === ROOT_PARENT_ID || (typeof parentId === 'string' && parentId.trim() === '');
+
 export class TreeDataManager extends DataManager {
   private readonly idViewItemMap = new Map<RowId, TreeViewItem>();
 
@@ -179,7 +190,7 @@ export class TreeDataManager extends DataManager {
       }
     };
 
-    dfs(treeItems, 0, 'dg$root', rootNodes);
+    dfs(treeItems, 0, ROOT_PARENT_ID, rootNodes);
 
     return { flatItems, treeViewItems: rootNodes };
   }
@@ -571,7 +582,7 @@ export class TreeDataManager extends DataManager {
   public addItems(items: any[], addOpts: AddRowOptions = {}, status = ItemStatusMap.READ): number {
     if (!items || items.length === 0) return -1;
 
-    let parentId: RowId = 'dg$root';
+    let parentId: RowId = ROOT_PARENT_ID;
     let depth = 0;
     let targetSiblings: TreeViewItem[] = this.originalTreeItems;
     let insertIndex = targetSiblings.length;
@@ -597,7 +608,7 @@ export class TreeDataManager extends DataManager {
           parentId = targetNode.pid;
           depth = targetNode.depth;
 
-          if (parentId === 'dg$root' || !parentId) {
+          if (isRootParentId(parentId)) {
             targetSiblings = this.originalTreeItems;
           } else {
             const parentNode = this.getOriginalTreeViewItems().find((node) => node.id === parentId);

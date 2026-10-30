@@ -4,6 +4,7 @@ import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { GridOptions } from '@/types/GridOptions';
 import { RefImgValue } from '@/types/RefValue';
+import { isSafeUrl } from '@/util/utils';
 /**
  * image renderer
  *
@@ -35,8 +36,12 @@ export class ImageRenderer extends ViewCellRenderer {
       element.appendChild(img);
     }
 
-    // 이미지 속성 변경이 필요한 경우만 변경
-    if (img.src !== src) img.src = src;
+    // 이미지 속성 변경이 필요한 경우만 변경. 허용되지 않은 스킴(javascript: 등)은 이미지를 비운다.
+    if (typeof src === 'string' && isSafeUrl(src)) {
+      if (img.src !== src) img.src = src;
+    } else if (img.getAttribute('src')) {
+      img.removeAttribute('src');
+    }
     if (alt && img.alt !== alt) img.alt = alt;
 
     // label이 필요한 경우
