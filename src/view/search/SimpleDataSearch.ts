@@ -4,7 +4,7 @@ import { getLayerElement, hasClass, innerLayerPosition } from '@/util/domUtils';
 import { isEnter, isEsc, stopPreventCancel } from '@/util/eventUtils';
 import { html } from '@/util/htmlTemplate';
 import { toggleClass } from '@/util/styleUtils';
-import { merge } from '@/util/utils';
+import { merge, replaceXss } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { DataSearch } from './DataSearch';
 
@@ -78,7 +78,7 @@ export class SimpleDataSearch extends DataSearch {
       );
       for (const field of fields) {
         if (field.$isAside) continue;
-        template.push(`<option value="${field.name}">${field.label}</option>`);
+        template.push(`<option value="${replaceXss(String(field.name))}">${replaceXss(String(field.label ?? ''))}</option>`);
       }
       template.push('</select>');
 

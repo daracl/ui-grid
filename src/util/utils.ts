@@ -22,6 +22,8 @@ import {
   isString,
   isDate,
   writeClipboard,
+  sanitizeHtml,
+  isSafeUrl,
 } from '@daracl/core/utils';
 export {
   isFunction,
@@ -42,6 +44,8 @@ export {
   trim,
   isBlank,
   isString,
+  sanitizeHtml,
+  isSafeUrl,
 };
 
 import { DataManager } from '@/service/DataManager';
@@ -445,4 +449,22 @@ export function arrayCopy<T>(array: T[], start?: number, end?: number): T[] {
   const copy = coreArrayCopy(array, start, end);
   // 범위를 생략한 경우 희소 배열의 빈 슬롯을 undefined로 채우는 기존 동작을 유지한다.
   return start === undefined && end === undefined ? [...copy] : copy;
+}
+
+/**
+ * 허용 목록 기준으로 정리한 HTML 을 element 내용으로 설정합니다.
+ *
+ * @param element 대상 element
+ * @param html html 문자열(null, undefined 는 빈 문자열로 처리)
+ */
+export function setSafeHtml(element: Element, html: unknown): void {
+  const text = html == null ? '' : String(html);
+
+  // 태그와 엔티티가 없는 일반 텍스트는 파싱 없이 바로 설정합니다.
+  if (!/[<&]/.test(text)) {
+    element.textContent = text;
+    return;
+  }
+
+  element.replaceChildren(sanitizeHtml(text));
 }

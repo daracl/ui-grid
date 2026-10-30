@@ -8,7 +8,7 @@ import { BodyCellStyleMap, LINE_NUMBER_NAME, ROW_CHECK_NAME } from '@/constants'
 import { SELECTED_STYLE_CLASS } from '@/constantStyles';
 import { html } from '@/util/htmlTemplate';
 import { addClass, removeClass } from '@/util/styleUtils';
-import { intValue } from '@/util/utils';
+import { intValue, replaceXss } from '@/util/utils';
 import { HeaderEvent } from './HeaderEvent';
 
 const CHECK_INDETERMINATE = 'dg-indeterminate';
@@ -283,10 +283,10 @@ export class Header {
             ? html`<div class="dg-choice">
                 <div class="dg-choice-item dg-checkbox dg-all">
                   <div class="dg-indicator"></div>
-                  ${headerItem.label ? `<span class="dg-label dg-ellipsis">${headerItem.label}</span>` : ''}
+                  ${headerItem.label ? `<span class="dg-label dg-ellipsis">${replaceXss(String(headerItem.label))}</span>` : ''}
                 </div>
               </div>`
-            : `<div class="centered">${headerItem.label ?? ''}</div>`;
+            : `<div class="centered">${replaceXss(String(headerItem.label ?? ''))}</div>`;
 
         const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : '';
 

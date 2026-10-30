@@ -1,7 +1,7 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
-import { isFunction } from '@/util/utils';
+import { isFunction, isSafeUrl } from '@/util/utils';
 
 /**
  * link renderer
@@ -31,10 +31,12 @@ export class LinkRenderer extends ToolBarRenderer {
     aElement.href = 'javascript:void(0);';
 
     if (refValue?.href) {
-      aElement.href = refValue.href;
+      // javascript: 등 허용되지 않은 스킴은 기본 href 를 유지합니다.
+      if (typeof refValue.href === 'string' && isSafeUrl(refValue.href)) aElement.href = refValue.href;
 
       if (refValue.target) {
         aElement.target = refValue.target;
+        aElement.rel = 'noopener noreferrer';
       }
     }
 

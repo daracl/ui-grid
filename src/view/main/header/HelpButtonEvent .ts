@@ -4,7 +4,7 @@ import { EventHandler } from '@/event/EventHandler';
 import { HeaderOptions } from '@/types/GridOptions';
 import { getLayerElement, innerLayerPosition } from '@/util/domUtils';
 import { isClickEvent, stopPreventCancel } from '@/util/eventUtils';
-import { intValue, isFunction } from '@/util/utils';
+import { intValue, isFunction, setSafeHtml } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 
@@ -93,7 +93,7 @@ export class HelpButtonEvent implements EventHandler {
           viewContent = helpValue;
         }
 
-        helpLayerElement.innerHTML = viewContent;
+        setSafeHtml(helpLayerElement, viewContent);
 
         const layerStyle = helpLayerElement.style;
 

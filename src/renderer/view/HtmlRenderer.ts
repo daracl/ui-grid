@@ -1,4 +1,4 @@
-import { isHTMLElement } from '@/util/utils';
+import { isHTMLElement, setSafeHtml } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo, Config } from '@t/GridConfig';
 import { FieldItem } from '@t/GridField';
@@ -34,10 +34,10 @@ export class HtmlRenderer extends ViewCellRenderer {
           element.appendChild(template);
         }
       } else {
-        element.innerHTML = template;
+        setSafeHtml(element, template);
       }
     } else {
-      element.innerHTML = value;
+      setSafeHtml(element, value);
     }
   }
 

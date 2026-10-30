@@ -5,7 +5,7 @@ import { ToolbarOptions } from '@/types/GridOptions';
 import { ToolbarFieldItem, ToolbarLayout } from '@/types/Toolbar';
 
 import { normalizeCssLength } from '@/util/styleUtils';
-import { isArray, isNumber, merge } from '@/util/utils';
+import { isArray, isNumber, merge, replaceXss } from '@/util/utils';
 import { createHTMLElement } from '@/util/domUtils';
 
 import { GridMain } from '@/view/GridMain';
@@ -395,7 +395,7 @@ export class ToolbarRenderer {
 
     element.innerHTML = hasLabel
       ? `
-          <span class="dg-label ${isRequired ? 'dg-required' : ''}">${field.label}</span>
+          <span class="dg-label ${isRequired ? 'dg-required' : ''}">${replaceXss(String(field.label))}</span>
           <div class="dg-control"></div>
         `
       : '<div class="dg-control"></div>';

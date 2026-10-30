@@ -1,5 +1,6 @@
 import { viewRendererClickEvent } from '@/event/renderEvents';
 import { ViewCellRenderer } from '@/renderer/ViewCellRenderer';
+import { isSafeUrl } from '@/util/utils';
 import { RefOptionValue } from '@/types/RefValue';
 import { GridMain } from '@/view/GridMain';
 import { CellInfo } from '@t/GridConfig';
@@ -43,8 +44,10 @@ export class LinkRenderer extends ViewCellRenderer {
     }
 
     if (!this.isClick && refValue) {
-      aElement.href = href;
+      // javascript: 등 허용되지 않은 스킴은 기본 href 를 유지합니다.
+      if (typeof href === 'string' && isSafeUrl(href)) aElement.href = href;
       aElement.target = target;
+      aElement.rel = 'noopener noreferrer';
     } else {
       aElement.removeAttribute('target');
     }

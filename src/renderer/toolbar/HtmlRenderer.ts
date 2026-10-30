@@ -1,5 +1,5 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
-import { isFunction } from '@/util/utils';
+import { isFunction, setSafeHtml } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -25,9 +25,9 @@ export class HtmlRenderer extends ToolBarRenderer {
     if (!defaultValue) return;
 
     if (isFunction<(field: ToolbarFieldItem) => string>(defaultValue)) {
-      controlElement.innerHTML = defaultValue(this.field);
+      setSafeHtml(controlElement, defaultValue(this.field));
     } else {
-      controlElement.innerHTML = defaultValue;
+      setSafeHtml(controlElement, defaultValue);
     }
   }
 

@@ -214,17 +214,20 @@ export class GridMain {
     if (INIT_GRID_GLOBAL_EVNET) return;
     INIT_GRID_GLOBAL_EVNET = true;
 
-    document.addEventListener('pointerdown', (e: Event) => {
-      const path = e.composedPath();
-      ALL_INSTANCE.forEach((grid, id) => {
-        const gridElement = grid.gridElement.getElement();
-
-        if (!path.includes(gridElement)) {
-          grid.setGridFocusOut(e);
-        }
-      });
-    });
+    document.addEventListener('pointerdown', GridMain.globalPointerDownHandler);
   }
+
+  /** 그리드 바깥 클릭 시 모든 인스턴스의 포커스를 해제합니다. */
+  private static readonly globalPointerDownHandler = (e: Event) => {
+    const path = e.composedPath();
+    ALL_INSTANCE.forEach((grid) => {
+      const gridElement = grid.gridElement.getElement();
+
+      if (!path.includes(gridElement)) {
+        grid.setGridFocusOut(e);
+      }
+    });
+  };
 
   public static getInstance(eleOrId: HTMLElement | string): DaraGrid | null {
     let id;
@@ -1186,6 +1189,12 @@ export class GridMain {
     }
 
     ALL_INSTANCE.delete(uid);
+
+    // 마지막 인스턴스가 해제되면 document 전역 리스너도 제거합니다.
+    if (ALL_INSTANCE.size === 0 && INIT_GRID_GLOBAL_EVNET) {
+      document.removeEventListener('pointerdown', GridMain.globalPointerDownHandler);
+      INIT_GRID_GLOBAL_EVNET = false;
+    }
   }
 }
 
