@@ -1,4 +1,4 @@
-import { AddItemPosition, SearchDirection } from '../constants';
+import { SearchDirection } from '../constants';
 export interface OptionCallback {
   (...params: any[]): any;
 }

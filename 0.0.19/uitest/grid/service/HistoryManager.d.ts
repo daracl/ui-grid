@@ -1,5 +1,5 @@
 import { ItemStatus } from '../constants.js';
-import { RowId } from '../types/Common.js';
+import { RowId, ViewItem } from '../types/Common.js';
 /**
  * Undo / Redo 이후 복원할 Selection 정보입니다.
  * row index는 저장하지 않고 rowId를 저장합니다.
@@ -37,6 +37,9 @@ export interface RemoveHistoryChange {
     type: 'remove';
     rowId: RowId;
     item: any;
+    viewItem?: ViewItem;
+    index?: number;
+    checked?: boolean;
 }
 export type HistoryChange = UpdateHistoryChange | AddHistoryChange | RemoveHistoryChange;
 /**
@@ -84,6 +87,7 @@ export declare class HistoryManager {
      * Transaction을 시작합니다.
      */
     begin(beforeSelection?: HistorySelection): void;
+    isRecording(): boolean;
     /**
      * 현재 Transaction을 Undo Stack에 등록합니다.
      */

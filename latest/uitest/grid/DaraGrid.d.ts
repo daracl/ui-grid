@@ -8,6 +8,7 @@ import type { PdfExportOptions } from './export/pdf/PdfConverter';
 import type { ExcelExportOptions } from './export/excel/ExcelConverter';
 import type { CsvExportOptions } from './export/csv/CsvConverter';
 import type { JsonExportOptions } from './export/json/JsonConverter';
+import type { LoadOptions, LoadResult, RemoteParams, RemoveOptions, RemoveSummary, SaveSummary } from './types/DataSource';
 /**
  * DaraGrid class
  *
@@ -17,6 +18,8 @@ import type { JsonExportOptions } from './export/json/JsonConverter';
 export declare class DaraGrid {
     static VERSION: string;
     private gridMain;
+    /** 내보내기 동안 재사용하는 막대 차트 색상. 내보내기를 시작할 때 비운다. */
+    private pdfBarColors;
     constructor(gridElement: HTMLElement, options: GridOptions, message?: Message);
     initGlobalConfig(): void;
     static create(gridElement: HTMLElement, options: GridOptions, message?: Message): DaraGrid;
@@ -37,11 +40,21 @@ export declare class DaraGrid {
      */
     getFields(): FieldItem[];
     /**
-     * 그리드의 전체 행 데이터를 반환한다.
+     * 현재 표시 대상의 실제 행 데이터를 반환한다.
+     * 페이징은 현재 페이지, 검색은 검색 결과, 트리는 펼친 행만 포함한다.
+     * 그룹 소계·총계와 내부 관리 필드는 제외한다.
      *
-     * @returns 전체 행 데이터 배열
+     * @returns 현재 표시 대상 행의 얕은 복사본 배열
      */
     getItems(): any[];
+    /**
+     * 검색·페이징·트리 펼침 상태와 무관하게 로드된 전체 원본 행을 반환한다.
+     * 트리는 자손을 포함한 평탄한 배열이며, soft 삭제 행도 포함한다.
+     * 그룹 가상 행과 내부 관리 필드는 제외한다. 외부 페이징은 로드된 행만 반환한다.
+     *
+     * @returns 전체 원본 행의 얕은 복사본 배열
+     */
+    getAllItems(): Record<string, any>[];
     /**
      * 내보내기 가능한 현재 뷰의 모든 행을 PDF로 다운로드합니다.
      *
@@ -275,6 +288,48 @@ export declare class DaraGrid {
     expandAll(): void;
     collapseAll(): void;
     search(searchText: string, opts: SearchMode): any;
+    /**
+     * dataSource.load로 서버 데이터를 조회한다. 조회 조건을 생략하면 마지막 조건을 사용한다.
+     *
+     * 미저장 변경이 있으면 UNSAVED_CHANGES 오류로 거부한다. 변경을 버리려면 `{ discardChanges: true }`를 전달한다.
+     *
+     * @param params 서버 조회 조건
+     * @param options 조회 옵션
+     * @returns 조회 결과. before 이벤트로 취소되었거나 더 새로운 조회에 밀렸으면 null
+     * @example
+     * await grid.load({ status: 'ACTIVE' });
+     */
+    load(params?: RemoteParams, options?: LoadOptions): Promise<LoadResult | null>;
+    /**
+     * 검색 조건을 적용하여 서버에서 조회한다. 서버 페이징이면 첫 페이지부터 조회한다.
+     * 클라이언트 검색(`search()`)과는 별개이다.
+     */
+    searchRemote(params: RemoteParams, options?: LoadOptions): Promise<LoadResult | null>;
+    /**
+     * infinite 페이징에서 다음 페이지를 조회해 기존 데이터 뒤에 붙인다. 보통은 스크롤이 끝에 가까워지면 자동 호출된다.
+     * 다른 조회·저장·삭제가 진행 중이거나 더 받을 데이터가 없으면 요청하지 않고 null을 반환한다.
+     *
+     * @returns 이번에 받은 페이지 결과. 요청하지 않았거나 취소되었으면 null
+     */
+    loadMore(): Promise<LoadResult | null>;
+    /**
+     * 마지막 조회 조건(과 현재 페이지)으로 다시 조회한다. infinite 페이징은 첫 페이지부터 다시 조회한다.
+     */
+    reload(options?: LoadOptions): Promise<LoadResult | null>;
+    /**
+     * 변경된 행(추가·수정·삭제)을 dataSource.save로 저장한다. 변경이 없으면 요청하지 않는다.
+     * 성공하면 변경 상태를 확정하고 Undo/Redo 이력을 초기화한다.
+     *
+     * @returns 저장 요약. before 이벤트로 취소되면 null
+     */
+    save(): Promise<SaveSummary | null>;
+    /**
+     * 선택된 행(또는 `options.rowIds`)을 dataSource.remove로 서버에서 삭제한다.
+     * 저장된 적 없는 신규 행은 요청 없이 로컬에서만 제거한다.
+     */
+    removeRemote(options?: RemoveOptions): Promise<RemoveSummary | null>;
+    /** dataSource가 없으면 동기 예외 대신 reject된 Promise를 반환한다. */
+    private remote;
     static setIcons(icons: any): void;
     /**
      * grid destroy

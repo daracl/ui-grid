@@ -46,6 +46,8 @@ export declare class CellClickHandler extends BasePointerHandler {
     onActivate(session: PointerSession): void;
     onPointerMove(session: PointerSession): void;
     protected startAutoScroll(selection?: boolean): void;
+    /** 드래그 자동 스크롤이 남아 있으면 멈춘다. */
+    destroy(): void;
     protected stopAutoScroll(): void;
     onPointerUp(session: PointerSession): void;
     onClick(session: PointerSession): void;

@@ -5,6 +5,17 @@ import { FieldSortInfo } from '../types/Header.js';
 import { GridMain } from '../view/GridMain.js';
 import { FieldItem } from '../types/GridField.js';
 import { AddHistoryChange, HistoryChange, HistoryEntry, HistoryManager, RemoveHistoryChange } from './HistoryManager';
+/** 저장 요청 시점의 행 스냅샷 */
+export interface ChangeSnapshotEntry {
+    rowId: RowId;
+    status: ItemStatus;
+    /** 요청 시점의 행 데이터(내부 관리 필드 제외) */
+    data: Record<string, any>;
+    /** 행 ID 필드 값. 서버 응답의 idMap·failed와 매칭한다. */
+    key: RowId;
+    /** 서버에 저장된 적 없는 신규 행. 서버 요청 없이 로컬에서만 제거한다. */
+    localOnly: boolean;
+}
 export declare abstract class DataManager {
     protected opts: GridOptions;
     protected gridMain: GridMain;
@@ -19,11 +30,14 @@ export declare abstract class DataManager {
     private beforeKeyword;
     private beforeSearchMode;
     private beforeSearchSortInfo;
+    private searchDirty;
     private sortOrders;
     private sortOpts;
+    private fullSortCache;
     private readonly searchMap;
     private readonly rowMap;
     private readonly rowCheckSet;
+    private readonly createdRowIds;
     protected readonly matchOffsetMap: Map<RowId, number>;
     private beforeDataRowLength;
     /** Undo / Redo History */
@@ -46,13 +60,44 @@ export declare abstract class DataManager {
      * @param status item status
      */
     setItemStatus(item: any, status: ItemStatus): void;
-    removeSoftItem(ids: RowId[]): void;
+    removeSoftItem(ids: RowId[]): RowId[];
     /**
      * 변경된 아이템 얻기
      *
      * @returns 변경된 row items
      */
     getChangedItems(): Record<string, any>[];
+    /**
+     * 저장되지 않은 변경(C/U/D)이 있는지 확인한다.
+     */
+    hasChanges(): boolean;
+    /**
+     * 서버 저장용 변경 행 스냅샷을 만든다. 원본 순서(트리는 부모 → 자식)를 유지한다.
+     */
+    getChangeSnapshot(): ChangeSnapshotEntry[];
+    /**
+     * 지정한 행의 스냅샷을 만든다. 상태와 무관하게 포함하며 그룹 가상 행과 없는 ID는 제외한다.
+     */
+    getRowSnapshots(ids: RowId[]): ChangeSnapshotEntry[];
+    private createSnapshotEntry;
+    /** 서버로 보낼 행 데이터. 내부 관리 필드와 행 상태(_$CUD)는 제외한다. */
+    private getSnapshotData;
+    /**
+     * 서버 저장 결과를 반영한다.
+     *
+     * 스냅샷 이후 다시 편집된 행은 변경 상태를 유지하고, 그 외 행은 확정(READ)한다.
+     * 삭제가 확정된 행은 제거한다. Undo/Redo 이력은 서버 상태와 맞지 않게 되므로 초기화한다.
+     *
+     * @param entries 저장 요청에 사용한 스냅샷
+     * @param failedKeys 저장에 실패한 행의 ID 필드 값
+     * @param idMap 신규 행의 요청 ID → 서버 ID
+     * @returns 확정되어 제거된 행 ID 배열
+     */
+    acceptChanges(entries: ChangeSnapshotEntry[], failedKeys?: Set<RowId>, idMap?: Record<string, RowId>): RowId[];
+    /**
+     * 행을 삭제 모드·이력과 무관하게 제거한다. 서버 반영이 끝난 삭제에 사용하며 Undo/Redo 이력은 초기화한다.
+     */
+    purgeItems(ids: RowId[]): RowId[];
     /**
      * 전체 체크 설정
      */
@@ -63,13 +108,13 @@ export declare abstract class DataManager {
     clearAllCheck(): void;
     /**
      *  체크된 아이템 설정
-     * @param cellInfo 체크된 셀 정보
+     @param id 체크 설정할 row id
      * @param checked 체크 여부
      */
     setItemChecked(id: RowId, checked: boolean): void;
     /**
      * 특정 아이템이 체크되어 있는지 여부 반환
-     * @param item 체크 여부를 확인할 아이템
+     @param id 체크 여부를 확인할 row id
      * @returns 체크 여부
      */
     isItemChecked(id: RowId): boolean;
@@ -79,10 +124,51 @@ export declare abstract class DataManager {
      * @param items
      */
     setItems(items: any[]): void;
+    /**
+     * 서버에서 받은 행을 목록 끝에 붙인다. 조회 데이터이므로 READ 상태로 추가하고 Undo 이력은 남기지 않는다.
+     *
+     * @returns 추가된 첫 행의 index. 추가할 행이 없으면 -1
+     */
+    appendItems(items: any[]): number;
     createItem(item: any, addOpts?: AddRowOptions): number;
+    /**
+     * 화면에서 옮긴 행 순서를 원본 순서에도 반영한다. 이렇게 하지 않으면 이후 행 추가·삭제·검색 해제 등으로
+     * 목록이 다시 만들어질 때 이동한 순서가 사라진다.
+     *
+     * 화면 순서가 곧 원본 순서인 경우에만 반영한다. 정렬·검색·페이징이 있으면(화면이 원본의 일부이거나 파생 순서)
+     * 이동을 화면에만 적용해야 하므로 Tree·Group과 함께 false를 돌려준다.
+     *
+     * @param movedItems 이동 후 화면의 ViewItem 순서(원본 행 전체)
+     * @returns 반영했으면 true(화면 목록도 새 순서로 갱신), 반영하지 않았으면 false
+     */
+    applyMovedOrder(movedItems: ViewItem[]): boolean;
     protected getSortBaseItems(): any[];
     protected setSortBaseItems(items: any[]): void;
     dataSort(sortOrders: FieldSortInfo[], sortOpts: SortOption): void;
+    private getSortSignature;
+    /** 전체 행이 원래 순서로 정렬 입력이 되는 경우에만 캐시를 사용·저장한다. 검색·사용자 정렬 함수·페이징과는 함께 쓰지 않는다. */
+    private isFullSortCacheable;
+    private isOriginalOrder;
+    private cacheFullSort;
+    /**
+     * 정렬 입력이 전체 행(원래 순서)이고 행 구성과 정렬 기준 값이 정렬 당시와 같으면 이전 정렬 결과를 돌려준다.
+     * 값을 다시 읽어 비교하므로 셀 수정·행 추가·삭제로 달라졌으면 캐시를 쓰지 않고 새로 정렬한다.
+     */
+    private reuseFullSort;
+    /**
+     * 정렬이 켜져 있을 때 소량의 행 추가와 삭제를 전체 재정렬 없이 반영한다.
+     *
+     * 정렬된 목록에서 삭제는 순서가 유지되고, 추가는 이진 탐색으로 자리를 찾는다. 같은 값은 원래 순서(sortOrder)를 따르므로
+     * 전체를 다시 정렬한 결과와 같다. 검색·페이징·사용자 정렬 함수·Tree·Group이거나 추가 행이 많으면 반영하지 않고 false를 돌려준다.
+     * 호출 전에 원본 목록(originalViewItems)이 이미 갱신되어 있어야 한다.
+     *
+     * @param added 새로 추가된 ViewItem
+     * @param removedIds 삭제된 행 ID
+     * @returns 반영했으면 true, 전체 재정렬이 필요하면 false
+     */
+    protected applyIncrementalMutation(added: ViewItem[], removedIds?: Set<RowId>): boolean;
+    /** 사용자 정렬 결과를 원래 ViewItem에 연결하여 트리·그룹 메타데이터를 보존한다. */
+    protected sortItems(source: ViewItem[], sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[];
     abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
     protected initializeRowItem(item: any, depth?: number, status?: string): any;
     getViewItemIndex(id: RowId): number;
@@ -91,17 +177,23 @@ export declare abstract class DataManager {
      * @returns
      */
     getViewItems(): ViewItem[];
+    /** 페이징 전의 현재 검색·정렬 대상이다. */
+    getPagingViewItems(): ViewItem[];
+    protected applyViewItems(items: ViewItem[]): void;
+    protected getUnfilteredViewItems(): ViewItem[];
+    /** 데이터 변경 후 현재 검색·정렬·페이징을 다시 적용한다. */
+    protected refreshViewAfterMutation(): void;
     /**
      *  grid view에 보여지는 item의 id 배열 설정
-     * @param ids item id 배열
-     * @param start start index
-     * @param end end index
+     @param ids 화면에 보여질 ViewItem 배열
      */
     setViewItems(ids: ViewItem[]): void;
     convertViewItemsToRowItems(): any[];
     getRowItem(rowId: RowId): any;
     protected deleteRowItem(rowId: RowId): void;
     getAllRowItems(rowIdInclude?: boolean): any[];
+    /** 검색·페이징·트리 펼침 상태와 무관한 전체 원본 행의 얕은 복사본이다. */
+    getSourceRowItems(): Record<string, any>[];
     /**
      * 행 데이터에서 Grid 내부 관리용 필드를 제외하고 반환
      *
@@ -210,10 +302,11 @@ export declare abstract class DataManager {
      * - undo : row 제거
      * - redo : row 복원
      *
-     * View 위치는 History에서 관리하지 않습니다.
+     * 신규 행의 Redo 위치는 View 동기화 단계에서 정합니다.
      */
     protected applyAddHistory(change: AddHistoryChange, undo: boolean): void;
     protected addHistory(rowId: RowId, item: any): void;
+    protected removeHistory(rowId: RowId, viewItem: ViewItem, index: number): void;
     /**
      * 삭제된 row History 적용
      *
@@ -221,7 +314,7 @@ export declare abstract class DataManager {
      * - undo : row 복원
      * - redo : row 제거
      *
-     * View 위치는 History에서 관리하지 않습니다.
+     * 삭제 이력에 저장된 위치는 View 동기화 단계에서 복원합니다.
      */
     protected applyRemoveHistory(change: RemoveHistoryChange, undo: boolean): void;
     /**
@@ -236,12 +329,10 @@ export declare abstract class DataManager {
      */
     protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void;
     /**
-     * 정렬이 없는 상태에서 History로 추가/삭제된 row를 현재 View에 반영합니다.
-     *
-     * 복원 위치는 History에서 관리하지 않습니다.
-     * 현재 View의 마지막에 추가하며, 정렬 상태에서는 dataSort()로 재배치합니다.
+     * 삭제 행은 변경 당시의 위치에 복원하고, 추가 행의 Redo는 마지막에 배치합니다.
+     * 이후 현재 검색·정렬·페이징을 다시 적용합니다.
      */
-    private syncHistoryViewItems;
+    protected syncHistoryViewItems(entry: HistoryEntry, undo: boolean): void;
     search(keyword: string, options: SearchMode): void;
     clearSearchInfo(): {
         id: string;
@@ -255,8 +346,8 @@ export declare abstract class DataManager {
     /**
      * 현재 검색 포커스 cell 정보
      *
-     * @param items check item list
-     * @param matchId
+     @param currentMatchIndex 현재 행 이전까지의 누적 match 수
+     @param currentMatchInfo 현재 match 위치 정보
      * @returns
      */
     protected setCurrentMatchInfo(currentMatchIndex: number, currentMatchInfo: CURRENT_MATCH_INFO): void;

@@ -13,7 +13,7 @@ function create() {
     options.paging = { page: 1, pageSize: 5 };
   } else if (type.value === 'group') {
     options.groupingFields = ['category'];
-    options.sumFields = ['amount'];
+    options.groupSummaryFields = [{ field: 'amount', expression: 'sum' }];
   } else if (type.value === 'rowspan') {
     options.rowSpanFields = ['category'];
   } else if (type.value === 'chart') {

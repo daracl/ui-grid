@@ -1,8 +1,41 @@
 (function(factory) {
   typeof define === "function" && define.amd ? define(factory) : factory();
-})(function() {
+})((function() {
   "use strict";
-  var _a, _b, _c, _d;
+  function formatNumber(value, format) {
+    const numberPatternRegex = /[0,.]+/;
+    const numberPatternMatch = numberPatternRegex.exec(format);
+    if (!numberPatternMatch) return format;
+    const numberPattern = numberPatternMatch[0];
+    const prefix = format.slice(0, format.indexOf(numberPattern));
+    const suffix = format.slice(format.indexOf(numberPattern) + numberPattern.length);
+    const [intFmt, decFmt] = numberPattern.split(".");
+    const useComma = intFmt.includes(",");
+    let result = "";
+    if (decFmt) {
+      const rounded = value.toFixed(decFmt.length);
+      const [intPart, decPart] = rounded.split(".");
+      const trimmedDec = decPart.replace(/0+$/, "");
+      result = useComma ? addComma(intPart) : intPart;
+      if (trimmedDec.length > 0) {
+        result += "." + trimmedDec;
+      }
+    } else {
+      const rounded = Math.round(value).toString();
+      result = useComma ? addComma(rounded) : rounded;
+    }
+    return `${prefix}${result}${suffix}`;
+  }
+  function addComma(numStr) {
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function formatValue(value, displayFormat) {
+    const type = displayFormat.type;
+    if (type == "number" && !isNaN(value)) {
+      return formatNumber(value, displayFormat.format ?? "0,0");
+    }
+    return value;
+  }
   const INSTANCE_ATTR_KEY = "daracl-grid-id";
   const SelectionModeMap = {
     cell: "cell",
@@ -100,6 +133,71 @@
     PREV: "prev",
     NEXT: "next"
   };
+  function calcSummary(items, mode, itemKey) {
+    if (mode === "count") return items.length;
+    if (mode !== "min" && mode !== "max" && mode !== "sum" && mode !== "avg") {
+      return `${mode} not valid`;
+    }
+    let count = 0;
+    let result = mode === "min" ? Infinity : mode === "max" ? -Infinity : 0;
+    const total = items.length;
+    for (let start = 0; start < total; start += CHUNK_SIZE) {
+      const end = Math.min(start + CHUNK_SIZE, total);
+      const chunk = items.slice(start, end);
+      for (let i = 0; i < chunk.length; i++) {
+        const val = chunk[i][itemKey];
+        if (typeof val !== "number") continue;
+        switch (mode) {
+          case "min":
+            if (val < result) result = val;
+            break;
+          case "max":
+            if (val > result) result = val;
+            break;
+          default:
+            result += val;
+            break;
+        }
+        count++;
+      }
+    }
+    if (count === 0) return "not valid";
+    return mode === "avg" ? result / count : result;
+  }
+  function getSummaryField(summary) {
+    return summary.field ?? summary.name ?? "";
+  }
+  function formatSummaryValue(value, summary, field) {
+    const displayFormat = summary?.displayFormat ?? field.displayFormat;
+    return String(displayFormat ? formatValue(value, displayFormat) : value);
+  }
+  function getGroupSummaries(options) {
+    return options.groupSummaryFields ?? [];
+  }
+  function getGroupSummaryFields(options) {
+    return getGroupSummaries(options).map((item) => getSummaryField(item));
+  }
+  function calculateGroupSummary(items, summary) {
+    if (typeof summary.expression === "function") {
+      const result2 = summary.expression(items);
+      if (typeof result2 !== "number" || !Number.isFinite(result2)) {
+        throw new TypeError(`Group summary callback for ${summary.field} must return a finite number`);
+      }
+      return result2;
+    }
+    if (summary.expression === "count") return items.length;
+    const mode = summary.expression;
+    if (!mode || !["sum", "avg", "min", "max"].includes(mode))
+      throw new Error(`Unsupported group summary expression: ${mode}`);
+    const values = items.flatMap((item) => {
+      const value = item[getSummaryField(summary)];
+      if (value === null || value === void 0 || value === "") return [];
+      const number = Number(value);
+      return Number.isFinite(number) ? [{ [getSummaryField(summary)]: number }] : [];
+    });
+    const result = values.length ? calcSummary(values, mode, getSummaryField(summary)) : 0;
+    return typeof result === "number" ? result : 0;
+  }
   function html(strings, ...values) {
     return strings.reduce((result, str, i) => {
       const value = values[i];
@@ -430,15 +528,97 @@
     sortup: '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="50,0 0,100 100,100" fill="#737171"></polygon></g></svg>',
     sortdown: '<svg width="8px" height="8px" viewBox="0 0 110 110" style="enable-background:new 0 0 100 100;"><g><polygon points="0,0 100,0 50,90" fill="#737171"></polygon></g></svg>'
   };
+  function isArray$1(value) {
+    return Array.isArray(value);
+  }
+  function isFunction$1(value) {
+    return typeof value === "function";
+  }
+  function isObject$2(value) {
+    return value !== null && (typeof value === "object" || typeof value === "function");
+  }
+  function isPlainObject$2(value) {
+    if (value === null || typeof value !== "object") return false;
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype === null || prototype === Object.prototype) return true;
+    if (Object.getPrototypeOf(prototype) !== null) return false;
+    const constructor = Object.getOwnPropertyDescriptor(prototype, "constructor")?.value;
+    return isFunction$1(constructor) && Object.getOwnPropertyDescriptor(constructor, "prototype")?.value === prototype && Function.prototype.toString.call(constructor) === Function.prototype.toString.call(Object);
+  }
+  function copyProperties(source, target, context) {
+    for (const key of Reflect.ownKeys(source)) {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+      Object.defineProperty(target, key, {
+        value: copy(source[key], context),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    }
+  }
+  function copy(source, context) {
+    if (!isObject$2(source) || isFunction$1(source)) return source;
+    if (context.seen.has(source)) return context.seen.get(source);
+    let result;
+    if (isArray$1(source)) {
+      result = new Array(source.length);
+    } else if (source instanceof Date) {
+      result = new Date(Date.prototype.getTime.call(source));
+    } else if (source instanceof RegExp) {
+      result = new RegExp(source.source, source.flags);
+      result.lastIndex = source.lastIndex;
+    } else if (source instanceof Map) {
+      result = /* @__PURE__ */ new Map();
+      context.tasks.push(() => Map.prototype.forEach.call(source, (item, key) => result.set(copy(key, context), copy(item, context))));
+    } else if (source instanceof Set) {
+      result = /* @__PURE__ */ new Set();
+      context.tasks.push(() => Set.prototype.forEach.call(source, (item) => result.add(copy(item, context))));
+    } else {
+      const prototype = Object.getPrototypeOf(source);
+      if (!isPlainObject$2(source)) return source;
+      result = Object.create(prototype === null ? null : Object.prototype);
+    }
+    context.seen.set(source, result);
+    context.tasks.push(() => copyProperties(source, result, context));
+    return result;
+  }
+  const deepCopy = (value, seen = /* @__PURE__ */ new WeakMap()) => {
+    const context = { seen, tasks: [] };
+    const result = copy(value, context);
+    while (context.tasks.length) context.tasks.pop()();
+    return result;
+  };
+  function isString$1(value) {
+    return typeof value === "string";
+  }
+  function isBlank$1(value) {
+    return value === null || value === void 0 || isString$1(value) && value.trim() === "";
+  }
+  function isDate(value) {
+    return value instanceof Date && !isNaN(value.getTime());
+  }
+  function isNil(value) {
+    return value === null || value === void 0;
+  }
+  function isUndefined(value) {
+    return value === void 0;
+  }
+  const ABSOLUTE_URL$1 = /^([a-z][a-z\d+\-.]*:)?\/\//i;
+  function joinUrl$1(baseUrl2, url) {
+    if (!baseUrl2 || ABSOLUTE_URL$1.test(url)) return url;
+    if (!url) return baseUrl2;
+    if (url[0] === "?" || url[0] === "#") return baseUrl2 + url;
+    return `${baseUrl2.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
+  }
   const xssFilter = {
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
-    // eslint-disable-next-line quotes
     "'": "&#39;"
   };
-  const replaceXss = (inputText) => {
+  function xss(inputText) {
     let returnText = inputText;
     if (returnText) {
       Object.keys(xssFilter).forEach((key) => {
@@ -446,95 +626,422 @@
       });
     }
     return returnText;
+  }
+  function arrayCopy$1(array, start, end) {
+    return isArray$1(array) ? array.slice(start, end) : [];
+  }
+  function isSameValue(a, b) {
+    return isNil(a) && isNil(b) || String(a) === String(b);
+  }
+  function camelToKebab(value) {
+    return value.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+  function stringSplit(value, delimiter) {
+    return (value || "").split(delimiter);
+  }
+  function debounce(callback, delay) {
+    let timer;
+    const cancel = () => {
+      clearTimeout(timer);
+      timer = void 0;
+    };
+    const debounced = function(...args) {
+      cancel();
+      if (delay < 1) {
+        callback.apply(this, args);
+        return;
+      }
+      timer = setTimeout(() => {
+        timer = void 0;
+        callback.apply(this, args);
+      }, delay);
+    };
+    debounced.cancel = cancel;
+    return debounced;
+  }
+  function parseClipboard(text) {
+    const rows = [];
+    let row = [], cell = "", inQuotes = false, rowEnded = false;
+    text = text.replace(/(\r?\n){2}$/, "\n");
+    for (let index = 0; index < text.length; index++) {
+      const char = text[index], next = text[index + 1];
+      rowEnded = false;
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          cell += '"';
+          index++;
+        } else inQuotes = !inQuotes;
+      } else if (!inQuotes && char === "	") {
+        row.push(cell);
+        cell = "";
+      } else if (!inQuotes && (char === "\n" || char === "\r")) {
+        if (char === "\r" && next === "\n") index++;
+        row.push(cell);
+        rows.push(row);
+        row = [];
+        cell = "";
+        rowEnded = true;
+      } else cell += char;
+    }
+    if (!rowEnded) {
+      row.push(cell);
+      rows.push(row);
+    }
+    return rows;
+  }
+  function getElementRect$1(el, includeScroll = false) {
+    if (!el) {
+      throw new Error("유효하지 않은 요소입니다.");
+    }
+    const rect = el.getBoundingClientRect();
+    const scrollX = includeScroll ? window.scrollX : 0;
+    const scrollY = includeScroll ? window.scrollY : 0;
+    return {
+      top: rect.top + scrollY,
+      left: rect.left + scrollX,
+      bottom: rect.bottom + scrollY,
+      right: rect.right + scrollX,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+  const styleClassSplit$1 = (styleClass) => {
+    return styleClass.trim().split(/\s+/).filter(Boolean);
   };
+  function addStyleCss(element, styles) {
+    for (const key in styles) {
+      if (Object.prototype.hasOwnProperty.call(styles, key)) {
+        element.style.setProperty(key, styles[key]);
+      }
+    }
+  }
+  function hasClass(element, className) {
+    return styleClassSplit$1(className).some((name) => element.classList.contains(name));
+  }
+  function isVisible(element) {
+    return !!(element.offsetHeight || element.offsetWidth) && getComputedStyle(element).visibility !== "hidden";
+  }
+  function createHTMLElement$1(tagName, className, attrs = {}, text) {
+    const element = document.createElement(tagName);
+    for (const [key, value] of Object.entries(attrs)) {
+      if (value === null || value === void 0) continue;
+      if (key === "style" && value !== null && typeof value === "object") {
+        const styles = {};
+        for (const [name, item] of Object.entries(value)) styles[camelToKebab(name)] = item;
+        addStyleCss(element, styles);
+      } else if (key === "dataset" && value !== null && typeof value === "object") {
+        for (const [name, item] of Object.entries(value)) element.setAttribute(`data-${camelToKebab(name)}`, String(item));
+      } else element.setAttribute(key, value !== null && typeof value === "object" ? JSON.stringify(value) : String(value));
+    }
+    return element;
+  }
+  function normalizeCssLength(value) {
+    return !value ? "" : typeof value === "number" || /^\d+$/.test(value) ? `${value}px` : value;
+  }
+  function getBrowserSize(usableSize = true) {
+    return usableSize ? { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight } : { width: window.innerWidth, height: window.innerHeight };
+  }
+  function getScrollPosition() {
+    return {
+      top: window.pageYOffset ?? (document.documentElement.scrollTop || document.body.scrollTop || 0),
+      left: window.pageXOffset ?? (document.documentElement.scrollLeft || document.body.scrollLeft || 0)
+    };
+  }
+  function outerLayerPosition(layer, position) {
+    const scroll = getScrollPosition(), rect = getElementRect$1(layer), view = getBrowserSize();
+    const bottom = scroll.top + view.height, right = scroll.left + view.width;
+    return {
+      top: Math.max(0, position.y + rect.height + 5 > bottom ? bottom - rect.height - 5 : position.y),
+      left: Math.max(0, position.x + rect.width > right ? position.x - rect.width : position.x)
+    };
+  }
+  function isMouseMoved(start, current, threshold = 5) {
+    return (current.x - start.x) ** 2 + (current.y - start.y) ** 2 > threshold ** 2;
+  }
+  function isSafeUrl$1(url) {
+    const value = url.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
+    if (!value) return false;
+    const match = /^([a-z][a-z0-9+.-]*):/i.exec(value);
+    if (!match) return true;
+    if (match[1].toLowerCase() === "data") return /^data:image\/(?:png|gif|jpe?g|webp|avif|bmp)(?:;|,)/i.test(value);
+    return ["http", "https", "mailto", "tel"].includes(match[1].toLowerCase());
+  }
+  async function writeClipboard(text) {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+    }
+    if (typeof document === "undefined" || !document.body || !document.execCommand) return false;
+    const active = document.activeElement;
+    const textarea = createHTMLElement$1("textarea", void 0, { style: { position: "fixed", top: "-9999px", left: "-9999px" } });
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    try {
+      textarea.select();
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    } finally {
+      textarea.remove();
+      active?.focus?.();
+    }
+  }
+  const DROP_TAGS$1 = /* @__PURE__ */ new Set([
+    "script",
+    "style",
+    "iframe",
+    "frame",
+    "frameset",
+    "object",
+    "embed",
+    "applet",
+    "link",
+    "meta",
+    "base",
+    "form",
+    "input",
+    "button",
+    "textarea",
+    "select",
+    "option",
+    "svg",
+    "math",
+    "template",
+    "noscript",
+    "title"
+  ]);
+  const ALLOWED_TAGS$1 = /* @__PURE__ */ new Set([
+    "a",
+    "abbr",
+    "b",
+    "blockquote",
+    "br",
+    "caption",
+    "code",
+    "col",
+    "colgroup",
+    "dd",
+    "del",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "i",
+    "img",
+    "ins",
+    "li",
+    "mark",
+    "ol",
+    "p",
+    "pre",
+    "s",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "u",
+    "ul"
+  ]);
+  const ALLOWED_ATTRS$1 = /* @__PURE__ */ new Set([
+    "class",
+    "style",
+    "title",
+    "alt",
+    "href",
+    "src",
+    "target",
+    "width",
+    "height",
+    "colspan",
+    "rowspan",
+    "align",
+    "valign",
+    "dir",
+    "lang"
+  ]);
+  const URL_ATTRS$1 = /* @__PURE__ */ new Set(["href", "src"]);
+  const UNSAFE_STYLE$1 = /url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:|-moz-binding|position\s*:\s*(?:fixed|absolute|sticky)|\\|\/\*/i;
+  function sanitizeElement$1(el) {
+    Array.from(el.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value;
+      const keep = ALLOWED_ATTRS$1.has(name) && (!URL_ATTRS$1.has(name) || isSafeUrl$1(value)) && (name !== "style" || !UNSAFE_STYLE$1.test(value)) && (name !== "target" || value === "_blank" || value === "_self");
+      if (!keep) el.removeAttribute(attr.name);
+    });
+    if (el.tagName === "A" && el.getAttribute("target") === "_blank") {
+      el.setAttribute("rel", "noopener noreferrer");
+    }
+  }
+  function sanitizeChildren$1(parent) {
+    Array.from(parent.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) return;
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        node.parentNode?.removeChild(node);
+        return;
+      }
+      const el = node;
+      const tag = el.tagName.toLowerCase();
+      if (DROP_TAGS$1.has(tag)) {
+        el.remove();
+        return;
+      }
+      sanitizeChildren$1(el);
+      if (ALLOWED_TAGS$1.has(tag)) {
+        sanitizeElement$1(el);
+      } else {
+        el.replaceWith(...Array.from(el.childNodes));
+      }
+    });
+  }
+  function sanitizeHtml$1(html2) {
+    const template = document.createElement("template");
+    template.innerHTML = html2;
+    const fragment = template.content;
+    sanitizeChildren$1(fragment);
+    return document.importNode(fragment, true);
+  }
+  function eqAttributeValue(element, attr, value) {
+    return element.getAttribute(attr) == value;
+  }
+  function getElementRect(el, includeScroll = false) {
+    if (!el) {
+      throw new Error("Invalid element.");
+    }
+    const rect = el.getBoundingClientRect();
+    const scrollX = includeScroll ? window.scrollX : 0;
+    const scrollY = includeScroll ? window.scrollY : 0;
+    return {
+      top: rect.top + scrollY,
+      left: rect.left + scrollX,
+      bottom: rect.bottom + scrollY,
+      right: rect.right + scrollX,
+      width: rect.width,
+      height: rect.height
+    };
+  }
+  function addAttr(el, attrs) {
+    for (const key in attrs) {
+      el.setAttribute(key, attrs[key]);
+    }
+  }
+  function removeAttr(element, ...attrKey) {
+    let elements;
+    if (element instanceof HTMLElement) {
+      elements = [element];
+    } else {
+      elements = element;
+    }
+    elements.forEach((ele) => {
+      for (const attr of attrKey) {
+        ele.removeAttribute(attr);
+      }
+    });
+  }
+  function $getElements(el) {
+    if (!el) return [];
+    if (Array.isArray(el)) {
+      return el;
+    }
+    if (el instanceof Element) {
+      return [el];
+    }
+    if (el instanceof NodeList) {
+      return Array.from(el);
+    }
+    return Array.from(document.querySelectorAll(el));
+  }
+  function createHTMLElement(tagName, className, attrs = {}) {
+    const element = document.createElement(tagName);
+    if (className) {
+      element.className = className;
+    }
+    for (const [key, value] of Object.entries(attrs)) {
+      if (typeof value === "object" && value !== null) {
+        if (key === "style") {
+          Object.assign(element.style, value);
+        } else if (key === "dataset") {
+          Object.assign(element.dataset, value);
+        } else {
+          element.setAttribute(key, JSON.stringify(value));
+        }
+      } else {
+        element.setAttribute(key, String(value));
+      }
+    }
+    return element;
+  }
+  function getLayerElement(tagName, className, layerName) {
+    return createHTMLElement(tagName, className, { [LAYER_ATTR_NAME]: layerName });
+  }
+  function innerLayerPosition(renderContainer, targetElement, layerElement, margin = 2) {
+    const rendererContainer = getElementRect(renderContainer);
+    const elementRect = getElementRect(targetElement);
+    let layerHeight = layerElement.offsetHeight || getElementRect(layerElement).height;
+    const windowBottom = window.innerHeight;
+    const gridTop = rendererContainer.top - elementRect.top;
+    const menuOffsetBottom = elementRect.bottom + layerHeight;
+    const shouldOpenUpward = menuOffsetBottom > windowBottom;
+    let top = elementRect.top - (layerHeight - margin);
+    if (shouldOpenUpward) {
+      top = elementRect.top - (layerHeight - margin);
+      if (top < 0) {
+        layerHeight = layerHeight - 5 + top;
+      }
+      if (windowBottom - elementRect.bottom > layerHeight) {
+        layerHeight = windowBottom - elementRect.bottom - margin;
+        top = elementRect.bottom - rendererContainer.top;
+      } else {
+        top = -(layerHeight + margin) - gridTop;
+      }
+    } else {
+      top = elementRect.bottom - rendererContainer.top;
+    }
+    return {
+      top,
+      left: elementRect.left - rendererContainer.left,
+      height: layerHeight,
+      width: elementRect.width
+    };
+  }
+  function getIcon(name) {
+    return ALL_ICONS[name] ?? "";
+  }
   const hasOwnProp = (obj, key) => {
     return Object.prototype.hasOwnProperty.call(obj, key);
   };
-  const isBlank = (value) => {
-    if (value === null) return true;
-    if (value === "") return true;
-    if (typeof value === "undefined") return true;
-    if (typeof value === "string" && (value === "" || value.replace(/\s/g, "") === "")) return true;
-    return false;
-  };
-  const isVisible = (elm) => {
-    if (!elm.offsetHeight && !elm.offsetWidth) {
-      return false;
-    }
-    if (getComputedStyle(elm).visibility === "hidden") {
-      return false;
-    }
-    return true;
-  };
-  const isUndefined = (value) => {
-    return value === void 0;
-  };
-  const isFunction = (value) => {
-    return typeof value === "function";
-  };
-  const isString = (value) => {
-    return typeof value === "string";
-  };
   const isNumber = (value) => {
-    if (isBlank(value)) {
+    if (isBlank$1(value)) {
       return false;
     }
     const num = Number(value);
     return !Number.isNaN(num);
   };
-  const intValue = (val) => {
-    return Number.parseInt(val, 10);
-  };
-  const isArray = (value) => {
-    return Array.isArray(value);
-  };
   const copyStringToClipboard = (copyText) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(copyText).then(() => void 0).catch((err) => {
-        fallbackCopyToClipboard(copyText);
-      });
-    } else {
-      fallbackCopyToClipboard(copyText);
-    }
+    void writeClipboard(copyText);
   };
-  function debounce(f, delay) {
-    let timer;
-    return function(...args) {
-      if (delay < 1) {
-        f.apply(this, args);
-        return;
-      }
-      if (timer !== void 0) {
-        clearTimeout(timer);
-      }
-      timer = window.setTimeout(() => {
-        f.apply(this, args);
-      }, delay);
-    };
-  }
-  function fallbackCopyToClipboard(copyText) {
-    const copyAreaElement = document.createElement("textarea");
-    copyAreaElement.setAttribute("style", "top:-9999px;left:-9999px;position:fixed;z-index:9999;");
-    document.body.appendChild(copyAreaElement);
-    copyAreaElement.value = copyText;
-    copyAreaElement.select();
-    try {
-      document.execCommand("copy");
-    } catch (err) {
-      console.error("Fallback copy failed:", err);
-    }
-    document.body.removeChild(copyAreaElement);
-  }
   function isHTMLElement(target) {
     return target instanceof HTMLElement;
   }
-  function isSameValue(value1, value2) {
-    if (value1 == null && value2 == null) {
-      return true;
-    }
-    return String(value1) === String(value2);
-  }
-  const isEmpty = (value) => isUndefined(value) || value == null;
   const replaceMesasgeFormat = (pTmplate, data) => {
     let template = pTmplate.replace(/{{if\(([^)]+)\)}}([\s\S]*?){{\/if}}/g, (match, condition, content) => {
       const booleanConditionRegex = /^\s*(\w+)\s*$/;
@@ -575,7 +1082,7 @@
     });
     return template;
   };
-  function isPlainObject(obj) {
+  function isPlainObject$1(obj) {
     if (typeof obj !== "object" || obj === null) {
       return false;
     }
@@ -585,8 +1092,9 @@
     }
     return Object.getPrototypeOf(obj) === proto;
   }
-  function camelToKebab(str) {
-    return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  function getSortValues(dataManager, viewItem, sortInfos) {
+    const item = dataManager.getRowItem(viewItem.id);
+    return sortInfos.map(({ name, field, isValue }) => isValue ? field.$renderer.getValue(item) : item[name]);
   }
   function multiSort(data, dataManager, sortInfos = [], emptyValueLast = false) {
     if (sortInfos.length === 0) {
@@ -595,10 +1103,7 @@
     }
     const sortInfoLength = sortInfos.length;
     data.forEach((viewItem) => {
-      const item = dataManager.getRowItem(viewItem.id);
-      viewItem.sortValues = sortInfos.map(
-        ({ name, field, isValue }) => isValue ? field.$renderer.getValue(item) : item[name]
-      );
+      viewItem.sortValues = getSortValues(dataManager, viewItem, sortInfos);
     });
     data.sort((a, b) => {
       const aValues = a.sortValues;
@@ -633,43 +1138,18 @@
     }
     return ascOrder ? result : -result;
   }
-  function arrayCopy(array, start, end) {
-    if (!Array.isArray(array)) return [];
-    if (start === void 0 && end === void 0) {
-      return [...array];
-    }
-    return array.slice(start, end);
-  }
-  function isObject(value) {
+  function isObject$1(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
   }
-  function isDate(value) {
-    return value instanceof Date && !Number.isNaN(value.getTime());
-  }
-  const deepCopy = (copyValue) => {
-    if (isArray(copyValue)) {
-      const reval = [];
-      for (const value of copyValue) {
-        if (isPlainObject(value)) {
-          reval.push(merge({}, value));
-        } else {
-          reval.push(value);
-        }
-      }
-      return reval;
-    } else {
-      return merge({}, copyValue);
-    }
-  };
   const merge = (...value) => {
     let reval = value[0];
-    if (!isPlainObject(reval) || isEmpty(reval)) {
+    if (!isPlainObject$1(reval) || isEmpty(reval)) {
       return reval;
     }
     let i = 1;
     if (Object.keys(reval).length > 0) {
       i = 0;
-      reval = isArray(reval) ? [] : {};
+      reval = isArray$1(reval) ? [] : {};
     }
     const argLen = value.length;
     for (; i < argLen; i += 1) {
@@ -677,11 +1157,8 @@
     }
     return reval;
   };
-  const stringSplit = (value, delimiter) => {
-    return (value || "").split(delimiter);
-  };
   function cloneDeep(dst, src) {
-    if (isArray(src)) {
+    if (isArray$1(src)) {
       return cloneArrayDeep(dst, src);
     }
     if (isDate(src)) {
@@ -690,14 +1167,14 @@
     if (src instanceof RegExp) {
       return new RegExp(src.source, src.flags);
     }
-    if (isObject(src)) {
+    if (isObject$1(src)) {
       return cloneObjectDeep(dst, src);
     }
     return src;
   }
   const PROTO_POLLUTION_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
   function cloneObjectDeep(dst, src) {
-    if (isFunction(src)) {
+    if (isFunction$1(src)) {
       return src;
     }
     for (const key of Object.keys(src)) {
@@ -710,16 +1187,16 @@
       }
       if (val === null) {
         dst[key] = val;
-      } else if (isFunction(val)) {
+      } else if (isFunction$1(val)) {
         dst[key] = val;
       } else if (val instanceof RegExp) {
         dst[key] = new RegExp(val.source, val.flags);
       } else if (isEmpty(dst[key])) {
-        dst[key] = cloneDeep(isArray(val) ? [] : {}, val);
-      } else if (!isObject(val)) {
+        dst[key] = cloneDeep(isArray$1(val) ? [] : {}, val);
+      } else if (!isObject$1(val)) {
         dst[key] = val;
       } else {
-        if (!isObject(dst[key])) {
+        if (!isObject$1(dst[key])) {
           dst[key] = {};
         }
         cloneDeep(dst[key], val);
@@ -728,7 +1205,7 @@
     return dst;
   }
   function cloneArrayDeep(dst, src) {
-    const isObj = isPlainObject(dst);
+    const isObj = isPlainObject$1(dst);
     for (let i = 0; i < src.length; i += 1) {
       const val = src[i];
       let newVal;
@@ -737,7 +1214,7 @@
       } else if (val instanceof RegExp) {
         newVal = new RegExp(val.source, val.flags);
       } else {
-        newVal = cloneDeep(isArray(val) ? [] : {}, val);
+        newVal = cloneDeep(isArray$1(val) ? [] : {}, val);
       }
       if (isObj) {
         dst[i] = newVal;
@@ -754,7 +1231,7 @@
     if (a.length !== b.length) {
       return false;
     }
-    const getValue2 = (item) => item;
+    const getValue2 = ((item) => item);
     if (ignoreOrder) {
       const sortedA = [...a].sort((x, y) => compare(getValue2(x), getValue2(y)));
       const sortedB = [...b].sort((x, y) => compare(getValue2(x), getValue2(y)));
@@ -766,9 +1243,158 @@
     if (a === b) return 0;
     return a > b ? 1 : -1;
   }
+  const intValue = (val) => Number.parseInt(val, 10);
+  const isEmpty = (value) => isNil(value);
+  function arrayCopy(array, start, end) {
+    const copy2 = arrayCopy$1(array, start, end);
+    return start === void 0 && end === void 0 ? [...copy2] : copy2;
+  }
+  function setSafeHtml(element, html2) {
+    const text = html2 == null ? "" : String(html2);
+    if (!/[<&]/.test(text)) {
+      element.textContent = text;
+      return;
+    }
+    element.replaceChildren(sanitizeHtml$1(text));
+  }
+  let localeMessage = {
+    required: "필수 입력사항 입니다.",
+    selection: "선택",
+    string: {
+      minLength: "{minLength} 글자 이상으로 입력하세요.",
+      maxLength: "{maxLength} 글자 이하로 입력하세요.",
+      between: "{minLength} ~ {maxLength} 사이의 글자를 입력하세요."
+    },
+    number: {
+      nan: "숫자만 입력 가능 합니다.",
+      minimum: "{minimum} 값과 같거나 커야 합니다",
+      exclusiveMinimum: "{minimum} 보다 커야 합니다",
+      maximum: "{maximum} 값과 같거나 작아야 합니다",
+      exclusiveMaximum: "{maximum} 보다 작아야 합니다.",
+      between: "{minimum}~{maximum} 사이의 값을 입력하세요.",
+      betweenExclusiveMin: "{minimum} 보다 크고 {maximum} 보다 같거나 작아야 합니다",
+      betweenExclusiveMax: "{minimum} 보다 같거나 크고 {maximum} 보다 작아야 합니다",
+      betweenExclusiveMinMax: "{minimum} 보다 크고 {maximum} 보다 작아야 합니다"
+    },
+    regexp: {
+      mobile: "핸드폰 번호가 유효하지 않습니다.",
+      email: "이메일이 유효하지 않습니다.",
+      url: "URL이 유효하지 않습니다.",
+      alpha: "영문만 입력 가능 합니다.",
+      "alpha-num": "영문과 숫자만 입력 가능 합니다.",
+      number: "숫자만 입력 가능 합니다.",
+      variable: "값이 유효하지 않습니다.",
+      "number-char": "숫자, 문자 각각 하나 이상 포함 되어야 합니다.",
+      "upper-char": "대문자가 하나 이상 포함 되어야 합니다.",
+      "upper-char-special": "대문자,소문자,특수문자 각각 하나 이상 포함 되어야 합니다.",
+      "upper-char-special-number": "대문자,소문자,특수문자,숫자 각각 하나 이상 포함 되어야합니다."
+    },
+    "search.label": "Find",
+    "no.data": "No Data",
+    "select.all": "전체선택",
+    all: "전체",
+    select: "선택",
+    search: "검색",
+    prev: "이전",
+    next: "다음",
+    row: "행",
+    column: "열",
+    "export.format": "내보내기 형식",
+    "context.copy": "Copy",
+    "context.exportFile": "Export file",
+    "export.download": "다운로드",
+    "export.creating": "파일 생성 중",
+    "export.completed": "다운로드 완료",
+    "export.failed": "다운로드 실패",
+    "export.unsupportedFormat": "내보내기 형식을 선택하세요. 지원 형식: excel, xlsx, csv, json, pdf"
+  };
+  class Language {
+    constructor() {
+      this.lang = localeMessage;
+    }
+    static setGlobalMessage(lang) {
+      localeMessage = merge(localeMessage, lang);
+    }
+    /**
+     * 다국어 메시지 등록
+     *
+     * @public
+     * @param {?Message} [lang] 둥록할 메시지
+     */
+    setMessage(lang) {
+      this.lang = merge(this.lang, lang);
+    }
+    /**
+     * 메시지 얻기
+     *
+     * @public
+     * @param {string} messageKey 메시지 키
+     * @returns {*}
+     */
+    getMessage(messageKey) {
+      return this.lang[messageKey];
+    }
+    /**
+     * ValidResult 값을 메시지로 변경.
+     *
+     * @public
+     * @param {FieldItem} field
+     * @param {ValidResult} validResult
+     * @returns {string[]}
+     */
+    validMessage(field, validResult) {
+      let messageFormat = "";
+      const messageFormats = [];
+      if (validResult.regexp) {
+        messageFormat = this.lang.regexp[validResult.regexp];
+        messageFormats.push(messageFormat);
+      }
+      (validResult.constraints ?? []).forEach((constraint) => {
+        if (constraint === RULES.REQUIRED) {
+          messageFormat = message(this.lang.required, field);
+          messageFormats.push(messageFormat);
+        }
+        const rendererType = field.editRenderer?.type;
+        if (rendererType == "number" || rendererType == "range") {
+          messageFormat = this.lang.number[constraint];
+          messageFormats.push(messageFormat);
+        } else {
+          messageFormat = this.lang.string[constraint];
+          messageFormats.push(messageFormat);
+        }
+      });
+      const reMessage = [];
+      const msgParam = Object.assign({}, { name: field.name, label: field.label }, field.editRenderer?.rule);
+      messageFormats.forEach((msgFormat) => {
+        if (msgFormat) {
+          reMessage.push(message(msgFormat, msgParam));
+        }
+      });
+      if (validResult.validator) {
+        reMessage.push(validResult.validator.message);
+      }
+      return reMessage;
+    }
+  }
+  const TOKEN_REGEX = /\{([A-Za-z0-9_.]+)\}/g;
+  function getValue(obj, path) {
+    const parts = path.split(".");
+    let current = obj;
+    for (let i = 0; i < parts.length; i++) {
+      if (current == null) return void 0;
+      current = current[parts[i]];
+    }
+    return current;
+  }
+  function message(format, params) {
+    return format.replace(TOKEN_REGEX, (match, key) => {
+      const value = getValue(params, key);
+      return value === void 0 || value === null ? match : String(value);
+    });
+  }
   const GRID_THEME = {
-    light: "dg-light",
-    dark: "dg-dark"
+    light: "light",
+    dark: "dark"
   };
   const BODY_STYLE = {
     default: "default",
@@ -875,16 +1501,12 @@
       });
     }
   }
-  function normalizeCssLength(value) {
-    if (!value) return "";
-    return typeof value === "number" || /^\d+$/.test(value) ? `${value}px` : value;
-  }
   const resolveClassName = (className, params) => {
     if (!className) {
       return [];
     }
     let reval;
-    if (isFunction(className)) {
+    if (isFunction$1(className)) {
       reval = className(params);
     } else {
       reval = className + "";
@@ -911,294 +1533,11 @@
     };
   };
   const getRendererVariantClass = (renderer) => {
-    var _a2;
     const variant = renderer.variant;
     if (!variant) return "";
     const rendererType = renderer.type;
-    return ((_a2 = RENDERER_VARIANTS[rendererType]) == null ? void 0 : _a2[variant]) ?? "";
+    return RENDERER_VARIANTS[rendererType]?.[variant] ?? "";
   };
-  function hasClass(element, className) {
-    const classNames = styleClassSplit(className);
-    for (const item of classNames) {
-      if (element.classList.contains(item)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  function eqAttributeValue(element, attr, value) {
-    return element.getAttribute(attr) == value;
-  }
-  function getElementRect(el, includeScroll = false) {
-    if (!el) {
-      throw new Error("Invalid element.");
-    }
-    const rect = el.getBoundingClientRect();
-    const scrollX = includeScroll ? window.scrollX : 0;
-    const scrollY = includeScroll ? window.scrollY : 0;
-    return {
-      top: rect.top + scrollY,
-      left: rect.left + scrollX,
-      bottom: rect.bottom + scrollY,
-      right: rect.right + scrollX,
-      width: rect.width,
-      height: rect.height
-    };
-  }
-  function addAttr(el, attrs) {
-    for (const key in attrs) {
-      el.setAttribute(key, attrs[key]);
-    }
-  }
-  function removeAttr(element, ...attrKey) {
-    let elements;
-    if (element instanceof HTMLElement) {
-      elements = [element];
-    } else {
-      elements = element;
-    }
-    elements.forEach((ele) => {
-      for (const attr of attrKey) {
-        ele.removeAttribute(attr);
-      }
-    });
-  }
-  function $getElements(el) {
-    if (!el) return [];
-    if (Array.isArray(el)) {
-      return el;
-    }
-    if (el instanceof Element) {
-      return [el];
-    }
-    if (el instanceof NodeList) {
-      return Array.from(el);
-    }
-    return Array.from(document.querySelectorAll(el));
-  }
-  function createHTMLElement(tagName, className, attrs = {}) {
-    const element = document.createElement(tagName);
-    if (className) {
-      element.className = className;
-    }
-    for (const [key, value] of Object.entries(attrs)) {
-      if (typeof value === "object" && value !== null) {
-        if (key === "style") {
-          Object.assign(element.style, value);
-        } else if (key === "dataset") {
-          Object.assign(element.dataset, value);
-        } else {
-          element.setAttribute(key, JSON.stringify(value));
-        }
-      } else {
-        element.setAttribute(key, String(value));
-      }
-    }
-    return element;
-  }
-  function getLayerElement(tagName, className, layerName) {
-    return createHTMLElement(tagName, className, { [LAYER_ATTR_NAME]: layerName });
-  }
-  function innerLayerPosition(renderContainer, targetElement, layerElement, margin = 2) {
-    const rendererContainer = getElementRect(renderContainer);
-    const elementRect = getElementRect(targetElement);
-    let layerHeight = layerElement.offsetHeight || getElementRect(layerElement).height;
-    const windowBottom = window.innerHeight;
-    const gridTop = rendererContainer.top - elementRect.top;
-    const menuOffsetBottom = elementRect.bottom + layerHeight;
-    const shouldOpenUpward = menuOffsetBottom > windowBottom;
-    let top = elementRect.top - (layerHeight - margin);
-    if (shouldOpenUpward) {
-      top = elementRect.top - (layerHeight - margin);
-      if (top < 0) {
-        layerHeight = layerHeight - 5 + top;
-      }
-      if (windowBottom - elementRect.bottom > layerHeight) {
-        layerHeight = windowBottom - elementRect.bottom - margin;
-        top = elementRect.bottom - rendererContainer.top;
-      } else {
-        top = -(layerHeight + margin) - gridTop;
-      }
-    } else {
-      top = elementRect.bottom - rendererContainer.top;
-    }
-    return {
-      top,
-      left: elementRect.left - rendererContainer.left,
-      height: layerHeight,
-      width: elementRect.width
-    };
-  }
-  function outerLayerPosition(layerEl, evtPosition) {
-    const scrollPostion = getScrollPosition();
-    const scrollTop = scrollPostion.top;
-    const scrollLeft = scrollPostion.left;
-    const rect = getElementRect(layerEl);
-    const layerWidth = rect.width;
-    const layerHeight = rect.height;
-    const browserSize = getBrowserSize();
-    const targetX = evtPosition.x;
-    const targetY = evtPosition.y;
-    const bottom = scrollTop + browserSize.height, right = scrollLeft + browserSize.width;
-    const layerBottomMargin = 5;
-    let top = targetY + layerHeight + layerBottomMargin > bottom ? bottom - (layerHeight + layerBottomMargin) : targetY;
-    top = Math.max(top, 0);
-    let left = targetX + layerWidth > right ? targetX - layerWidth : targetX;
-    left = Math.max(left, 0);
-    return { top, left };
-  }
-  function getBrowserSize(usableSize = true) {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    let scrollbarWidth = 0;
-    let scrollbarHeight = 0;
-    if (usableSize) {
-      const documentElement = document.documentElement;
-      scrollbarWidth = windowWidth - documentElement.clientWidth;
-      scrollbarHeight = windowHeight - documentElement.clientHeight;
-    }
-    return {
-      width: windowWidth - scrollbarWidth,
-      height: windowHeight - scrollbarHeight
-    };
-  }
-  function getIcon(name) {
-    return ALL_ICONS[name] ?? "";
-  }
-  function getScrollPosition() {
-    const top = window.pageYOffset ?? (document.documentElement.scrollTop || document.body.scrollTop || 0);
-    const left = window.pageXOffset ?? (document.documentElement.scrollLeft || document.body.scrollLeft || 0);
-    return { top, left };
-  }
-  let localeMessage = {
-    required: "필수 입력사항 입니다.",
-    selection: "선택",
-    string: {
-      minLength: "{minLength} 글자 이상으로 입력하세요.",
-      maxLength: "{maxLength} 글자 이하로 입력하세요.",
-      between: "{minLength} ~ {maxLength} 사이의 글자를 입력하세요."
-    },
-    number: {
-      nan: "숫자만 입력 가능 합니다.",
-      minimum: "{minimum} 값과 같거나 커야 합니다",
-      exclusiveMinimum: "{minimum} 보다 커야 합니다",
-      maximum: "{maximum} 값과 같거나 작아야 합니다",
-      exclusiveMaximum: "{maximum} 보다 작아야 합니다.",
-      between: "{minimum}~{maximum} 사이의 값을 입력하세요.",
-      betweenExclusiveMin: "{minimum} 보다 크고 {maximum} 보다 같거나 작아야 합니다",
-      betweenExclusiveMax: "{minimum} 보다 같거나 크고 {maximum} 보다 작아야 합니다",
-      betweenExclusiveMinMax: "{minimum} 보다 크고 {maximum} 보다 작아야 합니다"
-    },
-    regexp: {
-      mobile: "핸드폰 번호가 유효하지 않습니다.",
-      email: "이메일이 유효하지 않습니다.",
-      url: "URL이 유효하지 않습니다.",
-      alpha: "영문만 입력 가능 합니다.",
-      "alpha-num": "영문과 숫자만 입력 가능 합니다.",
-      number: "숫자만 입력 가능 합니다.",
-      variable: "값이 유효하지 않습니다.",
-      "number-char": "숫자, 문자 각각 하나 이상 포함 되어야 합니다.",
-      "upper-char": "대문자가 하나 이상 포함 되어야 합니다.",
-      "upper-char-special": "대문자,소문자,특수문자 각각 하나 이상 포함 되어야 합니다.",
-      "upper-char-special-number": "대문자,소문자,특수문자,숫자 각각 하나 이상 포함 되어야합니다."
-    },
-    "search.label": "Find",
-    "no.data": "No Data",
-    "select.all": "전체선택",
-    all: "전체",
-    select: "선택",
-    search: "검색",
-    prev: "이전",
-    next: "다음",
-    row: "행",
-    column: "열"
-  };
-  class Language {
-    constructor() {
-      this.lang = localeMessage;
-    }
-    static setGlobalMessage(lang) {
-      localeMessage = merge(localeMessage, lang);
-    }
-    /**
-     * 다국어 메시지 등록
-     *
-     * @public
-     * @param {?Message} [lang] 둥록할 메시지
-     */
-    setMessage(lang) {
-      this.lang = merge(this.lang, lang);
-    }
-    /**
-     * 메시지 얻기
-     *
-     * @public
-     * @param {string} messageKey 메시지 키
-     * @returns {*}
-     */
-    getMessage(messageKey) {
-      return this.lang[messageKey];
-    }
-    /**
-     * ValidResult 값을 메시지로 변경.
-     *
-     * @public
-     * @param {FieldItem} field
-     * @param {ValidResult} validResult
-     * @returns {string[]}
-     */
-    validMessage(field, validResult) {
-      var _a2;
-      let messageFormat = "";
-      const messageFormats = [];
-      if (validResult.regexp) {
-        messageFormat = this.lang.regexp[validResult.regexp];
-        messageFormats.push(messageFormat);
-      }
-      (validResult.constraints ?? []).forEach((constraint) => {
-        var _a3;
-        if (constraint === RULES.REQUIRED) {
-          messageFormat = message(this.lang.required, field);
-          messageFormats.push(messageFormat);
-        }
-        const rendererType = (_a3 = field.editRenderer) == null ? void 0 : _a3.type;
-        if (rendererType == "number" || rendererType == "range") {
-          messageFormat = this.lang.number[constraint];
-          messageFormats.push(messageFormat);
-        } else {
-          messageFormat = this.lang.string[constraint];
-          messageFormats.push(messageFormat);
-        }
-      });
-      const reMessage = [];
-      const msgParam = Object.assign({}, { name: field.name, label: field.label }, (_a2 = field.editRenderer) == null ? void 0 : _a2.rule);
-      messageFormats.forEach((msgFormat) => {
-        if (msgFormat) {
-          reMessage.push(message(msgFormat, msgParam));
-        }
-      });
-      if (validResult.validator) {
-        reMessage.push(validResult.validator.message);
-      }
-      return reMessage;
-    }
-  }
-  const TOKEN_REGEX = /\{([A-Za-z0-9_.]+)\}/g;
-  function getValue(obj, path) {
-    const parts = path.split(".");
-    let current = obj;
-    for (let i = 0; i < parts.length; i++) {
-      if (current == null) return void 0;
-      current = current[parts[i]];
-    }
-    return current;
-  }
-  function message(format, params) {
-    return format.replace(TOKEN_REGEX, (match, key) => {
-      const value = getValue(params, key);
-      return value === void 0 || value === null ? match : String(value);
-    });
-  }
   function isShiftKey(evt) {
     return evt.shiftKey;
   }
@@ -1230,7 +1569,6 @@
     return e.code;
   };
   const eventPosition = (e) => {
-    var _a2, _b2, _c2;
     if (typeof PointerEvent !== "undefined" && e instanceof PointerEvent) {
       return {
         x: e.pageX,
@@ -1240,7 +1578,7 @@
       };
     }
     if (typeof TouchEvent !== "undefined" && e instanceof TouchEvent) {
-      const touch = ((_a2 = e.changedTouches) == null ? void 0 : _a2[0]) || ((_b2 = e.touches) == null ? void 0 : _b2[0]) || ((_c2 = e.targetTouches) == null ? void 0 : _c2[0]);
+      const touch = e.changedTouches?.[0] || e.touches?.[0] || e.targetTouches?.[0];
       if (touch) {
         return {
           x: touch.pageX,
@@ -1325,7 +1663,7 @@
       }
       const store = this.EVENT_HANDLER_MAP.get(el);
       if (store) {
-        (store[eventType] ?? (store[eventType] = [])).push({ listener, capture });
+        (store[eventType] ??= []).push({ listener, capture });
       }
       this.ELEMENTS.add(el);
     }
@@ -1360,7 +1698,7 @@
       for (const eventType of eventTypes) {
         const event = eventType.split(".")[0];
         elements.forEach((target) => {
-          this.addEventInfo(target, eventType, fn, (fnOpts == null ? void 0 : fnOpts.capture) ?? false);
+          this.addEventInfo(target, eventType, fn, fnOpts?.capture ?? false);
           target.addEventListener(event, fn, fnOpts ?? {});
         });
       }
@@ -1413,10 +1751,10 @@
     }
   }
   const getPagingParamToPagingInfo = (pagingParam, rowLength) => {
-    const page = (pagingParam == null ? void 0 : pagingParam.page) || 1;
-    const totalCount = (pagingParam == null ? void 0 : pagingParam.totalCount) ?? rowLength;
-    const pageSize = (pagingParam == null ? void 0 : pagingParam.pageSize) || 10;
-    const unitPage = (pagingParam == null ? void 0 : pagingParam.unitPage) || 10;
+    const page = pagingParam?.page || 1;
+    const totalCount = pagingParam?.totalCount ?? rowLength;
+    const pageSize = pagingParam?.pageSize || 10;
+    const unitPage = pagingParam?.unitPage || 10;
     return getPagingInfo(totalCount > 0 ? totalCount : rowLength, page, pageSize, unitPage);
   };
   const getPagingInfo = (totalCount, page, pageSize, unitPage) => {
@@ -1425,13 +1763,17 @@
     if (totalCount < 1) {
       return {
         page: 0,
-        unitPage: 0,
+        pageSize,
+        unitPage,
         totalCount: 0,
-        totalPages: 0
+        totalPages: 0,
+        currStartPage: 0,
+        currEndPage: 0,
+        prePage: 0,
+        nextPage: 0,
+        prePage_is: false,
+        nextPage_is: false
       };
-    }
-    if (totalCount < pageSize) {
-      pageSize = totalCount;
     }
     const totalPages = totalCount % pageSize == 0 ? totalCount / pageSize : Math.floor(totalCount / pageSize) + 1;
     if (totalPages < page) {
@@ -1489,9 +1831,8 @@
     };
   };
   function initConfig(opts) {
-    var _a2, _b2, _c2, _d2, _e, _f, _g, _h, _i, _j, _k;
     const pagingInfo = getPagingParamToPagingInfo(
-      isPlainObject(opts.paging) ? opts.paging : {},
+      isPlainObject$1(opts.paging) ? opts.paging : {},
       opts.items.length
     );
     let rowIdField = ROW_FIELD.ID;
@@ -1505,8 +1846,8 @@
       dataManager: {},
       eventManager: new EventManager(),
       theme: "",
-      checkOnRowSelect: ((_b2 = (_a2 = opts.aside) == null ? void 0 : _a2.rowCheckbox) == null ? void 0 : _b2.checkOnRowSelect) === true,
-      enabledHeaderHelpButton: (_d2 = (_c2 = opts.header) == null ? void 0 : _c2.help) == null ? void 0 : _d2.enabled,
+      checkOnRowSelect: opts.aside?.rowCheckbox?.checkOnRowSelect === true,
+      enabledHeaderHelpButton: opts.header?.help?.enabled,
       dimensions: {
         width: 0,
         height: 0,
@@ -1531,7 +1872,7 @@
       fontFamily: "Noto Sans KR",
       fontSize: "12px",
       enabledCellEdit: opts.editable ?? false,
-      isRowAllowMultiSelect: ((_f = (_e = opts.aside) == null ? void 0 : _e.rowCheckbox) == null ? void 0 : _f.allowMultiSelect) ?? true,
+      isRowAllowMultiSelect: opts.aside?.rowCheckbox?.allowMultiSelect ?? true,
       searchEnabled: false,
       searchParameter: {
         matchCase: false,
@@ -1568,7 +1909,7 @@
       },
       cellWidths: [],
       rowHeight: Math.max(opts.body.row.height ?? 26, 26),
-      enabledSortButton: (_g = opts.header) == null ? void 0 : _g.sort.enabled,
+      enabledSortButton: opts.header?.sort.enabled,
       sort: { orders: [] },
       paging: pagingInfo,
       selection: {},
@@ -1593,8 +1934,8 @@
       fixedRightIndex: Math.max(opts.fixedRightIndex, 0),
       scroll: initScrollInfo(),
       scrollbarSize: opts.scroll.width ?? 12,
-      disableVerticalScroll: ((_i = (_h = opts.scroll) == null ? void 0 : _h.vertical) == null ? void 0 : _i.enabled) === false,
-      disableHorizontalScroll: ((_k = (_j = opts.scroll) == null ? void 0 : _j.horizontal) == null ? void 0 : _k.enabled) === false,
+      disableVerticalScroll: opts.scroll?.vertical?.enabled === false,
+      disableHorizontalScroll: opts.scroll?.horizontal?.enabled === false,
       edit: initEditInfo(),
       canvasContext: void 0,
       activeComponent: ""
@@ -1754,10 +2095,9 @@
     return intValue(cellElement.dataset.headerCellPosition ?? "-1");
   };
   const getTextWidth = (cfg, text, padding = 10) => {
-    var _a2;
     if (!text) return padding;
-    const metrics = (_a2 = cfg.canvasContext) == null ? void 0 : _a2.measureText(text);
-    return ((metrics == null ? void 0 : metrics.width) ?? 0) + padding;
+    const metrics = cfg.canvasContext?.measureText(text);
+    return (metrics?.width ?? 0) + padding;
   };
   const getMaxColumnSize = (cfg, opts, field) => {
     const dataManager = cfg.dataManager;
@@ -1803,7 +2143,7 @@
   const isInputField = (tagName) => {
     return tagName.search(/(input|select|textarea)/i) > -1;
   };
-  const dragVerticalMovePosition = (cfg, moveY, rowHeight, startCellInfo, _t, _b2) => {
+  const dragVerticalMovePosition = (cfg, moveY, rowHeight, startCellInfo, _t, _b) => {
     const scroll = cfg.scroll;
     const dataInfo = cfg.dataInfo;
     const startIdx = scroll.startIdx;
@@ -1821,7 +2161,7 @@
       }
       return { scrollDirectionY, rowIdx, viewRowIdx: 0 };
     }
-    if (moveY > _b2) {
+    if (moveY > _b) {
       if (startIdx + insideViewRow < rowLength) {
         scrollDirectionY = ScrollDirectionYMap.DOWN;
         rowIdx = startIdx + insideViewRow + 1;
@@ -1895,23 +2235,21 @@
     overCell = Math.max(overCell, cfg.dataInfo.startCol);
     return { scrollDirectionX, overCell };
   };
-  const getCheckboxMode = (checkLeneth, itemLength) => {
-    if (checkLeneth == 0) return "none";
-    if (checkLeneth == itemLength) return "all";
+  const getCheckboxMode = (checkLength, itemLength) => {
+    if (checkLength == 0) return "none";
+    if (checkLength == itemLength) return "all";
     return "partial";
   };
   const valuesValueKey = (rendererInfo) => {
-    var _a2;
-    return ((_a2 = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a2.valueField) ?? "value";
+    return rendererInfo?.listItem?.valueField ?? "value";
   };
   const valuesLabelKey = (rendererInfo) => {
-    var _a2;
-    return ((_a2 = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a2.labelField) ?? "label";
+    return rendererInfo?.listItem?.labelField ?? "label";
   };
   const heightOptionValue = (heightOption, defaultHeight) => {
     let height;
     let heights = [];
-    if (isArray(heightOption) && heightOption.length > 0) {
+    if (isArray$1(heightOption) && heightOption.length > 0) {
       height = heightOption[0];
       heights = heightOption;
     } else {
@@ -1926,11 +2264,6 @@
     const max = Math.max(...arr);
     return max - min + 1 === arr.length;
   };
-  const isMouseMoved = (startPos, currentPos, threshold = 5) => {
-    const dx = currentPos.x - startPos.x;
-    const dy = currentPos.y - startPos.y;
-    return dx * dx + dy * dy > threshold * threshold;
-  };
   const escapeCellValue = (value) => {
     if (typeof value !== "string") return value;
     const hasSpecial = /["\n\r\t]/.test(value);
@@ -1938,39 +2271,6 @@
       return `"${value.replace(/"/g, '""')}"`;
     }
     return value;
-  };
-  const parseClipboard = (text) => {
-    const rows = [];
-    let row = [];
-    let cell = "";
-    let inQuotes = false;
-    text = text.replace(/(\r?\n){2}$/, "\n");
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      const next = text[i + 1];
-      if (char === '"') {
-        if (inQuotes && next === '"') {
-          cell += '"';
-          i++;
-        } else {
-          inQuotes = !inQuotes;
-        }
-      } else if (!inQuotes && char === "	") {
-        row.push(cell);
-        cell = "";
-      } else if (!inQuotes && (char === "\n" || char === "\r")) {
-        if (char === "\r" && next === "\n") i++;
-        row.push(cell);
-        rows.push(row);
-        row = [];
-        cell = "";
-      } else {
-        cell += char;
-      }
-    }
-    row.push(cell);
-    rows.push(row);
-    return rows;
   };
   const isFieldEditable = (cfg, field) => {
     if (!field) return false;
@@ -2005,9 +2305,9 @@
     return directionCode;
   };
   const getListItemValue = (value, valueDelimiter) => {
-    if (isArray(value)) {
+    if (isArray$1(value)) {
       return value;
-    } else if (isString(value)) {
+    } else if (isString$1(value)) {
       return stringSplit(value, valueDelimiter);
     } else {
       return [String(value)];
@@ -2027,6 +2327,11 @@
     supportsInteraction() {
       return false;
     }
+    /**
+     * 그리드를 파괴할 때 호출된다. 그리드 바깥(document 등)에 만든 요소가 있으면 여기서 제거한다.
+     */
+    destroy() {
+    }
     bindEvents(eventType, cellInfo, element) {
       return false;
     }
@@ -2041,20 +2346,19 @@
      *
      * @param cfg 설정
      * @param opts 옵션
-     * @param checkWidth
      * @returns
      */
     getMinWidth(cfg, opts) {
       return getMaxColumnSize(cfg, opts, this.field);
     }
     applyRendererRefState(contentElement, refValue) {
-      const isHide = (refValue == null ? void 0 : refValue.hide) ?? false;
+      const isHide = refValue?.hide ?? false;
       const classList = contentElement.classList;
       if (classList.contains("dg-hide") !== isHide) {
         classList.toggle("dg-hide", isHide);
       }
       if (isHide) return false;
-      const isDisabled = (refValue == null ? void 0 : refValue.disabled) ?? false;
+      const isDisabled = refValue?.disabled ?? false;
       if (classList.contains("dg-disabled") !== isDisabled) {
         classList.toggle("dg-disabled", isDisabled);
       }
@@ -2069,10 +2373,24 @@
     isEditable() {
       return this._editable;
     }
+    /** 편집 값을 유지하면서 현재 셀 위치에 맞춰 레이어를 배치합니다. */
+    openCellLayer(layerElement, cellElement) {
+      this.gridMain.openLayer(layerElement, () => {
+        if (!cellElement.isConnected) return;
+        const cellRect = getElementRect(cellElement);
+        const containerRect = getElementRect(this.rendererContainer);
+        Object.assign(layerElement.style, {
+          top: `${cellRect.top - containerRect.top}px`,
+          left: `${cellRect.left - containerRect.left}px`,
+          width: `${cellRect.width}px`,
+          height: `${cellRect.height}px`
+        });
+      });
+    }
     /**
      * 값 얻기
      *
-     * @param {any} value row item
+     @param {any} item row item
      * @returns {any} field value
      */
     getValue(item, inputValue) {
@@ -2085,7 +2403,7 @@
      * 값 셋팅
      *
      * @public
-     * @param {HTMLElement} element cell element
+     @param {Event} e event object
      * @param {any} value row value
      */
     setValue(e, item, value, refresh = true) {
@@ -2150,12 +2468,14 @@
       if (message2.length > 0) {
         const element = this.getValidatorElement();
         element.textContent = message2[0];
-        const cellRect = getElementRect(cellElement);
-        const rendererContainer = getElementRect(this.rendererContainer);
         const style = element.style;
-        this.gridMain.openLayer(element);
-        style.top = `${cellRect.top - rendererContainer.top - element.offsetHeight}px`;
-        style.left = `${cellRect.left - rendererContainer.left}px`;
+        this.gridMain.openLayer(element, () => {
+          if (!cellElement.isConnected) return;
+          const cellRect = getElementRect(cellElement);
+          const containerRect = getElementRect(this.rendererContainer);
+          style.top = `${cellRect.top - containerRect.top - element.offsetHeight}px`;
+          style.left = `${cellRect.left - containerRect.left}px`;
+        });
         return true;
       }
       return false;
@@ -2173,7 +2493,6 @@
       this.showLabel = rendererInfo.showLabel ?? false;
     }
     render(cellInfo, element) {
-      var _a2, _b2;
       const val = this.getValue(cellInfo.item, cellInfo.inputValue);
       let choiceElement = element.firstElementChild;
       if (!choiceElement) {
@@ -2194,9 +2513,9 @@
         }
       }
       if (val === this.trueValue) {
-        (_a2 = choiceElement.firstElementChild) == null ? void 0 : _a2.classList.add(SELECTED_STYLE_CLASS);
+        choiceElement.firstElementChild?.classList.add(SELECTED_STYLE_CLASS);
       } else {
-        (_b2 = choiceElement.firstElementChild) == null ? void 0 : _b2.classList.remove(SELECTED_STYLE_CLASS);
+        choiceElement.firstElementChild?.classList.remove(SELECTED_STYLE_CLASS);
       }
       this.tooltip(choiceElement, val);
       if (this.showLabel) {
@@ -2257,11 +2576,10 @@
     "upper-char-special-number": /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/
   };
   const regexpValidator = (value, field, result) => {
-    var _a2;
     if (typeof result === "undefined") {
       result = { name: field.name, constraints: [] };
     }
-    const regexpType = (_a2 = field.editRenderer) == null ? void 0 : _a2.regexpType;
+    const regexpType = field.editRenderer?.regexpType;
     if (regexpType) {
       if (!regexp[regexpType].test(value)) {
         result.regexp = regexpType;
@@ -2271,11 +2589,10 @@
     return result;
   };
   const validator = (value, field, rowItem, gridConfig, result) => {
-    var _a2, _b2;
     const editRenderer = field.editRenderer;
     if (!editRenderer) return null;
     if (editRenderer.validator) {
-      result.validator = editRenderer == null ? void 0 : editRenderer.validator(field, rowItem);
+      result.validator = editRenderer?.validator(field, rowItem);
       if (typeof result.validator === "object") {
         return result;
       }
@@ -2286,14 +2603,14 @@
     }
     if (editRenderer.different) {
       const diffFieldName = editRenderer.different.field;
-      if (gridConfig.allFieldMap.has(diffFieldName) && value == ((_a2 = gridConfig.allFieldMap.get(diffFieldName)) == null ? void 0 : _a2.$renderer.getValue(rowItem))) {
+      if (gridConfig.allFieldMap.has(diffFieldName) && value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
         result.message = editRenderer.different.message;
         return result;
       }
     }
     if (editRenderer.identical) {
       const diffFieldName = editRenderer.identical.field;
-      if (gridConfig.allFieldMap.has(diffFieldName) && value == ((_b2 = gridConfig.allFieldMap.get(diffFieldName)) == null ? void 0 : _b2.$renderer.getValue(rowItem))) {
+      if (gridConfig.allFieldMap.has(diffFieldName) && value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
         result.message = editRenderer.identical.message;
         return result;
       }
@@ -2306,7 +2623,7 @@
     if (!editRenderer) {
       return null;
     }
-    if (editRenderer.required && isBlank(value)) {
+    if (editRenderer.required && isBlank$1(value)) {
       result.constraints.push(RULES.REQUIRED);
       return result;
     }
@@ -2353,9 +2670,8 @@
         }
       });
       eventManager.on({ el: editElement, type: "keydown" }, (e) => {
-        var _a2;
         const key = e.key;
-        if (key === "Enter" && ((_a2 = this.field.editRenderer) == null ? void 0 : _a2.type) !== "textarea") {
+        if (key === "Enter" && this.field.editRenderer?.type !== "textarea") {
           this.setChangeValue(e);
         } else if (key === "Escape") {
           this.setChangeValue(e, true);
@@ -2400,15 +2716,8 @@
         this.editElement = editElement;
         this.initEvt(editElement, item);
       }
-      const style = editElement.style;
-      const cellRect = getElementRect(element);
-      const rendererContainer = getElementRect(this.rendererContainer);
       this.isShow = true;
-      this.gridMain.openLayer(editElement);
-      style.top = `${cellRect.top - rendererContainer.top}px`;
-      style.left = `${cellRect.left - rendererContainer.left}px`;
-      style.width = `${cellRect.width}px`;
-      style.height = `${cellRect.height}px`;
+      this.openCellLayer(editElement, element);
       const value = this.getValue(item, cellInfo.inputValue);
       editElement.value = value;
       editElement.focus();
@@ -2425,7 +2734,7 @@
   };
   function normalizeChoiceOptions(list, labelKey, valueKey) {
     const valueLabelMap = /* @__PURE__ */ new Map();
-    const isStringValue = isString(list[0]);
+    const isStringValue = isString$1(list[0]);
     const newList = [];
     for (const item of list) {
       let val;
@@ -2438,8 +2747,8 @@
         newItem[labelKey] = item;
         newList.push(newItem);
       } else {
-        val = (item == null ? void 0 : item[valueKey]) ?? "";
-        label = (item == null ? void 0 : item[labelKey]) ?? "";
+        val = item?.[valueKey] ?? "";
+        label = item?.[labelKey] ?? "";
         newList.push(item);
       }
       valueLabelMap.set(val, label);
@@ -2489,7 +2798,6 @@
     return nextValues;
   }
   function updateDropdownSelection(dropdownElement, listItems, values, valueKey, isAll) {
-    var _a2;
     if (isAll) {
       addClass(dropdownElement.querySelectorAll(".dg-dropdown-item:not(.disabled)"), SELECTED_STYLE_CLASS);
       return;
@@ -2500,11 +2808,12 @@
       if (!selectedSet.has(listItems[i][valueKey])) {
         continue;
       }
-      (_a2 = dropdownElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`)) == null ? void 0 : _a2.classList.add(SELECTED_STYLE_CLASS);
+      dropdownElement.querySelector(`.dg-dropdown-item[data-index="${i}"]`)?.classList.add(SELECTED_STYLE_CLASS);
     }
   }
   function getLabelsByValue(value, valueDelimiter, valueLabelMap) {
-    const valueSet = new Set(isString(value) ? stringSplit(value || "", valueDelimiter) : value);
+    const values = isString$1(value) ? stringSplit(value || "", valueDelimiter) : Array.isArray(value) ? value : [value];
+    const valueSet = new Set(values.map(String));
     if (valueSet.has(ALL_SELECT_VALUE)) {
       return [...valueLabelMap.values()];
     }
@@ -2519,27 +2828,25 @@
   }
   class DropdownEditRenderer extends EditCellRenderer {
     constructor(field, gridMain) {
-      var _a2, _b2, _c2;
       super(field, gridMain);
       this.listItems = [];
       const rendererInfo = this.field.editRenderer;
       this.labelKey = valuesLabelKey(rendererInfo);
       this.valueKey = valuesValueKey(rendererInfo);
-      if (rendererInfo == null ? void 0 : rendererInfo.listItem) {
-        this.isMultiple = ((_a2 = rendererInfo.listItem) == null ? void 0 : _a2.multiple) ?? false;
-        this.valueDelimiter = ((_b2 = rendererInfo.listItem) == null ? void 0 : _b2.delimiter) ?? ",";
+      if (rendererInfo?.listItem) {
+        this.isMultiple = rendererInfo.listItem?.multiple ?? false;
+        this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ",";
       } else {
         this.valueDelimiter = ",";
         this.isMultiple = false;
       }
       this.required = this.field.editRenderer.required ?? false;
-      this.useIncludeAllOption = this.isMultiple && (((_c2 = rendererInfo.listItem) == null ? void 0 : _c2.includeAllOption) ?? true);
+      this.useIncludeAllOption = this.isMultiple && (rendererInfo.listItem?.includeAllOption ?? true);
     }
     valid(value) {
       return true;
     }
     render(cellInfo, cellElement) {
-      var _a2;
       if (this.currentEditRow == cellInfo.rowIndex) {
         if (window.getComputedStyle(this.dropdownElement).display == "block") {
           this.dropdownElement.style.display = "none";
@@ -2560,7 +2867,7 @@
         this.initDropdownEvt();
       }
       const rendererInfo = this.field.editRenderer;
-      const list = (_a2 = rendererInfo.listItem) == null ? void 0 : _a2.list;
+      const list = rendererInfo.listItem?.list;
       const { labelKey, valueKey } = this;
       const renderDropdown = (items) => {
         const { list: list2 } = normalizeChoiceOptions(items, labelKey, valueKey);
@@ -2578,7 +2885,7 @@
       };
       if (Array.isArray(list)) {
         renderDropdown(list);
-      } else if (isFunction(list)) {
+      } else if (isFunction$1(list)) {
         list(cellInfo, renderDropdown);
       }
     }
@@ -2614,19 +2921,20 @@
      * dropdown list open
      *
      * @private
-     * @param {HTMLElement} cellElement cell element
+     @param {HTMLElement} eventElement 이벤트가 발생한 element
      * @param {HTMLElement} dropdownElement dropdown element
      */
     openMenu(dropdownElement, eventElement) {
-      const elementRect = getElementRect(eventElement);
       const menuStyle = dropdownElement.style;
-      menuStyle.height = "auto";
-      this.gridMain.openLayer(dropdownElement);
-      menuStyle.width = `${elementRect.width}px`;
-      const openPosition = innerLayerPosition(this.rendererContainer, eventElement, dropdownElement);
-      menuStyle.top = `${openPosition.top}px`;
-      menuStyle.left = `${openPosition.left}px`;
-      menuStyle.height = `${openPosition.height}px`;
+      this.gridMain.openLayer(dropdownElement, () => {
+        if (!eventElement.isConnected) return;
+        menuStyle.height = "auto";
+        menuStyle.width = `${getElementRect(eventElement).width}px`;
+        const position = innerLayerPosition(this.rendererContainer, eventElement, dropdownElement);
+        menuStyle.top = `${position.top}px`;
+        menuStyle.left = `${position.left}px`;
+        menuStyle.height = `${position.height}px`;
+      });
     }
     setDropItemCheck(value = "") {
       const values = getListItemValue(value, this.valueDelimiter);
@@ -2639,7 +2947,7 @@
       updateDropdownSelection(this.dropdownElement, this.listItems, values, this.valueKey, isAll);
     }
     dropdownMenuTemplate(list) {
-      if (!isArray(list) || list.length === 0) return "";
+      if (!isArray$1(list) || list.length === 0) return "";
       const { valueKey, labelKey } = this;
       const html2 = [];
       for (let i = 0; i < list.length; i++) {
@@ -2652,7 +2960,7 @@
           className += " dg-all";
         }
         const labelValue = item[labelKey] ?? "";
-        html2.push(`<div data-index="${i}" class="${className}">${replaceXss(String(labelValue))}</div>`);
+        html2.push(`<div data-index="${i}" class="${className}">${xss(String(labelValue))}</div>`);
       }
       return html2.join("");
     }
@@ -2664,7 +2972,7 @@
     if (!editRenderer) {
       return null;
     }
-    if (editRenderer.required && isBlank(value)) {
+    if (editRenderer.required && isBlank$1(value)) {
       result.constraints.push(RULES.REQUIRED);
       return result;
     }
@@ -2729,7 +3037,6 @@
       this.editRendererInfo = field.editRenderer ?? {};
     }
     render(cellInfo, element) {
-      var _a2, _b2, _c2, _d2;
       const item = cellInfo.item;
       this.cellInfo = cellInfo;
       this.item = item;
@@ -2740,25 +3047,18 @@
         editElement.type = "number";
         editElement.name = this.field.$uid;
         editElement.setAttribute("autocomplete", "off");
-        if ((_a2 = this.editRendererInfo.rule) == null ? void 0 : _a2.minimum) {
-          editElement.min = ((_b2 = this.editRendererInfo.rule) == null ? void 0 : _b2.minimum) + "";
+        if (this.editRendererInfo.rule?.minimum) {
+          editElement.min = this.editRendererInfo.rule?.minimum + "";
         }
-        if ((_c2 = this.editRendererInfo.rule) == null ? void 0 : _c2.maximum) {
-          editElement.max = ((_d2 = this.editRendererInfo.rule) == null ? void 0 : _d2.maximum) + "";
+        if (this.editRendererInfo.rule?.maximum) {
+          editElement.max = this.editRendererInfo.rule?.maximum + "";
         }
         this.rendererContainer.appendChild(editElement);
         this.editElement = editElement;
         this.initEvt(editElement, item);
       }
-      const style = editElement.style;
-      const cellRect = getElementRect(element);
-      const rendererContainer = getElementRect(this.rendererContainer);
       this.isShow = true;
-      this.gridMain.openLayer(editElement);
-      style.top = `${cellRect.top - rendererContainer.top}px`;
-      style.left = `${cellRect.left - rendererContainer.left}px`;
-      style.width = `${cellRect.width}px`;
-      style.height = `${cellRect.height}px`;
+      this.openCellLayer(editElement, element);
       editElement.value = this.getValue(item, cellInfo.inputValue);
       editElement.focus();
     }
@@ -2874,15 +3174,8 @@
         this.textareaElement = textareaElement;
         this.initEvt(textareaElement, item);
       }
-      const style = textareaElement.style;
-      const cellRect = getElementRect(element);
-      const rendererContainer = getElementRect(this.rendererContainer);
       this.isShow = true;
-      this.gridMain.openLayer(textareaElement);
-      style.top = `${cellRect.top - rendererContainer.top}px`;
-      style.left = `${cellRect.left - rendererContainer.left}px`;
-      style.width = `${cellRect.width}px`;
-      style.height = `${cellRect.height}px`;
+      this.openCellLayer(textareaElement, element);
       const value = this.getValue(item, cellInfo.inputValue);
       textareaElement.value = value;
       textareaElement.focus();
@@ -2902,55 +3195,21 @@
       this.textRender(cellInfo, element, "text");
     }
   }
-  function formatNumber(value, format) {
-    const numberPatternRegex = /[0,.]+/;
-    const numberPatternMatch = numberPatternRegex.exec(format);
-    if (!numberPatternMatch) return format;
-    const numberPattern = numberPatternMatch[0];
-    const prefix = format.slice(0, format.indexOf(numberPattern));
-    const suffix = format.slice(format.indexOf(numberPattern) + numberPattern.length);
-    const [intFmt, decFmt] = numberPattern.split(".");
-    const useComma = intFmt.includes(",");
-    let result = "";
-    if (decFmt) {
-      const rounded = value.toFixed(decFmt.length);
-      const [intPart, decPart] = rounded.split(".");
-      const trimmedDec = decPart.replace(/0+$/, "");
-      result = useComma ? addComma(intPart) : intPart;
-      if (trimmedDec.length > 0) {
-        result += "." + trimmedDec;
-      }
-    } else {
-      const rounded = Math.round(value).toString();
-      result = useComma ? addComma(rounded) : rounded;
-    }
-    return `${prefix}${result}${suffix}`;
-  }
-  function addComma(numStr) {
-    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  function formatValue(value, displayFormat) {
-    const type = displayFormat.type;
-    if (type == "number" && !isNaN(value)) {
-      return formatNumber(value, displayFormat.format ?? "0,0");
-    }
-    return value;
-  }
   class ViewCellRenderer extends CellRenderer {
     constructor(field, gridMain) {
       super(field, gridMain);
       this.isClick = false;
       this.cfg = this.gridMain.config();
       const refValue = field.renderer.refValue;
-      this.isRefFunction = isFunction(refValue);
-      this.isRefString = isString(refValue);
-      this.isVauleFunction = isFunction(field.getValue);
+      this.isRefFunction = isFunction$1(refValue);
+      this.isRefString = isString$1(refValue);
+      this.isVauleFunction = isFunction$1(field.getValue);
       if (this.isRefString || this.isRefFunction) {
         this.refValue = refValue;
       } else {
         this.refValue = refValue ?? {};
       }
-      this.isClick = isFunction(this.field.renderer.click);
+      this.isClick = isFunction$1(this.field.renderer.click);
     }
     getRefValue(value, rowItem) {
       if (this.isRefFunction) {
@@ -2965,15 +3224,14 @@
      * @returns
      */
     getValue(rowItem) {
-      var _a2, _b2;
       const val = rowItem[this.fieldName];
       if (this.isVauleFunction) {
-        return (_b2 = (_a2 = this.field).getValue) == null ? void 0 : _b2.call(_a2, { field: this.field, item: rowItem });
+        return this.field.getValue?.({ field: this.field, item: rowItem });
       }
       if (this.field.displayFormat) {
         return formatValue(val, this.field.displayFormat);
       }
-      if (isBlank(val) && !isBlank(this.field.defaultValue)) {
+      if (isBlank$1(val) && !isBlank$1(this.field.defaultValue)) {
         return this.field.defaultValue;
       }
       return val;
@@ -2990,9 +3248,8 @@
      * @param cellInfo  cell info
      */
     click(e, eventElement, cellInfo) {
-      var _a2;
       if (this.isClick) {
-        (_a2 = this.field.renderer.click) == null ? void 0 : _a2.call(null, cellInfo);
+        this.field.renderer.click?.call(null, cellInfo);
       }
     }
     /**
@@ -3012,13 +3269,12 @@
       super(field, gridMain);
     }
     render(cellInfo, element) {
-      var _a2;
       const viewItem = cellInfo.viewItem;
       if (this.cfg.dataManager.getDataType() === "group" && viewItem) {
         const viewItems = this.cfg.dataManager.getViewItems();
         const viewItemIndex = viewItems.findIndex((item) => item.id === viewItem.id);
         if (viewItemIndex > -1) {
-          const pagingStartIdx = ((_a2 = this.gridMain.options().footer.paging) == null ? void 0 : _a2.enabled) ? (this.cfg.paging.page - 1) * this.cfg.paging.pageSize : 0;
+          const pagingStartIdx = this.gridMain.options().footer.paging?.enabled ? (this.cfg.paging.page - 1) * this.cfg.paging.pageSize : 0;
           element.textContent = String(pagingStartIdx + viewItemIndex + 1);
           return;
         }
@@ -3056,12 +3312,10 @@
   }
   class AsideRowCheckRenderer extends ViewCellRenderer {
     constructor(field, gridMain) {
-      var _a2, _b2, _c2;
       super(field, gridMain);
-      this.allowMultiSelect = ((_c2 = (_b2 = (_a2 = this.gridMain.options()) == null ? void 0 : _a2.aside) == null ? void 0 : _b2.rowCheckbox) == null ? void 0 : _c2.allowMultiSelect) ?? true;
+      this.allowMultiSelect = this.gridMain.options()?.aside?.rowCheckbox?.allowMultiSelect ?? true;
     }
     render(cellInfo, element) {
-      var _a2, _b2;
       const item = cellInfo.item;
       const isMulti = this.allowMultiSelect;
       let choiceElement = element.firstElementChild;
@@ -3076,21 +3330,19 @@
         this.initClick(itemElement);
       }
       if (this.cfg.dataManager.isItemChecked(item[ROW_FIELD.ID])) {
-        (_a2 = choiceElement.firstElementChild) == null ? void 0 : _a2.classList.add(SELECTED_STYLE_CLASS);
+        choiceElement.firstElementChild?.classList.add(SELECTED_STYLE_CLASS);
       } else {
-        (_b2 = choiceElement.firstElementChild) == null ? void 0 : _b2.classList.remove(SELECTED_STYLE_CLASS);
+        choiceElement.firstElementChild?.classList.remove(SELECTED_STYLE_CLASS);
       }
     }
     initClick(contentElement) {
-      var _a2, _b2;
       const cfg = this.gridMain.config();
       const allowMultiSelect = this.allowMultiSelect;
-      const clickFn = (_b2 = (_a2 = this.gridMain.options().aside) == null ? void 0 : _a2.rowCheckbox) == null ? void 0 : _b2.click;
+      const clickFn = this.gridMain.options().aside?.rowCheckbox?.click;
       cfg.eventManager.on({ el: contentElement, type: "click" }, (e) => {
-        var _a3;
         const cellElement = this.getClosestCellElement(contentElement);
         const cellInfo = getCellInfo(cfg, cellElement);
-        const checked = cfg.dataManager.isItemChecked(((_a3 = cellInfo.viewItem) == null ? void 0 : _a3.id) ?? "");
+        const checked = cfg.dataManager.isItemChecked(cellInfo.viewItem?.id ?? "");
         if (clickFn && clickFn(checked) === false) {
           return;
         }
@@ -3111,8 +3363,7 @@
      * @param currentChecked 현재 체크 여부
      */
     singleRowCheck(contentElement, cellInfo, currentChecked) {
-      var _a2;
-      this.gridMain.getBody().setItemChecked(((_a2 = cellInfo.viewItem) == null ? void 0 : _a2.id) ?? "", true);
+      this.gridMain.getBody().setItemChecked(cellInfo.viewItem?.id ?? "", true);
     }
     /**
      * 다중 선택(Row Checkbox) 처리
@@ -3124,9 +3375,8 @@
      * @param currentChecked 현재 체크 여부
      */
     multipleRowCheck(contentElement, cellInfo, currentChecked) {
-      var _a2;
       const checked = !currentChecked;
-      this.gridMain.getBody().addItemChecked(((_a2 = cellInfo.viewItem) == null ? void 0 : _a2.id) ?? "", checked);
+      this.gridMain.getBody().addItemChecked(cellInfo.viewItem?.id ?? "", checked);
     }
     alignStyle() {
       return TEXT_ALIGN_STYLE.center;
@@ -3150,10 +3400,9 @@
   }
   class BarRenderer extends ViewCellRenderer {
     constructor(field, gridMain) {
-      var _a2, _b2;
       super(field, gridMain);
-      this.min = ((_a2 = field.renderer.rule) == null ? void 0 : _a2.minimum) ?? 0;
-      this.max = ((_b2 = field.renderer.rule) == null ? void 0 : _b2.maximum) ?? 100;
+      this.min = field.renderer.rule?.minimum ?? 0;
+      this.max = field.renderer.rule?.maximum ?? 100;
     }
     render(cellInfo, element) {
       const item = cellInfo.item;
@@ -3164,8 +3413,8 @@
       let percent = fieldValue;
       let label = fieldValue;
       if (refValue) {
-        percent = (refValue == null ? void 0 : refValue.percent) ?? 0;
-        label = refValue == null ? void 0 : refValue.label;
+        percent = refValue?.percent ?? 0;
+        label = refValue?.label;
       }
       let text = element.querySelector(".dg-bar-label");
       let bar = element.querySelector(".dg-bar-fill");
@@ -3244,7 +3493,7 @@
       }
       let buttonLabel;
       if (refValue) {
-        buttonLabel = (refValue == null ? void 0 : refValue.label) ?? refValue;
+        buttonLabel = refValue?.label ?? refValue;
       } else {
         buttonLabel = value;
       }
@@ -3264,20 +3513,19 @@
   };
   let DropdownRenderer$1 = class DropdownRenderer extends ViewCellRenderer {
     constructor(field, gridMain) {
-      var _a2, _b2;
       super(field, gridMain);
       this.listItems = [];
       const editInfo = this.field.editRenderer;
       const labelKey = valuesLabelKey(editInfo);
       const valueKey = valuesValueKey(editInfo);
-      if (editInfo == null ? void 0 : editInfo.listItem) {
-        this.valueDelimiter = ((_a2 = editInfo.listItem) == null ? void 0 : _a2.delimiter) ?? ",";
-        const list = (_b2 = editInfo.listItem) == null ? void 0 : _b2.list;
-        if (isArray(list)) {
+      if (editInfo?.listItem) {
+        this.valueDelimiter = editInfo.listItem?.delimiter ?? ",";
+        const list = editInfo.listItem?.list;
+        if (isArray$1(list)) {
           const reval = normalizeChoiceOptions(list, labelKey, valueKey);
           this.listItems = reval.list;
           this.valueLabelMap = reval.map;
-        } else if (isFunction(list)) {
+        } else if (isFunction$1(list)) {
           list({ init: true }, (result) => {
             const reval = normalizeChoiceOptions(result, labelKey, valueKey);
             this.listItems = reval.list;
@@ -3312,7 +3560,7 @@
       }
       let textContent = "";
       if (refValue) {
-        textContent = refValue.label ?? (isString(refValue) ? refValue : "");
+        textContent = refValue.label ?? (isString$1(refValue) ? refValue : "");
       } else {
         let viewLabel = value;
         if (this.valueLabelMap.size > 0) {
@@ -3383,10 +3631,10 @@
             element.appendChild(template);
           }
         } else {
-          element.innerHTML = template;
+          setSafeHtml(element, template);
         }
       } else {
-        element.innerHTML = value;
+        setSafeHtml(element, value);
       }
     }
     getMinWidth(cfg, opts) {
@@ -3401,9 +3649,9 @@
       const item = cellInfo.item;
       const value = this.getValue(item);
       const refValue = this.getRefValue(value, item);
-      const labelText = (refValue == null ? void 0 : refValue.label) ?? null;
-      const src = (refValue == null ? void 0 : refValue.src) ?? value;
-      const alt = (refValue == null ? void 0 : refValue.alt) ?? "";
+      const labelText = refValue?.label ?? null;
+      const src = refValue?.src ?? value;
+      const alt = refValue?.alt ?? "";
       let img = element.querySelector("img.dg-cell-content");
       let label = element.querySelector("span.dg-cell-content-label");
       if (!img) {
@@ -3411,7 +3659,11 @@
         img.className = "dg-cell-content";
         element.appendChild(img);
       }
-      if (img.src !== src) img.src = src;
+      if (typeof src === "string" && isSafeUrl$1(src)) {
+        if (img.src !== src) img.src = src;
+      } else if (img.getAttribute("src")) {
+        img.removeAttribute("src");
+      }
       if (alt && img.alt !== alt) img.alt = alt;
       if (labelText) {
         if (!label) {
@@ -3448,15 +3700,16 @@
         this.initEvent(aElement);
       }
       aElement.href = "javascript:void(0);";
-      const href = (refValue == null ? void 0 : refValue.href) ?? value;
-      const target = (refValue == null ? void 0 : refValue.target) ?? "_blank";
-      const label = (refValue == null ? void 0 : refValue.label) ?? value;
+      const href = refValue?.href ?? value;
+      const target = refValue?.target ?? "_blank";
+      const label = refValue?.label ?? value;
       if (this.applyRendererRefState(aElement, refValue) === false) {
         return;
       }
       if (!this.isClick && refValue) {
-        aElement.href = href;
+        if (typeof href === "string" && isSafeUrl$1(href)) aElement.href = href;
         aElement.target = target;
+        aElement.rel = "noopener noreferrer";
       } else {
         aElement.removeAttribute("target");
       }
@@ -3511,16 +3764,18 @@
       this.dataIds = /* @__PURE__ */ new WeakMap();
       this.dataIdSequence = 0;
     }
+    /** document.body에 만든 툴팁 요소를 제거한다. */
+    destroy() {
+      this.rendererTooltip?.remove();
+      this.rendererTooltip = null;
+    }
     render(cellInfo, element) {
       const item = cellInfo.item;
       const value = this.getValue(item);
       const refValue = this.getRefValue(value, item);
-      const data = refValue.value;
+      const data = refValue?.value;
       if (!Array.isArray(data) || data.length === 0) {
-        const canvas2 = element.firstElementChild;
-        if (canvas2) {
-          canvas2.remove();
-        }
+        element.replaceChildren();
         this.hideTooltip();
         return;
       }
@@ -3712,11 +3967,16 @@
       this.dataIds = /* @__PURE__ */ new WeakMap();
       this.dataIdSequence = 0;
     }
+    /** document.body에 만든 툴팁 요소를 제거한다. */
+    destroy() {
+      this.rendererTooltip?.remove();
+      this.rendererTooltip = null;
+    }
     render(cellInfo, element) {
       const item = cellInfo.item;
       const value = this.getValue(item);
       const refValue = this.getRefValue(value, item);
-      const data = refValue == null ? void 0 : refValue.value;
+      const data = refValue?.value;
       if (!Array.isArray(data) || data.length === 0) {
         element.replaceChildren();
         this.hideTooltip();
@@ -3917,11 +4177,10 @@
   };
   class TreeRenderer extends ViewCellRenderer {
     constructor(field, gridMain) {
-      var _a2;
       super(field, gridMain);
       this.iconState = /* @__PURE__ */ new WeakMap();
       const opts = this.gridMain.options();
-      this.treeNodeIconClass = (_a2 = opts.tree) == null ? void 0 : _a2.treeNodeIconClass;
+      this.treeNodeIconClass = opts.tree?.treeNodeIconClass;
       this.treeDataManager = this.cfg.dataManager;
     }
     /**
@@ -4024,7 +4283,7 @@
       this.gridMain = gridMain;
       this.language = this.gridMain.i18n();
       this.cfg = this.gridMain.config();
-      this.isClick = isFunction(this.field.click);
+      this.isClick = isFunction$1(this.field.click);
       this.rendererContainer = this.gridMain.getRendererLayerElement();
     }
     /**
@@ -4082,9 +4341,8 @@
      * @param eventElement  event element
      */
     click(e, eventElement) {
-      var _a2;
       if (this.isClick) {
-        (_a2 = this.field.click) == null ? void 0 : _a2.call(null, { evt: e, field: this.field, element: eventElement });
+        this.field.click?.call(null, { evt: e, field: this.field, element: eventElement });
       }
     }
     changeValue(newValue) {
@@ -4099,17 +4357,24 @@
           values: toolbarValues
         });
       }
+      if (!this.isSearchInput()) this.gridMain.searchByToolbar("change");
       this.gridMain.getToolbar().refreshConditionFields();
     }
     search(e) {
       if (this.field.search) {
         const toolbarValues = this.gridMain.getToolbarValues();
-        this.field.search.call(null, {
+        const result = this.field.search.call(null, {
           evt: e,
           field: this.field,
           values: toolbarValues
         });
+        if (result === false) return;
       }
+      this.gridMain.searchByToolbar("search");
+    }
+    /** 입력 중 값이 바뀌는 검색어 필드인지 여부. change 트리거에서 제외한다. */
+    isSearchInput() {
+      return false;
     }
     getToolbarValues() {
       if (!this.isInit) return {};
@@ -4158,12 +4423,10 @@
       return condition;
     }
     isVisible() {
-      var _a2;
-      return this.evaluateCondition((_a2 = this.field.condition) == null ? void 0 : _a2.visible, true);
+      return this.evaluateCondition(this.field.condition?.visible, true);
     }
     isDisabled() {
-      var _a2;
-      return this.evaluateCondition((_a2 = this.field.condition) == null ? void 0 : _a2.disabled, false);
+      return this.evaluateCondition(this.field.condition?.disabled, false);
     }
   }
   class ChoiceRenderer extends ToolBarRenderer {
@@ -4174,18 +4437,18 @@
       this.labelKey = valuesLabelKey(rendererInfo);
       this.valueKey = valuesValueKey(rendererInfo);
       this.selectValues = stringSplit(this.field.defaultValue || "", this.valueDelimiter);
-      const listItem = rendererInfo == null ? void 0 : rendererInfo.listItem;
+      const listItem = rendererInfo?.listItem;
       this.labelOnly = true;
       if (listItem) {
         this.labelOnly = listItem.labelOnly !== false;
         this.isMultiple = listItem.multiple ?? true;
         this.valueDelimiter = listItem.delimiter ?? ",";
         const list = listItem.list;
-        if (isArray(list)) {
+        if (isArray$1(list)) {
           const reval = normalizeChoiceOptions(list, this.labelKey, this.valueKey);
           this.listItems = uniqueListItem(reval.list, this.valueKey);
           this.valueLabelMap = reval.map;
-        } else if (isFunction(list)) {
+        } else if (isFunction$1(list)) {
           list({ init: true }, (result) => {
             const reval = normalizeChoiceOptions(result, this.labelKey, this.valueKey);
             this.listItems = uniqueListItem(reval.list, this.valueKey);
@@ -4275,18 +4538,18 @@
       this.changeValue(this.selectValues);
     }
     template(list) {
-      if (!isArray(list) || list.length === 0) return "";
+      if (!isArray$1(list) || list.length === 0) return "";
       const templateParts = [];
       const inputType = this.isMultiple ? "dg-checkbox" : "dg-radio";
       const isLabelOnly = this.labelOnly;
       for (let itemIdx = 0; itemIdx < list.length; itemIdx++) {
         const item = list[itemIdx];
-        const label = (item == null ? void 0 : item[this.labelKey]) ?? "";
-        const isDisabled = !!(item == null ? void 0 : item.disabled);
+        const label = item?.[this.labelKey] ?? "";
+        const isDisabled = !!item?.disabled;
         const classes = [isDisabled ? "disabled" : "", isLabelOnly ? "dg-label-only" : "", inputType].filter((item2) => item2).join(" ");
         const checkTemplate = `<div class="dg-choice-item ${classes}" data-index="${itemIdx}">
         ${isLabelOnly ? "" : '<div class="dg-indicator"></div>'}
-        <span class="dg-label dg-ellipsis">${replaceXss(String(label))}</span>
+        <span class="dg-label dg-ellipsis">${xss(String(label))}</span>
       </div>`;
         templateParts.push(checkTemplate);
       }
@@ -4337,15 +4600,14 @@
   }
   class DropdownRenderer extends ToolBarRenderer {
     constructor(field, gridMain) {
-      var _a2, _b2, _c2;
       super(field, gridMain);
       this.listItems = [];
       const rendererInfo = this.field.renderer;
       this.labelKey = valuesLabelKey(rendererInfo);
       this.valueKey = valuesValueKey(rendererInfo);
-      if (rendererInfo == null ? void 0 : rendererInfo.listItem) {
-        this.isMultiple = ((_a2 = rendererInfo.listItem) == null ? void 0 : _a2.multiple) ?? false;
-        this.valueDelimiter = ((_b2 = rendererInfo.listItem) == null ? void 0 : _b2.delimiter) ?? ",";
+      if (rendererInfo?.listItem) {
+        this.isMultiple = rendererInfo.listItem?.multiple ?? false;
+        this.valueDelimiter = rendererInfo.listItem?.delimiter ?? ",";
         this.getListItems();
       } else {
         this.valueDelimiter = ",";
@@ -4354,12 +4616,11 @@
       }
       this.required = rendererInfo.required ?? false;
       this.selectValues = [];
-      this.useIncludeAllOption = this.isMultiple && (((_c2 = this.field.renderer.listItem) == null ? void 0 : _c2.includeAllOption) ?? false);
+      this.useIncludeAllOption = this.isMultiple && (this.field.renderer.listItem?.includeAllOption ?? false);
     }
     getListItems() {
-      var _a2;
       const rendererInfo = this.field.renderer;
-      const list = (_a2 = rendererInfo.listItem) == null ? void 0 : _a2.list;
+      const list = rendererInfo.listItem?.list;
       const renderDropdown = (items) => {
         const { list: list2, map } = normalizeChoiceOptions(items, this.labelKey, this.valueKey);
         this.listItems = uniqueListItem(list2, this.valueKey);
@@ -4367,7 +4628,7 @@
       };
       if (Array.isArray(list)) {
         renderDropdown(list);
-      } else if (isFunction(list)) {
+      } else if (isFunction$1(list)) {
         list({ init: true, values: this.getToolbarValues() }, renderDropdown);
       }
     }
@@ -4474,7 +4735,7 @@
       updateDropdownSelection(this.dropdownElement, listItems, values, valueKey, isAll);
     }
     dropdownMenuTemplate(list) {
-      if (!isArray(list) || list.length === 0) return "";
+      if (!isArray$1(list) || list.length === 0) return "";
       const { valueKey, labelKey } = this;
       const html2 = [];
       for (let i = 0; i < list.length; i++) {
@@ -4487,12 +4748,99 @@
           className += " dg-all";
         }
         const labelValue = item[labelKey] ?? "";
-        html2.push(`<div data-index="${i}" class="${className}">${replaceXss(String(labelValue))}</div>`);
+        html2.push(`<div data-index="${i}" class="${className}">${xss(String(labelValue))}</div>`);
       }
       return html2.join("");
     }
     getValue() {
       return this.selectValues;
+    }
+  }
+  function exportGridFile(grid, format, options, unsupportedMessage) {
+    const withFileName = (value) => ({
+      ...value,
+      fileName: value?.fileName?.trim() ? value.fileName : grid.getOptions().title?.trim() || void 0
+    });
+    switch (format.toLowerCase()) {
+      case "excel":
+      case "xlsx":
+        return grid.exportExcel(withFileName(options?.excel));
+      case "csv":
+        return grid.exportCsv(withFileName(options?.csv));
+      case "json":
+        return grid.exportJson(withFileName(options?.json));
+      case "pdf":
+        return grid.exportPdf(withFileName(options?.pdf));
+      default:
+        throw new Error(unsupportedMessage);
+    }
+  }
+  class ExportFileRenderer extends DropdownRenderer {
+    constructor(field, gridMain) {
+      field.renderer = { ...field.renderer };
+      if (field.renderer.listItem) {
+        field.renderer.listItem = { ...field.renderer.listItem, multiple: false, includeAllOption: false };
+      }
+      super(field, gridMain);
+    }
+    render(element) {
+      super.render(element);
+      const control = this.getControlElement(element);
+      const select = control.querySelector(".dg-dropdown-button");
+      select.type = "button";
+      select.setAttribute("aria-label", this.field.label || this.language.getMessage("export.format"));
+      const container = createHTMLElement("div", "dg-export-file");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = this.getRendererClassName("dg-button dg-export-download");
+      const label = this.field.renderer.downloadLabel ?? this.language.getMessage("export.download");
+      const text = createHTMLElement("span", "dg-button-label");
+      text.textContent = label;
+      if (this.field.renderer.icon || this.field.renderer.iconStyle) {
+        const icon = createHTMLElement("span", "dg-icon " + (this.field.renderer.iconStyle ?? ""));
+        if (this.field.renderer.icon) icon.innerHTML = getIcon(this.field.renderer.icon);
+        button.appendChild(icon);
+      }
+      button.appendChild(text);
+      const status = createHTMLElement("span", "dg-export-status");
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      container.append(select, button, status);
+      control.appendChild(container);
+      let busy = false;
+      this.gridMain.config().eventManager.on({ el: button, type: "click" }, async (event) => {
+        event.preventDefault();
+        if (busy || element.closest(".dg-disabled")) return;
+        const value = this.getValue();
+        const format = String(Array.isArray(value) ? value[0] ?? "" : value).toLowerCase();
+        const grid = GridMain.getInstance(this.gridMain.element().getElement());
+        if (!grid) return;
+        busy = true;
+        button.disabled = select.disabled = true;
+        button.setAttribute("aria-busy", "true");
+        status.textContent = this.language.getMessage("export.creating");
+        text.textContent = label;
+        button.removeAttribute("title");
+        try {
+          this.click(event, button);
+          await exportGridFile(
+            grid,
+            format,
+            this.field.renderer.exportOptions,
+            this.language.getMessage("export.unsupportedFormat")
+          );
+          status.textContent = this.language.getMessage("export.completed");
+        } catch (error) {
+          const message2 = error instanceof Error ? error.message : String(error);
+          status.textContent = `${this.language.getMessage("export.failed")}: ${message2}`;
+          text.textContent = this.language.getMessage("export.failed");
+          button.title = message2;
+        } finally {
+          busy = false;
+          button.disabled = select.disabled = false;
+          button.removeAttribute("aria-busy");
+        }
+      });
     }
   }
   class HtmlRenderer extends ToolBarRenderer {
@@ -4504,10 +4852,10 @@
       controlElement.classList.add(this.getRendererClassName("dg-html"));
       const defaultValue = this.field.defaultValue;
       if (!defaultValue) return;
-      if (isFunction(defaultValue)) {
-        controlElement.innerHTML = defaultValue(this.field);
+      if (isFunction$1(defaultValue)) {
+        setSafeHtml(controlElement, defaultValue(this.field));
       } else {
-        controlElement.innerHTML = defaultValue;
+        setSafeHtml(controlElement, defaultValue);
       }
     }
     getValue() {
@@ -4527,16 +4875,17 @@
       const controlElement = this.getControlElement(element);
       const defaultValue = this.field.defaultValue;
       if (!defaultValue) return;
-      const refValue = isFunction(defaultValue) ? defaultValue(this.field) : defaultValue;
+      const refValue = isFunction$1(defaultValue) ? defaultValue(this.field) : defaultValue;
       const aElement = document.createElement("a");
       aElement.className = this.getRendererClassName("dg-link");
       controlElement.appendChild(aElement);
       this.initEvent(aElement);
       aElement.href = "javascript:void(0);";
-      if (refValue == null ? void 0 : refValue.href) {
-        aElement.href = refValue.href;
+      if (refValue?.href) {
+        if (typeof refValue.href === "string" && isSafeUrl$1(refValue.href)) aElement.href = refValue.href;
         if (refValue.target) {
           aElement.target = refValue.target;
+          aElement.rel = "noopener noreferrer";
         }
       }
       aElement.textContent = refValue.label ?? this.field.label;
@@ -4682,6 +5031,9 @@
         this.search(e);
       });
     }
+    isSearchInput() {
+      return true;
+    }
     getValue() {
       return this.editElement.value;
     }
@@ -4745,12 +5097,11 @@
       super(field, gridMain);
     }
     render(element) {
-      var _a2;
       const controlElement = this.getControlElement(element);
       let className = "";
-      const rendererClassName = (_a2 = this.field) == null ? void 0 : _a2.rendererClassName;
+      const rendererClassName = this.field?.rendererClassName;
       if (rendererClassName) {
-        if (isFunction(rendererClassName)) {
+        if (isFunction$1(rendererClassName)) {
           className = rendererClassName(this.field);
         } else {
           className = rendererClassName;
@@ -4807,6 +5158,7 @@
     custom: CustomRenderer,
     date: DateRenderer,
     dropdown: DropdownRenderer,
+    exportFile: ExportFileRenderer,
     number: NumberRenderer,
     switch: SwitchRenderer,
     text: TextRenderer,
@@ -4818,11 +5170,10 @@
     label: LabelRenderer
   };
   function initGridOptions(options) {
-    var _a2, _b2;
     const opts = merge({}, DEFAULT_OPTIONS, options);
     if (opts.height != "auto" && !isNumber(opts.height)) throw new Error("invalid height : " + opts.height);
     if (opts.width != "auto" && !isNumber(opts.width)) throw new Error("invalid width : " + opts.width);
-    if (opts.tree && (((_a2 = opts.groupingFields) == null ? void 0 : _a2.length) || ((_b2 = opts.rowSpanFields) == null ? void 0 : _b2.length))) {
+    if (opts.tree && (opts.groupingFields?.length || opts.rowSpanFields?.length)) {
       throw new Error("tree cannot be used together with groupingFields or rowSpanFields");
     }
     if (!options.hoverMode) {
@@ -4917,6 +5268,12 @@
      * hard, soft
      */
     deleteMode: "hard",
+    /**
+     * 서버 연동(AJAX) 설정
+     *
+     * 지정하지 않으면 로컬 데이터만 사용한다. `save`를 지정하면 deleteMode 기본값은 soft이다.
+     */
+    dataSource: void 0,
     /**
      * 툴팁 사용 여부
      */
@@ -5349,9 +5706,9 @@
     tree: void 0,
     groupingFields: [],
     rowSpanFields: [],
-    sumFields: [],
-    showGroupSum: true,
-    showGrandSum: true
+    groupSummaryFields: [],
+    showGroupSummary: true,
+    showGrandSummary: true
   };
   const DEFAULT_RENDERER_INFO = {
     type: "text"
@@ -5417,7 +5774,7 @@
         return this.element.outerHTML;
       }
       this.empty();
-      if (isBlank(text)) return;
+      if (isBlank$1(text)) return;
       this.element.innerHTML = text;
     }
     getElement() {
@@ -5521,7 +5878,7 @@
       this.element.classList.remove(...removeClasses);
     }
     insertAdjacentHTML(insertPosition, renderElements) {
-      if (isString(renderElements)) {
+      if (isString$1(renderElements)) {
         this.element.insertAdjacentHTML(insertPosition, renderElements);
       } else {
         this.element.insertAdjacentElement(insertPosition, renderElements);
@@ -5561,7 +5918,7 @@
     /**
      * css
      *
-     * @param cssValueObject  css value object
+     @param attrs css value object
      * @returns
      */
     css(attrs) {
@@ -5575,7 +5932,7 @@
     /**
      * css
      *
-     * @param cssValueObject  css value object
+     @param csskeys 제거할 css key 배열
      * @returns
      */
     removeCss(csskeys) {
@@ -5821,7 +6178,6 @@
      * @description select data 구하기.
      */
     selectionData(dataType = "text", isSummary = false) {
-      var _a2;
       const { dataManager, currentFields, selection, dataInfo } = this.config;
       const viewItems = dataManager.getViewItems();
       const isJson = dataType === "json";
@@ -5835,9 +6191,9 @@
       const result = [];
       const keyInfoMap = /* @__PURE__ */ new Map();
       const summary = { count: 0, numbers: [] };
-      const sumFields = new Set(this.options.sumFields ?? []);
+      const summaryFieldNames = new Set(getGroupSummaryFields(this.options));
       const firstDataField = currentFields.find((field) => !field.$isAside);
-      const summaryLabelField = currentFields.find((field) => !field.$isAside && !sumFields.has(field.name)) ?? firstDataField;
+      const summaryLabelField = currentFields.find((field) => !field.$isAside && !summaryFieldNames.has(field.name)) ?? firstDataField;
       for (let i = startIdx; i <= endIdx; i++) {
         const viewItem = viewItems[i];
         if (!viewItem) continue;
@@ -5858,14 +6214,14 @@
               cellValue = "Subtotal";
             } else if (viewItem.groupRowType === "grandSummary" && field === summaryLabelField) {
               cellValue = "Grand Total";
-            } else if (viewItem.groupRowType && viewItem.groupRowType !== "group" && sumFields.has(field.name)) {
-              cellValue = ((_a2 = viewItem.groupSums) == null ? void 0 : _a2[field.name]) ?? "";
+            } else if (viewItem.groupRowType && viewItem.groupRowType !== "group" && summaryFieldNames.has(field.name)) {
+              cellValue = viewItem.groupSums?.[field.name] ?? "";
             } else if (!isGroupRow) {
               cellValue = field.$renderer.getValue(item);
             }
             hasSelection = true;
             if (!keyInfoMap.has(j)) keyInfoMap.set(j, field);
-            if (!isGroupRow && !isBlank(cellValue)) {
+            if (!isGroupRow && !isBlank$1(cellValue)) {
               summary.count++;
               if (isNumber(cellValue)) {
                 summary.numbers.push(Number(cellValue));
@@ -6008,7 +6364,6 @@
      * cell select
      *
      * @public
-     * @param {boolean} initFlag
      */
     setCellSelection() {
       const cfg = this.config;
@@ -6121,7 +6476,6 @@
      * @public
      * @param {string} selectionMode selection mode
      * @param {number} col col
-     * @param {*} dataInfo
      * @param {boolean} isMouseDown
      * @returns {{ startCol: number; endCol: number; }}
      */
@@ -6264,6 +6618,9 @@
         beforeSelection
       };
     }
+    isRecording() {
+      return this.currentEntry !== null;
+    }
     /**
      * 현재 Transaction을 Undo Stack에 등록합니다.
      */
@@ -6379,6 +6736,7 @@
   };
   _HistoryManager.DEFAULT_MAX_COUNT = 100;
   let HistoryManager = _HistoryManager;
+  const INCREMENTAL_ADD_LIMIT = 64;
   class DataManager {
     constructor(opts, gridMain, type) {
       this.opts = opts;
@@ -6388,10 +6746,13 @@
       this.originalViewItems = [];
       this.viewItems = [];
       this.sortBaseItems = [];
+      this.searchDirty = true;
       this.sortOrders = [];
+      this.fullSortCache = null;
       this.searchMap = /* @__PURE__ */ new Map();
       this.rowMap = /* @__PURE__ */ new Map();
       this.rowCheckSet = /* @__PURE__ */ new Set();
+      this.createdRowIds = /* @__PURE__ */ new Set();
       this.matchOffsetMap = /* @__PURE__ */ new Map();
       this.beforeDataRowLength = -1;
       this.cfg = gridMain.config();
@@ -6456,6 +6817,7 @@
      */
     setItemStatus(item, status) {
       const beforeValue = item[ROW_FIELD.CUD];
+      if (beforeValue === status) return;
       item[ROW_FIELD.CUD] = status;
       if (status === ItemStatusMap.DELETE) {
         const deleteHistory = {
@@ -6471,16 +6833,24 @@
       }
     }
     removeSoftItem(ids) {
-      this.beginHistory();
+      const items = [...new Set(ids)].map((id) => {
+        const item = this.getRowItem(id);
+        if (!item) throw new Error(`Row not found: ${id}`);
+        return item;
+      });
+      const changed = items.filter((item) => item[ROW_FIELD.CUD] !== ItemStatusMap.DELETE);
+      const ownsHistory = !this.history.isRecording();
+      if (ownsHistory) this.beginHistory();
       try {
-        for (const rowId of ids) {
-          this.setItemStatus(this.getRowItem(rowId), ItemStatusMap.DELETE);
+        for (const item of changed) {
+          this.setItemStatus(item, ItemStatusMap.DELETE);
         }
-        this.commitHistory();
+        if (ownsHistory) this.commitHistory();
       } catch (error) {
-        this.rollbackHistory();
+        if (ownsHistory) this.rollbackHistory();
         throw error;
       }
+      return changed.map((item) => item[ROW_FIELD.ID]);
     }
     /**
      * 변경된 아이템 얻기
@@ -6500,6 +6870,113 @@
       return results;
     }
     /**
+     * 저장되지 않은 변경(C/U/D)이 있는지 확인한다.
+     */
+    hasChanges() {
+      for (const viewItem of this.originalViewItems) {
+        const item = this.getRowItem(viewItem.id);
+        if (item && !viewItem.groupRowType && item[ROW_FIELD.CUD] !== ItemStatusMap.READ) return true;
+      }
+      return false;
+    }
+    /**
+     * 서버 저장용 변경 행 스냅샷을 만든다. 원본 순서(트리는 부모 → 자식)를 유지한다.
+     */
+    getChangeSnapshot() {
+      const results = [];
+      for (const viewItem of this.originalViewItems) {
+        const item = this.getRowItem(viewItem.id);
+        if (!item || viewItem.groupRowType || item[ROW_FIELD.CUD] === ItemStatusMap.READ) continue;
+        const entry = this.createSnapshotEntry(viewItem.id, item);
+        entry.localOnly = entry.localOnly && entry.status === ItemStatusMap.DELETE;
+        results.push(entry);
+      }
+      return results;
+    }
+    /**
+     * 지정한 행의 스냅샷을 만든다. 상태와 무관하게 포함하며 그룹 가상 행과 없는 ID는 제외한다.
+     */
+    getRowSnapshots(ids) {
+      const dataIds = new Set(
+        this.originalViewItems.filter((viewItem) => !viewItem.groupRowType).map((viewItem) => viewItem.id)
+      );
+      const results = [];
+      for (const id of ids) {
+        const item = dataIds.has(id) ? this.getRowItem(id) : void 0;
+        if (item) results.push(this.createSnapshotEntry(id, item));
+      }
+      return results;
+    }
+    createSnapshotEntry(rowId, item) {
+      return {
+        rowId,
+        status: item[ROW_FIELD.CUD],
+        data: this.getSnapshotData(item),
+        key: item[this.rowIdField],
+        localOnly: this.createdRowIds.has(rowId)
+      };
+    }
+    /** 서버로 보낼 행 데이터. 내부 관리 필드와 행 상태(_$CUD)는 제외한다. */
+    getSnapshotData(item) {
+      const data = this.filterRowItem(item, false);
+      delete data[ROW_FIELD.CUD];
+      return data;
+    }
+    /**
+     * 서버 저장 결과를 반영한다.
+     *
+     * 스냅샷 이후 다시 편집된 행은 변경 상태를 유지하고, 그 외 행은 확정(READ)한다.
+     * 삭제가 확정된 행은 제거한다. Undo/Redo 이력은 서버 상태와 맞지 않게 되므로 초기화한다.
+     *
+     * @param entries 저장 요청에 사용한 스냅샷
+     * @param failedKeys 저장에 실패한 행의 ID 필드 값
+     * @param idMap 신규 행의 요청 ID → 서버 ID
+     * @returns 확정되어 제거된 행 ID 배열
+     */
+    acceptChanges(entries, failedKeys = /* @__PURE__ */ new Set(), idMap = {}) {
+      const purgeIds = [];
+      const idField = this.rowIdField;
+      for (const entry of entries) {
+        if (!entry.localOnly && failedKeys.has(entry.key)) continue;
+        const item = this.getRowItem(entry.rowId);
+        if (!item) continue;
+        const current = this.getSnapshotData(item);
+        const edited = item[ROW_FIELD.CUD] !== entry.status || Object.keys({ ...entry.data, ...current }).some((name) => !isSameValue(entry.data[name], current[name]));
+        this.createdRowIds.delete(entry.rowId);
+        if (entry.status === ItemStatusMap.DELETE) {
+          if (!edited) purgeIds.push(entry.rowId);
+          continue;
+        }
+        if (!edited) {
+          item[ROW_FIELD.CUD] = ItemStatusMap.READ;
+        } else if (entry.status === ItemStatusMap.CREATE && item[ROW_FIELD.CUD] === ItemStatusMap.CREATE) {
+          item[ROW_FIELD.CUD] = ItemStatusMap.MODIFY;
+        }
+        const serverId = idMap[String(entry.key)];
+        if (serverId !== void 0 && idField !== ROW_FIELD.ID) {
+          item[idField] = serverId;
+        }
+      }
+      if (purgeIds.length > 0) this.purgeItems(purgeIds);
+      this.history.clear();
+      return purgeIds;
+    }
+    /**
+     * 행을 삭제 모드·이력과 무관하게 제거한다. 서버 반영이 끝난 삭제에 사용하며 Undo/Redo 이력은 초기화한다.
+     */
+    purgeItems(ids) {
+      const previousMode = this.opts.deleteMode;
+      const previousSuspended = this.history.suspend();
+      this.opts.deleteMode = "hard";
+      try {
+        return this.removeItems(ids);
+      } finally {
+        this.opts.deleteMode = previousMode;
+        this.history.resume(previousSuspended);
+        this.history.clear();
+      }
+    }
+    /**
      * 전체 체크 설정
      */
     setAllCheck() {
@@ -6515,7 +6992,7 @@
     }
     /**
      *  체크된 아이템 설정
-     * @param cellInfo 체크된 셀 정보
+     @param id 체크 설정할 row id
      * @param checked 체크 여부
      */
     setItemChecked(id, checked) {
@@ -6527,7 +7004,7 @@
     }
     /**
      * 특정 아이템이 체크되어 있는지 여부 반환
-     * @param item 체크 여부를 확인할 아이템
+     @param id 체크 여부를 확인할 row id
      * @returns 체크 여부
      */
     isItemChecked(id) {
@@ -6543,10 +7020,57 @@
     setItems(items) {
       this.history.clear();
       this.clearAllCheck();
+      this.createdRowIds.clear();
       this.originalItems = items;
+      this.searchDirty = true;
+    }
+    /**
+     * 서버에서 받은 행을 목록 끝에 붙인다. 조회 데이터이므로 READ 상태로 추가하고 Undo 이력은 남기지 않는다.
+     *
+     * @returns 추가된 첫 행의 index. 추가할 행이 없으면 -1
+     */
+    appendItems(items) {
+      const previousSuspended = this.history.suspend();
+      try {
+        return this.addItems(items, { position: "after" }, ItemStatusMap.READ);
+      } finally {
+        this.history.resume(previousSuspended);
+      }
     }
     createItem(item, addOpts) {
       return this.cfg.dataManager.addItems([item], addOpts, ItemStatusMap.CREATE);
+    }
+    /**
+     * 화면에서 옮긴 행 순서를 원본 순서에도 반영한다. 이렇게 하지 않으면 이후 행 추가·삭제·검색 해제 등으로
+     * 목록이 다시 만들어질 때 이동한 순서가 사라진다.
+     *
+     * 화면 순서가 곧 원본 순서인 경우에만 반영한다. 정렬·검색·페이징이 있으면(화면이 원본의 일부이거나 파생 순서)
+     * 이동을 화면에만 적용해야 하므로 Tree·Group과 함께 false를 돌려준다.
+     *
+     * @param movedItems 이동 후 화면의 ViewItem 순서(원본 행 전체)
+     * @returns 반영했으면 true(화면 목록도 새 순서로 갱신), 반영하지 않았으면 false
+     */
+    applyMovedOrder(movedItems) {
+      const footer = this.opts.footer;
+      const original = this.originalViewItems;
+      if (this.type !== "list" || this.sortOrders.length > 0 || this.cfg.searchEnabled || footer?.enabled && footer.paging?.enabled || movedItems.length !== original.length) {
+        return false;
+      }
+      const byId = new Map(original.map((viewItem) => [viewItem.id, viewItem]));
+      const next = [];
+      for (const moved of movedItems) {
+        const viewItem = byId.get(moved.id);
+        if (!viewItem) return false;
+        next.push(viewItem);
+      }
+      if (new Set(next).size !== next.length) return false;
+      next.forEach((viewItem, index) => {
+        viewItem.sortOrder = index;
+      });
+      this.setOriginalViewItems(next);
+      this.searchDirty = true;
+      this.applyViewItems(next.slice());
+      return true;
     }
     getSortBaseItems() {
       return this.sortBaseItems;
@@ -6556,19 +7080,139 @@
     }
     dataSort(sortOrders, sortOpts) {
       const sortArr = Array.from(sortOrders);
-      this.sortOrders = sortOrders;
-      this.sortOpts = sortOpts;
       sortArr.forEach((item) => {
         if (item.field.getValue) {
           item.isValue = true;
         }
       });
-      if (this.opts.header.sort.customSorting) {
-        this.setViewItems(this.opts.header.sort.customSorting(this.getAllRowItems(true), sortArr, sortOpts));
+      const isOriginalInput = this.isOriginalOrder(this.getPagingViewItems());
+      const cached = this.reuseFullSort(sortArr, sortOpts);
+      const sortData = cached ?? this.getSortData(sortArr, sortOpts);
+      this.sortOrders = sortOrders;
+      this.sortOpts = sortOpts;
+      this.applyViewItems(sortData);
+      if (!cached && isOriginalInput) this.cacheFullSort(sortArr, sortOpts, sortData);
+    }
+    getSortSignature(sortInfos, sortOpts) {
+      return JSON.stringify([sortInfos.map(({ name, ascOrder, isValue }) => [name, ascOrder, isValue]), sortOpts.nullsLast]);
+    }
+    /** 전체 행이 원래 순서로 정렬 입력이 되는 경우에만 캐시를 사용·저장한다. 검색·사용자 정렬 함수·페이징과는 함께 쓰지 않는다. */
+    isFullSortCacheable(sortOpts) {
+      const footer = this.opts.footer;
+      return this.type === "list" && !sortOpts.customSorting && !this.cfg.searchEnabled && !(footer?.enabled && footer.paging?.enabled);
+    }
+    isOriginalOrder(items) {
+      const original = this.originalViewItems;
+      if (items.length !== original.length) return false;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i] !== original[i]) return false;
+      }
+      return true;
+    }
+    cacheFullSort(sortInfos, sortOpts, sorted) {
+      if (!this.isFullSortCacheable(sortOpts) || sorted.length !== this.originalViewItems.length) {
         return;
       }
-      const sortData = this.getSortData(sortArr, sortOpts);
-      this.setViewItems(sortData);
+      const values = sorted.map((viewItem) => viewItem.sortValues);
+      if (values.some((value) => !value)) return;
+      this.fullSortCache = {
+        signature: this.getSortSignature(sortInfos, sortOpts),
+        items: sorted.slice(),
+        values
+      };
+    }
+    /**
+     * 정렬 입력이 전체 행(원래 순서)이고 행 구성과 정렬 기준 값이 정렬 당시와 같으면 이전 정렬 결과를 돌려준다.
+     * 값을 다시 읽어 비교하므로 셀 수정·행 추가·삭제로 달라졌으면 캐시를 쓰지 않고 새로 정렬한다.
+     */
+    reuseFullSort(sortInfos, sortOpts) {
+      const cache = this.fullSortCache;
+      if (!cache || !this.isFullSortCacheable(sortOpts)) return null;
+      if (cache.signature !== this.getSortSignature(sortInfos, sortOpts)) return null;
+      if (!this.isOriginalOrder(this.getPagingViewItems())) return null;
+      if (cache.items.length !== this.originalViewItems.length) return null;
+      const members = new Set(this.originalViewItems);
+      for (let i = 0; i < cache.items.length; i++) {
+        const viewItem = cache.items[i];
+        if (!members.has(viewItem)) return null;
+        const before = cache.values[i];
+        const now = getSortValues(this, viewItem, sortInfos);
+        for (let k = 0; k < now.length; k++) {
+          if (!isSameValue(before[k], now[k])) return null;
+        }
+      }
+      cache.items.forEach((viewItem, i) => {
+        viewItem.sortValues = cache.values[i];
+      });
+      return cache.items.slice();
+    }
+    /**
+     * 정렬이 켜져 있을 때 소량의 행 추가와 삭제를 전체 재정렬 없이 반영한다.
+     *
+     * 정렬된 목록에서 삭제는 순서가 유지되고, 추가는 이진 탐색으로 자리를 찾는다. 같은 값은 원래 순서(sortOrder)를 따르므로
+     * 전체를 다시 정렬한 결과와 같다. 검색·페이징·사용자 정렬 함수·Tree·Group이거나 추가 행이 많으면 반영하지 않고 false를 돌려준다.
+     * 호출 전에 원본 목록(originalViewItems)이 이미 갱신되어 있어야 한다.
+     *
+     * @param added 새로 추가된 ViewItem
+     * @param removedIds 삭제된 행 ID
+     * @returns 반영했으면 true, 전체 재정렬이 필요하면 false
+     */
+    applyIncrementalMutation(added, removedIds) {
+      const orders = this.sortOrders;
+      const sortOpts = this.sortOpts;
+      const footer = this.opts.footer;
+      if (this.type !== "list" || orders.length === 0 || !sortOpts || sortOpts.customSorting || this.cfg.searchEnabled || footer?.enabled && footer.paging?.enabled || added.length > INCREMENTAL_ADD_LIMIT) {
+        return false;
+      }
+      const current = this.getPagingViewItems();
+      const next = removedIds && removedIds.size > 0 ? current.filter((viewItem) => !removedIds.has(viewItem.id)) : current.slice();
+      const nullsLast = sortOpts.nullsLast === true;
+      const compare2 = (a, b) => {
+        for (let i = 0; i < orders.length; i++) {
+          const result = compareCachedValue(a.sortValues[i], b.sortValues[i], orders[i].ascOrder ?? true, nullsLast);
+          if (result !== 0) return result;
+        }
+        return a.sortOrder - b.sortOrder;
+      };
+      for (const viewItem of added) {
+        viewItem.sortValues = getSortValues(this, viewItem, orders);
+        let low = 0;
+        let high = next.length;
+        while (low < high) {
+          const mid = low + high >>> 1;
+          const probe = next[mid];
+          if (!probe.sortValues) return false;
+          if (compare2(probe, viewItem) > 0) high = mid;
+          else low = mid + 1;
+        }
+        next.splice(low, 0, viewItem);
+      }
+      if (next.length !== this.originalViewItems.length) return false;
+      this.searchDirty = true;
+      this.applyViewItems(next);
+      this.cacheFullSort(orders, sortOpts, next);
+      return true;
+    }
+    /** 사용자 정렬 결과를 원래 ViewItem에 연결하여 트리·그룹 메타데이터를 보존한다. */
+    sortItems(source, sortOrders, sortOpts) {
+      if (sortOpts.customSorting) {
+        const rows = source.map((viewItem) => this.filterRowItem(this.getRowItem(viewItem.id), true));
+        const sorted = sortOpts.customSorting(rows, sortOrders, sortOpts);
+        const byId = new Map(source.map((item) => [item.id, item]));
+        const seen = /* @__PURE__ */ new Set();
+        if (!Array.isArray(sorted) || sorted.length !== source.length) {
+          throw new Error("customSorting must return every input row exactly once");
+        }
+        const viewItems = sorted.map((item) => {
+          const id = item?.[ROW_FIELD.ID] ?? item?.id;
+          const viewItem = byId.get(id);
+          if (!viewItem || seen.has(id)) throw new Error("customSorting returned an unknown or duplicate row ID");
+          seen.add(id);
+          return viewItem;
+        });
+        return viewItems;
+      }
+      return multiSort(source, this, sortOrders, sortOpts.nullsLast);
     }
     initializeRowItem(item, depth = 0, status = ItemStatusMap.READ) {
       const rowIdField = this.rowIdField;
@@ -6582,6 +7226,9 @@
       item[ROW_FIELD.DEPTH] = depth;
       item[ROW_FIELD.CUD] = status;
       item[ROW_FIELD.HEIGHT] = this.rowHeight;
+      if (status === ItemStatusMap.CREATE) {
+        this.createdRowIds.add(rowId);
+      }
       return item;
     }
     getViewItemIndex(id) {
@@ -6598,14 +7245,31 @@
     getViewItems() {
       return this.viewItems;
     }
+    /** 페이징 전의 현재 검색·정렬 대상이다. */
+    getPagingViewItems() {
+      return this.getViewItems();
+    }
+    applyViewItems(items) {
+      this.setViewItems(items);
+    }
+    getUnfilteredViewItems() {
+      return this.getOriginalViewItems().slice();
+    }
+    /** 데이터 변경 후 현재 검색·정렬·페이징을 다시 적용한다. */
+    refreshViewAfterMutation() {
+      this.searchDirty = true;
+      if (this.cfg.searchEnabled && this.beforeSearchMode && this.beforeKeyword) {
+        this.search(this.beforeKeyword, { ...this.beforeSearchMode });
+      } else {
+        this.applyViewItems(this.getUnfilteredViewItems());
+        if (this.sortOrders.length > 0) this.dataSort(this.sortOrders, this.sortOpts);
+      }
+    }
     /**
      *  grid view에 보여지는 item의 id 배열 설정
-     * @param ids item id 배열
-     * @param start start index
-     * @param end end index
+     @param ids 화면에 보여질 ViewItem 배열
      */
     setViewItems(ids) {
-      var _a2;
       const viewItemIds = ids;
       this.viewItems = viewItemIds;
       const dataInfo = this.cfg.dataInfo;
@@ -6617,7 +7281,7 @@
         this.gridMain.refreshBody(false, "setViewItems");
       }
       this.beforeDataRowLength = dataInfo.rowLength;
-      (_a2 = this.gridMain.getSummary()) == null ? void 0 : _a2.drawData();
+      this.gridMain.getSummary()?.drawData();
     }
     convertViewItemsToRowItems() {
       const results = [];
@@ -6632,6 +7296,7 @@
     }
     deleteRowItem(rowId) {
       this.rowMap.delete(rowId);
+      this.createdRowIds.delete(rowId);
       this.rowCheckSet.delete(rowId);
       this.searchMap.delete(rowId);
       this.matchOffsetMap.delete(rowId);
@@ -6644,6 +7309,10 @@
         results[i] = this.filterRowItem(item, rowIdInclude);
       }
       return results;
+    }
+    /** 검색·페이징·트리 펼침 상태와 무관한 전체 원본 행의 얕은 복사본이다. */
+    getSourceRowItems() {
+      return this.getOriginalViewItems().filter((item) => !item.groupRowType).map((item) => this.filterRowItem(this.getRowItem(item.id), false));
     }
     /**
      * 행 데이터에서 Grid 내부 관리용 필드를 제외하고 반환
@@ -6678,9 +7347,9 @@
       const index = this.getRowIndexById(rowId);
       if (index > -1) {
         let col = 1;
-        if (opts == null ? void 0 : opts.fieldName) {
-          const fieldInfo = this.cfg.allFieldMap.get(opts == null ? void 0 : opts.fieldName);
-          if (fieldInfo == null ? void 0 : fieldInfo.$colSeq) col = fieldInfo == null ? void 0 : fieldInfo.$colSeq;
+        if (opts?.fieldName) {
+          const fieldInfo = this.cfg.allFieldMap.get(opts?.fieldName);
+          if (fieldInfo?.$colSeq) col = fieldInfo?.$colSeq;
         } else {
           col = this.cfg.dataInfo.startCol;
         }
@@ -6699,7 +7368,7 @@
           true,
           true
         );
-        if ((opts == null ? void 0 : opts.scrollIntoView) !== false) {
+        if (opts?.scrollIntoView !== false) {
           this.gridMain.getScroll().moveVerticalScroll({ rowIdx: index, drawFlag: true });
         }
       }
@@ -6775,9 +7444,8 @@
      * row index는 저장하지 않고 rowId를 저장합니다.
      */
     createHistorySelection() {
-      var _a2, _b2;
       const selection = this.cfg.selection;
-      if (!(selection == null ? void 0 : selection.range)) {
+      if (!selection?.range) {
         return void 0;
       }
       const range = selection.range;
@@ -6786,8 +7454,8 @@
       if (startIdx < 0 || endIdx < 0 || startIdx >= this.viewItems.length || endIdx >= this.viewItems.length) {
         return void 0;
       }
-      const startRowId = (_a2 = this.viewItems[startIdx]) == null ? void 0 : _a2.id;
-      const endRowId = (_b2 = this.viewItems[endIdx]) == null ? void 0 : _b2.id;
+      const startRowId = this.viewItems[startIdx]?.id;
+      const endRowId = this.viewItems[endIdx]?.id;
       if (startRowId === void 0 || startRowId === null || endRowId === void 0 || endRowId === null) {
         return void 0;
       }
@@ -6937,7 +7605,7 @@
      * - undo : row 제거
      * - redo : row 복원
      *
-     * View 위치는 History에서 관리하지 않습니다.
+     * 신규 행의 Redo 위치는 View 동기화 단계에서 정합니다.
      */
     applyAddHistory(change, undo) {
       if (undo) {
@@ -6954,6 +7622,16 @@
         item
       });
     }
+    removeHistory(rowId, viewItem, index) {
+      this.history.add({
+        type: "remove",
+        rowId,
+        item: this.getRowItem(rowId),
+        viewItem: { ...viewItem },
+        index,
+        checked: this.isItemChecked(rowId)
+      });
+    }
     /**
      * 삭제된 row History 적용
      *
@@ -6961,14 +7639,15 @@
      * - undo : row 복원
      * - redo : row 제거
      *
-     * View 위치는 History에서 관리하지 않습니다.
+     * 삭제 이력에 저장된 위치는 View 동기화 단계에서 복원합니다.
      */
     applyRemoveHistory(change, undo) {
       if (undo) {
         this.rowMap.set(change.rowId, change.item);
+        if (change.checked) this.rowCheckSet.add(change.rowId);
         return;
       }
-      this.rowMap.delete(change.rowId);
+      this.deleteRowItem(change.rowId);
       this.removeViewItemById(change.rowId);
     }
     /**
@@ -6988,30 +7667,24 @@
      * 현재 정렬 상태라면 현재 데이터 기준으로 다시 정렬합니다.
      */
     refreshAfterHistory(entry, undo) {
-      var _a2;
       this.syncHistoryViewItems(entry, undo);
-      if (this.sortOrders.length > 0) {
-        this.dataSort(this.sortOrders, this.sortOpts);
-      } else {
-        this.setViewItems(this.viewItems);
-      }
+      this.refreshViewAfterMutation();
       const cfg = this.cfg;
       const moveRowIdx = this.getViewItemIndex(entry.changes[0].rowId);
-      const isMoveScroll = getScrollDirectionCode(cfg, cfg.scroll, moveRowIdx, -1) > 0;
+      const isMoveScroll = moveRowIdx >= 0 && getScrollDirectionCode(cfg, cfg.scroll, moveRowIdx, -1) > 0;
       this.gridMain.refreshBody(!isMoveScroll, "history");
       if (isMoveScroll) {
         this.gridMain.getScroll().moveVerticalScroll({ rowIdx: this.getViewItemIndex(entry.changes[0].rowId) });
       }
-      (_a2 = this.gridMain.getSummary()) == null ? void 0 : _a2.drawData();
+      this.gridMain.getSummary()?.drawData();
     }
     /**
-     * 정렬이 없는 상태에서 History로 추가/삭제된 row를 현재 View에 반영합니다.
-     *
-     * 복원 위치는 History에서 관리하지 않습니다.
-     * 현재 View의 마지막에 추가하며, 정렬 상태에서는 dataSort()로 재배치합니다.
+     * 삭제 행은 변경 당시의 위치에 복원하고, 추가 행의 Redo는 마지막에 배치합니다.
+     * 이후 현재 검색·정렬·페이징을 다시 적용합니다.
      */
     syncHistoryViewItems(entry, undo) {
-      for (const change of entry.changes) {
+      const changes = undo ? entry.changes.slice().reverse() : entry.changes;
+      for (const change of changes) {
         if (change.type === "update") {
           continue;
         }
@@ -7020,28 +7693,43 @@
           const viewIndex = items.findIndex((item) => item.id === change.rowId);
           if (shouldExist) {
             if (viewIndex === -1) {
-              items.push({ id: change.rowId, sortOrder: items.length });
+              const viewItem = change.type === "remove" ? change.viewItem : void 0;
+              const index = change.type === "remove" ? change.index ?? items.length : items.length;
+              items.splice(index, 0, viewItem ?? { id: change.rowId, sortOrder: index });
             }
           } else if (viewIndex > -1) {
             items.splice(viewIndex, 1);
           }
         }
       }
+      this.originalViewItems.forEach((item, index) => {
+        item.sortOrder = index;
+      });
     }
     search(keyword, options) {
-      const keys = ["matchCase", "matchWholeWord", "useRegex", "searchFields"];
+      const keys = [
+        "matchCase",
+        "matchWholeWord",
+        "useRegex",
+        "searchFields",
+        "hideNonMatched",
+        "matchWholeRegex"
+      ];
       let isSameSearchOpts = this.beforeKeyword == keyword;
       if (this.beforeSearchMode) {
         for (const key of keys) {
           if (key === "searchFields") {
             const optsSearchFields = options.searchFields;
             const beforeOptsSearchFields = this.beforeSearchMode.searchFields;
-            if (isArray(optsSearchFields) && JSON.stringify(optsSearchFields) != JSON.stringify(beforeOptsSearchFields) || !isArray(optsSearchFields) && optsSearchFields != beforeOptsSearchFields) {
+            if (isArray$1(optsSearchFields) && JSON.stringify(optsSearchFields) != JSON.stringify(beforeOptsSearchFields) || !isArray$1(optsSearchFields) && optsSearchFields != beforeOptsSearchFields) {
               isSameSearchOpts = false;
               break;
             }
           } else {
-            if (this.beforeSearchMode[key] !== options[key]) {
+            const before = this.beforeSearchMode[key];
+            const after = options[key];
+            const changed = before instanceof RegExp && after instanceof RegExp ? String(before) !== String(after) : before !== after;
+            if (changed) {
               isSameSearchOpts = false;
               break;
             }
@@ -7054,7 +7742,7 @@
       let searchResult;
       let searchItems;
       let isNewSearch = false;
-      if (this.beforeKeyword == keyword && isSameSearchOpts) {
+      if (!this.searchDirty && this.beforeKeyword == keyword && isSameSearchOpts) {
         searchMatchInfo = this.cfg.searchMatchInfo;
         searchItems = this.getViewItems();
       } else {
@@ -7065,7 +7753,7 @@
         searchItems = searchResult.items;
       }
       if (isNewSearch) {
-        this.setViewItems(searchItems);
+        this.applyViewItems(searchItems);
       }
       if (this.sortOrders.length > 0) {
         const currentSortState = JSON.stringify(
@@ -7082,6 +7770,7 @@
       }
       this.beforeKeyword = keyword;
       this.beforeSearchMode = merge({}, options);
+      this.searchDirty = false;
       if (searchMatchInfo.matchCount < 1) {
         this.setCurrentMatchInfo(0, {
           id: "",
@@ -7130,8 +7819,8 @@
     /**
      * 현재 검색 포커스 cell 정보
      *
-     * @param items check item list
-     * @param matchId
+     @param currentMatchIndex 현재 행 이전까지의 누적 match 수
+     @param currentMatchInfo 현재 match 위치 정보
      * @returns
      */
     setCurrentMatchInfo(currentMatchIndex, currentMatchInfo) {
@@ -7170,15 +7859,14 @@
       return -1;
     }
     findMatch(isNext, checkMatchIndex, searchMatchInfo, searchResult) {
-      var _a2;
       const resultLength = searchResult.length;
       const currentCellIdx = searchMatchInfo.cellIndex;
       const searchRowLength = this.getSearchMapItemLength();
       for (let i = 0; i < resultLength; i++) {
         const searchRowIdx = isNext ? (checkMatchIndex + i) % resultLength : (checkMatchIndex - i + resultLength) % resultLength;
         const item = searchResult[searchRowIdx];
-        const matchFields = (_a2 = this.getSearchMapItem(item.id)) == null ? void 0 : _a2.matchedFields;
-        if (!(matchFields == null ? void 0 : matchFields.length)) continue;
+        const matchFields = this.getSearchMapItem(item.id)?.matchedFields;
+        if (!matchFields?.length) continue;
         const sameRow = searchRowIdx === checkMatchIndex;
         const cellIndex = this.resolveCellIndex(isNext, sameRow, matchFields.length, currentCellIdx, searchRowLength);
         if (cellIndex < 0) continue;
@@ -7344,9 +8032,67 @@
     return null;
   }
   function isPotentiallyCatastrophicRegex(pattern) {
-    const nestedQuantifier = /\([^()]*[+*][^()]*\)[+*]/;
-    const nestedAlternationQuantifier = /\([^()]*\|[^()]*\)[+*]/;
-    return nestedQuantifier.test(pattern) || nestedAlternationQuantifier.test(pattern);
+    const stack = [];
+    let current = { hasUnbounded: false, hasAlternation: false };
+    const unboundedQuantifierLength = (index) => {
+      const ch = pattern[index];
+      if (ch === "+" || ch === "*") return 1;
+      if (ch === "{") {
+        const match = /^\{\d+,\}/.exec(pattern.slice(index));
+        return match ? match[0].length : 0;
+      }
+      return 0;
+    };
+    for (let i = 0; i < pattern.length; i++) {
+      const ch = pattern[i];
+      if (ch === "\\") {
+        i++;
+        continue;
+      }
+      if (ch === "[") {
+        for (i++; i < pattern.length && pattern[i] !== "]"; i++) {
+          if (pattern[i] === "\\") i++;
+        }
+        continue;
+      }
+      if (ch === "(") {
+        stack.push(current);
+        current = { hasUnbounded: false, hasAlternation: false };
+        if (pattern[i + 1] === "?") {
+          i += 2;
+          if (pattern[i] === "<" && pattern[i + 1] !== "=" && pattern[i + 1] !== "!") {
+            while (i < pattern.length && pattern[i] !== ">") i++;
+          } else if (pattern[i] === "<") {
+            i++;
+          }
+        }
+        continue;
+      }
+      if (ch === ")") {
+        const group = current;
+        current = stack.pop() ?? { hasUnbounded: false, hasAlternation: false };
+        const length2 = unboundedQuantifierLength(i + 1);
+        if (length2 > 0) {
+          if (group.hasUnbounded || group.hasAlternation) return true;
+          current.hasUnbounded = true;
+          i += length2;
+        } else {
+          if (group.hasUnbounded) current.hasUnbounded = true;
+          if (group.hasAlternation) current.hasAlternation = true;
+        }
+        continue;
+      }
+      if (ch === "|") {
+        current.hasAlternation = true;
+        continue;
+      }
+      const length = unboundedQuantifierLength(i);
+      if (length > 0) {
+        current.hasUnbounded = true;
+        i += length - 1;
+      }
+    }
+    return false;
   }
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -7398,6 +8144,7 @@
   class ListDataManager extends DataManager {
     constructor(opts, gridMain, type = "list") {
       super(opts, gridMain, type);
+      this.pagingViewItems = [];
     }
     /**
      * init item
@@ -7424,20 +8171,34 @@
       const viewItemIds = this.initItems(items);
       super.setItems(items);
       super.setOriginalViewItems(viewItemIds);
-      this.updatePagingAndViewItems(viewItemIds);
+      this.applyViewItems(viewItemIds);
+    }
+    getPagingViewItems() {
+      return this.pagingViewItems;
+    }
+    applyViewItems(items) {
+      this.pagingViewItems = items.slice();
+      this.updatePagingAndViewItems(this.pagingViewItems);
     }
     /**
      * 페이징 옵션 여부에 따라 현재 ViewItems 및 페이징 정보를 업데이트합니다.
      */
     updatePagingAndViewItems(viewItemIds) {
-      var _a2;
       const footerOpts = this.opts.footer;
-      if ((footerOpts == null ? void 0 : footerOpts.enabled) && ((_a2 = footerOpts.paging) == null ? void 0 : _a2.enabled)) {
+      if (footerOpts?.enabled && footerOpts.paging?.enabled) {
         const itemLength = viewItemIds.length;
         const pagingParam = this.opts.paging;
-        const pagingInfo = getPagingParamToPagingInfo(pagingParam ?? {}, itemLength);
+        const externalPaging = Boolean(footerOpts.paging.callback);
+        const pagingInfo = getPagingParamToPagingInfo(
+          {
+            ...pagingParam,
+            page: this.cfg.paging?.page ?? pagingParam?.page,
+            totalCount: externalPaging ? pagingParam?.totalCount ?? itemLength : itemLength
+          },
+          itemLength
+        );
         this.gridMain.setPaging(pagingInfo);
-        if (itemLength < pagingInfo.pageSize) {
+        if (externalPaging) {
           this.setViewItems(viewItemIds);
         } else {
           const pageSize = pagingInfo.pageSize;
@@ -7452,29 +8213,27 @@
     getSearchData(keyword, options) {
       const items = this.getOriginalViewItems();
       this.matchOffsetMap.clear();
-      let firstMatchId = "";
+      let firstMatchId;
       let offset = 0;
       options.postProcess = (isMatched, item, viewItem) => {
-        var _a2;
         if (!isMatched || !viewItem) return;
         const id = viewItem.id;
-        if (!firstMatchId) {
+        if (firstMatchId === void 0) {
           firstMatchId = viewItem.id;
         }
         this.matchOffsetMap.set(id, offset);
-        offset += ((_a2 = viewItem.matchedFields) == null ? void 0 : _a2.length) ?? 0;
+        offset += viewItem.matchedFields?.length ?? 0;
         this.addSearchMapItem(viewItem.id, viewItem);
       };
       const result = gridDataSearch(items, this.cfg.dataManager, keyword, options);
-      if (firstMatchId) {
+      if (firstMatchId !== void 0) {
         const firstItem = this.getSearchMapItem(firstMatchId);
         if (firstItem) firstItem.isCurrentMatch = true;
       }
       return result;
     }
     getSortData(sortOrders, sortOpts) {
-      var _a2;
-      const sortData = multiSort(this.getViewItems(), this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+      const sortData = this.sortItems(this.getPagingViewItems(), sortOrders, sortOpts);
       if (!this.cfg.searchEnabled) {
         return sortData;
       }
@@ -7489,12 +8248,12 @@
         const matchViewItem = this.getSearchMapItem(id);
         if (matchViewItem) {
           this.matchOffsetMap.set(id, offset);
-          offset += ((_a2 = matchViewItem.matchedFields) == null ? void 0 : _a2.length) ?? 0;
+          offset += matchViewItem.matchedFields?.length ?? 0;
         }
         if (matchRowIndex != -1) {
           continue;
         }
-        if (id == matchId) {
+        if (matchId !== "" && id == matchId) {
           matchRowIndex = i;
         }
       }
@@ -7551,8 +8310,8 @@
       if (!items || items.length === 0) return -1;
       const originalViewItems = [...this.getOriginalViewItems()];
       let targetIndex = originalViewItems.length;
-      const isPositionBefore = (addOpts == null ? void 0 : addOpts.position) === "before";
-      const addRowId = addOpts == null ? void 0 : addOpts.rowId;
+      const isPositionBefore = addOpts?.position === "before";
+      const addRowId = addOpts?.rowId;
       if (addRowId !== void 0) {
         const foundIdx = originalViewItems.findIndex((v) => v.id === addRowId);
         if (foundIdx !== -1) {
@@ -7580,7 +8339,7 @@
         vItem.sortOrder = idx;
       });
       this.setOriginalViewItems(originalViewItems);
-      this.updatePagingAndViewItems(originalViewItems);
+      if (!this.applyIncrementalMutation(newViewItems)) this.refreshViewAfterMutation();
       return targetIndex;
     }
     /**
@@ -7596,24 +8355,28 @@
       const removedIds = [];
       const remainingViewItems = [];
       if (this.opts.deleteMode == "soft") {
-        this.removeSoftItem(ids);
+        return this.removeSoftItem(ids);
       } else {
-        originalViewItems.forEach((viewItem) => {
+        const ownsHistory = !this.getHistoryManager().isRecording();
+        if (ownsHistory) this.beginHistory();
+        originalViewItems.forEach((viewItem, index) => {
           const rowId = viewItem.id;
           if (removeSet.has(rowId)) {
+            this.removeHistory(rowId, viewItem, index - removedIds.length);
             removedIds.push(rowId);
             this.deleteRowItem(rowId);
           } else {
             remainingViewItems.push(viewItem);
           }
         });
+        if (ownsHistory) this.commitHistory();
       }
       if (removedIds.length === 0) return [];
       remainingViewItems.forEach((vItem, idx) => {
         vItem.sortOrder = idx;
       });
       this.setOriginalViewItems(remainingViewItems);
-      this.updatePagingAndViewItems(remainingViewItems);
+      if (!this.applyIncrementalMutation([], new Set(removedIds))) this.refreshViewAfterMutation();
       return removedIds;
     }
     expandRow(rowId) {
@@ -7623,6 +8386,8 @@
     USER: 1,
     SEARCH: 2
   };
+  const ROOT_PARENT_ID = "dg$root";
+  const isRootParentId = (parentId) => parentId == null || parentId === ROOT_PARENT_ID || typeof parentId === "string" && parentId.trim() === "";
   class TreeDataManager extends DataManager {
     constructor(opts, gridMain) {
       super(opts, gridMain, "tree");
@@ -7632,18 +8397,17 @@
       this.flatViewTreeItems = [];
       this.visibleIndexMap = /* @__PURE__ */ new Map();
       const tree = opts.tree;
-      this.idKey = (tree == null ? void 0 : tree.idField) ?? "id";
-      this.pidKey = (tree == null ? void 0 : tree.parentIdField) ?? "pid";
-      this.childrenKey = (tree == null ? void 0 : tree.childrenField) ?? "children";
+      this.idKey = tree?.idField ?? "id";
+      this.pidKey = tree?.parentIdField ?? "pid";
+      this.childrenKey = tree?.childrenField ?? "children";
     }
     /**
      * 트리 노드 렌더링을 위한 데이터 초기화
      * @param items 원본 데이터 배열
      */
     setItems(items) {
-      var _a2;
       let treeItems;
-      if ((_a2 = this.opts.tree) == null ? void 0 : _a2.isFlatData) {
+      if (this.opts.tree?.isFlatData) {
         treeItems = this.buildTree(items);
       } else {
         treeItems = items;
@@ -7652,14 +8416,62 @@
       super.setItems(itemInfo.flatItems);
       this.originalTreeItems = itemInfo.treeViewItems;
       this.viewTreeItems = itemInfo.treeViewItems;
+      this.setOriginalViewItems(this.getOriginalTreeViewItems());
       this.buildViewItems();
     }
+    getOriginalTreeViewItems() {
+      const result = [];
+      const visit = (nodes) => {
+        for (const node of nodes) {
+          result.push(node);
+          visit(node.children ?? []);
+        }
+      };
+      visit(this.originalTreeItems);
+      return result;
+    }
+    getUnfilteredViewItems() {
+      return this.getTreeToList(this.originalTreeItems);
+    }
+    refreshViewAfterMutation() {
+      this.viewTreeItems = this.originalTreeItems;
+      super.refreshViewAfterMutation();
+    }
+    syncHistoryViewItems(entry, undo) {
+      const prune = (nodes) => nodes.filter((node) => {
+        if (!this.getRowItem(node.id)) return false;
+        node.children = prune(node.children ?? []);
+        return true;
+      });
+      this.originalTreeItems = prune(this.originalTreeItems);
+      if (undo) {
+        const removed = entry.changes.slice().reverse().filter(
+          (change) => change.type === "remove" && change.viewItem !== void 0
+        );
+        removed.sort((a, b) => a.viewItem.depth - b.viewItem.depth);
+        const byId = new Map(this.getOriginalTreeViewItems().map((node) => [node.id, node]));
+        for (const change of removed) {
+          if (!change.viewItem || byId.has(change.rowId)) continue;
+          const node = { ...change.viewItem, children: [] };
+          const parent = byId.get(node.pid);
+          const siblings = parent ? parent.children : this.originalTreeItems;
+          siblings.splice(change.index ?? siblings.length, 0, node);
+          byId.set(node.id, node);
+        }
+      }
+      const normalize = (nodes) => nodes.forEach((node, index) => {
+        node.sortOrder = index;
+        node.isLeaf = !node.children?.length;
+        normalize(node.children ?? []);
+      });
+      normalize(this.originalTreeItems);
+      this.setOriginalViewItems(this.getOriginalTreeViewItems());
+    }
     convertOriginalTreeToTreeViewItems(treeItems) {
-      var _a2, _b2;
-      let expandDepth = ((_a2 = this.opts.tree) == null ? void 0 : _a2.expandDepth) ?? 0;
+      let expandDepth = this.opts.tree?.expandDepth ?? 0;
       expandDepth = expandDepth - 1;
       const childrenKey = this.childrenKey;
-      const expandedIdSet = new Set(((_b2 = this.opts.tree) == null ? void 0 : _b2.defaultExpandedIds) ?? []);
+      const expandedIdSet = new Set(this.opts.tree?.defaultExpandedIds ?? []);
       const rootNodes = [];
       const flatItems = [];
       const dfs = (list, depth, parentId, target) => {
@@ -7679,7 +8491,7 @@
           target.push(treeViewItem);
           flatItems.push(item);
           const children = item[childrenKey];
-          if ((children == null ? void 0 : children.length) && children.length > 0) {
+          if (children?.length && children.length > 0) {
             treeViewItem.children = [];
             treeViewItem.isLeaf = false;
             dfs(children, depth + 1, rowId, treeViewItem.children);
@@ -7687,7 +8499,7 @@
           }
         }
       };
-      dfs(treeItems, 0, "dg$root", rootNodes);
+      dfs(treeItems, 0, ROOT_PARENT_ID, rootNodes);
       return { flatItems, treeViewItems: rootNodes };
     }
     /**
@@ -7722,7 +8534,6 @@
     }
     /**
      * viewItems
-     * @param items items
      */
     buildViewItems() {
       this.setViewItems(this.getTreeToList(this.viewTreeItems));
@@ -7740,7 +8551,6 @@
       const searchEnabled = this.cfg.searchEnabled;
       let offset = 0;
       const dfs = (list, parentExpanded) => {
-        var _a2;
         for (const item of list) {
           const treeItem = item;
           const rowId = treeItem.id;
@@ -7748,7 +8558,7 @@
             const matchViewItem = this.getSearchMapItem(rowId);
             if (matchViewItem) {
               this.matchOffsetMap.set(rowId, offset);
-              offset += ((_a2 = matchViewItem.matchedFields) == null ? void 0 : _a2.length) ?? 0;
+              offset += matchViewItem.matchedFields?.length ?? 0;
             }
           }
           this.idViewItemMap.set(rowId, treeItem);
@@ -7774,7 +8584,7 @@
     toggleRow(rowId) {
       const viewItem = this.idViewItemMap.get(rowId);
       if (viewItem) {
-        viewItem.expanded = (viewItem == null ? void 0 : viewItem.expanded) > 0 ? 0 : EXPAND_TYPE.USER;
+        viewItem.expanded = viewItem?.expanded > 0 ? 0 : EXPAND_TYPE.USER;
         this.buildViewItems();
       }
     }
@@ -7792,9 +8602,8 @@
     }
     allToggle(flag) {
       function dfs(items) {
-        var _a2;
         for (const item of items) {
-          if (((_a2 = item.children) == null ? void 0 : _a2.length) > 0) {
+          if (item.children?.length > 0) {
             item.expanded = flag ? EXPAND_TYPE.USER : 0;
             dfs(item.children);
           }
@@ -7839,12 +8648,11 @@
       searchMatchInfo.matchCount = 0;
       const hideNonMatched = options.hideNonMatched;
       options.postProcess = (isMatched, item, viewItem) => {
-        var _a2;
         if (!viewItem) return;
         const treeViewItem = viewItem;
         if (isMatched) {
           this.addSearchMapItem(treeViewItem.id, treeViewItem);
-          searchMatchInfo.matchCount += ((_a2 = treeViewItem.matchedFields) == null ? void 0 : _a2.length) ?? 0;
+          searchMatchInfo.matchCount += treeViewItem.matchedFields?.length ?? 0;
         } else {
           treeViewItem.expanded = treeViewItem.expanded % 2 > 0 ? EXPAND_TYPE.USER : 0;
         }
@@ -7852,7 +8660,6 @@
       const dataManager = this.cfg.dataManager;
       const matchItemSet = /* @__PURE__ */ new Set();
       const searchTree = (nodes, depth) => {
-        var _a2;
         const matchResult2 = gridDataSearch(nodes, dataManager, keyword, options);
         if (matchResult2.isOriginal) {
           return matchResult2;
@@ -7865,7 +8672,7 @@
             childResult = searchTree(children);
           }
           const pid = node.pid;
-          const isMatched = ((_a2 = node.matchedFields) == null ? void 0 : _a2.length) || childResult.matchCount > 0 || matchItemSet.has(node.id);
+          const isMatched = node.matchedFields?.length || childResult.matchCount > 0 || matchItemSet.has(node.id);
           if (!hideNonMatched) {
             if (isMatched) {
               node.expanded = isMatched ? EXPAND_TYPE.SEARCH : node.expanded;
@@ -7949,19 +8756,19 @@
      * @returns
      */
     getSortData(sortOrders, sortOpts) {
-      const dataManager = this.cfg.dataManager;
-      function sortTree(nodes) {
-        nodes = multiSort(nodes, dataManager, sortOrders, sortOpts.nullsLast);
+      const sortTree = (nodes) => {
+        nodes = this.sortItems(nodes, sortOrders, sortOpts);
         for (const node of nodes) {
           const treeViewItem = node;
           const children = treeViewItem.children;
           if (children && children.length > 0) {
-            sortTree(children);
+            treeViewItem.children = sortTree(children);
           }
         }
         return nodes;
-      }
+      };
       const sortedTree = sortTree(this.viewTreeItems);
+      this.viewTreeItems = sortedTree;
       const result = this.getTreeToList(sortedTree);
       if (!this.cfg.searchEnabled) {
         return result;
@@ -7988,12 +8795,12 @@
      */
     addItems(items, addOpts = {}, status = ItemStatusMap.READ) {
       if (!items || items.length === 0) return -1;
-      let parentId = "dg$root";
+      let parentId = ROOT_PARENT_ID;
       let depth = 0;
-      let targetSiblings = this.viewTreeItems;
+      let targetSiblings = this.originalTreeItems;
       let insertIndex = targetSiblings.length;
-      if ((addOpts == null ? void 0 : addOpts.rowId) !== void 0) {
-        const targetNode = this.idViewItemMap.get(addOpts.rowId);
+      if (addOpts?.rowId !== void 0) {
+        const targetNode = this.getOriginalTreeViewItems().find((node) => node.id === addOpts.rowId);
         if (targetNode) {
           if (addOpts.position === "inside") {
             parentId = targetNode.id;
@@ -8008,11 +8815,11 @@
           } else {
             parentId = targetNode.pid;
             depth = targetNode.depth;
-            if (parentId === "dg$root" || !parentId) {
-              targetSiblings = this.viewTreeItems;
+            if (isRootParentId(parentId)) {
+              targetSiblings = this.originalTreeItems;
             } else {
-              const parentNode = this.idViewItemMap.get(parentId);
-              targetSiblings = (parentNode == null ? void 0 : parentNode.children) ?? this.viewTreeItems;
+              const parentNode = this.getOriginalTreeViewItems().find((node) => node.id === parentId);
+              targetSiblings = parentNode?.children ?? this.originalTreeItems;
             }
             const foundIdx = targetSiblings.findIndex((node) => node.id === targetNode.id);
             if (foundIdx !== -1) {
@@ -8020,7 +8827,7 @@
             }
           }
         }
-      } else if ((addOpts == null ? void 0 : addOpts.position) === "before") {
+      } else if (addOpts?.position === "before") {
         insertIndex = 0;
       }
       const createTreeViewNodes = (list, currentDepth, currentPid) => {
@@ -8055,7 +8862,8 @@
       targetSiblings.forEach((node, idx) => {
         node.sortOrder = idx;
       });
-      this.buildViewItems();
+      this.setOriginalViewItems(this.getOriginalTreeViewItems());
+      this.refreshViewAfterMutation();
       return insertIndex;
     }
     /**
@@ -8065,45 +8873,38 @@
      */
     removeItems(ids) {
       if (!ids || ids.length === 0) return [];
+      const originalNodes = this.getOriginalTreeViewItems();
+      if (this.opts.deleteMode === "soft") {
+        for (const id of ids) {
+          if (!originalNodes.some((node) => node.id === id)) throw new Error(`Row not found: ${id}`);
+        }
+      }
       const removeSet = new Set(ids);
       const removedIds = [];
-      const collectAndClean = (node) => {
-        removedIds.push(node.id);
-        if (typeof this.deleteRowItem === "function") {
-          this.deleteRowItem(node.id);
-        } else if (typeof this.removeRowItem === "function") {
-          this.removeRowItem(node.id);
-        }
-        this.idViewItemMap.delete(node.id);
-        this.visibleIndexMap.delete(node.id);
-        this.matchOffsetMap.delete(node.id);
-        if (node.children && node.children.length > 0) {
-          node.children.forEach(collectAndClean);
-        }
-      };
-      const filterNodes = (nodes) => {
-        const result = [];
-        for (const node of nodes) {
-          if (removeSet.has(node.id)) {
-            collectAndClean(node);
-          } else {
-            if (node.children && node.children.length > 0) {
-              node.children = filterNodes(node.children);
-              if (node.children.length === 0) {
-                node.isLeaf = true;
-              }
-            }
-            result.push(node);
+      const collect = (nodes, removeParent = false) => {
+        let removedBefore = 0;
+        nodes.forEach((node, index) => {
+          const remove = removeParent || removeSet.has(node.id);
+          if (remove) {
+            removedIds.push(node.id);
+            if (this.opts.deleteMode !== "soft") this.removeHistory(node.id, node, index - removedBefore);
+            removedBefore++;
           }
-        }
-        result.forEach((node, idx) => {
-          node.sortOrder = idx;
+          collect(node.children ?? [], remove);
         });
-        return result;
       };
-      this.viewTreeItems = filterNodes(this.viewTreeItems);
-      this.originalTreeItems = filterNodes(this.originalTreeItems);
-      this.buildViewItems();
+      if (this.opts.deleteMode === "soft") {
+        collect(this.originalTreeItems);
+        return this.removeSoftItem(removedIds);
+      }
+      const ownsHistory = !this.getHistoryManager().isRecording();
+      if (ownsHistory) this.beginHistory();
+      collect(this.originalTreeItems);
+      for (const id of removedIds) this.deleteRowItem(id);
+      if (ownsHistory) this.commitHistory();
+      if (!removedIds.length) return [];
+      this.syncHistoryViewItems({ changes: [] }, false);
+      this.refreshViewAfterMutation();
       return removedIds;
     }
   }
@@ -8117,7 +8918,6 @@
       this.groupingRefreshPending = false;
     }
     setViewItems(items) {
-      var _a2;
       const dataItems = items.filter((item) => !item.groupRowType);
       this.sourceViewItems = dataItems;
       const groupFields = this.opts.groupingFields ?? [];
@@ -8132,11 +8932,10 @@
         item: super.getRowItem(viewItem.id)
       }));
       const appendGroups = (rows, fieldIndex, groupValues) => {
-        var _a3, _b2;
         const fieldName = groupFields[fieldIndex];
         const groups = /* @__PURE__ */ new Map();
         for (const row of rows) {
-          const value = (_a3 = row.item) == null ? void 0 : _a3[fieldName];
+          const value = row.item?.[fieldName];
           const group = groups.get(value);
           if (group) {
             group.push(row);
@@ -8150,7 +8949,7 @@
             appendGroups(groupRows, fieldIndex + 1, currentGroupValues);
           } else {
             groupedItems.push(...groupRows.map(({ viewItem }) => viewItem));
-            if (this.opts.showGroupSum !== false && (((_b2 = this.opts.sumFields) == null ? void 0 : _b2.length) ?? 0) > 0) {
+            if (this.opts.showGroupSummary !== false && getGroupSummaries(this.opts).length > 0) {
               groupedItems.push(
                 this.createGroupRow({
                   groupRowType: "groupSummary",
@@ -8168,7 +8967,7 @@
       if (dataRows.length > 0) {
         appendGroups(dataRows, 0, []);
       }
-      if (this.opts.showGrandSum !== false && (((_a2 = this.opts.sumFields) == null ? void 0 : _a2.length) ?? 0) > 0 && dataRows.length > 0) {
+      if (this.opts.showGrandSummary !== false && getGroupSummaries(this.opts).length > 0 && dataRows.length > 0) {
         groupedItems.push(
           this.createGroupRow({
             groupRowType: "grandSummary",
@@ -8180,7 +8979,7 @@
     }
     setChangeValue(rowItem, field, newValue, applyValue) {
       const changed = super.setChangeValue(rowItem, field, newValue, applyValue);
-      if (changed && ((this.opts.groupingFields ?? []).includes(field.name) || (this.opts.sumFields ?? []).includes(field.name))) {
+      if (changed && ((this.opts.groupingFields ?? []).includes(field.name) || getGroupSummaryFields(this.opts).includes(field.name) || getGroupSummaries(this.opts).some((item) => typeof item.expression === "function"))) {
         this.groupingRefreshPending = true;
         this.refreshGroupingIfReady();
       }
@@ -8201,8 +9000,7 @@
       this.refreshGroupingIfReady();
     }
     getSortData(sortOrders, sortOpts) {
-      var _a2;
-      const sortData = multiSort(this.sourceViewItems, this.cfg.dataManager, sortOrders, sortOpts.nullsLast);
+      const sortData = this.sortItems(this.getPagingViewItems(), sortOrders, sortOpts);
       if (!this.cfg.searchEnabled) {
         return sortData;
       }
@@ -8216,7 +9014,7 @@
         const matchViewItem = this.getSearchMapItem(id);
         if (matchViewItem) {
           this.matchOffsetMap.set(id, offset);
-          offset += ((_a2 = matchViewItem.matchedFields) == null ? void 0 : _a2.length) ?? 0;
+          offset += matchViewItem.matchedFields?.length ?? 0;
         }
         if (matchRowIndex === -1 && id === matchId) {
           matchRowIndex = i;
@@ -8229,17 +9027,6 @@
         cellIndex: searchMatchInfo.cellIndex
       });
       return sortData;
-    }
-    refreshAfterHistory(entry, undo) {
-      this.sourceViewItems = this.sourceViewItems.filter((viewItem) => super.getRowItem(viewItem.id) !== void 0);
-      for (const change of entry.changes) {
-        const restored = change.type === "add" && !undo || change.type === "remove" && undo;
-        if (restored && !this.sourceViewItems.some((viewItem) => viewItem.id === change.rowId)) {
-          const viewItem = this.getOriginalViewItems().find((candidate) => candidate.id === change.rowId);
-          this.sourceViewItems.push(viewItem ?? { id: change.rowId, sortOrder: this.sourceViewItems.length });
-        }
-      }
-      super.refreshAfterHistory(entry, undo);
     }
     getRowItem(rowId) {
       return this.groupRows.get(rowId) ?? super.getRowItem(rowId);
@@ -8290,15 +9077,9 @@
     }
     sumRows(rows) {
       const sums = {};
-      for (const field of this.opts.sumFields ?? []) {
-        sums[field] = rows.reduce((total, { item }) => {
-          const value = item == null ? void 0 : item[field];
-          if (value === null || value === void 0 || value === "") {
-            return total;
-          }
-          const numericValue = Number(value);
-          return Number.isFinite(numericValue) ? total + numericValue : total;
-        }, 0);
+      const items = rows.map(({ item }) => item);
+      for (const summary of getGroupSummaries(this.opts)) {
+        sums[getSummaryField(summary)] = calculateGroupSummary(items, summary);
       }
       return sums;
     }
@@ -8307,6 +9088,2103 @@
         this.groupingRefreshPending = false;
         this.setViewItems(this.sourceViewItems.slice());
       }
+    }
+  }
+  class DataSourceError extends Error {
+    constructor(code, message2, status, response, cause) {
+      super(message2);
+      this.code = code;
+      this.status = status;
+      this.response = response;
+      this.cause = cause;
+      this.name = "DataSourceError";
+      Object.setPrototypeOf(this, DataSourceError.prototype);
+    }
+  }
+  function toDataSourceError(error) {
+    if (error instanceof DataSourceError) return error;
+    const e = error;
+    if (e?.type === "http") {
+      return new DataSourceError("HTTP", `HTTP ${e.status} ${e.statusText ?? ""}`.trim(), e.status, e.responseText, error);
+    }
+    if (e?.type === "timeout") return new DataSourceError("TIMEOUT", "Request timeout", void 0, void 0, error);
+    if (e?.type === "abort" || e?.name === "AbortError") {
+      return new DataSourceError("ABORT", "Request aborted", void 0, void 0, error);
+    }
+    if (e?.type === "network") return new DataSourceError("NETWORK", "Network error", void 0, void 0, error);
+    if (e?.type === "parse") {
+      return new DataSourceError("INVALID_RESPONSE", e.message || "Failed to parse response body", e.status, e.responseText, error);
+    }
+    if (e?.type === "method") return new DataSourceError("CONFIG", e.message || "Invalid HTTP method", e.status, void 0, error);
+    return new DataSourceError("NETWORK", e?.message || "Request failed", void 0, void 0, error);
+  }
+  function isArray(value) {
+    return Array.isArray(value);
+  }
+  function isFunction(value) {
+    return typeof value === "function";
+  }
+  function isObject(value) {
+    return value !== null && (typeof value === "object" || typeof value === "function");
+  }
+  function isPlainObject(value) {
+    if (value === null || typeof value !== "object") return false;
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype === null || prototype === Object.prototype) return true;
+    if (Object.getPrototypeOf(prototype) !== null) return false;
+    const constructor = Object.getOwnPropertyDescriptor(prototype, "constructor")?.value;
+    return isFunction(constructor) && Object.getOwnPropertyDescriptor(constructor, "prototype")?.value === prototype && Function.prototype.toString.call(constructor) === Function.prototype.toString.call(Object);
+  }
+  const hasOwn = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+  function setOwn(target, key, value) {
+    Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true });
+  }
+  function mergeSource(target, source, excludeKeys, replaceArrays = false) {
+    const copies = /* @__PURE__ */ new WeakMap();
+    const tasks = [];
+    function copy2(value, current) {
+      if (value === null || typeof value !== "object") return value;
+      if (copies.has(value)) return copies.get(value);
+      let result;
+      if (isArray(value)) {
+        result = replaceArrays || !isArray(current) ? [] : current;
+        tasks.push(() => replaceArrays ? value.forEach((item) => result.push(copy2(item))) : mergeArray(result, value));
+      } else if (isPlainObject(value)) {
+        result = isPlainObject(current) ? current : Object.create(Object.getPrototypeOf(value));
+        tasks.push(() => mergeObject(result, value));
+      } else if (value instanceof Date) {
+        result = new Date(value.getTime());
+      } else if (value instanceof RegExp) {
+        result = new RegExp(value.source, value.flags);
+        result.lastIndex = value.lastIndex;
+      } else if (value instanceof Map) {
+        result = /* @__PURE__ */ new Map();
+        tasks.push(() => value.forEach((item, key) => result.set(copy2(key), copy2(item))));
+      } else if (value instanceof Set) {
+        result = /* @__PURE__ */ new Set();
+        tasks.push(() => value.forEach((item) => result.add(copy2(item))));
+      } else {
+        return value;
+      }
+      copies.set(value, result);
+      return result;
+    }
+    function mergeObject(dst, src) {
+      for (const key of Object.keys(src)) {
+        if (excludeKeys.has(key) || key === "__proto__" || key === "constructor" || key === "prototype") continue;
+        const value = src[key];
+        if (value === void 0) continue;
+        setOwn(dst, key, copy2(value, hasOwn(dst, key) ? dst[key] : void 0));
+      }
+    }
+    function mergeArray(dst, src) {
+      const seen = new Set(dst);
+      for (const value of src) {
+        const item = copy2(value);
+        if (value !== null && typeof value === "object" || Number.isNaN(item) || !seen.has(item)) {
+          seen.add(item);
+          dst.push(item);
+        }
+      }
+    }
+    copies.set(source, target);
+    if (isArray(source) && isArray(target)) tasks.push(() => mergeArray(target, source));
+    else tasks.push(() => mergeObject(target, source));
+    while (tasks.length) tasks.pop()();
+  }
+  function objectDeepMerge(...values) {
+    if (values.length < 1) {
+      return values;
+    }
+    let excludeKeys = /* @__PURE__ */ new Set();
+    let replaceArrays = false;
+    let sources = values;
+    const last = values[values.length - 1];
+    const hasExcludeKeys = isPlainObject(last) && hasOwn(last, "_excludeKeys") && isArray(last._excludeKeys);
+    const hasArrayMode = isPlainObject(last) && hasOwn(last, "_arrays") && (last._arrays === "replace" || last._arrays === "merge");
+    if (hasExcludeKeys || hasArrayMode) {
+      if (hasExcludeKeys) excludeKeys = new Set(last._excludeKeys.map(String));
+      replaceArrays = hasArrayMode && last._arrays === "replace";
+      sources = values.slice(0, -1);
+    }
+    let result = {};
+    for (let index = 0; index < sources.length; index++) {
+      const value = sources[index];
+      if (isArray(value) || isPlainObject(value)) {
+        mergeSource(result, value, index === 0 ? /* @__PURE__ */ new Set() : excludeKeys, replaceArrays);
+      }
+    }
+    return result;
+  }
+  function isString(value) {
+    return typeof value === "string";
+  }
+  function isBlank(value) {
+    return value === null || value === void 0 || isString(value) && value.trim() === "";
+  }
+  function objectToQueryString(param) {
+    return Object.keys(param).map((key) => {
+      const val = param[key];
+      if (val !== void 0 && val !== null) {
+        return `${encodeURIComponent(key)}=${encodeURIComponent(val instanceof Date && !isNaN(val.getTime()) ? val.toISOString() : isObject(val) ? JSON.stringify(val) : String(val))}`;
+      }
+    }).filter(Boolean).join("&");
+  }
+  const ABSOLUTE_URL = /^([a-z][a-z\d+\-.]*:)?\/\//i;
+  function joinUrl(baseUrl2, url) {
+    if (!baseUrl2 || ABSOLUTE_URL.test(url)) return url;
+    if (!url) return baseUrl2;
+    if (url[0] === "?" || url[0] === "#") return baseUrl2 + url;
+    return `${baseUrl2.replace(/\/+$/, "")}/${url.replace(/^\/+/, "")}`;
+  }
+  function isFormData(data) {
+    if (!data) return false;
+    return typeof FormData !== "undefined" && data instanceof FormData;
+  }
+  function isSafeUrl(url) {
+    const value = url.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
+    if (!value) return false;
+    const match = /^([a-z][a-z0-9+.-]*):/i.exec(value);
+    if (!match) return true;
+    if (match[1].toLowerCase() === "data") return /^data:image\/(?:png|gif|jpe?g|webp|avif|bmp)(?:;|,)/i.test(value);
+    return ["http", "https", "mailto", "tel"].includes(match[1].toLowerCase());
+  }
+  const DROP_TAGS = /* @__PURE__ */ new Set([
+    "script",
+    "style",
+    "iframe",
+    "frame",
+    "frameset",
+    "object",
+    "embed",
+    "applet",
+    "link",
+    "meta",
+    "base",
+    "form",
+    "input",
+    "button",
+    "textarea",
+    "select",
+    "option",
+    "svg",
+    "math",
+    "template",
+    "noscript",
+    "title"
+  ]);
+  const ALLOWED_TAGS = /* @__PURE__ */ new Set([
+    "a",
+    "abbr",
+    "b",
+    "blockquote",
+    "br",
+    "caption",
+    "code",
+    "col",
+    "colgroup",
+    "dd",
+    "del",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "figcaption",
+    "figure",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "i",
+    "img",
+    "ins",
+    "li",
+    "mark",
+    "ol",
+    "p",
+    "pre",
+    "s",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "tr",
+    "u",
+    "ul"
+  ]);
+  const ALLOWED_ATTRS = /* @__PURE__ */ new Set([
+    "class",
+    "style",
+    "title",
+    "alt",
+    "href",
+    "src",
+    "target",
+    "width",
+    "height",
+    "colspan",
+    "rowspan",
+    "align",
+    "valign",
+    "dir",
+    "lang"
+  ]);
+  const URL_ATTRS = /* @__PURE__ */ new Set(["href", "src"]);
+  const UNSAFE_STYLE = /url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:|-moz-binding|position\s*:\s*(?:fixed|absolute|sticky)|\\|\/\*/i;
+  function sanitizeElement(el) {
+    Array.from(el.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+      const value = attr.value;
+      const keep = ALLOWED_ATTRS.has(name) && (!URL_ATTRS.has(name) || isSafeUrl(value)) && (name !== "style" || !UNSAFE_STYLE.test(value)) && (name !== "target" || value === "_blank" || value === "_self");
+      if (!keep) el.removeAttribute(attr.name);
+    });
+    if (el.tagName === "A" && el.getAttribute("target") === "_blank") {
+      el.setAttribute("rel", "noopener noreferrer");
+    }
+  }
+  function sanitizeChildren(parent) {
+    Array.from(parent.childNodes).forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) return;
+      if (node.nodeType !== Node.ELEMENT_NODE) {
+        node.parentNode?.removeChild(node);
+        return;
+      }
+      const el = node;
+      const tag = el.tagName.toLowerCase();
+      if (DROP_TAGS.has(tag)) {
+        el.remove();
+        return;
+      }
+      sanitizeChildren(el);
+      if (ALLOWED_TAGS.has(tag)) {
+        sanitizeElement(el);
+      } else {
+        el.replaceWith(...Array.from(el.childNodes));
+      }
+    });
+  }
+  function sanitizeHtml(html2) {
+    const template = document.createElement("template");
+    template.innerHTML = html2;
+    const fragment = template.content;
+    sanitizeChildren(fragment);
+    return document.importNode(fragment, true);
+  }
+  const THEMES = ["auto", "light", "dark"];
+  function isSafeImageUrl(url) {
+    const value = url.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "");
+    if (!value) return false;
+    const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(value);
+    if (!scheme) return true;
+    const name = scheme[1].toLowerCase();
+    return name === "http" || name === "https" || name === "blob" || name === "data" && /^data:image\//i.test(value);
+  }
+  const instanceMap = {};
+  const loadingGroups = /* @__PURE__ */ new WeakMap();
+  let G_LOADING_IDX = 0;
+  let defaultOptions = {
+    //  사라지는 시간
+    timeout: -1,
+    // 시간 표시 여부
+    enableTime: false,
+    enableRequestCount: false,
+    requestCount: 0,
+    // 표시 내용
+    content: "",
+    // background color
+    bgColor: "var(--daracl-loading-backdrop, #ffffff)",
+    theme: "auto",
+    // z-index
+    zIndex: 9999,
+    // opacity
+    opacity: "0.3",
+    // 이미지 경로 및 base64 코드
+    loadingImg: "",
+    // css cursor
+    cursor: "wait",
+    // 취소 버튼 활성화 여부
+    enableCancelButton: false,
+    // 취소 벼튼 활성화시  callback 메소드
+    callback: (param) => {
+      return true;
+    }
+  };
+  class Loading {
+    constructor(selector, options = {}) {
+      this.orginStylePosition = "";
+      this.startedAt = 0;
+      if (isBlank(selector)) {
+        selector = "body";
+      }
+      if (selector instanceof HTMLElement) {
+        this.containerNode = selector;
+        this.selector = "";
+      } else {
+        selector = selector || "body";
+        try {
+          this.containerNode = document.querySelector(selector);
+        } catch {
+          this.containerNode = null;
+        }
+        this.selector = selector;
+      }
+      if (!this.containerNode) return;
+      this.options = objectDeepMerge(defaultOptions, options);
+      if (this.selector) instanceMap[this.selector] = this;
+      this.show();
+    }
+    static create(selector, options) {
+      return new Loading(selector, options);
+    }
+    static instance(selector) {
+      return instanceMap[selector];
+    }
+    static setOptions(options) {
+      defaultOptions = Object.assign({}, defaultOptions, options);
+    }
+    cancelHandler() {
+      let failed = false;
+      let failure;
+      for (const member of Array.from(this.group?.members ?? [this])) {
+        try {
+          if (member.options.callback?.(member.options) !== false) member.hide();
+        } catch (error) {
+          member.hide();
+          if (!failed) {
+            failed = true;
+            failure = error;
+          }
+        }
+      }
+      if (failed) throw failure;
+    }
+    startTimeout() {
+      this.startedAt = Date.now();
+      if (this.options.timeout > 0) this.timeoutId = window.setTimeout(() => this.hide(), this.options.timeout);
+    }
+    updateSharedOptions() {
+      const group = this.group;
+      const renderer = group?.renderer;
+      const element = renderer?.loadingElement;
+      if (!group || !renderer || !element) return;
+      const members = Array.from(group.members);
+      const image = element.querySelector(".daracl-cl-image");
+      const enableTime = members.some((member) => member.options.enableTime);
+      let time = element.querySelector(".daracl-cl-time");
+      if (enableTime && !time) {
+        time = document.createElement("div");
+        time.className = "daracl-cl-time";
+        time.setAttribute("aria-label", "경과 시간(초)");
+        image?.insertAdjacentElement("beforebegin", time);
+      }
+      if (enableTime && time) {
+        const counter = time;
+        const update = () => {
+          const start = Math.min(...members.filter((member) => member.options.enableTime).map((member) => member.startedAt));
+          counter.textContent = String(Math.floor((Date.now() - start) / 1e3));
+        };
+        window.clearInterval(renderer.intervalId);
+        update();
+        renderer.intervalId = window.setInterval(update, 1e3);
+      } else {
+        time?.remove();
+        window.clearInterval(renderer.intervalId);
+        renderer.intervalId = void 0;
+      }
+      const button = element.querySelector(".daracl-cl-btn");
+      if (members.some((member) => member.options.enableCancelButton)) {
+        if (!button) {
+          const wrapper = document.createElement("div");
+          wrapper.className = "daracl-cl-actions";
+          const cancel = document.createElement("button");
+          cancel.type = "button";
+          cancel.className = "daracl-cl-btn";
+          cancel.textContent = "Cancel";
+          cancel.addEventListener("click", () => renderer.cancelHandler());
+          wrapper.appendChild(cancel);
+          image?.parentElement?.appendChild(wrapper);
+        }
+      } else button?.parentElement?.remove();
+      const content = members.filter((member) => member.options.content).pop()?.options.content ?? "";
+      if (content) renderer.renderContent(content);
+      else element.querySelector(".daracl-cl-content")?.remove();
+    }
+    /**
+     * 이 인스턴스의 요청 수를 갱신하고 공유 화면에 합계를 표시합니다.
+     * @param count 진행 중인 요청 수
+     * @returns 없음
+     */
+    setRequestCount(count) {
+      if (!this.options) return;
+      this.options.requestCount = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0;
+      this.updateRequestCount();
+    }
+    updateRequestCount() {
+      const group = this.group;
+      const element = group?.renderer.loadingElement;
+      if (!group || !element) return;
+      let count = 0;
+      let enabled = false;
+      for (const member of group.members) {
+        enabled = enabled || member.options.enableRequestCount;
+        count += Number.isFinite(member.options.requestCount) ? Math.max(0, Math.floor(member.options.requestCount)) : 0;
+      }
+      let counter = element.querySelector(".daracl-cl-request-count");
+      if (!enabled) {
+        counter?.remove();
+        return;
+      }
+      if (!counter) {
+        counter = document.createElement("div");
+        counter.className = "daracl-cl-request-count";
+        counter.setAttribute("role", "status");
+        element.querySelector(".daracl-cl-image")?.insertAdjacentElement("afterend", counter);
+      }
+      counter.textContent = `진행 중 요청: ${count}`;
+    }
+    /**
+     * show loading module
+     * @public
+     */
+    show() {
+      const containerNode = this.containerNode;
+      if (!containerNode) return;
+      const existingGroup = loadingGroups.get(containerNode);
+      if (existingGroup) {
+        if (existingGroup.members.has(this)) return;
+        this.group = existingGroup;
+        existingGroup.members.add(this);
+        if (this.selector) instanceMap[this.selector] = this;
+        this.startTimeout();
+        this.updateRequestCount();
+        this.updateSharedOptions();
+        return;
+      }
+      if (containerNode.querySelector(":scope >.daracl-cl")) return;
+      this.orginStylePosition = containerNode.style.position;
+      const computedStyle = getComputedStyle(containerNode);
+      if (!["absolute", "relative", "fixed", "sticky"].includes(computedStyle.position)) {
+        containerNode.style.position = "relative";
+      }
+      const opts = this.options;
+      let zIndex = opts.zIndex;
+      if (defaultOptions.zIndex == opts.zIndex) {
+        zIndex += ++G_LOADING_IDX;
+      }
+      const root = document.createElement("div");
+      root.className = "daracl-cl";
+      root.setAttribute("data-loading-theme", THEMES.includes(opts.theme) ? opts.theme : "auto");
+      root.setAttribute("aria-label", "로딩 중");
+      root.style.setProperty("cursor", String(opts.cursor));
+      root.style.setProperty("z-index", String(zIndex));
+      const backdrop = document.createElement("div");
+      backdrop.className = "daracl-cl-backdrop";
+      backdrop.style.setProperty("background", String(opts.bgColor));
+      backdrop.style.setProperty("opacity", String(opts.opacity));
+      const panel = document.createElement("div");
+      panel.className = "daracl-cl-panel";
+      if (opts.loadingImg && isSafeImageUrl(opts.loadingImg)) {
+        const image = document.createElement("img");
+        image.className = "daracl-cl-image";
+        image.setAttribute("src", opts.loadingImg);
+        image.setAttribute("alt", "로딩 중");
+        panel.appendChild(image);
+      } else {
+        const spinner = document.createElement("span");
+        spinner.className = "daracl-cl-image daracl-cl-spinner";
+        spinner.setAttribute("role", "img");
+        spinner.setAttribute("aria-label", "로딩 중");
+        panel.appendChild(spinner);
+      }
+      root.append(backdrop, panel);
+      containerNode.insertAdjacentElement("afterbegin", root);
+      this.loadingElement = root;
+      this.group = { renderer: this, members: /* @__PURE__ */ new Set([this]) };
+      loadingGroups.set(containerNode, this.group);
+      if (this.selector) instanceMap[this.selector] = this;
+      this.startTimeout();
+      this.updateRequestCount();
+      this.updateSharedOptions();
+    }
+    /**
+     * set display content
+     *
+     * @public
+     * @param {string} content 
+     */
+    setContent(content) {
+      if (!this.containerNode) return;
+      this.options.content = content;
+      this.renderContent(content);
+    }
+    renderContent(content) {
+      const loadingElement = this.group?.renderer.loadingElement ?? this.loadingElement;
+      if (!loadingElement) return;
+      let existing = loadingElement.querySelector(".daracl-cl-content");
+      if (!existing) {
+        existing = document.createElement("div");
+        existing.className = "daracl-cl-content";
+        const image = loadingElement.querySelector(".daracl-cl-image");
+        if (!image) return;
+        image.insertAdjacentElement("afterend", existing);
+      }
+      existing.replaceChildren(sanitizeHtml(content));
+    }
+    /**
+     * hide loading module
+     *
+     * @public
+     * @param {?boolean} [flag] 
+     */
+    hide(flag) {
+      const group = this.group;
+      if (!group || !group.members.delete(this)) return;
+      window.clearTimeout(this.timeoutId);
+      this.timeoutId = void 0;
+      if (flag !== false && instanceMap[this.selector] === this) {
+        delete instanceMap[this.selector];
+        const replacement = Array.from(group?.members ?? []).find((member) => member.selector === this.selector);
+        if (replacement) instanceMap[this.selector] = replacement;
+      }
+      if (group?.members.size) {
+        this.updateRequestCount();
+        this.updateSharedOptions();
+        if (this !== group.renderer) this.group = void 0;
+        return;
+      }
+      const renderer = group?.renderer ?? this;
+      window.clearInterval(renderer.intervalId);
+      window.clearTimeout(renderer.timeoutId);
+      renderer.intervalId = void 0;
+      renderer.timeoutId = void 0;
+      if (renderer.containerNode && renderer.loadingElement) {
+        renderer.containerNode.style.position = renderer.orginStylePosition || "";
+        renderer.loadingElement.remove();
+        renderer.loadingElement = null;
+      }
+      if (renderer.containerNode) loadingGroups.delete(renderer.containerNode);
+      this.group = void 0;
+      renderer.group = void 0;
+    }
+    /**
+     * destroy loading instance
+     *
+     * @public
+     * @static
+     * @param {string} selector 
+     */
+    static destroy(selector) {
+      if (instanceMap[selector]) {
+        const instance = instanceMap[selector];
+        for (const member of Array.from(instance.group?.members ?? [instance])) member.hide();
+        delete instanceMap[selector];
+      }
+    }
+  }
+  function defaultMessage(type, status, error) {
+    switch (type) {
+      case "http":
+        return `Request failed with status code ${status}`;
+      case "timeout":
+        return "timeout exceeded";
+      case "abort":
+        return "Request aborted";
+      case "method":
+        return "Invalid HTTP method";
+      case "parse":
+        return "Failed to parse response body";
+      case "callback":
+        return error?.message || "Request callback failed";
+      default:
+        return error?.message || "Network Error";
+    }
+  }
+  class AjaxError extends Error {
+    constructor(init) {
+      super(init.message ?? defaultMessage(init.type, init.status, init.error));
+      Object.setPrototypeOf(this, AjaxError.prototype);
+      this.name = "AjaxError";
+      this.type = init.type;
+      this.status = init.status ?? 0;
+      this.statusText = init.statusText ?? "";
+      this.responseText = init.responseText ?? "";
+      this.error = init.error ?? null;
+      this.xhr = init.xhr;
+      this.loadingInstance = init.loadingInstance;
+      this.response = init.response;
+    }
+  }
+  class AjaxAbstract {
+    constructor(options) {
+      this.options = options;
+    }
+    // 객체 내부에 File/Blob/FileList가 있는지 재귀 검사
+    containsFile(data, seen = /* @__PURE__ */ new WeakSet()) {
+      if (!data) return false;
+      if (typeof File !== "undefined" && (data instanceof File || data instanceof Blob)) return true;
+      if (typeof FileList !== "undefined" && data instanceof FileList) return true;
+      if (this.isRawBody(data)) return false;
+      if (typeof data === "object") {
+        if (seen.has(data)) return false;
+        seen.add(data);
+      }
+      if (isArray(data)) {
+        for (const item of data) {
+          if (this.containsFile(item, seen)) return true;
+        }
+        return false;
+      }
+      if (isObject(data)) {
+        for (const key of Object.keys(data)) {
+          if (this.containsFile(data[key], seen)) return true;
+        }
+      }
+      return false;
+    }
+    // JSON으로 직렬화하면 안 되는 본문(URLSearchParams, ArrayBuffer, typed array)인지 검사
+    isRawBody(data) {
+      return typeof URLSearchParams !== "undefined" && data instanceof URLSearchParams || typeof ArrayBuffer !== "undefined" && (data instanceof ArrayBuffer || ArrayBuffer.isView(data));
+    }
+    // 훅(beforeRequest) 이후의 opts 로 최종 URL 과 전송 데이터를 만든다. Fetch/XHR 공통이다.
+    buildRequestData(url, method, opts) {
+      this.assertNoFileInGet(method, opts.data);
+      this.assertRawBody(method, opts);
+      const hasFormData = isFormData(opts.data);
+      const containsFile = !hasFormData && !opts.rawBody && this.containsFile(opts.data);
+      const preparedData = containsFile ? this.buildFormDataFromObject(opts.data) : opts.data;
+      return { finalUrl: this.getRequestUrl(url, method, preparedData, opts.params, opts.paramsSerializer), preparedData, isForm: hasFormData || containsFile };
+    }
+    // rawBody 는 그대로 보낼 수 있는 본문(File/Blob, ArrayBuffer·typed array, 문자열, URLSearchParams, FormData)만 허용한다.
+    assertRawBody(method, opts) {
+      const data = opts.data;
+      if (!opts.rawBody || data == null || this.isBodylessMethod(method)) return;
+      const allowed = typeof data === "string" || isFormData(data) || this.isRawBody(data) || typeof Blob !== "undefined" && data instanceof Blob;
+      if (!allowed) throw new TypeError("rawBody 는 File/Blob, ArrayBuffer, typed array, 문자열, URLSearchParams, FormData 만 보낼 수 있습니다. 일반 객체는 rawBody 를 끄세요.");
+    }
+    /** 업로드 진행률 표시 대상인지 판단한다: 파일이 든 본문 또는 rawBody 본문. */
+    isUploadProgressTarget(opts, method) {
+      return this.hasFileData(opts.data) || !!opts.rawBody && opts.data != null && !this.isBodylessMethod(method);
+    }
+    // beforeRequest 에서 opts.url 을 바꿨으면 baseUrl 을 적용해 새 URL 을 쓰고, 그대로면 기존 URL 을 쓴다.
+    resolveUrl(url, originalUrl, opts) {
+      return opts.url !== originalUrl ? joinUrl(this.options.baseUrl, opts.url || "") : url;
+    }
+    getRequestUrl(url, method, data, params, serializer) {
+      const withData = this.getUrlWithData(url, method, data);
+      if (!params) return withData;
+      return this.appendQuery(withData, serializer ? serializer(params) : objectToQueryString(params));
+    }
+    // 오류 객체를 생성합니다. Fetch/XHR 공통이며 AjaxError 로 던져 Error 로 처리할 수 있게 합니다.
+    createError(params) {
+      const { type, opts, xhr, error, loadingInstance } = params;
+      const status = params.status ?? xhr?.status ?? 0;
+      const statusText = params.statusText ?? xhr?.statusText ?? "";
+      const responseText = params.responseText ?? this.readResponseText(xhr);
+      let response;
+      if (type === "http" || type === "parse") {
+        let data = responseText;
+        if (opts.responseType === "json") {
+          try {
+            data = JSON.parse(responseText);
+          } catch {
+            data = void 0;
+          }
+        }
+        response = { status, statusText, data, headers: params.headers ?? {} };
+      }
+      const message2 = type === "timeout" && opts.timeout && opts.timeout > 0 ? `timeout of ${opts.timeout}ms exceeded` : void 0;
+      return new AjaxError({ type, message: message2, status, statusText, responseText, error, xhr, loadingInstance, response });
+    }
+    // blob/arraybuffer 로 받는 XHR 은 responseText 접근이 예외를 던지므로 빈 문자열로 대체한다.
+    readResponseText(xhr) {
+      try {
+        return xhr?.responseText ?? "";
+      } catch {
+        return "";
+      }
+    }
+    // GET/HEAD 는 본문을 보낼 수 없다. data 는 쿼리로 붙이고 기본 Content-Type 도 붙이지 않는다.
+    isBodylessMethod(method) {
+      return method === "GET" || method === "HEAD";
+    }
+    // blob/arraybuffer 응답을 문자열로 디코드한다. 오류 응답 본문(JSON 메시지 등)을 읽는 데 사용하며, 읽을 수 없으면 빈 문자열이다.
+    async binaryToText(value) {
+      try {
+        if (typeof Blob !== "undefined" && value instanceof Blob) {
+          if (typeof value.text === "function") return await value.text();
+          return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result ?? ""));
+            reader.onerror = () => reject(reader.error);
+            reader.readAsText(value);
+          });
+        }
+        if (typeof TextDecoder !== "undefined" && Object.prototype.toString.call(value) === "[object ArrayBuffer]") return new TextDecoder().decode(value);
+      } catch {
+      }
+      return "";
+    }
+    isBinaryType(responseType) {
+      return responseType === "blob" || responseType === "arraybuffer";
+    }
+    isSuccess(status, opts) {
+      return opts.validateStatus ? opts.validateStatus(status) : status >= 200 && status < 300;
+    }
+    // GET용: URL에 데이터를 쿼리 스트링으로 추가합니다.
+    getUrlWithData(url, method, data) {
+      if (!this.isBodylessMethod(method)) return url;
+      if (!data) return url;
+      let qs;
+      if (isFormData(data)) qs = this.formDataToQuery(data);
+      else if (typeof data === "string") qs = data.replace(/^\?/, "");
+      else if (typeof URLSearchParams !== "undefined" && data instanceof URLSearchParams) qs = data.toString();
+      else qs = objectToQueryString(data);
+      return this.appendQuery(url, qs);
+    }
+    // GET 은 본문을 보내지 않으므로 파일이 든 data 는 조용히 버려지는 대신 오류로 알린다.
+    assertNoFileInGet(method, data) {
+      if (!this.isBodylessMethod(method)) return;
+      if (this.hasFileData(data)) {
+        throw new TypeError("GET/HEAD 요청은 파일을 전송할 수 없습니다. POST/PUT 을 사용하세요.");
+      }
+    }
+    /** 본문에 파일(File/Blob/FileList 또는 파일이 든 FormData)이 있는지 검사한다. */
+    hasFileData(data) {
+      return isFormData(data) ? this.formDataHasFile(data) : this.containsFile(data);
+    }
+    /** showProgress 로 로더에 진행률을 표시할 요청인지 판단한다: 파일 업로드(rawBody 포함) 또는 blob/arraybuffer 다운로드. */
+    needsLoaderProgress(opts, method) {
+      return !!opts.showProgress && !!opts.loaderContainer && (this.isBinaryType(opts.responseType) || this.isUploadProgressTarget(opts, method));
+    }
+    formDataHasFile(data) {
+      let found = false;
+      data.forEach((value) => {
+        if (typeof value !== "string") found = true;
+      });
+      return found;
+    }
+    // GET 은 FormData 본문을 보낼 수 없으므로 문자열 항목을 쿼리로 펼친다. 파일 항목은 assertNoFileInGet 에서 이미 거절된다.
+    formDataToQuery(data) {
+      const search = new URLSearchParams();
+      data.forEach((value, key) => search.append(key, value));
+      return search.toString();
+    }
+    // 성공 응답 본문을 JSON 으로 파싱한다. 빈 본문(204 등)은 null, 파싱 실패는 type "parse" AjaxError 로 던진다.
+    parseJsonBody(text, ctx) {
+      if (!text || !text.trim()) return null;
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        throw this.createError({ type: "parse", responseText: text, error: e, ...ctx });
+      }
+    }
+    // 값이 없는(undefined/null/빈 문자열) 헤더를 제외한다. 0, false 는 유효한 값으로 보낸다.
+    // 헤더 이름은 대소문자를 구분하지 않으므로 철자만 다른 키는 나중 값 하나만 남기고(요청 값이 전역 값을 대체),
+    // 나중 값이 비어 있으면 앞의 값도 제거한다. Fetch/XHR 이 같은 헤더를 보내도록 공통으로 사용한다.
+    cleanHeaders(headers) {
+      const result = {};
+      if (!headers) return result;
+      const keyByLower = /* @__PURE__ */ new Map();
+      for (const key of Object.keys(headers)) {
+        const lower = key.toLowerCase();
+        const previous = keyByLower.get(lower);
+        if (previous !== void 0) {
+          delete result[previous];
+          keyByLower.delete(lower);
+        }
+        const value = headers[key];
+        if (value !== void 0 && value !== null && value !== "") {
+          result[key] = String(value);
+          keyByLower.set(lower, key);
+        }
+      }
+      return result;
+    }
+    // URL 의 해시(#) 앞에 쿼리 스트링을 붙입니다.
+    appendQuery(url, qs) {
+      qs = qs.replace(/^[?&]+/, "");
+      if (!qs) return url;
+      const hashIndex = url.indexOf("#");
+      const base = hashIndex < 0 ? url : url.slice(0, hashIndex);
+      const hash = hashIndex < 0 ? "" : url.slice(hashIndex);
+      return base + (base.includes("?") ? "&" : "?") + qs + hash;
+    }
+    isFileLike(value) {
+      return typeof File !== "undefined" && (value instanceof File || value instanceof Blob) || typeof FileList !== "undefined" && value instanceof FileList;
+    }
+    // 단순 객체(파일 포함 가능)를 FormData로 변환
+    buildFormDataFromObject(obj) {
+      const form = new FormData();
+      const appendValue = (key, value) => {
+        if (value === null || value === void 0) {
+          return;
+        }
+        if (value instanceof Date) {
+          form.append(key, isNaN(value.getTime()) ? String(value) : value.toISOString());
+          return;
+        }
+        if (isArray(value) ? value.some((v) => v !== null && typeof v === "object" && !this.isFileLike(v) && this.containsFile(v)) : isObject(value) && !this.isFileLike(value) && this.containsFile(value)) {
+          for (const k of Object.keys(value)) appendValue(`${key}[${k}]`, value[k]);
+          return;
+        }
+        if (typeof File !== "undefined" && (value instanceof File || value instanceof Blob)) {
+          form.append(key, value);
+          return;
+        }
+        if (typeof FileList !== "undefined" && value instanceof FileList) {
+          for (let i = 0; i < value.length; i++) {
+            form.append(key + (key.endsWith("[]") ? "" : "[]"), value[i]);
+          }
+          return;
+        }
+        if (Array.isArray(value)) {
+          for (const v of value) {
+            if (typeof File !== "undefined" && (v instanceof File || v instanceof Blob)) {
+              form.append(key + (key.endsWith("[]") ? "" : "[]"), v);
+            } else {
+              form.append(key + (key.endsWith("[]") ? "" : "[]"), v instanceof Date && !isNaN(v.getTime()) ? v.toISOString() : typeof v === "object" ? JSON.stringify(v) : String(v));
+            }
+          }
+          return;
+        }
+        if (isObject(value)) {
+          form.append(key, JSON.stringify(value));
+          return;
+        }
+        form.append(key, String(value));
+      };
+      if (isObject(obj) && !this.isFileLike(obj)) {
+        for (const k of Object.keys(obj)) {
+          appendValue(k, obj[k]);
+        }
+      } else {
+        appendValue("file", obj);
+      }
+      return form;
+    }
+  }
+  class FetchAjax extends AjaxAbstract {
+    constructor(options) {
+      super(options);
+    }
+    // Fetch 요청을 처리합니다.
+    // beforeRequest 훅을 먼저 실행하고, 훅이 바꾼 opts(url, params, data, headers, timeout 등)로 요청을 만든다.
+    async request(url, method, opts) {
+      this.assertNoFileInGet(method, opts.data);
+      this.assertRawBody(method, opts);
+      if (opts.signal?.aborted) {
+        return Promise.reject(this.createError({ type: "abort", opts, error: Object.assign(new Error("Request aborted"), { name: "AbortError" }) }));
+      }
+      const originalUrl = opts.url;
+      const { loadingInstance, abortController } = this.prepareRequest(opts);
+      let timeoutId;
+      let isTimeout = false;
+      const onAbort = () => abortController?.abort();
+      opts.signal?.addEventListener("abort", onAbort, { once: true });
+      if (opts.signal?.aborted) onAbort();
+      try {
+        const { finalUrl, preparedData, isForm } = this.buildRequestData(this.resolveUrl(url, originalUrl, opts), method, opts);
+        const fetchHeaders = this.cleanHeaders(opts.headers);
+        const hasContentType = () => Object.keys(fetchHeaders).some((k) => k.toLowerCase() === "content-type");
+        let body = void 0;
+        if (!this.isBodylessMethod(method)) {
+          if (isForm) {
+            body = preparedData;
+            Object.keys(fetchHeaders).forEach((k) => {
+              if (k.toLowerCase() === "content-type") delete fetchHeaders[k];
+            });
+          } else if (opts.rawBody) {
+            body = preparedData ?? void 0;
+          } else if (isObject(preparedData) && !this.isRawBody(preparedData)) {
+            const contentTypeKey = Object.keys(fetchHeaders).find((k) => k.toLowerCase() === "content-type");
+            const contentType = contentTypeKey ? fetchHeaders[contentTypeKey].toLowerCase() : "";
+            if (contentType.includes("application/x-www-form-urlencoded")) {
+              body = objectToQueryString(preparedData);
+            } else {
+              if (!contentTypeKey) {
+                fetchHeaders["Content-Type"] = "application/json";
+              }
+              body = JSON.stringify(preparedData);
+            }
+          } else if (preparedData != null) {
+            body = preparedData;
+            if (typeof preparedData === "string" && !hasContentType()) {
+              fetchHeaders["Content-Type"] = "application/x-www-form-urlencoded";
+            }
+          }
+        }
+        const fetchOptions = {
+          method,
+          headers: fetchHeaders,
+          body,
+          signal: abortController?.signal ?? opts.signal,
+          credentials: opts.credentials
+        };
+        if (opts.timeout && opts.timeout > 0 && abortController) {
+          timeoutId = setTimeout(() => {
+            isTimeout = true;
+            abortController.abort();
+          }, opts.timeout);
+        }
+        if (fetchOptions.signal?.aborted) throw Object.assign(new Error("Request aborted"), { name: "AbortError" });
+        const response = await fetch(finalUrl, fetchOptions);
+        if (!this.isSuccess(response.status, opts)) {
+          const errorText = await response.text();
+          return Promise.reject(
+            this.createError({
+              type: "http",
+              opts,
+              status: response.status,
+              statusText: response.statusText,
+              responseText: errorText,
+              xhr: response,
+              headers: this.parseFetchHeaders(response),
+              loadingInstance
+            })
+          );
+        }
+        const headers = this.parseFetchHeaders(response);
+        const binary = this.isBinaryType(opts.responseType);
+        const text = binary ? "" : await response.text();
+        const data = binary ? await (opts.responseType === "blob" ? response.blob() : response.arrayBuffer()) : opts.responseType === "json" ? this.parseJsonBody(text, { opts, xhr: response, status: response.status, statusText: response.statusText, headers, loadingInstance }) : text;
+        const result = {
+          data,
+          status: response.status,
+          responseText: text,
+          config: opts,
+          xhr: response,
+          headers,
+          loadingInstance
+        };
+        try {
+          opts.beforeResponse?.(result, response, loadingInstance);
+        } catch (error) {
+          throw this.createError({ type: "callback", opts, error, xhr: response, status: response.status, statusText: response.statusText, loadingInstance });
+        }
+        return result;
+      } catch (err) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (err instanceof AjaxError) return Promise.reject(err);
+        let errorType = "network";
+        if (abortController?.signal.aborted || opts.signal?.aborted || err?.name === "AbortError") {
+          errorType = isTimeout ? "timeout" : "abort";
+        }
+        return Promise.reject(
+          this.createError({
+            type: errorType,
+            opts,
+            error: err,
+            loadingInstance
+          })
+        );
+      } finally {
+        opts.signal?.removeEventListener("abort", onAbort);
+        if (timeoutId) clearTimeout(timeoutId);
+      }
+    }
+    // 요청 준비를 처리합니다.
+    prepareRequest(opts) {
+      let loadingInstance = null;
+      let abortController = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const loaderSelector = opts.enableLoader === false ? null : opts.loaderContainer;
+      if (loaderSelector) {
+        if (opts.loaderOption?.enableCancelButton && typeof AbortController !== "undefined") {
+          const originalCallback = opts.loaderOption.callback;
+          opts.loaderOption = { ...opts.loaderOption, callback: () => {
+            abortController.abort();
+            return originalCallback?.(opts);
+          } };
+        }
+        loadingInstance = new Loading(loaderSelector, { ...opts.loaderOption, requestCount: 1 });
+      }
+      try {
+        opts.beforeRequest?.(opts, null, loadingInstance);
+      } catch (error) {
+        loadingInstance?.hide();
+        throw this.createError({ type: "callback", opts, error, loadingInstance });
+      }
+      return { loadingInstance, abortController };
+    }
+    // 응답 headers를 파싱합니다.
+    parseFetchHeaders(response) {
+      const headersObj = {};
+      response.headers.forEach((value, key) => {
+        headersObj[key] = value;
+      });
+      return headersObj;
+    }
+  }
+  class XHRAjax extends AjaxAbstract {
+    constructor(options) {
+      super(options);
+    }
+    // beforeRequest 훅은 열린 xhr 을 받으므로 먼저 open 한 뒤 실행한다. 훅 이후 opts(url, params, data, headers, timeout 등)를 다시 읽어 요청에 반영한다.
+    async request(url, method, opts) {
+      if (opts.credentials === "omit") {
+        throw new TypeError('credentials="omit" requires fetch; XHR cannot omit same-origin cookies.');
+      }
+      let cleanup = () => {
+      };
+      return new Promise((resolve, reject) => {
+        const sync = opts.async === false;
+        const binaryNotAllowed = () => new TypeError(`responseType="${opts.responseType}" 는 async:false 와 함께 쓸 수 없습니다.`);
+        if (sync && this.isBinaryType(opts.responseType)) throw binaryNotAllowed();
+        const originalUrl = opts.url;
+        const initial = this.buildRequestData(url, method, opts);
+        const xhr = new XMLHttpRequest();
+        xhr.open(method, initial.finalUrl, !sync);
+        let loadingInstance = null;
+        let settled = false;
+        const fail = (type, error, responseText) => {
+          if (settled) return;
+          settled = true;
+          reject(this.createError({ type, opts, xhr, loadingInstance, error, responseText, headers: type === "http" ? this.getResponseHeaders(xhr) : void 0 }));
+        };
+        const onAbort = () => {
+          xhr.abort();
+          fail("abort");
+        };
+        cleanup = () => opts.signal?.removeEventListener("abort", onAbort);
+        opts.signal?.addEventListener("abort", onAbort, { once: true });
+        xhr.onreadystatechange = () => {
+          if (settled || xhr.readyState !== XMLHttpRequest.DONE || xhr.status === 0) return;
+          if (!this.isSuccess(xhr.status, opts)) {
+            if (this.isBinaryType(opts.responseType)) this.binaryToText(xhr.response).then((text) => fail("http", void 0, text));
+            else fail("http");
+            return;
+          }
+          let result;
+          try {
+            result = { ...this.parseResponse(xhr, opts, loadingInstance), xhr, config: opts, loadingInstance };
+          } catch (error) {
+            settled = true;
+            reject(error instanceof AjaxError ? error : this.createError({ type: "network", opts, xhr, loadingInstance, error }));
+            return;
+          }
+          try {
+            opts.beforeResponse?.(result, xhr, loadingInstance);
+          } catch (error) {
+            fail("callback", error);
+            return;
+          }
+          settled = true;
+          resolve(result);
+        };
+        xhr.onerror = () => fail("network");
+        xhr.ontimeout = () => fail("timeout");
+        xhr.onabort = () => fail("abort");
+        let progressUpload = false;
+        const showProgress = (ev, phase) => {
+          if (!opts.showProgress || !loadingInstance || !ev.lengthComputable || ev.total <= 0) return;
+          if (phase === "upload" ? !progressUpload : !this.isBinaryType(opts.responseType)) return;
+          loadingInstance.setContent(`${Math.min(100, Math.floor(ev.loaded / ev.total * 100))}%`);
+        };
+        if ((opts.onUploadProgress || opts.showProgress) && xhr.upload) {
+          xhr.upload.onprogress = (ev) => {
+            showProgress(ev, "upload");
+            opts.onUploadProgress?.({ xhr, ev });
+          };
+        }
+        if (opts.onDownloadProgress || opts.showProgress) {
+          xhr.onprogress = (ev) => {
+            showProgress(ev, "download");
+            opts.onDownloadProgress?.({ xhr, ev });
+          };
+        }
+        try {
+          if (opts.signal?.aborted) {
+            fail("abort");
+            return;
+          }
+          loadingInstance = this.prepareRequest(opts, xhr).loadingInstance;
+          const recorded = [];
+          const nativeSetRequestHeader = xhr.setRequestHeader;
+          xhr.setRequestHeader = function(name, value) {
+            recorded.push([name, value]);
+            return nativeSetRequestHeader.call(xhr, name, value);
+          };
+          try {
+            opts.beforeRequest?.(opts, xhr, loadingInstance);
+          } catch (error) {
+            fail("callback", error);
+            return;
+          } finally {
+            delete xhr.setRequestHeader;
+          }
+          if (opts.signal?.aborted || settled) {
+            fail("abort");
+            return;
+          }
+          const built = this.buildRequestData(this.resolveUrl(url, originalUrl, opts), method, opts);
+          if (built.finalUrl !== initial.finalUrl) {
+            xhr.open(method, built.finalUrl, !sync);
+            for (const [name, value] of recorded) xhr.setRequestHeader(name, value);
+          }
+          if (this.isBinaryType(opts.responseType)) {
+            if (sync) throw binaryNotAllowed();
+            xhr.responseType = opts.responseType;
+          }
+          if (!sync && opts.timeout && opts.timeout > 0) xhr.timeout = opts.timeout;
+          if (opts.credentials !== void 0) xhr.withCredentials = opts.credentials === "include";
+          progressUpload = !!opts.showProgress && this.isUploadProgressTarget(opts, method);
+          if (progressUpload || opts.showProgress && this.isBinaryType(opts.responseType)) loadingInstance?.setContent("0%");
+          const headers = this.cleanHeaders(opts.headers);
+          this.setHeaders(xhr, method, headers, built.isForm, opts.rawBody ? null : built.preparedData);
+          const preparedData = built.preparedData;
+          if (this.isBodylessMethod(method) || preparedData == null) {
+            xhr.send();
+          } else if (isFormData(preparedData) || opts.rawBody) {
+            xhr.send(preparedData);
+          } else if (isObject(preparedData) && !this.isRawBody(preparedData)) {
+            const contentType = Object.entries(headers).find(([key]) => key.toLowerCase() === "content-type")?.[1] || "";
+            xhr.send(contentType.toLowerCase().includes("application/x-www-form-urlencoded") ? objectToQueryString(preparedData) : JSON.stringify(preparedData));
+          } else {
+            xhr.send(preparedData);
+          }
+        } catch (error) {
+          fail("network", error);
+        }
+      }).finally(() => cleanup());
+    }
+    parseResponse(xhr, opts, loadingInstance) {
+      const binary = this.isBinaryType(opts.responseType);
+      const responseText = binary ? "" : xhr.responseText;
+      const headers = this.getResponseHeaders(xhr);
+      const data = binary ? xhr.response : opts.responseType === "json" ? this.parseJsonBody(responseText, { opts, xhr, status: xhr.status, statusText: xhr.statusText, headers, loadingInstance }) : responseText;
+      return {
+        data,
+        status: xhr.status,
+        readyState: xhr.readyState,
+        responseText,
+        headers
+      };
+    }
+    // 응답 headers를 파싱합니다.
+    getResponseHeaders(xhr) {
+      const headersObj = {};
+      const allHeaders = xhr.getAllResponseHeaders();
+      const lines = allHeaders.trim().split(/[\r\n]+/);
+      for (const line of lines) {
+        const parts = line.split(": ");
+        const key = parts.shift();
+        const value = parts.join(": ");
+        if (key) headersObj[key] = value;
+      }
+      return headersObj;
+    }
+    // 요청 headers를 설정합니다.
+    // isFormData가 true이면 Content-Type을 설정하지 않아 브라우저가 boundary 포함한 적절한 헤더를 생성하도록 함
+    setHeaders(xhr, method, requestHeaders, isFormData2 = false, body) {
+      const headers = { ...requestHeaders };
+      if (!isFormData2) {
+        if (!this.isBodylessMethod(method) && body != null && !this.isRawBody(body) && !Object.keys(headers).some((key) => key.toLowerCase() === "content-type")) {
+          headers["Content-Type"] = isObject(body) ? "application/json" : "application/x-www-form-urlencoded";
+        }
+        for (const key of Object.keys(headers)) {
+          if (headers[key]) xhr.setRequestHeader(key, headers[key]);
+        }
+      } else {
+        for (const key of Object.keys(headers)) {
+          if (key.toLowerCase() === "content-type") continue;
+          if (headers[key]) xhr.setRequestHeader(key, headers[key]);
+        }
+      }
+    }
+    // 요청 준비를 처리합니다.
+    prepareRequest(opts, xhr) {
+      let loadingInstance = null;
+      const loaderSelector = opts.enableLoader === false ? null : opts.loaderContainer;
+      if (loaderSelector) {
+        if (opts.loaderOption?.enableCancelButton) {
+          const originalCallback = opts.loaderOption.callback;
+          opts.loaderOption = { ...opts.loaderOption, callback: () => {
+            xhr.abort();
+            return originalCallback?.(opts);
+          } };
+        }
+        loadingInstance = new Loading(loaderSelector, { ...opts.loaderOption, requestCount: 1 });
+      }
+      return { loadingInstance };
+    }
+  }
+  class Ajax {
+    constructor(options) {
+      this.pendingRequestMap = /* @__PURE__ */ new Map();
+      this.nextRequestId = 0;
+      this.options = objectDeepMerge(this.createGlobalAjaxOptions(), options || {}, { _excludeKeys: ["signal", "params", "loaderContainer"] });
+      if (options?.validMethods) this.options.validMethods = options.validMethods.map((m) => String(m).toUpperCase());
+      this.options.signal = options?.signal;
+      this.options.params = options?.params;
+      this.options.loaderContainer = options?.loaderContainer;
+      this.fetchAjax = new FetchAjax(this.options);
+      this.xhrAjax = new XHRAjax(this.options);
+      this.isFetchSupported = typeof window !== "undefined" && "fetch" in window;
+    }
+    /**
+     * 진행 중인 요청의 스냅샷을 반환합니다. 동일 URL 요청도 별도 ID로 구분합니다.
+     * @returns 진행 중인 요청 Map의 복사본
+     */
+    get pendingRequests() {
+      return new Map(this.pendingRequestMap);
+    }
+    /** 전역 옵션의 기본값을 만듭니다. 내부용이며 기존 호환을 위해 공개로 유지합니다. */
+    createGlobalAjaxOptions() {
+      return {
+        baseUrl: "",
+        method: "POST",
+        timeout: -1,
+        responseType: "json",
+        headers: { "X-Client-Type": "Web" },
+        loaderContainer: "",
+        enableDefaultLoader: false,
+        loaderOption: {},
+        validMethods: ["GET", "POST", "PUT", "DELETE"],
+        errorAlertView: false,
+        fetchMode: "xhr"
+      };
+    }
+    /** 요청 옵션의 기본값(전역 옵션 반영)을 만듭니다. 내부용이며 기존 호환을 위해 공개로 유지합니다. */
+    createDefaultOptions() {
+      const opts = this.options;
+      return {
+        url: "",
+        signal: opts.signal,
+        credentials: opts.credentials,
+        params: opts.params,
+        enableLoader: opts.enableLoader,
+        showProgress: opts.showProgress,
+        rawBody: opts.rawBody,
+        fetchMode: opts.fetchMode,
+        validateStatus: opts.validateStatus,
+        paramsSerializer: opts.paramsSerializer,
+        beforeRequest: opts.beforeRequest,
+        beforeResponse: opts.beforeResponse,
+        method: opts.method,
+        timeout: opts.timeout,
+        responseType: opts.responseType,
+        headers: opts.headers,
+        loaderContainer: opts.loaderContainer,
+        loaderOption: opts.loaderOption,
+        errorAlertView: opts.errorAlertView
+      };
+    }
+    /**
+     * Ajax 인스턴스를 생성합니다.
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @returns {Ajax} Ajax 인스턴스
+     */
+    static create(options) {
+      return new Ajax(options);
+    }
+    // 두 signal 중 하나라도 취소되면 취소되는 signal 을 만든다. 하나뿐이면 그대로 사용한다.
+    combineSignals(a, b) {
+      if (!a || !b || a === b) return { signal: a ?? b, dispose: () => {
+      } };
+      const controller = new AbortController();
+      const first = a.aborted ? a : b.aborted ? b : null;
+      if (first) {
+        controller.abort(first.reason);
+        return { signal: controller.signal, dispose: () => {
+        } };
+      }
+      const onA = () => controller.abort(a.reason);
+      const onB = () => controller.abort(b.reason);
+      a.addEventListener("abort", onA, { once: true });
+      b.addEventListener("abort", onB, { once: true });
+      return {
+        signal: controller.signal,
+        dispose: () => {
+          a.removeEventListener("abort", onA);
+          b.removeEventListener("abort", onB);
+        }
+      };
+    }
+    async _request(url, method, options, useFetch = true) {
+      url = joinUrl(this.options.baseUrl, url);
+      const data = options?.data;
+      const opts = objectDeepMerge({ ...this.createDefaultOptions(), signal: void 0, params: void 0, loaderContainer: void 0 }, options || {}, { _excludeKeys: ["data", "signal", "params", "loaderContainer"] });
+      opts.data = data;
+      opts.params = { ...this.options.params, ...options?.params };
+      opts.loaderContainer = options?.loaderContainer ?? this.options.loaderContainer;
+      const ajaxMethod = (method || opts.method || "GET").toUpperCase();
+      if (!this.options.validMethods?.includes(ajaxMethod)) {
+        return Promise.reject(
+          new AjaxError({
+            type: "method",
+            status: 405,
+            statusText: "Invalid Method",
+            responseText: `Invalid HTTP method: ${ajaxMethod}`,
+            message: `Invalid HTTP method: ${ajaxMethod}`,
+            xhr: null,
+            loadingInstance: null
+          })
+        );
+      }
+      opts.loaderContainer = opts.enableLoader === false ? null : opts.loaderContainer || (opts.enableLoader === true || this.options.enableDefaultLoader ? "body" : null);
+      const usesFetch = useFetch && this.isFetchSupported && opts.fetchMode === "fetch";
+      if (usesFetch && (opts.onUploadProgress || opts.onDownloadProgress || this.xhrAjax.needsLoaderProgress(opts, ajaxMethod))) {
+        return Promise.reject(new TypeError('fetchMode "fetch" 는 onUploadProgress/onDownloadProgress/showProgress(파일 업로드·blob/arraybuffer 다운로드) 를 지원하지 않습니다. fetchMode: "xhr" 를 사용하세요.'));
+      }
+      const id = ++this.nextRequestId;
+      this.pendingRequestMap.set(id, Object.freeze({ id, url, method: ajaxMethod, startedAt: Date.now() }));
+      let loadingInstance = null;
+      const beforeRequest = opts.beforeRequest;
+      opts.beforeRequest = (value, xhr, loading) => {
+        loadingInstance = loading ?? null;
+        beforeRequest?.(value, xhr, loading);
+      };
+      const combined = this.combineSignals(options?.signal, this.options.signal);
+      opts.signal = combined.signal;
+      try {
+        const response = await (usesFetch ? this.fetchAjax.request(url, ajaxMethod, opts) : this.xhrAjax.request(url, ajaxMethod, opts));
+        loadingInstance = loadingInstance ?? response?.loadingInstance ?? null;
+        return response;
+      } catch (error) {
+        loadingInstance = loadingInstance ?? error?.loadingInstance;
+        throw error;
+      } finally {
+        combined.dispose();
+        this.pendingRequestMap.delete(id);
+        loadingInstance?.hide();
+      }
+    }
+    /**
+     * 요청을 보냅니다. URL 과 메서드는 options.url, options.method 로 지정합니다.
+     *
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @param {boolean} [useFetch=true] false 면 fetchMode 와 관계없이 XHR 을 사용합니다. true 여도 fetchMode 가 "fetch" 일 때만 Fetch 를 사용합니다(기본 fetchMode 는 "xhr").
+     * @returns {*}
+     */
+    request(options, useFetch = true) {
+      const url = options?.url || "";
+      return this._request(url, options?.method, options, useFetch);
+    }
+    /**
+     * get 요청을 보냅니다.
+     *
+     * @param {string} url api URL
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @param {boolean} [useFetch=true] false 면 fetchMode 와 관계없이 XHR 사용
+     * @returns {*}
+     */
+    get(url, options, useFetch = true) {
+      return this._request(url, "GET", options, useFetch);
+    }
+    /**
+     * post 요청을 보냅니다.
+     *
+     * @param {string} url api URL
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @param {boolean} [useFetch=true] false 면 fetchMode 와 관계없이 XHR 사용
+     * @returns {*}
+     */
+    post(url, options, useFetch = true) {
+      return this._request(url, "POST", options, useFetch);
+    }
+    /**
+     * put 요청을 보냅니다.
+     *
+     * @param {string} url api URL
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @param {boolean} [useFetch=true] false 면 fetchMode 와 관계없이 XHR 사용
+     * @returns {*}
+     */
+    put(url, options, useFetch = true) {
+      return this._request(url, "PUT", options, useFetch);
+    }
+    /**
+     * DELETE 요청을 보냅니다.
+     *
+     * @param {string} url api URL
+     * @param {?AjaxOptions} [options]  ajax 옵션
+     * @param {boolean} [useFetch=true] false 면 fetchMode 와 관계없이 XHR 사용
+     * @returns {*}
+     */
+    delete(url, options, useFetch = true) {
+      return this._request(url, "DELETE", options, useFetch);
+    }
+  }
+  const VALID_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+  class HttpDataSource {
+    constructor(opts, defaultLoaderContainer) {
+      this.opts = opts;
+      this.defaultLoaderContainer = defaultLoaderContainer;
+    }
+    /**
+     * 엔드포인트로 요청을 보내고 (responseFilter·errorFilter·responseMap이 적용된) 응답을 반환한다.
+     */
+    async send(operation, endpoint, payload, signal) {
+      const method = (endpoint.method ?? (operation === "load" ? "GET" : "POST")).toUpperCase();
+      if (!VALID_METHODS.includes(method)) {
+        throw new DataSourceError("CONFIG", `Unsupported HTTP method: ${method}`);
+      }
+      if (method === "GET" && operation !== "load") {
+        throw new DataSourceError("CONFIG", `${operation} cannot use the GET method`);
+      }
+      const request = {
+        url: joinUrl$1(this.opts.baseUrl, endpoint.url),
+        method,
+        headers: await this.resolveHeaders(method, endpoint),
+        data: this.opts.requestMap ? this.opts.requestMap(payload, operation) : payload,
+        signal,
+        credentials: endpoint.credentials ?? this.opts.credentials,
+        timeout: endpoint.timeout ?? this.opts.timeout,
+        ...this.resolveLoader(operation)
+      };
+      let response;
+      let info = { ok: true, status: 200 };
+      let recovered = false;
+      try {
+        const result = this.opts.request ? { data: await this.opts.request(request) } : await this.sendByAjax(request);
+        response = result.data;
+        info = { ok: true, status: result.status ?? 200, headers: result.headers };
+      } catch (error) {
+        const dsError = toDataSourceError(error);
+        if (dsError.code === "ABORT") throw dsError;
+        if (this.opts.errorFilter) {
+          response = await this.runErrorFilter(this.opts.errorFilter, dsError, error, operation);
+          recovered = true;
+        } else if (dsError.code === "HTTP" && this.opts.responseFilter) {
+          response = parseBody(dsError.response);
+          info = {
+            ok: false,
+            status: dsError.status ?? 0,
+            statusText: error?.statusText,
+            headers: extractHeaders(error),
+            error: dsError
+          };
+        } else {
+          throw dsError;
+        }
+      }
+      try {
+        if (this.opts.responseFilter && !recovered) response = await this.opts.responseFilter(response, operation, info);
+      } catch (error) {
+        if (error instanceof DataSourceError) throw error;
+        throw new DataSourceError("INVALID_RESPONSE", error?.message || "Response rejected by responseFilter", void 0, response, error);
+      }
+      return this.opts.responseMap ? this.opts.responseMap(response, operation) : response;
+    }
+    /**
+     * errorFilter를 호출한다. 값을 반환하면 오류 복구, 던지면 그 오류를 전달한다.
+     * DataSourceError가 아닌 오류는 원래 오류의 code·status·response를 유지한 채 메시지만 바꿔 정규화한다.
+     */
+    async runErrorFilter(filter, dsError, rawError, operation) {
+      const info = {
+        status: dsError.status,
+        statusText: rawError?.statusText,
+        headers: extractHeaders(rawError),
+        data: dsError.code === "HTTP" ? parseBody(dsError.response) : void 0
+      };
+      try {
+        return await filter(dsError, operation, info);
+      } catch (error) {
+        if (error instanceof DataSourceError) throw error;
+        throw new DataSourceError(
+          dsError.code,
+          error?.message || dsError.message,
+          dsError.status,
+          dsError.response,
+          error
+        );
+      }
+    }
+    /** 코어 Ajax의 loaderContainer·loaderOption 값을 구한다. */
+    resolveLoader(operation) {
+      const loader = this.opts.loader;
+      if (loader === false || !(loader?.operations ?? ["load"]).includes(operation)) return {};
+      return {
+        loaderContainer: loader?.container ?? this.defaultLoaderContainer,
+        loaderOption: loader?.options
+      };
+    }
+    async resolveHeaders(method, endpoint) {
+      const common = this.opts.headers;
+      const headers = {
+        Accept: "application/json",
+        ...method !== "GET" ? { "Content-Type": "application/json" } : {},
+        ...typeof common === "function" ? await common() : common,
+        ...endpoint.headers
+      };
+      return headers;
+    }
+    sendByAjax(request) {
+      if (!this.ajax) {
+        this.ajax = Ajax.create({ validMethods: VALID_METHODS, fetchMode: this.opts.fetchMode });
+      }
+      const isGet = request.method === "GET";
+      return this.ajax.request({
+        url: request.url,
+        method: request.method,
+        headers: request.headers,
+        responseType: "json",
+        params: isGet ? request.data : void 0,
+        data: isGet ? void 0 : request.data,
+        signal: request.signal,
+        credentials: request.credentials,
+        timeout: request.timeout,
+        enableLoader: Boolean(request.loaderContainer),
+        loaderContainer: request.loaderContainer,
+        loaderOption: request.loaderOption
+      }).then((result) => ({ data: result?.data, status: result?.status, headers: result?.headers }));
+    }
+  }
+  function extractHeaders(error) {
+    const source = error;
+    const headers = {};
+    const raw = source?.xhr?.getAllResponseHeaders?.();
+    if (typeof raw === "string") {
+      for (const line of raw.trim().split(/[\r\n]+/)) {
+        const index = line.indexOf(":");
+        if (index > 0) headers[line.slice(0, index).trim().toLowerCase()] = line.slice(index + 1).trim();
+      }
+    }
+    const fetched = source?.xhr?.headers;
+    fetched?.forEach?.((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+    if (source?.headers && typeof source.headers === "object") {
+      for (const [key, value] of Object.entries(source.headers)) {
+        headers[key.toLowerCase()] = String(value);
+      }
+    }
+    return Object.keys(headers).length > 0 ? headers : void 0;
+  }
+  function parseBody(body) {
+    if (typeof body !== "string" || body === "") return body;
+    try {
+      return JSON.parse(body);
+    } catch {
+      return body;
+    }
+  }
+  function createDataSource(options, loaderContainer) {
+    const http = new HttpDataSource(options, loaderContainer);
+    const source = {};
+    const { load, save, remove } = options;
+    if (isFunction$1(load)) {
+      source.load = (params, signal) => load(params, signal);
+    } else if (load) {
+      source.load = async (params, signal) => normalizeLoadResult(await http.send("load", load, params, signal));
+    }
+    if (isFunction$1(save)) {
+      source.save = async (changes, signal) => normalizeSaveResult(await save(changes, signal));
+    } else if (save) {
+      source.save = async (changes, signal) => normalizeSaveResult(await http.send("save", save, changes, signal));
+    }
+    if (isFunction$1(remove)) {
+      source.remove = (request, signal) => remove(request, signal);
+    } else if (remove) {
+      source.remove = async (request, signal) => {
+        await http.send("remove", remove, request, signal);
+      };
+    }
+    return source;
+  }
+  function normalizeLoadResult(response) {
+    const body = response;
+    const items = isArray$1(response) ? response : body?.items;
+    if (!isArray$1(items) || items.some((item) => item === null || typeof item !== "object" || isArray$1(item))) {
+      throw new DataSourceError("INVALID_RESPONSE", "Load response must be an array or { items: object[] }", void 0, response);
+    }
+    const total = isArray$1(response) ? void 0 : body?.total;
+    if (total !== void 0 && total !== null && (typeof total !== "number" || !Number.isFinite(total) || total < 0)) {
+      throw new DataSourceError("INVALID_RESPONSE", "Load response total must be a non-negative number", void 0, response);
+    }
+    return { items, total: total ?? void 0 };
+  }
+  function normalizeSaveResult(response) {
+    const body = response;
+    if (body === null || typeof body !== "object" || isArray$1(body)) return {};
+    if (body.failed !== void 0 && !isArray$1(body.failed)) {
+      throw new DataSourceError("INVALID_RESPONSE", "Save response failed must be an array", void 0, response);
+    }
+    if (body.idMap !== void 0 && (body.idMap === null || typeof body.idMap !== "object" || isArray$1(body.idMap))) {
+      throw new DataSourceError("INVALID_RESPONSE", "Save response idMap must be an object", void 0, response);
+    }
+    return { idMap: body.idMap, failed: body.failed };
+  }
+  function prepareDataSourceOptions(opts, rawOptions, onPage) {
+    const dataSource = opts.dataSource;
+    if (opts.toolbar?.remote) {
+      if (!dataSource?.load) {
+        throw new DataSourceError("CONFIG", "toolbar.remote requires dataSource.load");
+      }
+      if (!opts.toolbar.enabled) {
+        throw new DataSourceError("CONFIG", "toolbar.remote requires toolbar.enabled");
+      }
+      if (dataSource.toolbarParams === false) {
+        throw new DataSourceError("CONFIG", "toolbar.remote cannot be used with dataSource.toolbarParams false");
+      }
+    }
+    if (!dataSource) return;
+    if (dataSource.autoLoad && !dataSource.load) {
+      throw new DataSourceError("CONFIG", "dataSource.autoLoad requires dataSource.load");
+    }
+    if (dataSource.sorting?.mode === "server" && (opts.tree || opts.groupingFields?.length)) {
+      throw new DataSourceError("UNSUPPORTED", "server sorting cannot be used with tree or groupingFields");
+    }
+    if (dataSource.filtering?.mode === "server") {
+      throw new DataSourceError("UNSUPPORTED", 'dataSource.filtering.mode "server" is not supported yet');
+    }
+    if (dataSource.save) {
+      if (rawOptions.deleteMode === "hard") {
+        throw new DataSourceError("CONFIG", 'dataSource.save requires deleteMode "soft" to track deleted rows');
+      }
+      opts.deleteMode = "soft";
+    }
+    if (dataSource.paging?.mode === "infinite") {
+      if (opts.tree || opts.groupingFields?.length) {
+        throw new DataSourceError("UNSUPPORTED", "infinite paging cannot be used with tree or groupingFields");
+      }
+      if (opts.footer?.paging?.enabled) {
+        throw new DataSourceError("CONFIG", "infinite paging does not use footer.paging; disable footer.paging.enabled");
+      }
+      if (dataSource.paging.pageSize) {
+        opts.paging = { ...opts.paging, pageSize: dataSource.paging.pageSize };
+      }
+    }
+    if (dataSource.paging?.mode === "server") {
+      if (opts.tree || opts.groupingFields?.length) {
+        throw new DataSourceError("UNSUPPORTED", "server paging cannot be used with tree or groupingFields");
+      }
+      if (!opts.footer?.enabled || !opts.footer.paging?.enabled) {
+        throw new DataSourceError("CONFIG", "server paging requires footer.enabled and footer.paging.enabled");
+      }
+      if (opts.footer.paging.callback) {
+        throw new DataSourceError("CONFIG", 'footer.paging.callback is managed by dataSource.paging when mode is "server"');
+      }
+      opts.footer.paging.callback = onPage;
+      if (dataSource.paging.pageSize) {
+        opts.paging = { ...opts.paging, pageSize: dataSource.paging.pageSize };
+      }
+    }
+  }
+  class RemoteDataController {
+    constructor(gridMain, grid) {
+      this.gridMain = gridMain;
+      this.grid = grid;
+      this.loadedCount = 0;
+      this.hasMore = false;
+      this.retryAfter = 0;
+      this.lastParams = {};
+      this.queried = false;
+      this.page = 1;
+      this.loadSeq = 0;
+      this.loadAbort = null;
+      this.loadActive = 0;
+      this.loadTicket = 0;
+      this.approvedTicket = 0;
+      this.mutationAbort = null;
+      this.loading = false;
+      this.destroyed = false;
+      const dataSource = gridMain.options().dataSource;
+      if (!dataSource) throw new DataSourceError("CONFIG", "dataSource option is required");
+      this.source = createDataSource(dataSource, gridMain.element().getElement());
+      this.events = dataSource.events ?? {};
+      this.serverPaging = dataSource.paging?.mode === "server";
+      this.serverSorting = dataSource.sorting?.mode === "server";
+      this.infinite = dataSource.paging?.mode === "infinite";
+      this.threshold = Math.max(0, Math.floor(dataSource.paging?.threshold ?? 5));
+    }
+    /**
+     * infinite 페이징에서 다음 페이지를 조회해 기존 데이터 뒤에 붙인다.
+     * 다른 조회·저장·삭제가 진행 중이거나 더 받을 데이터가 없으면 요청하지 않고 null을 반환한다.
+     */
+    async loadMore() {
+      this.assertReady("load");
+      if (!this.infinite) throw new DataSourceError("CONFIG", 'loadMore requires dataSource.paging.mode "infinite"');
+      if (!this.queried) throw new DataSourceError("CONFIG", "Call load() before loadMore()");
+      if (!this.hasMore || this.loadActive > 0 || this.mutationAbort) return null;
+      return this.fetch(this.lastParams, this.page + 1, {}, true);
+    }
+    /**
+     * 본문을 그린 뒤 호출되어, 화면 끝에서 threshold행 이내이면 다음 페이지를 자동 조회한다.
+     * 조회 실패는 loadError 이벤트로 알리며 스스로 재시도하지 않는다. 다음 스크롤에서 다시 확인하고,
+     * 이미 끝에 있어 위치가 바뀌지 않는 입력(idleScroll)은 실패 직후 요청이 몰리지 않도록 1초 뒤부터 재시도한다.
+     */
+    checkLoadMore(idleScroll = false) {
+      if (!this.infinite || !this.hasMore || !this.queried || this.destroyed) return;
+      if (this.loadActive > 0 || this.mutationAbort) return;
+      if (idleScroll && Date.now() < this.retryAfter) return;
+      const cfg = this.gridMain.config();
+      if (cfg.scroll.startIdx + cfg.scroll.viewRow + this.threshold < cfg.dataInfo.rowLength) return;
+      this.loadMore().catch(() => void 0);
+    }
+    /** 헤더 정렬을 서버 조회로 처리하는지 여부 */
+    isServerSorting() {
+      return this.serverSorting;
+    }
+    /** 지금 조회할 수 없는 상태(미저장 변경 또는 저장·삭제 진행 중)인지 여부. 정렬 상태를 바꾸기 전에 확인한다. */
+    isLoadBlocked() {
+      return this.mutationAbort !== null || this.gridMain.config().dataManager.hasChanges();
+    }
+    /**
+     * 헤더에서 바뀐 정렬 상태로 첫 페이지부터 다시 조회한다. 마지막 조회 조건은 유지한다.
+     * 조회할 수 없는 상태이면 loadError 이벤트로 알리고 reject 한다.
+     */
+    sortRemote(options) {
+      return this.load(void 0, options);
+    }
+    /** 헤더 정렬 상태를 서버 조회 조건으로 변환한다. 정렬이 없으면 빈 배열이다. */
+    getSortParams() {
+      return this.gridMain.config().sort.orders.map((order) => ({ field: order.name, order: order.ascOrder ? "asc" : "desc" }));
+    }
+    isLoading() {
+      return this.loading;
+    }
+    // ============================================================
+    // 조회
+    // ============================================================
+    /**
+     * 서버 데이터를 조회한다. 조회 조건을 지정하면 마지막 조건이 교체되고 첫 페이지부터 조회한다.
+     * 툴바가 활성화되어 있으면 툴바 필드 값을 함께 전달한다(같은 이름은 params가 우선).
+     * 조건을 생략하면 이전 조회가 있을 때는 마지막 조건을, 없으면 툴바 값만 사용한다.
+     *
+     * @returns 반영한 조회 결과. before 이벤트로 취소되었거나 더 새로운 요청에 밀렸으면 null
+     */
+    load(params, options) {
+      const conditions = params ?? (this.queried ? this.lastParams : {});
+      return this.fetch(params || !this.queried ? { ...this.getToolbarParams(), ...conditions } : conditions, 1, options);
+    }
+    /**
+     * 검색 조건을 적용하여 첫 페이지부터 서버 조회한다.
+     * 툴바가 활성화되어 있으면 툴바 필드 값을 함께 전달한다(같은 이름은 params가 우선).
+     */
+    searchRemote(params, options) {
+      return this.fetch({ ...this.getToolbarParams(), ...params }, 1, options);
+    }
+    /**
+     * toolbar.remote 설정에 따라 툴바 값으로 서버 조회를 자동 실행한다.
+     * 실패는 loadError 이벤트로 알리므로 처리되지 않은 Promise 오류를 만들지 않는다.
+     */
+    searchByToolbar(trigger) {
+      const remote = this.gridMain.options().toolbar?.remote;
+      if (!remote || this.destroyed) return;
+      const config = remote === true ? {} : remote;
+      const triggers = config.trigger ?? ["search"];
+      if (!triggers.includes(trigger)) return;
+      const run = () => {
+        this.toolbarTimer = void 0;
+        this.searchRemote({}, { discardChanges: config.discardChanges === true }).catch(() => void 0);
+      };
+      clearTimeout(this.toolbarTimer);
+      const delay = trigger === "change" ? config.debounce ?? 300 : config.debounce ?? 0;
+      if (trigger === "change" && delay > 0) this.toolbarTimer = setTimeout(run, delay);
+      else run();
+    }
+    getToolbarParams() {
+      const opts = this.gridMain.options();
+      if (opts.dataSource?.toolbarParams === false || !opts.toolbar?.enabled) return {};
+      return this.gridMain.getToolbarValues();
+    }
+    /** 마지막 조회 조건과 현재 페이지로 다시 조회한다. */
+    reload(options) {
+      return this.fetch(this.lastParams, this.infinite ? 1 : this.page, options);
+    }
+    /** 서버 페이징에서 지정 페이지를 마지막 조회 조건으로 조회한다. */
+    goToPage(page) {
+      return this.fetch(this.lastParams, Math.max(1, Math.floor(page) || 1)).catch((error) => {
+        if (!(error instanceof DataSourceError)) throw error;
+        return null;
+      });
+    }
+    /**
+     * @param append true이면 결과를 기존 데이터 뒤에 붙인다(infinite 다음 페이지). 미저장 변경이 있어도 조회할 수 있다.
+     */
+    async fetch(params, page, options = {}, append = false) {
+      this.assertReady("load");
+      if (!this.source.load) throw new DataSourceError("CONFIG", "dataSource.load is not configured");
+      if (this.mutationAbort) {
+        this.reject("loadError", "load", new DataSourceError("BUSY", "Cannot load while saving or removing"));
+      }
+      const discard = options.discardChanges === true;
+      const dataManager = this.gridMain.config().dataManager;
+      if (!append && !discard && dataManager.hasChanges()) {
+        this.reject(
+          "loadError",
+          "load",
+          new DataSourceError("UNSAVED_CHANGES", "Unsaved changes exist. Save them or pass { discardChanges: true }")
+        );
+      }
+      const abort = new AbortController();
+      let seq = 0;
+      const ticket = ++this.loadTicket;
+      this.loadActive++;
+      this.updateLoading("load");
+      const requestParams = { ...params };
+      if (this.serverPaging || this.infinite) {
+        requestParams.page = page;
+        requestParams.pageSize = this.getPageSize();
+      }
+      if (this.serverSorting) {
+        const sort = this.getSortParams();
+        if (sort.length > 0) requestParams.sort = sort;
+        else delete requestParams.sort;
+      }
+      const isCurrent = () => !this.destroyed && (seq === 0 || seq === this.loadSeq);
+      try {
+        if (!await this.emitBefore("beforeLoad", { operation: "load", params: requestParams })) {
+          return null;
+        }
+        if (!isCurrent() || ticket < this.approvedTicket) return null;
+        this.approvedTicket = ticket;
+        this.loadAbort?.abort();
+        seq = ++this.loadSeq;
+        this.loadAbort = abort;
+        const result = normalizeLoadResult(await this.source.load(requestParams, abort.signal));
+        if (!isCurrent()) return null;
+        if (!append && !discard && dataManager.hasChanges()) {
+          throw new DataSourceError("UNSAVED_CHANGES", "Unsaved changes were made while loading; the result was discarded");
+        }
+        this.lastParams = { ...params };
+        this.queried = true;
+        this.page = page;
+        if (this.infinite) {
+          this.loadedCount = append ? this.loadedCount + result.items.length : result.items.length;
+          const reachedEnd = result.total !== void 0 ? this.loadedCount >= result.total : result.items.length < this.getPageSize();
+          this.hasMore = result.items.length > 0 && !reachedEnd;
+        }
+        if (append) this.gridMain.appendItems(result.items);
+        else this.applyLoadResult(result, page);
+        this.emit("load", { operation: "load", params: requestParams, items: result.items, total: result.total ?? result.items.length });
+        if (this.infinite) void Promise.resolve().then(() => this.checkLoadMore());
+        return result;
+      } catch (error) {
+        const dsError = toDataSourceError(error);
+        if (!isCurrent() || dsError.code === "ABORT" && abort.signal.aborted) return null;
+        if (append) this.retryAfter = Date.now() + 1e3;
+        this.emit("loadError", { operation: "load", error: dsError });
+        throw dsError;
+      } finally {
+        if (this.loadAbort === abort) this.loadAbort = null;
+        this.loadActive--;
+        this.updateLoading("load");
+      }
+    }
+    applyLoadResult(result, page) {
+      const gridMain = this.gridMain;
+      if (this.serverPaging) {
+        const opts = gridMain.options();
+        const total = result.total ?? result.items.length;
+        const paging = getPagingInfo(total, page, this.getPageSize(), opts.paging?.unitPage ?? 5);
+        this.page = paging.page || 1;
+        gridMain.setPaging(paging);
+      }
+      gridMain.setItems(result.items);
+    }
+    getPageSize() {
+      return this.gridMain.options().paging?.pageSize || 10;
+    }
+    // ============================================================
+    // 저장
+    // ============================================================
+    /**
+     * 변경된 행(C/U/D)을 서버에 저장한다. 변경이 없으면 요청하지 않는다.
+     *
+     * @returns 저장 요약. before 이벤트로 취소되면 null
+     */
+    async save() {
+      const summary = await this.saveChanges();
+      if (summary && summary.failed === 0 && summary.created + summary.updated + summary.deleted > 0) {
+        await this.reloadAfterMutation();
+      }
+      return summary;
+    }
+    async saveChanges() {
+      this.assertReady("save");
+      if (!this.source.save) throw new DataSourceError("CONFIG", "dataSource.save is not configured");
+      this.assertIdle("saveError", "save");
+      const dataManager = this.gridMain.config().dataManager;
+      const snapshot = dataManager.getChangeSnapshot();
+      const remote = snapshot.filter((entry) => !entry.localOnly);
+      if (remote.length === 0) {
+        if (snapshot.length > 0) {
+          dataManager.acceptChanges(snapshot);
+          this.refreshAfterSave();
+        }
+        return { created: 0, updated: 0, deleted: 0, failed: 0 };
+      }
+      const changes = this.toChangeSet(remote);
+      const abort = new AbortController();
+      this.mutationAbort = abort;
+      this.updateLoading("save");
+      try {
+        if (!await this.emitBefore("beforeSave", { operation: "save", changes })) return null;
+        if (this.destroyed) return null;
+        const result = await this.source.save(changes, abort.signal);
+        if (this.destroyed) return null;
+        const failedKeys = new Set(result.failed ?? []);
+        const idMap = result.idMap ?? {};
+        dataManager.acceptChanges(snapshot, failedKeys, idMap);
+        this.refreshAfterSave();
+        const failed = remote.filter((entry) => failedKeys.has(entry.key));
+        const count = (status) => remote.filter((entry) => entry.status === status).length - failed.filter((entry) => entry.status === status).length;
+        const summary = {
+          created: count(ItemStatusMap.CREATE),
+          updated: count(ItemStatusMap.MODIFY),
+          deleted: count(ItemStatusMap.DELETE),
+          failed: failed.length
+        };
+        this.emit("save", { operation: "save", changes, summary });
+        return summary;
+      } catch (error) {
+        if (this.destroyed) return null;
+        const dsError = toDataSourceError(error);
+        this.emit("saveError", { operation: "save", error: dsError });
+        throw dsError;
+      } finally {
+        this.endMutation(abort, "save");
+      }
+    }
+    /** 스냅샷을 서버 저장 포맷으로 변환한다. 삭제는 부모보다 자식을 먼저 보내도록 역순으로 담는다. */
+    toChangeSet(entries) {
+      const changes = { created: [], updated: [], deleted: [] };
+      for (const entry of entries) {
+        if (entry.status === ItemStatusMap.CREATE) changes.created.push(entry.data);
+        else if (entry.status === ItemStatusMap.MODIFY) changes.updated.push(entry.data);
+        else if (entry.status === ItemStatusMap.DELETE) changes.deleted.push(entry.data);
+      }
+      changes.deleted.reverse();
+      return changes;
+    }
+    refreshAfterSave() {
+      this.gridMain.refreshBody(true, "remoteSave");
+      this.gridMain.getHeader()?.setCheckboxStyle("none");
+    }
+    // ============================================================
+    // 삭제
+    // ============================================================
+    /**
+     * 선택된 행(또는 options.rowIds)을 서버에서 삭제한다.
+     * 서버에 저장된 적 없는 신규 행은 요청 없이 로컬에서만 제거한다.
+     *
+     * @returns 삭제 요약. before 이벤트로 취소되면 null
+     */
+    async removeRemote(options = {}) {
+      const summary = await this.removeRows(options);
+      if (summary && summary.removed > 0) await this.reloadAfterMutation();
+      return summary;
+    }
+    async removeRows(options) {
+      this.assertReady("remove");
+      if (!this.source.remove) throw new DataSourceError("CONFIG", "dataSource.remove is not configured");
+      this.assertIdle("removeError", "remove");
+      const gridMain = this.gridMain;
+      const dataManager = gridMain.config().dataManager;
+      const ids = [...new Set(options.rowIds ?? gridMain.selectionInfo.selectionRowIds())];
+      const entries = dataManager.getRowSnapshots(ids);
+      const localIds = entries.filter((entry) => entry.localOnly).map((entry) => entry.rowId);
+      const remoteEntries = entries.filter((entry) => !entry.localOnly);
+      if (remoteEntries.length === 0) {
+        if (localIds.length > 0) {
+          dataManager.purgeItems(localIds);
+          gridMain.refreshBody(true, "remoteRemove");
+        }
+        return { removed: 0, discarded: localIds.length };
+      }
+      const request = { deleted: remoteEntries.map((entry) => entry.data) };
+      const abort = new AbortController();
+      this.mutationAbort = abort;
+      this.updateLoading("remove");
+      try {
+        if (!await this.emitBefore("beforeRemove", { operation: "remove", request })) return null;
+        if (this.destroyed) return null;
+        await this.source.remove(request, abort.signal);
+        if (this.destroyed) return null;
+        gridMain.config().dataManager.purgeItems([...remoteEntries.map((entry) => entry.rowId), ...localIds]);
+        gridMain.refreshBody(true, "remoteRemove");
+        const summary = { removed: remoteEntries.length, discarded: localIds.length };
+        this.emit("remove", { operation: "remove", request, summary });
+        return summary;
+      } catch (error) {
+        if (this.destroyed) return null;
+        const dsError = toDataSourceError(error);
+        this.emit("removeError", { operation: "remove", error: dsError });
+        throw dsError;
+      } finally {
+        this.endMutation(abort, "remove");
+      }
+    }
+    /**
+     * infinite 페이징에서 서버 저장·삭제가 끝나면 첫 페이지부터 다시 조회한다.
+     * 이미 받은 페이지는 서버에서 행이 바뀌면 offset이 어긋나 누락·중복이 생기기 때문이다.
+     *
+     * 다른 미저장 변경이 남아 있으면 그 변경을 버리게 되므로 다시 조회하지 않는다.
+     * 조회 실패는 loadError 이벤트로 알리며 저장·삭제 결과에는 영향을 주지 않는다.
+     */
+    async reloadAfterMutation() {
+      if (!this.infinite || this.destroyed) return;
+      if (this.gridMain.config().dataManager.hasChanges()) return;
+      try {
+        await this.fetch(this.lastParams, 1);
+      } catch {
+      }
+    }
+    endMutation(abort, operation) {
+      if (this.mutationAbort === abort) {
+        this.mutationAbort = null;
+        this.updateLoading(operation);
+      }
+    }
+    // ============================================================
+    // 상태·이벤트
+    // ============================================================
+    assertReady(operation) {
+      if (this.destroyed) throw new DataSourceError("DESTROYED", `Cannot ${operation}: grid is destroyed`);
+    }
+    /** save·remove는 진행 중인 다른 save·remove나 조회와 겹치지 않아야 한다. */
+    assertIdle(errorEvent, operation) {
+      if (this.mutationAbort || this.loadActive > 0) {
+        this.reject(errorEvent, operation, new DataSourceError("BUSY", "Another remote operation is in progress"));
+      }
+    }
+    /** 사전 조건 오류를 error 이벤트로 알리고 던진다. */
+    reject(name, operation, error) {
+      this.emit(name, { operation, error });
+      throw error;
+    }
+    updateLoading(operation) {
+      const loading = this.loadActive > 0 || this.mutationAbort !== null;
+      if (loading === this.loading) return;
+      this.loading = loading;
+      this.emit("loadingChange", { operation, loading });
+    }
+    /** before 이벤트를 호출한다. false를 반환하면 작업을 취소한다. */
+    async emitBefore(name, event) {
+      const handler = this.events[name];
+      if (!handler) return true;
+      return await handler({ ...event, grid: this.grid }) !== false;
+    }
+    /** 알림 이벤트를 호출한다. destroy 이후에는 호출하지 않고, 핸들러 오류는 작업 결과에 영향을 주지 않는다. */
+    emit(name, event) {
+      const handler = this.events[name];
+      if (!handler || this.destroyed) return;
+      try {
+        handler({ ...event, grid: this.grid });
+      } catch (error) {
+        console.error(`[daracl-grid] dataSource.events.${name} handler error`, error);
+      }
+    }
+    /** 진행 중인 요청을 취소하고 이후 이벤트·결과 반영을 막는다. */
+    destroy() {
+      if (this.destroyed) return;
+      this.destroyed = true;
+      clearTimeout(this.toolbarTimer);
+      this.loadAbort?.abort();
+      this.mutationAbort?.abort();
+      this.loadAbort = null;
+      this.mutationAbort = null;
     }
   }
   class ToolbarRenderer {
@@ -8427,7 +11305,7 @@
       })).filter((group) => group.list.length > 0);
       validGroups.forEach((group, index) => {
         const groupItem = group.list[0];
-        if (groupItem == null ? void 0 : groupItem.width) {
+        if (groupItem?.width) {
           const width = normalizeCssLength(groupItem.width);
           const targetColumnIndex = layoutColumns.length + 2;
           layoutColumns.push("auto", width, "auto");
@@ -8507,7 +11385,7 @@
         }
         let beforeGap = 0;
         let afterGap = 0;
-        if (isArray(field.gap)) {
+        if (isArray$1(field.gap)) {
           if (field.gap.length === 1) {
             afterGap = field.gap[0] ?? 0;
           } else {
@@ -8556,7 +11434,7 @@
       element.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
       element.dataset.uid = field.$uid;
       element.innerHTML = hasLabel ? `
-          <span class="dg-label ${isRequired ? "dg-required" : ""}">${field.label}</span>
+          <span class="dg-label ${isRequired ? "dg-required" : ""}">${xss(String(field.label))}</span>
           <div class="dg-control"></div>
         ` : '<div class="dg-control"></div>';
       field.$renderer.render(element);
@@ -8611,8 +11489,7 @@
       }
     }
     resizeArrowVisibility() {
-      var _a2;
-      if (!((_a2 = this.toolbarOpts) == null ? void 0 : _a2.enabled)) {
+      if (!this.toolbarOpts?.enabled) {
         return;
       }
       if (this.toolbarOpts.arrowEnabled === false) {
@@ -8715,9 +11592,8 @@
      * 4. Condition Field 갱신
      */
     init() {
-      var _a2;
       const toolbarDataElement = this.gridMain.element().findDaraElement(".dg-toolbar");
-      if (!((_a2 = this.toolbarOpts) == null ? void 0 : _a2.enabled)) {
+      if (!this.toolbarOpts?.enabled) {
         toolbarDataElement.getElement().remove();
         return;
       }
@@ -8787,8 +11663,7 @@
      * 기타 리소스를 정리합니다.
      */
     destroy() {
-      var _a2;
-      (_a2 = this.toolbarScroll) == null ? void 0 : _a2.destroy();
+      this.toolbarScroll?.destroy();
     }
   }
   const SUMMARY_BORDER_MAX = 2;
@@ -8859,9 +11734,8 @@
      * Toolbar height 계산
      */
     calculateToolbarDimension() {
-      var _a2;
       const { toolbar } = this.opts;
-      if (!(toolbar == null ? void 0 : toolbar.enabled) || !((_a2 = toolbar.items) == null ? void 0 : _a2.length)) return;
+      if (!toolbar?.enabled || !toolbar.items?.length) return;
       const toolbarHeight = isNumber(toolbar.height) ? toolbar.height : TOOLBAR_HEIGHT;
       let totHeight = 0;
       toolbar.items.forEach((row) => {
@@ -8878,7 +11752,7 @@
      */
     calculateFooterDimension() {
       const { footer } = this.opts;
-      if (footer == null ? void 0 : footer.enabled) {
+      if (footer?.enabled) {
         this.gridMain.config().dimensions.footerHeight = isNumber(footer.height) ? footer.height : FOOTER_HEIGHT;
       }
     }
@@ -8905,10 +11779,9 @@
      * Line Number width 계산
      */
     adjustLineNumberWidth() {
-      var _a2;
       const cfg = this.gridMain.config();
       const { dataInfo, currentFields: fields, allFieldMap } = cfg;
-      const lineNumberCol = (_a2 = allFieldMap.get(LINE_NUMBER_NAME)) == null ? void 0 : _a2.$colSeq;
+      const lineNumberCol = allFieldMap.get(LINE_NUMBER_NAME)?.$colSeq;
       if (isUndefined(lineNumberCol)) return;
       const numberField = fields[lineNumberCol];
       if (!numberField) return;
@@ -8974,7 +11847,6 @@
      * @returns
      */
     buildAsideFields(opts) {
-      var _a2, _b2;
       const asideItems = [];
       if (opts.aside.lineNumber.enabled === true) {
         asideItems.push({
@@ -8996,7 +11868,7 @@
           order: opts.aside.rowCheckbox.order ?? 1
         });
       }
-      if (((_a2 = opts.body.rowMove) == null ? void 0 : _a2.enabled) === true && ((_b2 = opts.body.rowMove) == null ? void 0 : _b2.enabledDragHandle) !== false) {
+      if (opts.body.rowMove?.enabled === true && opts.body.rowMove?.enabledDragHandle !== false) {
         asideItems.push({
           field: merge(
             {},
@@ -9103,13 +11975,12 @@
       return field;
     }
     initFieldMeta(field, depth, fieldIndex, fieldGroupInfo) {
-      var _a2;
       const cfg = this.gridMain.config();
       const enableHelp = !isUndefined(field.headerHelp);
       if (!cfg.enabledHeaderHelpButton && enableHelp) cfg.enabledHeaderHelpButton = true;
       if (!cfg.enabledSortButton && field.sort) cfg.enabledSortButton = true;
       const children = field.children;
-      const childrenLen = isArray(children) ? children.length : 0;
+      const childrenLen = isArray$1(children) ? children.length : 0;
       let isLeaf = false;
       if (childrenLen < 1) {
         isLeaf = true;
@@ -9136,7 +12007,7 @@
         field.$colSeq = fieldGroupInfo.leaf.length;
         field.width = width;
         field.$width = width;
-        field.$alignStyle = TEXT_ALIGN_STYLE[field.align] ?? (((_a2 = field.$renderer) == null ? void 0 : _a2.alignStyle()) || TEXT_ALIGN_STYLE.left);
+        field.$alignStyle = TEXT_ALIGN_STYLE[field.align] ?? (field.$renderer?.alignStyle() || TEXT_ALIGN_STYLE.left);
         fieldGroupInfo.leaf.push(field);
         cfg.allFieldMap.set(field.name, field);
       }
@@ -9325,7 +12196,6 @@
      *
      * @param fields 현재 그리드 필드
      * @param fieldTotalWidth 모든 필드의 총 width
-     * @param verticalScrollWidth 세로 스크롤바 width
      * @param isHeaderResize 헤더 resize 여부
      */
     distributeWidths(fields, fieldTotalWidth, isHeaderResize) {
@@ -9392,7 +12262,7 @@
      * 컬럼의 여분 넓이를 계산
      *
      * @param fieldTotalWidth 모든 필드의 총 width
-     * @param verticalScrollWidth 세로 스크롤바 width
+     @param availableWidth 사용 가능한 width
      */
     calculateFieldSpace(fieldTotalWidth, availableWidth) {
       const cfg = this.gridMain.config();
@@ -9452,9 +12322,9 @@
     }
     getViewRenderer(field) {
       let renderInfo = { type: "text" };
-      if (isPlainObject(field.renderer)) {
+      if (isPlainObject$1(field.renderer)) {
         renderInfo = merge({}, field.renderer);
-      } else if (isString(field.renderer)) {
+      } else if (isString$1(field.renderer)) {
         renderInfo = { type: field.renderer };
       }
       const render = VIEW_RENDERER[renderInfo.type];
@@ -9466,7 +12336,7 @@
       return field;
     }
     getEditRenderer(field, editRendererInfo, rendererType) {
-      if (isString(editRendererInfo)) {
+      if (isString$1(editRendererInfo)) {
         editRendererInfo = { type: editRendererInfo };
       }
       if (isUndefined(editRendererInfo) || isUndefined(editRendererInfo.type)) {
@@ -9474,7 +12344,7 @@
       }
       field.editRenderer = merge({}, DEFAULT_EDIT_RENDERER_INFO, editRendererInfo);
       let type = "text";
-      const editType = editRendererInfo == null ? void 0 : editRendererInfo.type;
+      const editType = editRendererInfo?.type;
       if (editType && EDIT_RENDERER[editType]) {
         type = editType;
       } else if (EDIT_RENDERER[rendererType]) {
@@ -9529,10 +12399,9 @@
   }
   class Footer {
     constructor(gridMain) {
-      var _a2;
       this.footerOpts = gridMain.options().footer;
       this.gridMain = gridMain;
-      this._isActive = ((_a2 = this.footerOpts) == null ? void 0 : _a2.enabled) ?? false;
+      this._isActive = this.footerOpts?.enabled ?? false;
       if (!this._isActive) {
         return;
       }
@@ -9544,7 +12413,6 @@
      * init footer event
      */
     init() {
-      var _a2, _b2, _c2, _d2;
       const footerElement = this.gridMain.element().findDaraElement(".dg-footer");
       if (!this.isEnabled()) {
         footerElement.getElement().remove();
@@ -9553,12 +12421,12 @@
       this.footerElement = footerElement;
       this.selectionStatusElement = footerElement.findDaraElement(".dg-selection-status");
       footerElement.css({ height: `${this.cfg.dimensions.footerHeight}px` });
-      footerElement.findDaraElement(".dg-status").addClass(AlignStyleMap[((_a2 = this.footerOpts.selection) == null ? void 0 : _a2.position) ?? "center"]);
-      if ((_b2 = this.footerOpts.paging) == null ? void 0 : _b2.enabled) {
+      footerElement.findDaraElement(".dg-status").addClass(AlignStyleMap[this.footerOpts.selection?.position ?? "center"]);
+      if (this.footerOpts.paging?.enabled) {
         this.paingElement = footerElement.findDaraElement(".dg-paging");
         this.pagingInfoElement = footerElement.findDaraElement(".dg-paging-info");
-        this.paingElement.addClass(AlignStyleMap[((_c2 = this.footerOpts.paging) == null ? void 0 : _c2.position) ?? "center"]);
-        this.pagingInfoElement.addClass(AlignStyleMap[((_d2 = this.footerOpts.paging) == null ? void 0 : _d2.formatPosition) ?? "center"]);
+        this.paingElement.addClass(AlignStyleMap[this.footerOpts.paging?.position ?? "center"]);
+        this.pagingInfoElement.addClass(AlignStyleMap[this.footerOpts.paging?.formatPosition ?? "center"]);
         this.setPagingTemplate(this.cfg.paging);
         this.initPagingEvent();
       }
@@ -9570,12 +12438,11 @@
      * init paging event
      */
     initPagingEvent() {
-      var _a2;
-      const pagingCallback = (_a2 = this.footerOpts.paging) == null ? void 0 : _a2.callback;
+      const pagingCallback = this.footerOpts.paging?.callback;
       const pagingElement = this.paingElement.getElement();
       this.cfg.eventManager.on({ el: pagingElement, type: "click", selector: ".dg-page-num" }, (e) => {
         const pageNumElement = e.target.closest(".dg-page-num");
-        const pageNum = intValue(pageNumElement == null ? void 0 : pageNumElement.dataset.pageNo) ?? "1";
+        const pageNum = intValue(pageNumElement?.dataset.pageNo) ?? "1";
         if (pagingCallback) {
           pagingCallback(pageNum);
         } else {
@@ -9603,9 +12470,9 @@
         pagingInfo.unitPage
       );
       this.setPagingTemplate(pagingViewInfo);
-      const pageSize = pagingViewInfo == null ? void 0 : pagingViewInfo.pageSize;
-      const startIdx = ((pagingViewInfo == null ? void 0 : pagingViewInfo.page) - 1) * pageSize;
-      const viewItems = arrayCopy(this.cfg.dataManager.getOriginalViewItems(), startIdx, startIdx + pageSize);
+      const pageSize = pagingViewInfo?.pageSize;
+      const startIdx = (pagingViewInfo?.page - 1) * pageSize;
+      const viewItems = arrayCopy(this.cfg.dataManager.getPagingViewItems(), startIdx, startIdx + pageSize);
       this.cfg.dataManager.setViewItems(viewItems);
       if (drawFlag) {
         this.gridMain.selectionInfo.setSelectionRangeInfo({}, true);
@@ -9617,19 +12484,18 @@
      * selection status info
      *
      * @public
-     * @param {string} info selection info
+     @param {*} dataInfo selection info
      */
     setSelectionStatus(dataInfo) {
-      var _a2, _b2, _c2;
-      if (this.isSelectionInfo && this.footerOpts.enabled && ((_a2 = this.footerOpts.selection) == null ? void 0 : _a2.showSummary)) {
+      if (this.isSelectionInfo && this.footerOpts.enabled && this.footerOpts.selection?.showSummary) {
         const dataInfo2 = this.selectionInfo.selectionData("json", true);
-        if (!isUndefined(dataInfo2) && ((_b2 = dataInfo2 == null ? void 0 : dataInfo2.summary) == null ? void 0 : _b2.count) > 1) {
-          const selectionFormat = (_c2 = this.footerOpts.selection) == null ? void 0 : _c2.format;
+        if (!isUndefined(dataInfo2) && dataInfo2?.summary?.count > 1) {
+          const selectionFormat = this.footerOpts.selection?.format;
           let statusText = "";
-          if (isString(selectionFormat)) {
+          if (isString$1(selectionFormat)) {
             dataInfo2.summary.enabledSummary = dataInfo2.summary.numFieldCount > 0;
             statusText = replaceMesasgeFormat(selectionFormat, dataInfo2.summary);
-          } else if (isFunction(selectionFormat)) {
+          } else if (isFunction$1(selectionFormat)) {
             statusText = selectionFormat(dataInfo2);
           }
           this.selectionStatusElement.text(statusText);
@@ -9644,8 +12510,7 @@
      * @param pagingInfo paging info
      */
     setPagingInfo(pagingInfo) {
-      var _a2, _b2;
-      if ((_a2 = this.footerOpts.paging) == null ? void 0 : _a2.enabled) {
+      if (this.footerOpts.paging?.enabled) {
         const pageSize = pagingInfo.pageSize;
         const start = (pagingInfo.page - 1) * pageSize;
         const statusInfo = {
@@ -9655,11 +12520,11 @@
         };
         statusInfo.end = statusInfo.end > pagingInfo.totalCount ? pagingInfo.totalCount : statusInfo.end;
         if (pagingInfo.totalCount > 0) {
-          const pagingFormat = (_b2 = this.footerOpts.paging) == null ? void 0 : _b2.format;
+          const pagingFormat = this.footerOpts.paging?.format;
           let pagingText = "";
-          if (isString(pagingFormat)) {
+          if (isString$1(pagingFormat)) {
             pagingText = replaceMesasgeFormat(pagingFormat, statusInfo);
-          } else if (isFunction(pagingFormat)) {
+          } else if (isFunction$1(pagingFormat)) {
             pagingText = pagingFormat(statusInfo);
           }
           this.pagingInfoElement.text(pagingText);
@@ -9744,7 +12609,6 @@
       this.clickTimer = setTimeout(() => this.resetClick(), this.clickDelay);
     }
     processClick(session, handler) {
-      var _a2, _b2;
       const now = Date.now();
       if (now - this.lastClickTime < DBLCLICK_DELAY) {
         this.clickCount++;
@@ -9752,13 +12616,13 @@
       this.lastClickTime = now;
       if (this.clickCount === 2) {
         if (!isMouseMoved(session.startPos, this.currentPointerPosition, 5)) {
-          (_a2 = handler.onDoubleClick) == null ? void 0 : _a2.call(handler, session);
+          handler.onDoubleClick?.(session);
           this.resetClick();
           return;
         }
       }
       this.conserveClick(session.startPos);
-      (_b2 = handler.onClick) == null ? void 0 : _b2.call(handler, session);
+      handler.onClick?.(session);
     }
   }
   class BasePointerHandler {
@@ -9774,7 +12638,6 @@
   }
   class CellClickHandler extends BasePointerHandler {
     constructor(context, bodyEvent) {
-      var _a2;
       super(context);
       this.priority = 5;
       this.bodyDragDelay = 150;
@@ -9786,24 +12649,23 @@
       this.dragAnimationId = 0;
       this.lastScrollTime = 0;
       this.selectionInfo = context.gridMain.selectionInfo;
-      this.bodyElement = (_a2 = context.body) == null ? void 0 : _a2.getBodyElement().getElement();
+      this.bodyElement = context.body?.getBodyElement().getElement();
       this.selectionMode = this.opts.selectionMode;
       this.multipleFlag = isMultipleSelectionMode(this.selectionMode);
       this.cellClickFn = this.opts.body.cellClick;
       const { rowHeight, enabledCellEdit } = this.cfg;
       this.rowHeight = rowHeight;
       this.cellDblClick = this.opts.body.cellDblClick;
-      this.isCellDbClickEvent = enabledCellEdit || isFunction(this.cellDblClick);
+      this.isCellDbClickEvent = enabledCellEdit || isFunction$1(this.cellDblClick);
     }
     onPointerDown(session) {
-      var _a2;
       this.cellElement = session.cellEl;
       this.startCellInfo = session.cellInfo;
       this.currentSelectionMode = this.selectionMode;
       if (this.startCellInfo.rowIndex > -1) {
         this.cfg.searchMatchInfo.rowIndex = this.startCellInfo.rowIndex;
       }
-      if (this.multipleFlag && ((_a2 = session.cellInfo) == null ? void 0 : _a2.field.name) == LINE_NUMBER_NAME) {
+      if (this.multipleFlag && session.cellInfo?.field.name == LINE_NUMBER_NAME) {
         this.currentSelectionMode = SelectionModeMap.multiRow;
       }
     }
@@ -9926,6 +12788,10 @@
       };
       this.dragAnimationId = requestAnimationFrame(loop);
     }
+    /** 드래그 자동 스크롤이 남아 있으면 멈춘다. */
+    destroy() {
+      this.stopAutoScroll();
+    }
     stopAutoScroll() {
       if (this.dragAnimationId !== 0) {
         cancelAnimationFrame(this.dragAnimationId);
@@ -9936,8 +12802,7 @@
       this.stopAutoScroll();
     }
     onClick(session) {
-      var _a2, _b2, _c2;
-      const isGroupRow = !!((_b2 = (_a2 = this.startCellInfo) == null ? void 0 : _a2.viewItem) == null ? void 0 : _b2.groupRowType);
+      const isGroupRow = !!this.startCellInfo?.viewItem?.groupRowType;
       if (this.selectionMode != SelectionModeMap.none) {
         this.setCellClick(
           session.event,
@@ -9948,14 +12813,13 @@
         );
       }
       if (!isGroupRow) {
-        (_c2 = this.cellClickFn) == null ? void 0 : _c2.call(this, this.startCellInfo);
+        this.cellClickFn?.(this.startCellInfo);
       }
     }
     onDoubleClick(session) {
-      var _a2;
       if (!this.isCellDbClickEvent) return;
       const cellInfo = session.cellInfo;
-      if ((_a2 = cellInfo.viewItem) == null ? void 0 : _a2.groupRowType) return;
+      if (cellInfo.viewItem?.groupRowType) return;
       const field = cellInfo.field;
       if (this.cellDblClick) {
         this.cellDblClick(this.startCellInfo);
@@ -9968,7 +12832,6 @@
       }
     }
     setCellClick(e, cellInfo, multipleFlag, selectionMode, cellElement) {
-      var _a2;
       const context = this.context;
       const cfg = context.gridMain.config();
       const gridMain = context.gridMain;
@@ -10045,7 +12908,7 @@
           true
         );
       }
-      (_a2 = window.getSelection()) == null ? void 0 : _a2.removeAllRanges();
+      window.getSelection()?.removeAllRanges();
     }
   }
   class KeydownEvent {
@@ -10179,6 +13042,7 @@
       const gridStartCol = dataInfo.startCol;
       const isCtrl = isCtrlKey(evt);
       switch (evtCode) {
+        //Down
         case "PageDown":
         case "Enter":
         case "ArrowDown": {
@@ -10191,6 +13055,7 @@
           }
           return;
         }
+        //Up
         case "PageUp":
         case "ArrowUp": {
           const moveRowIdx = this.getUpRowIndex(evtCode, isCtrl, currentRowIdx, insideViewRow);
@@ -10202,6 +13067,7 @@
           }
           return;
         }
+        //Left
         case "Home":
         case "ArrowLeft": {
           const moveColIdx = this.getLeftColumnIndex(evtCode, isCtrl, currentColIdx, gridStartCol);
@@ -10213,6 +13079,7 @@
           }
           return;
         }
+        //Right
         case "End":
         case "Tab":
         case "ArrowRight": {
@@ -10281,7 +13148,7 @@
       const cfg = this.gridMain.config();
       const opts = this.gridMain.options();
       const keyNavHandler = opts.body.keyNavHandler;
-      if (isFunction(keyNavHandler)) {
+      if (isFunction$1(keyNavHandler)) {
         const dataManager = cfg.dataManager;
         const viewItems = dataManager.getViewItems();
         const viewItem = viewItems[moveRowIdx];
@@ -10398,9 +13265,9 @@
       const cfg = this.gridMain.config();
       const opts = this.gridMain.options();
       const pasteBeforeFn = opts.body.pasteBefore;
-      const pasteBeforeFnFlag = isFunction(pasteBeforeFn);
+      const pasteBeforeFnFlag = isFunction$1(pasteBeforeFn);
       const pasteAfterFn = opts.body.pasteAfter;
-      const pasteAfterFnFlag = isFunction(pasteAfterFn);
+      const pasteAfterFnFlag = isFunction$1(pasteAfterFn);
       const pasteElement = this.pasteElement.getElement();
       cfg.eventManager.on(
         {
@@ -10408,7 +13275,6 @@
           type: "paste"
         },
         (event) => {
-          var _a2;
           this.gridMain.setGridFocusIn();
           const clipboardData = event.clipboardData;
           if (!clipboardData) {
@@ -10430,6 +13296,9 @@
           let itemLength = dataInfo.rowLength;
           let maxCol = startCol;
           let pasteResultItems = dataManager.getViewItems();
+          let aborted = false;
+          let lastRowIdx = startIdx;
+          let rowsAdded = false;
           dataManager.beginHistory();
           try {
             if (startIdx + parsed.length > itemLength) {
@@ -10439,12 +13308,14 @@
               }
               pasteResultItems = dataManager.getViewItems();
               itemLength = pasteResultItems.length;
+              rowsAdded = true;
             }
-            for (let i = 0; i < parsed.length; i++) {
+            rows: for (let i = 0; i < parsed.length; i++) {
               const rowIdx = startIdx + i;
               if (rowIdx >= itemLength) {
                 break;
               }
+              lastRowIdx = rowIdx;
               const viewItem = pasteResultItems[rowIdx];
               if (viewItem.groupRowType) {
                 continue;
@@ -10468,18 +13339,19 @@
                   value = `'${value}`;
                 }
                 const field = currentFields[colIdx];
-                const rendererResult = (_a2 = field.$editRenderer) == null ? void 0 : _a2.setValue(event, rowItem, value, false);
+                const rendererResult = field.$editRenderer?.setValue(event, rowItem, value, false);
                 if (rendererResult === false) {
-                  return false;
+                  aborted = true;
+                  break rows;
                 }
               }
             }
-            this.gridMain.refreshBody(false, "paste");
+            this.gridMain.refreshBody(rowsAdded, "paste");
             this.selectionInfo.setSelectionRangeInfo(
               {
                 range: {
                   startIdx,
-                  endIdx: startIdx + parsed.length - 1,
+                  endIdx: aborted ? lastRowIdx : startIdx + parsed.length - 1,
                   startCol,
                   endCol: maxCol
                 },
@@ -10494,6 +13366,9 @@
             throw error;
           }
           this.gridMain.getBody().dataDraw("reDraw_paste");
+          if (aborted) {
+            return false;
+          }
           if (pasteAfterFnFlag) {
             pasteAfterFn(pastedText);
           }
@@ -10518,7 +13393,6 @@
       this.initTemplate();
     }
     initTemplate() {
-      var _a2;
       const rowMoveElement = document.createElement("div");
       rowMoveElement.className = "dg-row-move-helper";
       rowMoveElement.style.cssText = `height: ${this.rowHeight}px; display: none;`;
@@ -10528,19 +13402,18 @@
       const helperElement = document.createElement("div");
       helperElement.className = "dg-row-move-content";
       rowMoveElement.appendChild(helperElement);
-      (_a2 = document.querySelector(HIDDEN_ELEMENT_SELECTOR)) == null ? void 0 : _a2.appendChild(rowMoveElement);
+      document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(rowMoveElement);
       this.rowMoveElement = rowMoveElement;
     }
     canHandle(session) {
-      var _a2, _b2;
       const moveRowItem = session.cellInfo;
-      if ((_a2 = moveRowItem.viewItem) == null ? void 0 : _a2.groupRowType) {
+      if (moveRowItem.viewItem?.groupRowType) {
         return false;
       }
       const rowMoveOptions = this.rowMoveOptions;
-      const fieldName = (_b2 = moveRowItem.field) == null ? void 0 : _b2.name;
-      const dragHandle = rowMoveOptions == null ? void 0 : rowMoveOptions.dragHandle;
-      if (dragHandle !== "ALL" && dragHandle !== fieldName && !((rowMoveOptions == null ? void 0 : rowMoveOptions.enabledDragHandle) !== false && fieldName === ROW_DRAG_HANDLE_NAME)) {
+      const fieldName = moveRowItem.field?.name;
+      const dragHandle = rowMoveOptions?.dragHandle;
+      if (dragHandle !== "ALL" && dragHandle !== fieldName && !(rowMoveOptions?.enabledDragHandle !== false && fieldName === ROW_DRAG_HANDLE_NAME)) {
         return false;
       }
       this.moveRowIndexs.length = 0;
@@ -10551,10 +13424,14 @@
       this.isDropForbidden = true;
       return true;
     }
+    /** 숨김 컨테이너에 붙여 둔 드래그 도우미 요소를 제거한다. */
+    destroy() {
+      super.destroy();
+      this.rowMoveElement?.remove();
+    }
     onClick(session) {
     }
     onActivate(session) {
-      var _a2, _b2;
       const cfg = this.cfg;
       const opts = this.opts;
       const moveStartItem = session.cellInfo;
@@ -10626,7 +13503,7 @@
         moveRowIndexs.push(moveStartItem.rowIndex);
         moveItems.push(moveStartItem.item);
       }
-      if (((_a2 = rowMoveOptions == null ? void 0 : rowMoveOptions.dragStart) == null ? void 0 : _a2.call(rowMoveOptions, { moveItems })) === false) {
+      if (rowMoveOptions?.dragStart?.({ moveItems }) === false) {
         return false;
       }
       this.moveRowIndexs = moveRowIndexs;
@@ -10644,10 +13521,10 @@
         bottom: position.top + mainBodyHeight
       };
       this.bodyPosition = position;
-      const helperTemplate = (_b2 = rowMoveOptions == null ? void 0 : rowMoveOptions.dragTemplate) == null ? void 0 : _b2.call(rowMoveOptions, { moveItems: this.moveViewItems });
+      const helperTemplate = rowMoveOptions?.dragTemplate?.({ moveItems: this.moveViewItems });
       const helperContent = this.rowMoveElement.querySelector(".dg-row-move-content");
       if (helperTemplate) {
-        helperContent.innerHTML = helperTemplate;
+        setSafeHtml(helperContent, helperTemplate);
       } else {
         helperContent.textContent = `${this.moveViewItems.length} ${this.language.getMessage("row")}`;
       }
@@ -10655,7 +13532,6 @@
     }
     /** move 중 */
     onPointerMove(session) {
-      var _a2, _b2;
       if (session.state != PointerStateMap.DRAGGING) return;
       const cfg = this.cfg;
       const bounds = this.gridBounds;
@@ -10717,11 +13593,11 @@
         position = MovePositionMap.AFTER;
         dropItemIdx = currentDropRowIdx - 1;
       }
-      if (((_b2 = (_a2 = this.rowMoveOptions).dragOver) == null ? void 0 : _b2.call(_a2, {
+      if (this.rowMoveOptions.dragOver?.({
         moveItems: this.moveViewItems,
         dropItemIdx,
         position
-      })) === false) {
+      }) === false) {
         this.preventDrop();
       }
     }
@@ -10736,7 +13612,6 @@
       this.rowMoveDropHelperElement.style.display = "none";
     }
     onPointerUp(session) {
-      var _a2, _b2;
       this.stopAutoScroll();
       let dropRowIdx = this.dropRowIdx;
       this.rowMoveDropHelperElement.style.display = "none";
@@ -10755,11 +13630,11 @@
       if (moveStartItem.rowIndex < dropRowIdx) {
         position = MovePositionMap.AFTER;
       }
-      if (((_a2 = rowMoveOptions == null ? void 0 : rowMoveOptions.drop) == null ? void 0 : _a2.call(rowMoveOptions, {
+      if (rowMoveOptions?.drop?.({
         moveItems,
         dropItemIdx: position == MovePositionMap.AFTER ? dropRowIdx - 1 : dropRowIdx,
         position
-      })) === false) {
+      }) === false) {
         return;
       }
       const moveRowIndexs = this.moveRowIndexs;
@@ -10773,7 +13648,9 @@
       }
       const moveViewItems = this.moveViewItems.map((item) => ({ id: item[ROW_FIELD.ID] }));
       ids.splice(dropRowIdx, 0, ...moveViewItems);
-      cfg.dataManager.setViewItems(ids);
+      if (!cfg.dataManager.applyMovedOrder(ids)) {
+        cfg.dataManager.setViewItems(ids);
+      }
       let startCol = cfg.dataInfo.startCol;
       let endCol = cfg.dataInfo.colLength - 1;
       if (isCellSelectionMode(this.selectionMode)) {
@@ -10794,7 +13671,7 @@
         true
       );
       this.context.gridMain.getBody().dataDraw("dragmove_redraw");
-      (_b2 = rowMoveOptions == null ? void 0 : rowMoveOptions.dragEnd) == null ? void 0 : _b2.call(rowMoveOptions, { moveItems, dropItemIdx: dropRowIdx, position });
+      rowMoveOptions?.dragEnd?.({ moveItems, dropItemIdx: dropRowIdx, position });
     }
   }
   class BodyEvent {
@@ -10805,7 +13682,7 @@
       this.bodyElement = body.getBodyElement();
       this.handlers = [];
       const rowMoveOptions = gridMain.options().body.rowMove;
-      if ((rowMoveOptions == null ? void 0 : rowMoveOptions.enabled) === true) {
+      if (rowMoveOptions?.enabled === true) {
         this.handlers.push(new RowMoveHandler({ gridMain, body }, this));
       }
       this.handlers.push(new CellClickHandler({ gridMain, body }, this));
@@ -10947,7 +13824,6 @@
       eventManager.on(
         { el: bodyElement, selector: ".dg-cell", type: "mousedown.cellclick touchstart.cellclick" },
         (e) => {
-          var _a2;
           if (!isPrimaryPointer(e)) {
             return true;
           }
@@ -10984,11 +13860,10 @@
             e.preventDefault();
             cfg.isMoveRow = true;
           }
-          (_a2 = handler.onPointerDown) == null ? void 0 : _a2.call(handler, session);
+          handler.onPointerDown?.(session);
           if (handler.onPointerMove) {
             let isStarted = false;
             eventManager.on({ el: document, type: "touchmove.cellclick mousemove.cellclick" }, (moveEvt) => {
-              var _a3, _b2;
               session.currentPos = eventPosition(moveEvt);
               if (!isStarted) {
                 if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
@@ -10996,22 +13871,21 @@
                 }
                 isStarted = true;
                 cfg.isBodyDragging = true;
-                if (((_a3 = handler.onActivate) == null ? void 0 : _a3.call(handler, session)) === false) {
+                if (handler.onActivate?.(session) === false) {
                   cleanupDragEvents();
                   return;
                 }
               }
               session.state = PointerStateMap.DRAGGING;
-              (_b2 = handler.onPointerMove) == null ? void 0 : _b2.call(handler, session);
+              handler.onPointerMove?.(session);
             });
             eventManager.on(
               { el: document, type: "touchend.cellclick touchcancel.cellclick mouseup.cellclick" },
               (moveEvt) => {
-                var _a3;
                 cleanupDragEvents();
                 session.state = PointerStateMap.IDLE;
                 session.currentPos = eventPosition(moveEvt);
-                (_a3 = handler.onPointerUp) == null ? void 0 : _a3.call(handler, session);
+                handler.onPointerUp?.(session);
                 cfg.isBodyDragging = false;
                 cfg.isMoveRow = false;
               }
@@ -11026,6 +13900,19 @@
         },
         { passive: false }
       );
+      eventManager.on(
+        { el: bodyElement, type: "mousedown.bodyclick touchstart.bodyclick" },
+        (e) => {
+          if (!isPrimaryPointer(e)) {
+            return true;
+          }
+          const eventElement = e.target;
+          if (!eventElement.closest(".dg-cell")) {
+            this.gridMain.hideLayer();
+          }
+        },
+        { passive: false }
+      );
       eventManager.on({ el: bodyElement, type: "mouseup.cellclick touchend.cellclick" }, (e) => {
         cfg.selection.isMouseDown = false;
         cfg.isBodyDragging = false;
@@ -11033,6 +13920,9 @@
       });
     }
     destroy() {
+      for (const handler of this.handlers) {
+        handler.destroy?.();
+      }
     }
   }
   const CELL_HIGHLIGHT_CLASS = "dg-search-highlight";
@@ -11085,7 +13975,7 @@
     setCellClassName(cellEle, rowIdx, col, field, item) {
       if (!field.cellClassName) return;
       const prevClasses = this.context.cellClassNameCache.get(cellEle);
-      if (prevClasses == null ? void 0 : prevClasses.length) {
+      if (prevClasses?.length) {
         cellEle.classList.remove(...prevClasses);
       }
       const newClasses = resolveClassName(field.cellClassName, {
@@ -11115,7 +14005,6 @@
      * @param matchInfo Search Match 정보
      */
     setCellStyle(startCellInfo, rowIdx, col, cellElement, field, item, matchInfo) {
-      var _a2;
       const contentEleStyle = cellElement.firstElementChild.style;
       const heightPixel = `${item[ROW_FIELD.HEIGHT] - 5}px`;
       contentEleStyle.maxHeight = heightPixel;
@@ -11126,7 +14015,7 @@
         const matchedFields = matchInfo.searchMatchedFields ?? [];
         if (matchedFields.length > 0) {
           const fieldName = field.name;
-          const isMatch = ((_a2 = matchInfo.matchViewItem) == null ? void 0 : _a2.isCurrentMatch) && matchedFields[matchInfo.cellIndex] === fieldName;
+          const isMatch = matchInfo.matchViewItem?.isCurrentMatch && matchedFields[matchInfo.cellIndex] === fieldName;
           if (isMatch) {
             classList.add(CELL_HIGHLIGHT_CLASS, CELL_MATCH_CLASS);
           } else {
@@ -11198,7 +14087,6 @@
       this.template = template;
     }
     drawData(mode, renderSpecialRow) {
-      var _a2, _b2, _c2, _d2, _e, _f, _g, _h;
       const opts = this.context.gridMain.options();
       const cfg = this.context.gridMain.config();
       const dataManager = cfg.dataManager;
@@ -11261,7 +14149,7 @@
       const startCol = cfg.scroll.startCol;
       const endCol = cfg.scroll.endCol;
       this.context.selectionInfo.removeStartAnchorCell();
-      const pagingStartIdx = ((_a2 = opts.footer.paging) == null ? void 0 : _a2.enabled) ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0;
+      const pagingStartIdx = opts.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0;
       const leafAllFields = cfg.currentFields;
       const leftElements = this.context.allCellElements.left;
       const centerElements = this.context.allCellElements.center;
@@ -11292,20 +14180,20 @@
         if (renderSpecialRow(viewItem, i)) {
           continue;
         }
-        for (const rowElement of [(_b2 = allRowElements.left) == null ? void 0 : _b2[i], (_c2 = allRowElements.center) == null ? void 0 : _c2[i], (_d2 = allRowElements.right) == null ? void 0 : _d2[i]]) {
-          rowElement == null ? void 0 : rowElement.classList.remove("dg-group-row", "dg-group-header", "dg-group-summary", "dg-grand-summary");
+        for (const rowElement of [allRowElements.left?.[i], allRowElements.center?.[i], allRowElements.right?.[i]]) {
+          rowElement?.classList.remove("dg-group-row", "dg-group-header", "dg-group-summary", "dg-grand-summary");
         }
         const item = dataManager.getRowItem(viewItem.id);
         const rowIdx = pagingStartIdx + viewRowIdx;
-        for (const rowElement of [(_e = allRowElements.left) == null ? void 0 : _e[i], (_f = allRowElements.center) == null ? void 0 : _f[i], (_g = allRowElements.right) == null ? void 0 : _g[i]]) {
-          rowElement == null ? void 0 : rowElement.classList.toggle(deleteRowClassName, item[ROW_FIELD.CUD] === ItemStatusMap.DELETE);
+        for (const rowElement of [allRowElements.left?.[i], allRowElements.center?.[i], allRowElements.right?.[i]]) {
+          rowElement?.classList.toggle(deleteRowClassName, item[ROW_FIELD.CUD] === ItemStatusMap.DELETE);
         }
         matchInfo.matchViewItem = void 0;
         matchInfo.searchMatchedFields = void 0;
         if (searchEnabled) {
           const matchViewItem = dataManager.getSearchMapItem(viewItem.id);
           matchInfo.matchViewItem = matchViewItem;
-          matchInfo.searchMatchedFields = (_h = matchViewItem == null ? void 0 : matchViewItem.matchedFields) == null ? void 0 : _h.map((f) => f.fieldName);
+          matchInfo.searchMatchedFields = matchViewItem?.matchedFields?.map((f) => f.fieldName);
         }
         rowCellInfo.rowIndex = rowIdx;
         rowCellInfo.r = viewRowIdx;
@@ -11323,7 +14211,7 @@
             field.$renderer.render(rowCellInfo, cell.firstElementChild);
           }
         }
-        const rowCenterCells = centerElements == null ? void 0 : centerElements[i];
+        const rowCenterCells = centerElements?.[i];
         for (let j = startCol; rowCenterCells && j <= endCol; j++) {
           const field = leafAllFields[j];
           const cell = rowCenterCells[j];
@@ -11350,7 +14238,6 @@
       this.selectRowAnchorCell();
     }
     updateRowTemplates(fieldGroups, viewRow) {
-      var _a2;
       const cfg = this.context.gridMain.config();
       const beforeViewRow = cfg.scroll.before.viewRow;
       if (beforeViewRow > 0 && beforeViewRow > viewRow) {
@@ -11360,7 +14247,7 @@
               continue;
             }
             const rowEl = element.find(`.dg-row[data-row="${i}"]`);
-            (_a2 = rowEl == null ? void 0 : rowEl.parentNode) == null ? void 0 : _a2.removeChild(rowEl);
+            rowEl?.parentNode?.removeChild(rowEl);
           }
         }
         this.refreshCellElements(fieldGroups, viewRow);
@@ -11446,10 +14333,9 @@
       this.context.allCellElements = allCellMap;
     }
     selectRowAnchorCell() {
-      var _a2, _b2, _c2;
       const cfg = this.context.gridMain.config();
       const leafLeft = cfg.fieldHeaderGroup.leafLeft;
-      if (!((_a2 = leafLeft == null ? void 0 : leafLeft[0]) == null ? void 0 : _a2.$isAside)) {
+      if (!leafLeft?.[0]?.$isAside) {
         return;
       }
       const leftElements = this.context.allCellElements.left;
@@ -11463,13 +14349,13 @@
       }
       if (isAll) {
         for (let i = 0; i < viewRow; i++) {
-          (_b2 = leftElements[i][0]) == null ? void 0 : _b2.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
+          leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
         }
         return;
       }
       const rowLine = this.context.selectionInfo.getRowLine();
       for (let i = 0; i < viewRow; i++) {
-        (_c2 = leftElements[i][0]) == null ? void 0 : _c2.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
+        leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
       }
     }
     destroy() {
@@ -11484,7 +14370,6 @@
       this.applyRowSpans();
     }
     hideRepeatedGroupValues() {
-      var _a2, _b2, _c2, _d2, _e, _f, _g, _h;
       const groupingFields = this.context.gridMain.options().groupingFields ?? [];
       if (groupingFields.length === 0) {
         return;
@@ -11506,7 +14391,7 @@
             continue;
           }
           const region = cfg.fieldHeaderGroup.leafLeft.includes(field) ? "left" : cfg.fieldHeaderGroup.leafRight.includes(field) ? "right" : "center";
-          (_c2 = (_b2 = (_a2 = this.context.allCellElements[region]) == null ? void 0 : _a2[rowIndex]) == null ? void 0 : _b2[field.$colSeq]) == null ? void 0 : _c2.classList.remove("dg-group-continuation");
+          this.context.allCellElements[region]?.[rowIndex]?.[field.$colSeq]?.classList.remove("dg-group-continuation");
         }
         const item = dataManager.getRowItem(viewItem.id);
         if (previousDataItem) {
@@ -11517,7 +14402,7 @@
               continue;
             }
             const region = cfg.fieldHeaderGroup.leafLeft.includes(field) ? "left" : cfg.fieldHeaderGroup.leafRight.includes(field) ? "right" : "center";
-            const cell = (_e = (_d2 = this.context.allCellElements[region]) == null ? void 0 : _d2[rowIndex]) == null ? void 0 : _e[field.$colSeq];
+            const cell = this.context.allCellElements[region]?.[rowIndex]?.[field.$colSeq];
             if (cell) {
               cell.firstElementChild.textContent = "";
               cell.classList.add("dg-group-continuation");
@@ -11533,14 +14418,13 @@
             continue;
           }
           const region = cfg.fieldHeaderGroup.leafLeft.includes(field) ? "left" : cfg.fieldHeaderGroup.leafRight.includes(field) ? "right" : "center";
-          (_h = (_g = (_f = this.context.allCellElements[region]) == null ? void 0 : _f[lastVisibleRowIndex]) == null ? void 0 : _g[field.$colSeq]) == null ? void 0 : _h.classList.remove(
+          this.context.allCellElements[region]?.[lastVisibleRowIndex]?.[field.$colSeq]?.classList.remove(
             "dg-group-continuation"
           );
         }
       }
     }
     applyRowSpans() {
-      var _a2, _b2, _c2, _d2;
       const options = this.context.gridMain.options();
       const rowSpanFields = options.rowSpanFields ?? [];
       if (rowSpanFields.length === 0) {
@@ -11558,10 +14442,7 @@
         const colIndex = field.$colSeq;
         const cells = Array.from(
           { length: visibleRowCount },
-          (_, rowIndex) => {
-            var _a3, _b3;
-            return (_b3 = (_a3 = cellElements[region]) == null ? void 0 : _a3[rowIndex]) == null ? void 0 : _b3[colIndex];
-          }
+          (_, rowIndex) => cellElements[region]?.[rowIndex]?.[colIndex]
         );
         for (const cell of cells) {
           if (cell) {
@@ -11598,12 +14479,12 @@
             span++;
           }
           if (span > 1) {
-            const firstCell = (_b2 = (_a2 = cellElements[region]) == null ? void 0 : _a2[rowIndex]) == null ? void 0 : _b2[colIndex];
+            const firstCell = cellElements[region]?.[rowIndex]?.[colIndex];
             if (firstCell) {
               firstCell.rowSpan = span;
             }
             for (let hiddenIndex = rowIndex + 1; hiddenIndex < rowIndex + span; hiddenIndex++) {
-              const cell = (_d2 = (_c2 = cellElements[region]) == null ? void 0 : _c2[hiddenIndex]) == null ? void 0 : _d2[colIndex];
+              const cell = cellElements[region]?.[hiddenIndex]?.[colIndex];
               if (cell) {
                 cell.style.display = "none";
               }
@@ -11614,7 +14495,6 @@
       }
     }
     renderGroupRow(viewItem, rowIndex) {
-      var _a2, _b2, _c2, _d2, _e, _f, _g, _h, _i;
       if (!viewItem.groupRowType) {
         return false;
       }
@@ -11623,28 +14503,28 @@
       const cellElements = this.context.allCellElements;
       const rowClass = viewItem.groupRowType === "group" ? "dg-group-header" : viewItem.groupRowType === "groupSummary" ? "dg-group-summary" : "dg-grand-summary";
       const firstDataField = cfg.currentFields.find((field) => !field.$isAside);
-      const sumFields = new Set(this.context.gridMain.options().sumFields ?? []);
-      const summaryLabelField = (viewItem.groupRowType === "groupSummary" || viewItem.groupRowType === "group") && viewItem.groupField ? cfg.currentFields.find((field) => field.name === viewItem.groupField) : cfg.currentFields.find((field) => !field.$isAside && !sumFields.has(field.name)) ?? firstDataField;
+      const summaryFieldNames = new Set(getGroupSummaryFields(this.context.gridMain.options()));
+      const summaryLabelField = (viewItem.groupRowType === "groupSummary" || viewItem.groupRowType === "group") && viewItem.groupField ? cfg.currentFields.find((field) => field.name === viewItem.groupField) : cfg.currentFields.find((field) => !field.$isAside && !summaryFieldNames.has(field.name)) ?? firstDataField;
       for (const region of ["left", "center", "right"]) {
-        const rowElement = (_a2 = rowElements[region]) == null ? void 0 : _a2[rowIndex];
-        rowElement == null ? void 0 : rowElement.classList.remove("dg-group-header", "dg-group-summary", "dg-grand-summary", "dg-status-delete");
-        rowElement == null ? void 0 : rowElement.classList.add("dg-group-row", rowClass);
+        const rowElement = rowElements[region]?.[rowIndex];
+        rowElement?.classList.remove("dg-group-header", "dg-group-summary", "dg-grand-summary", "dg-status-delete");
+        rowElement?.classList.add("dg-group-row", rowClass);
       }
       for (const field of cfg.currentFields) {
         const colIndex = field.$colSeq;
         let cell;
         if (cfg.fieldHeaderGroup.leafLeft.includes(field)) {
-          cell = (_c2 = (_b2 = cellElements.left) == null ? void 0 : _b2[rowIndex]) == null ? void 0 : _c2[colIndex];
+          cell = cellElements.left?.[rowIndex]?.[colIndex];
         } else if (cfg.fieldHeaderGroup.leafRight.includes(field)) {
-          cell = (_e = (_d2 = cellElements.right) == null ? void 0 : _d2[rowIndex]) == null ? void 0 : _e[colIndex];
+          cell = cellElements.right?.[rowIndex]?.[colIndex];
         } else {
-          cell = (_g = (_f = cellElements.center) == null ? void 0 : _f[rowIndex]) == null ? void 0 : _g[colIndex];
+          cell = cellElements.center?.[rowIndex]?.[colIndex];
         }
         if (!cell) {
           continue;
         }
         const previousClasses = this.context.cellClassNameCache.get(cell);
-        if (previousClasses == null ? void 0 : previousClasses.length) cell.classList.remove(...previousClasses);
+        if (previousClasses?.length) cell.classList.remove(...previousClasses);
         this.context.cellClassNameCache.delete(cell);
         cell.classList.remove(
           "dg-group-continuation",
@@ -11665,7 +14545,7 @@
           startCol
         );
         if (field.name === LINE_NUMBER_NAME) {
-          const pagingStartIdx = ((_h = this.context.gridMain.options().footer.paging) == null ? void 0 : _h.enabled) ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0;
+          const pagingStartIdx = this.context.gridMain.options().footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0;
           const cellInfo = {
             r: cfg.scroll.startIdx + rowIndex,
             c: colIndex,
@@ -11681,9 +14561,9 @@
         } else if (!field.$isAside && viewItem.groupRowType !== "group" && field === summaryLabelField) {
           renderer.textContent = viewItem.groupRowType === "grandSummary" ? "Grand Total" : viewItem.groupField ? `${String(viewItem.groupValue ?? "")} 합계` : "Subtotal";
           renderer.style.paddingLeft = `${(viewItem.groupDepth ?? 0) * 16}px`;
-        } else if (viewItem.groupRowType !== "group" && sumFields.has(field.name)) {
-          const sum = (_i = viewItem.groupSums) == null ? void 0 : _i[field.name];
-          renderer.textContent = sum === void 0 ? "" : String(sum);
+        } else if (viewItem.groupRowType !== "group" && summaryFieldNames.has(field.name)) {
+          const sum = viewItem.groupSums?.[field.name];
+          renderer.textContent = sum === void 0 ? "" : formatSummaryValue(sum, getGroupSummaries(this.context.gridMain.options()).find((item) => getSummaryField(item) === field.name), field);
           renderer.style.paddingLeft = "";
         } else {
           renderer.style.paddingLeft = "";
@@ -11804,7 +14684,6 @@
      * @param fieldName Field명
      */
     setFieldRefresh(fieldName) {
-      var _a2, _b2;
       const cfg = this.context.gridMain.config();
       const { scroll, paging, dataManager, currentFields } = cfg;
       const refreshField = currentFields.find((field) => field.name === fieldName);
@@ -11815,7 +14694,7 @@
       const viewItems = dataManager.getViewItems();
       const currentViewRow = scroll.viewRow;
       const startIdx = scroll.startIdx;
-      const pagingStartIdx = ((_a2 = opts.footer.paging) == null ? void 0 : _a2.enabled) ? (paging.page - 1) * paging.pageSize : 0;
+      const pagingStartIdx = opts.footer.paging?.enabled ? (paging.page - 1) * paging.pageSize : 0;
       const colSeq = refreshField.$colSeq;
       let fieldMapElement = this.context.allCellElements.center;
       if (colSeq < cfg.fixedLeftIndex) {
@@ -11840,7 +14719,7 @@
         rowCellInfo.item = item;
         rowCellInfo.viewItem = viewItem;
         rowCellInfo.c = colSeq;
-        const cell = (_b2 = fieldMapElement[i]) == null ? void 0 : _b2[colSeq];
+        const cell = fieldMapElement[i]?.[colSeq];
         if (!cell) {
           continue;
         }
@@ -11855,7 +14734,7 @@
      */
     setCheckedItemByValue(name, values) {
       const { dataManager, isRowAllowMultiSelect } = this.context.gridMain.config();
-      const checkValueSet = new Set(isArray(values) ? values : [values]);
+      const checkValueSet = new Set(isArray$1(values) ? values : [values]);
       const viewItems = dataManager.getViewItems();
       const rowIdsToCheck = [];
       for (const viewItem of viewItems) {
@@ -11876,7 +14755,7 @@
      */
     addCheckedItemByValue(name, values) {
       const { dataManager } = this.context.gridMain.config();
-      const checkValueSet = new Set(isArray(values) ? values : [values]);
+      const checkValueSet = new Set(isArray$1(values) ? values : [values]);
       const viewItems = dataManager.getViewItems();
       const rowIdsToCheck = [];
       for (const viewItem of viewItems) {
@@ -11894,7 +14773,7 @@
      */
     unCheckedItemByValue(name, values) {
       const { dataManager } = this.context.gridMain.config();
-      const checkValueSet = new Set(isArray(values) ? values : [values]);
+      const checkValueSet = new Set(isArray$1(values) ? values : [values]);
       const viewItems = dataManager.getViewItems();
       const rowIdsToCheck = [];
       for (const viewItem of viewItems) {
@@ -11915,7 +14794,6 @@
     }
     /** Row Anchor Cell 선택 상태 갱신 */
     selectRowAnchorCell() {
-      var _a2, _b2;
       const cfg = this.context.gridMain.config();
       const leafLeft = cfg.fieldHeaderGroup.leafLeft;
       if (leafLeft && !leafLeft[0].$isAside) {
@@ -11932,13 +14810,13 @@
       }
       if (isAll) {
         for (let i = 0; i < viewRow; i++) {
-          (_a2 = leftElements[i][0]) == null ? void 0 : _a2.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
+          leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i]);
         }
         return;
       }
       const rowLine = this.context.selectionInfo.getRowLine();
       for (let i = 0; i < viewRow; i++) {
-        (_b2 = leftElements[i][0]) == null ? void 0 : _b2.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
+        leftElements[i][0]?.classList.toggle(selectionClass, !!viewItems[startIdx + i] && rowLine.has(i + startIdx));
       }
     }
     /** Selection 상태 정리 */
@@ -12082,12 +14960,11 @@
      * @param gridMain GridMain
      */
     constructor(gridMain) {
-      var _a2, _b2;
       this.gridMain = gridMain;
       this.context = new BodyContext(gridMain);
       this.templateManager = new BodyTemplate(this.context);
       this.cellManager = new BodyCell(this.context);
-      this.renderer = ((_a2 = gridMain.options().groupingFields) == null ? void 0 : _a2.length) || ((_b2 = gridMain.options().rowSpanFields) == null ? void 0 : _b2.length) ? new GroupBodyRenderer(this.context, this.cellManager, this.templateManager) : new SimpleBodyRenderer(this.context, this.cellManager, this.templateManager);
+      this.renderer = gridMain.options().groupingFields?.length || gridMain.options().rowSpanFields?.length ? new GroupBodyRenderer(this.context, this.cellManager, this.templateManager) : new SimpleBodyRenderer(this.context, this.cellManager, this.templateManager);
       this.selectionManager = new BodySelection(this.context, this.renderer);
       this.templateManager.create();
       this.bodyEvent = new BodyEvent(gridMain, this, this.context.selectionInfo);
@@ -12223,6 +15100,7 @@
      */
     dataDraw(mode) {
       this.renderer.dataDraw(mode);
+      this.gridMain.checkLoadMore();
     }
     /**
      * Search Highlight 제거
@@ -12247,6 +15125,7 @@
     constructor(gridMain) {
       this._isActive = false;
       this.contextData = /* @__PURE__ */ new Map();
+      this.exportBusy = false;
       this.gridMain = gridMain;
       const contextOpts = this.gridMain.options().contextMenu;
       if (!contextOpts) {
@@ -12260,8 +15139,11 @@
       this.create();
       this.initEvent();
     }
+    /** 숨김 컨테이너에 붙여 둔 메뉴 요소를 제거한다. */
+    destroy() {
+      this.contextElement?.getElement().remove();
+    }
     create() {
-      var _a2;
       const contextElement = document.createElement("ul");
       contextElement.dataset.gridLayerId = this.gridMain.uid();
       contextElement.className = "dg-contextmenu dg-contextmenu-top dg-outer-layer";
@@ -12269,12 +15151,13 @@
       contextElement.setAttribute("onselectstart", "return false");
       const htmlTemplate = [];
       if (this.contextOpts.enabledHeader) {
-        htmlTemplate.push('<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>');
-        htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
+        htmlTemplate.push(`<li><a class="dg-contextmenu-header" tabindex="-1">-</a></li>
+        <li><a class="dg-divider" tabindex="-1"></a></li>
+      `);
       }
-      htmlTemplate.push(this.template(this.contextOpts.items, "top", 0));
+      htmlTemplate.push(this.template(this.createItems(this.contextOpts.items), "top", 0));
       contextElement.innerHTML = htmlTemplate.join("");
-      (_a2 = document.querySelector(HIDDEN_ELEMENT_SELECTOR)) == null ? void 0 : _a2.appendChild(contextElement);
+      document.querySelector(HIDDEN_ELEMENT_SELECTOR)?.appendChild(contextElement);
       this.contextElement = new DaraElement(contextElement);
       this.gridMain.config().eventManager.on({ el: contextElement, type: "contextmenu" }, (e) => {
         stopPreventCancel(e);
@@ -12284,8 +15167,8 @@
       const cfg = this.gridMain.config();
       const contextOpts = this.contextOpts;
       const gridElement = this.gridMain.getMainElement().getElement();
-      const isDisableItemKeyFn = isFunction(contextOpts.disableItem);
-      const isBeforeActivateFn = isFunction(contextOpts.beforeActivate);
+      const isDisableItemKeyFn = isFunction$1(contextOpts.disableItem);
+      const isBeforeActivateFn = isFunction$1(contextOpts.beforeActivate);
       let selectElement;
       const eventManager = this.gridMain.config().eventManager;
       eventManager.off(gridElement, "contextmenu");
@@ -12330,11 +15213,12 @@
     initItemClickEvent() {
       const contextItemElements = this.contextElement.finds(".dg-contextmenu-item");
       const fnContextCallback = this.contextOpts.callback;
-      const isContextCallback = isFunction(fnContextCallback);
+      const isContextCallback = isFunction$1(fnContextCallback);
       const eventManager = this.gridMain.config().eventManager;
       eventManager.off(contextItemElements, "pointerdown");
       eventManager.on({ el: contextItemElements, type: "pointerdown" }, (e) => {
         const itemElement = e.currentTarget;
+        if (itemElement.closest(".disabled")) return;
         if (hasClass(itemElement, "dg-submenu-item")) {
           return;
         }
@@ -12342,21 +15226,64 @@
         const checkboxes = parentElement.querySelectorAll('input[type="checkbox"]');
         const result = {};
         checkboxes.forEach((checkbox) => {
-          var _a2, _b2;
-          if ((_a2 = checkbox == null ? void 0 : checkbox.dataset) == null ? void 0 : _a2.itemKey) {
-            result[(_b2 = checkbox == null ? void 0 : checkbox.dataset) == null ? void 0 : _b2.itemKey] = checkbox.checked;
+          if (checkbox?.dataset?.itemKey) {
+            result[checkbox?.dataset?.itemKey] = checkbox.checked;
           }
         });
         const itemKey = itemElement.dataset.itemKey || "";
         const clickItem = this.contextData.get(itemKey);
         this.gridMain.hideLayer();
-        if (clickItem == null ? void 0 : clickItem.callback) {
+        if (clickItem?.callback) {
           clickItem.callback(clickItem, result);
           return;
         }
         if (isContextCallback) {
           fnContextCallback(clickItem, result);
         }
+      });
+    }
+    /** 키 전용 설정에 기본 라벨·콜백을 채워 기존 메뉴 실행 경로에 전달한다. */
+    createItems(items, exportOptions) {
+      const language = this.gridMain.i18n();
+      return items.filter((item) => !isUndefined(item)).map((source) => {
+        const item = { ...source };
+        const key = item.key ?? "";
+        let options = exportOptions;
+        if (key === "exportFile" || exportOptions) {
+          options = { ...exportOptions };
+          for (const type of ["excel", "csv", "json", "pdf"]) {
+            if (item.exportOptions?.[type]) options[type] = { ...options[type], ...item.exportOptions[type] };
+          }
+        }
+        const labels = {
+          copy: language.getMessage("context.copy"),
+          exportFile: language.getMessage("context.exportFile"),
+          excel: "Excel",
+          xlsx: "Excel",
+          csv: "CSV",
+          pdf: "PDF",
+          json: "JSON"
+        };
+        item.label = item.label ?? (key === "copy" || key === "exportFile" || exportOptions ? labels[key] : void 0) ?? key;
+        if (!item.callback && key === "copy") {
+          item.callback = () => GridMain.getInstance(this.gridMain.element().getElement())?.copyData();
+        } else if (!item.callback && exportOptions && ["excel", "xlsx", "csv", "pdf", "json"].includes(key.toLowerCase())) {
+          item.callback = async () => {
+            if (this.exportBusy) return;
+            const grid = GridMain.getInstance(this.gridMain.element().getElement());
+            if (!grid) return;
+            this.exportBusy = true;
+            try {
+              await exportGridFile(grid, key, options, language.getMessage("export.unsupportedFormat"));
+            } catch (error) {
+              console.error(language.getMessage("export.failed"), error);
+            } finally {
+              this.exportBusy = false;
+            }
+          };
+        }
+        if (item.children) item.children = this.createItems(item.children, options);
+        return item;
       });
     }
     initSubmenuEvent() {
@@ -12411,7 +15338,8 @@
      * html template
      *
      * @public
-     * @param {string} type position type
+     @param {string} id menu id
+     @param {number} depth menu depth
      * @returns {string} template string
      */
     template(data, id, depth) {
@@ -12421,8 +15349,8 @@
       for (let i = 0; i < dateLen; i++) {
         const item = data[i];
         if (isUndefined(item)) continue;
-        classNames = resolveClassName(item.itemClass, { item }).join(" ") + (item.disabled === true ? " disabled" : "");
-        itemKey = depth + "_" + (item.key || "");
+        classNames = xss(resolveClassName(item.itemClass, { item }).join(" ")) + (item.disabled === true ? " disabled" : "");
+        itemKey = (id === "top" ? "" : id + "_") + depth + "_" + (item.key || "");
         if (item.divider === true) {
           htmlTemplate.push('<li><a class="dg-divider" tabindex="-1"></a></li>');
           continue;
@@ -12431,8 +15359,8 @@
           htmlTemplate.push(html`<li class="dg-contextmenu-check ${classNames}">
           <a tabindex="-1">
             <label
-              ><input type="checkbox" data-item-key="${replaceXss(String(item.key ?? ""))}" />
-              <span>${replaceXss(String(item.label ?? ""))}</span>
+              ><input type="checkbox" data-item-key="${xss(String(item.key ?? ""))}" />
+              <span>${xss(String(item.label ?? ""))}</span>
             </label></a
           >
         </li>`);
@@ -12440,19 +15368,24 @@
         }
         this.contextData.set(itemKey, item);
         if (!isUndefined(item.children)) {
-          htmlTemplate.push(html`<li class="dg-contextmenu-item dg-submenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
+          htmlTemplate.push(html`<li
+          class="dg-contextmenu-item dg-submenu-item ${classNames}"
+          data-item-key="${xss(itemKey)}"
+        >
           <a tabindex="-1">
-            <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ""))}</span>
+            <span class="dg-contextmenu-label">${xss(String(item.label ?? ""))}</span>
             <span class="dg-contextmenu-hotkey-empty"></span>
           </a>
           <ul class="dg-contextmenu dg-contextmenu-submenu">
-            ${this.template(item.children, id, depth + 1)}
+            ${this.template(item.children, itemKey, depth + 1)}
           </ul>
         </li>`);
         } else {
-          const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${replaceXss(String(item.hotkey))}</span>` : "";
-          htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${replaceXss(itemKey)}">
-          <a tabindex="-1"> <span class="dg-contextmenu-label">${replaceXss(String(item.label ?? ""))}</span>${hotkeyHtm} </a>
+          const hotkeyHtm = !isUndefined(item.hotkey) ? `<span class="dg-contextmenu-hotkey">${xss(String(item.hotkey))}</span>` : "";
+          htmlTemplate.push(html`<li class="dg-contextmenu-item ${classNames}" data-item-key="${xss(itemKey)}">
+          <a tabindex="-1">
+            <span class="dg-contextmenu-label">${xss(String(item.label ?? ""))}</span>${hotkeyHtm}
+          </a>
         </li>`);
         }
         htmlTemplate.push("</li>");
@@ -12462,7 +15395,6 @@
   }
   class HeaderCellClickHandler extends BasePointerHandler {
     constructor(context, headerEvent) {
-      var _a2;
       super(context);
       this.priority = 5;
       this.dragDelay = 150;
@@ -12472,16 +15404,15 @@
       this.dragAnimationId = 0;
       this.lastScrollTime = 0;
       this.selectionInfo = context.gridMain.selectionInfo;
-      this.headerElement = (_a2 = context.header) == null ? void 0 : _a2.getHeaderElement().getElement();
+      this.headerElement = context.header?.getHeaderElement().getElement();
       this.multipleFlag = isMultipleCellSelectionMode(this.opts.selectionMode);
     }
     canHandle(session) {
-      var _a2, _b2;
-      const field = (_a2 = session.cellInfo) == null ? void 0 : _a2.field;
-      if (field == null ? void 0 : field.$isAside) {
+      const field = session.cellInfo?.field;
+      if (field?.$isAside) {
         return false;
       }
-      this.startCellIdx = ((_b2 = session.cellInfo) == null ? void 0 : _b2.c) ?? 0;
+      this.startCellIdx = session.cellInfo?.c ?? 0;
       return true;
     }
     onPointerDown(session) {
@@ -12646,7 +15577,7 @@
       const cfg = this.gridMain.config();
       const eventManager = cfg.eventManager;
       const helpElements = this.header.getHeaderElement().finds(".dg-header-help");
-      if (isFunction(helpOpts.click)) {
+      if (isFunction$1(helpOpts.click)) {
         const helpClickFn = helpOpts.click ?? (() => void 0);
         eventManager.off(helpElements, "pointerdown");
         eventManager.on(
@@ -12673,7 +15604,7 @@
         const currentElement = e.currentTarget;
         const cellInfo = this.getHeaderHelpCellInfo(cfg, currentElement);
         const field = cellInfo.field;
-        const helpValue = (field == null ? void 0 : field.headerHelp) ?? helpOpts.content;
+        const helpValue = field?.headerHelp ?? helpOpts.content;
         if (!helpValue) return false;
         if (!helpLayerElement) {
           helpLayerElement = getLayerElement("div", "dg-header-help-tooltip", "help-tooltip");
@@ -12681,12 +15612,12 @@
         }
         delayTimer = setTimeout(() => {
           let viewContent;
-          if (isFunction(helpValue)) {
+          if (isFunction$1(helpValue)) {
             viewContent = helpValue(cellInfo);
           } else {
             viewContent = helpValue;
           }
-          helpLayerElement.innerHTML = viewContent;
+          setSafeHtml(helpLayerElement, viewContent);
           const layerStyle = helpLayerElement.style;
           layerStyle.height = "auto";
           layerStyle.display = "block";
@@ -12700,19 +15631,18 @@
       });
       eventManager.on({ el: helpElements, type: "mouseleave" }, (e) => {
         clearTimeout(delayTimer);
-        if (helpLayerElement == null ? void 0 : helpLayerElement.style) {
+        if (helpLayerElement?.style) {
           helpLayerElement.style.display = "none";
         }
         return false;
       });
     }
     getHeaderHelpCellInfo(cfg, currentElement) {
-      var _a2, _b2;
       let cell;
       let field;
       const groupCellElement = currentElement.closest(".dg-header-group-cell");
       if (groupCellElement) {
-        const groupPosition = (_a2 = groupCellElement.dataset.headerGroupPosition) == null ? void 0 : _a2.split(",");
+        const groupPosition = groupCellElement.dataset.headerGroupPosition?.split(",");
         if (groupPosition && groupPosition.length > 0) {
           const row = intValue(groupPosition[0]);
           const idx = intValue(groupPosition[1]);
@@ -12728,7 +15658,7 @@
           cell = idx;
         }
       } else {
-        cell = intValue(((_b2 = currentElement.closest(".dg-header-cell")) == null ? void 0 : _b2.dataset.headerCellPosition) ?? "0");
+        cell = intValue(currentElement.closest(".dg-header-cell")?.dataset.headerCellPosition ?? "0");
         field = cfg.currentFields[cell];
       }
       return { c: cell, field };
@@ -12743,12 +15673,11 @@
       this.positionLeft = 0;
       const resizeOpts = this.opts.header.resize;
       this.resizeOpts = resizeOpts;
-      this.resizeUpdate = isFunction(resizeOpts.update) ? resizeOpts.update : void 0;
+      this.resizeUpdate = isFunction$1(resizeOpts.update) ? resizeOpts.update : void 0;
       this.resizerHelperElement = context.gridMain.element().findDaraElement(".dg-resize-helper");
     }
     onPointerDown(session) {
-      var _a2;
-      this.resizeIdx = ((_a2 = session.cellInfo) == null ? void 0 : _a2.c) || 0;
+      this.resizeIdx = session.cellInfo?.c || 0;
     }
     onActivate(session) {
       const cfg = this.cfg;
@@ -12834,15 +15763,19 @@
       eventManager.on(
         { el: sortElements, type: "pointerdown" },
         (e) => {
-          var _a2, _b2;
           if (!isClickEvent(e)) {
             return;
           }
           stopPreventCancel(e);
           this.gridMain.hideLayer();
           const currentElement = e.currentTarget;
+          const remote = this.gridMain.options().dataSource?.sorting?.mode === "server" ? this.gridMain.getRemote() : null;
+          if (remote?.isLoadBlocked()) {
+            remote.sortRemote().catch(() => void 0);
+            return;
+          }
           const sortCell = intValue(
-            ((_a2 = currentElement.closest(".dg-header-cell")) == null ? void 0 : _a2.dataset.headerCellPosition) ?? "0"
+            currentElement.closest(".dg-header-cell")?.dataset.headerCellPosition ?? "0"
           );
           const sortField = cfg.currentFields[sortCell];
           const sortName = sortField.name;
@@ -12851,8 +15784,7 @@
             removeAttr(headerElement.finds("[data-dg-sort]"), "data-dg-sort");
             if (sortOrders.length > 1 || !sortOrders.some((item) => item.name === sortName)) {
               sortOrders.forEach((item) => {
-                var _a3;
-                (_a3 = headerCellElements[item.sortCell].querySelector(".dg-sort-num")) == null ? void 0 : _a3.replaceChildren();
+                headerCellElements[item.sortCell].querySelector(".dg-sort-num")?.replaceChildren();
               });
               sortOrders.length = 0;
               beforeSortOrderLength = 0;
@@ -12868,7 +15800,7 @@
               if (index !== -1) {
                 sortOrders.splice(index, 1);
               }
-              (_b2 = currentElement.querySelector(".dg-sort-num")) == null ? void 0 : _b2.replaceChildren();
+              currentElement.querySelector(".dg-sort-num")?.replaceChildren();
               removeAttr(currentElement, "data-dg-sort");
             }
           } else {
@@ -12878,13 +15810,16 @@
           if (sortOrders.length > 0) {
             if (beforeSortOrderLength >= 1 && beforeSortOrderLength != sortOrders.length) {
               sortOrders.forEach((item, index) => {
-                var _a3;
-                (_a3 = headerCellElements[item.sortCell].querySelector(".dg-sort-num")) == null ? void 0 : _a3.replaceChildren(index + 1 + "");
+                headerCellElements[item.sortCell].querySelector(".dg-sort-num")?.replaceChildren(index + 1 + "");
               });
             }
           }
-          dataManager.dataSort(sortOrders, sortOpts);
           beforeSortOrderLength = sortOrders.length;
+          if (remote) {
+            remote.sortRemote().catch(() => void 0);
+            return;
+          }
+          dataManager.dataSort(sortOrders, sortOpts);
           this.gridMain.selectionInfo.initSelection();
           this.gridMain.getBody().dataDraw("sort");
         },
@@ -12979,30 +15914,28 @@
             eventManager.on(
               { el: document, type: "touchmove.header.selection mousemove.header.selection" },
               (moveEvt) => {
-                var _a2, _b2;
                 session.currentPos = eventPosition(moveEvt);
                 if (!isStarted) {
                   if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
                     return;
                   }
                   isStarted = true;
-                  if (((_a2 = handler.onActivate) == null ? void 0 : _a2.call(handler, session)) === false) {
+                  if (handler.onActivate?.(session) === false) {
                     cleanupDragEvents();
                     return;
                   }
                 }
                 session.state = PointerStateMap.DRAGGING;
-                (_b2 = handler.onPointerMove) == null ? void 0 : _b2.call(handler, session);
+                handler.onPointerMove?.(session);
               }
             );
             eventManager.on(
               { el: document, type: "touchend.header.selection touchcancel.header.selection  mouseup.header.selection" },
               (moveEvt) => {
-                var _a2;
                 cleanupDragEvents();
                 session.state = PointerStateMap.IDLE;
                 session.currentPos = eventPosition(moveEvt);
-                (_a2 = handler.onPointerUp) == null ? void 0 : _a2.call(handler, session);
+                handler.onPointerUp?.(session);
               }
             );
           }
@@ -13030,7 +15963,6 @@
       eventManager.on(
         { el: resizerElements, type: "mousedown.resizerclick touchstart.resizerclick" },
         (e) => {
-          var _a2;
           if (!isPrimaryPointer(e)) {
             return true;
           }
@@ -13043,31 +15975,29 @@
           startCellInfo.c = Math.max(startCellInfo.c, cfg.dataInfo.startCol);
           session = initPointerSession(e, startCellInfo, clickManager);
           session.handler = resizeHandler;
-          (_a2 = resizeHandler.onPointerDown) == null ? void 0 : _a2.call(resizeHandler, session);
+          resizeHandler.onPointerDown?.(session);
           if (resizeHandler.onPointerMove) {
             let isStarted = false;
             eventManager.on({ el: document, type: "touchmove.resizerclick mousemove.resizerclick" }, (moveEvt) => {
-              var _a3, _b2;
               session.currentPos = eventPosition(moveEvt);
               if (!isStarted) {
                 if (!isMouseMoved(session.startPos, session.currentPos, dragThreshold)) {
                   return;
                 }
                 isStarted = true;
-                (_a3 = resizeHandler.onActivate) == null ? void 0 : _a3.call(resizeHandler, session);
+                resizeHandler.onActivate?.(session);
               }
               session.state = PointerStateMap.DRAGGING;
-              (_b2 = resizeHandler.onPointerMove) == null ? void 0 : _b2.call(resizeHandler, session);
+              resizeHandler.onPointerMove?.(session);
             });
             eventManager.on({ el: document, type: "touchend.resizerclick mouseup.resizerclick" }, (moveEvt) => {
-              var _a3;
               eventManager.off(
                 document,
                 "touchmove.resizerclick mousemove.resizerclick touchend.resizerclick mouseup.resizerclick"
               );
               session.state = PointerStateMap.IDLE;
               session.currentPos = eventPosition(moveEvt);
-              (_a3 = resizeHandler.onPointerUp) == null ? void 0 : _a3.call(resizeHandler, session);
+              resizeHandler.onPointerUp?.(session);
             });
           }
           clickManager.processClick(session, resizeHandler);
@@ -13139,13 +16069,12 @@
      * set check box style
      *
      * @public
-     * @param {number} idx
      * @param {("all" | "none" | "partial")} mode
      */
     setCheckboxStyle(mode) {
       if (!this.gridMain.config().isRowAllowMultiSelect) return;
       const checkEle = this.headerElement.getElement().querySelector(".dg-checkbox.dg-all");
-      const classList = checkEle == null ? void 0 : checkEle.classList;
+      const classList = checkEle?.classList;
       if (!classList) return;
       if (mode == "partial") {
         classList.remove(SELECTED_STYLE_CLASS);
@@ -13158,7 +16087,7 @@
     /**
      * set header height
      *
-     * @param {number} header height
+     @param {number} height header height
      */
     setHeight(height) {
       this.headerElement.setHeight(height);
@@ -13206,8 +16135,6 @@
     }
     /**
      *  set column line selection style
-     * @param columnLine  selected column line set
-     * @param isAll all select flag
      * @returns
      */
     selectColumnAnchorCell() {
@@ -13240,7 +16167,6 @@
      * @returns {string} template string
      */
     template(type) {
-      var _a2;
       const cfg = this.gridMain.config();
       const opts = this.gridMain.options();
       let headerGroups, leafGroup;
@@ -13255,7 +16181,7 @@
         headerGroups = cfg.fieldHeaderGroup.center;
         leafGroup = cfg.fieldHeaderGroup.leafCenter;
       }
-      if (!(headerGroups == null ? void 0 : headerGroups.length) || !((_a2 = headerGroups[0]) == null ? void 0 : _a2.length)) return "";
+      if (!headerGroups?.length || !headerGroups[0]?.length) return "";
       const rowsHtml = [];
       const searchEnabledd = opts.search.enabled;
       const helpEnabled = opts.header.help.enabled;
@@ -13287,9 +16213,9 @@
           const label = headerItem.$isAside && headerItem.name == ROW_CHECK_NAME && cfg.isRowAllowMultiSelect ? html`<div class="dg-choice">
                 <div class="dg-choice-item dg-checkbox dg-all">
                   <div class="dg-indicator"></div>
-                  ${headerItem.label ? `<span class="dg-label dg-ellipsis">${headerItem.label}</span>` : ""}
+                  ${headerItem.label ? `<span class="dg-label dg-ellipsis">${xss(String(headerItem.label))}</span>` : ""}
                 </div>
-              </div>` : `<div class="centered">${headerItem.label ?? ""}</div>`;
+              </div>` : `<div class="centered">${xss(String(headerItem.label ?? ""))}</div>`;
           const searchHtml = headerItem.$isAside && headerItem.name == LINE_NUMBER_NAME ? searchIcon : "";
           const labelHtml = html` ${helpIcon}
           <div class="dg-label-wrapper">
@@ -13540,9 +16466,9 @@
     /**
      *
      * @param cfg 설정 정보
-     * @param startEventY start event y
-     * @param oneRowMove row move value
-     * @param upFlag up down flag up = true
+     @param startEventX start event x
+     @param oneColMove col move value
+     @param leftFlag left move flag left = true
      * @param bgMoveCol
      * @returns
      */
@@ -13589,7 +16515,7 @@
           leftVal = leftVal + cfg.currentFields[colIdx].$width;
         }
         leftVal = getHorizontalScrollPosition(cfg, leftVal, moveObj.direction);
-      } else if (isString(moveObj.direction)) {
+      } else if (isString$1(moveObj.direction)) {
         const speed = moveObj.speed || 1;
         leftVal = cfg.scroll.left + (moveObj.direction == ScrollDirectionXMap.LEFT ? -1 : 1) * speed * cfg.scroll.oneColMove;
       }
@@ -13616,7 +16542,7 @@
       scroll.left = leftVal;
       if (updateChkFlag !== false) {
         const onUpdateFn = this.scrollOpts.horizontal.onUpdate;
-        if (drawFlag !== false && isFunction(onUpdateFn)) {
+        if (drawFlag !== false && isFunction$1(onUpdateFn)) {
           if (onUpdateFn({
             scrollLeft: leftVal,
             width: scroll.hTrackWidth,
@@ -13637,7 +16563,6 @@
      *
      * @private
      * @param {Config} cfg 설정값
-     * @param {number} contLeftVal scroll position
      */
     setHorizontalPosition(cfg) {
       const scroll = cfg.scroll;
@@ -13958,7 +16883,7 @@
         topVal = moveObj.position;
       } else if (isNumber(moveObj.rowIdx)) {
         topVal = moveObj.rowIdx * scroll.oneRowMove;
-      } else if (isString(moveObj.direction)) {
+      } else if (isString$1(moveObj.direction)) {
         const speed = moveObj.speed || 1;
         topVal = scroll.top + (moveObj.direction == ScrollDirectionYMap.UP ? -1 : 1) * speed * scroll.oneRowMove;
       }
@@ -13977,11 +16902,12 @@
         topVal = 0;
       }
       if (scroll.top == topVal) {
+        if (drawFlag !== false) this.gridMain.checkLoadMore(true);
         return;
       }
       if (updateChkFlag !== false) {
         const onUpdateFn = this.gridMain.options().scroll.vertical.onUpdate;
-        if (drawFlag !== false && isFunction(onUpdateFn)) {
+        if (drawFlag !== false && isFunction$1(onUpdateFn)) {
           if (onUpdateFn({ scrollTop: topVal, height: scroll.vTrackHeight }) === false) {
             return;
           }
@@ -14015,7 +16941,7 @@
      * 세로 스크롤 위치 설정
      *
      * @private
-     * @param {Config} cfg 설정값
+     @param {ScrollInfo} scroll 스크롤 정보
      * @param {number} topVal 스크롤 바 포지션
      */
     setVerticalPosition(scroll, topVal) {
@@ -14056,12 +16982,11 @@
       this.verticalElement = this.gridMain.getMainElement().findDaraElement(".dg-scroll.dg-vertical");
     }
     destroy() {
-      var _a2;
       if (this.wheelAnimationId !== 0) cancelAnimationFrame(this.wheelAnimationId);
       this.wheelAnimationId = 0;
       this.pendingVerticalDelta = 0;
       this.pendingHorizontalDelta = 0;
-      (_a2 = this.verticalScroll) == null ? void 0 : _a2.destroy();
+      this.verticalScroll?.destroy();
     }
     /**
      * 스크롤을 초기화한다.
@@ -14379,36 +17304,6 @@
   _Scroll.DEFAULT_WHEEL_SPEED = 3;
   _Scroll.MAX_TICKS_PER_FRAME = 2;
   let Scroll = _Scroll;
-  function calcSummary(items, mode, itemKey) {
-    if (mode !== "min" && mode !== "max" && mode !== "sum" && mode !== "average") {
-      return `${mode} not valid`;
-    }
-    let count = 0;
-    let result = mode === "min" ? Infinity : mode === "max" ? -Infinity : 0;
-    const total = items.length;
-    for (let start = 0; start < total; start += CHUNK_SIZE) {
-      const end = Math.min(start + CHUNK_SIZE, total);
-      const chunk = items.slice(start, end);
-      for (let i = 0; i < chunk.length; i++) {
-        const val = chunk[i][itemKey];
-        if (typeof val !== "number") continue;
-        switch (mode) {
-          case "min":
-            if (val < result) result = val;
-            break;
-          case "max":
-            if (val > result) result = val;
-            break;
-          default:
-            result += val;
-            break;
-        }
-        count++;
-      }
-    }
-    if (count === 0) return "not valid";
-    return mode === "average" ? result / count : result;
-  }
   class SummaryRenderer {
     constructor(field, gridMain, summaryItem) {
       this.isClick = false;
@@ -14418,7 +17313,7 @@
       this.gridMain = gridMain;
       this.language = this.gridMain.i18n();
       this.cfg = this.gridMain.config();
-      this.isVauleFunction = isFunction(field.getValue);
+      this.isVauleFunction = isFunction$1(field.getValue);
       this.hasCellClassName = !!summaryItem.cellClassName;
       this.summaryItem = summaryItem;
     }
@@ -14433,26 +17328,18 @@
     }
     /**
      * 값 얻기
-     * @param rowItem row item
      * @returns
      */
     getValue() {
-      var _a2;
       const summaryItem = this.summaryItem;
-      const displayFormat = summaryItem.displayFormat ?? ((_a2 = this.field) == null ? void 0 : _a2.displayFormat);
+      const displayFormat = summaryItem.displayFormat ?? this.field?.displayFormat;
       const dataManager = this.cfg.dataManager;
       const items = dataManager.getAllRowItems();
       const expression = summaryItem.expression;
       const summaryValue = { formatValue: "" };
       if (items.length > 0) {
         if (expression) {
-          if (isFunction(expression)) {
-            summaryValue.value = expression(items);
-          } else if (expression === "count") {
-            summaryValue.value = items.length || 0;
-          } else {
-            summaryValue.value = calcSummary(items, expression, summaryItem.name);
-          }
+          summaryValue.value = isFunction$1(expression) ? expression(items) : calculateGroupSummary(items, summaryItem);
           summaryValue.formatValue = summaryValue.value;
           if (displayFormat) {
             summaryValue.formatValue = formatValue(summaryValue.value, displayFormat);
@@ -14467,7 +17354,7 @@
       if (!this.hasCellClassName) return;
       const prev = this.cellClassNameCache.get(element);
       const classNames = resolveClassName(this.summaryItem.cellClassName, renderValue);
-      if (prev == null ? void 0 : prev.length) {
+      if (prev?.length) {
         element.classList.remove(...prev);
       }
       if (classNames.length > 0) {
@@ -14498,7 +17385,7 @@
         renderElement.textContent = formatValue2;
       }
       renderElement.classList.remove("single-line", "multi-line");
-      if (isString(formatValue2) && formatValue2.includes("\n")) {
+      if (isString$1(formatValue2) && formatValue2.includes("\n")) {
         renderElement.classList.add("multi-line");
       } else {
         renderElement.classList.add("single-line");
@@ -14507,12 +17394,11 @@
   }
   class Summary {
     constructor(gridMain) {
-      var _a2;
       this.gridMain = gridMain;
       this.cfg = gridMain.config();
       const opts = gridMain.options();
-      const summaryItems = ((_a2 = opts.summary) == null ? void 0 : _a2.items) ?? [];
-      this._isActive = (summaryItems == null ? void 0 : summaryItems.length) > 0;
+      const summaryItems = opts.summary?.items ?? [];
+      this._isActive = summaryItems?.length > 0;
       if (!this._isActive) {
         return;
       }
@@ -14534,9 +17420,9 @@
       for (const items of this.summaryOpts.items) {
         const summaryRenders = [];
         for (const item of items) {
-          const fieldName = item.name;
-          const fieldInfo = allFieldMap.get(fieldName) ?? merge({}, item);
-          item.$alignStyle = TEXT_ALIGN_STYLE[item.align] ?? (fieldInfo.$alignStyle || TEXT_ALIGN_STYLE.left);
+          const fieldName = getSummaryField(item);
+          const fieldInfo = allFieldMap.get(fieldName) ?? merge({}, item, { name: fieldName });
+          item.$alignStyle = TEXT_ALIGN_STYLE[item.align ?? fieldInfo.align] ?? (fieldInfo.$alignStyle || TEXT_ALIGN_STYLE.left);
           summaryRenders.push(new SummaryTextRenderer(fieldInfo, this.gridMain, item));
         }
         allSummaryRenders.push(summaryRenders);
@@ -14586,7 +17472,7 @@
       if (this.summaryOpts.position === "top") {
         summaryElement.addClass("dg-top");
         const container = this.gridMain.element().find(".dg-panels");
-        container == null ? void 0 : container.insertBefore(summaryElement.getElement(), container.querySelector(".dg-body"));
+        container?.insertBefore(summaryElement.getElement(), container.querySelector(".dg-body"));
       }
       this.leftElement = summaryElement.findDaraElement('.dg-region[data-region="left"]');
       this.centerElement = summaryElement.findDaraElement('.dg-region[data-region="center"]');
@@ -14650,8 +17536,8 @@
      * row template
      *
      * @private
-     * @param {number} rowIdx row index
-     * @param {number} rowHeight row height
+     @param {SummaryConfig} summaryConfig summary 설정
+     @param {number} startCol 시작 col
      * @param {FieldItem[]} fields fields 정보
      * @returns {string} template
      */
@@ -14671,7 +17557,7 @@
           let field = fields[j];
           const rendererItem = rendererItems.find((renderer) => renderer.getFieldInfo().name === field.name);
           if (rendererItem) {
-            field = rendererItem.getSummaryItem();
+            field = { ...field, ...rendererItem.getSummaryItem(), name: field.name };
           }
           if (colspan > 0) {
             --colspan;
@@ -14819,11 +17705,11 @@
         const template = [];
         searchElement = getLayerElement("div", "dg-search-simple", "help-tooltip");
         template.push(
-          `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${gridMain.i18n().getMessage("all")}</option>`
+          `<select class="dg-search-field"><option value="${ALL_SELECT_VALUE}">${xss(gridMain.i18n().getMessage("all"))}</option>`
         );
         for (const field of fields) {
           if (field.$isAside) continue;
-          template.push(`<option value="${field.name}">${field.label}</option>`);
+          template.push(`<option value="${xss(String(field.name))}">${xss(String(field.label ?? ""))}</option>`);
         }
         template.push("</select>");
         template.push(html`<div class="dg-search-container">
@@ -14837,8 +17723,8 @@
           </div>
         </div>
         <span class="dg-search-btn">
-          <span class="dg-btn dg-search-prev" title="${gridMain.i18n().getMessage("prev")}"></span>
-          <span class="dg-btn dg-search-next" title="${gridMain.i18n().getMessage("next")}"></span>
+          <span class="dg-btn dg-search-prev" title="${xss(gridMain.i18n().getMessage("prev"))}"></span>
+          <span class="dg-btn dg-search-next" title="${xss(gridMain.i18n().getMessage("next"))}"></span>
         </span>
         <span class="dgMatchCount"></span>`);
         searchElement.innerHTML = template.join("");
@@ -14951,17 +17837,21 @@
   let INIT_GRID_GLOBAL_EVNET = false;
   const ALL_INSTANCE = /* @__PURE__ */ new Map();
   const GRID_TEMPLATE = getGridTemplate();
-  class GridMain {
+  const _GridMain = class _GridMain {
     constructor(grid, element, options, message2) {
-      var _a2, _b2;
       this.openLayers = [];
+      this.layerPositions = /* @__PURE__ */ new Map();
+      this.resizeFrame = null;
       this.destroyed = false;
       const opts = initGridOptions(options);
+      prepareDataSourceOptions(opts, options, (page) => {
+        void this.remote?.goToPage(page);
+      });
       this.grid = grid;
       this.language = new Language();
       if (message2) this.language.setMessage(message2);
       this.cfg = initConfig(opts);
-      if ((_a2 = opts.groupingFields) == null ? void 0 : _a2.length) {
+      if (opts.groupingFields?.length) {
         this.cfg.dataManager = new GroupDataManager(opts, this);
       } else if (opts.tree) {
         this.cfg.dataManager = new TreeDataManager(opts, this);
@@ -14972,13 +17862,27 @@
       this.opts = opts;
       const beforeUid = element.getAttribute(INSTANCE_ATTR_KEY);
       if (beforeUid && ALL_INSTANCE.get(beforeUid)) {
-        (_b2 = ALL_INSTANCE.get(beforeUid)) == null ? void 0 : _b2.destroy();
+        ALL_INSTANCE.get(beforeUid)?.destroy();
       }
       this.$instanceId = beforeUid ?? `${FIELD_PREFIX}${++DARA_GRID_SEQ}`;
       this.orginStyle = element.style.cssText;
       element.setAttribute(INSTANCE_ATTR_KEY, this.$instanceId);
       this.gridElement = new DaraElement(element);
       ALL_INSTANCE.set(this.$instanceId, this);
+      if (opts.dataSource) {
+        this.remote = new RemoteDataController(this, grid);
+      }
+    }
+    /**
+     * 서버 연동 컨트롤러. dataSource 옵션이 없으면 오류를 던진다.
+     */
+    /** toolbar.remote 설정에 따른 자동 서버 조회. dataSource가 없으면 무시한다. */
+    searchByToolbar(trigger) {
+      this.remote?.searchByToolbar(trigger);
+    }
+    getRemote() {
+      if (!this.remote) throw new DataSourceError("CONFIG", "dataSource option is not configured");
+      return this.remote;
     }
     init() {
       const opts = this.opts;
@@ -14991,6 +17895,10 @@
       this.initMainView();
       this.initEvent();
       this.initDocumentGlobalEvent();
+      if (opts.dataSource?.autoLoad) {
+        const remote = this.remote;
+        void Promise.resolve().then(() => remote?.load()).catch(() => void 0);
+      }
     }
     /**
      * grid 전체 이벤트
@@ -14998,26 +17906,17 @@
     initDocumentGlobalEvent() {
       if (INIT_GRID_GLOBAL_EVNET) return;
       INIT_GRID_GLOBAL_EVNET = true;
-      document.addEventListener("pointerdown", (e) => {
-        const path = e.composedPath();
-        ALL_INSTANCE.forEach((grid, id) => {
-          const gridElement = grid.gridElement.getElement();
-          if (!path.includes(gridElement)) {
-            grid.setGridFocusOut(e);
-          }
-        });
-      });
+      document.addEventListener("pointerdown", _GridMain.globalPointerDownHandler);
     }
     static getInstance(eleOrId) {
-      var _a2;
       let id;
-      if (isString(eleOrId)) {
+      if (isString$1(eleOrId)) {
         id = eleOrId;
       } else {
-        id = eleOrId instanceof HTMLElement ? eleOrId == null ? void 0 : eleOrId.getAttribute(INSTANCE_ATTR_KEY) : "";
+        id = eleOrId instanceof HTMLElement ? eleOrId?.getAttribute(INSTANCE_ATTR_KEY) : "";
       }
       if (id) {
-        return ((_a2 = ALL_INSTANCE.get(id)) == null ? void 0 : _a2.grid) ?? null;
+        return ALL_INSTANCE.get(id)?.grid ?? null;
       }
       return null;
     }
@@ -15115,18 +18014,16 @@
      * @public
      */
     initEvent() {
-      const opts = this.opts;
+      this.opts;
       const cfg = this.cfg;
-      if (opts.width === "auto" || opts.height === "auto") {
-        this.initResizeEvent();
-      }
+      this.initResizeEvent();
       const rendererLayerElement = this.rendererLayerElement;
       cfg.eventManager.on({ el: this.mainElement.getElement(), type: "mousedown" }, (e) => {
         const path = e.composedPath();
         if (path.includes(rendererLayerElement)) {
           return;
         }
-        e == null ? void 0 : e.preventDefault();
+        e?.preventDefault();
         this.setGridFocusIn(e);
       });
       const dgLayersElement = rendererLayerElement;
@@ -15189,9 +18086,9 @@
         } else {
           targetElement = e.target;
         }
-        if ((targetElement == null ? void 0 : targetElement.closest(".dg-hidden-layers")) !== null) {
+        if (targetElement?.closest(".dg-hidden-layers") !== null) {
           const outerLayerElement = targetElement.closest(".dg-outer-layer");
-          if ((outerLayerElement == null ? void 0 : outerLayerElement.dataset.gridLayerId) == this.$instanceId) {
+          if (outerLayerElement?.dataset.gridLayerId == this.$instanceId) {
             requestAnimationFrame(() => {
               gridKeyInputElement.focus();
             });
@@ -15202,10 +18099,14 @@
         this.hideLayer();
       }
     }
-    openLayer(layerElement) {
+    openLayer(layerElement, updatePosition) {
       layerElement.style.display = "block";
       this.cfg.isOpenLayer = true;
-      this.openLayers.push(layerElement);
+      if (!this.openLayers.includes(layerElement)) this.openLayers.push(layerElement);
+      if (updatePosition) {
+        this.layerPositions.set(layerElement, updatePosition);
+        updatePosition();
+      } else this.layerPositions.delete(layerElement);
     }
     hideLayer(hideElement) {
       if (hideElement != "all") {
@@ -15226,9 +18127,11 @@
         for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
           const layerElement = this.openLayers[idx];
           if (checkLayerClass && layerElement.classList.contains(checkLayerClass)) {
+            this.layerPositions.delete(layerElement);
             layerElement.style.display = "none";
             this.openLayers.splice(idx, 1);
           } else if (hideElement == layerElement) {
+            this.layerPositions.delete(layerElement);
             layerElement.style.display = "none";
             this.openLayers.splice(idx, 1);
             break;
@@ -15238,6 +18141,7 @@
         return;
       }
       this.cfg.isOpenLayer = false;
+      this.layerPositions.clear();
       for (let idx = this.openLayers.length - 1; idx >= 0; idx--) {
         const layerElement = this.openLayers[idx];
         layerElement.style.display = "none";
@@ -15254,28 +18158,22 @@
       const opts = this.opts;
       const threshold = opts.windowResizeDelay ?? 50;
       const el = this.gridElement;
-      if (typeof ResizeObserver !== "undefined") {
-        let resizeScheduled = false;
+      const autoSize = opts.width === "auto" || opts.height === "auto";
+      if (autoSize && typeof ResizeObserver !== "undefined") {
         const mainElement = el.getElement();
         const resizeObserver = new ResizeObserver(() => {
-          if (resizeScheduled) {
-            return;
-          }
-          resizeScheduled = true;
-          requestAnimationFrame(() => {
-            resizeScheduled = false;
-            this.resize(el);
-          });
+          this.resize(el);
         });
         resizeObserver.observe(mainElement);
         this.resizeObserver = resizeObserver;
-      } else {
-        const handler = debounce(() => {
-          this.resize(el);
-        }, threshold);
-        this.windowResizeHandler = handler;
-        window.addEventListener("resize", handler);
       }
+      const deferredResize = debounce(() => this.resize(el), threshold);
+      const handler = () => {
+        if (this.layerPositions.size > 0 || autoSize && !this.resizeObserver) deferredResize();
+      };
+      this.cancelWindowResize = deferredResize.cancel;
+      this.windowResizeHandler = handler;
+      window.addEventListener("resize", handler);
     }
     /**
      * resize event 처리
@@ -15283,12 +18181,13 @@
      * @param el grid element
      */
     resize(el) {
-      if (this.destroyed) return;
+      if (this.destroyed || this.resizeFrame !== null) return;
       const initGridSize = this.initGridSize;
       const isWidthResize = initGridSize.width < 0;
       const isHeightResize = initGridSize.height < 0;
       const disableVerticalScroll = this.cfg.disableVerticalScroll;
-      requestAnimationFrame(() => {
+      this.resizeFrame = requestAnimationFrame(() => {
+        this.resizeFrame = null;
         if (this.destroyed) return;
         if (!isVisible(el.getElement())) return;
         const newOffset = {
@@ -15300,6 +18199,9 @@
           if (this.toolbar) {
             this.toolbar.resizeArrowVisibility();
           }
+        }
+        for (const [layer, updatePosition] of this.layerPositions) {
+          if (layer.isConnected && layer.style.display !== "none") updatePosition();
         }
       });
     }
@@ -15464,7 +18366,6 @@
     /**
      * change scroll mode
      *
-     * @param mode scroll mode
      */
     changeScrollMode() {
       const cfg = this.cfg;
@@ -15491,9 +18392,8 @@
      * @param {any[]} items
      */
     setItems(items) {
-      var _a2;
       this.cfg.dataManager.setItems(items);
-      (_a2 = this.header) == null ? void 0 : _a2.setCheckboxStyle("none");
+      this.header?.setCheckboxStyle("none");
       this.scroll.moveVerticalScroll({ rowIdx: 0 });
       this.refreshBody(true, "setItems");
     }
@@ -15524,6 +18424,18 @@
       if (rowIdx > -1) {
         this.scroll.moveVerticalScroll({ rowIdx, drawFlag: false });
         this.getBody().dataDraw("refreshBody-addItems");
+      }
+    }
+    /**
+     * 서버에서 받은 데이터를 목록 끝에 붙입니다(infinite 페이징). 스크롤 위치는 유지하고 Undo 이력은 남기지 않습니다.
+     *
+     * @param items 추가할 행 데이터 배열
+     */
+    appendItems(items) {
+      const dataManager = this.cfg.dataManager;
+      if (dataManager.appendItems(items) > -1) {
+        this.refreshBody(true, "appendItems");
+        this.refreshCheckboxStyle();
       }
     }
     /**
@@ -15574,7 +18486,7 @@
       let isAll = false;
       if (isUndefined(names)) {
         isAll = true;
-      } else if (isArray(names)) {
+      } else if (isArray$1(names)) {
         exportNames = names;
       } else {
         exportNames = [names];
@@ -15669,10 +18581,14 @@
       if (themeName && !theme) return;
       const cfg = this.cfg;
       if (cfg.theme === theme) return;
-      const classList = this.layoutElement.getElement().classList;
-      if (cfg.theme && classList.contains(cfg.theme)) classList.remove(cfg.theme);
       cfg.theme = theme;
-      if (theme && !classList.contains(theme)) classList.add(theme);
+      const rootElement = this.layoutElement.getElement().closest(".daracl-grid");
+      if (!rootElement) return;
+      if (theme) {
+        rootElement.setAttribute("data-daracl-theme", theme);
+      } else {
+        rootElement.removeAttribute("data-daracl-theme");
+      }
     }
     /**
      * 그리드 스타일 변경
@@ -15724,6 +18640,28 @@
         this.footer.setPagingTemplate(paging);
       }
     }
+    /**
+     * 헤더 전체 체크박스를 현재 체크 상태에 맞춥니다. 행이 추가돼 체크된 행의 비율이 바뀐 뒤에 호출합니다.
+     * 체크된 행이 없으면 계산하지 않고 'none'으로 둡니다.
+     */
+    refreshCheckboxStyle() {
+      const dataManager = this.cfg.dataManager;
+      if (dataManager.getCheckedCount() === 0) {
+        this.header?.setCheckboxStyle("none");
+        return;
+      }
+      const detailItems = dataManager.getViewItems().filter((item) => !item.groupRowType);
+      const checkedCount = detailItems.filter((item) => dataManager.isItemChecked(item.id)).length;
+      this.header?.setCheckboxStyle(getCheckboxMode(checkedCount, detailItems.length));
+    }
+    /**
+     * infinite 페이징의 다음 페이지 조회 조건을 확인합니다.
+     *
+     * @param idleScroll 스크롤 위치가 바뀌지 않은 입력(이미 끝에서 더 스크롤)이면 true
+     */
+    checkLoadMore(idleScroll = false) {
+      this.remote?.checkLoadMore(idleScroll);
+    }
     getToolbar() {
       return this.toolbar;
     }
@@ -15738,22 +18676,34 @@
       return this.toolbar.setValues(val);
     }
     destroy() {
-      var _a2, _b2;
       if (this.destroyed) return;
       this.destroyed = true;
+      if (this.resizeFrame !== null) {
+        cancelAnimationFrame(this.resizeFrame);
+        this.resizeFrame = null;
+      }
+      this.cancelWindowResize?.();
+      this.layerPositions.clear();
+      this.remote?.destroy();
       const gridElement = this.gridElement;
       const uid = this.$instanceId;
       const cfg = this.cfg;
-      (_a2 = this.scroll) == null ? void 0 : _a2.destroy();
-      (_b2 = this.toolbar) == null ? void 0 : _b2.destroy();
+      this.scroll?.destroy();
+      this.toolbar?.destroy();
       this.body.destroy();
+      this.contextMenu?.destroy();
+      cfg.allFieldMap.forEach((field) => {
+        field.$renderer?.destroy();
+        field.$editRenderer?.destroy();
+      });
       cfg.eventManager.destroy();
       gridElement.removeAttr(INSTANCE_ATTR_KEY);
       const el = gridElement.getElement();
       if (this.resizeObserver) {
         this.resizeObserver.unobserve(el);
         this.resizeObserver.disconnect();
-      } else if (this.windowResizeHandler) {
+      }
+      if (this.windowResizeHandler) {
         window.removeEventListener("resize", this.windowResizeHandler);
       }
       el.style.cssText = this.orginStyle;
@@ -15765,8 +18715,22 @@
         }
       }
       ALL_INSTANCE.delete(uid);
+      if (ALL_INSTANCE.size === 0 && INIT_GRID_GLOBAL_EVNET) {
+        document.removeEventListener("pointerdown", _GridMain.globalPointerDownHandler);
+        INIT_GRID_GLOBAL_EVNET = false;
+      }
     }
-  }
+  };
+  _GridMain.globalPointerDownHandler = (e) => {
+    const path = e.composedPath();
+    ALL_INSTANCE.forEach((grid) => {
+      const gridElement = grid.gridElement.getElement();
+      if (!path.includes(gridElement)) {
+        grid.setGridFocusOut(e);
+      }
+    });
+  };
+  let GridMain = _GridMain;
   function getGridTemplate() {
     const GRID_TEMPLATE2 = document.createElement("template");
     GRID_TEMPLATE2.innerHTML = html`
@@ -15864,7 +18828,7 @@
     }
     return String(value);
   }
-  const scriptUrl$3 = typeof document === "undefined" ? void 0 : (_a = document.currentScript) == null ? void 0 : _a.getAttribute("src");
+  const scriptUrl$3 = typeof document === "undefined" ? void 0 : document.currentScript?.getAttribute("src");
   const moduleUrl$3 = scriptUrl$3 ? new URL("daracl.grid.pdf.mjs", new URL(scriptUrl$3, document.baseURI)).href : typeof document === "undefined" ? `./${"daracl.grid.pdf.mjs"}` : new URL("daracl.grid.pdf.mjs", document.baseURI).href;
   function loadPdfModule() {
     return import(
@@ -15874,20 +18838,19 @@
   }
   function getExportCellValues(fields, item) {
     return fields.map((field) => {
-      var _a2, _b2, _c2, _d2, _e;
       const renderer = field.$renderer;
-      if (((_a2 = field.renderer) == null ? void 0 : _a2.type) === "password") return "********";
-      if (((_b2 = field.renderer) == null ? void 0 : _b2.type) === "hidden") return "";
+      if (field.renderer?.type === "password") return "********";
+      if (field.renderer?.type === "hidden") return "";
       const value = renderer.getValue(item);
-      if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes((_c2 = field.renderer) == null ? void 0 : _c2.type)) {
+      if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes(field.renderer?.type)) {
         const ref = renderer.getRefValue(value, item);
         if (typeof ref === "string") return ref;
-        if (ref == null ? void 0 : ref.hide) return "";
-        if ((ref == null ? void 0 : ref.label) !== void 0) return normalizeExportValue(ref.label);
+        if (ref?.hide) return "";
+        if (ref?.label !== void 0) return normalizeExportValue(ref.label);
         if (renderer instanceof DropdownRenderer$1) {
           let labels = renderer.getLabel(value);
           if (labels.length === 0 && field.defaultValue) labels = renderer.getLabel(field.defaultValue);
-          if (labels.length > 0) return labels.join(((_e = (_d2 = field.editRenderer) == null ? void 0 : _d2.listItem) == null ? void 0 : _e.delimiter) ?? ",");
+          if (labels.length > 0) return labels.join(field.editRenderer?.listItem?.delimiter ?? ",");
         }
       }
       return normalizeExportValue(value);
@@ -15923,10 +18886,7 @@
         data.cellTextColors = cellStyles.map((style) => style.textColors ?? []);
       }
       if (this.context.getCellCharts) {
-        const charts = viewItems.map((viewItem, rowIndex) => {
-          var _a2, _b2;
-          return ((_b2 = (_a2 = this.context).getCellCharts) == null ? void 0 : _b2.call(_a2, viewItem, rowIndex)) ?? [];
-        });
+        const charts = viewItems.map((viewItem, rowIndex) => this.context.getCellCharts?.(viewItem, rowIndex) ?? []);
         data.cellCharts = charts.map((row) => this.context.lineNumberField ? [void 0, ...row] : row);
       }
       if (this.context.getHeaderCellBorders) {
@@ -15964,10 +18924,7 @@
         const groupingFields = this.groupingFields();
         groupingFields.forEach((fieldName, groupIndex) => {
           const field = fields.find((candidate) => candidate.name === fieldName);
-          const sameGroup = this.previousDataItem !== void 0 && groupingFields.slice(0, groupIndex + 1).every((name) => {
-            var _a2;
-            return Object.is(item[name], (_a2 = this.previousDataItem) == null ? void 0 : _a2[name]);
-          });
+          const sameGroup = this.previousDataItem !== void 0 && groupingFields.slice(0, groupIndex + 1).every((name) => Object.is(item[name], this.previousDataItem?.[name]));
           if (field && sameGroup) {
             row2[fields.indexOf(field)] = "";
           }
@@ -15976,8 +18933,8 @@
         return row2;
       }
       const row = super.renderRow(viewItem);
-      const sumFields = new Set(this.context.sumFields);
-      const summaryLabelField = fields.find((field) => !sumFields.has(field.name)) ?? fields[0];
+      const summaryFieldNames = new Set(this.context.summaryFieldNames);
+      const summaryLabelField = fields.find((field) => !summaryFieldNames.has(field.name)) ?? fields[0];
       if (viewItem.groupRowType === "group") {
         const groupField = fields.find((field) => field.name === viewItem.groupField) ?? fields[0];
         if (groupField) {
@@ -15996,7 +18953,7 @@
       for (const [fieldName, sum] of Object.entries(viewItem.groupSums ?? {})) {
         const columnIndex = fields.findIndex((field) => field.name === fieldName);
         if (columnIndex >= 0) {
-          row[columnIndex] = normalizeExportValue(sum);
+          row[columnIndex] = formatSummaryValue(sum, this.context.summaryItems?.find((item) => getSummaryField(item) === fieldName), fields[columnIndex]);
         }
       }
       return row;
@@ -16010,11 +18967,10 @@
   function createPdfHeaderRows(roots, fields, data) {
     const paths = /* @__PURE__ */ new Map();
     const visit = (nodes, parents) => {
-      var _a2;
       for (const node of nodes) {
         if (node.hidden) continue;
         const path = [...parents, node];
-        if ((_a2 = node.children) == null ? void 0 : _a2.length) visit(node.children, path);
+        if (node.children?.length) visit(node.children, path);
         else paths.set(node.name, path);
       }
     };
@@ -16023,7 +18979,6 @@
     const depth = Math.max(1, ...columns.map((path) => path.length));
     if (depth === 1) return void 0;
     return Array.from({ length: depth }, (_, level) => {
-      var _a2, _b2, _c2, _d2;
       const cells = [];
       for (let column = 0; column < columns.length; ) {
         const path = columns[column];
@@ -16039,17 +18994,17 @@
           column,
           colSpan: end - column,
           rowSpan: level === path.length - 1 ? depth - level : 1,
-          background: (_a2 = data.headerBackgrounds) == null ? void 0 : _a2[column],
-          textColor: (_b2 = data.headerTextColors) == null ? void 0 : _b2[column],
-          gradient: (_c2 = data.headerGradients) == null ? void 0 : _c2[column],
-          borders: (_d2 = data.headerCellBorders) == null ? void 0 : _d2[column]
+          background: data.headerBackgrounds?.[column],
+          textColor: data.headerTextColors?.[column],
+          gradient: data.headerGradients?.[column],
+          borders: data.headerCellBorders?.[column]
         });
         column = end;
       }
       return cells;
     });
   }
-  const scriptUrl$2 = typeof document === "undefined" ? void 0 : (_b = document.currentScript) == null ? void 0 : _b.getAttribute("src");
+  const scriptUrl$2 = typeof document === "undefined" ? void 0 : document.currentScript?.getAttribute("src");
   const moduleUrl$2 = scriptUrl$2 ? new URL("daracl.grid.excel.mjs", new URL(scriptUrl$2, document.baseURI)).href : typeof document === "undefined" ? `./${"daracl.grid.excel.mjs"}` : new URL("daracl.grid.excel.mjs", document.baseURI).href;
   function loadExcelModule() {
     return import(
@@ -16057,7 +19012,7 @@
       moduleUrl$2
     );
   }
-  const scriptUrl$1 = typeof document === "undefined" ? void 0 : (_c = document.currentScript) == null ? void 0 : _c.getAttribute("src");
+  const scriptUrl$1 = typeof document === "undefined" ? void 0 : document.currentScript?.getAttribute("src");
   const moduleUrl$1 = scriptUrl$1 ? new URL("daracl.grid.csv.mjs", new URL(scriptUrl$1, document.baseURI)).href : typeof document === "undefined" ? `./${"daracl.grid.csv.mjs"}` : new URL("daracl.grid.csv.mjs", document.baseURI).href;
   function loadCsvModule() {
     return import(
@@ -16065,7 +19020,7 @@
       moduleUrl$1
     );
   }
-  const scriptUrl = typeof document === "undefined" ? void 0 : (_d = document.currentScript) == null ? void 0 : _d.getAttribute("src");
+  const scriptUrl = typeof document === "undefined" ? void 0 : document.currentScript?.getAttribute("src");
   const moduleUrl = scriptUrl ? new URL("daracl.grid.json.mjs", new URL(scriptUrl, document.baseURI)).href : typeof document === "undefined" ? `./${"daracl.grid.json.mjs"}` : new URL("daracl.grid.json.mjs", document.baseURI).href;
   function loadJsonModule() {
     return import(
@@ -16074,15 +19029,17 @@
     );
   }
   let HIDDEN_ELEMENT = null;
+  const MAX_STYLE_CACHE_SIZE = 5e3;
   const _DaraGrid = class _DaraGrid {
     constructor(gridElement, options, message2) {
+      this.pdfBarColors = null;
       if (gridElement == null || isUndefined(gridElement)) {
         throw new Error(`${gridElement} grid element not found`);
       }
       this.createGrid(gridElement, options, message2);
     }
     initGlobalConfig() {
-      if (HIDDEN_ELEMENT === null) {
+      if (HIDDEN_ELEMENT === null || !HIDDEN_ELEMENT.isConnected) {
         const hiddenElement = createHTMLElement("div", HIDDEN_ELEMENT_SELECTOR.replace(".", ""));
         document.body.appendChild(hiddenElement);
         HIDDEN_ELEMENT = hiddenElement;
@@ -16124,12 +19081,24 @@
       return this.gridMain.config().currentFields;
     }
     /**
-     * 그리드의 전체 행 데이터를 반환한다.
+     * 현재 표시 대상의 실제 행 데이터를 반환한다.
+     * 페이징은 현재 페이지, 검색은 검색 결과, 트리는 펼친 행만 포함한다.
+     * 그룹 소계·총계와 내부 관리 필드는 제외한다.
      *
-     * @returns 전체 행 데이터 배열
+     * @returns 현재 표시 대상 행의 얕은 복사본 배열
      */
     getItems() {
       return this.gridMain.config().dataManager.getAllRowItems();
+    }
+    /**
+     * 검색·페이징·트리 펼침 상태와 무관하게 로드된 전체 원본 행을 반환한다.
+     * 트리는 자손을 포함한 평탄한 배열이며, soft 삭제 행도 포함한다.
+     * 그룹 가상 행과 내부 관리 필드는 제외한다. 외부 페이징은 로드된 행만 반환한다.
+     *
+     * @returns 전체 원본 행의 얕은 복사본 배열
+     */
+    getAllItems() {
+      return this.gridMain.config().dataManager.getSourceRowItems();
     }
     /**
      * 내보내기 가능한 현재 뷰의 모든 행을 PDF로 다운로드합니다.
@@ -16137,7 +19106,6 @@
      * 사용자 정의 글꼴은 fetch 등의 방법으로 읽은 ArrayBuffer 또는 Uint8Array로 전달합니다.
      */
     async exportPdf(options = {}) {
-      var _a2;
       const { PdfConverter } = await loadPdfModule();
       const cfg = this.gridMain.config();
       const fields = cfg.currentFields.filter((field) => !field.hidden && !field.$isAside);
@@ -16148,10 +19116,11 @@
       const rendererContext = {
         fields,
         lineNumberField,
-        lineNumberStart: ((_a2 = gridOptions.footer.paging) == null ? void 0 : _a2.enabled) ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
+        lineNumberStart: gridOptions.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
         viewItems: cfg.dataManager.getViewItems(),
         groupingFields: gridOptions.groupingFields ?? [],
-        sumFields: gridOptions.sumFields ?? [],
+        summaryFieldNames: getGroupSummaryFields(gridOptions),
+        summaryItems: gridOptions.groupSummaryFields,
         getRowItem: (id) => cfg.dataManager.getRowItem(id),
         getCellStyles: cellStyleProbe.getCellStyles,
         getCellCharts: (viewItem) => {
@@ -16174,7 +19143,10 @@
       } finally {
         cellStyleProbe.destroy();
       }
-      const blob = await converter.convert(tableData, options);
+      const blob = await converter.convert(tableData, {
+        ...options,
+        fontUrl: options.fontUrl ?? gridOptions.pdfFontUrl
+      });
       converter.download(blob, options.fileName);
       return blob;
     }
@@ -16210,10 +19182,7 @@
         const factory = new RendererFactory(this.gridMain);
         const visible = new Map(fields.map((field) => [field.name, field]));
         const flatten = (items) => items.flatMap(
-          (field) => {
-            var _a2;
-            return ((_a2 = field.children) == null ? void 0 : _a2.length) ? flatten(field.children) : [visible.get(field.name) ?? factory.createRenderer({ ...field })];
-          }
+          (field) => field.children?.length ? flatten(field.children) : [visible.get(field.name) ?? factory.createRenderer({ ...field })]
         );
         fields = flatten(this.gridMain.options().fields);
       }
@@ -16221,13 +19190,12 @@
         fields,
         viewItems,
         groupingFields: [],
-        sumFields: [],
+        summaryFieldNames: [],
         getRowItem: (id) => manager.getRowItem(id)
       };
     }
     /** 현재 뷰의 표시 값·그룹 합계·셀 병합을 XLSX로 다운로드한다. */
     async exportExcel(options = {}) {
-      var _a2;
       const { ExcelConverter, createExcelData } = await loadExcelModule();
       const cfg = this.gridMain.config();
       const gridOptions = this.gridMain.options();
@@ -16242,10 +19210,11 @@
           {
             fields,
             lineNumberField,
-            lineNumberStart: ((_a2 = gridOptions.footer.paging) == null ? void 0 : _a2.enabled) ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
+            lineNumberStart: gridOptions.footer.paging?.enabled ? (cfg.paging.page - 1) * cfg.paging.pageSize : 0,
             viewItems: cfg.dataManager instanceof TreeDataManager && options.includeCollapsed !== false ? cfg.dataManager.getAllTreeViewItems() : cfg.dataManager.getViewItems(),
             groupingFields: gridOptions.groupingFields ?? [],
-            sumFields: gridOptions.sumFields ?? [],
+            summaryFieldNames: getGroupSummaryFields(gridOptions),
+            summaryItems: gridOptions.groupSummaryFields,
             getRowItem: (id) => cfg.dataManager.getRowItem(id),
             getCellStyles: probe.getCellStyles,
             getHeaderCellBorders: probe.getHeaderCellBorders,
@@ -16270,17 +19239,18 @@
       const gridElement = this.gridMain.element().getElement();
       const opaqueBackground = (...elements) => elements.map((element) => window.getComputedStyle(element).backgroundColor).find((color) => color && color !== "transparent" && color !== "rgba(0, 0, 0, 0)");
       const body = gridElement.querySelector(".dg-body");
+      const styleCache = /* @__PURE__ */ new Map();
+      this.pdfBarColors = null;
       const headerGradient = (cell) => {
-        var _a2;
         for (let element = cell; element && gridElement.contains(element); element = element.parentElement) {
           const style = window.getComputedStyle(element);
-          const colors = ((_a2 = style.backgroundImage) == null ? void 0 : _a2.startsWith("linear-gradient(")) ? style.backgroundImage.match(/rgba?\([^)]+\)/g) : void 0;
-          if ((colors == null ? void 0 : colors.length) === 2) return { startColor: colors[0], endColor: colors[1] };
+          const colors = style.backgroundImage?.startsWith("linear-gradient(") ? style.backgroundImage.match(/rgba?\([^)]+\)/g) : void 0;
+          if (colors?.length === 2) return { startColor: colors[0], endColor: colors[1] };
           if (opaqueBackground(element)) return void 0;
         }
         return void 0;
       };
-      const tableBody = (body == null ? void 0 : body.querySelector('.dg-region[data-region="center"] .dg-body-table tbody')) ?? (body == null ? void 0 : body.querySelector(".dg-body-table tbody"));
+      const tableBody = body?.querySelector('.dg-region[data-region="center"] .dg-body-table tbody') ?? body?.querySelector(".dg-body-table tbody");
       if (!body || !tableBody) {
         throw new Error("Unable to resolve grid cell styles for PDF export");
       }
@@ -16289,22 +19259,53 @@
       probeRow.style.visibility = "hidden";
       probeRow.style.height = "0";
       probeRow.setAttribute("aria-hidden", "true");
-      const probeCells = displayFields.map(() => {
+      displayFields.forEach(() => {
         const cell = document.createElement("td");
         cell.className = "dg-cell";
         probeRow.appendChild(cell);
-        return cell;
       });
-      tableBody.appendChild(probeRow);
+      const probeBody = body.cloneNode(false);
+      probeBody.classList.remove("dg-body-odd");
+      probeBody.classList.add("dg-body-even");
+      probeBody.style.position = "absolute";
+      probeBody.style.visibility = "hidden";
+      probeBody.style.pointerEvents = "none";
+      probeBody.style.height = "0";
+      probeBody.style.overflow = "hidden";
+      probeBody.setAttribute("aria-hidden", "true");
+      let probeParent = probeBody;
+      const ancestors = [];
+      for (let element = tableBody; element && element !== body; element = element.parentElement) {
+        ancestors.unshift(element);
+      }
+      for (const element of ancestors) {
+        const clone = element.cloneNode(false);
+        probeParent.appendChild(clone);
+        probeParent = clone;
+      }
+      const parityRow = probeRow.cloneNode(true);
+      probeParent.appendChild(probeRow);
+      probeParent.appendChild(parityRow);
+      body.parentElement.appendChild(probeBody);
       const headerCells = displayFields.map((field) => {
         const region = cfg.fieldHeaderGroup.leafLeft.includes(field) ? "left" : cfg.fieldHeaderGroup.leafRight.includes(field) ? "right" : "center";
         return gridElement.querySelector(
           `.dg-header .dg-region[data-region="${region}"] [data-header-cell-position="${field.$resizeIdx}"]`
         ) ?? void 0;
       });
+      const resolveBorders = (cell, column) => {
+        const borders = this.getPdfCellBorders(cell);
+        if (column === displayFields.length - 1 && gridElement.querySelector(".dg-layout.dg-style-striped-cells")) {
+          return { ...borders, right: void 0 };
+        }
+        return borders;
+      };
       return {
         tableBorders: this.getPdfCellBorders(gridElement.querySelector(".dg-main") ?? gridElement),
         getCellStyles: (viewItem, rowIndex) => {
+          const parity = rowIndex % 2;
+          const row = parity === 0 ? probeRow : parityRow;
+          const probeCells = row.cells;
           const rowClasses = ["dg-row"];
           if (viewItem.groupRowType) {
             rowClasses.push(
@@ -16312,9 +19313,8 @@
               viewItem.groupRowType === "group" ? "dg-group-header" : viewItem.groupRowType === "groupSummary" ? "dg-group-summary" : "dg-grand-summary"
             );
           }
-          probeRow.className = rowClasses.join(" ");
+          const rowClassName = rowClasses.join(" ");
           const item = viewItem.groupRowType ? void 0 : cfg.dataManager.getRowItem(viewItem.id);
-          const rowBackground = window.getComputedStyle(probeRow).backgroundColor;
           let previousDataItem;
           if (!viewItem.groupRowType && rowIndex > 0) {
             for (let previousIndex = rowIndex - 1; previousIndex >= 0; previousIndex--) {
@@ -16325,8 +19325,7 @@
               }
             }
           }
-          const styles = displayFields.map((field, fieldIndex) => {
-            const cell = probeCells[fieldIndex];
+          const cellClassNames = displayFields.map((field) => {
             const classes = ["dg-cell"];
             if (field.name === LINE_NUMBER_NAME) {
               classes.push("dg-aside", "dg-line-number");
@@ -16345,30 +19344,49 @@
                 );
               }
               const groupingFieldIndex = (gridOptions.groupingFields ?? []).indexOf(field.name);
-              const sameGroup = groupingFieldIndex >= 0 && previousDataItem !== void 0 && (gridOptions.groupingFields ?? []).slice(0, groupingFieldIndex + 1).every((name) => Object.is(item[name], previousDataItem == null ? void 0 : previousDataItem[name]));
+              const sameGroup = groupingFieldIndex >= 0 && previousDataItem !== void 0 && (gridOptions.groupingFields ?? []).slice(0, groupingFieldIndex + 1).every((name) => Object.is(item[name], previousDataItem?.[name]));
               if (sameGroup && rowIndex < viewItems.length - 1) {
                 classes.push("dg-group-continuation");
               }
             }
-            cell.className = classes.join(" ");
+            return classes.join(" ");
+          });
+          const cacheKey = `${parity}${rowClassName}${cellClassNames.join("")}`;
+          const cached = styleCache.get(cacheKey);
+          if (cached) {
+            return {
+              backgrounds: cached.backgrounds.slice(),
+              borders: cached.borders.slice(),
+              textColors: cached.textColors.slice()
+            };
+          }
+          row.className = rowClassName;
+          const rowBackground = window.getComputedStyle(row).backgroundColor;
+          const styles = displayFields.map((field, fieldIndex) => {
+            const cell = probeCells[fieldIndex];
+            cell.className = cellClassNames[fieldIndex];
             const cellBackground = window.getComputedStyle(cell).backgroundColor;
             const background = cellBackground && cellBackground !== "transparent" && cellBackground !== "rgba(0, 0, 0, 0)" ? cellBackground : rowBackground && rowBackground !== "transparent" && rowBackground !== "rgba(0, 0, 0, 0)" ? rowBackground : opaqueBackground(body, gridElement);
-            return { background, borders: this.getPdfCellBorders(cell), textColor: window.getComputedStyle(cell).color };
+            return { background, borders: resolveBorders(cell, fieldIndex), textColor: window.getComputedStyle(cell).color };
           });
           const backgrounds = styles.map((style) => style.background);
           const borders = styles.map((style) => style.borders);
-          return { backgrounds, borders, textColors: styles.map((style) => style.textColor || void 0) };
+          const textColors = styles.map((style) => style.textColor || void 0);
+          if (styleCache.size < MAX_STYLE_CACHE_SIZE) {
+            styleCache.set(cacheKey, { backgrounds, borders, textColors });
+          }
+          return { backgrounds: backgrounds.slice(), borders: borders.slice(), textColors: textColors.slice() };
         },
-        getHeaderCellBorders: () => headerCells.map((cell) => cell ? this.getPdfCellBorders(cell) : void 0),
+        getHeaderCellBorders: () => headerCells.map((cell, column) => cell ? resolveBorders(cell, column) : void 0),
         getHeaderCellStyles: () => ({
           gradients: headerCells.map((cell) => cell ? headerGradient(cell) : void 0),
           backgrounds: headerCells.map(
             (cell) => cell ? opaqueBackground(cell, cell.parentElement ?? gridElement, gridElement) : void 0
           ),
-          borders: headerCells.map((cell) => cell ? this.getPdfCellBorders(cell) : void 0),
+          borders: headerCells.map((cell, column) => cell ? resolveBorders(cell, column) : void 0),
           textColors: headerCells.map((cell) => cell ? window.getComputedStyle(cell).color || void 0 : void 0)
         }),
-        destroy: () => probeRow.remove()
+        destroy: () => probeBody.remove()
       };
     }
     getPdfCellBorders(cell) {
@@ -16402,29 +19420,34 @@
       };
     }
     getPdfCellChart(field, item) {
-      var _a2, _b2;
       const rendererType = field.renderer.type;
       const value = field.$renderer.getValue(item);
       if (rendererType === "bar" && field.$renderer instanceof BarRenderer) {
         const refValue = field.$renderer.getRefValue(value, item);
-        const chartValue = Number((refValue == null ? void 0 : refValue.percent) ?? value);
+        const chartValue = Number(refValue?.percent ?? value);
         if (!Number.isFinite(chartValue)) {
           return void 0;
         }
-        const positiveColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue("--bar-positive-bg").trim();
-        const negativeColor = window.getComputedStyle(this.gridMain.element().getElement()).getPropertyValue("--bar-negative-bg").trim();
+        if (!this.pdfBarColors) {
+          const gridStyle = window.getComputedStyle(this.gridMain.element().getElement());
+          this.pdfBarColors = {
+            positive: gridStyle.getPropertyValue("--dui-bar-positive-bg").trim(),
+            negative: gridStyle.getPropertyValue("--dui-bar-negative-bg").trim()
+          };
+        }
+        const { positive: positiveColor, negative: negativeColor } = this.pdfBarColors;
         return {
           type: "bar",
           value: chartValue,
-          minimum: ((_a2 = field.renderer.rule) == null ? void 0 : _a2.minimum) ?? 0,
-          maximum: ((_b2 = field.renderer.rule) == null ? void 0 : _b2.maximum) ?? 100,
-          label: normalizeExportValue((refValue == null ? void 0 : refValue.label) ?? value),
+          minimum: field.renderer.rule?.minimum ?? 0,
+          maximum: field.renderer.rule?.maximum ?? 100,
+          label: normalizeExportValue(refValue?.label ?? value),
           color: chartValue < 0 ? negativeColor || "#ff8989" : positiveColor || "#77c0fc"
         };
       }
       if (rendererType === "sparkline" && field.$renderer instanceof SparklineRenderer || rendererType === "sparklineBar" && field.$renderer instanceof SparklineRendererBar) {
         const refValue = field.$renderer.getRefValue(value, item);
-        const values = (refValue == null ? void 0 : refValue.value) ?? value;
+        const values = refValue?.value ?? value;
         if (!Array.isArray(values) || !values.every((entry) => typeof entry === "number" && Number.isFinite(entry))) {
           return void 0;
         }
@@ -16730,6 +19753,66 @@
     search(searchText, opts) {
       return this.gridMain.getDataSearch().search(searchText, opts ?? {});
     }
+    /**
+     * dataSource.load로 서버 데이터를 조회한다. 조회 조건을 생략하면 마지막 조건을 사용한다.
+     *
+     * 미저장 변경이 있으면 UNSAVED_CHANGES 오류로 거부한다. 변경을 버리려면 `{ discardChanges: true }`를 전달한다.
+     *
+     * @param params 서버 조회 조건
+     * @param options 조회 옵션
+     * @returns 조회 결과. before 이벤트로 취소되었거나 더 새로운 조회에 밀렸으면 null
+     * @example
+     * await grid.load({ status: 'ACTIVE' });
+     */
+    load(params, options) {
+      return this.remote((controller) => controller.load(params, options));
+    }
+    /**
+     * 검색 조건을 적용하여 서버에서 조회한다. 서버 페이징이면 첫 페이지부터 조회한다.
+     * 클라이언트 검색(`search()`)과는 별개이다.
+     */
+    searchRemote(params, options) {
+      return this.remote((controller) => controller.searchRemote(params, options));
+    }
+    /**
+     * infinite 페이징에서 다음 페이지를 조회해 기존 데이터 뒤에 붙인다. 보통은 스크롤이 끝에 가까워지면 자동 호출된다.
+     * 다른 조회·저장·삭제가 진행 중이거나 더 받을 데이터가 없으면 요청하지 않고 null을 반환한다.
+     *
+     * @returns 이번에 받은 페이지 결과. 요청하지 않았거나 취소되었으면 null
+     */
+    loadMore() {
+      return this.remote((controller) => controller.loadMore());
+    }
+    /**
+     * 마지막 조회 조건(과 현재 페이지)으로 다시 조회한다. infinite 페이징은 첫 페이지부터 다시 조회한다.
+     */
+    reload(options) {
+      return this.remote((controller) => controller.reload(options));
+    }
+    /**
+     * 변경된 행(추가·수정·삭제)을 dataSource.save로 저장한다. 변경이 없으면 요청하지 않는다.
+     * 성공하면 변경 상태를 확정하고 Undo/Redo 이력을 초기화한다.
+     *
+     * @returns 저장 요약. before 이벤트로 취소되면 null
+     */
+    save() {
+      return this.remote((controller) => controller.save());
+    }
+    /**
+     * 선택된 행(또는 `options.rowIds`)을 dataSource.remove로 서버에서 삭제한다.
+     * 저장된 적 없는 신규 행은 요청 없이 로컬에서만 제거한다.
+     */
+    removeRemote(options) {
+      return this.remote((controller) => controller.removeRemote(options));
+    }
+    /** dataSource가 없으면 동기 예외 대신 reject된 Promise를 반환한다. */
+    remote(run) {
+      try {
+        return run(this.gridMain.getRemote());
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    }
     static setIcons(icons) {
       Object.assign(ALL_ICONS, icons);
     }
@@ -16742,11 +19825,11 @@
       this.gridMain.destroy();
     }
   };
-  _DaraGrid.VERSION = `${"0.0.20"}`;
+  _DaraGrid.VERSION = `${"0.0.29"}`;
   let DaraGrid = _DaraGrid;
   if (typeof window !== "undefined") {
     window.Daracl = window.Daracl || {};
     window.Daracl.grid = DaraGrid;
   }
-});
+}));
 //# sourceMappingURL=daracl.grid.umd.js.map

@@ -11,6 +11,8 @@ export declare class SparklineRendererBar extends ViewCellRenderer {
      * Renderer 하나당 tooltip 하나만 생성하여 재사용한다.
      */
     private rendererTooltip;
+    /** document.body에 만든 툴팁 요소를 제거한다. */
+    destroy(): void;
     /**
      * Grid에서 canvas가 다른 row에 재사용될 수 있으므로
      * canvas별 최신 tooltip 상태를 관리한다.

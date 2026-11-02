@@ -1,12 +1,12 @@
 :root {
-  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', helvetica, 'Apple SD Gothic Neo', sans-serif;
   color: #20304a;
   background: #f3f5f9;
   font-size: 14px;
 }
 body.catalog-page {
   margin: 0;
-  font: 14px 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font: 14px -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', helvetica, 'Apple SD Gothic Neo', sans-serif;
   color: #20304a;
   background: #f3f5f9;
 }
@@ -424,7 +424,7 @@ body.example-page {
   margin: 0;
   background: #f3f5f9;
   color: #20304a;
-  font: 14px/1.6 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', helvetica, 'Apple SD Gothic Neo', sans-serif;
 }
 .example-page > .page-header {
   display: flex;

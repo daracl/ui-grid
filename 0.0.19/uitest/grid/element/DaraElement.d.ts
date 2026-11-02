@@ -93,14 +93,14 @@ export declare class DaraElement {
     /**
      * css
      *
-     * @param cssValueObject  css value object
+     @param attrs css value object
      * @returns
      */
     css(attrs: any): this;
     /**
      * css
      *
-     * @param cssValueObject  css value object
+     @param csskeys 제거할 css key 배열
      * @returns
      */
     removeCss(csskeys: string[]): this;

@@ -46,6 +46,8 @@ export declare abstract class ToolBarRenderer {
     click(e: Event, eventElement: HTMLElement): void;
     changeValue(newValue: any): void;
     search(e: Event): void;
+    /** 입력 중 값이 바뀌는 검색어 필드인지 여부. change 트리거에서 제외한다. */
+    protected isSearchInput(): boolean;
     getToolbarValues(): Record<string, unknown>;
     getControlElement(fieldElement: HTMLElement): HTMLElement;
     abstract setValue(values: any): void;

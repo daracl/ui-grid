@@ -5,7 +5,7 @@ import { FieldItem } from '../../types/GridField.js';
 /**
  * text renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {TextAbstractRenderer}
  * @extends {EditCellRenderer}
  */
 export declare abstract class TextAbstractRenderer extends EditCellRenderer {

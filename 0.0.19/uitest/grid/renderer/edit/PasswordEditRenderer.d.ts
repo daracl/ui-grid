@@ -7,7 +7,7 @@ import { TextAbstractRenderer } from './TextAbstractRenderer';
  *
  * @class PasswordEditRenderer
  * @typedef {PasswordEditRenderer}
- * @extends {EditCellRenderer}
+ * @extends {TextAbstractRenderer}
  */
 export declare class PasswordEditRenderer extends TextAbstractRenderer {
     constructor(field: FieldItem, gridMain: GridMain);

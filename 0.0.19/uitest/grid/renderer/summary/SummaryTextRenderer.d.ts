@@ -6,7 +6,7 @@ import { SummaryItem } from '../../types/Summary.js';
 /**
  * text renderer
  *
- * @typedef {TextRenderer}
+ * @typedef {SummaryTextRenderer}
  * @extends {SummaryRenderer}
  */
 export declare class SummaryTextRenderer extends SummaryRenderer {

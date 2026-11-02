@@ -63,6 +63,8 @@ export interface PdfExportOptions {
     orientation?: 'portrait' | 'landscape';
     margin?: number;
     fontName?: string;
+    /** 글꼴 파일 URL. customFont 데이터가 있으면 해당 데이터를 우선 사용한다. */
+    fontUrl?: string;
     fontSize?: number;
     customFont?: {
         name: string;

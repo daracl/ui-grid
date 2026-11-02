@@ -4,6 +4,7 @@ import { GridOptions, SortOption } from '../types/GridOptions.js';
 import { FieldSortInfo } from '../types/Header.js';
 import { GridMain } from '../view/GridMain.js';
 export declare class ListDataManager extends DataManager {
+    private pagingViewItems;
     constructor(opts: GridOptions, gridMain: GridMain, type?: string);
     /**
      * init item
@@ -13,6 +14,8 @@ export declare class ListDataManager extends DataManager {
      */
     private initItems;
     setItems(items: any[]): void;
+    getPagingViewItems(): ViewItem[];
+    protected applyViewItems(items: ViewItem[]): void;
     /**
      * 페이징 옵션 여부에 따라 현재 ViewItems 및 페이징 정보를 업데이트합니다.
      */

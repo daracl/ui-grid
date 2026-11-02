@@ -8,11 +8,13 @@ export declare abstract class EditCellRenderer extends CellRenderer {
     private _editable;
     constructor(field: FieldItem, gridMain: GridMain);
     isEditable(): boolean;
+    /** 편집 값을 유지하면서 현재 셀 위치에 맞춰 레이어를 배치합니다. */
+    protected openCellLayer(layerElement: HTMLElement, cellElement: HTMLElement): void;
     abstract valid(value: any): ValidResult | boolean;
     /**
      * 값 얻기
      *
-     * @param {any} value row item
+     @param {any} item row item
      * @returns {any} field value
      */
     getValue(item: any, inputValue?: any): any;
@@ -21,7 +23,7 @@ export declare abstract class EditCellRenderer extends CellRenderer {
      * 값 셋팅
      *
      * @public
-     * @param {HTMLElement} element cell element
+     @param {Event} e event object
      * @param {any} value row value
      */
     setValue(e: Event, item: any, value: any, refresh?: boolean): false | undefined;

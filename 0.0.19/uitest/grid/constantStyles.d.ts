@@ -1,6 +1,6 @@
 export declare const GRID_THEME: {
-    readonly light: "dg-light";
-    readonly dark: "dg-dark";
+    readonly light: "light";
+    readonly dark: "dark";
 };
 export type ThemeType = keyof typeof GRID_THEME;
 export declare const BODY_STYLE: {

@@ -3,6 +3,7 @@ import { BodyStyle, ThemeType } from '../constantStyles.js';
 import { DaraGrid } from '../DaraGrid.js';
 import { DaraElement } from '../element/DaraElement.js';
 import { SelectionInfo } from '../selection/selection.js';
+import { RemoteDataController } from '../service/remote/RemoteDataController.js';
 import { AddRowOptions } from '../types/Common.js';
 import { GridOptions } from '../types/GridOptions.js';
 import { Message } from '../types/Message.js';
@@ -54,16 +55,29 @@ export declare class GridMain {
     private readonly gridElement;
     private readonly orginStyle;
     private readonly openLayers;
+    private readonly layerPositions;
     private resizeObserver;
+    private resizeFrame;
     private destroyed;
     private windowResizeHandler?;
+    private cancelWindowResize?;
     private readonly structureBuilder;
+    /** dataSource 옵션이 있을 때만 생성되는 서버 연동 컨트롤러 */
+    private remote?;
     constructor(grid: DaraGrid, element: HTMLElement, options: GridOptions, message?: Message);
+    /**
+     * 서버 연동 컨트롤러. dataSource 옵션이 없으면 오류를 던진다.
+     */
+    /** toolbar.remote 설정에 따른 자동 서버 조회. dataSource가 없으면 무시한다. */
+    searchByToolbar(trigger: 'search' | 'change'): void;
+    getRemote(): RemoteDataController;
     init(): void;
     /**
      * grid 전체 이벤트
      */
     initDocumentGlobalEvent(): void;
+    /** 그리드 바깥 클릭 시 모든 인스턴스의 포커스를 해제합니다. */
+    private static readonly globalPointerDownHandler;
     static getInstance(eleOrId: HTMLElement | string): DaraGrid | null;
     static allInstance(): Map<string, GridMain>;
     element(): DaraElement;
@@ -103,7 +117,7 @@ export declare class GridMain {
      * @param {Event} e event
      */
     setGridFocusOut(e?: Event): void;
-    openLayer(layerElement: HTMLElement): void;
+    openLayer(layerElement: HTMLElement, updatePosition?: () => void): void;
     hideLayer(hideElement?: HTMLElement | string): void;
     /**
      * resize event
@@ -194,7 +208,6 @@ export declare class GridMain {
     /**
      * change scroll mode
      *
-     * @param mode scroll mode
      */
     private changeScrollMode;
     /**
@@ -212,6 +225,12 @@ export declare class GridMain {
      * @returns void
      */
     addItems(items: any[], addOpts?: AddRowOptions): void;
+    /**
+     * 서버에서 받은 데이터를 목록 끝에 붙입니다(infinite 페이징). 스크롤 위치는 유지하고 Undo 이력은 남기지 않습니다.
+     *
+     * @param items 추가할 행 데이터 배열
+     */
+    appendItems(items: any[]): void;
     /**
      * 새로운 item을 Grid에 추가합니다.
      *
@@ -311,6 +330,17 @@ export declare class GridMain {
     expandAll(): void;
     collapseAll(): void;
     setPaging(paging: PagingInfo): void;
+    /**
+     * 헤더 전체 체크박스를 현재 체크 상태에 맞춥니다. 행이 추가돼 체크된 행의 비율이 바뀐 뒤에 호출합니다.
+     * 체크된 행이 없으면 계산하지 않고 'none'으로 둡니다.
+     */
+    private refreshCheckboxStyle;
+    /**
+     * infinite 페이징의 다음 페이지 조회 조건을 확인합니다.
+     *
+     * @param idleScroll 스크롤 위치가 바뀌지 않은 입력(이미 끝에서 더 스크롤)이면 true
+     */
+    checkLoadMore(idleScroll?: boolean): void;
     getToolbar(): Toolbar;
     /**
      * toolbar value

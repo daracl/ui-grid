@@ -33,14 +33,13 @@ export declare class Header {
      * set check box style
      *
      * @public
-     * @param {number} idx
      * @param {("all" | "none" | "partial")} mode
      */
     setCheckboxStyle(mode: 'all' | 'none' | 'partial'): void;
     /**
      * set header height
      *
-     * @param {number} header height
+     @param {number} height header height
      */
     setHeight(height: number): void;
     /**
@@ -57,8 +56,6 @@ export declare class Header {
     createTemplate(): void;
     /**
      *  set column line selection style
-     * @param columnLine  selected column line set
-     * @param isAll all select flag
      * @returns
      */
     selectColumnAnchorCell(): void;

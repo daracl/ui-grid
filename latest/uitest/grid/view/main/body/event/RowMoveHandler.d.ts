@@ -25,6 +25,8 @@ export declare class RowMoveHandler extends CellClickHandler {
     constructor(context: PointerContext, bodyEvent: BodyEvent);
     initTemplate(): void;
     canHandle(session: PointerSession): boolean;
+    /** 숨김 컨테이너에 붙여 둔 드래그 도우미 요소를 제거한다. */
+    destroy(): void;
     onClick(session: PointerSession): void;
     onActivate(session: PointerSession): false | undefined;
     /** move 중 */

@@ -37,8 +37,8 @@ export declare class Summary {
      * row template
      *
      * @private
-     * @param {number} rowIdx row index
-     * @param {number} rowHeight row height
+     @param {SummaryConfig} summaryConfig summary 설정
+     @param {number} startCol 시작 col
      * @param {FieldItem[]} fields fields 정보
      * @returns {string} template
      */

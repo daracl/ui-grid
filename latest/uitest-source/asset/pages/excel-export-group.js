@@ -10,9 +10,9 @@ import { initExcelExample } from '../excelExportExample.js';
 
 const grid = DaraGrid.create(document.getElementById('sample'), {
   groupingFields: ['region', 'category'],
-  sumFields: ['quantity', 'amount'],
-  showGroupSum: true,
-  showGrandSum: true,
+  groupSummaryFields: [{ field: 'quantity', expression: 'sum' }, { field: 'amount', expression: 'sum' }],
+  showGroupSummary: true,
+  showGrandSummary: true,
   header: { height: [32, 30, 30] },
   fields: createExampleFields1(),
   items: createExampleItems2(),

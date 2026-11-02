@@ -32,7 +32,7 @@ export declare class Footer {
      * selection status info
      *
      * @public
-     * @param {string} info selection info
+     @param {*} dataInfo selection info
      */
     setSelectionStatus(dataInfo?: any): void;
     /**

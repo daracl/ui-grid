@@ -5,7 +5,7 @@ import { DataSearch } from './DataSearch';
  * simple search class
  *
  * @class SimpleDataSearch
- * @typedef {DataSearch}
+ * @typedef {SimpleDataSearch}
  */
 export declare class SimpleDataSearch extends DataSearch {
     private searchElement;

@@ -1,4 +1,5 @@
 import { DaraGrid } from '/src/index.ts';
+import { BODY_STYLE } from '/src/constantStyles.ts';
 import { datasets, settings } from '../data/builder/index.js';
 
 const $ = (id) => document.getElementById(id);
@@ -8,6 +9,7 @@ let generated = '';
 let availableFields = [];
 $('preset').replaceChildren(...settings.types.map((type) => new Option(type.label, type.value)));
 $('dataset').replaceChildren(...datasets.map((data) => new Option(data.label, data.id)));
+$('bodyStyle').replaceChildren(...Object.keys(BODY_STYLE).map((style) => new Option(style, style)));
 
 function syncFieldChoices(fields) {
   const leaves = [];
@@ -110,6 +112,7 @@ function options() {
   const paging = $('paging').checked;
   const result = {
     theme: $('theme').value,
+    style: $('bodyStyle').value,
     height: number('height'),
     editable: $('editable').checked,
     fixedLeftIndex: fixed,
@@ -123,7 +126,9 @@ function options() {
   };
   if (type === 'group') {
     result.groupingFields = [groupField];
-    result.sumFields = [sumField];
+    result.groupSummaryFields = [{ field: sumField, expression: $('summaryExpression').value }];
+    result.showGroupSummary = $('showGroupSummary').checked;
+    result.showGrandSummary = $('showGrandSummary').checked;
   }
   if (type === 'rowspan') result.rowSpanFields = [groupField];
   if (type === 'tree') result.tree = { ...settings.tree };

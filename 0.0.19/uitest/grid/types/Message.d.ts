@@ -3,6 +3,16 @@
  * 유효성 검사 메시지 및 UI 텍스트를 포함합니다.
  */
 export interface Message {
+  /** 키 전용 컨텍스트 메뉴의 기본 라벨 */
+  'context.copy'?: string;
+  'context.exportFile'?: string;
+  /** 파일 내보내기 툴바의 접근성 라벨·버튼·상태 메시지 */
+  'export.format'?: string;
+  'export.download'?: string;
+  'export.creating'?: string;
+  'export.completed'?: string;
+  'export.failed'?: string;
+  'export.unsupportedFormat'?: string;
   /** 필수 입력 필드에 대한 메시지 */
   required: string;
 

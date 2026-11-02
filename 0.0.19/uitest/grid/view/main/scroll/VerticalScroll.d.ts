@@ -63,7 +63,7 @@ export declare class VerticalScroll {
      * 세로 스크롤 위치 설정
      *
      * @private
-     * @param {Config} cfg 설정값
+     @param {ScrollInfo} scroll 스크롤 정보
      * @param {number} topVal 스크롤 바 포지션
      */
     private setVerticalPosition;

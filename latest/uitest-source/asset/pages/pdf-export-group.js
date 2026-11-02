@@ -4,10 +4,10 @@ import { DaraGrid } from '/src/index.ts';
 
 const grid = DaraGrid.create(document.getElementById('sample'), {
   groupingFields: ['country', 'category'],
-  sumFields: ['quantity', 'amount', 'cost', 'profit'],
+  groupSummaryFields: [{ field: 'quantity', expression: 'sum' }, { field: 'amount', expression: 'sum' }, { field: 'cost', expression: 'sum' }, { field: 'profit', expression: 'sum' }],
   header: { height: [32, 30, 30] },
-  showGroupSum: true,
-  showGrandSum: true,
+  showGroupSummary: true,
+  showGrandSummary: true,
   fields: createExampleFields1(),
   items,
 });

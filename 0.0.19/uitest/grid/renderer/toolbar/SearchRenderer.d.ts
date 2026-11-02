@@ -13,6 +13,7 @@ export declare class SearchRenderer extends ToolBarRenderer {
     constructor(field: ToolbarFieldItem, gridMain: GridMain);
     render(element: HTMLElement): void;
     initEvt(contentElement: HTMLInputElement, btnElement: HTMLElement): void;
+    protected isSearchInput(): boolean;
     getValue(): string;
     setValue(value: string): void;
 }

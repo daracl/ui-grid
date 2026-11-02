@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>컨텍스트 메뉴 파일 다운로드</title>
+    <link rel="stylesheet" href="./asset/examples.css" />
+    <script src="./data/businessFixtures.js"></script>
+  </head>
+  <body class="example-page">
+    <header class="page-header">
+      <div><a href="./index.html">UI 테스트</a><h1>컨텍스트 메뉴 파일 다운로드</h1></div>
+      <a href="./toolbar-export-file.html">툴바 파일 다운로드 →</a>
+    </header>
+    <section class="example-content" aria-label="예제 미리보기">
+      <p>셀을 선택한 뒤 마우스 오른쪽 버튼을 누르세요. Copy는 선택 영역을 복사하며, Export file의 하위 형식을 선택하면 파일을 다운로드합니다.</p>
+      <p>메뉴의 라벨·콜백은 키로 자동 구성합니다. 파일명은 그리드 제목을 사용합니다.</p>
+      <div id="sample" style="height: 440px; width: 100%"></div>
+    </section>
+    <script type="module" src="./asset/pages/context-export-file.js"></script>
+  </body>
+</html>

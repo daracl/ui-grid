@@ -35,7 +35,6 @@ export declare abstract class SummaryRenderer {
     getSummaryItem(): SummaryItem;
     /**
      * 값 얻기
-     * @param rowItem row item
      * @returns
      */
     getValue(): any;

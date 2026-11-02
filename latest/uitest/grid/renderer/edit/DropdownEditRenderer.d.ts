@@ -29,7 +29,7 @@ export declare class DropdownEditRenderer extends EditCellRenderer {
      * dropdown list open
      *
      * @private
-     * @param {HTMLElement} cellElement cell element
+     @param {HTMLElement} eventElement 이벤트가 발생한 element
      * @param {HTMLElement} dropdownElement dropdown element
      */
     private openMenu;

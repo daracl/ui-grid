@@ -1,9 +1,11 @@
+import { normalizeCssLength } from '@daracl/core/utils';
+export { normalizeCssLength };
 import { OptionCallback } from '../types/Common.js';
 import { FieldItem } from '../types/GridField.js';
 import { RendererInfo } from '../types/RendererInfo.js';
 /**
  * @method addStyleTag
- * @param options {Object} - 데이터 .
+ @param instanceId 그리드 instance id
  * @description  add style tab
  */
 export declare const addStyleTag: (instanceId: string) => void;
@@ -47,17 +49,6 @@ export declare function toggleClass(element: Element | null | Element[], classNa
  * @param styles - 적용할 스타일 객체 (예: { color: 'red', 'font-size': '16px' })
  */
 export declare function addStyleCss(element: HTMLElement, styles: any): void;
-/**
- * CSS length 값을 정규화합니다.
- *
- * 숫자 값은 기본 단위인 px을 추가하고,
- * 이미 CSS 단위가 포함된 문자열 값은 그대로 반환합니다.
- *
- * @example
- * normalizeCssLength(10) // "10px"
- * normalizeCssLength("10rem") // "10rem"
- */
-export declare function normalizeCssLength(value: number | string): string;
 /**
  * Resolve class name value.
  *

@@ -19,13 +19,17 @@ export declare abstract class CellRenderer {
      * view render
      *
      * @param {HTMLElement} element td element
-     * @param {*} value value row item
+     @param {CellInfo} cellInfo cell info
      */
     abstract render(cellInfo: CellInfo, element: HTMLElement): void;
     abstract tooltip(element: HTMLElement, value: any): void;
     abstract getValue(rowItem: any, initValue?: any): any;
     getClosestCellElement(target: HTMLElement): HTMLElement;
     supportsInteraction(): boolean;
+    /**
+     * 그리드를 파괴할 때 호출된다. 그리드 바깥(document 등)에 만든 요소가 있으면 여기서 제거한다.
+     */
+    destroy(): void;
     bindEvents(eventType: string, cellInfo: CellInfo, element: HTMLElement): boolean;
     /**
      *  값 정렬 스타일
@@ -36,7 +40,6 @@ export declare abstract class CellRenderer {
      *
      * @param cfg 설정
      * @param opts 옵션
-     * @param checkWidth
      * @returns
      */
     getMinWidth(cfg: Config, opts: GridOptions): number;

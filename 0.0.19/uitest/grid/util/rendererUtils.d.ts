@@ -84,4 +84,4 @@ export declare function updateSelectValues<T>(selectedValues: any[], clickedValu
  * @param isAll 전체 선택 여부
  */
 export declare function updateDropdownSelection(dropdownElement: HTMLElement, listItems: any[], values: any[], valueKey: string, isAll: boolean): void;
-export declare function getLabelsByValue(value: string | string[], valueDelimiter: string, valueLabelMap: Map<string, any>): string[];
+export declare function getLabelsByValue(value: string | string[] | number | number[], valueDelimiter: string, valueLabelMap: Map<string, any>): string[];

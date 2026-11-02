@@ -4,10 +4,10 @@ import { OptionCallback } from './Common';
 import { EditRendererInfo } from './RendererInfo';
 
 /**
- * ToolBar item info
+ * ToolbarLayout info
  *
- * @interface ToolBarItem
- * @typedef {ToolRowItem}
+ * @interface ToolbarLayout
+ * @typedef {ToolbarLayout}
  */
 export interface ToolbarLayout {
   position: HorizontalRegion;
@@ -16,6 +16,9 @@ export interface ToolbarLayout {
   width?: number;
 }
 
+/**
+ *toolbar field
+ */
 export interface ToolbarFieldItem {
   placeholder?: string;
   defaultValue?: any;

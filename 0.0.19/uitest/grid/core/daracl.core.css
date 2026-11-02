@@ -1,0 +1,149 @@
+.daracl {
+  font-size: 12px;
+}
+
+.daracl-cl {
+  --daracl-loading-backdrop: #f1f5f9;
+  --daracl-loading-surface: #ffffff;
+  --daracl-loading-text: #172033;
+  --daracl-loading-muted: #526079;
+  --daracl-loading-border: #dce3ed;
+  --daracl-loading-accent: #2563eb;
+  --daracl-loading-hover: #eef2f7;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+  color: var(--daracl-loading-text);
+  font: 400 14px/1.5 system-ui, sans-serif;
+  text-align: center;
+}
+.daracl-cl, .daracl-cl * {
+  box-sizing: border-box;
+}
+.daracl-cl .daracl-cl-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.daracl-cl .daracl-cl-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  overflow: auto;
+  padding: 24px 28px;
+  border: 1px solid var(--daracl-loading-border);
+  border-radius: 16px;
+  background: var(--daracl-loading-surface);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.14);
+}
+.daracl-cl .daracl-cl-image {
+  flex-shrink: 0;
+  max-width: 100%;
+  height: auto;
+}
+.daracl-cl .daracl-cl-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--daracl-loading-border);
+  border-top-color: var(--daracl-loading-accent);
+  border-radius: 50%;
+  animation: daracl-loading-spin 0.8s linear infinite;
+}
+.daracl-cl .daracl-cl-content {
+  overflow-wrap: anywhere;
+}
+.daracl-cl .daracl-cl-time, .daracl-cl .daracl-cl-request-count {
+  color: var(--daracl-loading-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.daracl-cl .daracl-cl-time::after {
+  content: " s";
+}
+.daracl-cl .daracl-cl-actions {
+  width: 100%;
+}
+.daracl-cl .daracl-cl-btn {
+  min-height: 36px;
+  padding: 6px 18px;
+  border: 1px solid var(--daracl-loading-border);
+  border-radius: 8px;
+  background: var(--daracl-loading-surface);
+  color: var(--daracl-loading-text);
+  font: inherit;
+  cursor: pointer;
+}
+.daracl-cl .daracl-cl-btn:hover {
+  background: var(--daracl-loading-hover);
+}
+.daracl-cl .daracl-cl-btn:focus-visible {
+  outline: 2px solid var(--daracl-loading-accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .daracl-cl[data-loading-theme=auto] {
+    --daracl-loading-backdrop: #080e1a;
+    --daracl-loading-surface: #182131;
+    --daracl-loading-text: #f1f5f9;
+    --daracl-loading-muted: #b0bed1;
+    --daracl-loading-border: #3c4b62;
+    --daracl-loading-accent: #93b4ff;
+    --daracl-loading-hover: #26344a;
+  }
+}
+:where(.dark, [data-theme=dark]) .daracl-cl[data-loading-theme=auto] {
+  --daracl-loading-backdrop: #080e1a;
+  --daracl-loading-surface: #182131;
+  --daracl-loading-text: #f1f5f9;
+  --daracl-loading-muted: #b0bed1;
+  --daracl-loading-border: #3c4b62;
+  --daracl-loading-accent: #93b4ff;
+  --daracl-loading-hover: #26344a;
+}
+
+:where(.light, [data-theme=light]) .daracl-cl[data-loading-theme=auto] {
+  --daracl-loading-backdrop: #f1f5f9;
+  --daracl-loading-surface: #ffffff;
+  --daracl-loading-text: #172033;
+  --daracl-loading-muted: #526079;
+  --daracl-loading-border: #dce3ed;
+  --daracl-loading-accent: #2563eb;
+  --daracl-loading-hover: #eef2f7;
+}
+
+.daracl-cl[data-loading-theme=light] {
+  --daracl-loading-backdrop: #f1f5f9;
+  --daracl-loading-surface: #ffffff;
+  --daracl-loading-text: #172033;
+  --daracl-loading-muted: #526079;
+  --daracl-loading-border: #dce3ed;
+  --daracl-loading-accent: #2563eb;
+  --daracl-loading-hover: #eef2f7;
+}
+
+.daracl-cl[data-loading-theme=dark] {
+  --daracl-loading-backdrop: #080e1a;
+  --daracl-loading-surface: #182131;
+  --daracl-loading-text: #f1f5f9;
+  --daracl-loading-muted: #b0bed1;
+  --daracl-loading-border: #3c4b62;
+  --daracl-loading-accent: #93b4ff;
+  --daracl-loading-hover: #26344a;
+}
+
+@keyframes daracl-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daracl-cl .daracl-cl-spinner {
+    animation: none;
+  }
+}

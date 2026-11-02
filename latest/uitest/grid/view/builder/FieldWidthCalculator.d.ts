@@ -60,7 +60,6 @@ export declare class FieldWidthCalculator {
      *
      * @param fields 현재 그리드 필드
      * @param fieldTotalWidth 모든 필드의 총 width
-     * @param verticalScrollWidth 세로 스크롤바 width
      * @param isHeaderResize 헤더 resize 여부
      */
     distributeWidths(fields: FieldItem[], fieldTotalWidth: number, isHeaderResize: boolean): void;
@@ -74,7 +73,7 @@ export declare class FieldWidthCalculator {
      * 컬럼의 여분 넓이를 계산
      *
      * @param fieldTotalWidth 모든 필드의 총 width
-     * @param verticalScrollWidth 세로 스크롤바 width
+     @param availableWidth 사용 가능한 width
      */
     private calculateFieldSpace;
 }

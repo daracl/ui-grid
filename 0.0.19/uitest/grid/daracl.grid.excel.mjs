@@ -1,3 +1,4 @@
+const REVOKE_DELAY_MS = 1e4;
 function downloadExport(blob, fileName, defaultFileName, extension) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -10,8 +11,50 @@ function downloadExport(blob, fileName, defaultFileName, extension) {
     anchor.click();
   } finally {
     anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
   }
+}
+function formatNumber(value, format) {
+  const numberPatternRegex = /[0,.]+/;
+  const numberPatternMatch = numberPatternRegex.exec(format);
+  if (!numberPatternMatch) return format;
+  const numberPattern = numberPatternMatch[0];
+  const prefix = format.slice(0, format.indexOf(numberPattern));
+  const suffix = format.slice(format.indexOf(numberPattern) + numberPattern.length);
+  const [intFmt, decFmt] = numberPattern.split(".");
+  const useComma = intFmt.includes(",");
+  let result = "";
+  if (decFmt) {
+    const rounded = value.toFixed(decFmt.length);
+    const [intPart, decPart] = rounded.split(".");
+    const trimmedDec = decPart.replace(/0+$/, "");
+    result = useComma ? addComma(intPart) : intPart;
+    if (trimmedDec.length > 0) {
+      result += "." + trimmedDec;
+    }
+  } else {
+    const rounded = Math.round(value).toString();
+    result = useComma ? addComma(rounded) : rounded;
+  }
+  return `${prefix}${result}${suffix}`;
+}
+function addComma(numStr) {
+  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+function formatValue(value, displayFormat) {
+  const type = displayFormat.type;
+  if (type == "number" && !isNaN(value)) {
+    return formatNumber(value, displayFormat.format ?? "0,0");
+  }
+  return value;
+}
+const ALL_SELECT_VALUE = "$all$";
+function getSummaryField(summary) {
+  return summary.field ?? summary.name ?? "";
+}
+function formatSummaryValue(value, summary, field) {
+  const displayFormat = summary?.displayFormat ?? field.displayFormat;
+  return String(displayFormat ? formatValue(value, displayFormat) : value);
 }
 function normalizeExportValue(value) {
   if (value === null || value === void 0) {
@@ -30,33 +73,26 @@ const TEXT_ALIGN_STYLE = {
   center: "dg-text-ac",
   right: "dg-text-ar"
 };
-const ALL_SELECT_VALUE = "$all$";
-const isBlank = (value) => {
-  if (value === null) return true;
-  if (value === "") return true;
-  if (typeof value === "undefined") return true;
-  if (typeof value === "string" && (value === "" || value.replace(/\s/g, "") === "")) return true;
-  return false;
-};
-const isUndefined = (value) => {
-  return value === void 0;
-};
-const isFunction = (value) => {
-  return typeof value === "function";
-};
-const isString = (value) => {
-  return typeof value === "string";
-};
-const intValue = (val) => {
-  return Number.parseInt(val, 10);
-};
-const isArray = (value) => {
+function isArray(value) {
   return Array.isArray(value);
-};
-const isEmpty = (value) => isUndefined(value) || value == null;
-const stringSplit = (value, delimiter) => {
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+function isString(value) {
+  return typeof value === "string";
+}
+function isBlank(value) {
+  return value === null || value === void 0 || isString(value) && value.trim() === "";
+}
+function isNil(value) {
+  return value === null || value === void 0;
+}
+function stringSplit(value, delimiter) {
   return (value || "").split(delimiter);
-};
+}
+const intValue = (val) => Number.parseInt(val, 10);
+const isEmpty = (value) => isNil(value);
 const getCellInfo = (cfg, cellElement) => {
   const posInfo = getCellPosition(cellElement);
   const rowIndex = cfg.scroll.startIdx + posInfo.r;
@@ -102,12 +138,10 @@ const getMaxColumnSize = (cfg, opts, field) => {
   return returnMaxWidth + 16;
 };
 const valuesValueKey = (rendererInfo) => {
-  var _a;
-  return ((_a = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a.valueField) ?? "value";
+  return rendererInfo?.listItem?.valueField ?? "value";
 };
 const valuesLabelKey = (rendererInfo) => {
-  var _a;
-  return ((_a = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a.labelField) ?? "label";
+  return rendererInfo?.listItem?.labelField ?? "label";
 };
 function html(strings, ...values) {
   return strings.reduce((result, str, i) => {
@@ -452,8 +486,8 @@ function normalizeChoiceOptions(list, labelKey, valueKey) {
       newItem[labelKey] = item;
       newList.push(newItem);
     } else {
-      val = (item == null ? void 0 : item[valueKey]) ?? "";
-      label = (item == null ? void 0 : item[labelKey]) ?? "";
+      val = item?.[valueKey] ?? "";
+      label = item?.[labelKey] ?? "";
       newList.push(item);
     }
     valueLabelMap.set(val, label);
@@ -461,7 +495,8 @@ function normalizeChoiceOptions(list, labelKey, valueKey) {
   return { list: newList, map: valueLabelMap };
 }
 function getLabelsByValue(value, valueDelimiter, valueLabelMap) {
-  const valueSet = new Set(isString(value) ? stringSplit(value || "", valueDelimiter) : value);
+  const values = isString(value) ? stringSplit(value || "", valueDelimiter) : Array.isArray(value) ? value : [value];
+  const valueSet = new Set(values.map(String));
   if (valueSet.has(ALL_SELECT_VALUE)) {
     return [...valueLabelMap.values()];
   }
@@ -473,40 +508,6 @@ function getLabelsByValue(value, valueDelimiter, valueLabelMap) {
     }
   }
   return labels;
-}
-function formatNumber(value, format) {
-  const numberPatternRegex = /[0,.]+/;
-  const numberPatternMatch = numberPatternRegex.exec(format);
-  if (!numberPatternMatch) return format;
-  const numberPattern = numberPatternMatch[0];
-  const prefix = format.slice(0, format.indexOf(numberPattern));
-  const suffix = format.slice(format.indexOf(numberPattern) + numberPattern.length);
-  const [intFmt, decFmt] = numberPattern.split(".");
-  const useComma = intFmt.includes(",");
-  let result = "";
-  if (decFmt) {
-    const rounded = value.toFixed(decFmt.length);
-    const [intPart, decPart] = rounded.split(".");
-    const trimmedDec = decPart.replace(/0+$/, "");
-    result = useComma ? addComma(intPart) : intPart;
-    if (trimmedDec.length > 0) {
-      result += "." + trimmedDec;
-    }
-  } else {
-    const rounded = Math.round(value).toString();
-    result = useComma ? addComma(rounded) : rounded;
-  }
-  return `${prefix}${result}${suffix}`;
-}
-function addComma(numStr) {
-  return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-function formatValue(value, displayFormat) {
-  const type = displayFormat.type;
-  if (type == "number" && !isNaN(value)) {
-    return formatNumber(value, displayFormat.format ?? "0,0");
-  }
-  return value;
 }
 class CellRenderer {
   constructor(field, gridMain) {
@@ -522,6 +523,11 @@ class CellRenderer {
   supportsInteraction() {
     return false;
   }
+  /**
+   * 그리드를 파괴할 때 호출된다. 그리드 바깥(document 등)에 만든 요소가 있으면 여기서 제거한다.
+   */
+  destroy() {
+  }
   bindEvents(eventType, cellInfo, element) {
     return false;
   }
@@ -536,20 +542,19 @@ class CellRenderer {
    *
    * @param cfg 설정
    * @param opts 옵션
-   * @param checkWidth
    * @returns
    */
   getMinWidth(cfg, opts) {
     return getMaxColumnSize(cfg, opts, this.field);
   }
   applyRendererRefState(contentElement, refValue) {
-    const isHide = (refValue == null ? void 0 : refValue.hide) ?? false;
+    const isHide = refValue?.hide ?? false;
     const classList = contentElement.classList;
     if (classList.contains("dg-hide") !== isHide) {
       classList.toggle("dg-hide", isHide);
     }
     if (isHide) return false;
-    const isDisabled = (refValue == null ? void 0 : refValue.disabled) ?? false;
+    const isDisabled = refValue?.disabled ?? false;
     if (classList.contains("dg-disabled") !== isDisabled) {
       classList.toggle("dg-disabled", isDisabled);
     }
@@ -584,10 +589,9 @@ class ViewCellRenderer extends CellRenderer {
    * @returns
    */
   getValue(rowItem) {
-    var _a, _b;
     const val = rowItem[this.fieldName];
     if (this.isVauleFunction) {
-      return (_b = (_a = this.field).getValue) == null ? void 0 : _b.call(_a, { field: this.field, item: rowItem });
+      return this.field.getValue?.({ field: this.field, item: rowItem });
     }
     if (this.field.displayFormat) {
       return formatValue(val, this.field.displayFormat);
@@ -609,9 +613,8 @@ class ViewCellRenderer extends CellRenderer {
    * @param cellInfo  cell info
    */
   click(e, eventElement, cellInfo) {
-    var _a;
     if (this.isClick) {
-      (_a = this.field.renderer.click) == null ? void 0 : _a.call(null, cellInfo);
+      this.field.renderer.click?.call(null, cellInfo);
     }
   }
   /**
@@ -628,15 +631,14 @@ class ViewCellRenderer extends CellRenderer {
 }
 class DropdownRenderer extends ViewCellRenderer {
   constructor(field, gridMain) {
-    var _a, _b;
     super(field, gridMain);
     this.listItems = [];
     const editInfo = this.field.editRenderer;
     const labelKey = valuesLabelKey(editInfo);
     const valueKey = valuesValueKey(editInfo);
-    if (editInfo == null ? void 0 : editInfo.listItem) {
-      this.valueDelimiter = ((_a = editInfo.listItem) == null ? void 0 : _a.delimiter) ?? ",";
-      const list = (_b = editInfo.listItem) == null ? void 0 : _b.list;
+    if (editInfo?.listItem) {
+      this.valueDelimiter = editInfo.listItem?.delimiter ?? ",";
+      const list = editInfo.listItem?.list;
       if (isArray(list)) {
         const reval = normalizeChoiceOptions(list, labelKey, valueKey);
         this.listItems = reval.list;
@@ -724,20 +726,19 @@ class DropdownRenderer extends ViewCellRenderer {
 }
 function getExportCellValues(fields, item) {
   return fields.map((field) => {
-    var _a, _b, _c, _d, _e;
     const renderer = field.$renderer;
-    if (((_a = field.renderer) == null ? void 0 : _a.type) === "password") return "********";
-    if (((_b = field.renderer) == null ? void 0 : _b.type) === "hidden") return "";
+    if (field.renderer?.type === "password") return "********";
+    if (field.renderer?.type === "hidden") return "";
     const value = renderer.getValue(item);
-    if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes((_c = field.renderer) == null ? void 0 : _c.type)) {
+    if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes(field.renderer?.type)) {
       const ref = renderer.getRefValue(value, item);
       if (typeof ref === "string") return ref;
-      if (ref == null ? void 0 : ref.hide) return "";
-      if ((ref == null ? void 0 : ref.label) !== void 0) return normalizeExportValue(ref.label);
+      if (ref?.hide) return "";
+      if (ref?.label !== void 0) return normalizeExportValue(ref.label);
       if (renderer instanceof DropdownRenderer) {
         let labels = renderer.getLabel(value);
         if (labels.length === 0 && field.defaultValue) labels = renderer.getLabel(field.defaultValue);
-        if (labels.length > 0) return labels.join(((_e = (_d = field.editRenderer) == null ? void 0 : _d.listItem) == null ? void 0 : _e.delimiter) ?? ",");
+        if (labels.length > 0) return labels.join(field.editRenderer?.listItem?.delimiter ?? ",");
       }
     }
     return normalizeExportValue(value);
@@ -773,10 +774,7 @@ class PdfRenderer {
       data.cellTextColors = cellStyles.map((style) => style.textColors ?? []);
     }
     if (this.context.getCellCharts) {
-      const charts = viewItems.map((viewItem, rowIndex) => {
-        var _a, _b;
-        return ((_b = (_a = this.context).getCellCharts) == null ? void 0 : _b.call(_a, viewItem, rowIndex)) ?? [];
-      });
+      const charts = viewItems.map((viewItem, rowIndex) => this.context.getCellCharts?.(viewItem, rowIndex) ?? []);
       data.cellCharts = charts.map((row) => this.context.lineNumberField ? [void 0, ...row] : row);
     }
     if (this.context.getHeaderCellBorders) {
@@ -814,10 +812,7 @@ class GroupPdfRenderer extends PdfRenderer {
       const groupingFields = this.groupingFields();
       groupingFields.forEach((fieldName, groupIndex) => {
         const field = fields.find((candidate) => candidate.name === fieldName);
-        const sameGroup = this.previousDataItem !== void 0 && groupingFields.slice(0, groupIndex + 1).every((name) => {
-          var _a;
-          return Object.is(item[name], (_a = this.previousDataItem) == null ? void 0 : _a[name]);
-        });
+        const sameGroup = this.previousDataItem !== void 0 && groupingFields.slice(0, groupIndex + 1).every((name) => Object.is(item[name], this.previousDataItem?.[name]));
         if (field && sameGroup) {
           row2[fields.indexOf(field)] = "";
         }
@@ -826,8 +821,8 @@ class GroupPdfRenderer extends PdfRenderer {
       return row2;
     }
     const row = super.renderRow(viewItem);
-    const sumFields = new Set(this.context.sumFields);
-    const summaryLabelField = fields.find((field) => !sumFields.has(field.name)) ?? fields[0];
+    const summaryFieldNames = new Set(this.context.summaryFieldNames);
+    const summaryLabelField = fields.find((field) => !summaryFieldNames.has(field.name)) ?? fields[0];
     if (viewItem.groupRowType === "group") {
       const groupField = fields.find((field) => field.name === viewItem.groupField) ?? fields[0];
       if (groupField) {
@@ -846,7 +841,7 @@ class GroupPdfRenderer extends PdfRenderer {
     for (const [fieldName, sum] of Object.entries(viewItem.groupSums ?? {})) {
       const columnIndex = fields.findIndex((field) => field.name === fieldName);
       if (columnIndex >= 0) {
-        row[columnIndex] = normalizeExportValue(sum);
+        row[columnIndex] = formatSummaryValue(sum, this.context.summaryItems?.find((item) => getSummaryField(item) === fieldName), fields[columnIndex]);
       }
     }
     return row;
@@ -865,34 +860,26 @@ function columnName(index) {
   return name;
 }
 function createExcelData(context, rowSpanFields = []) {
-  var _a;
   const renderer = context.groupingFields.length ? new GroupPdfRenderer(context) : new SimplePdfRenderer(context);
   const table = renderer.render();
   const offset = context.lineNumberField ? 1 : 0;
-  const hasTree = context.fields.some((field) => {
-    var _a2;
-    return ((_a2 = field.renderer) == null ? void 0 : _a2.type) === "tree";
-  });
+  const hasTree = context.fields.some((field) => field.renderer?.type === "tree");
   const depths = context.viewItems.map((item) => Math.max(0, Math.floor(item.depth ?? 0)));
   const cellIndents = hasTree ? context.viewItems.map((_, index) => [
     ...offset ? [0] : [],
-    ...context.fields.map((field) => {
-      var _a2;
-      return ((_a2 = field.renderer) == null ? void 0 : _a2.type) === "tree" ? Math.min(250, depths[index]) : 0;
-    })
+    ...context.fields.map((field) => field.renderer?.type === "tree" ? Math.min(250, depths[index]) : 0)
   ]) : void 0;
   const rows = table.rows.map((row, rowIndex) => {
     const values = [...row];
     const viewItem = context.viewItems[rowIndex];
     if (offset) values[0] = (context.lineNumberStart ?? 0) + rowIndex + 1;
     context.fields.forEach((field, index) => {
-      var _a2, _b;
       if (viewItem.groupRowType) {
-        const sum = (_a2 = viewItem.groupSums) == null ? void 0 : _a2[field.name];
-        if (sum !== void 0 && context.sumFields.includes(field.name) && row[index + offset] === String(sum)) {
+        const sum = viewItem.groupSums?.[field.name];
+        if (sum !== void 0 && context.summaryFieldNames.includes(field.name) && row[index + offset] === String(sum)) {
           values[index + offset] = sum;
         }
-      } else if (!field.displayFormat && ["text", "number"].includes(((_b = field.renderer) == null ? void 0 : _b.type) ?? "text")) {
+      } else if (!field.displayFormat && ["text", "number"].includes(field.renderer?.type ?? "text")) {
         const value = field.$renderer.getValue(context.getRowItem(viewItem.id));
         if ((typeof value === "number" && Number.isFinite(value) || typeof value === "boolean") && row[index + offset] === String(value)) {
           values[index + offset] = value;
@@ -902,13 +889,12 @@ function createExcelData(context, rowSpanFields = []) {
     return values;
   });
   const merges = [];
-  (_a = table.cellCharts) == null ? void 0 : _a.forEach(
+  table.cellCharts?.forEach(
     (charts, row) => charts.forEach((chart, column) => {
       if (chart) rows[row][column] = "";
     })
   );
   rowSpanFields.forEach((name, level) => {
-    var _a2;
     const column = context.fields.findIndex((field) => field.name === name);
     if (column < 0) return;
     for (let start = 0; start < context.viewItems.length; ) {
@@ -926,7 +912,7 @@ function createExcelData(context, rowSpanFields = []) {
         merges.push(`${letter}${start + 2}:${letter}${end + 1}`);
         for (let index = start + 1; index < end; index++) {
           rows[index][column + offset] = "";
-          if ((_a2 = table.cellCharts) == null ? void 0 : _a2[index]) table.cellCharts[index][column + offset] = void 0;
+          if (table.cellCharts?.[index]) table.cellCharts[index][column + offset] = void 0;
         }
       }
       start = end;
@@ -1000,14 +986,12 @@ function createZip(files) {
   return bytes;
 }
 function createChartDrawing(data, color2, xml2, headerCount = 1) {
-  var _a;
   const anchors = [];
   let id = 1;
   const rgb = (value, fallback = "FF222222") => color2(value, fallback).slice(2);
   const integer = (value) => Math.round(value);
-  (_a = data.cellCharts) == null ? void 0 : _a.forEach(
+  data.cellCharts?.forEach(
     (charts, row) => charts.forEach((chart, column) => {
-      var _a2, _b;
       if (!chart || !data.columns[column]) return;
       const width = Math.max(12, data.columns[column].width ?? 100);
       const height = Math.max(12, data.rowHeight ?? 26);
@@ -1036,7 +1020,7 @@ function createChartDrawing(data, color2, xml2, headerCount = 1) {
         const extent = min < 0 && max > 0 ? Math.abs(value) / range * w : min >= 0 ? (value - min) / range * w : Math.abs(value - max) / range * w;
         if (extent > 0)
           shape("rect", 4 + zero - (min < 0 && value < 0 || max <= 0 ? extent : 0), 4, extent, h, rgb(chart.color));
-        const textColor = rgb((_b = (_a2 = data.cellTextColors) == null ? void 0 : _a2[row]) == null ? void 0 : _b[column]);
+        const textColor = rgb(data.cellTextColors?.[row]?.[column]);
         shapes.push(
           `<xdr:sp><xdr:nvSpPr><xdr:cNvPr id="${id++}" name="Bar label"/><xdr:cNvSpPr txBox="1"/></xdr:nvSpPr><xdr:spPr>${transform(
             0,
@@ -1134,12 +1118,11 @@ function color(value, fallback) {
 }
 class ExcelConverter {
   convert(data, options = {}) {
-    var _a, _b, _c;
-    const headerCount = ((_a = data.headerRows) == null ? void 0 : _a.length) || 1;
+    const headerCount = data.headerRows?.length || 1;
     if (!data.columns.length || data.columns.length > 16384 || data.rows.length + headerCount > 1048576)
       throw new RangeError("Invalid XLSX worksheet dimensions");
     const sheetName = options.sheetName ?? "Grid";
-    if (!sheetName.trim() || sheetName.length > 31 || /[\\/*?:\[\]]/.test(sheetName) || /^'|'$/.test(sheetName))
+    if (!sheetName.trim() || sheetName.length > 31 || /[\\/*?:[\]]/.test(sheetName) || /^'|'$/.test(sheetName))
       throw new Error("Invalid Excel sheet name");
     const fonts = ['<font><sz val="11"/><color rgb="FF222222"/><name val="Calibri"/></font>'];
     const fills = [
@@ -1156,18 +1139,17 @@ class ExcelConverter {
       return list.length - 1;
     };
     const style = (header, column, row, headerCell) => {
-      var _a2, _b2, _c2, _d, _e, _f, _g, _h, _i, _j, _k, _l;
       const foreground = color(
-        header ? (headerCell == null ? void 0 : headerCell.textColor) ?? ((_a2 = data.headerTextColors) == null ? void 0 : _a2[column]) : (_c2 = (_b2 = data.cellTextColors) == null ? void 0 : _b2[row]) == null ? void 0 : _c2[column],
+        header ? headerCell?.textColor ?? data.headerTextColors?.[column] : data.cellTextColors?.[row]?.[column],
         "FF222222"
       );
-      const background = header ? (headerCell == null ? void 0 : headerCell.background) ?? ((_d = data.headerBackgrounds) == null ? void 0 : _d[column]) ?? "#e9edf2" : (_f = (_e = data.cellBackgrounds) == null ? void 0 : _e[row]) == null ? void 0 : _f[column];
-      const gradient = header ? (headerCell == null ? void 0 : headerCell.gradient) ?? ((_g = data.headerGradients) == null ? void 0 : _g[column]) : void 0;
-      const sides = (header ? (headerCell == null ? void 0 : headerCell.borders) ?? ((_h = data.headerCellBorders) == null ? void 0 : _h[column]) : (_j = (_i = data.cellBorders) == null ? void 0 : _i[row]) == null ? void 0 : _j[column]) ?? {
+      const background = header ? headerCell?.background ?? data.headerBackgrounds?.[column] ?? "#e9edf2" : data.cellBackgrounds?.[row]?.[column];
+      const gradient = header ? headerCell?.gradient ?? data.headerGradients?.[column] : void 0;
+      const sides = (header ? headerCell?.borders ?? data.headerCellBorders?.[column] : data.cellBorders?.[row]?.[column]) ?? {
         right: { color: "#cdcdcd", width: 1 },
         bottom: { color: "#cdcdcd", width: 1 }
       };
-      const indent = header ? 0 : Math.max(0, Math.min(250, Math.floor(((_l = (_k = data.cellIndents) == null ? void 0 : _k[row]) == null ? void 0 : _l[column]) ?? 0)));
+      const indent = header ? 0 : Math.max(0, Math.min(250, Math.floor(data.cellIndents?.[row]?.[column] ?? 0)));
       const align = indent ? "left" : header ? "center" : data.columns[column].align ?? "left";
       const key = JSON.stringify([header, foreground, background, gradient, sides, align, indent]);
       const cached = styleCache.get(key);
@@ -1209,13 +1191,12 @@ class ExcelConverter {
       return index;
     };
     const cell = (value, row, column) => {
-      var _a2;
       const reference = `${columnName(column)}${row + 1}`;
       const attrs = `r="${reference}" s="${style(
         row < headerCount,
         column,
         row - headerCount,
-        (_a2 = headerOwners[row]) == null ? void 0 : _a2[column]
+        headerOwners[row]?.[column]
       )}"`;
       if (typeof value === "number" && Number.isFinite(value)) return `<c ${attrs}><v>${value}</v></c>`;
       if (typeof value === "boolean") return `<c ${attrs} t="b"><v>${value ? 1 : 0}</v></c>`;
@@ -1226,7 +1207,7 @@ class ExcelConverter {
     const headers = Array.from({ length: headerCount }, () => data.columns.map(() => ""));
     const headerOwners = Array.from({ length: headerCount }, () => []);
     const headerMerges = [];
-    if ((_b = data.headerRows) == null ? void 0 : _b.length) {
+    if (data.headerRows?.length) {
       data.headerRows.forEach(
         (cells, row) => cells.forEach((item) => {
           headers[row][item.column] = item.label;
@@ -1253,7 +1234,7 @@ class ExcelConverter {
       )
     ];
     const drawing = createChartDrawing(data, color, xml, headerCount);
-    const outlineLevel = ((_c = data.outlineLevels) == null ? void 0 : _c.reduce((max, level) => Math.max(max, level), 0)) ?? 0;
+    const outlineLevel = data.outlineLevels?.reduce((max, level) => Math.max(max, level), 0) ?? 0;
     const worksheet = `<worksheet xmlns="${NS}" xmlns:r="${REL}">${data.outlineLevels ? '<sheetPr><outlinePr summaryBelow="0"/></sheetPr>' : ""}<dimension ref="A1:${end}"/><sheetViews><sheetView workbookViewId="0">${options.freezeHeader === false ? "" : `<pane ySplit="${headerCount}" topLeftCell="A${headerCount + 1}" activePane="bottomLeft" state="frozen"/>`}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="${rowHeight}"${outlineLevel ? ` outlineLevelRow="${outlineLevel}"` : ""}/><cols>${data.columns.map(
       (column, index) => `<col min="${index + 1}" max="${index + 1}" width="${Math.min(
         255,

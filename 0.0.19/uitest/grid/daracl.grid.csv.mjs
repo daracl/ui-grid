@@ -2,33 +2,27 @@ const TEXT_ALIGN_STYLE = {
   left: "dg-text-al",
   center: "dg-text-ac"
 };
-const ALL_SELECT_VALUE = "$all$";
-const isBlank = (value) => {
-  if (value === null) return true;
-  if (value === "") return true;
-  if (typeof value === "undefined") return true;
-  if (typeof value === "string" && (value === "" || value.replace(/\s/g, "") === "")) return true;
-  return false;
-};
-const isUndefined = (value) => {
-  return value === void 0;
-};
-const isFunction = (value) => {
-  return typeof value === "function";
-};
-const isString = (value) => {
-  return typeof value === "string";
-};
-const intValue = (val) => {
-  return Number.parseInt(val, 10);
-};
-const isArray = (value) => {
+function isArray(value) {
   return Array.isArray(value);
-};
-const isEmpty = (value) => isUndefined(value) || value == null;
-const stringSplit = (value, delimiter) => {
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+function isString(value) {
+  return typeof value === "string";
+}
+function isBlank(value) {
+  return value === null || value === void 0 || isString(value) && value.trim() === "";
+}
+function isNil(value) {
+  return value === null || value === void 0;
+}
+function stringSplit(value, delimiter) {
   return (value || "").split(delimiter);
-};
+}
+const ALL_SELECT_VALUE = "$all$";
+const intValue = (val) => Number.parseInt(val, 10);
+const isEmpty = (value) => isNil(value);
 const getCellInfo = (cfg, cellElement) => {
   const posInfo = getCellPosition(cellElement);
   const rowIndex = cfg.scroll.startIdx + posInfo.r;
@@ -74,12 +68,10 @@ const getMaxColumnSize = (cfg, opts, field) => {
   return returnMaxWidth + 16;
 };
 const valuesValueKey = (rendererInfo) => {
-  var _a;
-  return ((_a = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a.valueField) ?? "value";
+  return rendererInfo?.listItem?.valueField ?? "value";
 };
 const valuesLabelKey = (rendererInfo) => {
-  var _a;
-  return ((_a = rendererInfo == null ? void 0 : rendererInfo.listItem) == null ? void 0 : _a.labelField) ?? "label";
+  return rendererInfo?.listItem?.labelField ?? "label";
 };
 function html(strings, ...values) {
   return strings.reduce((result, str, i) => {
@@ -424,8 +416,8 @@ function normalizeChoiceOptions(list, labelKey, valueKey) {
       newItem[labelKey] = item;
       newList.push(newItem);
     } else {
-      val = (item == null ? void 0 : item[valueKey]) ?? "";
-      label = (item == null ? void 0 : item[labelKey]) ?? "";
+      val = item?.[valueKey] ?? "";
+      label = item?.[labelKey] ?? "";
       newList.push(item);
     }
     valueLabelMap.set(val, label);
@@ -433,7 +425,8 @@ function normalizeChoiceOptions(list, labelKey, valueKey) {
   return { list: newList, map: valueLabelMap };
 }
 function getLabelsByValue(value, valueDelimiter, valueLabelMap) {
-  const valueSet = new Set(isString(value) ? stringSplit(value || "", valueDelimiter) : value);
+  const values = isString(value) ? stringSplit(value || "", valueDelimiter) : Array.isArray(value) ? value : [value];
+  const valueSet = new Set(values.map(String));
   if (valueSet.has(ALL_SELECT_VALUE)) {
     return [...valueLabelMap.values()];
   }
@@ -494,6 +487,11 @@ class CellRenderer {
   supportsInteraction() {
     return false;
   }
+  /**
+   * 그리드를 파괴할 때 호출된다. 그리드 바깥(document 등)에 만든 요소가 있으면 여기서 제거한다.
+   */
+  destroy() {
+  }
   bindEvents(eventType, cellInfo, element) {
     return false;
   }
@@ -508,20 +506,19 @@ class CellRenderer {
    *
    * @param cfg 설정
    * @param opts 옵션
-   * @param checkWidth
    * @returns
    */
   getMinWidth(cfg, opts) {
     return getMaxColumnSize(cfg, opts, this.field);
   }
   applyRendererRefState(contentElement, refValue) {
-    const isHide = (refValue == null ? void 0 : refValue.hide) ?? false;
+    const isHide = refValue?.hide ?? false;
     const classList = contentElement.classList;
     if (classList.contains("dg-hide") !== isHide) {
       classList.toggle("dg-hide", isHide);
     }
     if (isHide) return false;
-    const isDisabled = (refValue == null ? void 0 : refValue.disabled) ?? false;
+    const isDisabled = refValue?.disabled ?? false;
     if (classList.contains("dg-disabled") !== isDisabled) {
       classList.toggle("dg-disabled", isDisabled);
     }
@@ -556,10 +553,9 @@ class ViewCellRenderer extends CellRenderer {
    * @returns
    */
   getValue(rowItem) {
-    var _a, _b;
     const val = rowItem[this.fieldName];
     if (this.isVauleFunction) {
-      return (_b = (_a = this.field).getValue) == null ? void 0 : _b.call(_a, { field: this.field, item: rowItem });
+      return this.field.getValue?.({ field: this.field, item: rowItem });
     }
     if (this.field.displayFormat) {
       return formatValue(val, this.field.displayFormat);
@@ -581,9 +577,8 @@ class ViewCellRenderer extends CellRenderer {
    * @param cellInfo  cell info
    */
   click(e, eventElement, cellInfo) {
-    var _a;
     if (this.isClick) {
-      (_a = this.field.renderer.click) == null ? void 0 : _a.call(null, cellInfo);
+      this.field.renderer.click?.call(null, cellInfo);
     }
   }
   /**
@@ -600,15 +595,14 @@ class ViewCellRenderer extends CellRenderer {
 }
 class DropdownRenderer extends ViewCellRenderer {
   constructor(field, gridMain) {
-    var _a, _b;
     super(field, gridMain);
     this.listItems = [];
     const editInfo = this.field.editRenderer;
     const labelKey = valuesLabelKey(editInfo);
     const valueKey = valuesValueKey(editInfo);
-    if (editInfo == null ? void 0 : editInfo.listItem) {
-      this.valueDelimiter = ((_a = editInfo.listItem) == null ? void 0 : _a.delimiter) ?? ",";
-      const list = (_b = editInfo.listItem) == null ? void 0 : _b.list;
+    if (editInfo?.listItem) {
+      this.valueDelimiter = editInfo.listItem?.delimiter ?? ",";
+      const list = editInfo.listItem?.list;
       if (isArray(list)) {
         const reval = normalizeChoiceOptions(list, labelKey, valueKey);
         this.listItems = reval.list;
@@ -708,25 +702,25 @@ function normalizeExportValue(value) {
 }
 function getExportCellValues(fields, item) {
   return fields.map((field) => {
-    var _a, _b, _c, _d, _e;
     const renderer = field.$renderer;
-    if (((_a = field.renderer) == null ? void 0 : _a.type) === "password") return "********";
-    if (((_b = field.renderer) == null ? void 0 : _b.type) === "hidden") return "";
+    if (field.renderer?.type === "password") return "********";
+    if (field.renderer?.type === "hidden") return "";
     const value = renderer.getValue(item);
-    if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes((_c = field.renderer) == null ? void 0 : _c.type)) {
+    if (renderer instanceof ViewCellRenderer && ["dropdown", "link", "button"].includes(field.renderer?.type)) {
       const ref = renderer.getRefValue(value, item);
       if (typeof ref === "string") return ref;
-      if (ref == null ? void 0 : ref.hide) return "";
-      if ((ref == null ? void 0 : ref.label) !== void 0) return normalizeExportValue(ref.label);
+      if (ref?.hide) return "";
+      if (ref?.label !== void 0) return normalizeExportValue(ref.label);
       if (renderer instanceof DropdownRenderer) {
         let labels = renderer.getLabel(value);
         if (labels.length === 0 && field.defaultValue) labels = renderer.getLabel(field.defaultValue);
-        if (labels.length > 0) return labels.join(((_e = (_d = field.editRenderer) == null ? void 0 : _d.listItem) == null ? void 0 : _e.delimiter) ?? ",");
+        if (labels.length > 0) return labels.join(field.editRenderer?.listItem?.delimiter ?? ",");
       }
     }
     return normalizeExportValue(value);
   });
 }
+const REVOKE_DELAY_MS = 1e4;
 function downloadExport(blob, fileName, defaultFileName, extension) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -739,7 +733,7 @@ function downloadExport(blob, fileName, defaultFileName, extension) {
     anchor.click();
   } finally {
     anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
   }
 }
 class CsvConverter {

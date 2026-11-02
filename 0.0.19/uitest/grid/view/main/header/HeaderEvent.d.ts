@@ -3,8 +3,8 @@ import { Header } from './Header';
 /**
  * Header class
  *
- * @class Header
- * @typedef {Header}
+ * @class HeaderEvent
+ * @typedef {HeaderEvent}
  */
 export declare class HeaderEvent {
     private readonly gridMain;

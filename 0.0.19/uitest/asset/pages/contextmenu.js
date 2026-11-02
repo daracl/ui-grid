@@ -58,15 +58,7 @@ function gridDraw(element, aaa, colItem) {
         },
         {
           key: 'copy',
-          label: '복사',
           hotkey: 'Ctrl+C',
-          callback: function (item) {
-            console.log('direct copy callback : ', item.key, item);
-
-            if (item.key == 'copy') {
-              gridObj.copyData();
-            }
-          },
         },
         {
           key: 'sql_create',
@@ -82,15 +74,12 @@ function gridDraw(element, aaa, colItem) {
           ],
         },
         {
-          key: 'download',
-          label: 'download',
+          key: 'exportFile',
           children: [
-            { checkbox: true, label: 'selet data', key: 'sqlGridResultSelect' },
-            { divider: true },
-            { key: 'download_excel', label: 'EXCEL' },
-            { key: 'download_csv', label: 'CSV' },
-            { key: 'download_xml', label: 'XML' },
-            { key: 'download_json', label: 'json' },
+            { key: 'excel' },
+            { key: 'csv' },
+            { key: 'pdf' },
+            { key: 'json' },
           ],
         },
         {

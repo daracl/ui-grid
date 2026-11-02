@@ -1,6 +1,7 @@
 export { ChoiceRenderer } from './ChoiceRenderer';
 export { ButtonRenderer } from './ButtonRenderer';
 export { DropdownRenderer } from './DropdownRenderer';
+export { ExportFileRenderer } from './ExportFileRenderer';
 export { HtmlRenderer } from './HtmlRenderer';
 export { LinkRenderer } from './LinkRenderer';
 export { NumberRenderer } from './NumberRenderer';

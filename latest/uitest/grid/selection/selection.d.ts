@@ -121,7 +121,6 @@ export declare class SelectionInfo {
      * cell select
      *
      * @public
-     * @param {boolean} initFlag
      */
     setCellSelection(): void;
     /**
@@ -157,7 +156,6 @@ export declare class SelectionInfo {
      * @public
      * @param {string} selectionMode selection mode
      * @param {number} col col
-     * @param {*} dataInfo
      * @param {boolean} isMouseDown
      * @returns {{ startCol: number; endCol: number; }}
      */

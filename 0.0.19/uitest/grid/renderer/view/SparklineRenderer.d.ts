@@ -8,6 +8,8 @@ import { FieldItem } from '../../types/GridField.js';
  */
 export declare class SparklineRenderer extends ViewCellRenderer {
     private rendererTooltip;
+    /** document.body에 만든 툴팁 요소를 제거한다. */
+    destroy(): void;
     /**
      * Canvas별 tooltip 상태
      *

@@ -4,7 +4,6 @@ import { GridOptions, SortOption } from '../types/GridOptions.js';
 import { FieldSortInfo } from '../types/Header.js';
 import { GridMain } from '../view/GridMain.js';
 import { ListDataManager } from './ListDataManager';
-import { HistoryEntry } from './HistoryManager';
 export declare class GroupDataManager extends ListDataManager {
     private readonly groupRows;
     private sourceViewItems;
@@ -18,7 +17,6 @@ export declare class GroupDataManager extends ListDataManager {
     commitHistory(): void;
     rollbackHistory(): void;
     getSortData(sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[];
-    protected refreshAfterHistory(entry: HistoryEntry, undo: boolean): void;
     getRowItem(rowId: RowId): any;
     getAllRowItems(rowIdInclude?: boolean): any[];
     convertViewItemsToRowItems(): any[];

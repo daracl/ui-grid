@@ -1,14 +1,9 @@
-import { AddRowOptions, CURRENT_MATCH_INFO, MatchedField, RowId, SearchMatchInfo, SearchMode, SearchResult, TreeViewItem } from '../types/Common.js';
+import { AddRowOptions, CURRENT_MATCH_INFO, MatchedField, RowId, SearchMatchInfo, SearchMode, SearchResult, TreeViewItem, ViewItem } from '../types/Common.js';
 import { GridOptions, SortOption } from '../types/GridOptions.js';
 import { FieldSortInfo } from '../types/Header.js';
 import { GridMain } from '../view/GridMain.js';
 import { DataManager } from './DataManager';
-/**
- * TreeDataManager class
- *
- * @class TreeDataManager
- * @typedef {TreeDataManager}
- */
+import { HistoryEntry } from './HistoryManager';
 export declare class TreeDataManager extends DataManager {
     private readonly idViewItemMap;
     private readonly idKey;
@@ -24,6 +19,10 @@ export declare class TreeDataManager extends DataManager {
      * @param items 원본 데이터 배열
      */
     setItems(items: any[]): void;
+    private getOriginalTreeViewItems;
+    protected getUnfilteredViewItems(): ViewItem[];
+    protected refreshViewAfterMutation(): void;
+    protected syncHistoryViewItems(entry: HistoryEntry, undo: boolean): void;
     private convertOriginalTreeToTreeViewItems;
     /**
      * flat → tree
@@ -33,7 +32,6 @@ export declare class TreeDataManager extends DataManager {
     private buildTree;
     /**
      * viewItems
-     * @param items items
      */
     buildViewItems(): void;
     /** 현재 정렬 순서를 유지하면서 접힌 하위 행까지 반환한다. */

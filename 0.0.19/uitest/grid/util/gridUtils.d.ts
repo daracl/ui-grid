@@ -1,4 +1,5 @@
-import { PointerPosition } from '../event/PointerSession.js';
+import { isMouseMoved, parseClipboard } from '@daracl/core/utils';
+export { isMouseMoved, parseClipboard };
 import { CellInfo, Config, HeaderCellInfo, ScrollInfo } from '../types/GridConfig.js';
 import { FieldItem } from '../types/GridField.js';
 import { GridOptions } from '../types/GridOptions.js';
@@ -88,7 +89,6 @@ export declare const getTextWidth: (cfg: Config, text: string, padding?: number)
  * @param {Config} cfg config
  * @param {GridOptions} opts grid option
  * @param {FieldItem} field field item
- * @param {number} checkWidth check width
  * @returns {number} max width size
  */
 export declare const getMaxColumnSize: (cfg: Config, opts: GridOptions, field: FieldItem) => number;
@@ -141,12 +141,10 @@ export declare const dragVerticalMovePosition: (cfg: Config, moveY: number, rowH
  * @private
  * @param {Config} cfg config
  * @param {number} moveX drag move x
- * @param {number} startEvtPositionX mousedown event position
  * @param {number} positionX grid left position
  * @param {number} _l  left end position
  * @param {number} _r right start position
- * @param {HTMLElement} cellElement start element
- * @param {string} selectionMode selection mode
+ @param {number} beforeEndCol 이전 마지막 col
  * @returns {{ scrollDirectionX: string; overCell: number; }}
  */
 export declare const dragHorizontalMovePosition: (cfg: Config, moveX: number, positionX: number, _l: number, _r: number, beforeEndCol: number) => {
@@ -168,7 +166,7 @@ export declare const createNewItems: (fields: FieldItem[], createCount?: number)
  * @param itemLength - 전체 항목 수
  * @returns "all" (전체 선택), "partial" (일부 선택), "none" (선택 없음)
  */
-export declare const getCheckboxMode: (checkLeneth: number, itemLength: number) => "none" | "all" | "partial";
+export declare const getCheckboxMode: (checkLength: number, itemLength: number) => "none" | "all" | "partial";
 export declare const isImageType: (type: string) => type is "image";
 /**
  * list item value key
@@ -215,22 +213,7 @@ export declare const moveItem: (array: any[], fromIndex: number, toIndex: number
  * @returns {boolean} 배열이 연속된 숫자로 이루어져 있으면 true, 그렇지 않으면 false
  */
 export declare const isSequential: (arr: number[]) => boolean;
-/**
- * 마우스가 이동했는지 확인
- *
- * @param startPos start position of mouse event
- * @param currentPos current position of mouse event
- * @param threshold 이동으로 간주할 최소 거리 (기본값: 5 픽셀)
- * @returns
- */
-export declare const isMouseMoved: (startPos: PointerPosition, currentPos: PointerPosition, threshold?: number) => boolean;
 export declare const escapeCellValue: (value: any) => any;
-/**
- * Parses clipboard text into a 2D array of strings
- * @param text The clipboard text to parse
- * @returns A 2D array representing the parsed rows and cells
- */
-export declare const parseClipboard: (text: string) => string[][];
 /**
  * 필드의 편집 가능 여부를 반환
  *
@@ -246,6 +229,23 @@ export declare const isFieldEditable: (cfg: Config, field: FieldItem) => boolean
  * @returns
  */
 export declare const gridAvailableWidth: (cfg: Config) => number;
+/**
+ * 이동 대상의 위치를 기준으로 필요한 스크롤 방향 코드를 반환한다.
+ *
+ * 현재 표시 영역의 행/열 범위를 벗어난 경우 해당 방향의 스크롤 코드를 반환하며,
+ * 고정 영역에 해당하는 컬럼은 가로 스크롤 검사에서 제외한다.
+ *
+ * @param cfg 그리드 설정
+ * @param scrollInfo 현재 스크롤 및 표시 영역 정보
+ * @param moveRowIdx 이동할 행의 인덱스
+ * @param moveColIdx 이동할 컬럼의 인덱스
+ * @returns 스크롤 방향 코드
+ * - -1: 스크롤 불필요
+ * - 1: 위쪽 스크롤
+ * - 2: 아래쪽 스크롤
+ * - 10: 왼쪽 스크롤
+ * - 20: 오른쪽 스크롤
+ */
 export declare const getScrollDirectionCode: (cfg: Config, scrollInfo: ScrollInfo, moveRowIdx: number, moveColIdx: number) => number;
 /**
  * 입력된 값을 리스트 형태의 문자열 배열로 변환합니다.
