@@ -203,7 +203,7 @@ export class GridMain {
     this.initDocumentGlobalEvent();
 
     // dataSource.autoLoad: 생성 직후 사용자 코드가 끝난 뒤(마이크로태스크) 서버 조회를 실행한다. 실패는 loadError 이벤트로 알린다.
-    if (opts.dataSource?.autoLoad) {
+    if (opts.dataSource?.autoLoad && opts.dataSource.load) {
       const remote = this.remote;
       void Promise.resolve().then(() => remote?.load()).catch(() => undefined);
     }

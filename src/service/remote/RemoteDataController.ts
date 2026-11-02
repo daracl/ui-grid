@@ -37,20 +37,24 @@ export function prepareDataSourceOptions(
 
   if (opts.toolbar?.remote) {
     if (!dataSource?.load) {
-      throw new DataSourceError('CONFIG', 'toolbar.remote requires dataSource.load');
-    }
-    if (!opts.toolbar.enabled) {
-      throw new DataSourceError('CONFIG', 'toolbar.remote requires toolbar.enabled');
-    }
-    if (dataSource.toolbarParams === false) {
-      throw new DataSourceError('CONFIG', 'toolbar.remote cannot be used with dataSource.toolbarParams false');
+      // eslint-disable-next-line no-console
+      console.warn('[daracl-grid] toolbar.remote requires dataSource.load; toolbar.remote is disabled');
+      opts.toolbar.remote = false;
+    } else {
+      if (!opts.toolbar.enabled) {
+        throw new DataSourceError('CONFIG', 'toolbar.remote requires toolbar.enabled');
+      }
+      if (dataSource.toolbarParams === false) {
+        throw new DataSourceError('CONFIG', 'toolbar.remote cannot be used with dataSource.toolbarParams false');
+      }
     }
   }
 
   if (!dataSource) return;
 
   if (dataSource.autoLoad && !dataSource.load) {
-    throw new DataSourceError('CONFIG', 'dataSource.autoLoad requires dataSource.load');
+    // eslint-disable-next-line no-console
+    console.warn('[daracl-grid] dataSource.autoLoad requires dataSource.load; autoLoad is skipped');
   }
 
   if (dataSource.sorting?.mode === 'server' && (opts.tree || opts.groupingFields?.length)) {

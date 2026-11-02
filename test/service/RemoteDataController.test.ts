@@ -477,14 +477,36 @@ describe('RemoteDataController (dataSource)', () => {
       expect(loadError).toHaveBeenCalledTimes(1); // 처리되지 않은 Promise 오류 없이 이벤트로만 전달
     });
 
-    it('생성 직후 destroy하면 조회하지 않고, dataSource.load가 없으면 생성 시 오류이다', async () => {
+    it('생성 직후 destroy하면 조회하지 않는다', async () => {
       const server = fakeServer();
       const { grid } = create({ ...server, autoLoad: true });
       grid.destroy();
       await flush();
       expect(server.load).not.toHaveBeenCalled();
 
-      expect(() => create({ save: async () => undefined, autoLoad: true })).toThrow(/autoLoad requires dataSource.load/);
+    });
+
+    it('dataSource.load가 없으면 경고를 남기고 자동 조회를 건너뛴다', async () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const load = jest.spyOn(require('@/service/remote/RemoteDataController').RemoteDataController.prototype, 'load');
+      const loadError = jest.fn();
+
+      try {
+        const { grid } = create({ save: async () => undefined, autoLoad: true, events: { loadError } });
+        await flush();
+
+        expect(grid).toBeDefined();
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(
+          '[daracl-grid] dataSource.autoLoad requires dataSource.load; autoLoad is skipped',
+        );
+        expect(load).not.toHaveBeenCalled();
+        expect(loadError).not.toHaveBeenCalled();
+        await expect(grid.load()).rejects.toMatchObject({ code: 'CONFIG' });
+      } finally {
+        load.mockRestore();
+        warn.mockRestore();
+      }
     });
   });
 
@@ -561,8 +583,34 @@ describe('RemoteDataController (dataSource)', () => {
       expect(server.load).toHaveBeenCalledTimes(1);
     });
 
-    it('dataSource.load·toolbar 활성·toolbarParams가 맞지 않으면 생성 시 오류이다', () => {
-      expect(() => create(undefined, { toolbar: toolbar(true) })).toThrow(/dataSource.load/);
+    it.each([undefined, { save: async () => undefined, toolbarParams: false }])(
+      'dataSource.load가 없으면 경고를 남기고 toolbar.remote를 비활성화한다 (%p)',
+      async (dataSource) => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const load = jest.spyOn(require('@/service/remote/RemoteDataController').RemoteDataController.prototype, 'load');
+        const callback = jest.fn();
+
+        try {
+          const { main, element } = create(dataSource, { toolbar: toolbar(true, callback) });
+          expect(main.options().toolbar?.remote).toBe(false);
+          expect(warn).toHaveBeenCalledTimes(1);
+          expect(warn).toHaveBeenCalledWith(
+            '[daracl-grid] toolbar.remote requires dataSource.load; toolbar.remote is disabled',
+          );
+          enter(element);
+          (element.querySelector('.dg-search-btn') as HTMLElement).click();
+          await flush();
+          expect(callback).toHaveBeenCalledTimes(2);
+          expect(load).not.toHaveBeenCalled();
+        } finally {
+          load.mockRestore();
+          warn.mockRestore();
+        }
+      },
+    );
+
+    it('load가 있고 toolbar 활성·toolbarParams가 맞지 않으면 생성 시 오류이다', () => {
+      expect(() => create({ load: async () => ({ items: [] }) }, { toolbar: { ...toolbar(true), enabled: false } })).toThrow(/toolbar.enabled/);
       expect(() => create({ load: async () => ({ items: [] }), toolbarParams: false }, { toolbar: toolbar(true) })).toThrow(/toolbarParams/);
     });
   });

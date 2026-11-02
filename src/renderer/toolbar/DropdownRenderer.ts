@@ -249,6 +249,6 @@ export class DropdownRenderer extends ToolBarRenderer {
   }
 
   public getValue() {
-    return this.selectValues;
+    return this.isMultiple ? this.selectValues : this.selectValues[0];
   }
 }
