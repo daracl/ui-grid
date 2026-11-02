@@ -47,6 +47,8 @@ yarn add @daracl/grid
 npm install @daracl/grid
 ```
 
+ESM/CJS로 쓰면 `@daracl/core`(공통 유틸·Ajax)와 `@daracl/ui-style`, PDF 내보내기용 `pdfkit`이 의존성으로 함께 설치되므로 따로 설치할 필요가 없습니다. 코드에서는 `@daracl/grid`만 import하면 됩니다. `<script>`로 쓰는 UMD 빌드(`daracl.grid.min.umd.js`)에는 코어가 포함돼 있어 별도 파일이 필요하지 않습니다.
+
 ## 빠른 시작
 
 ```ts
@@ -566,7 +568,7 @@ yarn docs:gen   # typedoc API 문서 생성
 
 ### core 공통 모듈 개발
 
-공통 함수는 `@daracl/core@0.0.11`의 공개 진입점 `@daracl/core/utils`를 참조합니다. 일반적인 설치·개발·테스트·빌드는 설치된 패키지만 사용하며 형제 폴더를 탐색하거나 `node_modules`를 교체하지 않습니다. TypeScript도 패키지의 배포 타입을 사용합니다.
+공통 함수는 `@daracl/core@0.0.13`의 공개 진입점 `@daracl/core/utils`를 참조합니다. 일반적인 설치·개발·테스트·빌드는 설치된 패키지만 사용하며 형제 폴더를 탐색하거나 `node_modules`를 교체하지 않습니다. TypeScript도 패키지의 배포 타입을 사용합니다.
 
 공유 스타일은 현재 SCSS의 테마 mixin을 제공하는 배포 버전 `@daracl/ui-style@0.0.6`으로 고정합니다. 스타일 저장소의 로컬 연결도 필요하지 않습니다.
 

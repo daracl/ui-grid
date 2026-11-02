@@ -27,7 +27,7 @@
 | 구현 | TypeScript `5.6.3`(고정), JavaScript 빌드 설정, HTML 예제, SCSS |
 | 빌드 | Vite `~7.3.7`, Sass `^1.107.0`, Terser `^5.47.0`, tsc-alias `^1.9.5` |
 | PDF | pdfkit `^0.20.2`, @types/pdfkit `^0.17.6` |
-| Daracl | @daracl/core `^0.0.5`, @daracl/datetimepicker `^0.0.13` — 현재 devDependencies에 선언 |
+| Daracl | @daracl/core `0.0.13`(dependencies, ESM/CJS 번들에서는 external이라 설치 시 함께 설치됨), @daracl/datetimepicker `^0.0.13`(devDependencies, 번들에 포함) |
 | 테스트 | Jest `^29.0.0`, ts-jest `^29.4.6`, jest-environment-jsdom `^29.7.0`, @playwright/test `^1.55.1` |
 | 스타일 검사 | ESLint `^8.40.0`, @typescript-eslint `^5.59.5`, Prettier `^2.8.8` |
 | 문서 | TypeDoc `^0.28.20` |

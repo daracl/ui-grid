@@ -53,29 +53,61 @@
 
   /*
    * Color variant (.dg-primary ...) : 배경색 + 글자 / 아이콘 색
+   * button:hover 의 기본 hover 배경(dark: #303030)이 variant 배경을 덮어
+   * 글자가 보이지 않게 되므로, hover 시에도 variant 배경을 유지하고 밝기만 조정한다.
    */
   .dg-primary {
     @include style.solid-variant(style.$primary);
+
+    &:hover {
+      background-color: style.$primary;
+      filter: brightness(0.92);
+    }
   }
 
   .dg-secondary {
     @include style.solid-variant(style.$btn-secondary);
+
+    &:hover {
+      background-color: style.$btn-secondary;
+      filter: brightness(0.92);
+    }
   }
 
   // 밝은 배경 : 어두운 글자 / 아이콘
   .dg-info {
     @include style.solid-variant(style.$btn-info, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
+
+    &:hover {
+      background-color: style.$btn-info;
+      filter: brightness(0.92);
+    }
   }
 
   .dg-success {
     @include style.solid-variant(style.$btn-success);
+
+    &:hover {
+      background-color: style.$btn-success;
+      filter: brightness(0.92);
+    }
   }
 
   .dg-warning {
     @include style.solid-variant(style.$btn-warning, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
+
+    &:hover {
+      background-color: style.$btn-warning;
+      filter: brightness(0.92);
+    }
   }
 
   .dg-danger {
     @include style.solid-variant(style.$btn-danger);
+
+    &:hover {
+      background-color: style.$btn-danger;
+      filter: brightness(0.92);
+    }
   }
 }
