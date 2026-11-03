@@ -42,6 +42,31 @@ export class SortButtonEvent implements EventHandler {
     const headerCellElements = this.header.getHeaderCellElements();
 
     let beforeSortOrderLength = 0;
+
+    // 서버 정렬 조회가 실패·취소되었을 때 헤더의 정렬 상태(정렬 목록, 아이콘, 정렬 순번)를 되돌리기 위한 스냅샷
+    const createSortSnapshot = () => {
+      const orders = sortOrders.map((item: FieldSortInfo) => ({ ...item }));
+      const icons = sortElements.map((el: HTMLElement) => el.getAttribute('data-dg-sort'));
+      const nums = headerElement.finds('.dg-sort-num').map((el) => ({
+        el,
+        text: el.textContent ?? '',
+      }));
+      const length = beforeSortOrderLength;
+
+      return () => {
+        sortOrders.length = 0;
+        orders.forEach((item: FieldSortInfo) => sortOrders.push({ ...item }));
+        sortElements.forEach((el: HTMLElement, index: number) => {
+          const sort = icons[index];
+          if (sort === null) el.removeAttribute('data-dg-sort');
+          else el.setAttribute('data-dg-sort', sort);
+        });
+        nums.forEach(({ el, text }) => {
+          el.textContent = text;
+        });
+        beforeSortOrderLength = length;
+      };
+    };
     eventManager.off(sortElements, 'pointerdown');
     eventManager.on(
       { el: sortElements, type: 'pointerdown' },
@@ -60,6 +85,9 @@ export class SortButtonEvent implements EventHandler {
           remote.sortRemote().catch(() => undefined);
           return;
         }
+
+        // 서버 정렬: 조회가 실패하거나 취소되면 헤더 정렬 상태를 되돌리기 위해 변경 전 상태를 보관한다.
+        const revertSort = remote ? createSortSnapshot() : undefined;
 
         const sortCell = intValue(
           (currentElement.closest('.dg-header-cell') as HTMLElement)?.dataset.headerCellPosition ?? '0',
@@ -117,7 +145,7 @@ export class SortButtonEvent implements EventHandler {
 
         if (remote) {
           // 서버 정렬: 로컬 정렬 없이 정렬 정보를 조회 조건으로 보내 다시 조회한다(실패는 loadError 이벤트로 알린다).
-          remote.sortRemote().catch(() => undefined);
+          remote.sortRemote(undefined, revertSort).catch(() => undefined);
           return;
         }
 

@@ -609,9 +609,22 @@ describe('RemoteDataController (dataSource)', () => {
       },
     );
 
-    it('load가 있고 toolbar 활성·toolbarParams가 맞지 않으면 생성 시 오류이다', () => {
-      expect(() => create({ load: async () => ({ items: [] }) }, { toolbar: { ...toolbar(true), enabled: false } })).toThrow(/toolbar.enabled/);
-      expect(() => create({ load: async () => ({ items: [] }), toolbarParams: false }, { toolbar: toolbar(true) })).toThrow(/toolbarParams/);
+    it('load가 있고 toolbar.enabled가 false여도 toolbar.remote면 툴바를 자동으로 활성화한다', () => {
+      const { main } = create({ load: async () => ({ items: [] }) }, { toolbar: { ...toolbar(true), enabled: false } });
+      expect(main.options().toolbar?.enabled).toBe(true);
+      expect(main.options().toolbar?.remote).toBeTruthy();
+    });
+
+    it('load가 있고 toolbarParams가 false이면 경고만 남기고 toolbar.remote는 유지한다', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      try {
+        const { main } = create({ load: async () => ({ items: [] }), toolbarParams: false }, { toolbar: toolbar(true) });
+        expect(main.options().toolbar?.remote).toBeTruthy();
+        expect(warn).toHaveBeenCalledWith('[daracl-grid] toolbar.remote cannot be used with dataSource.toolbarParams false');
+      } finally {
+        warn.mockRestore();
+      }
     });
   });
 

@@ -19,7 +19,7 @@ import { getPagingInfo } from '@/util/pagingUtil';
 import type { GridMain } from '@/view/GridMain';
 import type { ChangeSnapshotEntry } from '../DataManager';
 import { createDataSource, DataSource, normalizeLoadResult } from './DataSource';
-import { DataSourceError, toDataSourceError } from './DataSourceError';
+import { DataSourceError, toDataSourceError, toInternalError } from './DataSourceError';
 
 /**
  * dataSource 옵션을 검증하고 Grid 생성 전에 필요한 옵션을 보정한다.
@@ -42,10 +42,11 @@ export function prepareDataSourceOptions(
       opts.toolbar.remote = false;
     } else {
       if (!opts.toolbar.enabled) {
-        throw new DataSourceError('CONFIG', 'toolbar.remote requires toolbar.enabled');
+        opts.toolbar.enabled = true;
       }
       if (dataSource.toolbarParams === false) {
-        throw new DataSourceError('CONFIG', 'toolbar.remote cannot be used with dataSource.toolbarParams false');
+        // eslint-disable-next-line no-console
+        console.warn('[daracl-grid] toolbar.remote cannot be used with dataSource.toolbarParams false');
       }
     }
   }
@@ -91,7 +92,10 @@ export function prepareDataSourceOptions(
       throw new DataSourceError('CONFIG', 'server paging requires footer.enabled and footer.paging.enabled');
     }
     if (opts.footer.paging.callback) {
-      throw new DataSourceError('CONFIG', 'footer.paging.callback is managed by dataSource.paging when mode is "server"');
+      throw new DataSourceError(
+        'CONFIG',
+        'footer.paging.callback is managed by dataSource.paging when mode is "server"',
+      );
     }
 
     opts.footer.paging.callback = onPage;
@@ -196,8 +200,25 @@ export class RemoteDataController {
    * 헤더에서 바뀐 정렬 상태로 첫 페이지부터 다시 조회한다. 마지막 조회 조건은 유지한다.
    * 조회할 수 없는 상태이면 loadError 이벤트로 알리고 reject 한다.
    */
-  public sortRemote(options?: LoadOptions): Promise<LoadResult | null> {
-    return this.load(undefined, options);
+  public async sortRemote(options?: LoadOptions, revert?: () => void): Promise<LoadResult | null> {
+    const promise = this.load(undefined, options);
+    // load()는 첫 await 전에 순번을 부여하므로, 이 시점의 번호가 이 조회의 번호이다.
+    const ticket = this.loadTicket;
+
+    // 조회가 실패하거나 beforeLoad로 취소되어 데이터가 그대로이면 호출한 쪽이 바꾼 정렬 상태를 되돌린다.
+    // 더 새로운 조회에 밀린 경우에는 새 조회가 정렬 상태를 책임지므로 되돌리지 않는다.
+    const rollback = () => {
+      if (revert && !this.destroyed && this.loadTicket === ticket) revert();
+    };
+
+    try {
+      const result = await promise;
+      if (result === null) rollback();
+      return result;
+    } catch (error) {
+      rollback();
+      throw error;
+    }
   }
 
   /** 헤더 정렬 상태를 서버 조회 조건으로 변환한다. 정렬이 없으면 빈 배열이다. */
@@ -326,6 +347,9 @@ export class RemoteDataController {
 
     const isCurrent = () => !this.destroyed && (seq === 0 || seq === this.loadSeq);
 
+    // 오류가 난 단계. 서버 요청(request) 외 단계의 오류는 서버 오류(NETWORK 등)가 아니라 내부 오류로 구분한다.
+    let stage: 'before' | 'request' | 'apply' = 'before';
+
     try {
       if (!(await this.emitBefore('beforeLoad', { operation: 'load', params: requestParams }))) {
         return null;
@@ -338,36 +362,50 @@ export class RemoteDataController {
       seq = ++this.loadSeq;
       this.loadAbort = abort;
 
+      stage = 'request';
       const result = normalizeLoadResult(await this.source.load(requestParams, abort.signal));
 
       // 응답을 기다리는 동안 destroy 되었거나 더 새로운 조회가 시작되었으면 결과를 버린다.
       if (!isCurrent()) return null;
 
       if (!append && !discard && dataManager.hasChanges()) {
-        throw new DataSourceError('UNSAVED_CHANGES', 'Unsaved changes were made while loading; the result was discarded');
+        throw new DataSourceError(
+          'UNSAVED_CHANGES',
+          'Unsaved changes were made while loading; the result was discarded',
+        );
       }
 
-      // 조회 조건과 페이지는 성공한 뒤에만 확정한다. 실패하면 reload·페이지 이동이 직전 성공 상태를 유지한다.
-      this.lastParams = { ...params };
-      this.queried = true;
-      this.page = page;
+      stage = 'apply';
 
-      if (this.infinite) {
-        this.loadedCount = append ? this.loadedCount + result.items.length : result.items.length;
-        // total이 있으면 받은 건수와 비교하고, 없으면 받은 건수가 pageSize보다 적을 때 마지막 페이지로 본다.
-        const reachedEnd =
-          result.total !== undefined ? this.loadedCount >= result.total : result.items.length < this.getPageSize();
-        this.hasMore = result.items.length > 0 && !reachedEnd;
-      }
+      // infinite 페이징 상태는 계산만 해 두고, 화면 반영이 성공한 뒤에 확정한다.
+      const loadedCount = append ? this.loadedCount + result.items.length : result.items.length;
+      // total이 있으면 받은 건수와 비교하고, 없으면 받은 건수가 pageSize보다 적을 때 마지막 페이지로 본다.
+      const reachedEnd =
+        result.total !== undefined ? loadedCount >= result.total : result.items.length < this.getPageSize();
 
       if (append) this.gridMain.appendItems(result.items);
       else this.applyLoadResult(result, page);
-      this.emit('load', { operation: 'load', params: requestParams, items: result.items, total: result.total ?? result.items.length });
+
+      // 조회 조건과 페이지는 조회와 화면 반영이 모두 성공한 뒤에만 확정한다. 실패하면 reload·페이지 이동이 직전 성공 상태를 유지한다.
+      this.lastParams = { ...params };
+      this.queried = true;
+      this.page = page;
+      if (this.infinite) {
+        this.loadedCount = loadedCount;
+        this.hasMore = result.items.length > 0 && !reachedEnd;
+      }
+
+      this.emit('load', {
+        operation: 'load',
+        params: requestParams,
+        items: result.items,
+        total: result.total ?? result.items.length,
+      });
       // 화면이 아직 다 채워지지 않았으면 이어서 다음 페이지를 조회한다(현재 조회가 끝난 뒤 확인).
       if (this.infinite) void Promise.resolve().then(() => this.checkLoadMore());
       return result;
     } catch (error) {
-      const dsError = toDataSourceError(error);
+      const dsError = stage === 'request' ? toDataSourceError(error) : toInternalError(error);
       if (!isCurrent() || (dsError.code === 'ABORT' && abort.signal.aborted)) return null;
 
       if (append) this.retryAfter = Date.now() + 1000;
@@ -453,7 +491,9 @@ export class RemoteDataController {
       this.refreshAfterSave();
 
       const failed = remote.filter((entry) => failedKeys.has(entry.key));
-      const count = (status: string) => remote.filter((entry) => entry.status === status).length - failed.filter((entry) => entry.status === status).length;
+      const count = (status: string) =>
+        remote.filter((entry) => entry.status === status).length -
+        failed.filter((entry) => entry.status === status).length;
       const summary: SaveSummary = {
         created: count(ItemStatusMap.CREATE),
         updated: count(ItemStatusMap.MODIFY),
