@@ -18,7 +18,7 @@ import { eventPosition, initPointerSession, isPrimaryPointer, stopPreventCancel 
 import { GridMain } from '@/view/GridMain';
 import { Body } from '../Body';
 import { CellClickHandler } from './CellClickHandler';
-import { KeydownEvent } from './KeydownEvent ';
+import { KeydownEvent } from './KeydownEvent';
 import { PasteEvent } from './PasteEventHandler';
 import { RowMoveHandler } from './RowMoveHandler';
 import { addClass } from '@/util/styleUtils';

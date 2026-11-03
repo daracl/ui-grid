@@ -13,6 +13,26 @@ import { ScrollMoveOptions } from '@/types/Scroll';
  * vertical event
  */
 export class VerticalScroll {
+  // 스크롤 바/버튼을 누르고 있는 동안 반복 이동하는 타이머. destroy 시 한꺼번에 정리한다.
+  private readonly repeatTimers = new Set<ReturnType<typeof setInterval>>();
+
+  private startRepeat(callback: () => void, delay: number): ReturnType<typeof setInterval> {
+    const id = setInterval(callback, delay);
+    this.repeatTimers.add(id);
+    return id;
+  }
+
+  private stopRepeat(id?: ReturnType<typeof setInterval>): void {
+    if (id === undefined) return;
+    clearInterval(id);
+    this.repeatTimers.delete(id);
+  }
+
+  private clearRepeatTimers(): void {
+    this.repeatTimers.forEach((id) => clearInterval(id));
+    this.repeatTimers.clear();
+  }
+
   private readonly gridMain: GridMain;
 
   private readonly scrollOpts: ScrollOptions;
@@ -132,7 +152,7 @@ export class VerticalScroll {
     let bgMoveRow = 0;
     let startEventY = 0;
 
-    let verticalScrollTimer: any;
+    let verticalScrollTimer: ReturnType<typeof setInterval> | undefined;
     const verticalTrackElement = this.verticalTrackElement.getElement();
 
     eventManager.off(verticalTrackElement, 'mousedown touchstart mouseup touchend mouseleave');
@@ -152,7 +172,8 @@ export class VerticalScroll {
 
         const vthumHeightHalf = cfg.scroll.vThumbHeight / 2;
 
-        verticalScrollTimer = setInterval(() => {
+        this.stopRepeat(verticalScrollTimer);
+        verticalScrollTimer = this.startRepeat(() => {
           bgMoveMode = 2;
 
           this.moveVerticalScroll({
@@ -171,7 +192,7 @@ export class VerticalScroll {
 
     eventManager.on({ el: verticalTrackElement, type: 'mouseup touchend mouseleave' }, (e: Event) => {
       if (bgMoveMode == 0) return;
-      clearInterval(verticalScrollTimer);
+      this.stopRepeat(verticalScrollTimer);
 
       stopPreventCancel(e);
 
@@ -189,7 +210,7 @@ export class VerticalScroll {
     const cfg = this.gridMain.config();
     const eventManager = cfg.eventManager;
 
-    let scrollBtnTimer: any;
+    let scrollBtnTimer: ReturnType<typeof setInterval> | undefined;
     const vBtnDelay = 100;
     const scrollButtonElements = this.verticalElement.finds('.dg-scroll-button');
     let buttonMoveMode = 0;
@@ -202,7 +223,8 @@ export class VerticalScroll {
         this.gridMain.hideLayer();
         buttonMoveMode = 1;
 
-        scrollBtnTimer = setInterval(() => {
+        this.stopRepeat(scrollBtnTimer);
+        scrollBtnTimer = this.startRepeat(() => {
           buttonMoveMode = 2;
           this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
         }, vBtnDelay);
@@ -216,7 +238,7 @@ export class VerticalScroll {
         this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
       }
 
-      clearInterval(scrollBtnTimer);
+      this.stopRepeat(scrollBtnTimer);
       buttonMoveMode = 0;
     });
   }
@@ -439,6 +461,7 @@ export class VerticalScroll {
   }
 
   public destroy(): void {
+    this.clearRepeatTimers();
     if (this.bodyDrawAnimationId !== 0) cancelAnimationFrame(this.bodyDrawAnimationId);
     this.bodyDrawAnimationId = 0;
     this.bodyDrawPending = false;

@@ -11,7 +11,7 @@ import { getHeaderCellInfo, getHeaderResizeCellInfo, isMouseMoved, isSingleSelec
 import { GridMain } from '@/view/GridMain';
 import { Header } from './Header';
 import { HeaderCellClickHandler } from './HeaderCellClickHandler';
-import { HelpButtonEvent } from './HelpButtonEvent ';
+import { HelpButtonEvent } from './HelpButtonEvent';
 import { ResizeHandler } from './ResizeHandler';
 import { SortButtonEvent } from './SortButtonEvent';
 import { hasClass } from '@/util/domUtils';

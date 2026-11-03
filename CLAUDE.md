@@ -40,5 +40,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **이벤트 시스템**: `src/event/EventManager`는 WeakMap 기반으로 엘리먼트별 리스너를 관리하고 `selector` 옵션으로 이벤트 위임을 지원하는 자체 구현체다(외부 라이브러리 미사용). `PointerContext`/`PointerHandler`/`PointerSession`은 포인터 기반 드래그 동작(컬럼 리사이즈, 행 이동, 셀 드래그 선택 등)의 상태 머신을 구성한다.
 - **선택/검증**: `src/selection/selection.ts`가 셀·행 선택 상태와 선택 영역을 계산하고, `src/rule/`(`validator.ts` + `numberValidator`/`stringValidator`/`regexpValidator`)이 값 유효성 검증을 담당한다.
 - **옵션과 기본값**: 공개 옵션·타입은 `src/types/*.d.ts`(`GridOptions`, `GridConfig`, `GridField` 등)에 정의되어 있고, 실제 기본값 병합은 `defaultGridOption.ts`/`defaultGridConfig.ts`가 수행한다. 옵션 타입을 바꾸면 이 두 파일의 기본값도 함께 갱신해야 한다.
-- **대용량 처리**: `src/worker/itemWorker.ts`는 대량 데이터 처리를 위한 Web Worker다.
 - **수동/시각 테스트 관례**: 새 기능을 추가하면 `uitest/*.html`에 대응하는 데모 페이지를 함께 추가하는 것이 이 저장소의 관례다(예: `edit.html`, `tree.html`, `selection.html` 등 기능별 1파일).

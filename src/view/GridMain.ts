@@ -10,7 +10,7 @@ import {
   LAYER_ATTR_NAME,
   ROW_FIELD,
 } from '@/constants';
-import { BODY_STYLE, BodyStyle, GRID_THEME, ThemeType } from '@/constantStyles';
+import { BodyStyle, ThemeType } from '@/constantStyles';
 import { DaraGrid } from '@/DaraGrid';
 import { initConfig } from '@/defaultGridConfig';
 import { initGridOptions } from '@/defaultGridOption';
@@ -21,14 +21,14 @@ import { TreeDataManager } from '@/service/TreeDataManager';
 import { GroupDataManager } from '@/service/GroupDataManager';
 import { prepareDataSourceOptions, RemoteDataController } from '@/service/remote/RemoteDataController';
 import { DataSourceError } from '@/service/remote/DataSourceError';
-import { AddRowOptions } from '@/types/Common';
+import { AddRowOptions, RowId } from '@/types/Common';
 import { GridOptions } from '@/types/GridOptions';
 import { Message } from '@/types/Message';
 import { PagingInfo } from '@/types/PagingInfo';
 import { getCheckboxMode } from '@/util/gridUtils';
 import { html } from '@/util/htmlTemplate';
 import { Language } from '@/util/Language';
-import { isArray, isString, isUndefined, isVisible } from '@/util/utils';
+import { isString, isVisible } from '@/util/utils';
 import { debounce } from '@daracl/core/utils';
 import { Toolbar } from '@/view/toolbar/Toolbar';
 import { StructureBuilder } from './builder/StructureBuilder';
@@ -41,6 +41,8 @@ import { Summary } from './main/Summary';
 import { ApiDataSearch } from './search/ApiDataSearch';
 import { DataSearch } from './search/DataSearch';
 import { SimpleDataSearch } from './search/SimpleDataSearch';
+import { applyBodyStyle, applyGridTheme } from './GridAppearance';
+import { collectCheckedItems } from './CheckedItems';
 
 const SCROLL_MODE = ['none', 'horizontal', 'vertical', 'both'];
 
@@ -473,7 +475,7 @@ export class GridMain {
 
       let targetElement;
       if (e.type.startsWith('focus')) {
-        targetElement = (e as any).relatedTarget as HTMLElement;
+        targetElement = (e as FocusEvent).relatedTarget as HTMLElement;
       } else {
         targetElement = e.target as HTMLElement;
       }
@@ -790,7 +792,7 @@ export class GridMain {
       height: dimensions.height + 'px',
     });
 
-    const mainSize: any = {};
+    const mainSize: Record<string, string> = {};
     if (this.initGridSize.width > 0) {
       mainSize.width = dimensions.width + 'px';
     }
@@ -929,9 +931,9 @@ export class GridMain {
   /**
    * item을 삭제
    *
-   * @param {any[]} ids rowId
+   * @param {RowId[]} ids rowId
    */
-  public removeItems(ids: any[]) {
+  public removeItems(ids: RowId[]) {
     const cfg = this.cfg;
 
     cfg.dataManager.removeItems(ids);
@@ -954,40 +956,7 @@ export class GridMain {
    * @returns {array} checked item array
    */
   public getCheckedItems(names?: string | string[] | undefined) {
-    const { dataManager } = this.cfg;
-    const viewItems = dataManager.getViewItems();
-    const checkItems = [];
-
-    let exportNames: string[] = [];
-    let isAll = false;
-    if (isUndefined(names)) {
-      isAll = true;
-    } else if (isArray(names)) {
-      exportNames = names;
-    } else {
-      exportNames = [names];
-    }
-
-    for (const viewItem of viewItems) {
-      const rowId = viewItem.id;
-      if (dataManager.isItemChecked(rowId)) {
-        const rowItem = dataManager.getRowItem(rowId);
-        let checkItem;
-        if (isAll) {
-          checkItem = rowItem;
-        } else {
-          checkItem = {} as any;
-          for (const name of exportNames) {
-            checkItem[name] = rowItem[name];
-          }
-        }
-
-        checkItems.push(checkItem);
-      }
-    }
-
-    return checkItems;
-  }
+    return collectCheckedItems(this.cfg.dataManager, names);  }
 
   /**
    * get check items
@@ -1063,30 +1032,7 @@ export class GridMain {
    *                    (해제되면 상위 요소의 data-daracl-theme 속성, 없으면 기본 테마를 따른다.)
    */
   public setTheme(themeName?: ThemeType | '') {
-    // 지정하지 않은 상태 = 속성을 붙이지 않는다. 속성이 있으면 그리드 안에서는 전역 [data-daracl-theme] 보다 우선하므로
-    // 지정하지 않아야 페이지 테마를 따라갈 수 있다.
-    const theme: string = themeName ? GRID_THEME[themeName] : '';
-
-    // 알 수 없는 테마 이름은 무시한다.
-    if (themeName && !theme) return;
-
-    const cfg = this.cfg;
-
-    if (cfg.theme === theme) return;
-
-    cfg.theme = theme;
-
-    // --dui-* 는 .daracl-grid 에서 계산되는 값(--dg-cell-bg-hover 등)이 있으므로 .dg-layout 이 아니라 루트에 지정한다.
-    const rootElement = this.layoutElement.getElement().closest('.daracl-grid');
-
-    if (!rootElement) return;
-
-    if (theme) {
-      rootElement.setAttribute('data-daracl-theme', theme);
-    } else {
-      rootElement.removeAttribute('data-daracl-theme');
-    }
-  }
+    applyGridTheme(this.cfg, this.layoutElement, themeName);  }
 
   /**
    * 그리드 스타일 변경
@@ -1098,27 +1044,13 @@ export class GridMain {
    *
    */
   public setGridStyle(styleName: BodyStyle) {
-    if (!BODY_STYLE[styleName]) {
-      return;
-    }
-    const values = Object.values(BODY_STYLE)
-      .filter((value) => value !== styleName)
-      .map((value) => `dg-style-${value}`);
-
-    const layoutElement = this.layoutElement;
-    const newStyle = 'dg-style-' + BODY_STYLE[styleName];
-
-    layoutElement.removeClass(...values);
-    if (!layoutElement.hasClass(newStyle)) {
-      layoutElement.addClass(newStyle);
-    }
-  }
+    applyBodyStyle(this.layoutElement, styleName);  }
 
   /**
    * tree 확장
    * @param id id
    */
-  public expandRow(id: any) {
+  public expandRow(id: RowId) {
     const cfg = this.cfg;
     cfg.dataManager.expandRow(id);
   }
@@ -1185,7 +1117,7 @@ export class GridMain {
     return this.toolbar.getValues();
   }
 
-  public setToolbarValues(val: any) {
+  public setToolbarValues(val: Record<string, unknown>) {
     return this.toolbar.setValues(val);
   }
 

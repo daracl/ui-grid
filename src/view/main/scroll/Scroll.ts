@@ -15,6 +15,7 @@ export class Scroll {
     this.pendingVerticalDelta = 0;
     this.pendingHorizontalDelta = 0;
     this.verticalScroll?.destroy();
+    this.horizontalScroll?.destroy();
   }
   private readonly gridMain: GridMain;
   private readonly opts: GridOptions;

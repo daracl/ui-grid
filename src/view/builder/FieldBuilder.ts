@@ -293,12 +293,12 @@ export class FieldBuilder {
 /**
  * field 메타 정보 복사
  *
- * @param {any} field field 정보
+ * @param {FieldItem} field field 정보
  *
- * @returns {any} 복사된 field meta 정보
+ * @returns {FieldItem} 복사된 field meta 정보
  */
-function cloneFieldMeta(field: any): FieldItem {
-  const result: any = {};
+function cloneFieldMeta(field: FieldItem): FieldItem {
+  const result: Record<string, unknown> = {};
 
   const cloneKeys = [
     'name',
@@ -319,8 +319,8 @@ function cloneFieldMeta(field: any): FieldItem {
   ];
 
   for (const key of cloneKeys) {
-    result[key] = field[key];
+    result[key] = (field as unknown as Record<string, unknown>)[key];
   }
 
-  return result;
+  return result as unknown as FieldItem;
 }

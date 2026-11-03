@@ -12,7 +12,7 @@ import { Header } from './Header';
  * help button event class
  *
  * @class HelpButtonEvent
- * @typedef {HelpButtonEvent }
+ * @typedef {HelpButtonEvent}
  */
 export class HelpButtonEvent implements EventHandler {
   private readonly gridMain: GridMain;

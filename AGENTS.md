@@ -14,7 +14,7 @@
 
 ## 1. Project Overview
 
-- `@daracl/grid` v`0.0.25`: UI 프레임워크에 종속되지 않는 브라우저용 TypeScript 데이터 그리드 라이브러리. MIT License.
+- `@daracl/grid`(버전은 `package.json` 기준): UI 프레임워크에 종속되지 않는 브라우저용 TypeScript 데이터 그리드 라이브러리. MIT License.
 - 주요 기능: 목록·트리·그룹 데이터 표시, 그룹 소계·총계, 셀 편집과 검증, 정렬·검색·페이징, 행·셀 선택과 체크, 고정 컬럼, 행 이동, rowSpan, 툴바·컨텍스트 메뉴·요약, 테마, 클립보드, Undo/Redo, PDF 다운로드.
 - 서버 애플리케이션이 아니다. DB 연결, ORM, SQL 파일, 서버 Controller/REST endpoint는 없다. 행 CRUD는 브라우저 메모리에서 수행한다.
 
@@ -69,7 +69,6 @@ src/
   util/                              DOM·이벤트·그리드·검색·스타일·배열 등
   format/                            숫자 포맷
   pdf/                               표 데이터 구성·PDF 변환·폰트 URL·타입 보완
-  worker/                            Blob 기반 itemWorker 구현
 style/
   daracl.grid.scss                   스타일 진입점
   abstracts/ / base/ / components/   변수·mixin·기본·공통 컴포넌트
@@ -125,7 +124,6 @@ GridOptions → initGridOptions / initConfig → GridMain
 - 공통 처리 우선 탐색 위치: `util/utils.ts`(타입 판별·merge·배열·debounce·클립보드), `domUtils.ts`, `eventUtils.ts`, `gridUtils.ts`, `rendererUtils.ts`, `styleUtils.ts`, `searchUtils.ts`, `formatUtils.ts`, `pagingUtil.ts`, `mathUtils.ts`, `Language.ts`.
 - `htmlTemplate.ts`의 `html`은 문자열 조립 helper이며 escaping을 보장하지 않는다. production 빌드는 `html` tagged template을 별도 축약한다.
 - PDF 흐름: `DaraGrid.exportPdf()` → `SimplePdfRenderer`/`GroupPdfRenderer` → `PdfTableData` → `PdfConverter` → `Blob`·다운로드. PDFKit 표준 폰트 등록 및 한글 폰트 fetch를 사용한다. 임시 DOM 스타일 측정은 `finally`에서 정리한다.
-- `worker/itemWorker.ts`에 Worker factory가 있지만 현재 `src/` 내 호출부는 없다. 주 데이터 처리가 Worker로 수행된다고 가정하지 않는다.
 
 ## 5. Coding Conventions
 
@@ -156,7 +154,7 @@ GridOptions → initGridOptions / initConfig → GridMain
 | 함수 모듈·디렉터리 | `domUtils.ts`, `formatNumber.ts`, `service/`, `renderer/edit/` |
 | 테스트·수동 페이지 | `*.test.ts`, `uitest/`의 기능별 camelCase·kebab-case HTML 혼용 |
 
-기존 철자 `ContenxtMenu.d.ts`, `indexVender.ts`, 공백이 포함된 `HelpButtonEvent .ts`, `KeydownEvent .ts`를 임의로 정정하거나 경로를 추정하지 않는다.
+기존 철자 `ContenxtMenu.d.ts`, `indexVender.ts`를 임의로 정정하거나 경로를 추정하지 않는다. 공백이 있던 `HelpButtonEvent.ts`, `KeydownEvent.ts`는 공백을 제거했다.
 
 ## 7. Development Guidelines
 
@@ -202,7 +200,6 @@ GridOptions → initGridOptions / initConfig → GridMain
 - `npm install`은 `node_modules/@daracl/core`의 형제 폴더 링크를 실제 설치본으로 바꿀 수 있다. 설치 후 `npm run core:link`로 다시 연결한다.
 - `dts:gen`은 `build:tsc`의 별칭이다. 과거 webpack/esbuild용 `build.js`는 제거했다.
 - `copy-html`은 `public` 디렉터리(폰트·`OFL.txt`)를 `dist`로 복사한다. `public/index.html`은 없어도 된다.
-- `vite.config.mjs`의 external 항목 `@daracl/datatimepicker`(철자 오류)·`@daracl/toast`는 실제 의존성과 일치하지 않아 현재 아무 효과가 없다. 고치면 datetimepicker가 번들에서 빠지므로 의도 확인 후 수정한다.
 
 ## 9. Error Handling & Logging
 

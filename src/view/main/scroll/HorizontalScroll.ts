@@ -14,6 +14,30 @@ import { ScrollMoveOptions } from '@/types/Scroll';
  * horizontal scroll event
  */
 export class HorizontalScroll {
+  // 스크롤 바/버튼을 누르고 있는 동안 반복 이동하는 타이머. destroy 시 한꺼번에 정리한다.
+  private readonly repeatTimers = new Set<ReturnType<typeof setInterval>>();
+
+  private startRepeat(callback: () => void, delay: number): ReturnType<typeof setInterval> {
+    const id = setInterval(callback, delay);
+    this.repeatTimers.add(id);
+    return id;
+  }
+
+  private stopRepeat(id?: ReturnType<typeof setInterval>): void {
+    if (id === undefined) return;
+    clearInterval(id);
+    this.repeatTimers.delete(id);
+  }
+
+  private clearRepeatTimers(): void {
+    this.repeatTimers.forEach((id) => clearInterval(id));
+    this.repeatTimers.clear();
+  }
+
+  public destroy(): void {
+    this.clearRepeatTimers();
+  }
+
   private readonly gridMain: GridMain;
 
   private readonly scrollOpts: ScrollOptions;
@@ -198,7 +222,7 @@ export class HorizontalScroll {
     let startEventX = 0;
     let oneColMove = 0;
     let bgMoveCol = 0;
-    let horizontalScrollTimer: any;
+    let horizontalScrollTimer: ReturnType<typeof setInterval> | undefined;
 
     const horizontalTrackElement = this.horizontalTrackElement.getElement();
 
@@ -218,7 +242,8 @@ export class HorizontalScroll {
 
         leftFlag = startEventX < cfg.scroll.left;
 
-        horizontalScrollTimer = setInterval(() => {
+        this.stopRepeat(horizontalScrollTimer);
+        horizontalScrollTimer = this.startRepeat(() => {
           bgMoveMode = 2;
 
           this.moveHorizontalScroll({
@@ -233,7 +258,7 @@ export class HorizontalScroll {
       if (bgMoveMode == 0) return;
 
       stopPreventCancel(e);
-      clearTimeout(horizontalScrollTimer);
+      this.stopRepeat(horizontalScrollTimer);
       if (bgMoveMode == 1) {
         this.moveHorizontalScroll({
           position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol),
@@ -250,7 +275,7 @@ export class HorizontalScroll {
    * @private
    */
   private initHorizontalButton() {
-    let scrollBtnTimer: any;
+    let scrollBtnTimer: ReturnType<typeof setInterval> | undefined;
     const vBtnDelay = 100;
     let buttonMoveMode = 0;
 
@@ -269,7 +294,8 @@ export class HorizontalScroll {
         buttonMoveMode = 1;
         this.gridMain.hideLayer();
 
-        scrollBtnTimer = setInterval(() => {
+        this.stopRepeat(scrollBtnTimer);
+        scrollBtnTimer = this.startRepeat(() => {
           buttonMoveMode = 2;
           this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
         }, vBtnDelay);
@@ -282,7 +308,7 @@ export class HorizontalScroll {
         const mode = eqAttributeValue(e.currentTarget as HTMLElement, 'data-dg-mode', 'left');
         this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
       }
-      clearInterval(scrollBtnTimer);
+      this.stopRepeat(scrollBtnTimer);
       buttonMoveMode = 0;
     });
   }
