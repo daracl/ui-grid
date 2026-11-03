@@ -1,6 +1,6 @@
 import { ToolbarFieldItem } from '@/types/Toolbar';
 import { createHTMLElement, getIcon } from '@/util/domUtils';
-import { stopPreventCancel } from '@/util/eventUtils';
+import { isPrimaryPointer, stopPreventCancel } from '@/util/eventUtils';
 import { GridMain } from '@/view/GridMain';
 import { ToolBarRenderer } from '../ToolBarRenderer';
 
@@ -43,6 +43,10 @@ export class ButtonRenderer extends ToolBarRenderer {
   initEvent(contentElement: HTMLElement) {
     const cfg = this.gridMain.config();
     cfg.eventManager.on({ el: contentElement, type: 'pointerdown' }, (e: UIEvent) => {
+      if (!isPrimaryPointer(e)) {
+        return;
+      }
+
       stopPreventCancel(e);
 
       this.click(e, contentElement);

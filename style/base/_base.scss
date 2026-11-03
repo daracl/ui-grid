@@ -59,7 +59,7 @@
   .dg-primary {
     @include style.solid-variant(style.$primary);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$primary;
       filter: brightness(0.92);
     }
@@ -68,7 +68,7 @@
   .dg-secondary {
     @include style.solid-variant(style.$btn-secondary);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$btn-secondary;
       filter: brightness(0.92);
     }
@@ -78,7 +78,7 @@
   .dg-info {
     @include style.solid-variant(style.$btn-info, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$btn-info;
       filter: brightness(0.92);
     }
@@ -87,7 +87,7 @@
   .dg-success {
     @include style.solid-variant(style.$btn-success);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$btn-success;
       filter: brightness(0.92);
     }
@@ -96,7 +96,7 @@
   .dg-warning {
     @include style.solid-variant(style.$btn-warning, style.$gray-900, style.$icon-fill-stroke-on-color, style.$white);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$btn-warning;
       filter: brightness(0.92);
     }
@@ -105,7 +105,7 @@
   .dg-danger {
     @include style.solid-variant(style.$btn-danger);
 
-    &:hover {
+    &:is(button):hover {
       background-color: style.$btn-danger;
       filter: brightness(0.92);
     }
