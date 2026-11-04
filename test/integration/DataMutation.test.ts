@@ -39,6 +39,7 @@ describe('데이터 변경과 공개 조회·정렬 계약', () => {
         { id: 'b', category: 'A', amount: 3 },
         { id: 'c', category: 'B', amount: 2 },
       ],
+      deleteMode: 'hard',
       ...extra,
     } as unknown as GridOptions);
     grids.push(grid);

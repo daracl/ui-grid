@@ -145,12 +145,12 @@ let DEFAULT_OPTIONS: GridOptions = {
    * delete mode
    * hard, soft
    */
-  deleteMode: 'hard',
+  deleteMode: 'soft',
 
   /**
    * 서버 연동(AJAX) 설정
    *
-   * 지정하지 않으면 로컬 데이터만 사용한다. `save`를 지정하면 deleteMode 기본값은 soft이다.
+   * 지정하지 않으면 로컬 데이터만 사용한다. deleteMode 기본값은 soft이며, `save`를 지정하면 hard는 허용되지 않는다.
    */
   dataSource: undefined,
 

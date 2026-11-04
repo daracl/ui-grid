@@ -123,7 +123,7 @@ UMD 형태로 스크립트 태그에서 바로 사용할 수도 있습니다.
 | style | 바디 스타일 프리셋 (`default`, `striped`, `borderless`, `list`) | `default` |
 | selectionMode | 선택 모드 (`row`, `cell`, `multiRow`, `multiCell`, `none`) | `row` |
 | hoverMode | 호버 모드 (`row`, `cell`, `none`) | selectionMode에 따라 자동 결정 |
-| deleteMode | 삭제 모드 (`hard`, `soft`) | `hard` |
+| deleteMode | 삭제 모드 (`hard`, `soft`) | `soft` |
 | editable | 셀 편집 기능 활성화 여부 | `false` |
 | enableWidthFixed | 컬럼 너비 고정 여부 | `false` |
 | enableTooltip | 셀 툴팁 사용 여부 | `false` |

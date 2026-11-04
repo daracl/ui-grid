@@ -121,7 +121,7 @@ You can also use it directly via a `<script>` tag with the UMD build.
 | style | Body style preset (`default`, `striped`, `borderless`, `list`) | `default` |
 | selectionMode | Selection mode (`row`, `cell`, `multiRow`, `multiCell`, `none`) | `row` |
 | hoverMode | Hover mode (`row`, `cell`, `none`) | Derived from `selectionMode` |
-| deleteMode | Delete mode (`hard`, `soft`) | `hard` |
+| deleteMode | Delete mode (`hard`, `soft`) | `soft` |
 | editable | Enable cell editing | `false` |
 | enableWidthFixed | Fix column widths | `false` |
 | enableTooltip | Enable cell tooltips | `false` |

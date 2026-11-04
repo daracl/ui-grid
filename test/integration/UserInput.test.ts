@@ -329,6 +329,7 @@ describe('사용자 입력', () => {
     const create6 = (rowMove: Record<string, unknown> = {}) => {
       const calls: string[] = [];
       const t = create({
+        deleteMode: 'hard',
         body: {
           rowMove: {
             enabled: true,
