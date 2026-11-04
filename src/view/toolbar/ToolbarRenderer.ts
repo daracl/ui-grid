@@ -93,8 +93,6 @@ export class ToolbarRenderer {
         }
       });
     });
-
-    this.refreshRowWidths(rows);
   }
 
   private initRenderer(): void {
@@ -154,23 +152,19 @@ export class ToolbarRenderer {
 
     if (!scrollContainer) return;
 
-    const measureContainer = document.createElement('div');
-
-    measureContainer.style.cssText = 'position: absolute; visibility: hidden; display: flex;';
-
-    this.toolbarElement.appendChild(measureContainer);
-
     const fragment = document.createDocumentFragment();
 
     this.toolbarLayouts.forEach((row) => {
-      fragment.appendChild(this.createRow(row, measureContainer));
+      fragment.appendChild(this.createRow(row));
     });
 
     scrollContainer.appendChild(fragment);
-    measureContainer.remove();
   }
 
-  private createRow(items: ToolbarLayout[], measureContainer: HTMLElement): HTMLElement {
+  /**
+   * 행 생성. 위치(left, center, right)별 zone을 flex로 배치하며 폭 계산은 CSS가 처리한다.
+   */
+  private createRow(items: ToolbarLayout[]): HTMLElement {
     const row = document.createElement('div');
 
     if (items.length === 0) return row;
@@ -179,74 +173,48 @@ export class ToolbarRenderer {
     row.style.height = `${items[0].height}px`;
 
     const fragment = document.createDocumentFragment();
-    const layoutColumns = ['0px'];
 
     const positions = ['left', 'center', 'right'] as const;
 
-    const validGroups = positions
-      .map((position) => ({
-        position,
-        list: items.filter((item) => item.position === position),
-      }))
-      .filter((group) => group.list.length > 0);
+    positions.forEach((position) => {
+      const list = items.filter((item) => item.position === position);
 
-    validGroups.forEach((group, index) => {
-      const groupItem = group.list[0];
+      if (list.length === 0) return;
 
-      if (groupItem?.width) {
-        const width = normalizeCssLength(groupItem.width);
-        const targetColumnIndex = layoutColumns.length + 2;
+      const zone = document.createElement('div');
 
-        layoutColumns.push('auto', width, 'auto');
+      zone.className = `dg-toolbar-zone dg-zone-${position}`;
 
-        group.list.forEach((item) => {
-          this.createSection(item, targetColumnIndex, fragment, measureContainer);
-        });
-      } else {
-        const targetColumnIndex = layoutColumns.length + 1;
-        let sectionWidth = 0;
+      // 영역 폭을 지정한 경우 고정 폭 zone으로 처리한다.
+      if (list[0]?.width) {
+        const width = normalizeCssLength(list[0].width);
 
-        group.list.forEach((item) => {
-          sectionWidth = this.createSection(item, targetColumnIndex, fragment, measureContainer);
-        });
-
-        layoutColumns.push(`minmax(${sectionWidth}px, 1fr)`);
+        zone.classList.add('dg-zone-fixed');
+        zone.style.width = width;
+        zone.style.minWidth = width;
+        zone.style.maxWidth = width;
       }
 
-      if (index < validGroups.length - 1) {
-        layoutColumns.push('2px', '2px');
-      }
+      list.forEach((item) => {
+        zone.appendChild(this.createSection(item));
+      });
+
+      fragment.appendChild(zone);
     });
-
-    layoutColumns.push('0px');
-
-    row.style.gridTemplateColumns = layoutColumns.join(' ');
 
     row.appendChild(fragment);
 
     return row;
   }
 
-  private createSection(
-    item: ToolbarLayout,
-    layoutColIndex: number,
-    parentFragment: DocumentFragment,
-    measureContainer: HTMLElement,
-  ): number {
+  private createSection(item: ToolbarLayout): HTMLElement {
     const section = document.createElement('div');
 
     section.className = `dg-toolbar-section dg-grid-area-${item.position}`;
 
-    section.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
-
     this.setWidth(section, item.width ?? '');
 
     const fragment = document.createDocumentFragment();
-
-    const fieldsToMeasure: {
-      field: ToolbarFieldItem;
-      el: HTMLElement;
-    }[] = [];
 
     item.children.forEach((field) => {
       if (!field) return;
@@ -256,58 +224,20 @@ export class ToolbarRenderer {
         return;
       }
 
-      const element = this.createField(field, 0);
-
-      fragment.appendChild(element);
-
-      fieldsToMeasure.push({
-        field,
-        el: element,
-      });
+      fragment.appendChild(this.createField(field));
     });
-
-    if (fieldsToMeasure.length > 0) {
-      const measureFragment = document.createDocumentFragment();
-
-      const clones: {
-        field: ToolbarFieldItem;
-        clone: HTMLElement;
-      }[] = [];
-
-      fieldsToMeasure.forEach(({ field, el }) => {
-        const clone = el.cloneNode(true) as HTMLElement;
-
-        measureFragment.appendChild(clone);
-
-        clones.push({
-          field,
-          clone,
-        });
-      });
-
-      measureContainer.appendChild(measureFragment);
-
-      clones.forEach(({ field, clone }) => {
-        field.$width = clone.getBoundingClientRect().width;
-      });
-
-      measureContainer.innerHTML = '';
-    }
 
     section.appendChild(fragment);
 
-    const totalWidth = this.buildSectionLayout(section, item);
+    this.buildSectionLayout(section, item);
 
-    parentFragment.appendChild(section);
-
-    return totalWidth;
+    return section;
   }
 
-  private buildSectionLayout(sectionElement: HTMLElement, item: ToolbarLayout): number {
-    const columns = ['0px'];
-    let currentColumnIndex = 2;
-    let totalWidth = 0;
-
+  /**
+   * 필드 사이 간격(gap)을 margin으로 반영한다. 숨김 필드는 간격 계산에서 제외한다.
+   */
+  private buildSectionLayout(sectionElement: HTMLElement, item: ToolbarLayout): void {
     item.children.forEach((field, index) => {
       if (!field || field.renderer.type === 'hidden') {
         return;
@@ -347,40 +277,12 @@ export class ToolbarRenderer {
         }
       }
 
-      if (beforeGap > 0) {
-        columns.push(`${beforeGap}px`);
-        currentColumnIndex++;
-        totalWidth += beforeGap;
-      }
-
-      const trackWidth = field.width
-        ? normalizeCssLength(field.width)
-        : field.renderer.type === 'button'
-        ? 'max-content'
-        : '1fr';
-
-      columns.push(trackWidth);
-
-      fieldElement.style.gridArea = `1 / ${currentColumnIndex} / span 1 / span 1`;
-
-      currentColumnIndex++;
-      totalWidth += field.$width ?? 0;
-
-      if (afterGap > 0) {
-        columns.push(`${afterGap}px`);
-        currentColumnIndex++;
-        totalWidth += afterGap;
-      }
+      fieldElement.style.marginLeft = beforeGap > 0 ? `${beforeGap}px` : '';
+      fieldElement.style.marginRight = afterGap > 0 ? `${afterGap}px` : '';
     });
-
-    columns.push('0px');
-
-    sectionElement.style.gridTemplateColumns = columns.join(' ');
-
-    return totalWidth;
   }
 
-  private createField(field: ToolbarFieldItem, colIndex: number): HTMLElement {
+  private createField(field: ToolbarFieldItem): HTMLElement {
     const element = document.createElement('div');
 
     const { type: rendererType, required: isRequired } = field.renderer;
@@ -388,8 +290,6 @@ export class ToolbarRenderer {
     const hasLabel = isRequired === true || (rendererType !== 'label' && rendererType !== 'button' && !!field.label);
 
     element.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? 'dg-group' : ''}`;
-
-    element.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
 
     element.dataset.uid = field.$uid;
 
@@ -424,31 +324,5 @@ export class ToolbarRenderer {
       element.style.minWidth = 'initial';
       element.style.maxWidth = 'initial';
     }
-  }
-
-  private refreshRowWidths(rows: HTMLElement[]): void {
-    const rowsScrollWidths = rows.map((row) => {
-      const sections = Array.from(row.querySelectorAll<HTMLElement>('.dg-toolbar-section'));
-
-      return sections.map((section) => section.scrollWidth);
-    });
-
-    rows.forEach((row, rowIndex) => {
-      const widths = rowsScrollWidths[rowIndex];
-
-      const columns = ['0px'];
-
-      widths.forEach((width, index) => {
-        columns.push(`minmax(${width}px, 1fr)`);
-
-        if (index < widths.length - 1) {
-          columns.push('2px', '2px');
-        }
-      });
-
-      columns.push('0px');
-
-      row.style.gridTemplateColumns = columns.join(' ');
-    });
   }
 }

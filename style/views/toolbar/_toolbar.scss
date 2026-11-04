@@ -67,6 +67,11 @@
       scrollbar-width: none;
       height: 100%;
 
+      // 가장 넓은 행에 맞춰 트랙 폭을 정해 모든 행이 같은 폭으로 함께 스크롤되게 한다.
+      display: grid;
+      grid-template-columns: minmax(max-content, 1fr);
+      align-content: start;
+
       &::-webkit-scrollbar {
         display: none;
       }
@@ -87,40 +92,68 @@
     }
 
     /* 레이아웃 */
+    // 행: left / center / right zone을 flex로 배치한다. left, right가 남는 공간을 똑같이 나눠 가져 center가 가운데에 온다.
     .dg-toolbar-row {
-      display: grid;
+      display: flex;
       align-items: center;
+      column-gap: 4px;
 
-      width: max-content; // 중요
-      min-width: 100%; // 중요
+      // 모든 행은 가장 넓은 행의 폭(트랙)에 맞춰져 함께 스크롤된다.
+      min-width: 0;
     }
 
-    .dg-toolbar-section {
-      display: grid;
-      min-width: 0;
-      position: relative;
-      overflow: visible;
+    .dg-toolbar-zone {
+      display: flex;
+      align-items: center;
+      min-width: min-content;
 
-      &.dg-grid-area-left {
-        justify-self: start;
+      &.dg-zone-left {
+        flex: 1 1 0;
+        justify-content: flex-start;
         z-index: 2;
       }
 
-      &.dg-grid-area-center {
-        justify-self: center;
+      &.dg-zone-center {
+        flex: 0 0 auto;
         z-index: 1;
       }
 
-      &.dg-grid-area-right {
-        justify-self: end;
-        z-index: 0;
+      &.dg-zone-right {
+        flex: 1 1 0;
+        justify-content: flex-end;
+        z-index: 3;
+
+        // 가로 스크롤 시에도 오른쪽 영역이 left, center 위에 겹쳐 항상 보이도록 zone을 고정한다.
+        // sticky는 자신의 부모 범위 안에서만 움직이므로 section이 아닌 zone에 적용해야 한다.
+        // zone의 빈 공간은 클릭이 아래 영역으로 통과하게 하고, 내용(section)만 배경과 이벤트를 가진다.
+        position: sticky;
+        right: 0;
+        pointer-events: none;
+
+        > .dg-toolbar-section {
+          pointer-events: auto;
+          background-color: themes.themed(body-bg);
+        }
       }
+
+      &.dg-zone-fixed {
+        flex: 0 0 auto;
+      }
+    }
+
+    .dg-toolbar-section {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      position: relative;
+      overflow: visible;
 
       .dg-toolbar-field {
         display: grid;
         align-items: center;
+        flex: 0 0 auto;
         min-width: 0;
-        width: 100%;
+        width: auto; // 폭을 지정하지 않은 필드는 내용 폭을 따른다.
         overflow: hidden;
         grid-template-columns: minmax(0, 1fr);
 
