@@ -183,15 +183,20 @@ export class CellClickHandler extends BasePointerHandler {
     if (this.beforeEndIdx === moveRange.endIdx && this.beforeEndCol === moveRange.endCol) return;
 
     if (hasMove) {
+      // 유효한 값(> -1)만 전달. 빠진 키는 merge 시 기존 범위 값이 유지된다.
+      const changeRange = {} as SelectionRange;
+      if (moveRange.endIdx > -1) changeRange.endIdx = moveRange.endIdx;
+      if (moveRange.endCol > -1) changeRange.endCol = moveRange.endCol;
+
       this.selectionInfo.setSelectionRangeInfo(
-        { range: moveRange as SelectionRange } as Selection,
+        { range: changeRange } as Selection,
         false,
         this.scrollDirectionX === null && this.scrollDirectionY === null,
       );
     }
 
-    this.beforeEndCol = moveRange.endCol ?? -1;
-    this.beforeEndIdx = moveRange.endIdx ?? -1;
+    this.beforeEndCol = moveRange.endCol;
+    this.beforeEndIdx = moveRange.endIdx;
 
     if ((this.scrollDirectionX || this.scrollDirectionY) && this.dragAnimationId === 0) {
       this.startAutoScroll();

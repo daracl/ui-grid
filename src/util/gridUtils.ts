@@ -313,6 +313,9 @@ export const dragVerticalMovePosition = (
 
   if (viewRowIdx < viewRow) {
     rowIdx = startIdx + viewRowIdx;
+  } else if (rowLength > 0) {
+    // body 안쪽이지만 데이터 행 아래 빈 영역이면 화면에 그려진 마지막 데이터 행을 반환
+    rowIdx = Math.min(startIdx + Math.min(viewRowIdx, viewRow - 1), rowLength - 1);
   }
 
   return { scrollDirectionY, rowIdx, viewRowIdx };
