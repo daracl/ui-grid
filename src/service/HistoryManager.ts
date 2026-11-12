@@ -32,6 +32,9 @@ export interface AddHistoryChange {
   type: 'add';
   rowId: RowId;
   item: any;
+  viewItem?: ViewItem;
+  index?: number;
+  localOnly?: boolean;
 }
 
 /**
@@ -44,6 +47,7 @@ export interface RemoveHistoryChange {
   viewItem?: ViewItem;
   index?: number;
   checked?: boolean;
+  localOnly?: boolean;
 }
 
 export type HistoryChange = UpdateHistoryChange | AddHistoryChange | RemoveHistoryChange;
@@ -188,6 +192,8 @@ export class HistoryManager {
       // Transaction에서는 개별 변경의 Selection을 기록하지 않습니다.
       // commit()에서 최종 Selection을 afterSelection으로 기록합니다.
       this.currentEntry.changes.push(change);
+      // 새 변경이 시작되면 commit 전에도 이전 분기의 Redo는 더 이상 유효하지 않다.
+      this.redoStack.length = 0;
       return;
     }
 

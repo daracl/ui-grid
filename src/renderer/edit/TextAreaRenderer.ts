@@ -58,8 +58,4 @@ export class TextAreaRenderer extends TextAbstractRenderer {
   public getElementValue(): string {
     return this.textareaElement.value;
   }
-
-  valid(value: string): any {
-    return true;
-  }
 }

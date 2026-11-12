@@ -34,6 +34,7 @@ export abstract class TextAbstractRenderer extends EditCellRenderer {
     });
 
     eventManager.on({ el: editElement, type: 'keydown' }, (e: KeyboardEvent) => {
+      if (e.isComposing) return;
       const key = e.key;
 
       if (key === 'Enter' && this.field.editRenderer?.type !== 'textarea') {
@@ -51,15 +52,17 @@ export abstract class TextAbstractRenderer extends EditCellRenderer {
   setChangeValue(e: Event, cancelFlag = false) {
     this.isShow = false;
 
-    if (!cancelFlag) {
+    if (!cancelFlag && this.isCurrentItem(this.item)) {
       const value = this.getElementValue();
-      if (this.setValue(e, this.item, value) === false) {
+      if (this.setValue(e, this.item, value) === false && this.isCurrentItem(this.item)) {
         this.isShow = true;
         return false;
       }
     }
 
-    this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
+    if (this.isCurrentItem(this.item)) {
+      this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild as HTMLElement);
+    }
     this.gridMain.hideLayer();
 
     this.completeEdit();

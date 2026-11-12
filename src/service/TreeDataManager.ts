@@ -15,7 +15,8 @@ import { FieldSortInfo } from '@/types/Header';
 import { gridDataSearch } from '@/util/searchUtils';
 import { GridMain } from '@/view/GridMain';
 import { DataManager } from './DataManager';
-import { HistoryEntry, RemoveHistoryChange } from './HistoryManager';
+import { AddHistoryChange, HistoryEntry, RemoveHistoryChange } from './HistoryManager';
+import { excludeParentCycles } from '@/util/rowInputUtils';
 
 const EXPAND_TYPE = {
   USER: 1,
@@ -73,6 +74,7 @@ export class TreeDataManager extends DataManager {
    * @param items 원본 데이터 배열
    */
   public setItems(items: any[]) {
+    items = this.filterInputItems(items, false, this.opts.tree?.isFlatData ? undefined : this.childrenKey, this.idKey);
     let treeItems;
     if (this.opts.tree?.isFlatData) {
       treeItems = this.buildTree(items);
@@ -80,6 +82,7 @@ export class TreeDataManager extends DataManager {
       treeItems = items;
     }
 
+    this.clearRowMap();
     const itemInfo = this.convertOriginalTreeToTreeViewItems(treeItems);
 
     super.setItems(itemInfo.flatItems);
@@ -120,14 +123,16 @@ export class TreeDataManager extends DataManager {
         return true;
       });
     this.originalTreeItems = prune(this.originalTreeItems);
-    if (undo) {
-      const removed = entry.changes.slice().reverse().filter(
-        (change): change is RemoveHistoryChange => change.type === 'remove' && change.viewItem !== undefined,
+    {
+      const changes = undo ? entry.changes.slice().reverse() : entry.changes;
+      const restored = changes.filter(
+        (change): change is RemoveHistoryChange | AddHistoryChange =>
+          change.type === (undo ? 'remove' : 'add') && change.viewItem !== undefined,
       );
       // 부모부터 복원한 뒤 자식을 원래 형제 위치에 연결한다.
-      removed.sort((a, b) => (a.viewItem as TreeViewItem).depth - (b.viewItem as TreeViewItem).depth);
+      restored.sort((a, b) => (a.viewItem as TreeViewItem).depth - (b.viewItem as TreeViewItem).depth);
       const byId = new Map(this.getOriginalTreeViewItems().map((node) => [node.id, node]));
-      for (const change of removed) {
+      for (const change of restored) {
         if (!change.viewItem || byId.has(change.rowId)) continue;
         const node: TreeViewItem = { ...(change.viewItem as TreeViewItem), children: [] };
         const parent = byId.get(node.pid);
@@ -201,6 +206,7 @@ export class TreeDataManager extends DataManager {
    * @returns
    */
   private buildTree(flatItems: any[]): any[] {
+    flatItems = excludeParentCycles(flatItems, this.idKey, this.pidKey);
     const idKey = this.idKey;
     const pidKey = this.pidKey;
     const childrenKey = this.childrenKey;
@@ -211,7 +217,7 @@ export class TreeDataManager extends DataManager {
     // 인덱스 생성 + children 초기화
     for (const item of flatItems) {
       item[childrenKey] = [];
-      map.set(item[idKey], item);
+      if (item[idKey] != null) map.set(item[idKey], item);
     }
 
     // 부모-자식 연결
@@ -581,6 +587,8 @@ export class TreeDataManager extends DataManager {
    */
   public addItems(items: any[], addOpts: AddRowOptions = {}, status = ItemStatusMap.READ): number {
     if (!items || items.length === 0) return -1;
+    items = this.filterInputItems(items, true, this.childrenKey, this.idKey);
+    if (items.length === 0) return -1;
 
     let parentId: RowId = ROOT_PARENT_ID;
     let depth = 0;
@@ -668,6 +676,18 @@ export class TreeDataManager extends DataManager {
     targetSiblings.forEach((node, idx) => {
       node.sortOrder = idx;
     });
+
+    // 자손을 포함한 한 번의 추가를 하나의 이력으로 기록하고 복원할 형제 위치를 보존한다.
+    const ownsHistory = !this.getHistoryManager().isRecording();
+    if (ownsHistory) this.beginHistory();
+    const recordAdded = (nodes: TreeViewItem[]) => {
+      for (const node of nodes) {
+        this.addHistory(node.id, this.getRowItem(node.id), node, node.sortOrder);
+        recordAdded(node.children ?? []);
+      }
+    };
+    recordAdded(newTreeNodes);
+    if (ownsHistory) this.commitHistory();
 
     // 5. 트리 뷰 갱신
     this.setOriginalViewItems(this.getOriginalTreeViewItems());

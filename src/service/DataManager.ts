@@ -27,6 +27,7 @@ import {
   UpdateHistoryChange,
 } from './HistoryManager';
 import { getScrollDirectionCode } from '@/util/gridUtils';
+import { filterInputRows } from '@/util/rowInputUtils';
 
 /** 저장 요청 시점의 행 스냅샷 */
 export interface ChangeSnapshotEntry {
@@ -680,6 +681,15 @@ export abstract class DataManager {
 
   abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
 
+  protected filterInputItems(items: any[], append = false, childrenField?: string, treeIdField?: string): any[] {
+    return filterInputRows(
+      items,
+      [...new Set([this.rowIdField, ...(treeIdField ? [treeIdField] : [])])],
+      append ? this.rowMap.values() : [],
+      childrenField,
+    );
+  }
+
   protected initializeRowItem(item: any, depth = 0, status = ItemStatusMap.READ): any {
     const rowIdField = this.rowIdField;
     const rowId = item[rowIdField] ?? this.generateUUID();
@@ -1186,19 +1196,23 @@ export abstract class DataManager {
    */
   protected applyAddHistory(change: AddHistoryChange, undo: boolean): void {
     if (undo) {
-      this.rowMap.delete(change.rowId);
+      this.deleteRowItem(change.rowId);
       this.removeViewItemById(change.rowId);
       return;
     }
 
     this.rowMap.set(change.rowId, change.item);
+    if (change.localOnly) this.createdRowIds.add(change.rowId);
   }
 
-  protected addHistory(rowId: RowId, item: any): void {
+  protected addHistory(rowId: RowId, item: any, viewItem?: ViewItem, index?: number): void {
     this.history.add({
       type: 'add',
       rowId,
       item,
+      viewItem: viewItem ? { ...viewItem } : undefined,
+      index,
+      localOnly: this.createdRowIds.has(rowId),
     });
   }
 
@@ -1210,6 +1224,7 @@ export abstract class DataManager {
       viewItem: { ...viewItem },
       index,
       checked: this.isItemChecked(rowId),
+      localOnly: this.createdRowIds.has(rowId),
     });
   }
 
@@ -1226,6 +1241,7 @@ export abstract class DataManager {
     if (undo) {
       this.rowMap.set(change.rowId, change.item);
       if (change.checked) this.rowCheckSet.add(change.rowId);
+      if (change.localOnly) this.createdRowIds.add(change.rowId);
       return;
     }
 

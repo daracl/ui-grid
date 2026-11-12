@@ -51,7 +51,7 @@ export const validator = (
 
     if (
       gridConfig.allFieldMap.has(diffFieldName) &&
-      value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)
+      value != gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)
     ) {
       result.message = editRenderer.identical.message;
       return result;

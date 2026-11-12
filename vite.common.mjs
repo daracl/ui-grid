@@ -32,6 +32,8 @@ export const createAssetFileNames = (isProd) => {
   };
 };
 export const createCommonConfig = (isProd) => ({
+  // Vite 기본값(none)이 Rollup 배너까지 제거하지 않도록 배포 라이선스를 보존한다.
+  esbuild: { legalComments: 'inline' },
   css: {
     preprocessorOptions: {
       scss: {

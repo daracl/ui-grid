@@ -1,6 +1,6 @@
 import { FieldItem } from '@t/GridField';
 
-import { FIELD_LAYER_CLASS } from '@/constants';
+import { FIELD_LAYER_CLASS, ROW_FIELD } from '@/constants';
 import { getElementRect, getLayerElement } from '@/util/domUtils';
 import { merge } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
@@ -66,11 +66,14 @@ export abstract class EditCellRenderer extends CellRenderer {
    * @param {any} value row value
    */
   public setValue(e: Event, item: any, value: any, refresh = true) {
+    if (!this.isCurrentItem(item)) return false;
     if (!this.valid(value)) {
       return false;
     }
 
     if (this.changeEventCall(e, item, value)) {
+      // 변경 콜백에서 행을 교체하거나 삭제했으면 이전 객체에 편집 이력을 남기지 않는다.
+      if (!this.isCurrentItem(item)) return false;
       const result = this.gridMain.config().dataManager.setChangeValue(item, this.field, value);
 
       if (!result) {
@@ -82,6 +85,10 @@ export abstract class EditCellRenderer extends CellRenderer {
         this.gridMain.getBody().dataDraw('dataChange');
       }
     }
+  }
+
+  protected isCurrentItem(item: any): boolean {
+    return item != null && this.gridMain.config().dataManager.getRowItem(item[ROW_FIELD.ID]) === item;
   }
 
   public changeEventCall(e: Event | null, item: any, value: any): boolean {

@@ -50,6 +50,7 @@ export class ListDataManager extends DataManager {
   }
 
   public setItems(items: any[]) {
+    items = this.filterInputItems(items);
     const viewItemIds = this.initItems(items);
 
     super.setItems(items);
@@ -239,6 +240,8 @@ export class ListDataManager extends DataManager {
    */
   public addItems(items: any[], addOpts: AddRowOptions = { position: 'after' }, status = ItemStatusMap.READ): number {
     if (!items || items.length === 0) return -1;
+    items = this.filterInputItems(items, true);
+    if (items.length === 0) return -1;
 
     const originalViewItems = [...this.getOriginalViewItems()];
     let targetIndex = originalViewItems.length; // 기본값: 리스트 맨 끝

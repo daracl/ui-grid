@@ -76,6 +76,63 @@ describe('사용자 입력', () => {
     return { grid, main, cfg, dm, element, col, cell, click, press, paste, start, values, ids, status, history };
   };
 
+  it('한글 조합 중 Enter는 편집을 확정하지 않는다', () => {
+    const t = create();
+    t.click(0, 'name');
+    t.press('Space');
+    const input = document.querySelector('.dg-edit-input') as HTMLInputElement;
+    input.value = '한';
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', isComposing: true, bubbles: true }));
+    expect(t.dm.getRowItem(1).name).toBe('n1');
+    input.value = '한글';
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(t.dm.getRowItem(1).name).toBe('한글');
+  });
+
+  it.each(['', 'a'])('textarea는 필수 및 최소 길이 검증을 적용한다 (%s)', (value) => {
+    const t = create({
+      fields: [{ name: 'name', width: 120, editRenderer: { type: 'textarea', required: true, rule: { minLength: 2 } } }],
+    });
+    t.click(0, 'name');
+    t.press('Space');
+    const input = document.querySelector('.dg-edit-textarea') as HTMLTextAreaElement;
+    input.value = value;
+    input.dispatchEvent(new FocusEvent('blur'));
+    expect(t.dm.getRowItem(1).name).toBe('n1');
+    input.value = '정상\n입력';
+    input.dispatchEvent(new FocusEvent('blur'));
+    expect(t.dm.getRowItem(1).name).toBe('정상\n입력');
+  });
+
+  it('편집 중 같은 ID의 데이터로 교체해도 이전 편집은 새 행과 이력을 변경하지 않는다', () => {
+    const t = create();
+    t.click(0, 'name');
+    t.press('Space');
+    const input = document.querySelector('.dg-edit-input') as HTMLInputElement;
+    input.value = '이전 편집';
+    t.grid.setItems([{ id: 1, name: '새 데이터' }]);
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(t.dm.getRowItem(1).name).toBe('새 데이터');
+    expect(t.history().canUndo()).toBe(false);
+    expect(t.cell(0, 'name').textContent).toContain('새 데이터');
+  });
+
+  it('변경 콜백에서 데이터를 교체하면 이전 편집을 취소한다', () => {
+    let replace: () => void;
+    const t = create({
+      fields: [{ name: 'name', width: 120, editRenderer: { type: 'text', change: () => replace() } }],
+    });
+    replace = () => t.grid.setItems([{ id: 1, name: '콜백 데이터' }]);
+    t.click(0, 'name');
+    t.press('Space');
+    const input = document.querySelector('.dg-edit-input') as HTMLInputElement;
+    input.value = '이전 편집';
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(t.dm.getRowItem(1).name).toBe('콜백 데이터');
+    expect(t.history().canUndo()).toBe(false);
+    expect(t.cell(0, 'name').textContent).toContain('콜백 데이터');
+  });
+
   describe('키보드', () => {
     it('방향키로 선택 셀을 이동하고 가장자리에서는 더 이동하지 않는다', () => {
       const t = create();
