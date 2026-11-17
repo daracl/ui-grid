@@ -76,6 +76,13 @@ export class Footer {
       this.pagingInfoElement = footerElement.findDaraElement('.dg-paging-info');
       this.paingElement.addClass(AlignStyleMap[this.footerOpts.paging?.position ?? 'center']);
       this.pagingInfoElement.addClass(AlignStyleMap[this.footerOpts.paging?.formatPosition ?? 'center']);
+
+      // selection 상태와 paging 메시지가 모두 표시되지 않으면 paging 영역이 전체 폭을 사용한다.
+      const hideSelectionStatus = !(this.isSelectionInfo && this.footerOpts.selection?.showSummary);
+      const hidePagingFormat = this.footerOpts.paging?.format === false;
+      if (hideSelectionStatus && hidePagingFormat) {
+        footerElement.addClass('dg-paging-full');
+      }
       this.setPagingTemplate(this.cfg.paging);
 
       this.initPagingEvent();
