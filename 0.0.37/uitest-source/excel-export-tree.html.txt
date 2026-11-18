@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+  <link rel="stylesheet" href="./asset/examples.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>트리 엑셀 내보내기</title>
+    <style>
+
+      #sample {
+        width: 100%;
+        height: 420px;
+        margin-top: 16px;
+      }
+    </style>
+    <script src="./data/businessFixtures.js"></script>
+</head>
+  <body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>트리 엑셀 내보내기</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
+    <p>
+      기본으로 접힌 하위 행까지 모두 내보냅니다. 현재 표시 행만 선택하면 접힌 하위 행은 제외합니다.
+    </p>
+    <label
+      >테마
+      <select id="theme">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select></label
+    >
+    <button id="expand">전체 펼치기</button>
+    <button id="collapse">전체 접기</button>
+    <label><input id="visibleOnly" type="checkbox" />현재 표시 행만 내보내기</label>
+    <button id="export">트리 XLSX 다운로드</button>
+    <span id="status" role="status" aria-live="polite"></span>
+    <div id="sample"></div>
+    <script type="module" src="./asset/pages/excel-export-tree.js"></script>
+    </section>
+</body>
+</html>

@@ -1513,9 +1513,84 @@ function isSafeImageUrl(url) {
   const name = scheme[1].toLowerCase();
   return name === "http" || name === "https" || name === "blob" || name === "data" && /^data:image\//i.test(value);
 }
+function setStyles(element, styles) {
+  for (const name of Object.keys(styles)) element.style.setProperty(name, styles[name]);
+}
+const PALETTE = {
+  light: {
+    surface: ["--dui-body-bg", "#ffffff"],
+    text: ["--dui-font-color", "#222222"],
+    muted: ["--dui-muted-color", "#626976"],
+    border: ["--dui-border-color", "#d9dde3"],
+    accent: ["--dui-primary-color", "#2563eb"],
+    hover: ["--dui-button-hover-bg", "#e3e3e3"],
+    shadow: ["--dui-shadow", "0 2px 8px rgba(0, 0, 0, 0.15)"]
+  },
+  dark: {
+    surface: ["--dui-body-bg", "#1d1e1f"],
+    text: ["--dui-font-color", "#cfd3dc"],
+    muted: ["--dui-muted-color", "#8d9095"],
+    border: ["--dui-border-color", "#4c4d4f"],
+    accent: ["--dui-primary-color", "#2563eb"],
+    hover: ["--dui-button-hover-bg", "#303030"],
+    shadow: ["--dui-shadow", "0 2px 12px rgba(0, 0, 0, 0.72)"]
+  }
+};
+function resolveMode(container, theme) {
+  if (theme === "light" || theme === "dark") return theme;
+  const attr = container.closest("[data-daracl-theme]")?.getAttribute("data-daracl-theme");
+  if (attr === "light" || attr === "dark") return attr;
+  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function resolveColors(mode, theme) {
+  const colors = {};
+  for (const key of Object.keys(PALETTE[mode])) {
+    const [token, fallback] = PALETTE[mode][key];
+    colors[key] = theme === "light" || theme === "dark" ? fallback : "var(" + token + ", " + fallback + ")";
+  }
+  return colors;
+}
+const SVG_NS = "http://www.w3.org/2000/svg";
+function createSpinner(colors) {
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "daracl-cl-image daracl-cl-spinner");
+  svg.setAttribute("viewBox", "0 0 32 32");
+  svg.setAttribute("width", "32");
+  svg.setAttribute("height", "32");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "로딩 중");
+  svg.style.setProperty("display", "block");
+  svg.style.setProperty("flex-shrink", "0");
+  const track = document.createElementNS(SVG_NS, "circle");
+  const arc = document.createElementNS(SVG_NS, "circle");
+  for (const circle of [track, arc]) {
+    circle.setAttribute("cx", "16");
+    circle.setAttribute("cy", "16");
+    circle.setAttribute("r", "13.5");
+    circle.setAttribute("fill", "none");
+    circle.setAttribute("stroke-width", "3");
+  }
+  track.style.setProperty("stroke", colors.border);
+  arc.style.setProperty("stroke", colors.accent);
+  arc.setAttribute("stroke-linecap", "round");
+  arc.setAttribute("stroke-dasharray", "21 64");
+  if (!(typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+    const spin = document.createElementNS(SVG_NS, "animateTransform");
+    spin.setAttribute("attributeName", "transform");
+    spin.setAttribute("type", "rotate");
+    spin.setAttribute("from", "0 16 16");
+    spin.setAttribute("to", "360 16 16");
+    spin.setAttribute("dur", "0.8s");
+    spin.setAttribute("repeatCount", "indefinite");
+    arc.appendChild(spin);
+  }
+  svg.append(track, arc);
+  return svg;
+}
 const instanceMap = {};
 const loadingGroups = /* @__PURE__ */ new WeakMap();
 let G_LOADING_IDX = 0;
+const DEFAULT_BG_COLOR = "var(--daracl-loading-backdrop, #ffffff)";
 let defaultOptions = {
   //  사라지는 시간
   timeout: -1,
@@ -1526,7 +1601,7 @@ let defaultOptions = {
   // 표시 내용
   content: "",
   // background color
-  bgColor: "var(--daracl-loading-backdrop, #ffffff)",
+  bgColor: DEFAULT_BG_COLOR,
   theme: "auto",
   // z-index
   zIndex: 9999,
@@ -1609,6 +1684,7 @@ class Loading {
       time = document.createElement("div");
       time.className = "daracl-cl-time";
       time.setAttribute("aria-label", "경과 시간(초)");
+      setStyles(time, { color: renderer.colors?.muted ?? "inherit", "font-size": "12px", "font-variant-numeric": "tabular-nums" });
       image?.insertAdjacentElement("beforebegin", time);
     }
     if (enableTime && time) {
@@ -1630,10 +1706,17 @@ class Loading {
       if (!button) {
         const wrapper = document.createElement("div");
         wrapper.className = "daracl-cl-actions";
+        wrapper.style.setProperty("width", "100%");
         const cancel = document.createElement("button");
         cancel.type = "button";
         cancel.className = "daracl-cl-btn";
         cancel.textContent = "Cancel";
+        const colors = renderer.colors;
+        if (colors) {
+          setStyles(cancel, { "min-height": "36px", padding: "6px 18px", border: "1px solid " + colors.border, "border-radius": "8px", background: colors.surface, color: colors.text, font: "inherit", cursor: "pointer" });
+          cancel.addEventListener("mouseenter", () => cancel.style.setProperty("background", colors.hover));
+          cancel.addEventListener("mouseleave", () => cancel.style.setProperty("background", colors.surface));
+        }
         cancel.addEventListener("click", () => renderer.cancelHandler());
         wrapper.appendChild(cancel);
         image?.parentElement?.appendChild(wrapper);
@@ -1672,6 +1755,7 @@ class Loading {
       counter = document.createElement("div");
       counter.className = "daracl-cl-request-count";
       counter.setAttribute("role", "status");
+      setStyles(counter, { color: group.renderer.colors?.muted ?? "inherit", "font-size": "12px", "font-variant-numeric": "tabular-nums" });
       element.querySelector(".daracl-cl-image")?.insertAdjacentElement("afterend", counter);
     }
     counter.textContent = `진행 중 요청: ${count}`;
@@ -1701,22 +1785,24 @@ class Loading {
       containerNode.style.position = "relative";
     }
     const opts = this.options;
+    const theme = THEMES.includes(opts.theme) ? opts.theme : "auto";
+    const colors = resolveColors(resolveMode(containerNode, theme), theme);
+    this.colors = colors;
     let zIndex = opts.zIndex;
     if (defaultOptions.zIndex == opts.zIndex) {
       zIndex += ++G_LOADING_IDX;
     }
     const root = document.createElement("div");
     root.className = "daracl-cl";
-    root.setAttribute("data-loading-theme", THEMES.includes(opts.theme) ? opts.theme : "auto");
+    root.setAttribute("data-loading-theme", theme);
     root.setAttribute("aria-label", "로딩 중");
-    root.style.setProperty("cursor", String(opts.cursor));
-    root.style.setProperty("z-index", String(zIndex));
+    setStyles(root, { cursor: String(opts.cursor), top: "0px", left: "0px", "z-index": String(zIndex), position: "absolute", width: "100%", height: "100%", display: "flex", "align-items": "center", "justify-content": "center", overflow: "hidden", "box-sizing": "border-box", color: colors.text, font: "400 14px/1.5 system-ui, sans-serif" });
     const backdrop = document.createElement("div");
     backdrop.className = "daracl-cl-backdrop";
-    backdrop.style.setProperty("background", String(opts.bgColor));
-    backdrop.style.setProperty("opacity", String(opts.opacity));
+    setStyles(backdrop, { position: "absolute", background: opts.bgColor === DEFAULT_BG_COLOR ? colors.surface : String(opts.bgColor), opacity: String(opts.opacity), width: "100%", height: "100%", "z-index": "1" });
     const panel = document.createElement("div");
     panel.className = "daracl-cl-panel";
+    setStyles(panel, { "z-index": "10", "text-align": "center", margin: "0", position: "relative", "box-sizing": "border-box", "max-width": "calc(100% - 24px)", "max-height": "calc(100% - 24px)", overflow: "auto", display: "flex", "flex-direction": "column", "align-items": "center", gap: "12px", padding: "24px 28px", border: "1px solid " + colors.border, "border-radius": "16px", background: colors.surface, "box-shadow": colors.shadow });
     if (opts.loadingImg && isSafeImageUrl(opts.loadingImg)) {
       const image = document.createElement("img");
       image.className = "daracl-cl-image";
@@ -1724,11 +1810,7 @@ class Loading {
       image.setAttribute("alt", "로딩 중");
       panel.appendChild(image);
     } else {
-      const spinner = document.createElement("span");
-      spinner.className = "daracl-cl-image daracl-cl-spinner";
-      spinner.setAttribute("role", "img");
-      spinner.setAttribute("aria-label", "로딩 중");
-      panel.appendChild(spinner);
+      panel.appendChild(createSpinner(colors));
     }
     root.append(backdrop, panel);
     containerNode.insertAdjacentElement("afterbegin", root);
@@ -1756,8 +1838,10 @@ class Loading {
     if (!loadingElement) return;
     let existing = loadingElement.querySelector(".daracl-cl-content");
     if (!existing) {
-      existing = document.createElement("div");
-      existing.className = "daracl-cl-content";
+      const created = document.createElement("div");
+      created.className = "daracl-cl-content";
+      created.style.setProperty("overflow-wrap", "anywhere");
+      existing = created;
       const image = loadingElement.querySelector(".daracl-cl-image");
       if (!image) return;
       image.insertAdjacentElement("afterend", existing);
@@ -2815,7 +2899,7 @@ function formatMessage(msgFormat, msgParam) {
     return key in msgParam && !inherited ? String(msgParam[key]) : match;
   });
 }
-const VERSION = `${"0.0.13"}`;
+const VERSION = `${"0.0.14"}`;
 exports.$querySelector = $querySelector;
 exports.$querySelectorList = $querySelectorList;
 exports.Ajax = Ajax;

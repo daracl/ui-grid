@@ -37,5 +37,5 @@ export declare class DropdownRenderer extends ToolBarRenderer {
     private openMenu;
     setValue(value: string | string[]): void;
     private dropdownMenuTemplate;
-    getValue(): string[];
+    getValue(): string | string[];
 }

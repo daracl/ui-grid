@@ -772,9 +772,9 @@ export interface FooterOptions {
      */
     formatPosition?: HorizontalRegion;
     /**
-     * 페이지 메시지 포멧
+     * 페이지 메시지 포멧. false 이면 메시지 영역을 표시하지 않는다.
      */
-    format?: string | OptionCallback;
+    format?: string | OptionCallback | false;
 
     /**
      * page num callback

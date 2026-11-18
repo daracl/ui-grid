@@ -27,6 +27,7 @@ export declare abstract class EditCellRenderer extends CellRenderer {
      * @param {any} value row value
      */
     setValue(e: Event, item: any, value: any, refresh?: boolean): false | undefined;
+    protected isCurrentItem(item: any): boolean;
     changeEventCall(e: Event | null, item: any, value: any): boolean;
     tooltip(element: HTMLElement, value: any): void;
     /**

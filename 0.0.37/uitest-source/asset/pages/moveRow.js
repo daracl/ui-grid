@@ -1,0 +1,68 @@
+var gridObj;
+
+function loadGrid(initFlag) {
+  const jsonInfo = getItem();
+
+  gridDraw(document.getElementById('sample'), jsonInfo.items, jsonInfo.fields);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  loadGrid(true);
+});
+
+function gridDraw(element, aaa, colItem, message) {
+  Daracl.grid.setDefaultOptions({
+    body: {
+      row: {
+        height: 50,
+      },
+    },
+  });
+  gridObj = Daracl.grid.create(element, {
+    style: 'striped',
+    selectionMode: 'row', // row , cell , multiRow , multiCell	// 선택 방법.
+    theme: G_GRID_THEME,
+    aside: {
+      lineNumber: { enabled: true },
+    },
+    fields: colItem,
+    items: aaa,
+    body: {
+      rowMove: {
+        enabled: true,
+        dragHandle: 'name',
+        // drag 시작 콜백
+        dragStart(itemInfo) {
+          console.log('dragStart', itemInfo);
+        },
+        draggable(itemInfo) {
+          console.log('draggable', itemInfo);
+        }, // 기본 모든 row drag 가능
+        // drag 중 위치 변경 콜백
+        dragOver(dragInfo) {
+          const { dropItemIdx, moveItems, position } = dragInfo;
+          console.log('dragOver', position, dropItemIdx, moveItems);
+
+          const moveIdx = dropItemIdx + (position == 'after' ? 1 : 0);
+          if (moveIdx == 3) {
+            return false; // drop 금지
+          }
+        },
+        // drop 완료 콜백
+        drop(itemInfo) {
+          console.log('drop', itemInfo);
+        },
+        // drag 종료 콜백
+        dragEnd(itemInfo) {
+          console.log('dragEnd', itemInfo);
+        },
+        dragTemplate1(itemInfo) {
+          const moveItem = itemInfo.moveItems[0];
+          const info = moveItem.item;
+          console.log(moveItem);
+          return `${info.name} / ${info.age} / ${info.email} `;
+        },
+      },
+    },
+  });
+}

@@ -1,7 +1,12 @@
 (function(factory) {
   typeof define === "function" && define.amd ? define(factory) : factory();
 })((function() {
-  "use strict";
+  "use strict";/*!
+* @daracl/grid v0.0.37
+* Copyright 2023-2026 darainfo;
+* Licensed MIT
+*/
+
   function formatNumber(value, format) {
     const numberPatternRegex = /[0,.]+/;
     const numberPatternMatch = numberPatternRegex.exec(format);
@@ -2175,6 +2180,8 @@
     const viewRowIdx = relativeY * invRowHeight | 0;
     if (viewRowIdx < viewRow) {
       rowIdx = startIdx + viewRowIdx;
+    } else if (rowLength > 0) {
+      rowIdx = Math.min(startIdx + Math.min(viewRowIdx, viewRow - 1), rowLength - 1);
     }
     return { scrollDirectionY, rowIdx, viewRowIdx };
   };
@@ -2407,10 +2414,12 @@
      * @param {any} value row value
      */
     setValue(e, item, value, refresh = true) {
+      if (!this.isCurrentItem(item)) return false;
       if (!this.valid(value)) {
         return false;
       }
       if (this.changeEventCall(e, item, value)) {
+        if (!this.isCurrentItem(item)) return false;
         const result = this.gridMain.config().dataManager.setChangeValue(item, this.field, value);
         if (!result) {
           return false;
@@ -2419,6 +2428,9 @@
           this.gridMain.getBody().dataDraw("dataChange");
         }
       }
+    }
+    isCurrentItem(item) {
+      return item != null && this.gridMain.config().dataManager.getRowItem(item[ROW_FIELD.ID]) === item;
     }
     changeEventCall(e, item, value) {
       const field = this.field;
@@ -2610,7 +2622,7 @@
     }
     if (editRenderer.identical) {
       const diffFieldName = editRenderer.identical.field;
-      if (gridConfig.allFieldMap.has(diffFieldName) && value == gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
+      if (gridConfig.allFieldMap.has(diffFieldName) && value != gridConfig.allFieldMap.get(diffFieldName)?.$renderer.getValue(rowItem)) {
         result.message = editRenderer.identical.message;
         return result;
       }
@@ -2670,6 +2682,7 @@
         }
       });
       eventManager.on({ el: editElement, type: "keydown" }, (e) => {
+        if (e.isComposing) return;
         const key = e.key;
         if (key === "Enter" && this.field.editRenderer?.type !== "textarea") {
           this.setChangeValue(e);
@@ -2683,14 +2696,16 @@
     }
     setChangeValue(e, cancelFlag = false) {
       this.isShow = false;
-      if (!cancelFlag) {
+      if (!cancelFlag && this.isCurrentItem(this.item)) {
         const value = this.getElementValue();
-        if (this.setValue(e, this.item, value) === false) {
+        if (this.setValue(e, this.item, value) === false && this.isCurrentItem(this.item)) {
           this.isShow = true;
           return false;
         }
       }
-      this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild);
+      if (this.isCurrentItem(this.item)) {
+        this.field.$renderer.render(this.cellInfo, this.cellElement.firstElementChild);
+      }
       this.gridMain.hideLayer();
       this.completeEdit();
     }
@@ -3182,9 +3197,6 @@
     }
     getElementValue() {
       return this.textareaElement.value;
-    }
-    valid(value) {
-      return true;
     }
   }
   class TextEditRenderer extends TextAbstractRenderer {
@@ -4585,6 +4597,9 @@
     initEvent(contentElement) {
       const cfg = this.gridMain.config();
       cfg.eventManager.on({ el: contentElement, type: "pointerdown" }, (e) => {
+        if (!isPrimaryPointer(e)) {
+          return;
+        }
         stopPreventCancel(e);
         this.click(e, contentElement);
       });
@@ -4753,7 +4768,7 @@
       return html2.join("");
     }
     getValue() {
-      return this.selectValues;
+      return this.isMultiple ? this.selectValues : this.selectValues[0];
     }
   }
   function exportGridFile(grid, format, options, unsupportedMessage) {
@@ -5267,11 +5282,11 @@
      * delete mode
      * hard, soft
      */
-    deleteMode: "hard",
+    deleteMode: "soft",
     /**
      * 서버 연동(AJAX) 설정
      *
-     * 지정하지 않으면 로컬 데이터만 사용한다. `save`를 지정하면 deleteMode 기본값은 soft이다.
+     * 지정하지 않으면 로컬 데이터만 사용한다. deleteMode 기본값은 soft이며, `save`를 지정하면 hard는 허용되지 않는다.
      */
     dataSource: void 0,
     /**
@@ -6655,6 +6670,7 @@
       }
       if (this.currentEntry) {
         this.currentEntry.changes.push(change);
+        this.redoStack.length = 0;
         return;
       }
       this.pushUndo({
@@ -6736,6 +6752,112 @@
   };
   _HistoryManager.DEFAULT_MAX_COUNT = 100;
   let HistoryManager = _HistoryManager;
+  const isRow = (item) => item !== null && typeof item === "object" && !Array.isArray(item);
+  function filterInputRows(items, idFields, existing = [], childrenField) {
+    if (!Array.isArray(items)) throw new TypeError("items must be an array");
+    const ids = idFields.map(() => /* @__PURE__ */ new Set());
+    const seen = /* @__PURE__ */ new Set();
+    for (const item of existing) {
+      seen.add(item);
+      idFields.forEach((field, index) => {
+        if (item[field] != null) ids[index].add(item[field]);
+      });
+    }
+    const children = /* @__PURE__ */ new Map();
+    const cyclic = /* @__PURE__ */ new Set();
+    if (childrenField) {
+      const done = /* @__PURE__ */ new Set();
+      const order = [];
+      const parents = /* @__PURE__ */ new Map();
+      const stack2 = items.slice().reverse().map((item) => ({ item, exit: false }));
+      while (stack2.length) {
+        const { item, exit } = stack2.pop();
+        if (!isRow(item)) continue;
+        if (exit) {
+          order.push(item);
+          continue;
+        }
+        if (done.has(item)) continue;
+        done.add(item);
+        const list = Array.isArray(item[childrenField]) ? item[childrenField] : [];
+        children.set(item, list);
+        for (const child of list) {
+          if (!isRow(child)) continue;
+          const incoming = parents.get(child) ?? [];
+          incoming.push(item);
+          parents.set(child, incoming);
+        }
+        stack2.push({ item, exit: true });
+        for (let index = list.length - 1; index >= 0; index--) stack2.push({ item: list[index], exit: false });
+      }
+      done.clear();
+      for (const item of order.reverse()) {
+        if (done.has(item)) continue;
+        const component = [];
+        const pending = [item];
+        done.add(item);
+        while (pending.length) {
+          const row = pending.pop();
+          component.push(row);
+          for (const parent of parents.get(row) ?? []) {
+            if (!done.has(parent)) {
+              done.add(parent);
+              pending.push(parent);
+            }
+          }
+        }
+        if (component.length > 1 || children.get(item)?.includes(item)) {
+          for (const row of component) cyclic.add(row);
+        }
+      }
+    }
+    const result = [];
+    const visited = /* @__PURE__ */ new Set();
+    const stack = items.slice().reverse().map((item) => ({ item, target: result }));
+    while (stack.length) {
+      const { item, target } = stack.pop();
+      if (!isRow(item) || visited.has(item)) continue;
+      visited.add(item);
+      const values = idFields.map((field) => item[field]);
+      const invalid = values.some(
+        (id, index) => id != null && (typeof id !== "string" && typeof id !== "number" || typeof id === "number" && !Number.isFinite(id) || ids[index].has(id))
+      );
+      const accepted = !seen.has(item) && !cyclic.has(item) && !invalid;
+      let childTarget = target;
+      if (accepted) {
+        values.forEach((id, index) => {
+          if (id != null) ids[index].add(id);
+        });
+        target.push(item);
+        if (childrenField && item[childrenField] != null) {
+          childTarget = [];
+          item[childrenField] = childTarget;
+        }
+      }
+      const list = children.get(item) ?? [];
+      for (let index = list.length - 1; index >= 0; index--) stack.push({ item: list[index], target: childTarget });
+    }
+    return result;
+  }
+  function excludeParentCycles(items, idField, parentField) {
+    const byId = new Map(items.filter((item) => item[idField] != null).map((item) => [item[idField], item]));
+    const done = /* @__PURE__ */ new Set();
+    const cyclic = /* @__PURE__ */ new Set();
+    for (const item of items) {
+      const path = [];
+      const active = /* @__PURE__ */ new Map();
+      let current = item;
+      while (current && !done.has(current) && !active.has(current)) {
+        active.set(current, path.length);
+        path.push(current);
+        current = current[parentField] == null ? void 0 : byId.get(current[parentField]);
+      }
+      const start = active.get(current);
+      if (start !== void 0) for (let index = start; index < path.length; index++) cyclic.add(path[index]);
+      for (const row of path) done.add(row);
+    }
+    return items.filter((item) => !cyclic.has(item));
+  }
   const INCREMENTAL_ADD_LIMIT = 64;
   class DataManager {
     constructor(opts, gridMain, type) {
@@ -7214,6 +7336,14 @@
       }
       return multiSort(source, this, sortOrders, sortOpts.nullsLast);
     }
+    filterInputItems(items, append = false, childrenField, treeIdField) {
+      return filterInputRows(
+        items,
+        [.../* @__PURE__ */ new Set([this.rowIdField, ...treeIdField ? [treeIdField] : []])],
+        append ? this.rowMap.values() : [],
+        childrenField
+      );
+    }
     initializeRowItem(item, depth = 0, status = ItemStatusMap.READ) {
       const rowIdField = this.rowIdField;
       const rowId = item[rowIdField] ?? this.generateUUID();
@@ -7609,17 +7739,21 @@
      */
     applyAddHistory(change, undo) {
       if (undo) {
-        this.rowMap.delete(change.rowId);
+        this.deleteRowItem(change.rowId);
         this.removeViewItemById(change.rowId);
         return;
       }
       this.rowMap.set(change.rowId, change.item);
+      if (change.localOnly) this.createdRowIds.add(change.rowId);
     }
-    addHistory(rowId, item) {
+    addHistory(rowId, item, viewItem, index) {
       this.history.add({
         type: "add",
         rowId,
-        item
+        item,
+        viewItem: viewItem ? { ...viewItem } : void 0,
+        index,
+        localOnly: this.createdRowIds.has(rowId)
       });
     }
     removeHistory(rowId, viewItem, index) {
@@ -7629,7 +7763,8 @@
         item: this.getRowItem(rowId),
         viewItem: { ...viewItem },
         index,
-        checked: this.isItemChecked(rowId)
+        checked: this.isItemChecked(rowId),
+        localOnly: this.createdRowIds.has(rowId)
       });
     }
     /**
@@ -7645,6 +7780,7 @@
       if (undo) {
         this.rowMap.set(change.rowId, change.item);
         if (change.checked) this.rowCheckSet.add(change.rowId);
+        if (change.localOnly) this.createdRowIds.add(change.rowId);
         return;
       }
       this.deleteRowItem(change.rowId);
@@ -8168,6 +8304,7 @@
       return viewItems;
     }
     setItems(items) {
+      items = this.filterInputItems(items);
       const viewItemIds = this.initItems(items);
       super.setItems(items);
       super.setOriginalViewItems(viewItemIds);
@@ -8308,6 +8445,8 @@
      */
     addItems(items, addOpts = { position: "after" }, status = ItemStatusMap.READ) {
       if (!items || items.length === 0) return -1;
+      items = this.filterInputItems(items, true);
+      if (items.length === 0) return -1;
       const originalViewItems = [...this.getOriginalViewItems()];
       let targetIndex = originalViewItems.length;
       const isPositionBefore = addOpts?.position === "before";
@@ -8406,12 +8545,14 @@
      * @param items 원본 데이터 배열
      */
     setItems(items) {
+      items = this.filterInputItems(items, false, this.opts.tree?.isFlatData ? void 0 : this.childrenKey, this.idKey);
       let treeItems;
       if (this.opts.tree?.isFlatData) {
         treeItems = this.buildTree(items);
       } else {
         treeItems = items;
       }
+      this.clearRowMap();
       const itemInfo = this.convertOriginalTreeToTreeViewItems(treeItems);
       super.setItems(itemInfo.flatItems);
       this.originalTreeItems = itemInfo.treeViewItems;
@@ -8444,13 +8585,14 @@
         return true;
       });
       this.originalTreeItems = prune(this.originalTreeItems);
-      if (undo) {
-        const removed = entry.changes.slice().reverse().filter(
-          (change) => change.type === "remove" && change.viewItem !== void 0
+      {
+        const changes = undo ? entry.changes.slice().reverse() : entry.changes;
+        const restored = changes.filter(
+          (change) => change.type === (undo ? "remove" : "add") && change.viewItem !== void 0
         );
-        removed.sort((a, b) => a.viewItem.depth - b.viewItem.depth);
+        restored.sort((a, b) => a.viewItem.depth - b.viewItem.depth);
         const byId = new Map(this.getOriginalTreeViewItems().map((node) => [node.id, node]));
-        for (const change of removed) {
+        for (const change of restored) {
           if (!change.viewItem || byId.has(change.rowId)) continue;
           const node = { ...change.viewItem, children: [] };
           const parent = byId.get(node.pid);
@@ -8508,6 +8650,7 @@
      * @returns
      */
     buildTree(flatItems) {
+      flatItems = excludeParentCycles(flatItems, this.idKey, this.pidKey);
       const idKey = this.idKey;
       const pidKey = this.pidKey;
       const childrenKey = this.childrenKey;
@@ -8515,7 +8658,7 @@
       const roots = [];
       for (const item of flatItems) {
         item[childrenKey] = [];
-        map.set(item[idKey], item);
+        if (item[idKey] != null) map.set(item[idKey], item);
       }
       for (const item of flatItems) {
         const parentId = item[pidKey];
@@ -8795,6 +8938,8 @@
      */
     addItems(items, addOpts = {}, status = ItemStatusMap.READ) {
       if (!items || items.length === 0) return -1;
+      items = this.filterInputItems(items, true, this.childrenKey, this.idKey);
+      if (items.length === 0) return -1;
       let parentId = ROOT_PARENT_ID;
       let depth = 0;
       let targetSiblings = this.originalTreeItems;
@@ -8862,6 +9007,16 @@
       targetSiblings.forEach((node, idx) => {
         node.sortOrder = idx;
       });
+      const ownsHistory = !this.getHistoryManager().isRecording();
+      if (ownsHistory) this.beginHistory();
+      const recordAdded = (nodes) => {
+        for (const node of nodes) {
+          this.addHistory(node.id, this.getRowItem(node.id), node, node.sortOrder);
+          recordAdded(node.children ?? []);
+        }
+      };
+      recordAdded(newTreeNodes);
+      if (ownsHistory) this.commitHistory();
       this.setOriginalViewItems(this.getOriginalTreeViewItems());
       this.refreshViewAfterMutation();
       return insertIndex;
@@ -9117,6 +9272,10 @@
     }
     if (e?.type === "method") return new DataSourceError("CONFIG", e.message || "Invalid HTTP method", e.status, void 0, error);
     return new DataSourceError("NETWORK", e?.message || "Request failed", void 0, void 0, error);
+  }
+  function toInternalError(error) {
+    if (error instanceof DataSourceError) return error;
+    return new DataSourceError("INTERNAL", error?.message || "Unexpected error", void 0, void 0, error);
   }
   function isArray(value) {
     return Array.isArray(value);
@@ -9389,9 +9548,84 @@
     const name = scheme[1].toLowerCase();
     return name === "http" || name === "https" || name === "blob" || name === "data" && /^data:image\//i.test(value);
   }
+  function setStyles(element, styles) {
+    for (const name of Object.keys(styles)) element.style.setProperty(name, styles[name]);
+  }
+  const PALETTE = {
+    light: {
+      surface: ["--dui-body-bg", "#ffffff"],
+      text: ["--dui-font-color", "#222222"],
+      muted: ["--dui-muted-color", "#626976"],
+      border: ["--dui-border-color", "#d9dde3"],
+      accent: ["--dui-primary-color", "#2563eb"],
+      hover: ["--dui-button-hover-bg", "#e3e3e3"],
+      shadow: ["--dui-shadow", "0 2px 8px rgba(0, 0, 0, 0.15)"]
+    },
+    dark: {
+      surface: ["--dui-body-bg", "#1d1e1f"],
+      text: ["--dui-font-color", "#cfd3dc"],
+      muted: ["--dui-muted-color", "#8d9095"],
+      border: ["--dui-border-color", "#4c4d4f"],
+      accent: ["--dui-primary-color", "#2563eb"],
+      hover: ["--dui-button-hover-bg", "#303030"],
+      shadow: ["--dui-shadow", "0 2px 12px rgba(0, 0, 0, 0.72)"]
+    }
+  };
+  function resolveMode(container, theme) {
+    if (theme === "light" || theme === "dark") return theme;
+    const attr = container.closest("[data-daracl-theme]")?.getAttribute("data-daracl-theme");
+    if (attr === "light" || attr === "dark") return attr;
+    return typeof window.matchMedia === "function" && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function resolveColors(mode, theme) {
+    const colors = {};
+    for (const key of Object.keys(PALETTE[mode])) {
+      const [token, fallback] = PALETTE[mode][key];
+      colors[key] = theme === "light" || theme === "dark" ? fallback : "var(" + token + ", " + fallback + ")";
+    }
+    return colors;
+  }
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function createSpinner(colors) {
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "daracl-cl-image daracl-cl-spinner");
+    svg.setAttribute("viewBox", "0 0 32 32");
+    svg.setAttribute("width", "32");
+    svg.setAttribute("height", "32");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "로딩 중");
+    svg.style.setProperty("display", "block");
+    svg.style.setProperty("flex-shrink", "0");
+    const track = document.createElementNS(SVG_NS, "circle");
+    const arc = document.createElementNS(SVG_NS, "circle");
+    for (const circle of [track, arc]) {
+      circle.setAttribute("cx", "16");
+      circle.setAttribute("cy", "16");
+      circle.setAttribute("r", "13.5");
+      circle.setAttribute("fill", "none");
+      circle.setAttribute("stroke-width", "3");
+    }
+    track.style.setProperty("stroke", colors.border);
+    arc.style.setProperty("stroke", colors.accent);
+    arc.setAttribute("stroke-linecap", "round");
+    arc.setAttribute("stroke-dasharray", "21 64");
+    if (!(typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      const spin = document.createElementNS(SVG_NS, "animateTransform");
+      spin.setAttribute("attributeName", "transform");
+      spin.setAttribute("type", "rotate");
+      spin.setAttribute("from", "0 16 16");
+      spin.setAttribute("to", "360 16 16");
+      spin.setAttribute("dur", "0.8s");
+      spin.setAttribute("repeatCount", "indefinite");
+      arc.appendChild(spin);
+    }
+    svg.append(track, arc);
+    return svg;
+  }
   const instanceMap = {};
   const loadingGroups = /* @__PURE__ */ new WeakMap();
   let G_LOADING_IDX = 0;
+  const DEFAULT_BG_COLOR = "var(--daracl-loading-backdrop, #ffffff)";
   let defaultOptions = {
     //  사라지는 시간
     timeout: -1,
@@ -9402,7 +9636,7 @@
     // 표시 내용
     content: "",
     // background color
-    bgColor: "var(--daracl-loading-backdrop, #ffffff)",
+    bgColor: DEFAULT_BG_COLOR,
     theme: "auto",
     // z-index
     zIndex: 9999,
@@ -9485,6 +9719,7 @@
         time = document.createElement("div");
         time.className = "daracl-cl-time";
         time.setAttribute("aria-label", "경과 시간(초)");
+        setStyles(time, { color: renderer.colors?.muted ?? "inherit", "font-size": "12px", "font-variant-numeric": "tabular-nums" });
         image?.insertAdjacentElement("beforebegin", time);
       }
       if (enableTime && time) {
@@ -9506,10 +9741,17 @@
         if (!button) {
           const wrapper = document.createElement("div");
           wrapper.className = "daracl-cl-actions";
+          wrapper.style.setProperty("width", "100%");
           const cancel = document.createElement("button");
           cancel.type = "button";
           cancel.className = "daracl-cl-btn";
           cancel.textContent = "Cancel";
+          const colors = renderer.colors;
+          if (colors) {
+            setStyles(cancel, { "min-height": "36px", padding: "6px 18px", border: "1px solid " + colors.border, "border-radius": "8px", background: colors.surface, color: colors.text, font: "inherit", cursor: "pointer" });
+            cancel.addEventListener("mouseenter", () => cancel.style.setProperty("background", colors.hover));
+            cancel.addEventListener("mouseleave", () => cancel.style.setProperty("background", colors.surface));
+          }
           cancel.addEventListener("click", () => renderer.cancelHandler());
           wrapper.appendChild(cancel);
           image?.parentElement?.appendChild(wrapper);
@@ -9548,6 +9790,7 @@
         counter = document.createElement("div");
         counter.className = "daracl-cl-request-count";
         counter.setAttribute("role", "status");
+        setStyles(counter, { color: group.renderer.colors?.muted ?? "inherit", "font-size": "12px", "font-variant-numeric": "tabular-nums" });
         element.querySelector(".daracl-cl-image")?.insertAdjacentElement("afterend", counter);
       }
       counter.textContent = `진행 중 요청: ${count}`;
@@ -9577,22 +9820,24 @@
         containerNode.style.position = "relative";
       }
       const opts = this.options;
+      const theme = THEMES.includes(opts.theme) ? opts.theme : "auto";
+      const colors = resolveColors(resolveMode(containerNode, theme), theme);
+      this.colors = colors;
       let zIndex = opts.zIndex;
       if (defaultOptions.zIndex == opts.zIndex) {
         zIndex += ++G_LOADING_IDX;
       }
       const root = document.createElement("div");
       root.className = "daracl-cl";
-      root.setAttribute("data-loading-theme", THEMES.includes(opts.theme) ? opts.theme : "auto");
+      root.setAttribute("data-loading-theme", theme);
       root.setAttribute("aria-label", "로딩 중");
-      root.style.setProperty("cursor", String(opts.cursor));
-      root.style.setProperty("z-index", String(zIndex));
+      setStyles(root, { cursor: String(opts.cursor), top: "0px", left: "0px", "z-index": String(zIndex), position: "absolute", width: "100%", height: "100%", display: "flex", "align-items": "center", "justify-content": "center", overflow: "hidden", "box-sizing": "border-box", color: colors.text, font: "400 14px/1.5 system-ui, sans-serif" });
       const backdrop = document.createElement("div");
       backdrop.className = "daracl-cl-backdrop";
-      backdrop.style.setProperty("background", String(opts.bgColor));
-      backdrop.style.setProperty("opacity", String(opts.opacity));
+      setStyles(backdrop, { position: "absolute", background: opts.bgColor === DEFAULT_BG_COLOR ? colors.surface : String(opts.bgColor), opacity: String(opts.opacity), width: "100%", height: "100%", "z-index": "1" });
       const panel = document.createElement("div");
       panel.className = "daracl-cl-panel";
+      setStyles(panel, { "z-index": "10", "text-align": "center", margin: "0", position: "relative", "box-sizing": "border-box", "max-width": "calc(100% - 24px)", "max-height": "calc(100% - 24px)", overflow: "auto", display: "flex", "flex-direction": "column", "align-items": "center", gap: "12px", padding: "24px 28px", border: "1px solid " + colors.border, "border-radius": "16px", background: colors.surface, "box-shadow": colors.shadow });
       if (opts.loadingImg && isSafeImageUrl(opts.loadingImg)) {
         const image = document.createElement("img");
         image.className = "daracl-cl-image";
@@ -9600,11 +9845,7 @@
         image.setAttribute("alt", "로딩 중");
         panel.appendChild(image);
       } else {
-        const spinner = document.createElement("span");
-        spinner.className = "daracl-cl-image daracl-cl-spinner";
-        spinner.setAttribute("role", "img");
-        spinner.setAttribute("aria-label", "로딩 중");
-        panel.appendChild(spinner);
+        panel.appendChild(createSpinner(colors));
       }
       root.append(backdrop, panel);
       containerNode.insertAdjacentElement("afterbegin", root);
@@ -9632,8 +9873,10 @@
       if (!loadingElement) return;
       let existing = loadingElement.querySelector(".daracl-cl-content");
       if (!existing) {
-        existing = document.createElement("div");
-        existing.className = "daracl-cl-content";
+        const created = document.createElement("div");
+        created.className = "daracl-cl-content";
+        created.style.setProperty("overflow-wrap", "anywhere");
+        existing = created;
         const image = loadingElement.querySelector(".daracl-cl-image");
         if (!image) return;
         image.insertAdjacentElement("afterend", existing);
@@ -10718,18 +10961,20 @@
     const dataSource = opts.dataSource;
     if (opts.toolbar?.remote) {
       if (!dataSource?.load) {
-        throw new DataSourceError("CONFIG", "toolbar.remote requires dataSource.load");
-      }
-      if (!opts.toolbar.enabled) {
-        throw new DataSourceError("CONFIG", "toolbar.remote requires toolbar.enabled");
-      }
-      if (dataSource.toolbarParams === false) {
-        throw new DataSourceError("CONFIG", "toolbar.remote cannot be used with dataSource.toolbarParams false");
+        console.warn("[daracl-grid] toolbar.remote requires dataSource.load; toolbar.remote is disabled");
+        opts.toolbar.remote = false;
+      } else {
+        if (!opts.toolbar.enabled) {
+          opts.toolbar.enabled = true;
+        }
+        if (dataSource.toolbarParams === false) {
+          console.warn("[daracl-grid] toolbar.remote cannot be used with dataSource.toolbarParams false");
+        }
       }
     }
     if (!dataSource) return;
     if (dataSource.autoLoad && !dataSource.load) {
-      throw new DataSourceError("CONFIG", "dataSource.autoLoad requires dataSource.load");
+      console.warn("[daracl-grid] dataSource.autoLoad requires dataSource.load; autoLoad is skipped");
     }
     if (dataSource.sorting?.mode === "server" && (opts.tree || opts.groupingFields?.length)) {
       throw new DataSourceError("UNSUPPORTED", "server sorting cannot be used with tree or groupingFields");
@@ -10762,7 +11007,10 @@
         throw new DataSourceError("CONFIG", "server paging requires footer.enabled and footer.paging.enabled");
       }
       if (opts.footer.paging.callback) {
-        throw new DataSourceError("CONFIG", 'footer.paging.callback is managed by dataSource.paging when mode is "server"');
+        throw new DataSourceError(
+          "CONFIG",
+          'footer.paging.callback is managed by dataSource.paging when mode is "server"'
+        );
       }
       opts.footer.paging.callback = onPage;
       if (dataSource.paging.pageSize) {
@@ -10833,8 +11081,20 @@
      * 헤더에서 바뀐 정렬 상태로 첫 페이지부터 다시 조회한다. 마지막 조회 조건은 유지한다.
      * 조회할 수 없는 상태이면 loadError 이벤트로 알리고 reject 한다.
      */
-    sortRemote(options) {
-      return this.load(void 0, options);
+    async sortRemote(options, revert) {
+      const promise = this.load(void 0, options);
+      const ticket = this.loadTicket;
+      const rollback = () => {
+        if (revert && !this.destroyed && this.loadTicket === ticket) revert();
+      };
+      try {
+        const result = await promise;
+        if (result === null) rollback();
+        return result;
+      } catch (error) {
+        rollback();
+        throw error;
+      }
     }
     /** 헤더 정렬 상태를 서버 조회 조건으로 변환한다. 정렬이 없으면 빈 배열이다. */
     getSortParams() {
@@ -10933,6 +11193,7 @@
         else delete requestParams.sort;
       }
       const isCurrent = () => !this.destroyed && (seq === 0 || seq === this.loadSeq);
+      let stage = "before";
       try {
         if (!await this.emitBefore("beforeLoad", { operation: "load", params: requestParams })) {
           return null;
@@ -10942,26 +11203,37 @@
         this.loadAbort?.abort();
         seq = ++this.loadSeq;
         this.loadAbort = abort;
+        stage = "request";
         const result = normalizeLoadResult(await this.source.load(requestParams, abort.signal));
         if (!isCurrent()) return null;
         if (!append && !discard && dataManager.hasChanges()) {
-          throw new DataSourceError("UNSAVED_CHANGES", "Unsaved changes were made while loading; the result was discarded");
+          throw new DataSourceError(
+            "UNSAVED_CHANGES",
+            "Unsaved changes were made while loading; the result was discarded"
+          );
         }
+        stage = "apply";
+        const loadedCount = append ? this.loadedCount + result.items.length : result.items.length;
+        const reachedEnd = result.total !== void 0 ? loadedCount >= result.total : result.items.length < this.getPageSize();
+        if (append) this.gridMain.appendItems(result.items);
+        else this.applyLoadResult(result, page);
         this.lastParams = { ...params };
         this.queried = true;
         this.page = page;
         if (this.infinite) {
-          this.loadedCount = append ? this.loadedCount + result.items.length : result.items.length;
-          const reachedEnd = result.total !== void 0 ? this.loadedCount >= result.total : result.items.length < this.getPageSize();
+          this.loadedCount = loadedCount;
           this.hasMore = result.items.length > 0 && !reachedEnd;
         }
-        if (append) this.gridMain.appendItems(result.items);
-        else this.applyLoadResult(result, page);
-        this.emit("load", { operation: "load", params: requestParams, items: result.items, total: result.total ?? result.items.length });
+        this.emit("load", {
+          operation: "load",
+          params: requestParams,
+          items: result.items,
+          total: result.total ?? result.items.length
+        });
         if (this.infinite) void Promise.resolve().then(() => this.checkLoadMore());
         return result;
       } catch (error) {
-        const dsError = toDataSourceError(error);
+        const dsError = stage === "request" ? toDataSourceError(error) : toInternalError(error);
         if (!isCurrent() || dsError.code === "ABORT" && abort.signal.aborted) return null;
         if (append) this.retryAfter = Date.now() + 1e3;
         this.emit("loadError", { operation: "load", error: dsError });
@@ -11245,7 +11517,6 @@
           }
         });
       });
-      this.refreshRowWidths(rows);
     }
     initRenderer() {
       const items = this.toolbarOpts.items || [];
@@ -11281,100 +11552,63 @@
     createTemplate() {
       const scrollContainer = this.toolbarElement.querySelector(".dg-toolbar-scroll");
       if (!scrollContainer) return;
-      const measureContainer = document.createElement("div");
-      measureContainer.style.cssText = "position: absolute; visibility: hidden; display: flex;";
-      this.toolbarElement.appendChild(measureContainer);
       const fragment = document.createDocumentFragment();
       this.toolbarLayouts.forEach((row) => {
-        fragment.appendChild(this.createRow(row, measureContainer));
+        fragment.appendChild(this.createRow(row));
       });
       scrollContainer.appendChild(fragment);
-      measureContainer.remove();
     }
-    createRow(items, measureContainer) {
+    /**
+     * 행 생성. 위치(left, center, right)별 zone을 flex로 배치하며 폭 계산은 CSS가 처리한다.
+     */
+    createRow(items) {
       const row = document.createElement("div");
       if (items.length === 0) return row;
       row.className = "dg-toolbar-row";
       row.style.height = `${items[0].height}px`;
       const fragment = document.createDocumentFragment();
-      const layoutColumns = ["0px"];
       const positions = ["left", "center", "right"];
-      const validGroups = positions.map((position) => ({
-        position,
-        list: items.filter((item) => item.position === position)
-      })).filter((group) => group.list.length > 0);
-      validGroups.forEach((group, index) => {
-        const groupItem = group.list[0];
-        if (groupItem?.width) {
-          const width = normalizeCssLength(groupItem.width);
-          const targetColumnIndex = layoutColumns.length + 2;
-          layoutColumns.push("auto", width, "auto");
-          group.list.forEach((item) => {
-            this.createSection(item, targetColumnIndex, fragment, measureContainer);
-          });
-        } else {
-          const targetColumnIndex = layoutColumns.length + 1;
-          let sectionWidth = 0;
-          group.list.forEach((item) => {
-            sectionWidth = this.createSection(item, targetColumnIndex, fragment, measureContainer);
-          });
-          layoutColumns.push(`minmax(${sectionWidth}px, 1fr)`);
+      positions.forEach((position) => {
+        const list = items.filter((item) => item.position === position);
+        if (list.length === 0) return;
+        const zone = document.createElement("div");
+        zone.className = `dg-toolbar-zone dg-zone-${position}`;
+        if (list[0]?.width) {
+          const width = normalizeCssLength(list[0].width);
+          zone.classList.add("dg-zone-fixed");
+          zone.style.width = width;
+          zone.style.minWidth = width;
+          zone.style.maxWidth = width;
         }
-        if (index < validGroups.length - 1) {
-          layoutColumns.push("2px", "2px");
-        }
+        list.forEach((item) => {
+          zone.appendChild(this.createSection(item));
+        });
+        fragment.appendChild(zone);
       });
-      layoutColumns.push("0px");
-      row.style.gridTemplateColumns = layoutColumns.join(" ");
       row.appendChild(fragment);
       return row;
     }
-    createSection(item, layoutColIndex, parentFragment, measureContainer) {
+    createSection(item) {
       const section = document.createElement("div");
       section.className = `dg-toolbar-section dg-grid-area-${item.position}`;
-      section.style.gridArea = `1 / ${layoutColIndex} / span 1 / span 1`;
       this.setWidth(section, item.width ?? "");
       const fragment = document.createDocumentFragment();
-      const fieldsToMeasure = [];
       item.children.forEach((field) => {
         if (!field) return;
         if (field.renderer.type === "hidden") {
           field.$renderer.render(createHTMLElement("div"));
           return;
         }
-        const element = this.createField(field, 0);
-        fragment.appendChild(element);
-        fieldsToMeasure.push({
-          field,
-          el: element
-        });
+        fragment.appendChild(this.createField(field));
       });
-      if (fieldsToMeasure.length > 0) {
-        const measureFragment = document.createDocumentFragment();
-        const clones = [];
-        fieldsToMeasure.forEach(({ field, el }) => {
-          const clone = el.cloneNode(true);
-          measureFragment.appendChild(clone);
-          clones.push({
-            field,
-            clone
-          });
-        });
-        measureContainer.appendChild(measureFragment);
-        clones.forEach(({ field, clone }) => {
-          field.$width = clone.getBoundingClientRect().width;
-        });
-        measureContainer.innerHTML = "";
-      }
       section.appendChild(fragment);
-      const totalWidth = this.buildSectionLayout(section, item);
-      parentFragment.appendChild(section);
-      return totalWidth;
+      this.buildSectionLayout(section, item);
+      return section;
     }
+    /**
+     * 필드 사이 간격(gap)을 margin으로 반영한다. 숨김 필드는 간격 계산에서 제외한다.
+     */
     buildSectionLayout(sectionElement, item) {
-      const columns = ["0px"];
-      let currentColumnIndex = 2;
-      let totalWidth = 0;
       item.children.forEach((field, index) => {
         if (!field || field.renderer.type === "hidden") {
           return;
@@ -11406,32 +11640,15 @@
             afterGap = 4;
           }
         }
-        if (beforeGap > 0) {
-          columns.push(`${beforeGap}px`);
-          currentColumnIndex++;
-          totalWidth += beforeGap;
-        }
-        const trackWidth = field.width ? normalizeCssLength(field.width) : field.renderer.type === "button" ? "max-content" : "1fr";
-        columns.push(trackWidth);
-        fieldElement.style.gridArea = `1 / ${currentColumnIndex} / span 1 / span 1`;
-        currentColumnIndex++;
-        totalWidth += field.$width ?? 0;
-        if (afterGap > 0) {
-          columns.push(`${afterGap}px`);
-          currentColumnIndex++;
-          totalWidth += afterGap;
-        }
+        fieldElement.style.marginLeft = beforeGap > 0 ? `${beforeGap}px` : "";
+        fieldElement.style.marginRight = afterGap > 0 ? `${afterGap}px` : "";
       });
-      columns.push("0px");
-      sectionElement.style.gridTemplateColumns = columns.join(" ");
-      return totalWidth;
     }
-    createField(field, colIndex) {
+    createField(field) {
       const element = document.createElement("div");
       const { type: rendererType, required: isRequired } = field.renderer;
       const hasLabel = isRequired === true || rendererType !== "label" && rendererType !== "button" && !!field.label;
       element.className = `dg-toolbar-field dg-type-${rendererType} ${hasLabel ? "dg-group" : ""}`;
-      element.style.gridArea = `1 / ${colIndex} / span 1 / span 1`;
       element.dataset.uid = field.$uid;
       element.innerHTML = hasLabel ? `
           <span class="dg-label ${isRequired ? "dg-required" : ""}">${xss(String(field.label))}</span>
@@ -11454,24 +11671,6 @@
         element.style.minWidth = "initial";
         element.style.maxWidth = "initial";
       }
-    }
-    refreshRowWidths(rows) {
-      const rowsScrollWidths = rows.map((row) => {
-        const sections = Array.from(row.querySelectorAll(".dg-toolbar-section"));
-        return sections.map((section) => section.scrollWidth);
-      });
-      rows.forEach((row, rowIndex) => {
-        const widths = rowsScrollWidths[rowIndex];
-        const columns = ["0px"];
-        widths.forEach((width, index) => {
-          columns.push(`minmax(${width}px, 1fr)`);
-          if (index < widths.length - 1) {
-            columns.push("2px", "2px");
-          }
-        });
-        columns.push("0px");
-        row.style.gridTemplateColumns = columns.join(" ");
-      });
     }
   }
   class ToolbarScroll {
@@ -12427,6 +12626,11 @@
         this.pagingInfoElement = footerElement.findDaraElement(".dg-paging-info");
         this.paingElement.addClass(AlignStyleMap[this.footerOpts.paging?.position ?? "center"]);
         this.pagingInfoElement.addClass(AlignStyleMap[this.footerOpts.paging?.formatPosition ?? "center"]);
+        const hideSelectionStatus = !(this.isSelectionInfo && this.footerOpts.selection?.showSummary);
+        const hidePagingFormat = this.footerOpts.paging?.format === false;
+        if (hideSelectionStatus && hidePagingFormat) {
+          footerElement.addClass("dg-paging-full");
+        }
         this.setPagingTemplate(this.cfg.paging);
         this.initPagingEvent();
       }
@@ -12723,14 +12927,17 @@
       this.scrollDirectionY = moveYInfo.scrollDirectionY;
       if (this.beforeEndIdx === moveRange.endIdx && this.beforeEndCol === moveRange.endCol) return;
       if (hasMove) {
+        const changeRange = {};
+        if (moveRange.endIdx > -1) changeRange.endIdx = moveRange.endIdx;
+        if (moveRange.endCol > -1) changeRange.endCol = moveRange.endCol;
         this.selectionInfo.setSelectionRangeInfo(
-          { range: moveRange },
+          { range: changeRange },
           false,
           this.scrollDirectionX === null && this.scrollDirectionY === null
         );
       }
-      this.beforeEndCol = moveRange.endCol ?? -1;
-      this.beforeEndIdx = moveRange.endIdx ?? -1;
+      this.beforeEndCol = moveRange.endCol;
+      this.beforeEndIdx = moveRange.endIdx;
       if ((this.scrollDirectionX || this.scrollDirectionY) && this.dragAnimationId === 0) {
         this.startAutoScroll();
       }
@@ -15759,6 +15966,28 @@
       const sortElements = headerElement.finds(".dg-sort-icon");
       const headerCellElements = this.header.getHeaderCellElements();
       let beforeSortOrderLength = 0;
+      const createSortSnapshot = () => {
+        const orders = sortOrders.map((item) => ({ ...item }));
+        const icons = sortElements.map((el) => el.getAttribute("data-dg-sort"));
+        const nums = headerElement.finds(".dg-sort-num").map((el) => ({
+          el,
+          text: el.textContent ?? ""
+        }));
+        const length = beforeSortOrderLength;
+        return () => {
+          sortOrders.length = 0;
+          orders.forEach((item) => sortOrders.push({ ...item }));
+          sortElements.forEach((el, index) => {
+            const sort = icons[index];
+            if (sort === null) el.removeAttribute("data-dg-sort");
+            else el.setAttribute("data-dg-sort", sort);
+          });
+          nums.forEach(({ el, text }) => {
+            el.textContent = text;
+          });
+          beforeSortOrderLength = length;
+        };
+      };
       eventManager.off(sortElements, "pointerdown");
       eventManager.on(
         { el: sortElements, type: "pointerdown" },
@@ -15774,6 +16003,7 @@
             remote.sortRemote().catch(() => void 0);
             return;
           }
+          const revertSort = remote ? createSortSnapshot() : void 0;
           const sortCell = intValue(
             currentElement.closest(".dg-header-cell")?.dataset.headerCellPosition ?? "0"
           );
@@ -15816,7 +16046,7 @@
           }
           beforeSortOrderLength = sortOrders.length;
           if (remote) {
-            remote.sortRemote().catch(() => void 0);
+            remote.sortRemote(void 0, revertSort).catch(() => void 0);
             return;
           }
           dataManager.dataSort(sortOrders, sortOpts);
@@ -16254,11 +16484,29 @@
   }
   class HorizontalScroll {
     constructor(gridMain, scroll, horizontalElement) {
+      this.repeatTimers = /* @__PURE__ */ new Set();
       this.gridMain = gridMain;
       this.scrollOpts = this.gridMain.options().scroll;
       this.horizontalElement = horizontalElement;
       this.horizontalTrackElement = horizontalElement.findDaraElement(".dg-scroll-track");
       this.horizontalThumbElement = horizontalElement.findDaraElement(".dg-scroll-thumb");
+    }
+    startRepeat(callback, delay) {
+      const id = setInterval(callback, delay);
+      this.repeatTimers.add(id);
+      return id;
+    }
+    stopRepeat(id) {
+      if (id === void 0) return;
+      clearInterval(id);
+      this.repeatTimers.delete(id);
+    }
+    clearRepeatTimers() {
+      this.repeatTimers.forEach((id) => clearInterval(id));
+      this.repeatTimers.clear();
+    }
+    destroy() {
+      this.clearRepeatTimers();
     }
     /**
      * horizontal event 초기화
@@ -16407,7 +16655,8 @@
           oneColMove = cfg.scroll.oneColMove;
           bgMoveCol = oneColMove * scrollOpts.horizontal.speed * 2;
           leftFlag = startEventX < cfg.scroll.left;
-          horizontalScrollTimer = setInterval(() => {
+          this.stopRepeat(horizontalScrollTimer);
+          horizontalScrollTimer = this.startRepeat(() => {
             bgMoveMode = 2;
             this.moveHorizontalScroll({
               position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol)
@@ -16419,7 +16668,7 @@
       eventManager.on({ el: horizontalTrackElement, type: "mouseup touchend touchcancel mouseleave" }, (e) => {
         if (bgMoveMode == 0) return;
         stopPreventCancel(e);
-        clearTimeout(horizontalScrollTimer);
+        this.stopRepeat(horizontalScrollTimer);
         if (bgMoveMode == 1) {
           this.moveHorizontalScroll({
             position: this.getHorizontalBgMovePostion(cfg, startEventX, oneColMove, leftFlag, bgMoveCol)
@@ -16447,7 +16696,8 @@
           const mode = eqAttributeValue(e.currentTarget, "data-dg-mode", "left");
           buttonMoveMode = 1;
           this.gridMain.hideLayer();
-          scrollBtnTimer = setInterval(() => {
+          this.stopRepeat(scrollBtnTimer);
+          scrollBtnTimer = this.startRepeat(() => {
             buttonMoveMode = 2;
             this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
           }, vBtnDelay);
@@ -16459,7 +16709,7 @@
           const mode = eqAttributeValue(e.currentTarget, "data-dg-mode", "left");
           this.moveHorizontalScroll({ direction: mode ? ScrollDirectionXMap.LEFT : ScrollDirectionXMap.RIGHT });
         }
-        clearInterval(scrollBtnTimer);
+        this.stopRepeat(scrollBtnTimer);
         buttonMoveMode = 0;
       });
     }
@@ -16616,6 +16866,7 @@
   }
   class VerticalScroll {
     constructor(gridMain, scroll, verticalElement) {
+      this.repeatTimers = /* @__PURE__ */ new Set();
       this.bodyDrawPending = false;
       this.bodyDrawAnimationId = 0;
       this.lastThumbTop = -1;
@@ -16624,6 +16875,20 @@
       this.verticalElement = verticalElement;
       this.verticalTrackElement = verticalElement.findDaraElement(".dg-scroll-track");
       this.verticalThumbElement = verticalElement.findDaraElement(".dg-scroll-thumb");
+    }
+    startRepeat(callback, delay) {
+      const id = setInterval(callback, delay);
+      this.repeatTimers.add(id);
+      return id;
+    }
+    stopRepeat(id) {
+      if (id === void 0) return;
+      clearInterval(id);
+      this.repeatTimers.delete(id);
+    }
+    clearRepeatTimers() {
+      this.repeatTimers.forEach((id) => clearInterval(id));
+      this.repeatTimers.clear();
     }
     /**
      * vertical event 초기화
@@ -16716,7 +16981,8 @@
           bgMoveRow = oneRowMove * scrollOpts.vertical.speed * 5;
           upFlag = startEventY < cfg.scroll.top;
           const vthumHeightHalf = cfg.scroll.vThumbHeight / 2;
-          verticalScrollTimer = setInterval(() => {
+          this.stopRepeat(verticalScrollTimer);
+          verticalScrollTimer = this.startRepeat(() => {
             bgMoveMode = 2;
             this.moveVerticalScroll({
               position: this.getVerticalBgMovePostion(
@@ -16733,7 +16999,7 @@
       );
       eventManager.on({ el: verticalTrackElement, type: "mouseup touchend mouseleave" }, (e) => {
         if (bgMoveMode == 0) return;
-        clearInterval(verticalScrollTimer);
+        this.stopRepeat(verticalScrollTimer);
         stopPreventCancel(e);
         if (bgMoveMode == 1) {
           this.moveVerticalScroll({
@@ -16757,7 +17023,8 @@
           const mode = eqAttributeValue(e.currentTarget, "data-dg-mode", "up");
           this.gridMain.hideLayer();
           buttonMoveMode = 1;
-          scrollBtnTimer = setInterval(() => {
+          this.stopRepeat(scrollBtnTimer);
+          scrollBtnTimer = this.startRepeat(() => {
             buttonMoveMode = 2;
             this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
           }, vBtnDelay);
@@ -16769,7 +17036,7 @@
           const mode = eqAttributeValue(e.currentTarget, "data-dg-mode", "up");
           this.moveVerticalScroll({ direction: mode ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN });
         }
-        clearInterval(scrollBtnTimer);
+        this.stopRepeat(scrollBtnTimer);
         buttonMoveMode = 0;
       });
     }
@@ -16933,6 +17200,7 @@
       });
     }
     destroy() {
+      this.clearRepeatTimers();
       if (this.bodyDrawAnimationId !== 0) cancelAnimationFrame(this.bodyDrawAnimationId);
       this.bodyDrawAnimationId = 0;
       this.bodyDrawPending = false;
@@ -16987,6 +17255,7 @@
       this.pendingVerticalDelta = 0;
       this.pendingHorizontalDelta = 0;
       this.verticalScroll?.destroy();
+      this.horizontalScroll?.destroy();
     }
     /**
      * 스크롤을 초기화한다.
@@ -17832,6 +18101,47 @@
       }
     }
   }
+  function applyGridTheme(cfg, layoutElement, themeName) {
+    const theme = themeName ? GRID_THEME[themeName] : "";
+    if (themeName && !theme) return;
+    if (cfg.theme === theme) return;
+    cfg.theme = theme;
+    const rootElement = layoutElement.getElement().closest(".daracl-grid");
+    if (!rootElement) return;
+    if (theme) {
+      rootElement.setAttribute("data-daracl-theme", theme);
+    } else {
+      rootElement.removeAttribute("data-daracl-theme");
+    }
+  }
+  function applyBodyStyle(layoutElement, styleName) {
+    if (!BODY_STYLE[styleName]) return;
+    const otherStyles = Object.values(BODY_STYLE).filter((value) => value !== styleName).map((value) => `dg-style-${value}`);
+    const newStyle = "dg-style-" + BODY_STYLE[styleName];
+    layoutElement.removeClass(...otherStyles);
+    if (!layoutElement.hasClass(newStyle)) {
+      layoutElement.addClass(newStyle);
+    }
+  }
+  function collectCheckedItems(dataManager, names) {
+    const exportNames = isUndefined(names) ? void 0 : isArray$1(names) ? names : [names];
+    const checkItems = [];
+    for (const viewItem of dataManager.getViewItems()) {
+      const rowId = viewItem.id;
+      if (!dataManager.isItemChecked(rowId)) continue;
+      const rowItem = dataManager.getRowItem(rowId);
+      if (!exportNames) {
+        checkItems.push(rowItem);
+        continue;
+      }
+      const checkItem = {};
+      for (const name of exportNames) {
+        checkItem[name] = rowItem[name];
+      }
+      checkItems.push(checkItem);
+    }
+    return checkItems;
+  }
   const SCROLL_MODE = ["none", "horizontal", "vertical", "both"];
   let DARA_GRID_SEQ = 0;
   let INIT_GRID_GLOBAL_EVNET = false;
@@ -17895,7 +18205,7 @@
       this.initMainView();
       this.initEvent();
       this.initDocumentGlobalEvent();
-      if (opts.dataSource?.autoLoad) {
+      if (opts.dataSource?.autoLoad && opts.dataSource.load) {
         const remote = this.remote;
         void Promise.resolve().then(() => remote?.load()).catch(() => void 0);
       }
@@ -18457,7 +18767,7 @@
     /**
      * item을 삭제
      *
-     * @param {any[]} ids rowId
+     * @param {RowId[]} ids rowId
      */
     removeItems(ids) {
       const cfg = this.cfg;
@@ -18479,35 +18789,7 @@
      * @returns {array} checked item array
      */
     getCheckedItems(names) {
-      const { dataManager } = this.cfg;
-      const viewItems = dataManager.getViewItems();
-      const checkItems = [];
-      let exportNames = [];
-      let isAll = false;
-      if (isUndefined(names)) {
-        isAll = true;
-      } else if (isArray$1(names)) {
-        exportNames = names;
-      } else {
-        exportNames = [names];
-      }
-      for (const viewItem of viewItems) {
-        const rowId = viewItem.id;
-        if (dataManager.isItemChecked(rowId)) {
-          const rowItem = dataManager.getRowItem(rowId);
-          let checkItem;
-          if (isAll) {
-            checkItem = rowItem;
-          } else {
-            checkItem = {};
-            for (const name of exportNames) {
-              checkItem[name] = rowItem[name];
-            }
-          }
-          checkItems.push(checkItem);
-        }
-      }
-      return checkItems;
+      return collectCheckedItems(this.cfg.dataManager, names);
     }
     /**
      * get check items
@@ -18577,18 +18859,7 @@
      *                    (해제되면 상위 요소의 data-daracl-theme 속성, 없으면 기본 테마를 따른다.)
      */
     setTheme(themeName) {
-      const theme = themeName ? GRID_THEME[themeName] : "";
-      if (themeName && !theme) return;
-      const cfg = this.cfg;
-      if (cfg.theme === theme) return;
-      cfg.theme = theme;
-      const rootElement = this.layoutElement.getElement().closest(".daracl-grid");
-      if (!rootElement) return;
-      if (theme) {
-        rootElement.setAttribute("data-daracl-theme", theme);
-      } else {
-        rootElement.removeAttribute("data-daracl-theme");
-      }
+      applyGridTheme(this.cfg, this.layoutElement, themeName);
     }
     /**
      * 그리드 스타일 변경
@@ -18600,16 +18871,7 @@
      *
      */
     setGridStyle(styleName) {
-      if (!BODY_STYLE[styleName]) {
-        return;
-      }
-      const values = Object.values(BODY_STYLE).filter((value) => value !== styleName).map((value) => `dg-style-${value}`);
-      const layoutElement = this.layoutElement;
-      const newStyle = "dg-style-" + BODY_STYLE[styleName];
-      layoutElement.removeClass(...values);
-      if (!layoutElement.hasClass(newStyle)) {
-        layoutElement.addClass(newStyle);
-      }
+      applyBodyStyle(this.layoutElement, styleName);
     }
     /**
      * tree 확장
@@ -19825,7 +20087,7 @@
       this.gridMain.destroy();
     }
   };
-  _DaraGrid.VERSION = `${"0.0.29"}`;
+  _DaraGrid.VERSION = `${"0.0.37"}`;
   let DaraGrid = _DaraGrid;
   if (typeof window !== "undefined") {
     window.Daracl = window.Daracl || {};

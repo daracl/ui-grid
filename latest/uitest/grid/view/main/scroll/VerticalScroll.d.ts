@@ -6,6 +6,10 @@ import { ScrollMoveOptions } from '../../../types/Scroll.js';
  * vertical event
  */
 export declare class VerticalScroll {
+    private readonly repeatTimers;
+    private startRepeat;
+    private stopRepeat;
+    private clearRepeatTimers;
     private readonly gridMain;
     private readonly scrollOpts;
     private readonly verticalElement;

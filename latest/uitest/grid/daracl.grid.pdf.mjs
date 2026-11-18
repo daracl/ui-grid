@@ -14,6 +14,7 @@ function downloadExport(blob, fileName, defaultFileName, extension) {
     setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS);
   }
 }
+/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function isBytes$2(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
 }
@@ -881,6 +882,7 @@ try {
   tds = 1;
 } catch (e) {
 }
+/*! noble-ciphers - MIT License (c) 2023 Paul Miller (paulmillr.com) */
 function isBytes$1(a) {
   return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
 }
@@ -2268,16 +2270,19 @@ function _define_property(obj, key, value) {
   } else obj[key] = value;
   return obj;
 }
-function __decorate(decorators, target, key, desc) {
+function _ts_decorate(decorators, target, key, desc) {
   var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-  else for (var i2 = decorators.length - 1; i2 >= 0; i2--) if (d = decorators[i2]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+  if (typeof Reflect === "object" && typeof Reflect.decorate === "function") {
+    r = Reflect.decorate(decorators, target, key, desc);
+  } else {
+    for (var i2 = decorators.length - 1; i2 >= 0; i2--) {
+      if (d = decorators[i2]) {
+        r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+      }
+    }
+  }
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
-typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
 function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
@@ -11756,10 +11761,10 @@ class $f08dd41ef10b694c$export$2e2bcd8739ae039 {
     if (this.uvs && this.uvs.version !== 14) this.uvs = null;
   }
 }
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f08dd41ef10b694c$export$2e2bcd8739ae039.prototype, "getCharacterSet", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f08dd41ef10b694c$export$2e2bcd8739ae039.prototype, "codePointsForGlyph", null);
 class $0bba3a9db57637f3$export$2e2bcd8739ae039 {
@@ -12868,7 +12873,7 @@ class $ff5ce077dae0f144$export$2e2bcd8739ae039 {
     this.table = table;
   }
 }
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $ff5ce077dae0f144$export$2e2bcd8739ae039.prototype, "glyphsForValue", null);
 const $50c7aac9316f2948$var$START_OF_TEXT_STATE = 0;
@@ -13167,7 +13172,7 @@ class $55f71433a605c87d$export$2e2bcd8739ae039 {
     this.inputCache = null;
   }
 }
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $55f71433a605c87d$export$2e2bcd8739ae039.prototype, "getStateMachine", null);
 function $55f71433a605c87d$var$swap(glyphs, rangeA, rangeB, reverseA = false, reverseB = false) {
@@ -16333,22 +16338,22 @@ class $f92906be28e61769$export$2e2bcd8739ae039 {
     this.isLigature = this.codePoints.length > 1;
   }
 }
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "cbox", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "bbox", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "path", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "advanceWidth", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "advanceHeight", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $f92906be28e61769$export$2e2bcd8739ae039.prototype, "name", null);
 let $69aac16029968692$var$GlyfHeader = new Struct({
@@ -18202,25 +18207,25 @@ class $4c1709dee528ea76$export$2e2bcd8739ae039 {
     }
   }
 }
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "bbox", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "_cmapProcessor", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "characterSet", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "_layoutEngine", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "variationAxes", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "namedVariations", null);
-__decorate([
+_ts_decorate([
   $e71565f2ce09cb6b$export$69a3209f1a06c04d
 ], $4c1709dee528ea76$export$2e2bcd8739ae039.prototype, "_variationProcessor", null);
 let $c1726355ecc5b889$var$WOFFDirectoryEntry = new Struct({

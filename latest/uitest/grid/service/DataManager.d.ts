@@ -170,6 +170,7 @@ export declare abstract class DataManager {
     /** 사용자 정렬 결과를 원래 ViewItem에 연결하여 트리·그룹 메타데이터를 보존한다. */
     protected sortItems(source: ViewItem[], sortOrders: FieldSortInfo[], sortOpts: SortOption): ViewItem[];
     abstract getSortData(sortOrders: FieldSortInfo[], options: SortOption): ViewItem[];
+    protected filterInputItems(items: any[], append?: boolean, childrenField?: string, treeIdField?: string): any[];
     protected initializeRowItem(item: any, depth?: number, status?: string): any;
     getViewItemIndex(id: RowId): number;
     /**
@@ -305,7 +306,7 @@ export declare abstract class DataManager {
      * 신규 행의 Redo 위치는 View 동기화 단계에서 정합니다.
      */
     protected applyAddHistory(change: AddHistoryChange, undo: boolean): void;
-    protected addHistory(rowId: RowId, item: any): void;
+    protected addHistory(rowId: RowId, item: any, viewItem?: ViewItem, index?: number): void;
     protected removeHistory(rowId: RowId, viewItem: ViewItem, index: number): void;
     /**
      * 삭제된 row History 적용

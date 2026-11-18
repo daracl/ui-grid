@@ -1,0 +1,399 @@
+const koreanFoods = [
+  { name: '김치찌개', cd: 'kimchi_stew' },
+  { name: '비빔밥', cd: 'bibimbap' },
+  { name: '불고기', cd: 'bulgogi' },
+  { name: '된장찌개', cd: 'doenjang_stew' },
+  { name: '잡채', cd: 'japchae' },
+];
+
+const americanFoods = [
+  { name: '햄버거', cd: 'hamburger' },
+  { name: '핫도그', cd: 'hotdog' },
+  { name: '바비큐 립', cd: 'bbq_ribs' },
+  { name: '클램 차우더', cd: 'clam_chowder' },
+  { name: '치킨 윙', cd: 'chicken_wings' },
+];
+
+const chineseFoods = [
+  { name: '짜장면', cd: 'zhajiangmian' },
+  { name: '탕수육', cd: 'tangsuyuk' },
+  { name: '마파두부', cd: 'mapo_tofu' },
+  { name: '양장피', cd: 'yangjangpi' },
+  { name: '깐풍기', cd: 'kanpunggi' },
+];
+
+const japaneseFoods = [
+  { name: '스시', cd: 'sushi', disabled: true },
+  { name: '라멘', cd: 'ramen' },
+  { name: '돈카츠', cd: 'tonkatsu' },
+  { name: '우동', cd: 'udon' },
+  { name: '오코노미야키', cd: 'okonomiyaki' },
+];
+
+const allFoods = [...koreanFoods, ...americanFoods, ...chineseFoods, ...japaneseFoods];
+
+function generateItems(itemCount, batchSize = 500) {
+  const items = [];
+  let i = 0;
+
+  function processBatch() {
+    const end = Math.min(i + batchSize, itemCount);
+
+    const nationalCodes = ['ko', 'en', 'zh', 'jp'];
+
+    for (; i < end; i++) {
+      items.push({
+        a: businessProduct(i),
+        b: businessOrder(i),
+        c: (i + 1) * 12000,
+        d: nationalCodes[Math.floor(Math.random() * nationalCodes.length)],
+        e: `<span style="width:100px;height:150px;"><a href="javascript:alert('row'+ ${i});">주문 상세 ${
+          i + 1
+        }</a><br><span>${i}</span></span>`,
+        f: ['영업팀', '물류팀', '구매팀'][i % 3],
+        g: businessCustomer(i),
+        h: i,
+        i: 'SKU-' + String(i + 1).padStart(5, '0'),
+        j: businessStatus(i),
+        k: i % 2 === 0 ? 'Y' : 'N',
+        m: businessNote(i),
+        s: generateRandomNumbers(1, 100, 6),
+        t: generateRandomNumbers(1, 100, 6),
+        z: Math.floor(Math.random() * 201) - 100,
+        idx: i,
+      });
+    }
+
+    if (i < itemCount) {
+      setTimeout(processBatch, 0); // 다음 배치 처리
+    }
+  }
+
+  processBatch();
+  return items;
+}
+
+var itemIdx = 0;
+
+function getItem(type, itemCount, cellCount) {
+  itemIdx++;
+  let items = [];
+  let fields = [];
+
+  const orginItemCount = 500;
+
+  if (type == 1) {
+    items = generateItems(itemCount, 1000);
+    fields = [
+      {
+        label: 'a+b',
+        children: [
+          { name: 'a', label: '에이에이에이에이에이에이', width: 50, sort: true, editable: false },
+          {
+            name: 'b',
+            label: '비',
+            width: 100,
+            cellClassName: function (rowInfo) {
+              const rowIdx = rowInfo.rowIdx;
+              if (rowIdx % 3 == 0) {
+                return 'dg-primary';
+              } else if (rowIdx % 3 == 1) {
+                return 'dg-success';
+              } else if (rowIdx % 3 == 2) {
+                return '';
+              }
+            },
+            editRenderer: {
+              type: 'text',
+              required: true,
+              regexpType: 'email',
+              rule: {
+                minLength: 0,
+                maxLength: 50,
+              },
+            },
+          },
+          {
+            name: 'z',
+            label: 'bar',
+            width: 50,
+            sort: true,
+            headerTooltip: {
+              enabled: true,
+              content: (header) => {
+                const field = header.field;
+                //console.log(field);
+                return `<div>name : ${field.name}</div><div>label : ${field.label}</div>`;
+              },
+            },
+            renderer: {
+              type: 'bar',
+              rule: {
+                minimum: -100,
+                maximum: 100,
+              },
+            },
+            editRenderer: {
+              type: 'number',
+              rule: {
+                minimum: -100,
+                maximum: 100,
+              },
+            },
+          },
+        ],
+      },
+      {
+        name: 's',
+        label: 'sparklineBar',
+        width: 100,
+        headerTooltip: { enabled: false },
+        renderer: {
+          type: 'sparklineBar',
+          //,url : 'http://localhost?aaa={{a}}'
+          refValue: (field, value, rowItem) => {
+            //console.log(field, value, rowItem);
+            return { value: value };
+          },
+          click: function (item) {
+            console.log('link ', item);
+          },
+        },
+      },
+      {
+        name: 't',
+        label: 'sparkline',
+        width: 100,
+        headerTooltip: {
+          enabled: true,
+          content: `sparkline : tooltip <br> <span style="color:red;">경고</span>`,
+        },
+        renderer: {
+          type: 'sparkline',
+          //,url : 'http://localhost?aaa={{a}}'
+          refValue: (field, value, rowItem) => {
+            //console.log(field, value, rowItem);
+            return { value: value };
+          },
+          click: function (item) {
+            console.log('sparkline ', item);
+          },
+        },
+      },
+      {
+        name: 'c',
+        label: 'link',
+        width: 60,
+        editable: false,
+        renderer: {
+          type: 'link',
+
+          refValue: (field, value, rowItem) => {
+            //console.log(field, value, rowItem);
+            return { label: value, disabled: true, hide: rowItem.c === 10000 };
+          },
+          click: function (item) {
+            console.log('link ', item);
+          },
+        },
+      },
+      {
+        name: 'm',
+        label: 'password',
+        width: 70,
+        renderer: {
+          type: 'password',
+        },
+        editRenderer: {
+          type: 'password',
+        },
+      },
+      {
+        name: 'h',
+        label: 'number',
+        width: 60,
+        align: 'right',
+        renderer: {
+          type: 'number',
+        },
+        editRenderer: {
+          type: 'number',
+          rule: {
+            minimum: -100,
+            maximum: 100,
+          },
+        },
+      },
+      {
+        name: 'k',
+        label: 'switch-box',
+        width: 100,
+        editable: false,
+        editRenderer: {
+          type: 'switch',
+          variant: 'box',
+          trueValue: 'Y',
+          falseValue: 'N',
+          showLabel: true,
+        },
+      },
+      {
+        name: 'k',
+        //editable: false,
+        label: 'switch',
+        width: 60,
+        editRenderer: {
+          type: 'switch',
+          trueValue: 'Y',
+          falseValue: 'N',
+          // showLabel: true
+        },
+      },
+      {
+        name: 'd',
+        label: 'dropdown',
+        editable: true,
+        width: 100,
+        renderer: 'dropdown',
+        editRenderer: {
+          type: 'dropdown',
+          listItem: {
+            labelField: 'name',
+            valueField: 'cd',
+            list: [
+              { name: 'KOREA', cd: 'ko' },
+              { name: 'USA', cd: 'en' },
+              { name: 'CHINA', cd: 'zh' },
+              { name: 'JAPAN', cd: 'jp' },
+            ],
+          },
+        },
+      },
+      {
+        name: 'cc',
+        label: 'dropdownz',
+        width: 100,
+        type: 'text',
+        renderer: 'text',
+        editRenderer: {
+          type: 'dropdown',
+          listItem: {
+            labelField: 'name',
+            valueField: 'cd',
+            multiple: true,
+            list: (cellInfo, callback) => {
+              const item = cellInfo.item;
+
+              if (typeof item === 'undefined') {
+                callback(allFoods);
+                return;
+              }
+              const dValue = item.d;
+
+              let foods = [];
+
+              if (dValue == 'en') {
+                foods = americanFoods;
+              } else if (dValue == 'zh') {
+                foods = chineseFoods;
+              } else if (dValue == 'jp') {
+                foods = japaneseFoods;
+              } else {
+                foods = koreanFoods;
+              }
+
+              callback(foods);
+            },
+          },
+        },
+      },
+      {
+        name: 'e',
+        label: 'html',
+        width: 100,
+        renderer: {
+          type: 'html',
+        },
+      },
+      {
+        name: 'eeee',
+        label: 'html22',
+        width: 100,
+        renderer: {
+          type: 'html',
+          refValue(field, value, rowItem) {
+            //console.log(rowItem);
+            return 'aaffe' + rowItem['e'];
+          },
+        },
+        getValue(obj) {
+          const item = obj.item;
+          return item['e'];
+        },
+      },
+      {
+        name: 'f',
+        label: 'button',
+        width: 100,
+        renderer: {
+          type: 'button',
+          variant: 'primary',
+          label: 'button click',
+          click: function (info) {
+            console.log('button click', info);
+          },
+        },
+      },
+      {
+        name: 'g',
+        label: 'image',
+        width: 100,
+        align: 'left',
+        visible: false,
+        renderer: {
+          type: 'image',
+          refValue: (field, value, rowItem) => {
+            //console.log(field, value, rowItem);
+            return { src: '/asset/flags/south_korea.png', label: value };
+          },
+        },
+      },
+
+      {
+        name: 'z1',
+        label: 'custom value',
+        width: 100,
+        align: 'left',
+        visible: false,
+        getValue(rowItem) {
+          return rowItem.item['h'];
+        },
+      },
+
+      //,{key :'d', label:'디', hidden:true}
+    ];
+  }
+
+  items = orginItemCount == 0 ? [] : items;
+
+  return {
+    items: items,
+    fields: fields,
+  };
+}
+
+function generateRandomNumbers(start, end, count) {
+  if (start > end) {
+    throw new Error('시작 값은 끝 값보다 작거나 같아야 합니다.');
+  }
+  if (count <= 0) {
+    throw new Error('생성할 숫자의 개수는 1 이상이어야 합니다.');
+  }
+
+  const result = [];
+  for (let i = 0; i < count; i++) {
+    const random = Math.floor(Math.random() * (end - start + 1)) + start;
+    result.push(random);
+  }
+  return result;
+}

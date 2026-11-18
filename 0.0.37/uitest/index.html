@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DaraGrid UI 예제 모음</title>
+    <link rel="stylesheet" href="./asset/examples.css" />
+  <link rel="stylesheet" href="./grid/daracl.grid.css" /><meta name="robots" content="noindex, follow" /></head>
+  <body class="catalog-page">
+    <header class="catalog-header">
+      <div>
+        <span>DaraGrid / UI TESTS</span>
+        <h1>예제 탐색기</h1>
+      </div>
+      <a href="./builder/builder.html">그리드 빌더 →</a>
+    </header>
+    <main class="catalog-layout">
+      <aside class="catalog-sidebar" aria-label="예제 목록">
+        <label for="fileSearch">예제 검색</label>
+        <input id="fileSearch" type="search" placeholder="제목 또는 파일명으로 검색" autocomplete="off" />
+        <p id="fileCount" role="status" aria-live="polite"></p>
+        <nav id="fileList" aria-label="HTML 예제 목록"></nav>
+      </aside>
+      <section class="catalog-preview" aria-label="선택한 예제 실행 화면">
+        <div class="catalog-toolbar">
+          <div>
+            <strong id="currentFile">demo.html</strong><span id="previewStatus" role="status" aria-live="polite"></span>
+          </div>
+          <div>
+            <button id="reload" type="button">새로고침</button
+            ><a id="openPage" href="./demo.html" target="_blank" rel="noopener noreferrer">새 탭에서 열기 ↗</a>
+          </div>
+        </div>
+        <iframe id="exampleFrame" title="DaraGrid 예제 미리보기"></iframe>
+      </section>
+    </main>
+    <script type="module" src="./asset/catalog.js"></script>
+  </body>
+</html>

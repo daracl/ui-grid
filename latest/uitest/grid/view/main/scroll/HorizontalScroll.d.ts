@@ -7,6 +7,11 @@ import { ScrollMoveOptions } from '../../../types/Scroll.js';
  * horizontal scroll event
  */
 export declare class HorizontalScroll {
+    private readonly repeatTimers;
+    private startRepeat;
+    private stopRepeat;
+    private clearRepeatTimers;
+    destroy(): void;
     private readonly gridMain;
     private readonly scrollOpts;
     private readonly horizontalElement;

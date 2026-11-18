@@ -29,6 +29,9 @@ export interface AddHistoryChange {
     type: 'add';
     rowId: RowId;
     item: any;
+    viewItem?: ViewItem;
+    index?: number;
+    localOnly?: boolean;
 }
 /**
  * 행 삭제 정보입니다.
@@ -40,6 +43,7 @@ export interface RemoveHistoryChange {
     viewItem?: ViewItem;
     index?: number;
     checked?: boolean;
+    localOnly?: boolean;
 }
 export type HistoryChange = UpdateHistoryChange | AddHistoryChange | RemoveHistoryChange;
 /**

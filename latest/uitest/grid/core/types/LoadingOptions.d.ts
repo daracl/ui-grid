@@ -1,5 +1,5 @@
 export interface LoadingOptions {
-  /** 기본값 auto는 시스템 설정 또는 상위 .dark/.light, data-theme 속성을 따릅니다. 공유 화면은 최초 생성자의 테마를 사용합니다. */
+  /** 기본값 auto는 시스템 설정 또는 상위 요소의 data-daracl-theme(light|dark) 속성을 따릅니다. 공유 화면은 최초 생성자의 테마를 사용합니다. */
   theme?: "auto" | "light" | "dark";
   /**
    * 사라지는 시간(밀리초).

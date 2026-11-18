@@ -15,5 +15,4 @@ export declare class TextAreaRenderer extends TextAbstractRenderer {
     constructor(field: FieldItem, gridMain: GridMain);
     render(cellInfo: CellInfo, element: HTMLElement): void;
     getElementValue(): string;
-    valid(value: string): any;
 }

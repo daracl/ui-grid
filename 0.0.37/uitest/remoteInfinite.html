@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./asset/examples.css" />
+    <title>서버 연동 - 무한 스크롤 (infinite paging)</title>
+  <link rel="stylesheet" href="./grid/daracl.grid.css" /><meta name="robots" content="noindex, follow" /></head>
+
+  <body class="example-page"><p role="note">Static demo: requests use in-memory sample data; refresh resets changes. 실제 HTTP 요청은 ui-grid 개발 서버에서 확인하세요.</p>
+    <header class="page-header">
+      <div><a href="./index.html">DaraGrid / UI 테스트</a><h1>서버 연동 - 무한 스크롤 (infinite paging)</h1></div>
+    <a href="../examples/uitest-remoteInfinite/#source" target="_top" style="border:1px solid currentColor;border-radius:6px;padding:8px 12px;white-space:nowrap">소스 보기 / View source</a></header>
+    <section class="example-content" aria-label="예제 미리보기">
+      <div style="padding: 8px 12px; font-size: 12px; min-height: 18px" id="log"></div>
+      <div class="grid-view-area">
+        <div id="sample" style="height: calc(100vh - 150px); width: 100%"></div>
+      </div>
+    </section>
+  </body>
+</html>
+<script src="./data/sampleConfig.js" type="text/javascript"></script>
+<script type="module" src="./grid-entry.js"></script>
+<script type="module" src="./asset/pages/remoteInfinite.js"></script>

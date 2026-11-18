@@ -487,8 +487,8 @@
   --dui-icon-stroke-color: #ffffff;
   --dui-icon-fill-stroke-color: #494949;
 }
-.daracl-grid .dg-primary:hover,
-.dg-hidden-layers .dg-primary:hover {
+.daracl-grid .dg-primary:is(button):hover,
+.dg-hidden-layers .dg-primary:is(button):hover {
   background-color: #0d6efd;
   filter: brightness(0.92);
 }
@@ -502,8 +502,8 @@
   --dui-icon-stroke-color: #ffffff;
   --dui-icon-fill-stroke-color: #494949;
 }
-.daracl-grid .dg-secondary:hover,
-.dg-hidden-layers .dg-secondary:hover {
+.daracl-grid .dg-secondary:is(button):hover,
+.dg-hidden-layers .dg-secondary:is(button):hover {
   background-color: #6c757d;
   filter: brightness(0.92);
 }
@@ -517,8 +517,8 @@
   --dui-icon-stroke-color: #494949;
   --dui-icon-fill-stroke-color: #ffffff;
 }
-.daracl-grid .dg-info:hover,
-.dg-hidden-layers .dg-info:hover {
+.daracl-grid .dg-info:is(button):hover,
+.dg-hidden-layers .dg-info:is(button):hover {
   background-color: #0dcaf0;
   filter: brightness(0.92);
 }
@@ -532,8 +532,8 @@
   --dui-icon-stroke-color: #ffffff;
   --dui-icon-fill-stroke-color: #494949;
 }
-.daracl-grid .dg-success:hover,
-.dg-hidden-layers .dg-success:hover {
+.daracl-grid .dg-success:is(button):hover,
+.dg-hidden-layers .dg-success:is(button):hover {
   background-color: #198754;
   filter: brightness(0.92);
 }
@@ -547,8 +547,8 @@
   --dui-icon-stroke-color: #494949;
   --dui-icon-fill-stroke-color: #ffffff;
 }
-.daracl-grid .dg-warning:hover,
-.dg-hidden-layers .dg-warning:hover {
+.daracl-grid .dg-warning:is(button):hover,
+.dg-hidden-layers .dg-warning:is(button):hover {
   background-color: #ffc107;
   filter: brightness(0.92);
 }
@@ -562,8 +562,8 @@
   --dui-icon-stroke-color: #ffffff;
   --dui-icon-fill-stroke-color: #494949;
 }
-.daracl-grid .dg-danger:hover,
-.dg-hidden-layers .dg-danger:hover {
+.daracl-grid .dg-danger:is(button):hover,
+.dg-hidden-layers .dg-danger:is(button):hover {
   background-color: #dc3545;
   filter: brightness(0.92);
 }
@@ -1122,6 +1122,9 @@
   scroll-behavior: smooth;
   scrollbar-width: none;
   height: 100%;
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr);
+  align-content: start;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-scroll::-webkit-scrollbar {
   display: none;
@@ -1141,34 +1144,53 @@
   /* 레이아웃 */
 }
 .daracl-grid .dg-toolbar .dg-toolbar-row {
-  display: grid;
+  display: flex;
   align-items: center;
-  width: max-content;
-  min-width: 100%;
-}
-.daracl-grid .dg-toolbar .dg-toolbar-section {
-  display: grid;
+  column-gap: 4px;
   min-width: 0;
-  position: relative;
-  overflow: visible;
 }
-.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-left {
-  justify-self: start;
+.daracl-grid .dg-toolbar .dg-toolbar-zone {
+  display: flex;
+  align-items: center;
+  min-width: min-content;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-zone.dg-zone-left {
+  flex: 1 1 0;
+  justify-content: flex-start;
   z-index: 2;
 }
-.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-center {
-  justify-self: center;
+.daracl-grid .dg-toolbar .dg-toolbar-zone.dg-zone-center {
+  flex: 0 0 auto;
   z-index: 1;
 }
-.daracl-grid .dg-toolbar .dg-toolbar-section.dg-grid-area-right {
-  justify-self: end;
-  z-index: 0;
+.daracl-grid .dg-toolbar .dg-toolbar-zone.dg-zone-right {
+  flex: 1 1 0;
+  justify-content: flex-end;
+  z-index: 3;
+  position: sticky;
+  right: 0;
+  pointer-events: none;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-zone.dg-zone-right > .dg-toolbar-section {
+  pointer-events: auto;
+  background-color: var(--dui-body-bg, #ffffff);
+}
+.daracl-grid .dg-toolbar .dg-toolbar-zone.dg-zone-fixed {
+  flex: 0 0 auto;
+}
+.daracl-grid .dg-toolbar .dg-toolbar-section {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  position: relative;
+  overflow: visible;
 }
 .daracl-grid .dg-toolbar .dg-toolbar-section .dg-toolbar-field {
   display: grid;
   align-items: center;
+  flex: 0 0 auto;
   min-width: 0;
-  width: 100%;
+  width: auto;
   overflow: hidden;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -1646,6 +1668,27 @@
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button > .dg-cell-content:hover {
   background-color: var(--dui-button-hover-bg, #e3e3e3);
 }
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-primary > .dg-cell-content:hover, .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-secondary > .dg-cell-content:hover, .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-info > .dg-cell-content:hover, .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-success > .dg-cell-content:hover, .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-warning > .dg-cell-content:hover, .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-danger > .dg-cell-content:hover {
+  filter: brightness(0.92);
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-primary > .dg-cell-content:hover {
+  background-color: #0d6efd;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-secondary > .dg-cell-content:hover {
+  background-color: #6c757d;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-info > .dg-cell-content:hover {
+  background-color: #0dcaf0;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-success > .dg-cell-content:hover {
+  background-color: #198754;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-warning > .dg-cell-content:hover {
+  background-color: #ffc107;
+}
+.daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell .dg-button.dg-danger > .dg-cell-content:hover {
+  background-color: #dc3545;
+}
 .daracl-grid .dg-main .dg-panels .dg-body > .dg-region > .dg-body-table .dg-row > .dg-cell {
   /* bar */
 }
@@ -2018,10 +2061,41 @@
 .daracl-grid .dg-footer > span.dg-right {
   right: 5px;
 }
+.daracl-grid .dg-footer.dg-paging-full > .dg-status,
+.daracl-grid .dg-footer.dg-paging-full > .dg-paging-info {
+  display: none;
+}
+.daracl-grid .dg-footer.dg-paging-full > .dg-paging {
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: none;
+  justify-content: center;
+}
+.daracl-grid .dg-footer.dg-paging-full > .dg-paging.dg-left {
+  justify-content: flex-start;
+  padding-left: 5px;
+}
+.daracl-grid .dg-footer.dg-paging-full > .dg-paging.dg-right {
+  justify-content: flex-end;
+  padding-right: 5px;
+}
+.daracl-grid .dg-footer .dg-paging {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+.daracl-grid .dg-footer .dg-paging::-webkit-scrollbar {
+  display: none;
+}
 .daracl-grid .dg-footer .dg-paging > ul {
   display: table-cell;
   vertical-align: middle;
   padding: 0px;
+  margin: 0px;
+  white-space: nowrap;
 }
 .daracl-grid .dg-footer .dg-paging > ul > li {
   display: inline;

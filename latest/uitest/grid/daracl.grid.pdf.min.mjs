@@ -7,6 +7,7 @@ function Yl(n, e, t, r) {
     i.remove(), setTimeout(() => URL.revokeObjectURL(s), 1e4);
   }
 }
+/*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function Kl(n) {
   return n instanceof Uint8Array || ArrayBuffer.isView(n) && n.constructor.name === "Uint8Array";
 }
@@ -593,6 +594,7 @@ try {
   bc.decode(mo, { stream: !0 }), pc = 1;
 } catch {
 }
+/*! noble-ciphers - MIT License (c) 2023 Paul Miller (paulmillr.com) */
 function gc(n) {
   return n instanceof Uint8Array || ArrayBuffer.isView(n) && n.constructor.name === "Uint8Array";
 }
@@ -1550,8 +1552,11 @@ function r0(n, e, t) {
 }
 function We(n, e, t, r) {
   var s = arguments.length, i = s < 3 ? e : r === null ? r = Object.getOwnPropertyDescriptor(e, t) : r, a;
-  if (typeof Reflect == "object" && typeof Reflect.decorate == "function") i = Reflect.decorate(n, e, t, r);
-  else for (var o = n.length - 1; o >= 0; o--) (a = n[o]) && (i = (s < 3 ? a(i) : s > 3 ? a(e, t, i) : a(e, t)) || i);
+  if (typeof Reflect == "object" && typeof Reflect.decorate == "function")
+    i = Reflect.decorate(n, e, t, r);
+  else
+    for (var o = n.length - 1; o >= 0; o--)
+      (a = n[o]) && (i = (s < 3 ? a(i) : s > 3 ? a(e, t, i) : a(e, t)) || i);
   return s > 3 && i && Object.defineProperty(e, t, i), i;
 }
 function ht(n) {

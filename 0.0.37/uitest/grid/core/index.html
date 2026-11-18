@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-compatible" content="IE=edge" />
+    <title>Daracl - core</title>
+    <link rel="stylesheet" href="./daracl.core.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="./daracl.core.umd.js"></script>
+  </head>
+
+  <body onload="init()">
+    <div style="padding: 10px">
+      <h2>Loading</h2>
+      <table>
+        <tr>
+          <td>
+            <button type="button" onclick="viewLoading(1);">view</button>
+            <button type="button" onclick="Daracl.loading.destroy('#sample1')">hide</button>
+            <div id="sample1" class="loading-area" style="width: 300px; height: 300px">default loading</div>
+          </td>
+          <td>
+            <button type="button" onclick="viewLoading(2);">view</button>
+            <button type="button" onclick="Daracl.loading.destroy('#sample2')">hide</button>
+            <div id="sample2" class="loading-area" style="width: 300px; height: 300px">content view</div>
+          </td>
+          <td>
+            <button type="button" onclick="viewLoading(3);">view</button>
+            <button type="button" onclick="Daracl.loading.destroy('#sample3')">hide</button>
+            <div id="sample3" class="loading-area" style="width: 300px; height: 300px">Loading timeout hide</div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <button type="button" onclick="viewLoading(4);">view</button>
+            <button type="button" onclick="Daracl.loading.destroy('#sample4')">hide</button>
+            <div id="sample4" class="loading-area" style="width: 300px; height: 300px">cancel button</div>
+          </td>
+          <td>
+            <button type="button" onclick="viewLoading(5);">view</button>
+            <button type="button" onclick="Daracl.loading.destroy('#sample5')">hide</button>
+            <div id="sample5" class="loading-area" style="width: 300px; height: 300px">seconds/div>
+          </td>
+          <td>
+            <div id="sample6" class="loading-area" style="width: 300px; height: 300px">seconds , content , cancel button</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
+
+
+<script type="text/javascript">
+(function() {
+  function viewLoading(mode) {
+    if (mode == 1) {
+      Daracl.loading.create("#sample1", {});
+      return;
+    }
+
+    if (mode == 2) {
+      Daracl.loading.create("#sample2", { content: "content" });
+      return;
+    }
+
+    if (mode == 3) {
+      Daracl.loading.create("#sample3", { content: "content", timeout: 2000 });
+      return;
+    }
+
+    if (mode == 4) {
+      Daracl.loading.create("#sample4", {
+        enableCancelButton: true,
+        callback: function () {
+          console.log("1111111");
+        },
+      });
+      return;
+    }
+
+    if (mode == 5) {
+      Daracl.loading.create("#sample5", { enableCancelButton: true, enableTime: true });
+      return;
+    }
+
+    if (mode == 6) {
+      Daracl.loading.create("#sample6", { content: "content", enableCancelButton: true, enableTime: true });
+      return;
+    }
+  }
+  var loadingObj;
+  function loadingView() {
+    for (var i = 1; i < 7; i++) {
+      viewLoading(i);
+    }
+  }
+
+  window.init = function  () {
+    loadingView()
+  };
+  
+})();
+
+</script>

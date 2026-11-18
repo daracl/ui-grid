@@ -1,0 +1,387 @@
+[
+  {
+    "id": 1,
+    "name": "사용자1",
+    "email": "user1@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-01-01"
+  },
+  {
+    "id": 2,
+    "name": "사용자2",
+    "email": "user2@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-02-02"
+  },
+  {
+    "id": 3,
+    "name": "사용자3",
+    "email": "user3@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-03-03"
+  },
+  {
+    "id": 4,
+    "name": "사용자4",
+    "email": "user4@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-04-04"
+  },
+  {
+    "id": 5,
+    "name": "사용자5",
+    "email": "user5@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-05-05"
+  },
+  {
+    "id": 6,
+    "name": "사용자6",
+    "email": "user6@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-06-06"
+  },
+  {
+    "id": 7,
+    "name": "사용자7",
+    "email": "user7@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-07-07"
+  },
+  {
+    "id": 8,
+    "name": "사용자8",
+    "email": "user8@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-08-08"
+  },
+  {
+    "id": 9,
+    "name": "사용자9",
+    "email": "user9@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-09-09"
+  },
+  {
+    "id": 10,
+    "name": "사용자10",
+    "email": "user10@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-10-10"
+  },
+  {
+    "id": 11,
+    "name": "사용자11",
+    "email": "user11@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-11-11"
+  },
+  {
+    "id": 12,
+    "name": "사용자12",
+    "email": "user12@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-12-12"
+  },
+  {
+    "id": 13,
+    "name": "사용자13",
+    "email": "user13@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-01-13"
+  },
+  {
+    "id": 14,
+    "name": "사용자14",
+    "email": "user14@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-02-14"
+  },
+  {
+    "id": 15,
+    "name": "사용자15",
+    "email": "user15@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-03-15"
+  },
+  {
+    "id": 16,
+    "name": "사용자16",
+    "email": "user16@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-04-16"
+  },
+  {
+    "id": 17,
+    "name": "사용자17",
+    "email": "user17@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-05-17"
+  },
+  {
+    "id": 18,
+    "name": "사용자18",
+    "email": "user18@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-06-18"
+  },
+  {
+    "id": 19,
+    "name": "사용자19",
+    "email": "user19@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-07-19"
+  },
+  {
+    "id": 20,
+    "name": "사용자20",
+    "email": "user20@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-08-20"
+  },
+  {
+    "id": 21,
+    "name": "사용자21",
+    "email": "user21@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-09-21"
+  },
+  {
+    "id": 22,
+    "name": "사용자22",
+    "email": "user22@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-10-22"
+  },
+  {
+    "id": 23,
+    "name": "사용자23",
+    "email": "user23@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-11-23"
+  },
+  {
+    "id": 24,
+    "name": "사용자24",
+    "email": "user24@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-12-24"
+  },
+  {
+    "id": 25,
+    "name": "사용자25",
+    "email": "user25@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-01-25"
+  },
+  {
+    "id": 26,
+    "name": "사용자26",
+    "email": "user26@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-02-26"
+  },
+  {
+    "id": 27,
+    "name": "사용자27",
+    "email": "user27@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-03-27"
+  },
+  {
+    "id": 28,
+    "name": "사용자28",
+    "email": "user28@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-04-28"
+  },
+  {
+    "id": 29,
+    "name": "사용자29",
+    "email": "user29@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-05-01"
+  },
+  {
+    "id": 30,
+    "name": "사용자30",
+    "email": "user30@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-06-02"
+  },
+  {
+    "id": 31,
+    "name": "사용자31",
+    "email": "user31@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-07-03"
+  },
+  {
+    "id": 32,
+    "name": "사용자32",
+    "email": "user32@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-08-04"
+  },
+  {
+    "id": 33,
+    "name": "사용자33",
+    "email": "user33@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-09-05"
+  },
+  {
+    "id": 34,
+    "name": "사용자34",
+    "email": "user34@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-10-06"
+  },
+  {
+    "id": 35,
+    "name": "사용자35",
+    "email": "user35@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-11-07"
+  },
+  {
+    "id": 36,
+    "name": "사용자36",
+    "email": "user36@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-12-08"
+  },
+  {
+    "id": 37,
+    "name": "사용자37",
+    "email": "user37@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-01-09"
+  },
+  {
+    "id": 38,
+    "name": "사용자38",
+    "email": "user38@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-02-10"
+  },
+  {
+    "id": 39,
+    "name": "사용자39",
+    "email": "user39@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-03-11"
+  },
+  {
+    "id": 40,
+    "name": "사용자40",
+    "email": "user40@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-04-12"
+  },
+  {
+    "id": 41,
+    "name": "사용자41",
+    "email": "user41@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-05-13"
+  },
+  {
+    "id": 42,
+    "name": "사용자42",
+    "email": "user42@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-06-14"
+  },
+  {
+    "id": 43,
+    "name": "사용자43",
+    "email": "user43@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-07-15"
+  },
+  {
+    "id": 44,
+    "name": "사용자44",
+    "email": "user44@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-08-16"
+  },
+  {
+    "id": 45,
+    "name": "사용자45",
+    "email": "user45@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-09-17"
+  },
+  {
+    "id": 46,
+    "name": "사용자46",
+    "email": "user46@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-10-18"
+  },
+  {
+    "id": 47,
+    "name": "사용자47",
+    "email": "user47@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-11-19"
+  },
+  {
+    "id": 48,
+    "name": "사용자48",
+    "email": "user48@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-12-20"
+  },
+  {
+    "id": 49,
+    "name": "사용자49",
+    "email": "user49@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-01-21"
+  },
+  {
+    "id": 50,
+    "name": "사용자50",
+    "email": "user50@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-02-22"
+  },
+  {
+    "id": 51,
+    "name": "사용자51",
+    "email": "user51@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-03-23"
+  },
+  {
+    "id": 52,
+    "name": "사용자52",
+    "email": "user52@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-04-24"
+  },
+  {
+    "id": 53,
+    "name": "사용자53",
+    "email": "user53@example.com",
+    "status": "STOP",
+    "joinedAt": "2025-05-25"
+  },
+  {
+    "id": 54,
+    "name": "사용자54",
+    "email": "user54@example.com",
+    "status": "WAIT",
+    "joinedAt": "2025-06-26"
+  },
+  {
+    "id": 55,
+    "name": "사용자55",
+    "email": "user55@example.com",
+    "status": "ACTIVE",
+    "joinedAt": "2025-07-27"
+  }
+]

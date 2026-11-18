@@ -204,7 +204,7 @@ export declare class DaraGrid {
      *
      * @returns {*}
      */
-    getCheckedItems(names?: string | string[]): any[];
+    getCheckedItems(names?: string | string[]): Record<string, unknown>[];
     /**
      * get checked items
      *

@@ -12,6 +12,7 @@ export declare class Loading {
     private timeoutId?;
     private group?;
     private startedAt;
+    private colors?;
     constructor(selector: string | HTMLElement | null | undefined, options?: LoadingOptions);
     static create(selector: string | HTMLElement | null | undefined, options?: LoadingOptions): Loading;
     static instance(selector: string): Loading;

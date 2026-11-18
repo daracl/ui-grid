@@ -4,7 +4,7 @@ import { DaraGrid } from '../DaraGrid.js';
 import { DaraElement } from '../element/DaraElement.js';
 import { SelectionInfo } from '../selection/selection.js';
 import { RemoteDataController } from '../service/remote/RemoteDataController.js';
-import { AddRowOptions } from '../types/Common.js';
+import { AddRowOptions, RowId } from '../types/Common.js';
 import { GridOptions } from '../types/GridOptions.js';
 import { Message } from '../types/Message.js';
 import { PagingInfo } from '../types/PagingInfo.js';
@@ -244,9 +244,9 @@ export declare class GridMain {
     /**
      * item을 삭제
      *
-     * @param {any[]} ids rowId
+     * @param {RowId[]} ids rowId
      */
-    removeItems(ids: any[]): void;
+    removeItems(ids: RowId[]): void;
     /**
      * all items clear
      *
@@ -259,7 +259,7 @@ export declare class GridMain {
      * @param names filed names
      * @returns {array} checked item array
      */
-    getCheckedItems(names?: string | string[] | undefined): any[];
+    getCheckedItems(names?: string | string[] | undefined): Record<string, unknown>[];
     /**
      * get check items
      *
@@ -326,7 +326,7 @@ export declare class GridMain {
      * tree 확장
      * @param id id
      */
-    expandRow(id: any): void;
+    expandRow(id: RowId): void;
     expandAll(): void;
     collapseAll(): void;
     setPaging(paging: PagingInfo): void;
@@ -347,7 +347,7 @@ export declare class GridMain {
      * @returns [] toolbar value
      */
     getToolbarValues(): Record<string, unknown>;
-    setToolbarValues(val: any): void;
+    setToolbarValues(val: Record<string, unknown>): void;
     destroy(): void;
 }
 export {};

@@ -60,7 +60,7 @@ export declare class RemoteDataController {
      * 헤더에서 바뀐 정렬 상태로 첫 페이지부터 다시 조회한다. 마지막 조회 조건은 유지한다.
      * 조회할 수 없는 상태이면 loadError 이벤트로 알리고 reject 한다.
      */
-    sortRemote(options?: LoadOptions): Promise<LoadResult | null>;
+    sortRemote(options?: LoadOptions, revert?: () => void): Promise<LoadResult | null>;
     /** 헤더 정렬 상태를 서버 조회 조건으로 변환한다. 정렬이 없으면 빈 배열이다. */
     private getSortParams;
     isLoading(): boolean;
