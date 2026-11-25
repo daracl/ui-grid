@@ -17,6 +17,7 @@ import { SelectionInfo } from '@/selection/selection';
 
 import { eventCodeValue, isCtrlKey, isEsc, isSpacebar, stopPreventCancel } from '@/util/eventUtils';
 
+import { getCellRowSpanRange, RowSpanRange } from '@/util/rowSpanUtils';
 import { isFunction } from '@/util/utils';
 import { GridMain } from '@/view/GridMain';
 import { Body } from '../Body';
@@ -29,6 +30,16 @@ interface PendingVerticalScroll {
 interface PendingHorizontalScroll {
   colIdx: number;
   direction: ScrollDirectionX;
+}
+
+/**
+ * 병합 셀 좌우 이동 시 복귀할 기준 행(Excel 방식).
+ * lastRow/lastCol은 마지막으로 이동한 셀이며, 현재 startCell과 다르면(마우스 클릭 등) 무효로 본다.
+ */
+interface NavAnchor {
+  row: number;
+  lastRow: number;
+  lastCol: number;
 }
 
 interface ScrollRequest {
@@ -59,6 +70,11 @@ export class KeydownEvent implements EventHandler {
    * RAF는 항상 하나만 유지한다.
    */
   private scrollRafId: number | null = null;
+
+  /**
+   * 병합 셀 좌우 이동 기준 행.
+   */
+  private navAnchor: NavAnchor | null = null;
 
   constructor(gridMain: GridMain, body: Body, selectionInfo: SelectionInfo) {
     this.gridMain = gridMain;
@@ -252,16 +268,15 @@ export class KeydownEvent implements EventHandler {
       case 'PageDown':
       case 'Enter':
       case 'ArrowDown': {
-        const moveRowIdx = this.getDownRowIndex(evtCode, isCtrl, currentRowIdx, insideViewRow, dataInfo.rowLength);
+        this.navAnchor = null;
 
-        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, currentColIdx)) {
-          return;
-        }
+        // 병합 블록의 끝 행 기준으로 이동하고, 이동한 위치가 병합 블록이면 블록 시작 행으로 맞춘다.
+        const currentEndIdx = this.getRowSpanRange(currentRowIdx, currentColIdx).end;
+        const downRowIdx = this.getDownRowIndex(evtCode, isCtrl, currentEndIdx, insideViewRow, dataInfo.rowLength);
+        const moveRowIdx = this.getRowSpanRange(downRowIdx, currentColIdx).start;
 
-        // last row
-        if (moveRowIdx >= scrollInfo.startIdx + insideViewRow) {
-          this.scheduleVerticalScroll(moveRowIdx - insideViewRow, ScrollDirectionYMap.DOWN);
-        }
+        // 화면 밖 행이거나 병합 블록이 화면 아래로 넘치면 insideScrollCheck에서 세로 스크롤을 예약한다.
+        this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, currentColIdx, true);
 
         return;
       }
@@ -269,15 +284,15 @@ export class KeydownEvent implements EventHandler {
       //Up
       case 'PageUp':
       case 'ArrowUp': {
-        const moveRowIdx = this.getUpRowIndex(evtCode, isCtrl, currentRowIdx, insideViewRow);
+        this.navAnchor = null;
 
-        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, currentColIdx)) {
-          return;
-        }
+        // 병합 블록의 시작 행 기준으로 이동하고, 이동한 위치가 병합 블록이면 블록 시작 행으로 맞춘다.
+        const currentStartIdx = this.getRowSpanRange(currentRowIdx, currentColIdx).start;
+        const upRowIdx = this.getUpRowIndex(evtCode, isCtrl, currentStartIdx, insideViewRow);
+        const moveRowIdx = this.getRowSpanRange(upRowIdx, currentColIdx).start;
 
-        if (moveRowIdx < scrollInfo.startIdx) {
-          this.scheduleVerticalScroll(moveRowIdx, ScrollDirectionYMap.UP);
-        }
+        // 화면 밖 행이거나 병합 블록이 화면 아래로 넘치면 insideScrollCheck에서 세로 스크롤을 예약한다.
+        this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, currentColIdx, true);
 
         return;
       }
@@ -286,8 +301,9 @@ export class KeydownEvent implements EventHandler {
       case 'Home':
       case 'ArrowLeft': {
         const moveColIdx = this.getLeftColumnIndex(evtCode, isCtrl, currentColIdx, gridStartCol);
+        const moveRowIdx = this.getHorizontalMoveRowIndex(currentRowIdx, currentColIdx, moveColIdx);
 
-        if (this.insideScrollCheck(evtCode, evt, scrollInfo, currentRowIdx, moveColIdx)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, moveColIdx)) {
           return;
         }
 
@@ -303,8 +319,9 @@ export class KeydownEvent implements EventHandler {
       case 'Tab':
       case 'ArrowRight': {
         const moveColIdx = this.getRightColumnIndex(evtCode, isCtrl, currentColIdx, dataInfo.colLength);
+        const moveRowIdx = this.getHorizontalMoveRowIndex(currentRowIdx, currentColIdx, moveColIdx);
 
-        if (this.insideScrollCheck(evtCode, evt, scrollInfo, currentRowIdx, moveColIdx)) {
+        if (this.insideScrollCheck(evtCode, evt, scrollInfo, moveRowIdx, moveColIdx)) {
           return;
         }
 
@@ -318,6 +335,44 @@ export class KeydownEvent implements EventHandler {
       default:
         return;
     }
+  }
+
+  /**
+   * 셀이 속한 병합 블록 범위(rowSpanFields 미사용·병합 컬럼이 아니면 자기 자신).
+   */
+  private getRowSpanRange(rowIdx: number, colIdx: number): RowSpanRange {
+    const { rowSpanFields, groupingFields } = this.gridMain.options();
+
+    if (!rowSpanFields?.length) {
+      return { start: rowIdx, end: rowIdx };
+    }
+
+    return getCellRowSpanRange(this.gridMain.config(), rowSpanFields, rowIdx, colIdx, groupingFields);
+  }
+
+  /**
+   * 좌우 이동 시 이동할 행 index.
+   *
+   * Excel처럼 병합 셀에 진입하기 전 행(anchor)을 기억했다가, 병합 셀을 벗어나면 그 행으로 복귀한다.
+   * 이동 대상 컬럼이 병합 블록이면 블록 시작 행(실제 표시되는 셀)으로 맞춘다.
+   */
+  private getHorizontalMoveRowIndex(currentRowIdx: number, currentColIdx: number, moveColIdx: number): number {
+    const anchor = this.navAnchor;
+    let anchorRowIdx = currentRowIdx;
+
+    if (anchor && anchor.lastRow === currentRowIdx && anchor.lastCol === currentColIdx) {
+      const currentRange = this.getRowSpanRange(currentRowIdx, currentColIdx);
+
+      if (currentRange.start <= anchor.row && anchor.row <= currentRange.end) {
+        anchorRowIdx = anchor.row;
+      }
+    }
+
+    const moveRowIdx = this.getRowSpanRange(anchorRowIdx, moveColIdx).start;
+
+    this.navAnchor = { row: anchorRowIdx, lastRow: moveRowIdx, lastCol: moveColIdx };
+
+    return moveRowIdx;
   }
 
   /**
@@ -393,6 +448,7 @@ export class KeydownEvent implements EventHandler {
     scrollInfo: ScrollInfo,
     moveRowIdx: number,
     moveColIdx: number,
+    revealRowSpan = false,
   ): boolean {
     const cfg = this.gridMain.config();
     const opts = this.gridMain.options();
@@ -426,13 +482,15 @@ export class KeydownEvent implements EventHandler {
     //scroll 계산
     const checkCode = getScrollDirectionCode(cfg, scrollInfo, moveRowIdx, moveColIdx);
 
-    if (checkCode <= 0) {
+    const horizontal = checkCode > 0 ? Math.floor(checkCode / 10) : 0;
+
+    const vertical = checkCode > 0 ? checkCode % 10 : 0;
+
+    const scrollRowIdx = this.getVerticalScrollRowIndex(scrollInfo, vertical, moveRowIdx, moveColIdx, revealRowSpan);
+
+    if (horizontal === 0 && scrollRowIdx < 0) {
       return false;
     }
-
-    const horizontal = Math.floor(checkCode / 10);
-
-    const vertical = checkCode % 10;
 
     //Horizontal
     if (horizontal > 0) {
@@ -441,15 +499,49 @@ export class KeydownEvent implements EventHandler {
     }
 
     //Vertical
-    if (vertical > 0) {
-      const direction = vertical === 1 ? ScrollDirectionYMap.DOWN : ScrollDirectionYMap.UP;
+    if (scrollRowIdx >= 0) {
+      const direction = scrollRowIdx < scrollInfo.startIdx ? ScrollDirectionYMap.UP : ScrollDirectionYMap.DOWN;
 
-      const rowIdx = moveRowIdx - (vertical === 1 ? 0 : Math.max(scrollInfo.insideViewRow - 1, 0));
-
-      this.scheduleVerticalScroll(rowIdx, direction);
+      this.scheduleVerticalScroll(scrollRowIdx, direction);
     }
 
     return true;
+  }
+
+  /**
+   * 세로 스크롤 후 화면 첫 행이 될 row index(스크롤 불필요 시 -1).
+   *
+   * - 위쪽 화면 밖: 이동 행(병합 블록 시작)을 화면 맨 위에 맞춘다.
+   * - 아래쪽 화면 밖, 또는 revealRowSpan이고 병합 블록이 화면 아래로 넘칠 때:
+   *   블록(이동 행 ~ 블록 끝)이 온전히 보이는 행 수 안에 들어가면 블록 끝을 화면 맨 아래에,
+   *   들어가지 않으면 이동 행을 화면 맨 위에 맞춘다. 병합이 아닌 셀은 블록 끝 = 이동 행이다.
+   *
+   * @param vertical getScrollDirectionCode의 세로 코드(0: 화면 안, 1: 위, 2: 아래)
+   */
+  private getVerticalScrollRowIndex(
+    scrollInfo: ScrollInfo,
+    vertical: number,
+    moveRowIdx: number,
+    moveColIdx: number,
+    revealRowSpan: boolean,
+  ): number {
+    if (vertical === 1) {
+      return moveRowIdx;
+    }
+
+    const visibleRows = Math.max(scrollInfo.insideViewRow, 1);
+    const blockEndIdx = Math.max(this.getRowSpanRange(moveRowIdx, moveColIdx).end, moveRowIdx);
+    const lastVisibleIdx = scrollInfo.startIdx + visibleRows - 1;
+
+    if (vertical !== 2 && !(revealRowSpan && blockEndIdx > lastVisibleIdx)) {
+      return -1;
+    }
+
+    if (blockEndIdx - moveRowIdx + 1 <= visibleRows) {
+      return blockEndIdx - (visibleRows - 1);
+    }
+
+    return moveRowIdx;
   }
 
   /**
@@ -539,5 +631,6 @@ export class KeydownEvent implements EventHandler {
     }
 
     this.pendingScroll = null;
+    this.navAnchor = null;
   }
 }

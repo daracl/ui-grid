@@ -32,6 +32,21 @@ export const isFixedRightPostion = (cfg: Config, idx: number): boolean => {
 };
 
 /**
+ * field가 속한 고정 영역(left/center/right).
+ *
+ * @param {Config} cfg
+ * @param {FieldItem} field
+ * @returns {'left' | 'center' | 'right'}
+ */
+export const getFieldRegion = (cfg: Config, field: FieldItem): 'left' | 'center' | 'right' => {
+  if (cfg.fieldHeaderGroup.leafLeft.includes(field)) {
+    return 'left';
+  }
+
+  return cfg.fieldHeaderGroup.leafRight.includes(field) ? 'right' : 'center';
+};
+
+/**
  * is multiple selection mode
  *
  * @type {string} selection mode
@@ -626,7 +641,8 @@ export const getScrollDirectionCode = (cfg: Config, scrollInfo: ScrollInfo, move
 
   if (moveRowIdx < scrollInfo.startIdx) {
     directionCode = SCROLL_DIRECTION_CODE.UP;
-  } else if (moveRowIdx > scrollInfo.startIdx + scrollInfo.viewRow) {
+  } else if (moveRowIdx >= scrollInfo.startIdx + scrollInfo.insideViewRow) {
+    // 온전히 보이는 행(startIdx ~ startIdx + insideViewRow - 1) 밖이면 아래로 스크롤한다.
     directionCode = SCROLL_DIRECTION_CODE.DOWN;
   }
 

@@ -60,6 +60,17 @@ export interface PdfTableData {
   headerTextColors?: (string | undefined)[];
   headerGradients?: (PdfCellGradient | undefined)[];
   tableBorders?: PdfCellBorders;
+  /** 본문 세로 셀 병합(rowSpanFields). 값·배경·글자색은 병합 시작 셀 기준이며 페이지가 바뀌면 다시 표시한다. */
+  bodyMerges?: PdfBodyMerge[];
+}
+
+export interface PdfBodyMerge {
+  /** 병합 시작 행 index(rows 기준) */
+  row: number;
+  /** 컬럼 index(columns 기준) */
+  column: number;
+  /** 병합 행 수(2 이상) */
+  rowSpan: number;
 }
 
 export interface PdfHeaderCell {
@@ -84,6 +95,8 @@ export interface PdfExportOptions {
   /** 글꼴 파일 URL. customFont 데이터가 있으면 해당 데이터를 우선 사용한다. */
   fontUrl?: string;
   fontSize?: number;
+  /** rowSpanFields 셀 병합을 PDF 본문에 반영한다. 기본값 true. */
+  mergeCells?: boolean;
   customFont?: {
     name: string;
     data: Uint8Array | ArrayBuffer;
@@ -95,6 +108,7 @@ const DEFAULT_FONT_NAME = 'NotoSansKR';
 const DEFAULT_FONT_SIZE = 9;
 const CELL_PADDING = 5;
 const MIN_ROW_HEIGHT = 22;
+const DEFAULT_BORDER: PdfBorderSide = { color: '#cdcdcd', width: 1 };
 const standardFonts = [
   Courier,
   CourierBold,
@@ -271,15 +285,40 @@ export class PdfConverter {
         y = rowY;
       } else drawHeader();
 
-      for (const [rowIndex, row] of data.rows.entries()) {
+      const merged = this.createBodyMergeLayout(data, options.mergeCells !== false);
+      const aligns = data.columns.map((column) => column.align);
+      const rowPositions: { y: number; height: number }[] = [];
+      let pageFirstRow = 0;
+      // 병합 셀은 행을 다 그린 뒤 페이지 단위로 그린다(페이지마다 병합 구간을 나눠 값을 다시 표시).
+      const finishPage = (lastRow: number) => {
+        if (lastRow >= pageFirstRow) {
+          this.drawBodyMerges(
+            doc,
+            data,
+            merged.pageMerges(pageFirstRow, lastRow),
+            columnWidths,
+            margin,
+            fontSize,
+            rowPositions,
+            pageFirstRow,
+            lastRow,
+          );
+        }
+        drawPageBorders();
+      };
+
+      for (const [rowIndex, sourceRow] of data.rows.entries()) {
+        const row = merged.values(rowIndex, sourceRow);
         const rowHeight = this.getRowHeight(doc, row, columnWidths, fontSize);
         if (y + rowHeight > doc.page.height - margin) {
-          drawPageBorders();
+          finishPage(rowIndex - 1);
           doc.addPage();
           y = margin;
           drawHeader();
+          pageFirstRow = rowIndex;
         }
-        borderRows.push({ y, height: rowHeight, borders: data.cellBorders?.[rowIndex] });
+        rowPositions[rowIndex] = { y, height: rowHeight };
+        borderRows.push({ y, height: rowHeight, borders: merged.borders(rowIndex, data.cellBorders?.[rowIndex]) });
         y = this.drawRow(
           doc,
           row,
@@ -289,16 +328,135 @@ export class PdfConverter {
           fontSize,
           false,
           rowHeight,
-          data.cellBackgrounds?.[rowIndex],
-          data.cellCharts?.[rowIndex],
-          data.columns.map((column) => column.align),
+          merged.cells(rowIndex, data.cellBackgrounds?.[rowIndex]),
+          merged.cells(rowIndex, data.cellCharts?.[rowIndex]),
+          aligns,
           data.cellTextColors?.[rowIndex],
         );
       }
 
-      drawPageBorders();
+      finishPage(data.rows.length - 1);
       doc.end();
     });
+  }
+
+  /**
+   * 본문 병합 정보를 행 단위로 조회할 수 있게 준비한다.
+   * 병합에 포함된 셀(시작 셀 포함)은 행 그리기에서 값·배경·차트를 비우고, 병합 내부 가로 테두리를 지운다.
+   */
+  private createBodyMergeLayout(data: PdfTableData, enabled: boolean) {
+    const merges = enabled
+      ? (data.bodyMerges ?? [])
+          .filter(
+            (merge) =>
+              merge.rowSpan > 1 &&
+              merge.column >= 0 &&
+              merge.column < data.columns.length &&
+              merge.row >= 0 &&
+              merge.row < data.rows.length,
+          )
+          .map((merge) => ({ ...merge, end: Math.min(merge.row + merge.rowSpan, data.rows.length) - 1 }))
+          .sort((a, b) => a.row - b.row)
+      : [];
+    // 행 index → (컬럼 index → 병합 안 위치)
+    const rowCells = new Map<number, Map<number, { first: boolean; last: boolean }>>();
+
+    for (const merge of merges) {
+      for (let row = merge.row; row <= merge.end; row++) {
+        let cells = rowCells.get(row);
+        if (!cells) {
+          cells = new Map();
+          rowCells.set(row, cells);
+        }
+        cells.set(merge.column, { first: row === merge.row, last: row === merge.end });
+      }
+    }
+
+    const blankCells = <T>(rowIndex: number, values: T[] | undefined, blank: T): T[] | undefined => {
+      const cells = rowCells.get(rowIndex);
+      if (!cells || !values) return values;
+      const copy = values.slice();
+      cells.forEach((_, column) => {
+        copy[column] = blank;
+      });
+      return copy;
+    };
+
+    // 페이지에 걸친 병합만 꺼낸다. 각 병합은 시작 행 순서로 한 번 들어오고 끝 행을 지나면 빠지므로
+    // 페이지마다 전체 병합 목록을 다시 훑지 않는다.
+    let cursor = 0;
+    let active: typeof merges = [];
+    const pageMerges = (firstRow: number, lastRow: number) => {
+      while (cursor < merges.length && merges[cursor].row <= lastRow) {
+        active.push(merges[cursor++]);
+      }
+      const current = active.filter((merge) => merge.end >= firstRow);
+      active = current.filter((merge) => merge.end > lastRow);
+      return current;
+    };
+
+    return {
+      pageMerges,
+      values: (rowIndex: number, row: string[]): string[] => blankCells(rowIndex, row, '') ?? row,
+      cells: <T>(rowIndex: number, values: (T | undefined)[] | undefined) => blankCells(rowIndex, values, undefined),
+      borders: (rowIndex: number, borders: (PdfCellBorders | undefined)[] | undefined) => {
+        const cells = rowCells.get(rowIndex);
+        if (!cells) return borders;
+        const copy = borders ? borders.slice() : [];
+        cells.forEach(({ first, last }, column) => {
+          // 셀 스타일이 없으면 기본 테두리(오른쪽·아래)를 기준으로 병합 내부 가로선만 지운다.
+          const base = borders?.[column] ?? { right: DEFAULT_BORDER, bottom: DEFAULT_BORDER };
+          copy[column] = { ...base, ...(first ? {} : { top: undefined }), ...(last ? {} : { bottom: undefined }) };
+        });
+        return copy;
+      },
+    };
+  }
+
+  /**
+   * 현재 페이지(firstRow ~ lastRow)에 걸친 병합 셀 구간의 배경과 값을 그린다.
+   * 값·배경·글자색은 병합 시작 행 기준이고 세로 가운데 정렬한다.
+   */
+  private drawBodyMerges(
+    doc: PDFKit.PDFDocument,
+    data: PdfTableData,
+    merges: (PdfBodyMerge & { end: number })[],
+    widths: number[],
+    left: number,
+    fontSize: number,
+    rowPositions: { y: number; height: number }[],
+    firstRow: number,
+    lastRow: number,
+  ): void {
+    doc.fontSize(fontSize);
+
+    for (const merge of merges) {
+      const start = Math.max(merge.row, firstRow);
+      const end = Math.min(merge.end, lastRow);
+      if (start > end) continue;
+
+      const top = rowPositions[start].y;
+      const height = rowPositions[end].y + rowPositions[end].height - top;
+      const x = left + widths.slice(0, merge.column).reduce((sum, width) => sum + width, 0);
+      const width = widths[merge.column];
+      const background = data.cellBackgrounds?.[merge.row]?.[merge.column];
+
+      if (background) {
+        doc.save().fillColor(normalizePdfColor(background)).rect(x, top, width, height).fill().restore();
+      }
+
+      const text = data.rows[merge.row]?.[merge.column] ?? '';
+      const textWidth = Math.max(width - CELL_PADDING * 2, 1);
+      const textHeight = doc.heightOfString(text, { width: textWidth });
+      doc
+        .fillColor(normalizePdfColor(data.cellTextColors?.[merge.row]?.[merge.column] || '#222222'))
+        .text(text, x + CELL_PADDING, top + Math.max(CELL_PADDING, (height - textHeight) / 2), {
+          width: textWidth,
+          height: Math.max(height - CELL_PADDING * 2, 1),
+          lineBreak: true,
+          align: data.columns[merge.column]?.align ?? 'left',
+        });
+    }
   }
 
   public download(blob: Blob, fileName = DEFAULT_FILE_NAME): void {

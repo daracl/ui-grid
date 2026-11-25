@@ -551,9 +551,11 @@ describe('Grid workflows', () => {
       ['3', '', 'Tea 합계', '', '30'],
       ['4', '', 'Coffee', 'Americano', '30'],
       ['5', '', 'Coffee 합계', '', '30'],
-      ['6', 'Japan', 'Tea', 'Matcha', '40'],
-      ['7', '', 'Tea 합계', '', '40'],
-      ['8', 'Grand Total', '', '', '100'],
+      ['6', 'Korea 합계', '', '', '60'],
+      ['7', 'Japan', 'Tea', 'Matcha', '40'],
+      ['8', '', 'Tea 합계', '', '40'],
+      ['9', 'Japan 합계', '', '', '40'],
+      ['10', 'Grand Total', '', '', '100'],
     ]);
     expect(exportedData.cellBackgrounds[2].slice(1)).toEqual([
       'rgb(240, 240, 240)',
@@ -561,7 +563,7 @@ describe('Grid workflows', () => {
       'rgb(240, 240, 240)',
       'rgb(240, 240, 240)',
     ]);
-    expect(exportedData.cellBorders).toHaveLength(8);
+    expect(exportedData.cellBorders).toHaveLength(10);
     expect(exportedData.tableBorders.top).toEqual({ color: 'rgb(30, 40, 50)', width: 2, style: 'dashed' });
     expect(exportedData.tableBorders.left).toEqual(exportedData.tableBorders.top);
     expect(exportedData.cellTextColors[0][1]).toBe('rgb(80, 90, 100)');
@@ -572,4 +574,40 @@ describe('Grid workflows', () => {
     expect(mockPdfConvert).toHaveBeenCalledWith(expect.anything(), {});
   });
 
+  it('exports rowSpan merges to PDF with the same rule as the grid (continuing through inner subtotals)', async () => {
+    const element = document.createElement('div');
+    document.body.appendChild(element);
+    const grid = createGrid(element, {
+      width: 640,
+      height: 320,
+      groupingFields: ['country', 'category'],
+      rowSpanFields: ['country', 'category'],
+      groupSummaryFields: [{ field: 'amount', expression: 'sum' }],
+      fields: [
+        { name: 'country', label: 'Country', width: 120 },
+        { name: 'category', label: 'Category', width: 120 },
+        { name: 'amount', label: 'Amount', width: 100 },
+      ],
+      items: [
+        { id: 'one', country: 'Korea', category: 'Tea', amount: 10 },
+        { id: 'two', country: 'Korea', category: 'Tea', amount: 20 },
+        { id: 'three', country: 'Korea', category: 'Coffee', amount: 30 },
+        { id: 'four', country: 'Japan', category: 'Tea', amount: 40 },
+      ],
+    } as unknown as GridOptions);
+    mockPdfConvert.mockClear();
+
+    await grid.exportPdf();
+    // 행: Korea Tea, Korea Tea, Tea합계, Korea Coffee, Coffee합계, Korea합계, Japan Tea, Tea합계, Japan합계, 총계
+    // 컬럼: 0 행 번호, 1 country, 2 category
+    expect(mockPdfConvert.mock.calls[0][0].bodyMerges).toEqual([
+      { row: 0, column: 1, rowSpan: 5 },
+      { row: 6, column: 1, rowSpan: 2 },
+      { row: 0, column: 2, rowSpan: 2 },
+    ]);
+
+    mockPdfConvert.mockClear();
+    await grid.exportPdf({ mergeCells: false });
+    expect(mockPdfConvert.mock.calls[0][0].bodyMerges).toBeUndefined();
+  });
 });

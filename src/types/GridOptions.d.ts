@@ -196,7 +196,10 @@ export interface GridOptions {
   /** 그룹 소계·총계의 필드와 집계 방식. sum, avg, count, min, max 또는 행 배열을 받는 함수. */
   groupSummaryFields?: SummaryItem[];
 
-  /** 그룹별 집계 행 표시 여부. 기본값 true. */
+  /**
+   * 그룹별 집계 행 표시 여부. 기본값 true.
+   * groupingFields의 모든 단계마다 그룹 뒤에 소계 행을 추가한다(안쪽 단계 소계 → 바깥 단계 소계 순).
+   */
   showGroupSummary?: boolean;
 
   /** 전체 집계 행 표시 여부. 기본값 true. */

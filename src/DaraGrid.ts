@@ -10,6 +10,8 @@ import { PagingInfo } from '@t/PagingInfo';
 import { ALL_ICONS } from './constantIcons';
 import { AddRowOptions, RowId, RowSelectOptions, SearchMode, ViewItem } from './types/Common';
 import { createHTMLElement } from './util/domUtils';
+import { getFieldRegion } from './util/gridUtils';
+import { getRowSpanMerges } from './util/rowSpanUtils';
 import { Language } from './util/Language';
 import { resolveClassName } from './util/styleUtils';
 import { isUndefined } from './util/utils';
@@ -194,6 +196,21 @@ export class DaraGrid {
     try {
       tableData = renderer.render();
       tableData.firstPageHeader = createPdfHeaderRows(gridOptions.fields, displayFields, tableData);
+      // 화면·Excel과 같은 규칙으로 rowSpanFields 셀 병합을 PDF 본문에 반영한다.
+      if (options.mergeCells !== false && gridOptions.rowSpanFields?.length) {
+        tableData.bodyMerges = getRowSpanMerges(
+          rendererContext.viewItems,
+          rendererContext.getRowItem,
+          gridOptions.rowSpanFields,
+          rendererContext.groupingFields,
+        )
+          .map(({ field, start, end }) => ({
+            row: start,
+            column: displayFields.findIndex((displayField) => displayField.name === field),
+            rowSpan: end - start + 1,
+          }))
+          .filter((merge) => merge.column >= 0);
+      }
     } finally {
       cellStyleProbe.destroy();
     }
@@ -379,11 +396,7 @@ export class DaraGrid {
     probeParent.appendChild(parityRow);
     body.parentElement!.appendChild(probeBody);
     const headerCells = displayFields.map((field) => {
-      const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-        ? 'left'
-        : cfg.fieldHeaderGroup.leafRight.includes(field)
-          ? 'right'
-          : 'center';
+      const region = getFieldRegion(cfg, field);
       return gridElement.querySelector<HTMLElement>(
         `.dg-header .dg-region[data-region="${region}"] [data-header-cell-position="${field.$resizeIdx}"]`,
       ) ?? undefined;

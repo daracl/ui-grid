@@ -206,4 +206,26 @@ describe('Excel 내보내기: 병합 셀 스타일', () => {
     // 같은 name('same')이 세 행 이어지지만 B 그룹은 합계 행 건너편이라 첫 그룹의 두 행만 병합한다.
     expect(sheet.merges).toEqual(['B2:B3']);
   });
+
+  it('여러 단계 그룹에서 상위 병합은 하위 소계 행까지 이어지고 자기 소계에서 끊긴다', async () => {
+    const sheet = await exportSheet({
+      groupingFields: ['region', 'category'],
+      rowSpanFields: ['region', 'category'],
+      groupSummaryFields: [{ field: 'amount', expression: 'sum' }],
+      fields: [
+        { name: 'region', width: 100 },
+        { name: 'category', width: 100 },
+        { name: 'amount', width: 100 },
+      ],
+      items: [
+        { region: 'R1', category: 'A', amount: 1 },
+        { region: 'R1', category: 'A', amount: 2 },
+        { region: 'R1', category: 'B', amount: 3 },
+        { region: 'R2', category: 'A', amount: 4 },
+      ],
+    });
+
+    // 행: R1A, R1A, A합계, R1B, B합계, R1합계, R2A, A합계, R2합계, 총계 (헤더 다음 2행부터)
+    expect(sheet.merges).toEqual(['A2:A6', 'A8:A9', 'B2:B3']);
+  });
 });

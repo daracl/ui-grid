@@ -134,6 +134,26 @@ describe('사용자 입력', () => {
   });
 
   describe('키보드', () => {
+    /** requestAnimationFrame 콜백을 모아 두었다가 flush()에서 실행한다. */
+    const mockAnimationFrames = () => {
+      let frames: FrameRequestCallback[] = [];
+      let frameId = 0;
+      const spy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb: FrameRequestCallback) => {
+        frames.push(cb);
+        return ++frameId;
+      });
+      return {
+        flush: () => {
+          for (let i = 0; i < 10 && frames.length > 0; i++) {
+            const pending = frames;
+            frames = [];
+            pending.forEach((cb) => cb(0));
+          }
+        },
+        restore: () => spy.mockRestore(),
+      };
+    };
+
     it('방향키로 선택 셀을 이동하고 가장자리에서는 더 이동하지 않는다', () => {
       const t = create();
       t.click(0, 'name');
@@ -153,6 +173,248 @@ describe('사용자 입력', () => {
       t.press('ArrowLeft');
       t.press('ArrowLeft');
       expect(t.start().col).toBe(t.col('id'));
+    });
+
+    it('rowSpan 병합 셀은 블록 단위로 상하 이동하고 좌우 이동 시 Excel처럼 원래 행으로 복귀한다', () => {
+      const groups = ['A', 'A', 'A', 'B', 'B', 'C'];
+      const t = create({
+        rowSpanFields: ['grp'],
+        fields: [
+          { name: 'id', width: 80 },
+          { name: 'grp', width: 80 },
+          { name: 'name', width: 120 },
+        ],
+        items: rows().map((row, i) => ({ ...row, grp: groups[i] })),
+      });
+
+      t.click(1, 'name');
+      t.press('ArrowLeft');
+      expect(t.start()).toEqual({ row: 0, col: t.col('grp') });
+      t.press('ArrowRight');
+      expect(t.start()).toEqual({ row: 1, col: t.col('name') });
+
+      t.press('ArrowLeft');
+      t.press('ArrowDown');
+      expect(t.start()).toEqual({ row: 3, col: t.col('grp') });
+      t.press('ArrowDown');
+      expect(t.start().row).toBe(5);
+      t.press('ArrowDown');
+      expect(t.start().row).toBe(5);
+      t.press('ArrowUp');
+      expect(t.start().row).toBe(3);
+      t.press('ArrowUp');
+      expect(t.start().row).toBe(0);
+
+      // 상하 이동 후에는 기준 행이 새 위치로 바뀐다.
+      t.press('ArrowRight');
+      expect(t.start()).toEqual({ row: 0, col: t.col('name') });
+    });
+
+    it('좌우 이동으로 화면 밖 기준 행에 복귀하면 그 행이 보이도록 세로 스크롤한다', () => {
+      const frames = mockAnimationFrames();
+
+      try {
+        const t = create({
+          rowSpanFields: ['grp'],
+          fields: [
+            { name: 'grp', width: 80 },
+            { name: 'name', width: 120 },
+          ],
+          items: rows(60).map((row, i) => ({ ...row, grp: i < 40 ? 'A' : 'B' })),
+        });
+        frames.flush();
+        const press = (code: string) => {
+          t.press(code);
+          frames.flush();
+        };
+        const scroll = t.cfg.scroll;
+        const insideViewRow = scroll.insideViewRow;
+        expect(insideViewRow).toBeGreaterThan(1);
+
+        t.click(0, 'name');
+        frames.flush();
+        for (let i = 0; i < insideViewRow; i++) press('ArrowDown');
+        expect(t.start().row).toBe(insideViewRow);
+        expect(scroll.startIdx).toBe(1);
+
+        // 병합 셀(블록 시작 0행)로 이동하면 위로 스크롤된다.
+        press('ArrowLeft');
+        expect(t.start()).toEqual({ row: 0, col: t.col('grp') });
+        expect(scroll.startIdx).toBe(0);
+
+        // 기준 행(insideViewRow)은 온전히 보이는 범위 바로 아래이므로 다시 스크롤되어야 한다.
+        press('ArrowRight');
+        expect(t.start()).toEqual({ row: insideViewRow, col: t.col('name') });
+        expect(scroll.startIdx).toBe(1);
+      } finally {
+        frames.restore();
+      }
+    });
+
+    describe('병합 블록으로 아래 이동 시 블록이 최대한 보이도록 스크롤', () => {
+      const spanFields = [
+        { name: 'grp', width: 80 },
+        { name: 'name', width: 120 },
+      ];
+      const createSpanGrid = (groupOf: (rowIdx: number, insideViewRow: number) => string, count = 90) => {
+        // 같은 크기 그리드에서 온전히 보이는 행 수를 먼저 구해 데이터를 만든다.
+        const insideViewRow = create({ rowSpanFields: ['grp'], fields: spanFields, items: rows(count) }).cfg.scroll
+          .insideViewRow;
+        const t = create({
+          rowSpanFields: ['grp'],
+          fields: spanFields,
+          items: rows(count).map((row, i) => ({ ...row, grp: groupOf(i, insideViewRow) })),
+        });
+        return { t, insideViewRow };
+      };
+
+      it('블록이 화면보다 짧으면 블록 끝을 화면 맨 아래에 맞춘다', () => {
+        const frames = mockAnimationFrames();
+        try {
+          // 0 ~ insideViewRow-1 은 단독 행, 그 다음부터 3행씩 병합
+          const { t, insideViewRow } = createSpanGrid((i, ivr) => (i < ivr ? `u${i}` : `g${Math.floor((i - ivr) / 3)}`));
+          frames.flush();
+          t.click(insideViewRow - 1, 'grp');
+          t.press('ArrowDown');
+          frames.flush();
+
+          expect(t.start()).toEqual({ row: insideViewRow, col: t.col('grp') });
+          // 블록(insideViewRow ~ insideViewRow+2) 끝이 화면 마지막 온전한 행
+          expect(t.cfg.scroll.startIdx).toBe(insideViewRow + 2 - (insideViewRow - 1));
+        } finally {
+          frames.restore();
+        }
+      });
+
+      it('블록이 화면보다 길면 블록 시작을 화면 맨 위에 맞춘다', () => {
+        const frames = mockAnimationFrames();
+        try {
+          const { t, insideViewRow } = createSpanGrid((i, ivr) => `g${Math.floor(i / (ivr + 5))}`);
+          frames.flush();
+          const blockSize = insideViewRow + 5;
+          t.click(0, 'grp');
+          t.press('ArrowDown');
+          frames.flush();
+
+          expect(t.start()).toEqual({ row: blockSize, col: t.col('grp') });
+          expect(t.cfg.scroll.startIdx).toBe(blockSize);
+        } finally {
+          frames.restore();
+        }
+      });
+
+      it('블록 시작이 보여도 블록이 화면 아래로 넘치면 블록 전체가 보이도록 스크롤한다', () => {
+        const frames = mockAnimationFrames();
+        try {
+          // 마지막 온전한 행(insideViewRow-1)에서 3행 병합 블록이 시작된다.
+          const { t, insideViewRow } = createSpanGrid((i, ivr) =>
+            i < ivr - 1 ? `u${i}` : `g${Math.floor((i - (ivr - 1)) / 3)}`,
+          );
+          frames.flush();
+          t.click(insideViewRow - 2, 'grp');
+          t.press('ArrowDown');
+          frames.flush();
+
+          expect(t.start()).toEqual({ row: insideViewRow - 1, col: t.col('grp') });
+          expect(t.cfg.scroll.startIdx).toBe(2);
+        } finally {
+          frames.restore();
+        }
+      });
+
+      it('병합되지 않은 열과 좌우 이동은 블록이 넘쳐도 스크롤하지 않는다', () => {
+        const frames = mockAnimationFrames();
+        try {
+          const { t, insideViewRow } = createSpanGrid((i, ivr) =>
+            i < ivr - 1 ? `u${i}` : `g${Math.floor((i - (ivr - 1)) / 3)}`,
+          );
+          frames.flush();
+          t.click(insideViewRow - 2, 'name');
+          t.press('ArrowDown');
+          frames.flush();
+          expect(t.start()).toEqual({ row: insideViewRow - 1, col: t.col('name') });
+          expect(t.cfg.scroll.startIdx).toBe(0);
+
+          t.press('ArrowLeft');
+          frames.flush();
+          expect(t.start()).toEqual({ row: insideViewRow - 1, col: t.col('grp') });
+          expect(t.cfg.scroll.startIdx).toBe(0);
+        } finally {
+          frames.restore();
+        }
+      });
+    });
+
+    it('여러 단계 그룹 소계와 병합: 상위 병합 셀은 하위 소계 행까지 이어지고 키보드는 블록 단위로 이동한다', () => {
+      const t = create({
+        groupingFields: ['grp', 'sub'],
+        rowSpanFields: ['grp', 'sub'],
+        groupSummaryFields: [{ field: 'qty', expression: 'sum' }],
+        fields: [
+          { name: 'grp', width: 80 },
+          { name: 'sub', width: 80 },
+          { name: 'qty', width: 100 },
+        ],
+        items: [
+          { id: 1, grp: 'A', sub: 'x', qty: 1 },
+          { id: 2, grp: 'A', sub: 'x', qty: 2 },
+          { id: 3, grp: 'A', sub: 'y', qty: 3 },
+          { id: 4, grp: 'B', sub: 'x', qty: 4 },
+        ],
+      });
+      // 행: A x, A x, x합계, A y, y합계, A합계, B x, x합계, B합계, 총계
+      expect(t.cfg.scroll.insideViewRow).toBeGreaterThanOrEqual(10);
+
+      const grpCell = t.cell(0, 'grp') as HTMLTableCellElement;
+      expect(grpCell.rowSpan).toBe(5);
+      expect(grpCell.textContent).toContain('A');
+      // 블록 안 하위 소계 행의 grp 칸은 병합 셀에 가려진다.
+      expect(t.cell(2, 'grp').style.display).toBe('none');
+      expect(t.cell(4, 'grp').style.display).toBe('none');
+      // 자기 단계 소계(A합계)는 별도 셀로 라벨을 표시한다.
+      expect(t.cell(5, 'grp').style.display).not.toBe('none');
+      expect(t.cell(5, 'grp').textContent).toContain('A 합계');
+      expect((t.cell(6, 'grp') as HTMLTableCellElement).rowSpan).toBe(2);
+      expect((t.cell(0, 'sub') as HTMLTableCellElement).rowSpan).toBe(2);
+
+      t.click(0, 'grp');
+      t.press('ArrowDown');
+      expect(t.start()).toEqual({ row: 5, col: t.col('grp') });
+      t.press('ArrowDown');
+      expect(t.start().row).toBe(6);
+      t.press('ArrowUp');
+      expect(t.start().row).toBe(5);
+      t.press('ArrowUp');
+      expect(t.start().row).toBe(0);
+
+      // 하위 소계 행(x합계)에서 grp 열로 이동하면 병합 블록 시작으로 맞춘다.
+      t.click(2, 'qty');
+      t.press('ArrowLeft');
+      t.press('ArrowLeft');
+      expect(t.start()).toEqual({ row: 0, col: t.col('grp') });
+    });
+
+    it('rowSpan 병합은 온전히 보이는 행까지만 하고 일부만 보이는 마지막 행은 별도 셀로 그린다', () => {
+      const t = create({
+        height: 333,
+        rowSpanFields: ['grp'],
+        fields: [
+          { name: 'grp', width: 80 },
+          { name: 'name', width: 120 },
+        ],
+        items: rows(60).map((row) => ({ ...row, grp: 'A' })),
+      });
+      const { insideViewRow, viewRow } = t.cfg.scroll;
+      // 일부만 보이는 행이 있는 높이인지 확인
+      expect(viewRow).toBe(insideViewRow + 1);
+
+      const first = t.cell(0, 'grp') as HTMLTableCellElement;
+      const partial = t.cell(insideViewRow, 'grp') as HTMLTableCellElement;
+      expect(first.rowSpan).toBe(insideViewRow);
+      expect(t.cell(insideViewRow - 1, 'grp').style.display).toBe('none');
+      expect(partial.style.display).not.toBe('none');
+      expect(partial.rowSpan).toBe(1);
+      expect(partial.textContent).toContain('A');
     });
 
     it('Home·End는 첫·마지막 열로, Ctrl+방향키는 첫·마지막 행으로 이동한다', () => {

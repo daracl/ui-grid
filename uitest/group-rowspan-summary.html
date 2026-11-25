@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <link rel="stylesheet" href="./asset/examples.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>그룹 셀 병합 + 합계</title>
+  <style>
+    #sample {
+      width: 100%;
+      height: 420px;
+    }
+  </style>
+</head>
+
+<body class="example-page">
+  <header class="page-header"><div><a href="./index.html">DaraGrid / UI 테스트</a><h1>그룹 셀 병합 + 합계</h1></div><a href="./builder/builder.html">그리드 빌더 →</a></header>
+  <section class="example-content" aria-label="예제 미리보기">
+  <p>100 detail rows | Merge partNo and partName cells, and show quantity subtotals for each partName and partNo plus a grand total.</p>
+  <p>
+    <button type="button" data-export="excel">Export Excel</button>
+    <button type="button" data-export="pdf">Export PDF</button>
+    <button type="button" data-export="csv">Export CSV</button>
+    <button type="button" data-export="json">Export JSON</button>
+    <span id="export-status" role="status" aria-live="polite"></span>
+  </p>
+  <div id="sample"></div>
+  <script type="module" src="./asset/pages/group-rowspan-summary.js"></script>
+  </section>
+</body>
+
+</html>

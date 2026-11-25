@@ -141,6 +141,95 @@ describe('PdfConverter', () => {
     }
   });
 
+  describe('본문 셀 병합(bodyMerges)', () => {
+    const mergedData = (count: number) => ({
+      columns: [
+        { name: 'group', label: 'Group' },
+        { name: 'value', label: 'Value' },
+      ],
+      rows: Array.from({ length: count }, (_, index) => ['G', `v${index}`]),
+      bodyMerges: [{ row: 0, column: 0, rowSpan: count }],
+    });
+
+    it('병합 셀 값은 한 번만 그리고 병합 구간 세로 가운데에 놓는다', async () => {
+      const text = jest.spyOn(PDFDocument.prototype, 'text');
+      try {
+        await new PdfConverter().convert(mergedData(4), {
+          pageSize: [300, 400],
+          orientation: 'portrait',
+          margin: 20,
+          fontName: 'Helvetica',
+        });
+        const groupCalls = text.mock.calls.filter(([value]) => value === 'G');
+        const firstValue = text.mock.calls.find(([value]) => value === 'v0');
+        const lastValue = text.mock.calls.find(([value]) => value === 'v3');
+        expect(groupCalls).toHaveLength(1);
+        // 첫 행과 마지막 행 사이(세로 가운데)에 그린다.
+        expect(Number(groupCalls[0][2])).toBeGreaterThan(Number(firstValue?.[2]));
+        expect(Number(groupCalls[0][2])).toBeLessThan(Number(lastValue?.[2]));
+      } finally {
+        text.mockRestore();
+      }
+    });
+
+    it('페이지가 나뉘면 페이지마다 병합 셀 값을 다시 그린다', async () => {
+      const text = jest.spyOn(PDFDocument.prototype, 'text');
+      try {
+        const blob = await new PdfConverter().convert(mergedData(30), {
+          pageSize: [240, 240],
+          orientation: 'portrait',
+          margin: 20,
+          fontName: 'Helvetica',
+        });
+        const pdf = Buffer.from(await blob.arrayBuffer()).toString('latin1');
+        const pages = (pdf.match(/\/Type \/Page\b/g) ?? []).length;
+        expect(pages).toBeGreaterThan(1);
+        expect(text.mock.calls.filter(([value]) => value === 'G')).toHaveLength(pages);
+        expect(text.mock.calls.filter(([value]) => /^v\d+$/.test(String(value)))).toHaveLength(30);
+      } finally {
+        text.mockRestore();
+      }
+    });
+
+    it('mergeCells: false이면 병합하지 않고 행마다 값을 그린다', async () => {
+      const text = jest.spyOn(PDFDocument.prototype, 'text');
+      try {
+        await new PdfConverter().convert(mergedData(4), {
+          pageSize: [300, 400],
+          orientation: 'portrait',
+          margin: 20,
+          fontName: 'Helvetica',
+          mergeCells: false,
+        });
+        expect(text.mock.calls.filter(([value]) => value === 'G')).toHaveLength(4);
+      } finally {
+        text.mockRestore();
+      }
+    });
+
+    it('병합 내부의 가로 테두리는 그리지 않는다', async () => {
+      const moveTo = jest.spyOn(PDFDocument.prototype, 'moveTo');
+      const lineTo = jest.spyOn(PDFDocument.prototype, 'lineTo');
+      try {
+        await new PdfConverter().convert(mergedData(4), {
+          pageSize: [300, 400],
+          orientation: 'portrait',
+          margin: 20,
+          fontName: 'Helvetica',
+        });
+        // 첫 컬럼(x 20 ~ 열 너비)의 가로선: 헤더 아래 1개 + 병합 구간 아래 1개만 있어야 한다.
+        const horizontalInFirstColumn = moveTo.mock.calls.filter(([x, y], index) => {
+          const end = lineTo.mock.calls[index];
+          return x === 20 && end && end[1] === y && Number(end[0]) > 20;
+        });
+        expect(horizontalInFirstColumn).toHaveLength(2);
+      } finally {
+        moveTo.mockRestore();
+        lineTo.mockRestore();
+      }
+    });
+  });
+
   it('keeps configured column proportions and applies text alignment and color', async () => {
     const text = jest.spyOn(PDFDocument.prototype, 'text');
     const rect = jest.spyOn(PDFDocument.prototype, 'rect');

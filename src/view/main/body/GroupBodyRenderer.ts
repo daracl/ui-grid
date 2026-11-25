@@ -2,6 +2,8 @@ import { getGroupSummaryFields, getGroupSummaries, getSummaryField, formatSummar
 import { BodyCellStyleMap, LINE_NUMBER_NAME } from '@/constants';
 import { ViewItem } from '@/types/Common';
 import { CellInfo } from '@t/GridConfig';
+import { getFieldRegion } from '@/util/gridUtils';
+import { getRowSpanEnd, getRowSpanKeys } from '@/util/rowSpanUtils';
 import { BodyRenderer } from './BodyRenderer';
 
 export class GroupBodyRenderer extends BodyRenderer {
@@ -23,6 +25,8 @@ export class GroupBodyRenderer extends BodyRenderer {
     const startIdx = cfg.scroll.startIdx;
     const visibleRowCount = Math.min(cfg.scroll.viewRow, cfg.dataInfo.rowLength - startIdx);
     const fields = groupingFields.map((name) => cfg.currentFields.find((field) => field.name === name));
+    // 셀 병합 필드는 병합 셀이 반복 값을 대신 숨기므로 값을 지우지 않는다(병합 셀 첫 칸이 빈칸이 되는 것 방지).
+    const rowSpanFieldNames = new Set(this.context.gridMain.options().rowSpanFields ?? []);
     let previousDataItem: any;
 
     for (let rowIndex = 0; rowIndex < visibleRowCount; rowIndex++) {
@@ -36,11 +40,7 @@ export class GroupBodyRenderer extends BodyRenderer {
           continue;
         }
 
-        const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-          ? 'left'
-          : cfg.fieldHeaderGroup.leafRight.includes(field)
-            ? 'right'
-            : 'center';
+        const region = getFieldRegion(cfg, field);
         this.context.allCellElements[region]?.[rowIndex]?.[field.$colSeq]?.classList.remove('dg-group-continuation');
       }
 
@@ -52,15 +52,11 @@ export class GroupBodyRenderer extends BodyRenderer {
             .slice(0, fieldIndex + 1)
             .every((groupField) => groupField && Object.is(item[groupField.name], previousDataItem[groupField.name]));
 
-          if (!field || !sameGroup) {
+          if (!field || !sameGroup || rowSpanFieldNames.has(field.name)) {
             continue;
           }
 
-          const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-            ? 'left'
-            : cfg.fieldHeaderGroup.leafRight.includes(field)
-              ? 'right'
-              : 'center';
+          const region = getFieldRegion(cfg, field);
           const cell = this.context.allCellElements[region]?.[rowIndex]?.[field.$colSeq];
           if (cell) {
             (cell.firstElementChild as HTMLElement).textContent = '';
@@ -79,11 +75,7 @@ export class GroupBodyRenderer extends BodyRenderer {
           continue;
         }
 
-        const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-          ? 'left'
-          : cfg.fieldHeaderGroup.leafRight.includes(field)
-            ? 'right'
-            : 'center';
+        const region = getFieldRegion(cfg, field);
         this.context.allCellElements[region]?.[lastVisibleRowIndex]?.[field.$colSeq]?.classList.remove(
           'dg-group-continuation',
         );
@@ -109,11 +101,7 @@ export class GroupBodyRenderer extends BodyRenderer {
       .filter((field): field is (typeof cfg.currentFields)[number] => field !== undefined);
 
     for (const field of fields) {
-      const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-        ? 'left'
-        : cfg.fieldHeaderGroup.leafRight.includes(field)
-        ? 'right'
-        : 'center';
+      const region = getFieldRegion(cfg, field);
       const colIndex = field.$colSeq;
       const cells = Array.from(
         { length: visibleRowCount },
@@ -128,43 +116,23 @@ export class GroupBodyRenderer extends BodyRenderer {
       }
     }
 
-    for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-      const field = fields[fieldIndex];
-      const region = cfg.fieldHeaderGroup.leafLeft.includes(field)
-        ? 'left'
-        : cfg.fieldHeaderGroup.leafRight.includes(field)
-        ? 'right'
-        : 'center';
+    const getRowItem = (rowId: ViewItem['id']) => dataManager.getRowItem(rowId);
+    const groupingFields = options.groupingFields ?? [];
+    // 병합은 온전히 보이는 행까지만 한다. 일부만 보이는 마지막 행은 별도 셀로 그려
+    // 병합 셀의 세로 가운데 글자가 보이는 영역 밖으로 밀려 잘리지 않게 한다.
+    const mergeEndIdx = startIdx + Math.min(visibleRowCount, cfg.scroll.insideViewRow);
+
+    for (const field of fields) {
+      const region = getFieldRegion(cfg, field);
       const colIndex = field.$colSeq;
+      const keys = getRowSpanKeys(rowSpanFields, field.name);
       let rowIndex = 0;
 
       while (rowIndex < visibleRowCount) {
-        const viewItem = viewItems[startIdx + rowIndex];
-        if (!viewItem || viewItem.groupRowType) {
-          rowIndex++;
-          continue;
-        }
-
-        const item = dataManager.getRowItem(viewItem.id);
-        let span = 1;
-
-        while (rowIndex + span < visibleRowCount) {
-          const nextViewItem = viewItems[startIdx + rowIndex + span];
-          if (!nextViewItem || nextViewItem.groupRowType) {
-            break;
-          }
-
-          const nextItem = dataManager.getRowItem(nextViewItem.id);
-          const sameGroup = fields.slice(0, fieldIndex + 1).every((groupField) => {
-            return Object.is(item[groupField.name], nextItem[groupField.name]);
-          });
-
-          if (!sameGroup) {
-            break;
-          }
-
-          span++;
-        }
+        // 화면에 보이는 범위 안에서만 병합한다(상단에서 잘린 블록은 첫 표시 행부터 다시 병합).
+        // mergeEndIdx 이후 행은 getRowSpanEnd가 rowIdx + 1을 반환하므로 단독 셀이 된다.
+        const rowIdx = startIdx + rowIndex;
+        const span = getRowSpanEnd(viewItems, getRowItem, keys, rowIdx, mergeEndIdx, groupingFields) - rowIdx;
 
         if (span > 1) {
           const firstCell = cellElements[region]?.[rowIndex]?.[colIndex];
@@ -214,15 +182,7 @@ export class GroupBodyRenderer extends BodyRenderer {
 
     for (const field of cfg.currentFields) {
       const colIndex = field.$colSeq;
-      let cell: HTMLElement | undefined;
-
-      if (cfg.fieldHeaderGroup.leafLeft.includes(field)) {
-        cell = cellElements.left?.[rowIndex]?.[colIndex];
-      } else if (cfg.fieldHeaderGroup.leafRight.includes(field)) {
-        cell = cellElements.right?.[rowIndex]?.[colIndex];
-      } else {
-        cell = cellElements.center?.[rowIndex]?.[colIndex];
-      }
+      const cell: HTMLElement | undefined = cellElements[getFieldRegion(cfg, field)]?.[rowIndex]?.[colIndex];
 
       if (!cell) {
         continue;

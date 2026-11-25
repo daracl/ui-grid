@@ -4,6 +4,7 @@ import type { PdfHeaderCell } from '../pdf/PdfConverter';
 import { GroupPdfRenderer } from '../pdf/GroupPdfRenderer';
 import { SimplePdfRenderer } from '../pdf/SimplePdfRenderer';
 import type { TreeViewItem } from '@/types/Common';
+import { getRowSpanMerges } from '@/util/rowSpanUtils';
 
 export interface ExcelRendererContext extends PdfRendererContext {
   rowHeight?: number;
@@ -68,36 +69,18 @@ export function createExcelData(context: ExcelRendererContext, rowSpanFields: st
       if (chart) rows[row][column] = '';
     }),
   );
-  rowSpanFields.forEach((name, level) => {
-    const column = context.fields.findIndex((field) => field.name === name);
-    if (column < 0) return;
-    for (let start = 0; start < context.viewItems.length; ) {
-      const first = context.viewItems[start];
-      if (first.groupRowType) {
-        start++;
-        continue;
+  getRowSpanMerges(context.viewItems, context.getRowItem, rowSpanFields, context.groupingFields).forEach(
+    ({ field: name, start, end }) => {
+      const column = context.fields.findIndex((field) => field.name === name);
+      if (column < 0) return;
+      const letter = columnName(column + offset);
+      merges.push(`${letter}${start + 2}:${letter}${end + 2}`);
+      for (let index = start + 1; index <= end; index++) {
+        rows[index][column + offset] = '';
+        if (table.cellCharts?.[index]) table.cellCharts[index][column + offset] = undefined;
       }
-      const item = context.getRowItem(first.id);
-      let end = start + 1;
-      while (
-        end < context.viewItems.length &&
-        !context.viewItems[end].groupRowType &&
-        rowSpanFields
-          .slice(0, level + 1)
-          .every((key) => Object.is(item[key], context.getRowItem(context.viewItems[end].id)[key]))
-      )
-        end++;
-      if (end - start > 1) {
-        const letter = columnName(column + offset);
-        merges.push(`${letter}${start + 2}:${letter}${end + 1}`);
-        for (let index = start + 1; index < end; index++) {
-          rows[index][column + offset] = '';
-          if (table.cellCharts?.[index]) table.cellCharts[index][column + offset] = undefined;
-        }
-      }
-      start = end;
-    }
-  });
+    },
+  );
   return {
     ...table,
     rows,

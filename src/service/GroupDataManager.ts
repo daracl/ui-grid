@@ -10,6 +10,8 @@ import { getSummaryField, calculateGroupSummary, getGroupSummaries, getGroupSumm
 export class GroupDataManager extends ListDataManager {
   private readonly groupRows = new Map<RowId, any>();
   private sourceViewItems: ViewItem[] = [];
+  /** 그룹 행 id 충돌 검사용 원본 행 id 집합(소계 행마다 원본 전체를 훑지 않도록 setViewItems에서 한 번 만든다). */
+  private sourceIds = new Set<RowId>();
   private groupRowId = 0;
   private historyBatchDepth = 0;
   private groupingRefreshPending = false;
@@ -21,6 +23,7 @@ export class GroupDataManager extends ListDataManager {
   public setViewItems(items: ViewItem[]): void {
     const dataItems = items.filter((item) => !item.groupRowType);
     this.sourceViewItems = dataItems;
+    this.sourceIds = new Set(dataItems.map((item) => item.id));
     const groupFields = this.opts.groupingFields ?? [];
 
     this.groupRows.clear();
@@ -57,19 +60,21 @@ export class GroupDataManager extends ListDataManager {
           appendGroups(groupRows, fieldIndex + 1, currentGroupValues);
         } else {
           groupedItems.push(...groupRows.map(({ viewItem }) => viewItem));
+        }
 
-          if ((this.opts.showGroupSummary) !== false && getGroupSummaries(this.opts).length > 0) {
-            groupedItems.push(
-              this.createGroupRow({
-                groupRowType: 'groupSummary',
-                groupDepth: fieldIndex,
-                groupField: fieldName,
-                groupValue: value,
-                groupValues: currentGroupValues,
-                groupSums: this.sumRows(groupRows),
-              }),
-            );
-          }
+        // groupingFields 단계마다 하위 그룹 뒤에 소계 행을 추가한다(안쪽 단계 소계 → 바깥 단계 소계 순).
+        // 집계는 하위 소계가 아니라 그룹에 속한 원본 데이터 행 전체로 계산한다.
+        if (this.opts.showGroupSummary !== false && getGroupSummaries(this.opts).length > 0) {
+          groupedItems.push(
+            this.createGroupRow({
+              groupRowType: 'groupSummary',
+              groupDepth: fieldIndex,
+              groupField: fieldName,
+              groupValue: value,
+              groupValues: currentGroupValues,
+              groupSums: this.sumRows(groupRows),
+            }),
+          );
         }
       }
     };
@@ -210,7 +215,7 @@ export class GroupDataManager extends ListDataManager {
     let id: string;
     do {
       id = `dg$group$${++this.groupRowId}`;
-    } while (this.sourceViewItems.some((item) => item.id === id));
+    } while (this.sourceIds.has(id));
 
     const viewItem: ViewItem = {
       id,

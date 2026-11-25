@@ -69,7 +69,7 @@ describe('GroupDataManager', () => {
     manager.setItems([{ id: '4', category: 'C', price: 5 }]);
     expect(summaries()).toEqual([]);
   });
-  it('keeps detail rows together and adds leaf-group subtotals and a grand total', () => {
+  it('keeps detail rows together and adds subtotals for every grouping level and a grand total', () => {
     const config = {
       rowHeight: 24,
       rowIdField: 'id',
@@ -101,13 +101,16 @@ describe('GroupDataManager', () => {
     const subtotalRows = viewItems.filter((item) => item.groupRowType === 'groupSummary');
     const grandTotal = viewItems.find((item) => item.groupRowType === 'grandSummary');
 
+    // 안쪽(product) 소계 다음에 바깥(country) 소계가 온다.
     expect(viewItems.map((item) => item.groupRowType)).toEqual([
       undefined,
       undefined,
       'groupSummary',
       undefined,
       'groupSummary',
+      'groupSummary',
       undefined,
+      'groupSummary',
       'groupSummary',
       'grandSummary',
     ]);
@@ -117,8 +120,11 @@ describe('GroupDataManager', () => {
     ).toEqual([
       ['product', 'A', 12],
       ['product', 'B', 2],
+      ['country', 'KR', 14],
       ['product', 'C', 4],
+      ['country', 'US', 4],
     ]);
+    expect(subtotalRows.map((item) => item.groupDepth)).toEqual([1, 1, 0, 1, 0]);
     expect(grandTotal?.groupSums?.amount).toBe(18);
     expect(manager.convertViewItemsToRowItems()).toHaveLength(4);
 
